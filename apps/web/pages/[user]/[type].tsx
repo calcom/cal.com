@@ -3,7 +3,9 @@ import { z } from "zod";
 
 import type { LocationObject } from "@calcom/app-store/locations";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { User } from "@calcom/prisma/client";
 
 import { isBrandingHidden } from "@lib/isBrandingHidden";
@@ -18,12 +20,12 @@ export default function Type(props: AvailabilityPageProps) {
   const { t } = useLocale();
 
   return props.away ? (
-    <div className="h-screen dark:bg-gray-900">
+    <div className="dark:bg-inverted h-screen">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
           <div className="overflow-hidden rounded-sm border dark:border-gray-900">
-            <div className="p-8 text-center text-gray-400 dark:text-white">
-              <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">
+            <div className="text-muted dark:text-inverted p-8 text-center">
+              <h2 className="font-cal dark:text-inverted text-emphasis600 mb-2 text-3xl">
                 😴{" " + t("user_away")}
               </h2>
               <p className="mx-auto max-w-md">{t("user_away_description")}</p>
@@ -37,8 +39,8 @@ export default function Type(props: AvailabilityPageProps) {
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
           <div className="overflow-hidden rounded-sm border dark:border-gray-900">
-            <div className="p-8 text-center text-gray-400 dark:text-white">
-              <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">
+            <div className="text-muted dark:text-inverted p-8 text-center">
+              <h2 className="font-cal dark:text-inverted text-emphasis600 mb-2 text-3xl">
                 {" " + t("unavailable")}
               </h2>
               <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled")}</p>
@@ -52,12 +54,9 @@ export default function Type(props: AvailabilityPageProps) {
   );
 }
 
-Type.isThemeSupported = true;
-
 const paramsSchema = z.object({ type: z.string(), user: z.string() });
 async function getUserPageProps(context: GetStaticPropsContext) {
   // load server side dependencies
-  const MarkdownIt = await import("markdown-it").then((mod) => mod.default);
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const { privacyFilteredLocations } = await import("@calcom/app-store/locations");
   const { parseRecurringEvent } = await import("@calcom/lib/isRecurringEvent");
@@ -69,7 +68,8 @@ async function getUserPageProps(context: GetStaticPropsContext) {
 
   const user = await prisma.user.findUnique({
     where: {
-      username,
+      /** TODO: We should standarize this */
+      username: username.toLowerCase().replace(/( |%20)/g, "+"),
     },
     select: {
       id: true,
@@ -82,6 +82,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       weekStart: true,
       brandColor: true,
       darkBrandColor: true,
+      metadata: true,
       eventTypes: {
         where: {
           // Many-to-many relationship causes inclusion of the team events - cool -
@@ -120,15 +121,6 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       },
     },
   });
-
-  const md = new MarkdownIt("zero").enable([
-    //
-    "emphasis",
-    "list",
-    "newline",
-    "strikethrough",
-  ]);
-
   if (!user || !user.eventTypes.length) return { notFound: true };
 
   const [eventType]: ((typeof user.eventTypes)[number] & {
@@ -155,9 +147,9 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     locations: privacyFilteredLocations(locations),
-    descriptionAsSafeHTML: eventType.description ? md.render(eventType.description) : null,
+    descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
   });
-  // Check if the user you are logging into has any active teams
+  // Check if the user you are logging into has any active teams or premium user name
   const hasActiveTeam =
     user.teams.filter((m) => {
       if (!IS_TEAM_BILLING_ENABLED) return true;
@@ -165,6 +157,8 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       if (metadata.success && metadata.data?.subscriptionId) return true;
       return false;
     }).length > 0;
+
+  const hasPremiumUserName = hasKeyInMetadata(user, "isPremium");
 
   return {
     props: {
@@ -182,7 +176,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       away: user?.away,
       isDynamic: false,
       trpcState: ssg.dehydrate(),
-      isBrandingHidden: isBrandingHidden(user.hideBranding, hasActiveTeam),
+      isBrandingHidden: isBrandingHidden(user.hideBranding, hasActiveTeam || hasPremiumUserName),
     },
     revalidate: 10, // seconds
   };

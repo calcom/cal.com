@@ -6,7 +6,7 @@ import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui";
-import { FiCheckSquare, FiClock, FiInfo } from "@calcom/ui/components/icon";
+import { FiCheckSquare, FiClock } from "@calcom/ui/components/icon";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
@@ -46,14 +46,16 @@ const BookingDescription: FC<Props> = (props) => {
   const { profile, eventType, isBookingPage = false, children } = props;
   const { date: bookingDate } = useRouterQuery("date");
   const { t } = useLocale();
-  const { duration = eventType.length.toString(), setQuery: setDuration } = useRouterQuery("duration");
+  const { duration, setQuery: setDuration } = useRouterQuery("duration");
 
   useEffect(() => {
     if (
-      eventType.metadata?.multipleDuration &&
-      !eventType.metadata?.multipleDuration?.includes(Number(duration))
+      !duration ||
+      isNaN(Number(duration)) ||
+      (eventType.metadata?.multipleDuration &&
+        !eventType.metadata?.multipleDuration.includes(Number(duration)))
     ) {
-      setDuration(eventType.length.toString());
+      setDuration(eventType.length);
     }
   }, [duration, setDuration, eventType.length, eventType.metadata?.multipleDuration]);
 
@@ -81,38 +83,25 @@ const BookingDescription: FC<Props> = (props) => {
         size="sm"
         truncateAfter={3}
       />
-      <h2 className="mt-2 break-words text-sm font-medium text-gray-600 dark:text-gray-300">
-        {profile.name}
-      </h2>
-      <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl font-semibold text-gray-900">
+      <h2 className="text-default mt-1 mb-2 break-words text-sm font-medium ">{profile.name}</h2>
+      <h1 className="font-cal  text-emphasis mb-6 break-words text-2xl font-semibold leading-none">
         {eventType.title}
       </h1>
-      <div className="dark:text-darkgray-600 flex flex-col space-y-4 text-sm font-medium text-gray-600">
+      <div className=" text-default flex flex-col space-y-4 text-sm font-medium">
         {eventType?.description && (
           <div
             className={classNames(
-              "flex",
-              isBookingPage && "dark:text-darkgray-600 text-sm font-medium text-gray-600"
+              "scroll-bar scrollbar-track-w-20 -mx-5 flex max-h-[180px] overflow-y-scroll px-5 ",
+              isBookingPage && "text-default text-sm font-medium"
             )}>
-            <div>
-              <FiInfo
-                className={classNames(
-                  "ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]",
-                  isBookingPage && "dark:text-darkgray-600 -mt-1 text-gray-500"
-                )}
-              />
-            </div>
-            <div className="max-w-[calc(100%_-_2rem)] flex-shrink break-words">
+            {/* TODO: Fix colors when token is introdcued to DS */}
+            <div className="max-w-full flex-shrink break-words [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600">
               <EventTypeDescriptionSafeHTML eventType={eventType} />
             </div>
           </div>
         )}
         {requiresConfirmation && (
-          <div
-            className={classNames(
-              "items-top flex",
-              isBookingPage && "dark:text-darkgray-600 text-sm font-medium text-gray-600"
-            )}>
+          <div className={classNames("items-top flex", isBookingPage && "text-default text-sm font-medium")}>
             <div>
               <FiCheckSquare className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
             </div>
@@ -125,7 +114,7 @@ const BookingDescription: FC<Props> = (props) => {
         <div
           className={classNames(
             "flex flex-nowrap text-sm font-medium",
-            isBookingPage && "dark:text-darkgray-600 text-gray-600",
+            isBookingPage && "text-default",
             !eventType.metadata?.multipleDuration && "items-center"
           )}>
           <FiClock
@@ -141,11 +130,10 @@ const BookingDescription: FC<Props> = (props) => {
                   <li key={idx}>
                     <Badge
                       variant="gray"
-                      size="lg"
                       className={classNames(
                         duration === dur.toString()
                           ? "bg-darkgray-200 text-darkgray-900 dark:bg-darkmodebrand dark:!text-darkmodebrandcontrast"
-                          : "hover:bg-darkgray-200 dark:hover:bg-darkmodebrand hover:text-darkgray-900 dark:hover:text-darkmodebrandcontrast dark:bg-darkgray-200 bg-gray-200 text-gray-900 dark:text-white",
+                          : "hover:bg-darkgray-200 dark:hover:bg-darkmodebrand hover:text-darkgray-900 dark:hover:text-darkmodebrandcontrast dark:bg-darkgray-200 bg-emphasis text-emphasis dark:text-inverted",
                         "cursor-pointer"
                       )}
                       onClick={() => {

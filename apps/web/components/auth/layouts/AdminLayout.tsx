@@ -26,7 +26,7 @@ export default function AdminLayout({
   const isAppsPage = router.asPath.startsWith("/settings/admin/apps");
   return (
     <SettingsLayout {...rest}>
-      <div className="mx-auto flex max-w-4xl flex-row divide-y divide-gray-200">
+      <div className="divide-subtle mx-auto flex max-w-4xl flex-row divide-y">
         <div className={isAppsPage ? "min-w-0" : "flex flex-1 [&>*]:flex-1"}>
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>

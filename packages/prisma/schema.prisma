@@ -30,12 +30,13 @@ enum PeriodType {
 }
 
 model Host {
-  id          Int       @id @default(autoincrement())
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId Int
   isFixed     Boolean   @default(false)
+
+  @@id([userId, eventTypeId])
 }
 
 model EventType {
@@ -63,6 +64,8 @@ model EventType {
   destinationCalendar     DestinationCalendar?
   eventName               String?
   customInputs            EventTypeCustomInput[]
+  /// @zod.custom(imports.eventTypeBookingFields)
+  bookingFields           Json?
   timeZone                String?
   periodType              PeriodType              @default(UNLIMITED)
   periodStartDate         DateTime?
@@ -74,6 +77,7 @@ model EventType {
   recurringEvent          Json?
   disableGuests           Boolean                 @default(false)
   hideCalendarNotes       Boolean                 @default(false)
+  /// @zod.min(0)
   minimumBookingNotice    Int                     @default(120)
   beforeEventBuffer       Int                     @default(0)
   afterEventBuffer        Int                     @default(0)
@@ -92,8 +96,10 @@ model EventType {
   /// @zod.custom(imports.successRedirectUrl)
   successRedirectUrl      String?
   workflows               WorkflowsOnEventTypes[]
-  /// @zod.custom(imports.bookingLimitsType)
+  /// @zod.custom(imports.intervalLimitsType)
   bookingLimits           Json?
+  /// @zod.custom(imports.intervalLimitsType)
+  durationLimits          Json?
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -203,23 +209,25 @@ model User {
 }
 
 model Team {
-  id                  Int          @id @default(autoincrement())
+  id                  Int              @id @default(autoincrement())
   /// @zod.min(1)
   name                String
   /// @zod.min(1)
-  slug                String?      @unique
+  slug                String?          @unique
   logo                String?
   bio                 String?
-  hideBranding        Boolean      @default(false)
-  hideBookATeamMember Boolean      @default(false)
+  hideBranding        Boolean          @default(false)
+  hideBookATeamMember Boolean          @default(false)
   members             Membership[]
   eventTypes          EventType[]
-  createdAt           DateTime     @default(now())
+  workflows           Workflow[]
+  createdAt           DateTime         @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
   metadata            Json?
   theme               String?
-  brandColor          String       @default("#292929")
-  darkBrandColor      String       @default("#fafafa")
+  brandColor          String           @default("#292929")
+  darkBrandColor      String           @default("#fafafa")
+  verifiedNumbers     VerifiedNumber[]
 }
 
 enum MembershipRole {
@@ -268,13 +276,14 @@ model BookingReference {
 }
 
 model Attendee {
-  id        Int      @id @default(autoincrement())
-  email     String
-  name      String
-  timeZone  String
-  locale    String?  @default("en")
-  booking   Booking? @relation(fields: [bookingId], references: [id])
-  bookingId Int?
+  id          Int          @id @default(autoincrement())
+  email       String
+  name        String
+  timeZone    String
+  locale      String?      @default("en")
+  booking     Booking?     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId   Int?
+  bookingSeat BookingSeat?
 }
 
 enum BookingStatus {
@@ -287,7 +296,7 @@ enum BookingStatus {
 model Booking {
   id                    Int                  @id @default(autoincrement())
   uid                   String               @unique
-  user                  User?                @relation(fields: [userId], references: [id])
+  user                  User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                Int?
   references            BookingReference[]
   eventType             EventType?           @relation(fields: [eventTypeId], references: [id])
@@ -295,6 +304,8 @@ model Booking {
   title                 String
   description           String?
   customInputs          Json?
+  /// @zod.custom(imports.bookingResponses)
+  responses             Json?
   startTime             DateTime
   endTime               DateTime
   attendees             Attendee[]
@@ -316,6 +327,7 @@ model Booking {
   smsReminderNumber     String?
   workflowReminders     WorkflowReminder[]
   scheduledJobs         String[]
+  seatsReferences       BookingSeat[]
   /// @zod.custom(imports.bookingMetadataSchema)
   metadata              Json?
 }
@@ -598,8 +610,10 @@ model WorkflowStep {
 model Workflow {
   id       Int                     @id @default(autoincrement())
   name     String
-  userId   Int
-  user     User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   Int?
+  user     User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team     Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId   Int?
   activeOn WorkflowsOnEventTypes[]
   trigger  WorkflowTriggerEvents
   time     Int?
@@ -633,14 +647,14 @@ enum TimeUnit {
 
 model WorkflowReminder {
   id             Int             @id @default(autoincrement())
-  bookingUid     String
-  booking        Booking?        @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  bookingUid     String?
+  booking        Booking?        @relation(fields: [bookingUid], references: [uid])
   method         WorkflowMethods
   scheduledDate  DateTime
   referenceId    String?         @unique
   scheduled      Boolean
-  workflowStepId Int
-  workflowStep   WorkflowStep    @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
+  workflowStepId Int?
+  workflowStep   WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
   cancelled      Boolean?
 }
 
@@ -654,9 +668,46 @@ enum WorkflowMethods {
   SMS
 }
 
+model BookingSeat {
+  id           Int      @id @default(autoincrement())
+  referenceUid String   @unique
+  bookingId    Int
+  booking      Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  attendeeId   Int      @unique
+  attendee     Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  data         Json?
+}
+
 model VerifiedNumber {
   id          Int    @id @default(autoincrement())
-  userId      Int
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int?
+  user        User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId      Int?
+  team        Team?  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   phoneNumber String
+}
+
+model Feature {
+  // The feature slug, ex: 'v2-workflows'
+  slug        String       @id @unique
+  // If the feature is currently enabled
+  enabled     Boolean      @default(false)
+  // A short description of the feature
+  description String?
+  // The type of feature flag
+  type        FeatureType? @default(RELEASE)
+  // If the flag is considered stale
+  stale       Boolean?     @default(false)
+  lastUsedAt  DateTime?
+  createdAt   DateTime?    @default(now())
+  updatedAt   DateTime?    @default(now()) @updatedAt
+  updatedBy   Int?
+}
+
+enum FeatureType {
+  RELEASE
+  EXPERIMENT
+  OPERATIONAL
+  KILL_SWITCH
+  PERMISSION
 }

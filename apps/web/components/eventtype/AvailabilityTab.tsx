@@ -4,13 +4,15 @@ import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
 
 import dayjs from "@calcom/dayjs";
+import { NewScheduleButton } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Badge, Button, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
-import { FiExternalLink, FiGlobe } from "@calcom/ui/components/icon";
+import { Badge, Button, Select, SettingsToggle, SkeletonText, EmptyScreen } from "@calcom/ui";
+import { FiExternalLink, FiGlobe, FiClock } from "@calcom/ui/components/icon";
 
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 
@@ -52,22 +54,23 @@ const SingleValue = ({ ...props }: SingleValueProps<AvailabilityOption>) => {
 
 const AvailabilitySelect = ({
   className = "",
+  isLoading,
+  schedules,
   ...props
 }: {
   className?: string;
   name: string;
   value: number;
+  isLoading: boolean;
+  schedules: RouterOutputs["viewer"]["availability"]["list"]["schedules"] | [];
   onBlur: () => void;
   onChange: (value: AvailabilityOption | null) => void;
 }) => {
-  const { data, isLoading } = trpc.viewer.availability.list.useQuery();
   const { t } = useLocale();
 
   if (isLoading) {
     return <SelectSkeletonLoader />;
   }
-
-  const schedules = data?.schedules || [];
 
   const options = schedules.map((schedule) => ({
     value: schedule.id,
@@ -107,16 +110,17 @@ const EventTypeScheduleDetails = () => {
   const { watch } = useFormContext<FormValues>();
 
   const scheduleId = watch("schedule");
+
   const { isLoading, data: schedule } = trpc.viewer.availability.schedule.get.useQuery(
     { scheduleId: scheduleId || loggedInUser?.defaultScheduleId || undefined },
     { enabled: !!scheduleId || !!loggedInUser?.defaultScheduleId }
   );
 
   const filterDays = (dayNum: number) =>
-    schedule?.schedule.availability.filter((item) => item.days.includes((dayNum + 1) % 7)) || [];
+    schedule?.schedule.filter((item) => item.days.includes((dayNum + 1) % 7)) || [];
 
   return (
-    <div className="space-y-4 rounded border px-6 pb-4">
+    <div className="border-default space-y-4 rounded border px-6 pb-4">
       <ol className="table border-collapse text-sm">
         {weekdayNames(i18n.language, 1, "long").map((day, index) => {
           const isAvailable = !!filterDays(index).length;
@@ -124,8 +128,8 @@ const EventTypeScheduleDetails = () => {
             <li key={day} className="my-6 flex border-transparent last:mb-2">
               <span
                 className={classNames(
-                  "w-20 font-medium sm:w-32",
-                  !isAvailable && "text-gray-500 opacity-50"
+                  "w-20 font-medium sm:w-32 ",
+                  !isAvailable ? "text-subtle line-through" : "text-default"
                 )}>
                 {day}
               </span>
@@ -134,37 +138,39 @@ const EventTypeScheduleDetails = () => {
               ) : isAvailable ? (
                 <div className="space-y-3 text-right">
                   {filterDays(index).map((dayRange, i) => (
-                    <div key={i} className="flex items-center leading-4">
+                    <div key={i} className="text-default flex items-center leading-4">
                       <span className="w-16 sm:w-28 sm:text-left">
                         {format(dayRange.startTime, timeFormat === 12)}
                       </span>
-                      <span className="ltr:ml-4 rtl:mr-4">-</span>
+                      <span className="ms-4">-</span>
                       <div className="ml-6">{format(dayRange.endTime, timeFormat === 12)}</div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <span className="ml-6 text-gray-500 opacity-50 sm:ml-0">{t("unavailable")}</span>
+                <span className="text-subtle ml-6 sm:ml-0">{t("unavailable")}</span>
               )}
             </li>
           );
         })}
       </ol>
-      <hr />
+      <hr className="border-subtle" />
       <div className="flex flex-col justify-center gap-2 sm:flex-row sm:justify-between">
-        <span className="flex items-center justify-center text-sm text-gray-600 sm:justify-start">
+        <span className="text-default flex items-center justify-center text-sm sm:justify-start">
           <FiGlobe className="ltr:mr-2 rtl:ml-2" />
           {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
         </span>
-        <Button
-          href={`/availability/${schedule?.schedule.id}`}
-          disabled={isLoading}
-          color="minimal"
-          EndIcon={FiExternalLink}
-          target="_blank"
-          rel="noopener noreferrer">
-          {t("edit_availability")}
-        </Button>
+        {!!schedule?.id && (
+          <Button
+            href={`/availability/${schedule.id}`}
+            disabled={isLoading}
+            color="minimal"
+            EndIcon={FiExternalLink}
+            target="_blank"
+            rel="noopener noreferrer">
+            {t("edit_availability")}
+          </Button>
+        )}
       </div>
     </div>
   );
@@ -172,23 +178,40 @@ const EventTypeScheduleDetails = () => {
 
 const EventTypeSchedule = () => {
   const { t } = useLocale();
+  const { data: schedules, isLoading } = trpc.viewer.availability.list.useQuery();
+
+  if (!schedules?.schedules.length && !isLoading)
+    return (
+      <EmptyScreen
+        Icon={FiClock}
+        headline={t("new_schedule_heading")}
+        description={t("new_schedule_description")}
+        buttonRaw={<NewScheduleButton fromEventType />}
+        border={false}
+      />
+    );
+
   return (
     <div className="space-y-4">
       <div>
-        <label htmlFor="availability" className="mb-2 block text-sm font-medium leading-none text-gray-700">
+        <label htmlFor="availability" className="text-default mb-2 block text-sm font-medium leading-none">
           {t("availability")}
         </label>
         <Controller
           name="schedule"
           render={({ field }) => (
-            <AvailabilitySelect
-              value={field.value}
-              onBlur={field.onBlur}
-              name={field.name}
-              onChange={(selected) => {
-                field.onChange(selected?.value || null);
-              }}
-            />
+            <>
+              <AvailabilitySelect
+                value={field.value}
+                onBlur={field.onBlur}
+                name={field.name}
+                schedules={schedules?.schedules || []}
+                isLoading={isLoading}
+                onChange={(selected) => {
+                  field.onChange(selected?.value || null);
+                }}
+              />
+            </>
           )}
         />
       </div>

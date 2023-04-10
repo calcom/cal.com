@@ -1,16 +1,17 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { IdentityProvider } from "@prisma/client";
-import crypto from "crypto";
-import MarkdownIt from "markdown-it";
-import type { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
+import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { ErrorCode } from "@calcom/lib/auth";
+import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
@@ -42,15 +43,11 @@ import { FiAlertTriangle, FiTrash2 } from "@calcom/ui/components/icon";
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
-import { ssrInit } from "@server/lib/ssr";
-
-const md = new MarkdownIt("default", { html: true, breaks: true });
-
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="mt-6 mb-8 space-y-6 divide-y">
+      <div className="mt-6 mb-8 space-y-6">
         <div className="flex items-center">
           <SkeletonAvatar className="h-12 w-12 px-4" />
           <SkeletonButton className="h-6 w-32 rounded-md p-5" />
@@ -229,7 +226,7 @@ const ProfileView = () => {
         }
       />
 
-      <hr className="my-6 border-gray-200" />
+      <hr className="border-subtle my-6" />
 
       <Label>{t("danger_zone")}</Label>
       {/* Delete account Dialog */}
@@ -245,7 +242,9 @@ const ProfileView = () => {
           type="creation"
           Icon={FiAlertTriangle}>
           <>
-            <p className="mb-7">{t("delete_account_confirmation_message", { appName: APP_NAME })}</p>
+            <p className="text-default mb-7">
+              {t("delete_account_confirmation_message", { appName: APP_NAME })}
+            </p>
             {isCALIdentityProviver && (
               <PasswordField
                 data-testid="password"
@@ -320,13 +319,23 @@ const ProfileForm = ({
   extraField?: React.ReactNode;
 }) => {
   const { t } = useLocale();
-  const emailMd5 = crypto
-    .createHash("md5")
-    .update(defaultValues.email || "example@example.com")
-    .digest("hex");
+
+  const profileFormSchema = z.object({
+    username: z.string(),
+    avatar: z.string(),
+    name: z
+      .string()
+      .min(1)
+      .max(FULL_NAME_LENGTH_MAX_LIMIT, {
+        message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
+      }),
+    email: z.string().email(),
+    bio: z.string(),
+  });
 
   const formMethods = useForm<FormValues>({
     defaultValues,
+    resolver: zodResolver(profileFormSchema),
   });
 
   const {
@@ -343,8 +352,8 @@ const ProfileForm = ({
           name="avatar"
           render={({ field: { value } }) => (
             <>
-              <Avatar alt="" imageSrc={value} gravatarFallbackMd5={emailMd5} size="lg" />
-              <div className="ltr:ml-4 rtl:mr-4">
+              <Avatar alt="" imageSrc={value} gravatarFallbackMd5="fallback" size="lg" />
+              <div className="ms-4">
                 <ImageUploader
                   target="avatar"
                   id="avatar-upload"
@@ -374,6 +383,7 @@ const ProfileForm = ({
             formMethods.setValue("bio", turndown(value), { shouldDirty: true });
           }}
           excludedToolbarItems={["blockType"]}
+          disableLists
         />
       </div>
       <Button disabled={isDisabled} color="primary" className="mt-8" type="submit">
@@ -384,15 +394,5 @@ const ProfileForm = ({
 };
 
 ProfileView.getLayout = getLayout;
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};
 
 export default ProfileView;

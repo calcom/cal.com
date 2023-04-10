@@ -206,6 +206,34 @@
     "isTemplate": false
   },
   {
+    "dirName": "zohocrm",
+    "categories": ["other"],
+    "slug": "zohocrm",
+    "type": "zohocrm_other_calendar",
+    "isTemplate": false
+  },
+  {
+    "dirName": "cron",
+    "categories": ["calendar"],
+    "slug": "cron",
+    "type": "cron_other",
+    "isTemplate": false
+  },
+  {
+    "dirName": "google-tag-manager",
+    "categories": ["analytics"],
+    "slug": "google-tag-manager",
+    "type": "google-tag-manager_analytics",
+    "isTemplate": false
+  },
+  {
+    "dirName": "discord",
+    "categories": ["video"],
+    "slug": "discord",
+    "type": "discord_video",
+    "isTemplate": false
+  },
+  {
     "dirName": "mercado_pago",
     "categories": ["payment"],
     "slug": "mercado_pago",

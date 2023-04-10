@@ -1,9 +1,13 @@
-import type { Prisma, DestinationCalendar, SelectedCalendar } from "@prisma/client";
+import type { Prisma, DestinationCalendar, SelectedCalendar, BookingSeat } from "@prisma/client";
 import type { Dayjs } from "dayjs";
 import type { calendar_v3 } from "googleapis";
 import type { Time } from "ical.js";
 import type { TFunction } from "next-i18next";
+import type z from "zod";
 
+import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import type { Calendar } from "@calcom/features/calendars/weeklyview";
+import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { Frequency } from "@calcom/prisma/zod-utils";
 
 import type { Ensure } from "./utils";
@@ -23,8 +27,17 @@ export type Person = {
   language: { translate: TFunction; locale: string };
   username?: string;
   id?: number;
-  bookingId?: number;
-  locale?: string;
+  bookingId?: number | null;
+  locale?: string | null;
+  timeFormat?: TimeFormat;
+  bookingSeat?: BookingSeat | null;
+};
+
+export type TeamMember = {
+  name: string;
+  email: string;
+  timeZone: string;
+  language: { translate: TFunction; locale: string };
 };
 
 export type EventBusyDate = {
@@ -48,6 +61,7 @@ export type NewCalendarEventType = {
   password: string;
   url: string;
   additionalInfo: AdditionalInfo;
+  iCalUID?: string | null;
 };
 
 export type CalendarEventType = {
@@ -93,12 +107,6 @@ export interface ConferenceData {
   createRequest?: calendar_v3.Schema$CreateConferenceRequest;
 }
 
-export interface AdditionalInformation {
-  conferenceData?: ConferenceData;
-  entryPoints?: EntryPoint[];
-  hangoutLink?: string;
-}
-
 export interface RecurringEvent {
   dtstart?: Date | undefined;
   interval: number;
@@ -108,7 +116,7 @@ export interface RecurringEvent {
   tzid?: string | undefined;
 }
 
-export interface BookingLimit {
+export interface IntervalLimit {
   PER_DAY?: number | undefined;
   PER_WEEK?: number | undefined;
   PER_MONTH?: number | undefined;
@@ -124,6 +132,14 @@ export type AppsStatus = {
   warnings?: string[];
 };
 
+type CalEventResponses = Record<
+  string,
+  {
+    label: string;
+    value: z.infer<typeof bookingResponse>;
+  }
+>;
+
 // If modifying this interface, probably should update builders/calendarEvent files
 export interface CalendarEvent {
   type: string;
@@ -137,7 +153,7 @@ export interface CalendarEvent {
   description?: string | null;
   team?: {
     name: string;
-    members: string[];
+    members: TeamMember[];
   };
   location?: string | null;
   conferenceData?: ConferenceData;
@@ -155,7 +171,15 @@ export interface CalendarEvent {
   eventTypeId?: number | null;
   appsStatus?: AppsStatus[];
   seatsShowAttendees?: boolean | null;
+  attendeeSeatId?: string;
   seatsPerTimeSlot?: number | null;
+  iCalUID?: string | null;
+
+  // It has responses to all the fields(system + user)
+  responses?: CalEventResponses | null;
+
+  // It just has responses to only the user fields. It allows to easily iterate over to show only user fields
+  userFieldsResponses?: CalEventResponses | null;
 }
 
 export interface EntryPoint {
@@ -181,6 +205,9 @@ export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "
   readOnly?: boolean;
   // For displaying the connected email address
   email?: string;
+  primaryEmail?: string;
+  credentialId?: number;
+  integrationTitle?: string;
 }
 
 export interface Calendar {

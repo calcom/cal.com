@@ -1,16 +1,12 @@
-import type { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import { useState } from "react";
-import { HelpScout, useChat } from "react-live-chat-loader";
 
+import { useIntercom } from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Meta } from "@calcom/ui";
 import { FiExternalLink } from "@calcom/ui/components/icon";
-
-import { ssrInit } from "@server/lib/ssr";
 
 interface CtaRowProps {
   title: string;
@@ -22,29 +18,27 @@ interface CtaRowProps {
 const CtaRow = ({ title, description, className, children }: CtaRowProps) => {
   return (
     <>
-      <section className={classNames("flex flex-col sm:flex-row", className)}>
+      <section className={classNames("text-default flex flex-col sm:flex-row", className)}>
         <div>
           <h2 className="font-medium">{title}</h2>
           <p>{description}</p>
         </div>
         <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pt-0 sm:pl-3">{children}</div>
       </section>
-      <hr className="border-gray-200" />
+      <hr className="border-subtle" />
     </>
   );
 };
 
 const BillingView = () => {
   const { t } = useLocale();
-  const [, loadChat] = useChat();
-  const [showChat, setShowChat] = useState(false);
+  const { open } = useIntercom();
   const router = useRouter();
   const returnTo = router.asPath;
   const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
 
   const onContactSupportClick = () => {
-    setShowChat(true);
-    loadChat({ open: true });
+    open();
   };
 
   return (
@@ -64,22 +58,11 @@ const BillingView = () => {
             {t("contact_support")}
           </Button>
         </CtaRow>
-        {showChat && <HelpScout color="#292929" icon="message" horizontalPosition="right" zIndex="1" />}
       </div>
     </>
   );
 };
 
 BillingView.getLayout = getLayout;
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};
 
 export default BillingView;

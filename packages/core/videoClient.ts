@@ -7,9 +7,9 @@ import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import { GetRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
+import type { GetRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
-import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
+import type { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoApiAdapterFactory, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
@@ -18,21 +18,25 @@ const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
 const translator = short();
 
 // factory
-const getVideoAdapters = (withCredentials: CredentialPayload[]): VideoApiAdapter[] =>
-  withCredentials.reduce<VideoApiAdapter[]>((acc, cred) => {
+const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<VideoApiAdapter[]> => {
+  const videoAdapters: VideoApiAdapter[] = [];
+
+  for (const cred of withCredentials) {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
-    const app = appStore[appName as keyof typeof appStore];
+    const app = await appStore[appName as keyof typeof appStore];
+
     if (app && "lib" in app && "VideoApiAdapter" in app.lib) {
       const makeVideoApiAdapter = app.lib.VideoApiAdapter as VideoApiAdapterFactory;
       const videoAdapter = makeVideoApiAdapter(cred);
-      acc.push(videoAdapter);
-      return acc;
+      videoAdapters.push(videoAdapter);
     }
-    return acc;
-  }, []);
+  }
 
-const getBusyVideoTimes = (withCredentials: CredentialPayload[]) =>
-  Promise.all(getVideoAdapters(withCredentials).map((c) => c?.getAvailability())).then((results) =>
+  return videoAdapters;
+};
+
+const getBusyVideoTimes = async (withCredentials: CredentialPayload[]) =>
+  Promise.all((await getVideoAdapters(withCredentials)).map((c) => c?.getAvailability())).then((results) =>
     results.reduce((acc, availability) => acc.concat(availability), [] as (EventBusyDate | undefined)[])
   );
 
@@ -45,7 +49,7 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
     );
   }
 
-  const videoAdapters = getVideoAdapters([credential]);
+  const videoAdapters = await getVideoAdapters([credential]);
   const [firstVideoAdapter] = videoAdapters;
   let createdMeeting;
   let returnObject: {
@@ -104,7 +108,7 @@ const updateMeeting = async (
 
   let success = true;
 
-  const [firstVideoAdapter] = getVideoAdapters([credential]);
+  const [firstVideoAdapter] = await getVideoAdapters([credential]);
   const updatedMeeting =
     credential && bookingRef
       ? await firstVideoAdapter?.updateMeeting(bookingRef, calEvent).catch(async (e) => {
@@ -135,9 +139,9 @@ const updateMeeting = async (
   };
 };
 
-const deleteMeeting = (credential: CredentialPayload, uid: string): Promise<unknown> => {
+const deleteMeeting = async (credential: CredentialPayload, uid: string): Promise<unknown> => {
   if (credential) {
-    const videoAdapter = getVideoAdapters([credential])[0];
+    const videoAdapter = (await getVideoAdapters([credential]))[0];
     // There are certain video apps with no video adapter defined. e.g. riverby,whereby
     if (videoAdapter) {
       return videoAdapter.deleteMeeting(uid);
@@ -155,7 +159,7 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
   } catch (e) {
     return;
   }
-  const [videoAdapter] = getVideoAdapters([
+  const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
       appId: "daily-video",
@@ -175,9 +179,10 @@ const getRecordingsOfCalVideoByRoomName = async (
   try {
     dailyAppKeys = await getDailyAppKeys();
   } catch (e) {
+    console.error("Error: Cal video provider is not installed.");
     return;
   }
-  const [videoAdapter] = getVideoAdapters([
+  const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
       appId: "daily-video",
@@ -190,4 +195,32 @@ const getRecordingsOfCalVideoByRoomName = async (
   return videoAdapter?.getRecordings?.(roomName);
 };
 
-export { getBusyVideoTimes, createMeeting, updateMeeting, deleteMeeting, getRecordingsOfCalVideoByRoomName };
+const getDownloadLinkOfCalVideoByRecordingId = async (recordingId: string) => {
+  let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
+  try {
+    dailyAppKeys = await getDailyAppKeys();
+  } catch (e) {
+    console.error("Error: Cal video provider is not installed.");
+    return;
+  }
+  const [videoAdapter] = await getVideoAdapters([
+    {
+      id: 0,
+      appId: "daily-video",
+      type: "daily_video",
+      userId: null,
+      key: dailyAppKeys,
+      invalid: false,
+    },
+  ]);
+  return videoAdapter?.getRecordingDownloadLink?.(recordingId);
+};
+
+export {
+  getBusyVideoTimes,
+  createMeeting,
+  updateMeeting,
+  deleteMeeting,
+  getRecordingsOfCalVideoByRoomName,
+  getDownloadLinkOfCalVideoByRecordingId,
+};

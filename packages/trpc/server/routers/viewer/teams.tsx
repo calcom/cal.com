@@ -11,6 +11,7 @@ import {
   updateQuantitySubscriptionFromStripe,
 } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTeamWithMembers, isTeamAdmin, isTeamMember, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
@@ -42,9 +43,9 @@ export const viewerTeamsRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
       }
       const membership = team?.members.find((membership) => membership.id === ctx.user.id);
-
       return {
         ...team,
+        safeBio: markdownToSafeHTML(team.bio),
         membership: {
           role: membership?.role as MembershipRole,
           accepted: membership?.accepted,
@@ -84,13 +85,32 @@ export const viewerTeamsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { slug, name, logo } = input;
 
-      const nameCollisions = await ctx.prisma.team.findFirst({
+      const slugCollisions = await ctx.prisma.team.findFirst({
         where: {
           slug: slug,
         },
       });
 
-      if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "Team name already taken." });
+      if (slugCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "team_url_taken" });
+
+      // Ensure that the user is not duplicating a requested team
+      const duplicatedRequest = await ctx.prisma.team.findFirst({
+        where: {
+          members: {
+            some: {
+              userId: ctx.user.id,
+            },
+          },
+          metadata: {
+            path: ["requestedSlug"],
+            equals: slug,
+          },
+        },
+      });
+
+      if (duplicatedRequest) {
+        return duplicatedRequest;
+      }
 
       const createTeam = await ctx.prisma.team.create({
         data: {
@@ -106,6 +126,7 @@ export const viewerTeamsRouter = router({
           metadata: {
             requestedSlug: slug,
           },
+          ...(!IS_TEAM_BILLING_ENABLED && { slug }),
         },
       });
 
@@ -177,7 +198,7 @@ export const viewerTeamsRouter = router({
         // If we save slug, we don't need the requestedSlug anymore
         const metadataParse = teamMetadataSchema.safeParse(prevTeam.metadata);
         if (metadataParse.success) {
-          const { requestedSlug, ...cleanMetadata } = metadataParse.data || {};
+          const { requestedSlug: _, ...cleanMetadata } = metadataParse.data || {};
           data.metadata = {
             ...cleanMetadata,
           };
@@ -365,6 +386,7 @@ export const viewerTeamsRouter = router({
         }
       }
       if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(input.teamId);
+      return input;
     }),
   acceptOrLeave: authedProcedure
     .input(
@@ -446,7 +468,11 @@ export const viewerTeamsRouter = router({
         });
       }
 
-      if (myMembership?.role === MembershipRole.ADMIN && input.memberId === ctx.user.id) {
+      if (
+        myMembership?.role === MembershipRole.ADMIN &&
+        input.memberId === ctx.user.id &&
+        input.role !== MembershipRole.MEMBER
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You can not change yourself to a higher role.",
@@ -560,21 +586,6 @@ export const viewerTeamsRouter = router({
           disableImpersonation: input.disableImpersonation,
         },
       });
-    }),
-  validateTeamSlug: authedProcedure
-    .input(
-      z.object({
-        slug: z.string(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      const team = await ctx.prisma.team.findFirst({
-        where: {
-          slug: input.slug,
-        },
-      });
-
-      return !team;
     }),
   publish: authedProcedure
     .input(

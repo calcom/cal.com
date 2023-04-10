@@ -3,8 +3,8 @@ import type { ChangeEventHandler } from "react";
 import { useState } from "react";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { classNames } from "@calcom/lib";
-import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/client";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -14,7 +14,7 @@ import { FiSearch } from "@calcom/ui/components/icon";
 
 import AppsLayout from "@components/apps/layouts/AppsLayout";
 
-import { ssgInit } from "@server/lib/ssg";
+import { ssrInit } from "@server/lib/ssr";
 
 const tabs: HorizontalTabItemProps[] = [
   {
@@ -36,9 +36,9 @@ function AppsSearch({
 }) {
   return (
     <TextField
-      className="!border-gray-100 bg-gray-100 !pl-0 focus:!ring-offset-0"
-      addOnLeading={<FiSearch className="h-4 w-4 text-gray-500" />}
-      addOnClassname="!border-gray-100"
+      className="bg-subtle !border-muted !pl-0 focus:!ring-offset-0"
+      addOnLeading={<FiSearch className="text-subtle h-4 w-4" />}
+      addOnClassname="!border-muted"
       containerClassName={classNames("focus:!ring-offset-0", className)}
       type="search"
       autoComplete="false"
@@ -86,9 +86,11 @@ export default function Apps({ categories, appStore }: inferSSRProps<typeof getS
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssg = await ssgInit(context);
+  const { req, res } = context;
 
-  const session = await getSession(context);
+  const ssr = await ssrInit(context);
+
+  const session = await getServerSession({ req, res });
 
   let appStore;
   if (session?.user?.id) {
@@ -117,7 +119,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           return b.count - a.count;
         }),
       appStore,
-      trpcState: ssg.dehydrate(),
+      trpcState: ssr.dehydrate(),
     },
   };
 };

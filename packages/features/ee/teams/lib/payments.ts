@@ -23,7 +23,7 @@ export const checkIfTeamPaymentRequired = async ({ teamId = -1 }) => {
   if (!metadata?.paymentId) return { url: null };
   const checkoutSession = await stripe.checkout.sessions.retrieve(metadata.paymentId);
   /** If there's a pending session but it isn't paid, we need to pay this team */
-  if (checkoutSession.payment_status === "paid") return { url: null };
+  if (checkoutSession.payment_status !== "paid") return { url: null };
   /** If the session is already paid we return the upgrade URL so team is updated. */
   return { url: `${WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id=${metadata.paymentId}` };
 };
@@ -38,7 +38,7 @@ export const purchaseTeamSubscription = async (input: { teamId: number; seats: n
     mode: "subscription",
     allow_promotion_codes: true,
     success_url: `${WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${WEBAPP_URL}/settings/profile`,
+    cancel_url: `${WEBAPP_URL}/settings/my-account/profile`,
     line_items: [
       {
         /** We only need to set the base price and we can upsell it directly on Stripe's checkout  */
@@ -98,6 +98,9 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
     await stripe.subscriptions.update(subscriptionId, {
       items: [{ quantity: team.members.length, id: subscriptionItemId }],
     });
+    console.info(
+      `Updated subscription ${subscriptionId} for team ${teamId} to ${team.members.length} seats.`
+    );
   } catch (error) {
     let message = "Unknown error on updateQuantitySubscriptionFromStripe";
     if (error instanceof Error) message = error.message;

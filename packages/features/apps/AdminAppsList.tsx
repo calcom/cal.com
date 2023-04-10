@@ -50,6 +50,7 @@ const IntegrationContainer = ({
   const [disableDialog, setDisableDialog] = useState(false);
 
   const showKeyModal = () => {
+    // FIXME: This is preventing the modal from opening for apps that has null keys
     if (app.keys) {
       handleModelOpen({
         dirName: app.dirName,
@@ -151,7 +152,7 @@ const AdminAppsList = ({
     <form
       {...rest}
       className={
-        classNames?.form ?? "max-w-80 mb-4 rounded-md bg-white px-0 pt-0 md:max-w-full md:px-8 md:pt-10"
+        classNames?.form ?? "max-w-80 bg-default mb-4 rounded-md px-0 pt-0 md:max-w-full md:px-8 md:pt-10"
       }
       onSubmit={(e) => {
         e.preventDefault();

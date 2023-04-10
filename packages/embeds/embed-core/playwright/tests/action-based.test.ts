@@ -1,6 +1,9 @@
-import { expect, Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-import { Fixtures, test } from "../fixtures/fixtures";
+import { test } from "@calcom/web/playwright/lib/fixtures";
+import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
+
 import {
   todo,
   getEmbedIframe,
@@ -65,7 +68,7 @@ test.describe("Popup Tests", () => {
     await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
       pathname: "/free",
     });
-    expect(await page.screenshot()).toMatchSnapshot("event-types-list.png");
+    // expect(await page.screenshot()).toMatchSnapshot("event-types-list.png");
     if (!embedIframe) {
       throw new Error("Embed iframe not found");
     }

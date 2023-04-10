@@ -16,6 +16,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
   disabled = false,
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   onValueChange = () => {},
+  ...passThrough
 }: {
   defaultValue?: boolean;
   value?: boolean;
@@ -31,26 +32,30 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
     onValueChange(defaultValue);
     return null;
   }
-  const commonClass =
-    "mb-2 inline-flex items-center justify-center rounded-md py-[10px] px-4 text-sm font-medium  leading-4 md:mb-0";
-  const selectedClass = classNames(commonClass, "bg-gray-200  text-gray-900");
-  const unselectedClass = classNames(commonClass, "text-gray-600 hover:bg-gray-100 hover:text-gray-900");
+  const commonClass = classNames(
+    "w-full inline-flex items-center justify-center rounded py-[10px] px-4 text-sm font-medium  leading-4",
+    disabled && "cursor-not-allowed"
+  );
+  const selectedClass = classNames(commonClass, "bg-emphasis  text-emphasis");
+  const unselectedClass = classNames(commonClass, "text-default hover:bg-subtle hover:text-emphasis");
   return (
     <ToggleGroupPrimitive
       value={yesNoValue}
       type="single"
       disabled={disabled}
-      className="space-x-2 rounded-sm rtl:space-x-reverse"
+      className="border-subtle flex space-x-2 rounded-md border p-1 rtl:space-x-reverse"
       onValueChange={(yesNoValue: "yes" | "no") => {
         setYesNoValue(yesNoValue);
         onValueChange(boolean(yesNoValue));
-      }}>
+      }}
+      {...passThrough}>
       <ToggleGroupItemPrimitive
         className={classNames(boolean(yesNoValue) ? selectedClass : unselectedClass)}
         disabled={disabled}
         value="yes">
         Yes
       </ToggleGroupItemPrimitive>
+
       <ToggleGroupItemPrimitive
         disabled={disabled}
         className={classNames(!boolean(yesNoValue) ? selectedClass : unselectedClass)}
@@ -78,7 +83,7 @@ export const BooleanToggleGroupField = function BooleanToggleGroupField(
     <div className={classNames(containerClassName)}>
       <div className={className}>
         {!!label && (
-          <Label htmlFor={id} {...labelProps} className={classNames(props.error && "text-red-900", "mt-4")}>
+          <Label htmlFor={id} {...labelProps} className={classNames(props.error && "text-error", "mt-4")}>
             {label}
           </Label>
         )}

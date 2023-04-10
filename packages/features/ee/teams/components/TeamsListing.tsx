@@ -68,17 +68,15 @@ export function TeamsListing() {
       <UpgradeTip
         title="calcom_is_better_with_team"
         description="add_your_team_members"
-        emptyTitle="no_teams"
-        emptyDescription="no_teams_description"
         features={features}
-        background="/team-banner-background.jpg"
+        background="/tips/teams"
         buttons={
           <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
             <ButtonGroup>
               <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                 {t("create_team")}
               </Button>
-              <Button color="secondary" href="https://go.cal.com/teams-video" target="_blank">
+              <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
                 {t("learn_more")}
               </Button>
             </ButtonGroup>
@@ -86,11 +84,9 @@ export function TeamsListing() {
         }>
         <>
           {invites.length > 0 && (
-            <div className="mb-6 rounded-md bg-gray-100 p-5">
-              <Label className="dark:text-darkgray-900 pb-2 font-semibold text-gray-900">
-                {t("pending_invites")}
-              </Label>
-              <TeamList teams={invites} />
+            <div className="bg-subtle mb-6 rounded-md p-5">
+              <Label className=" text-emphasis pb-2 font-semibold">{t("pending_invites")}</Label>
+              <TeamList teams={invites} pending />
             </div>
           )}
           {teams.length > 0 && <TeamList teams={teams} />}
