@@ -18,7 +18,7 @@ export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTri
       {...props}
       className={classNames(
         !props.asChild &&
-          `inline-flex items-center rounded-md bg-transparent px-3 py-2 text-sm font-medium text-gray-700 ring-0 hover:bg-gray-50 focus:bg-gray-100 group-hover:text-black ${className}`
+          `focus:bg-subtle hover:bg-muted text-default group-hover:text-emphasis inline-flex items-center rounded-md bg-transparent px-3 py-2 text-sm font-medium ring-0 ${className}`
       )}
       ref={forwardedRef}
     />
@@ -39,7 +39,7 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
         {...props}
         sideOffset={sideOffset}
         className={classNames(
-          "shadow-dropdown w-50 relative z-10 ml-1.5 origin-top-right rounded-md border border-gray-200 bg-white text-sm",
+          "shadow-dropdown w-50 bg-default border-subtle relative z-10 ml-1.5 origin-top-right rounded-md border text-sm",
           "[&>*:first-child]:mt-1 [&>*:last-child]:mb-1"
         )}
         ref={forwardedRef}>
@@ -52,14 +52,14 @@ DropdownMenuContent.displayName = "DropdownMenuContent";
 
 type DropdownMenuLabelProps = ComponentProps<(typeof DropdownMenuPrimitive)["Label"]>;
 export const DropdownMenuLabel = (props: DropdownMenuLabelProps) => (
-  <DropdownMenuPrimitive.Label {...props} className="px-3 py-2 text-gray-500" />
+  <DropdownMenuPrimitive.Label {...props} className="text-subtle px-3 py-2" />
 );
 
 type DropdownMenuItemProps = ComponentProps<(typeof DropdownMenuPrimitive)["CheckboxItem"]>;
 export const DropdownMenuItem = forwardRef<HTMLDivElement, DropdownMenuItemProps>(
   ({ className = "", ...props }, forwardedRef) => (
     <DropdownMenuPrimitive.Item
-      className={`focus:ring-brand-800 text-sm text-gray-700 ring-inset first-of-type:rounded-t-[inherit] last-of-type:rounded-b-[inherit] hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-1 ${className}`}
+      className={`focus:ring-brand-800 hover:bg-subtle hover:text-emphasis text-default text-sm ring-inset first-of-type:rounded-t-[inherit] last-of-type:rounded-b-[inherit] focus:outline-none focus:ring-1 ${className}`}
       {...props}
       ref={forwardedRef}
     />
@@ -135,8 +135,8 @@ export const DropdownItem = (props: DropdownItemProps) => {
     <ButtonOrLink
       {...rest}
       className={classNames(
-        "inline-flex w-full items-center gap-x-3 px-3 py-2 text-gray-700 hover:text-gray-900 disabled:cursor-not-allowed",
-        color === "destructive" ? "hover:bg-red-100 hover:text-red-700" : "hover:bg-gray-100"
+        "hover:text-emphasis text-default inline-flex w-full items-center space-x-2 px-3 py-2 disabled:cursor-not-allowed",
+        color === "destructive" ? "hover:bg-error hover:text-red-700" : "hover:bg-subtle"
       )}>
       <>
         {StartIcon && <StartIcon className="h-4 w-4" />}
@@ -152,7 +152,7 @@ export const DropdownMenuSeparator = forwardRef<HTMLDivElement, DropdownMenuSepa
   ({ className = "", ...props }, forwardedRef) => {
     return (
       <DropdownMenuPrimitive.Separator
-        className={classNames("my-1 h-px bg-gray-200", className)}
+        className={classNames("bg-emphasis my-1 h-px", className)}
         {...props}
         ref={forwardedRef}
       />

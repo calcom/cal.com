@@ -101,7 +101,7 @@ export default function Verify() {
   }
 
   return (
-    <div className="bg-black bg-opacity-90 text-white backdrop-blur-md backdrop-grayscale backdrop-filter">
+    <div className="text-inverted bg-black bg-opacity-90 backdrop-blur-md backdrop-grayscale backdrop-filter">
       <Head>
         <title>
           {/* @note: Ternary can look ugly ant his might be extracted later but I think at 3 it's not yet worth
@@ -117,11 +117,11 @@ export default function Verify() {
         <div className="m-10 flex max-w-2xl flex-col items-start border border-white p-12 text-left">
           <div className="rounded-full border border-white p-3">
             {hasPaymentFailed ? (
-              <ExclamationIcon className="h-12 w-12 flex-shrink-0 p-0.5 font-extralight text-white" />
+              <ExclamationIcon className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
             ) : sessionId ? (
-              <CheckIcon className="h-12 w-12 flex-shrink-0 p-0.5 font-extralight text-white" />
+              <CheckIcon className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
             ) : (
-              <MailOpenIcon className="h-12 w-12 flex-shrink-0 p-0.5 font-extralight text-white" />
+              <MailOpenIcon className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
             )}
           </div>
           <h3 className="font-cal my-6 text-3xl font-normal">
@@ -139,7 +139,7 @@ export default function Verify() {
             {hasPaymentFailed &&
               "Once you activate your account you will be able to try purchase your premium username again or select a different one."}
           </p>
-          <p className="mt-6 text-gray-400">
+          <p className="text-muted mt-6">
             Don&apos;t see an email? Click the button below to send another email.
           </p>
 

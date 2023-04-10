@@ -11,7 +11,6 @@ import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { EventLocationType } from "@calcom/app-store/locations";
-import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
@@ -29,10 +28,11 @@ import {
 import getBookingResponsesSchema, {
   getBookingResponsesPartialSchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilder";
-import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
+import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
@@ -40,7 +40,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { TimeFormat } from "@calcom/lib/timeFormat";
-import { Button, Form, Tooltip } from "@calcom/ui";
+import { Button, Form, Tooltip, useCalcomTheme } from "@calcom/ui";
 import { FiAlertTriangle, FiCalendar, FiRefreshCw, FiUser } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
@@ -63,6 +63,14 @@ const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaste
 const BookingDescriptionPayment = dynamic(
   () => import("@components/booking/BookingDescriptionPayment")
 ) as unknown as typeof import("@components/booking/BookingDescriptionPayment").default;
+
+const useBrandColors = ({ brandColor, darkBrandColor }: { brandColor?: string; darkBrandColor?: string }) => {
+  const brandTheme = useGetBrandingColours({
+    lightVal: brandColor,
+    darkVal: darkBrandColor,
+  });
+  useCalcomTheme(brandTheme);
+};
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
 const BookingFields = ({
@@ -135,26 +143,14 @@ const BookingFields = ({
           }
           const optionsInputs = field.optionsInputs;
 
-          const options = locations.map((location) => {
-            const eventLocation = getEventLocationType(location.type);
-            const locationString = locationKeyToString(location);
-
-            if (typeof locationString !== "string" || !eventLocation) {
-              // It's possible that location app got uninstalled
-              return null;
-            }
-            const type = eventLocation.type;
-            const optionInput = optionsInputs[type as keyof typeof optionsInputs];
+          // TODO: Instead of `getLocationOptionsForSelect` options should be retrieved from dataStore[field.getOptionsAt]. It would make it agnostic of the `name` of the field.
+          const options = getLocationOptionsForSelect(locations, t);
+          options.forEach((option) => {
+            const optionInput = optionsInputs[option.value as keyof typeof optionsInputs];
             if (optionInput) {
-              optionInput.placeholder = t(eventLocation?.attendeeInputPlaceholder || "");
+              optionInput.placeholder = option.inputPlaceholder;
             }
-
-            return {
-              label: t(locationString),
-              value: type,
-            };
           });
-
           field.options = options.filter(
             (location): location is NonNullable<(typeof options)[number]> => !!location
           );
@@ -303,6 +299,10 @@ const BookingPage = ({
   } = useTypedQuery(routerQuerySchema);
 
   useTheme(profile.theme);
+  useBrandColors({
+    brandColor: profile.brandColor,
+    darkBrandColor: profile.darkBrandColor,
+  });
 
   const querySchema = getBookingResponsesPartialSchema({
     eventType: {
@@ -512,7 +512,6 @@ const BookingPage = ({
         <link rel="icon" href="/favico.ico" />
       </Head>
       <BookingPageTagManager eventType={eventType} />
-      <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <main
         className={classNames(
           shouldAlignCentrally ? "mx-auto" : "",
@@ -522,16 +521,16 @@ const BookingPage = ({
         <div
           className={classNames(
             "main",
-            isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-white dark:border",
+            isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-default dark:border",
             "dark:border-darkgray-300 rounded-md sm:border"
           )}>
           <div className="sm:flex">
             {showEventTypeDetails && (
-              <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
+              <div className="sm:dark:border-darkgray-300  text-default flex flex-col px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
                   <BookingDescriptionPayment eventType={eventType} />
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
-                    <div className="items-start text-sm font-medium text-gray-600 dark:text-white">
+                    <div className="dark:text-inverted text-default items-start text-sm font-medium">
                       <FiRefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                       <p className="-ml-2 inline-block items-center px-2">
                         {getEveryFreqFor({
@@ -560,7 +559,7 @@ const BookingPage = ({
                             content={recurringStrings.slice(5).map((timeFormatted, key) => (
                               <p key={key}>{timeFormatted}</p>
                             ))}>
-                            <p className="dark:text-darkgray-600 text-sm">
+                            <p className=" text-sm">
                               + {t("plus_more", { count: recurringStrings.length - 5 })}
                             </p>
                           </Tooltip>
@@ -637,7 +636,6 @@ const BookingPage = ({
                   </Button>
                   <Button
                     type="submit"
-                    className="dark:bg-darkmodebrand dark:hover:border-darkmodebrand dark:text-darkmodebrandcontrast bg-brand hover:border-brand text-brandcontrast"
                     data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
                     loading={mutation.isLoading || recurringMutation.isLoading}>
                     {rescheduleUid ? t("reschedule") : t("confirm")}
@@ -669,7 +667,7 @@ function ErrorMessage({ error }: { error: unknown }) {
         <div className="flex-shrink-0">
           <FiAlertTriangle className="h-5 w-5 text-blue-400" aria-hidden="true" />
         </div>
-        <div className="ltr:ml-3 rtl:mr-3">
+        <div className="ms-3">
           <p className="text-sm text-blue-700">
             {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
             {error instanceof HttpError || error instanceof Error ? (

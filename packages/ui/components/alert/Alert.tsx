@@ -26,8 +26,8 @@ export function Alert(props: AlertProps) {
         severity === "error" && "border-red-900 bg-red-50 text-red-800",
         severity === "warning" && "border-yellow-700 bg-yellow-50 text-yellow-700",
         severity === "info" && "border-sky-700 bg-sky-50 text-sky-700",
-        severity === "success" && "bg-gray-900 text-white",
-        severity === "neutral" && "border-none bg-gray-100"
+        severity === "success" && "bg-inverted text-inverted",
+        severity === "neutral" && "bg-subtle text-default border-none"
       )}>
       <div className="relative flex flex-col md:flex-row">
         <div className="flex-shrink-0">
@@ -47,13 +47,10 @@ export function Alert(props: AlertProps) {
             />
           )}
           {severity === "neutral" && (
-            <FiInfo className={classNames("h-5 w-5 text-gray-800", iconClassName)} aria-hidden="true" />
+            <FiInfo className={classNames("text-default h-5 w-5", iconClassName)} aria-hidden="true" />
           )}
           {severity === "success" && (
-            <CheckCircleIcon
-              className={classNames("h-5 w-5 text-gray-400", iconClassName)}
-              aria-hidden="true"
-            />
+            <CheckCircleIcon className={classNames("text-muted h-5 w-5", iconClassName)} aria-hidden="true" />
           )}
         </div>
         <div className="ml-3 flex-grow">

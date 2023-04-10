@@ -507,7 +507,7 @@ export const insightsRouter = router({
 
         let eventSlug = "";
         if (eventTypeSelected.userId) {
-          eventSlug = `${eventTypeSelected?.slug}/${eventTypeSelected?.users[0]?.username}`;
+          eventSlug = `${eventTypeSelected?.users[0]?.username}/${eventTypeSelected?.slug}`;
         }
         if (eventTypeSelected?.team && eventTypeSelected?.team?.slug) {
           eventSlug = `${eventTypeSelected.team.slug}/${eventTypeSelected.slug}`;

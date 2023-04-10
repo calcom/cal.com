@@ -2,19 +2,101 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* background */
 
+  --cal-bg-emphasis: #e5e7eb;
+  --cal-bg: white;
+  --cal-bg-subtle: #f3f4f6;
+  --cal-bg-muted: #f9fafb;
+  --cal-bg-inverted: #111827;
+
+  /* background -> components*/
+  --cal-bg-info: #dee9fc;
+  --cal-bg-success: #e2fbe8;
+  --cal-bg-attention: #fceed8;
+  --cal-bg-error: #f9e3e2;
+
+  /* Borders */
+  --cal-border-emphasis: #9ca3af;
+  --cal-border: #d1d5db;
+  --cal-border-subtle: #e5e7eb;
+  --cal-border-muted: #f3f4f6;
+
+  /* Content/Text */
+  --cal-text-emphasis: #111827;
+  --cal-text: #374151;
+  --cal-text-subtle: #6b7280;
+  --cal-text-muted: #9ca3af;
+  --cal-text-inverted: white;
+
+  /* Content/Text -> components */
+  --cal-text-info: #253985;
+  --cal-text-success: #285231;
+  --cal-text-attention: #73321b;
+  --cal-text-error: #752522;
+
+  /* Brand shinanigans
+      -> These will be computed for the users theme at runtime.
+    */
+  --cal-brand: #111827;
+  --cal-brand-emphasis: #101010;
+  --cal-brand-text: white;
+}
+.dark {
+  color-scheme: dark;
+
+  /* background */
+
+  --cal-bg-emphasis: #2b2b2b;
+  --cal-bg: #101010;
+  --cal-bg-subtle: #2b2b2b;
+  --cal-bg-muted: #1c1c1c;
+  --cal-bg-inverted: #f3f4f6;
+
+  /* background -> components*/
+  --cal-bg-info: #dee9fc;
+  --cal-bg-success: #e2fbe8;
+  --cal-bg-attention: #fceed8;
+  --cal-bg-error: #f9e3e2;
+
+  /* Borders */
+  --cal-border-emphasis: #575757;
+  --cal-border: #444444;
+  --cal-border-subtle: #2b2b2b;
+  --cal-border-muted: #1c1c1c;
+
+  /* Content/Text */
+  --cal-text-emphasis: #f3f4f6;
+  --cal-text: #d6d6d6;
+  --cal-text-subtle: #A5a5a5;
+  --cal-text-muted: #575757;
+  --cal-text-inverted: #101010;
+
+  /* Content/Text -> components */
+  --cal-text-info: #253985;
+  --cal-text-success: #285231;
+  --cal-text-attention: #73321b;
+  --cal-text-error: #752522;
+
+  /* Brand shenanigans
+      -> These will be computed for the users theme at runtime.
+    */
+  --cal-brand: #111827;
+  --cal-brand-emphasis: #101010;
+  --cal-brand-text: black;
+}
+
+dark::selection {
+  background: var(--cal-bg-subtle);
+}
 
 body  {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
 
-:root {
-  --brand-color: #292929;
-  --brand-text-color: #ffffff;
-  --brand-color-dark-mode: #fafafa;
-  --brand-text-color-dark-mode: #292929;
-}
+
 
 /*
   Desktop App specific CSS
@@ -25,7 +107,7 @@ body  {
 html.todesktop button,
 html.todesktop a,
 html.todesktop img,
-html.todesktop header{
+html.todesktop header {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -36,15 +118,15 @@ html.todesktop header{
 }
 
 html.todesktop,
-html.todesktop div  {
+html.todesktop div {
   cursor: default !important;
 }
 
 /* make header draggable on desktop app */
-html.todesktop header{
+html.todesktop header {
   -webkit-app-region: drag;
 }
-html.todesktop header button{
+html.todesktop header button {
   -webkit-app-region: no-drag;
 }
 
@@ -73,7 +155,7 @@ html.todesktop header nav {
 }
 
 html.todesktop aside {
-  margin:0px -6px;
+  margin: 0px -6px;
 }
 
 /* TODO: add "native" MacOS colors
@@ -103,7 +185,6 @@ html.todesktop nav a svg{
   color: #0272F7 !important
 }
 */
-
 
 /*
   Adds Utility to hide scrollbar to tailwind
@@ -148,36 +229,23 @@ select:focus {
   --tw-ring-color: var(--brand-color);
   border-color: var(--brand-color);
 }
-
+/*  https://stackoverflow.com/a/69308190 */
+input[type="text"]:focus {
+  box-shadow: none;
+}
 
 @layer components {
-  .scroll-bar{
-    @apply scrollbar-thin scrollbar-thumb-rounded-md dark:scrollbar-thumb-darkgray-300 scrollbar-thumb-gray-300 scrollbar-track-transparent
+  .scroll-bar {
+    @apply scrollbar-thin scrollbar-thumb-rounded-md dark:scrollbar-thumb-darkgray-300 scrollbar-thumb-gray-300 scrollbar-track-transparent;
   }
-}
 
 
-button[role="switch"][data-state="checked"] {
-  @apply bg-gray-900;
 }
+
 /* TODO: avoid global specific css */
 /* button[role="switch"][data-state="checked"] span {
   transform: translateX(16px);
 } */
-
-/* DateRangePicker */
-/*
-  TODO:: Remove on V2 launch
- */
-.react-daterange-picker > .react-daterange-picker__wrapper {
-  /* border consistent with other inputs */
-  @apply rounded-sm border-gray-300 px-2 py-1.5 text-sm lg:py-1;
-}
-
-.react-daterange-picker > .react-daterange-picker__wrapper input {
-  /* Makes sure the on-focus behaviour is like Cal.com's */
-  @apply my-0.5 h-auto rounded-sm py-0.5;
-}
 
 
 @layer components {
@@ -205,7 +273,6 @@ button[role="switch"][data-state="checked"] {
   .slider .slider-thumb:focus {
     box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.2);
   }
-
 }
 
 /* !important to style multi-email input */
@@ -240,52 +307,7 @@ button[role="switch"][data-state="checked"] {
   }
 }
 
-.react-multi-email > [type="text"] {
-  @apply dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-white block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500;
-}
-
-.react-multi-email [data-tag] {
-  box-shadow: none !important;
-  @apply dark:bg-brand my-1 inline-flex items-center rounded-md border border-transparent bg-gray-200 px-2 py-1 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 ltr:mr-2 rtl:ml-2 dark:text-white;
-}
-
-.react-multi-email > span[data-placeholder] {
-  display: none;
-  position: absolute;
-  left: 0.8rem;
-  top: 0.75rem;
-  line-height: 1.25rem;
-  font-size: 0.875rem;
-}
-
-.react-multi-email.empty > span[data-placeholder] {
-  display: inline;
-  color: #646b7a;
-}
-
-.react-multi-email.focused > span[data-placeholder] {
-  display: none;
-}
-
-.react-multi-email > input {
-  width: 100% !important;
-  display: inline-block !important;
-  @apply mt-1;
-}
-
-.react-multi-email [data-tag] {
-  @apply my-1 inline-flex items-center rounded-md border border-transparent bg-gray-200 px-2 py-1 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 ltr:mr-2 rtl:ml-2 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-700;
-}
-
-.react-multi-email [data-tag] [data-tag-item] {
-  max-width: 100%;
-  overflow: hidden;
-}
-
-.react-multi-email [data-tag] [data-tag-handle] {
-  margin-left: 0.833em;
-  cursor: pointer;
-}
+/* TODO: implement styling for react-multi-email */
 
 /* !important to override react-dates */
 .DateRangePickerInput__withBorder {
@@ -378,27 +400,7 @@ button[role="switch"][data-state="checked"] {
   }
 }
 
-nav#nav--settings > a {
-  @apply flex items-center border-l-4 border-transparent px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-900;
-}
-
-nav#nav--settings > a svg {
-  @apply mr-3 -ml-1 h-6 w-6 flex-shrink-0 text-gray-400 group-hover:text-gray-500;
-}
-
-nav#nav--settings > a.active {
-  @apply border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700;
-}
-
-nav#nav--settings > a.active svg {
-  @apply text-gray-500;
-}
-
-hr {
-  @apply border-gray-200;
-}
-
-.text-white-important {
+.text-inverted-important {
   color: white !important;
 }
 

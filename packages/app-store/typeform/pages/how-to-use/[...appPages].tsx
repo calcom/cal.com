@@ -7,18 +7,18 @@ import { FiExternalLink } from "@calcom/ui/components/icon";
 export default function HowToUse() {
   const { t } = useLocale();
   return (
-    <div className="flex h-screen bg-gray-200">
-      <div className="m-auto rounded bg-white p-10">
+    <div className="bg-emphasis flex h-screen">
+      <div className="bg-default m-auto rounded p-10">
         <div className="flex flex-row">
           <div className="mr-5">
             <img className="w-11" src="/api/app-store/typeform/icon.svg" alt="Zapier Logo" />
           </div>
           <div className="ml-5">
-            <div className="text-md text-gray-800">How to route a Typeform with Cal.com Routing</div>
+            <div className="text-md text-default">How to route a Typeform with Cal.com Routing</div>
             <ol className="mt-5 mb-5 ml-5 list-decimal ltr:mr-5 rtl:ml-5">
               <li>
                 Make sure that you have{" "}
-                <Link href="/apps/routing-forms" className="text-base text-gray-500">
+                <Link href="/apps/routing-forms" className="text-subtle text-base">
                   Routing Forms
                 </Link>{" "}
                 app installed
@@ -30,8 +30,8 @@ export default function HowToUse() {
                 <Link
                   href="/api/app-store/typeform/copy-typeform-redirect-url.png"
                   target="_blank"
-                  className="inline-flex items-baseline text-base text-gray-500">
-                  <FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
+                  className="text-subtle inline-flex items-baseline text-base">
+                  <FiExternalLink className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
                   Click &quot;Copy Typeform Redirect URL&quot;
                 </Link>
               </li>
@@ -41,8 +41,8 @@ export default function HowToUse() {
                 <Link
                   href="https://www.typeform.com/help/a/end-screens-and-redirects-360051791392/#h_01G0CFXF21W2EQ8PXKSB4KSC8P"
                   target="_blank"
-                  className="inline-flex items-baseline text-base text-gray-500">
-                  <FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
+                  className="text-subtle inline-flex items-baseline text-base">
+                  <FiExternalLink className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
                   Redirect to your typeform
                 </Link>
               </li>
@@ -51,8 +51,8 @@ export default function HowToUse() {
                 <Link
                   href="https://www.typeform.com/help/a/use-recall-information-to-reference-typeform-answers-variables-and-more-360052320011/"
                   target="_blank"
-                  className="inline-flex items-baseline text-base text-gray-500">
-                  <FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
+                  className="text-subtle inline-flex items-baseline text-base">
+                  <FiExternalLink className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
                   Recall Information in Typeform
                 </Link>{" "}
                 to add values to query params.

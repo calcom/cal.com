@@ -509,7 +509,7 @@ const tabs = [
       return (
         <>
           <div>
-            <small className="flex py-4 text-gray-500">
+            <small className="text-subtle flex py-4">
               {t("place_where_cal_widget_appear", { appName: APP_NAME })}
             </small>
           </div>
@@ -517,7 +517,7 @@ const tabs = [
             data-testid="embed-code"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-code"
-            className="h-[calc(100%-50px)] font-mono"
+            className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
             style={{ resize: "none", overflow: "auto" }}
             readOnly
             value={
@@ -534,7 +534,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
 <!-- Cal ${embedType} embed code ends -->`
             }
           />
-          <p className="hidden text-sm text-gray-500">
+          <p className="text-subtle hidden text-sm">
             {t(
               "Need help? See our guides for embedding Cal on Wix, Squarespace, or WordPress, check our common questions, or explore advanced embed options."
             )}
@@ -561,12 +561,12 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
       }
       return (
         <>
-          <small className="flex py-4 text-gray-500">{t("create_update_react_component")}</small>
+          <small className="text-subtle flex py-4">{t("create_update_react_component")}</small>
           <TextArea
             data-testid="embed-react"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-react"
-            className="h-[calc(100%-50px)] font-mono"
+            className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
             readOnly
             style={{ resize: "none", overflow: "auto" }}
             value={`/* First make sure that you have installed the package */
@@ -622,7 +622,7 @@ Cal("init", {origin:"${WEBAPP_URL}"});
 const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
   return (
     <components.Control {...props}>
-      <FiSun className="ml-2 h-4 w-4 text-gray-500" />
+      <FiSun className="text-subtle ml-2 h-4 w-4" />
       {children}
     </components.Control>
   );
@@ -634,17 +634,17 @@ const ChooseEmbedTypesDialogContent = () => {
   return (
     <DialogContent className="rounded-lg p-10" type="creation" size="lg">
       <div className="mb-2">
-        <h3 className="mb-2 text-2xl font-bold leading-none text-gray-900" id="modal-title">
+        <h3 className="font-cal text-emphasis mb-2 text-2xl font-bold leading-none" id="modal-title">
           {t("how_you_want_add_cal_site", { appName: APP_NAME })}
         </h3>
         <div>
-          <p className="text-sm text-gray-500">{t("choose_ways_put_cal_site", { appName: APP_NAME })}</p>
+          <p className="text-subtle text-sm">{t("choose_ways_put_cal_site", { appName: APP_NAME })}</p>
         </div>
       </div>
-      <div className="flex items-start">
+      <div className="items-start space-y-2 md:flex md:space-y-0">
         {embeds.map((embed, index) => (
           <button
-            className="hover:border-primary-900 w-1/3 rounded-md border border-gray-200 bg-gray-50 p-6 text-left hover:rounded-md hover:bg-gray-100 ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0"
+            className="hover:bg-subtle bg-muted w-full rounded-md border border-transparent p-6 text-left hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0 lg:w-1/3"
             key={index}
             data-testid={embed.type}
             onClick={() => {
@@ -652,11 +652,11 @@ const ChooseEmbedTypesDialogContent = () => {
                 embedType: embed.type,
               });
             }}>
-            <div className="order-none box-border flex-none rounded-md border border-solid bg-white">
+            <div className="bg-default order-none box-border flex-none rounded-md border border-solid dark:bg-transparent dark:invert">
               {embed.illustration}
             </div>
-            <div className="mt-4 font-semibold leading-none text-gray-900">{embed.title}</div>
-            <p className="mt-2 text-sm text-gray-500">{embed.subtitle}</p>
+            <div className="text-emphasis mt-4 font-semibold">{embed.title}</div>
+            <p className="text-subtle mt-2 text-sm">{embed.subtitle}</p>
           </button>
         ))}
       </div>
@@ -821,9 +821,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       enableOverflow
       type="creation">
       <div className="flex">
-        <div className="flex w-1/3 flex-col bg-gray-50 p-8">
+        <div className="bg-muted flex w-1/3 flex-col p-8">
           <h3
-            className="mb-2.5 flex items-center text-xl font-semibold leading-5 text-gray-900"
+            className="text-emphasis mb-2.5 flex items-center text-xl font-semibold leading-5"
             id="modal-title">
             <button
               className="h-6 w-6"
@@ -834,7 +834,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             </button>
             {embed.title}
           </h3>
-          <h4 className="mb-6 text-sm font-normal text-gray-500">{embed.subtitle}</h4>
+          <h4 className="text-emphasis mb-6 text-sm font-normal">{embed.subtitle}</h4>
           <div className="flex flex-col">
             <div className={classNames("font-medium", embedType === "element-click" ? "hidden" : "")}>
               <Collapsible
@@ -843,7 +843,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 <CollapsibleContent className="text-sm">
                   <div className={classNames(embedType === "inline" ? "block" : "hidden")}>
                     {/*TODO: Add Auto/Fixed toggle from Figma */}
-                    <div className="mb-[9px] text-sm">Window sizing</div>
+                    <div className="text-default mb-[9px] text-sm">Window sizing</div>
                     <div className="justify-left flex items-center !font-normal">
                       <div className="mr-[9px]">
                         <TextField
@@ -893,7 +893,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <div
                     className={classNames(
                       "mt-4 items-center justify-between",
-                      embedType === "floating-popup" ? "" : "hidden"
+                      embedType === "floating-popup" ? "text-emphasis" : "hidden"
                     )}>
                     <div className="mb-2 text-sm">Button Text</div>
                     {/* Default Values should come from preview iframe */}
@@ -917,7 +917,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <div
                     className={classNames(
                       "mt-4 flex items-center justify-start",
-                      embedType === "floating-popup" ? "space-x-2 rtl:space-x-reverse" : "hidden"
+                      embedType === "floating-popup"
+                        ? "text-emphasis space-x-2 rtl:space-x-reverse"
+                        : "hidden"
                     )}>
                     <Switch
                       defaultChecked={true}
@@ -933,12 +935,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         });
                       }}
                     />
-                    <div className="text-sm">Display Calendar Icon Button</div>
+                    <div className="text-default text-sm">Display Calendar Icon Button</div>
                   </div>
                   <div
                     className={classNames(
                       "mt-4 items-center justify-between",
-                      embedType === "floating-popup" ? "" : "hidden"
+                      embedType === "floating-popup" ? "text-emphasis" : "hidden"
                     )}>
                     <div className="mb-2">Position of Button</div>
                     <Select
@@ -957,7 +959,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       options={FloatingPopupPositionOptions}
                     />
                   </div>
-                  <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
+                  <div
+                    className={classNames(
+                      "mt-4",
+                      embedType === "floating-popup" ? "text-emphasis" : "hidden"
+                    )}>
                     <div>Button Color</div>
                     <div className="w-full">
                       <ColorPicker
@@ -978,7 +984,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       />
                     </div>
                   </div>
-                  <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
+                  <div
+                    className={classNames(
+                      "mt-4",
+                      embedType === "floating-popup" ? "text-emphasis" : "hidden"
+                    )}>
                     <div>Text Color</div>
                     <div className="w-full">
                       <ColorPicker
@@ -1020,7 +1030,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           });
                         }}
                       />
-                      <div className="text-sm">{t("hide_eventtype_details")}</div>
+                      <div className="text-default text-sm">{t("hide_eventtype_details")}</div>
                     </div>
                     {[
                       { name: "brandColor", title: "Brand Color" },

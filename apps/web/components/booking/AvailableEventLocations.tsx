@@ -41,7 +41,7 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
     return (
       <div key={`${location.type}-${index}`} className="flex flex-row items-center text-sm font-medium">
         {eventLocationType.iconUrl === "/link.svg" ? (
-          <FiLink className="dark:text-darkgray-600 min-h-4 min-w-4 ml-[2px] opacity-70 ltr:mr-[10px] rtl:ml-[10px] dark:opacity-100 " />
+          <FiLink className="text-default min-h-4 min-w-4 ml-[2px] opacity-70 ltr:mr-[10px] rtl:ml-[10px] " />
         ) : (
           <img
             src={eventLocationType.iconUrl}
@@ -61,7 +61,7 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
 
   const filteredLocations = renderLocations.filter(excludeNullValues) as JSX.Element[];
   return filteredLocations.length ? (
-    <div className="dark:text-darkgray-600 mr-6 flex w-full flex-col space-y-4 break-words text-sm text-gray-600">
+    <div className="text-default mr-6 flex w-full flex-col space-y-4 break-words text-sm">
       {filteredLocations}
     </div>
   ) : null;
