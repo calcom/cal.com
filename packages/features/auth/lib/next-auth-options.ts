@@ -10,7 +10,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 import type { TransportOptions } from "nodemailer";
-import nodemailer from "nodemailer";
 import { authenticator } from "otplib";
 import path from "path";
 
@@ -19,7 +18,6 @@ import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/Imperso
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { APP_NAME, IS_TEAM_BILLING_ENABLED, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
-import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
 import { randomString } from "@calcom/lib/random";
@@ -39,10 +37,6 @@ const { client_id: GOOGLE_CLIENT_ID, client_secret: GOOGLE_CLIENT_SECRET } =
   JSON.parse(GOOGLE_API_CREDENTIALS)?.web || {};
 const GOOGLE_LOGIN_ENABLED = process.env.GOOGLE_LOGIN_ENABLED === "true";
 const IS_GOOGLE_LOGIN_ENABLED = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && GOOGLE_LOGIN_ENABLED);
-
-const transporter = nodemailer.createTransport<TransportOptions>({
-  ...(serverConfig.transport as TransportOptions),
-} as TransportOptions);
 
 const usernameSlug = (username: string) => slugify(username) + "-" + randomString(6).toLowerCase();
 
@@ -83,7 +77,11 @@ const providers: Provider[] = [
     credentials: {
       email: { label: "Email Address", type: "email", placeholder: "john.doe@example.com" },
       password: { label: "Password", type: "password", placeholder: "Your super secure password" },
-      totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
+      totpCode: {
+        label: "Two-factor Code",
+        type: "input",
+        placeholder: "Code from authenticator app",
+      },
     },
     async authorize(credentials) {
       if (!credentials) {
@@ -156,7 +154,7 @@ const providers: Provider[] = [
           console.error(`"Missing encryption key; cannot proceed with two factor login."`);
           throw new Error(ErrorCode.InternalServerError);
         }
-
+        const { symmetricDecrypt } = await import("@calcom/lib/crypto");
         const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
         if (secret.length !== 32) {
           console.error(
@@ -180,7 +178,9 @@ const providers: Provider[] = [
         // User's identity provider is not "CAL"
         if (user.identityProvider !== IdentityProvider.CAL) return role;
         // User's password is valid and two-factor authentication is enabled
-        if (isPasswordValid(credentials.password, false, true) && user.twoFactorEnabled) return role;
+        if (isPasswordValid(credentials.password, false, true) && user.twoFactorEnabled) {
+          return role;
+        }
         // Code is running in a development environment
         if (isENVDev) return role;
         // By this point it is an ADMIN without valid security conditions
@@ -310,7 +310,7 @@ if (true) {
       type: "email",
       maxAge: 10 * 60 * 60, // Magic links are valid for 10 min only
       // Here we setup the sendVerificationRequest that calls the email template with the identifier (email) and token to verify.
-      sendVerificationRequest: ({ identifier, url }) => {
+      sendVerificationRequest: async ({ identifier, url }) => {
         const originalUrl = new URL(url);
         const webappUrl = new URL(WEBAPP_URL);
         if (originalUrl.origin !== webappUrl.origin) {
@@ -320,6 +320,10 @@ if (true) {
           encoding: "utf8",
         });
         const emailTemplate = Handlebars.compile(emailFile);
+        const nodemailer = (await import("nodemailer")).default;
+        const transporter = nodemailer.createTransport<TransportOptions>({
+          ...(serverConfig.transport as TransportOptions),
+        } as TransportOptions);
         transporter.sendMail({
           from: `${process.env.EMAIL_FROM}` || APP_NAME,
           to: identifier,
@@ -610,7 +614,10 @@ export const AUTH_OPTIONS: AuthOptions = {
           });
 
           if (!userWithNewEmail) {
-            await prisma.user.update({ where: { id: existingUser.id }, data: { email: user.email } });
+            await prisma.user.update({
+              where: { id: existingUser.id },
+              data: { email: user.email },
+            });
             if (existingUser.twoFactorEnabled) {
               return loginWithTotp(existingUser);
             } else {
@@ -725,8 +732,9 @@ export const AUTH_OPTIONS: AuthOptions = {
     },
     async redirect({ url, baseUrl }) {
       // Allows relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Allows callback URLs on the same domain
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      } // Allows callback URLs on the same domain
       else if (new URL(url).hostname === new URL(WEBAPP_URL).hostname) return url;
       return baseUrl;
     },
