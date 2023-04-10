@@ -64,12 +64,14 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
     <div className="w-full max-w-[2000px] overflow-x-scroll">
       <table
         data-testid="reporting-table"
-        className="table-fixed border-separate border-spacing-0 rounded-md border border-gray-300 bg-gray-100">
-        <tr data-testid="reporting-header" className="border-b border-gray-300 bg-gray-200">
+        className="border-default bg-subtle mx-3 mb-4 table-fixed border-separate border-spacing-0 overflow-hidden rounded-md border">
+        <tr
+          data-testid="reporting-header"
+          className="border-default text-default bg-emphasis rounded-md border-b">
           {headers.current?.map((header, index) => (
             <th
               className={classNames(
-                "border-b border-gray-300 py-3 px-2  text-left text-base font-medium",
+                "border-default border-b py-3 px-2  text-left text-base font-medium",
                 index !== (headers.current?.length || 0) - 1 ? "border-r" : ""
               )}
               key={index}>
@@ -87,7 +89,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
                   data-testid="reporting-row"
                   className={classNames(
                     "text-center text-sm",
-                    rowIndex % 2 ? "" : "bg-white",
+                    rowIndex % 2 ? "" : "bg-default",
                     isLastRow ? "" : "border-b"
                   )}>
                   {responses.map((r, columnIndex) => {
@@ -95,7 +97,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
                     return (
                       <td
                         className={classNames(
-                          "overflow-x-hidden border-gray-300 py-3 px-2 text-left",
+                          "border-default overflow-x-hidden py-3 px-2 text-left",
                           isLastRow ? "" : "border-b",
                           isLastColumn ? "" : "border-r"
                         )}
@@ -109,16 +111,18 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
             });
           })}
       </table>
-      {isLoading ? <div className="p-2">Report is loading</div> : ""}
-      <Button
-        type="button"
-        color="minimal"
-        ref={buttonInView.ref}
-        loading={isFetchingNextPage}
-        disabled={!hasNextPage}
-        onClick={() => fetchNextPage()}>
-        {hasNextPage ? t("load_more_results") : t("no_more_results")}
-      </Button>
+      {isLoading ? <div className="text-default p-2">{t("loading")}</div> : ""}
+      {hasNextPage && (
+        <Button
+          type="button"
+          color="minimal"
+          ref={buttonInView.ref}
+          loading={isFetchingNextPage}
+          disabled={!hasNextPage}
+          onClick={() => fetchNextPage()}>
+          {hasNextPage ? t("load_more_results") : t("no_more_results")}
+        </Button>
+      )}
     </div>
   );
 };
@@ -192,6 +196,8 @@ export default function ReporterWrapper({
     />
   );
 }
+
+ReporterWrapper.isThemeSupported = true;
 
 ReporterWrapper.getLayout = (page: React.ReactElement) => {
   return (

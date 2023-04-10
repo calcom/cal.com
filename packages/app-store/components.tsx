@@ -91,9 +91,7 @@ export const AppDependencyComponent = ({
     <div
       className={classNames(
         "rounded-md py-3 px-4",
-        dependencyData && dependencyData.some((dependency) => !dependency.installed)
-          ? "bg-blue-100"
-          : "bg-gray-100"
+        dependencyData && dependencyData.some((dependency) => !dependency.installed) ? "bg-info" : "bg-subtle"
       )}>
       {dependencyData &&
         dependencyData.map((dependency) => {
@@ -122,7 +120,7 @@ export const AppDependencyComponent = ({
             </div>
           ) : (
             <div className="items-start space-x-2.5">
-              <div className="flex items-start text-blue-900">
+              <div className="text-info flex items-start">
                 <div>
                   <FiAlertCircle className="mt-1 mr-2 font-semibold" />
                 </div>
@@ -136,7 +134,7 @@ export const AppDependencyComponent = ({
                       <>
                         <Link
                           href={`${CAL_URL}/apps/${dependency.slug}`}
-                          className="flex items-center text-blue-900 underline">
+                          className="text-info flex items-center underline">
                           <span className="mr-1">
                             {t("connect_app", { dependencyName: dependency.name })}
                           </span>

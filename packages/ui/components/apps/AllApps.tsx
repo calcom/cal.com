@@ -67,7 +67,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
   };
   return (
     <div className="relative mb-4 flex flex-col justify-between lg:flex-row lg:items-center">
-      <h2 className="hidden text-base font-semibold leading-none text-gray-900 sm:block">
+      <h2 className="text-emphasis hidden text-base font-semibold leading-none sm:block">
         {searchText
           ? t("search")
           : t("explore_apps", {
@@ -78,10 +78,10 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
       </h2>
       {leftVisible && (
         <button onClick={handleLeft} className="absolute bottom-0 flex md:left-1/2 md:-top-1">
-          <div className="flex h-10 w-5 items-center justify-end bg-white">
-            <FiChevronLeft className="h-4 w-4 text-gray-500" />
+          <div className="bg-default flex h-12 w-5 items-center justify-end">
+            <FiChevronLeft className="text-subtle h-4 w-4" />
           </div>
-          <div className="flex h-10 w-5 bg-gradient-to-l from-transparent to-white" />
+          <div className="to-default flex h-12 w-5 bg-gradient-to-l from-transparent" />
         </button>
       )}
       <ul
@@ -93,8 +93,8 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
             router.replace(router.asPath.split("?")[0], undefined, { shallow: true });
           }}
           className={classNames(
-            selectedCategory === null ? "bg-gray-900 text-gray-50" : "bg-gray-50 text-gray-900",
-            "rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer hover:bg-gray-900 hover:text-gray-50"
+            selectedCategory === null ? "bg-emphasis text-default" : "bg-muted text-emphasis",
+            "hover:bg-emphasis rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer hover:text-gray-50"
           )}>
           {t("all_apps")}
         </li>
@@ -111,8 +111,8 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
               }
             }}
             className={classNames(
-              selectedCategory === cat ? "bg-gray-900 text-gray-50" : "bg-gray-50 text-gray-900",
-              "rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer hover:bg-gray-900 hover:text-gray-50"
+              selectedCategory === cat ? "bg-emphasis text-default" : "bg-muted text-emphasis",
+              "hover:bg-emphasis rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer hover:text-gray-50"
             )}>
             {cat[0].toUpperCase() + cat.slice(1)}
           </li>
@@ -120,9 +120,9 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
       </ul>
       {rightVisible && (
         <button onClick={handleRight} className="absolute bottom-0 right-0 flex md:-top-1">
-          <div className="flex h-10 w-5 bg-gradient-to-r from-transparent to-white" />
-          <div className="flex h-10 w-5 items-center justify-end bg-white">
-            <FiChevronRight className="h-4 w-4 text-gray-500" />
+          <div className="to-default flex h-12 w-5 bg-gradient-to-r from-transparent" />
+          <div className="bg-default flex h-12 w-5 items-center justify-end">
+            <FiChevronRight className="text-subtle h-4 w-4" />
           </div>
         </button>
       )}

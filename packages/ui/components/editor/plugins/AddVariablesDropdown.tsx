@@ -14,7 +14,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
 
   return (
     <Dropdown>
-      <DropdownMenuTrigger className="pt-[6px] focus:bg-gray-50">
+      <DropdownMenuTrigger className="focus:bg-muted pt-[6px]">
         <div className="items-center ">
           {props.isTextEditor ? (
             <>
@@ -34,7 +34,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="h-40 overflow-scroll">
         <div className="pt-4 pb-1">
-          <div className="mb-2 px-4 text-left text-xs text-gray-500">
+          <div className="text-subtle mb-2 px-4 text-left text-xs">
             {t("add_dynamic_variables").toLocaleUpperCase()}
           </div>
           {props.variables.map((variable) => (
@@ -48,7 +48,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
                   <div className="mr-3 text-left md:col-span-1">
                     {`{${t(`${variable}_variable`).toUpperCase().replace(/ /g, "_")}}`}
                   </div>
-                  <div className="hidden text-left text-gray-600 sm:col-span-1 sm:flex">
+                  <div className="text-default hidden text-left sm:col-span-1 sm:flex">
                     {t(`${variable}_info`)}
                   </div>
                 </div>

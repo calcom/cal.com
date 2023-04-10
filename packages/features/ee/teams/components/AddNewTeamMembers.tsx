@@ -72,7 +72,7 @@ export const AddNewTeamMembersForm = ({
   return (
     <>
       <div>
-        <ul className="rounded-md border" data-testid="pending-member-list">
+        <ul className="border-subtle rounded-md border" data-testid="pending-member-list">
           {defaultValues.members.map((member, index) => (
             <PendingMemberItem key={member.email} member={member} index={index} teamId={teamId} />
           ))}
@@ -100,7 +100,7 @@ export const AddNewTeamMembersForm = ({
         }}
         members={defaultValues.members}
       />
-      <hr className="my-6 border-neutral-200" />
+      <hr className="border-subtle my-6" />
       <Button
         EndIcon={FiArrowRight}
         className="mt-6 w-full justify-center"
@@ -121,7 +121,7 @@ const AddNewTeamMemberSkeleton = () => {
     <SkeletonContainer className="rounded-md border">
       <div className="flex w-full justify-between p-4">
         <div>
-          <p className="text-sm font-medium text-gray-900">
+          <p className="text-emphasis text-sm font-medium">
             <SkeletonText className="h-4 w-56" />
           </p>
           <div className="mt-2.5 w-max">
@@ -170,9 +170,9 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
             {member.role === "ADMIN" && <Badge variant="default">{t("admin")}</Badge>}
           </div>
           {member.username ? (
-            <p className="text-gray-600">{`${WEBAPP_URL}/${member.username}`}</p>
+            <p className="text-default">{`${WEBAPP_URL}/${member.username}`}</p>
           ) : (
-            <p className="text-gray-600">{t("not_on_cal", { appName: APP_NAME })}</p>
+            <p className="text-default">{t("not_on_cal", { appName: APP_NAME })}</p>
           )}
         </div>
       </div>

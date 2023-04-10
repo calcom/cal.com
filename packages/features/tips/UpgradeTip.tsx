@@ -49,8 +49,8 @@ export function UpgradeTip({
           quality={100}
         />
         <div className="relative mt-4 px-8 sm:px-14">
-          <h1 className={classNames("font-cal text-3xl", dark && "text-white")}>{t(title)}</h1>
-          <p className={classNames("mt-4 mb-8 max-w-sm", dark ? "text-white" : "text-gray-700")}>
+          <h1 className={classNames("font-cal text-3xl", dark && "text-inverted")}>{t(title)}</h1>
+          <p className={classNames("mt-4 mb-8 max-w-sm", dark ? "text-inverted" : "text-default")}>
             {t(description)}
           </p>
           {buttons}
@@ -59,10 +59,10 @@ export function UpgradeTip({
 
       <div className="mt-4 grid-cols-3 md:grid md:gap-4">
         {features.map((feature) => (
-          <div key={feature.title} className="mb-4 min-h-[180px] w-full rounded-md bg-gray-50 p-8 md:mb-0">
+          <div key={feature.title} className="bg-muted mb-4 min-h-[180px] w-full rounded-md  p-8 md:mb-0">
             {feature.icon}
-            <h2 className="font-cal mt-4 text-lg">{feature.title}</h2>
-            <p className="text-gray-700">{feature.description}</p>
+            <h2 className="font-cal text-emphasis mt-4 text-lg">{feature.title}</h2>
+            <p className="text-default">{feature.description}</p>
           </div>
         ))}
       </div>

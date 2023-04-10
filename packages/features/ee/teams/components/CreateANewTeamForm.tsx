@@ -72,6 +72,7 @@ export const CreateANewTeamForm = () => {
               <>
                 <TextField
                   className="mt-2"
+                  placeholder="Acme Inc."
                   name="name"
                   label={t("team_name")}
                   defaultValue={value}
@@ -97,6 +98,7 @@ export const CreateANewTeamForm = () => {
               <TextField
                 className="mt-2"
                 name="slug"
+                placeholder="acme"
                 label={t("team_url")}
                 addOnLeading={`${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace("https://", "")?.replace(
                   "http://",
@@ -121,7 +123,7 @@ export const CreateANewTeamForm = () => {
             render={({ field: { value } }) => (
               <div className="flex items-center">
                 <Avatar alt="" imageSrc={value || null} gravatarFallbackMd5="newTeam" size="lg" />
-                <div className="ltr:ml-4 rtl:mr-4">
+                <div className="ms-4">
                   <ImageUploader
                     target="avatar"
                     id="avatar-upload"

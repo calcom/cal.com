@@ -52,7 +52,7 @@ const CheckedHostField = ({
   options?: Options<CheckedSelectOption>;
 } & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
   return (
-    <div className="flex flex-col space-y-5 bg-gray-50 p-4">
+    <div className="bg-muted flex flex-col space-y-5 p-4">
       <div>
         <Label>{labelText}</Label>
         <CheckedTeamSelect

@@ -36,19 +36,19 @@ const cardTypeByVariant = {
     image: "w-10 h-auto",
     card: "p-5",
     title: "text-base mt-4",
-    description: "text-sm leading-[18px] text-gray-500 font-normal",
+    description: "text-sm leading-[18px] text-subtle font-normal",
   },
   ProfileCard: {
     image: "w-9 h-auto rounded-full mb-4s",
-    card: "w-80 p-4 hover:bg-gray-100",
+    card: "w-80 p-4 hover:bg-subtle",
     title: "text-base",
-    description: "text-sm leading-[18px] text-gray-500 font-normal",
+    description: "text-sm leading-[18px] text-subtle font-normal",
   },
   SidebarCard: {
     image: "w-9 h-auto rounded-full mb-4s",
-    card: "w-full p-3 border border-gray-200",
+    card: "w-full p-3 border border-subtle",
     title: "text-sm font-cal",
-    description: "text-xs text-gray-600 line-clamp-2",
+    description: "text-xs text-default line-clamp-2",
   },
 };
 
@@ -71,7 +71,7 @@ export function Card({
       className={classNames(
         containerProps?.className,
         cardTypeByVariant[variant].card,
-        "flex flex-col justify-between rounded-md border border-gray-200 bg-white"
+        "bg-default border-subtle text-default flex flex-col justify-between rounded-md border"
       )}
       {...containerProps}>
       <div>
@@ -89,7 +89,7 @@ export function Card({
           title={title}
           className={classNames(
             cardTypeByVariant[variant].title,
-            "line-clamp-1 font-bold leading-5 text-gray-900"
+            "line-clamp-1 text-emphasis font-bold leading-5"
           )}>
           {title}
         </h5>
@@ -110,7 +110,7 @@ export function Card({
           className="group relative my-3 flex aspect-video items-center overflow-hidden rounded">
           <div className="absolute inset-0 bg-black bg-opacity-50 transition-opacity group-hover:bg-opacity-40" />
           <svg
-            className="absolute top-1/2 left-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 transform rounded-full text-white shadow-lg hover:-mt-px"
+            className="text-inverted absolute top-1/2 left-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 transform rounded-full shadow-lg hover:-mt-px"
             viewBox="0 0 32 32"
             fill="none"
             xmlns="http://www.w3.org/2000/svg">
@@ -148,12 +148,12 @@ export function Card({
               onClick={actionButton?.onClick}
               target="_blank"
               rel="noreferrer"
-              className="text-xs font-medium">
+              className="text-default text-xs font-medium">
               {learnMore.text}
             </LinkComponent>
           )}
           <button
-            className="p-0 text-xs font-normal text-gray-600 hover:text-gray-800"
+            className="text-default hover:text-emphasis p-0 text-xs font-normal"
             color="minimal"
             onClick={actionButton?.onClick}>
             {actionButton?.child}
