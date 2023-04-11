@@ -1,17 +1,21 @@
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import stripejs, { StripeCardElementChangeEvent, StripeElementLocale } from "@stripe/stripe-js";
+import type { StripeCardElementChangeEvent, StripeElementLocale } from "@stripe/stripe-js";
+import type stripejs from "@stripe/stripe-js";
 import { useRouter } from "next/router";
-import { stringify } from "querystring";
-import { SyntheticEvent, useEffect, useState } from "react";
+import type { SyntheticEvent } from "react";
+import { useEffect, useState } from "react";
 
-import { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
+import type { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
+import { bookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
+
+import type { EventType } from ".prisma/client";
 
 const CARD_OPTIONS: stripejs.StripeCardElementOptions = {
   iconStyle: "solid" as const,
   classes: {
-    base: "block p-2 w-full border-solid border-2 border-gray-300 rounded-md dark:bg-black dark:text-white dark:border-black focus-within:ring-black focus-within:border-black text-sm",
+    base: "block p-2 w-full border-solid border-2 border-default rounded-md dark:bg-black dark:text-inverted dark:border-black focus-within:ring-black focus-within:border-black text-sm",
   },
   style: {
     base: {
@@ -31,7 +35,7 @@ type Props = {
   payment: {
     data: StripePaymentData;
   };
-  eventType: { id: number };
+  eventType: { id: number; successRedirectUrl: EventType["successRedirectUrl"] };
   user: { username: string | null };
   location?: string | null;
   bookingId: number;
@@ -94,10 +98,12 @@ export default function PaymentComponent(props: Props) {
         }
       }
 
-      const query = stringify(params);
-      const successUrl = `/booking/${props.bookingUid}?${query}`;
-
-      await router.push(successUrl);
+      return bookingSuccessRedirect({
+        router,
+        successRedirectUrl: props.eventType.successRedirectUrl,
+        query: params,
+        bookingUid: props.bookingUid,
+      });
     }
   };
   return (
@@ -116,7 +122,7 @@ export default function PaymentComponent(props: Props) {
         </Button>
       </div>
       {state.status === "error" && (
-        <div className="mt-4 text-center text-gray-700 dark:text-gray-300" role="alert">
+        <div className="text-default mt-4 text-center dark:text-gray-300" role="alert">
           {state.error.message}
         </div>
       )}

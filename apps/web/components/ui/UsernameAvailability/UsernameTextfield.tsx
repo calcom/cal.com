@@ -8,7 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Button, Dialog, DialogClose, DialogContent, DialogHeader, TextField } from "@calcom/ui";
+import { Button, Dialog, DialogClose, DialogContent, TextField } from "@calcom/ui";
 import { FiCheck, FiEdit2 } from "@calcom/ui/components/icon";
 
 interface ICustomUsernameProps {
@@ -79,7 +79,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
 
   const ActionButtons = () => {
     return usernameIsAvailable && currentUsername !== inputUsernameValue ? (
-      <div className="rlt:space-x-reverse mt-px flex flex-row space-x-2 ltr:ml-2 ltr:mr-2 rtl:ml-2 rtl:space-x-reverse">
+      <div className="rlt:space-x-reverse ms-2 me-2 mt-px flex flex-row space-x-2 rtl:space-x-reverse">
         <Button
           type="button"
           onClick={() => setOpenDialogSaveUsername(true)}
@@ -154,31 +154,25 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
         </div>
       )}
       <Dialog open={openDialogSaveUsername}>
-        <DialogContent>
-          <div style={{ display: "flex", flexDirection: "row" }}>
-            <div className="xs:hidden flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-              <FiEdit2 className="m-auto h-6 w-6" />
-            </div>
-            <div className="mb-4 w-full px-4 pt-1">
-              <DialogHeader title={t("confirm_username_change_dialog_title")} />
-
-              <div className="flex w-full flex-wrap rounded-sm bg-gray-100 py-3 text-sm">
+        <DialogContent type="confirmation" Icon={FiEdit2} title={t("confirm_username_change_dialog_title")}>
+          <div className="flex flex-row">
+            <div className="mb-4 w-full pt-1">
+              <div className="bg-subtle flex w-full flex-wrap rounded-sm py-3 text-sm">
                 <div className="flex-1 px-2">
-                  <p className="text-gray-500">{t("current_username")}</p>
-                  <p className="mt-1" data-testid="current-username">
+                  <p className="text-subtle">{t("current_username")}</p>
+                  <p className="text-emphasis mt-1" data-testid="current-username">
                     {currentUsername}
                   </p>
                 </div>
-                <div className="flex-1">
-                  <p className="text-gray-500" data-testid="new-username">
+                <div className="ml-6 flex-1">
+                  <p className="text-subtle" data-testid="new-username">
                     {t("new_username")}
                   </p>
-                  <p>{inputUsernameValue}</p>
+                  <p className="text-emphasis">{inputUsernameValue}</p>
                 </div>
               </div>
             </div>
           </div>
-
           <div className="mt-4 flex flex-row-reverse gap-x-2">
             <Button
               type="button"

@@ -22,14 +22,14 @@ const DisableUserImpersonation = ({ disableImpersonation }: { disableImpersonati
       <div className="flex flex-col justify-between pt-9 pl-2 sm:flex-row">
         <div>
           <div className="flex flex-row items-center">
-            <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">
+            <h2 className="font-cal text-emphasis text-lg font-medium leading-6">
               {t("user_impersonation_heading")}
             </h2>
             <Badge className="ml-2 text-xs" variant={!disableImpersonation ? "success" : "gray"}>
               {!disableImpersonation ? t("enabled") : t("disabled")}
             </Badge>
           </div>
-          <p className="mt-1 text-sm text-gray-500">{t("user_impersonation_description")}</p>
+          <p className="text-subtle mt-1 text-sm">{t("user_impersonation_description")}</p>
         </div>
         <div className="mt-5 sm:mt-0 sm:self-center">
           <Button

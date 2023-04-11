@@ -102,7 +102,7 @@ export default function RoutingForms({
         title={t("teams_plan_required")}
         description={t("routing_forms_are_a_great_way")}
         features={features}
-        background="/tips/routing-forms.jpg"
+        background="/tips/routing-forms"
         isParentLoading={isLoading && <SkeletonLoaderTeamList />}
         buttons={
           <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
@@ -128,7 +128,7 @@ export default function RoutingForms({
                 />
               ) : null}
               {forms?.length ? (
-                <div className="mb-16 overflow-hidden bg-white">
+                <div className="bg-default mb-16 overflow-hidden">
                   <List data-testid="routing-forms-list">
                     {forms.map((form, index) => {
                       if (!form) {
@@ -251,6 +251,8 @@ export default function RoutingForms({
     </ShellMain>
   );
 }
+
+RoutingForms.isThemeSupported = true;
 
 RoutingForms.getLayout = (page: React.ReactElement) => {
   return <Shell withoutMain={true}>{page}</Shell>;

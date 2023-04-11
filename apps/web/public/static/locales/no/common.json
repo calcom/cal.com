@@ -1458,7 +1458,6 @@
   "create_your_first_team_webhook_description": "Opprett din første webhook for denne team-hendelsestypen",
   "create_webhook_team_event_type": "Opprett en webhook for denne team-hendelsestypen",
   "disable_success_page": "Deaktiver Suksess-side (fungerer bare hvis du har en omdirigerings-URL)",
-  "invalid_admin_password": "Du er satt som administrator, men du har ikke en passordlengde på minst 15 tegn",
   "change_password_admin": "Endre passord for å få administratortilgang",
   "username_already_taken": "Brukernavnet er allerede tatt",
   "new_attendee": "Ny Deltaker",

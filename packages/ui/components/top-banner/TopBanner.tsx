@@ -28,12 +28,12 @@ export function TopBanner(props: TopBannerProps) {
         variantClassName[variant]
       )}>
       <div className="flex flex-1 flex-col items-start justify-center gap-2 p-1 lg:flex-row lg:items-center">
-        <p className="flex flex-col items-start justify-center gap-2 text-left font-sans text-sm font-medium leading-4 text-gray-900 lg:flex-row lg:items-center">
+        <p className="text-emphasis flex flex-col items-start justify-center gap-2 text-left font-sans text-sm font-medium leading-4 lg:flex-row lg:items-center">
           {variant === "error" && (
-            <FiAlertTriangle className="h-4 w-4 stroke-[2.5px] text-black" aria-hidden="true" />
+            <FiAlertTriangle className="text-emphasis h-4 w-4 stroke-[2.5px]" aria-hidden="true" />
           )}
           {variant === "warning" && (
-            <FiInfo className="h-4 w-4 stroke-[2.5px] text-black" aria-hidden="true" />
+            <FiInfo className="text-emphasis h-4 w-4 stroke-[2.5px]" aria-hidden="true" />
           )}
           {text}
         </p>
@@ -43,8 +43,8 @@ export function TopBanner(props: TopBannerProps) {
         <button
           type="button"
           onClick={noop}
-          className="hover:bg-gray-20 flex items-center rounded-lg p-1.5 text-sm text-gray-400">
-          <XIcon className="h-4 w-4 text-black" />
+          className="hover:bg-gray-20 text-muted flex items-center rounded-lg p-1.5 text-sm">
+          <XIcon className="text-emphasis h-4 w-4" />
         </button>
       )}
     </div>

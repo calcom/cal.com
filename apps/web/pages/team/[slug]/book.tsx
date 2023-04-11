@@ -24,8 +24,6 @@ export default function TeamBookingPage(props: TeamBookingPageProps) {
   return <BookingPage {...props} />;
 }
 
-TeamBookingPage.isThemeSupported = true;
-
 const querySchema = z.object({
   rescheduleUid: z.string().optional(),
   bookingUid: z.string().optional(),
@@ -67,6 +65,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       seatsPerTimeSlot: true,
       schedulingType: true,
       bookingFields: true,
+      successRedirectUrl: true,
       workflows: {
         include: {
           workflow: {

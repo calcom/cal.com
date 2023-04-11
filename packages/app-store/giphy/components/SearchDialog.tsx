@@ -88,7 +88,7 @@ export const SearchDialog = (props: ISearchDialog) => {
     <div
       className={classNames(
         "flex cursor-pointer items-center border-b-2 p-2 text-sm",
-        selectedMode === mode ? "border-black" : "border-transparent text-gray-500"
+        selectedMode === mode ? "border-black" : "text-subtle border-transparent"
       )}
       onClick={() => {
         setKeyword("");
@@ -113,10 +113,10 @@ export const SearchDialog = (props: ISearchDialog) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent>
-        <h3 className="leading-16 font-cal text-xl text-gray-900" id="modal-title">
+        <h3 className="leading-16 font-cal text-emphasis text-xl" id="modal-title">
           {t("add_gif_to_confirmation")}
         </h3>
-        <p className="mb-3 text-sm font-light text-gray-500">{t("find_gif_spice_confirmation")}</p>
+        <p className="text-subtle mb-3 text-sm font-light">{t("find_gif_spice_confirmation")}</p>
         <div className="flex items-center border-b border-solid">
           {renderTab(SearchIcon, t("search_giphy"), MODE_SEARCH)}
           {renderTab(LinkIcon, t("add_link_from_giphy"), MODE_URL)}
@@ -127,7 +127,7 @@ export const SearchDialog = (props: ISearchDialog) => {
           <div className="relative block w-full pt-2">
             <input
               type="text"
-              className="block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+              className="border-default block w-full rounded-sm shadow-sm sm:text-sm"
               placeholder={
                 selectedMode === MODE_SEARCH
                   ? t("search_giphy")
@@ -145,11 +145,11 @@ export const SearchDialog = (props: ISearchDialog) => {
         </form>
         {gifImage && (
           <div className="flex flex-col items-center space-x-2 space-y-2 pt-3 rtl:space-x-reverse">
-            <div className="flex w-full items-center justify-center bg-gray-100">
+            <div className="bg-subtle flex w-full items-center justify-center">
               {isLoading ? (
                 <div className="flex h-[200px] w-full items-center justify-center bg-gray-400 pt-3 pb-3">
                   <svg
-                    className={classNames("mx-4 h-5 w-5 animate-spin", "text-white dark:text-black")}
+                    className={classNames("mx-4 h-5 w-5 animate-spin", "text-inverted dark:text-emphasis")}
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24">
@@ -177,7 +177,7 @@ export const SearchDialog = (props: ISearchDialog) => {
         {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
         {gifImage && selectedMode === MODE_SEARCH && (
           <div className="mt-4 flex items-center justify-between space-x-2 rtl:space-x-reverse">
-            <div className="text-sm font-light text-gray-500">Not the perfect GIF?</div>
+            <div className="text-subtle text-sm font-light">Not the perfect GIF?</div>
             <Button
               size="sm"
               color="secondary"
