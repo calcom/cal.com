@@ -14,11 +14,12 @@ jobs:
           ref: main
           fetch-depth: 0
           token: ${{ secrets.GH_ACCESS_TOKEN }}
-      - run: ./git-setup.sh website auth api console
+      - run: |
+          git config --global user.email "${GITHUB_ACTOR}@me.com"
+          git config --global user.name "${GITHUB_ACTOR}"
+          ./git-setup.sh website auth api console
       - uses: ./.github/actions/yarn-install
       - name: Commit new lockfile if updated
         run: |
-          git config --global user.email "${GITHUB_ACTOR}"
-          git config --global user.name "${GITHUB_ACTOR}@users.noreply.github.com"
           git commit -am "Update yarn.lock"
           git push
