@@ -1,16 +1,13 @@
 import type { EventType } from "@prisma/client";
 import dynamic from "next/dynamic";
-import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import superjson from "superjson";
 import type { z } from "zod";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import classNames from "@calcom/lib/classNames";
-import { BASE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -57,7 +54,7 @@ const useSlots = ({
       duration,
     },
     {
-      enabled: !!startTime && !!endTime && enabled,
+      enabled: !!timeZone && !!duration && !!startTime && !!endTime && enabled,
       refetchInterval,
       trpc: { context: { skipBatch: true } },
     }
@@ -161,41 +158,8 @@ export const SlotPicker = ({
     return false;
   })();
 
-  const url = `${BASE_URL}/api/trpc`;
-  const input = superjson.serialize({
-    eventTypeId: eventType.id,
-    eventTypeSlug: eventType.slug,
-    usernameList: users,
-    startTime: dayjs().utc().toISOString() || "",
-    endTime: dayjs().utc().endOf("day")?.toISOString() || "",
-    timeZone: "America/Mazatlan",
-    duration,
-  });
-
   return (
     <>
-      <Head>
-        <link
-          rel="preload"
-          href={`${url}/viewer.public.slots.getSchedule?input=${encodeURIComponent(JSON.stringify(input))}`}
-          as="fetch"
-        />
-        <link
-          rel="preload"
-          href={`${url}/viewer.public.session?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%7D%7D%7D`}
-          as="fetch"
-        />
-        <link
-          rel="preload"
-          href={`${url}/viewer.public.cityTimezones?input=%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%7D%7D`}
-          as="fetch"
-        />
-        <link
-          rel="preload"
-          href={`${url}/viewer.features.map?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%7D%7D%7D`}
-          as="fetch"
-        />
-      </Head>
       <DatePicker
         isLoading={isLoading}
         className={classNames(
