@@ -64,12 +64,13 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
               <div className="mt-2 block items-center justify-start sm:flex sm:space-x-2">
                 <TextField
                   label=""
+                  className="h-[38px]"
                   addOnLeading={<>{currency ? getCurrencySymbol("en", currency) : ""}</>}
+                  addOnClassname="h-[38px]"
                   step="0.01"
                   min="0.5"
                   type="number"
                   required
-                  className="border-default block w-full rounded-sm pl-2 pr-12 text-sm"
                   placeholder="Price"
                   onChange={(e) => {
                     setAppData("price", Number(e.target.value) * 100);
@@ -88,7 +89,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   onChange={(input) => {
                     if (input) setAppData("paymentOption", input.value);
                   }}
-                  className="mb-1 w-full"
+                  className="mb-1 h-[38px] w-full"
                   isDisabled={seatsEnabled}
                 />
               </div>
