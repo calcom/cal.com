@@ -1,5 +1,5 @@
 import { GraphQLClient, gql } from "graphql-request";
-
+import z from "zod";
 
 interface ICreatePaywongPayment {
   amount: number;
@@ -7,11 +7,13 @@ interface ICreatePaywongPayment {
   receiverAddress: string;
 }
 
-export const createPaywongPayment = async (
-    input: ICreatePaywongPayment,
-) => {
-const endpoint = "https://api.paywong.com/v1/graphql";
+const createPaymentResultSchema = z.object({
+  paymentId: z.string(),
+  paymentUrl: z.string(),
+});
 
+export const createPaywongPayment = async (input: ICreatePaywongPayment) => {
+  const endpoint = "https://api.paywong.com/v1/graphql";
 
   const graphQLClient = new GraphQLClient(endpoint, {
     headers: {
@@ -60,13 +62,19 @@ const endpoint = "https://api.paywong.com/v1/graphql";
 
   try {
     const data = await graphQLClient.request(mutation, variables);
+
+    const parsed = createPaymentResultSchema.safeParse(data);
+    if (!parsed.success) {
+      throw new Error("Invalid response from Paywong");
+    }
+
+    const { paymentId, paymentUrl } = parsed.data;
+
     return {
       success: true,
       data: {
-        // @ts-ignore
-        paymentId: data?.createPayment.paymentId,
-        // @ts-ignore
-        paymentUrl: data?.createPayment.paymentUrl,
+        paymentId: paymentId,
+        paymentUrl: paymentUrl,
       },
     };
   } catch (error: any) {
@@ -77,3 +85,5 @@ const endpoint = "https://api.paywong.com/v1/graphql";
     };
   }
 };
+
+export default null;

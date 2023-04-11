@@ -38,7 +38,8 @@ export class PaymentService implements IAbstractPaymentService {
 
   async create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
-    bookingId: Booking["id"]
+    bookingId: Booking["id"],
+    eventTypeMetadata?: { [key: string]: string | number | boolean | null }
   ) {
     try {
       // Load stripe keys

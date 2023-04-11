@@ -11,6 +11,7 @@ export const AppSetupMap = {
   zapier: dynamic(() => import("../../zapier/pages/setup")),
   closecom: dynamic(() => import("../../closecom/pages/setup")),
   sendgrid: dynamic(() => import("../../sendgrid/pages/setup")),
+  "paywong-payments": dynamic(() => import("../../paywong-payments/pages/setup")),
 };
 
 export const AppSetupPage = (props: { slug: string }) => {

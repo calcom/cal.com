@@ -35,7 +35,9 @@ const handlePayment = async (
       amount: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].price,
       currency: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].currency,
     },
-    booking.id
+    booking.id,
+    (selectedEventType?.metadata?.apps && selectedEventType.metadata.apps[paymentAppCredentials.appId]) ||
+      undefined
   );
 
   if (!paymentData) {
