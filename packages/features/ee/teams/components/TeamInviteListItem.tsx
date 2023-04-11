@@ -77,7 +77,7 @@ export default function TeamInviteListItem(props: Props) {
   );
 
   return (
-    <li className="bg-subtle border-emphasis divide-y rounded-md border px-5 py-4">
+    <li className="bg-subtle border-emphasis divide-subtle divide-y rounded-md border px-5 py-4">
       <div
         className={classNames(
           "flex items-center  justify-between",
@@ -89,7 +89,7 @@ export default function TeamInviteListItem(props: Props) {
             <div className="hidden sm:flex">
               <Button
                 type="button"
-                className="mr-3 border-empthasis"
+                className="border-empthasis mr-3"
                 variant="icon"
                 color="secondary"
                 onClick={declineInvite}
