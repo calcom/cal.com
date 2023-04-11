@@ -97,7 +97,7 @@ export default function MemberListItem(props: Props) {
   const bookingLink = `${urlWithoutProtocol}/${props.member.username}`;
 
   return (
-    <li className="divide-y px-5">
+    <li className="divide-subtle divide-y px-5">
       <div className="my-4 flex justify-between">
         <div className="flex w-full flex-col justify-between sm:flex-row">
           <div className="flex">

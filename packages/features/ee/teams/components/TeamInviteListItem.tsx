@@ -77,7 +77,7 @@ export default function TeamInviteListItem(props: Props) {
   );
 
   return (
-    <li className="bg-subtle border-emphasis divide-y rounded-md border px-5 py-4">
+    <li className="bg-subtle border-emphasis divide-subtle divide-y rounded-md border px-5 py-4">
       <div
         className={classNames(
           "flex items-center  justify-between",
