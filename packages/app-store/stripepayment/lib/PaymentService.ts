@@ -61,7 +61,6 @@ export class PaymentService implements IAbstractPaymentService {
         amount: payment.amount,
         currency: this.credentials.default_currency,
         payment_method_types: ["card"],
-        application_fee_amount: paymentFee,
       };
 
       const paymentIntent = await this.stripe.paymentIntents.create(params, {
