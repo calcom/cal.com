@@ -342,6 +342,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       }
     }
 
+    if (metadata?.apps?.stripe?.paymentOption === "HOLD" && seatsPerTimeSlot) {
+      throw new Error(t("seats_and_no_show_fee_error"));
+    }
+
     updateMutation.mutate({
       ...input,
       locations,

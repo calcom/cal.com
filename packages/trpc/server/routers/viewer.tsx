@@ -54,6 +54,7 @@ import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
 import { deploymentSetupRouter } from "./viewer/deploymentSetup";
 import { eventTypesRouter } from "./viewer/eventTypes";
+import { paymentsRouter } from "./viewer/payments";
 import { slotsRouter } from "./viewer/slots";
 import { ssoRouter } from "./viewer/sso";
 import { viewerTeamsRouter } from "./viewer/teams";
@@ -1338,6 +1339,7 @@ export const viewerRouter = mergeRouters(
     appRoutingForms: app_RoutingForms,
     eth: ethRouter,
     features: featureFlagRouter,
+    payments: paymentsRouter,
     appsRouter,
   })
 );
