@@ -34,7 +34,7 @@ export default function TeamAvailabilityScreen(props: Props) {
     if (!member) return <></>;
 
     return (
-      <div key={member.id} style={style} className="flex border-r border-subtle pl-4 ">
+      <div key={member.id} style={style} className="border-subtle flex border-r pl-4 ">
         <TeamAvailabilityTimes
           teamId={props.team?.id as number}
           memberId={member.id}
@@ -49,7 +49,7 @@ export default function TeamAvailabilityScreen(props: Props) {
                 alt={member?.name || ""}
                 className="min-w-10 min-h-10 mt-1 h-10 w-10 rounded-full"
               />
-              <div className="inline-block overflow-hidden pt-1 ltr:ml-3 rtl:mr-3">
+              <div className="ms-3 inline-block overflow-hidden pt-1">
                 <span className="text-default truncate text-lg font-bold">{member?.name}</span>
                 <span className="text-muted -mt-1 block truncate text-sm">{member?.email}</span>
               </div>
@@ -62,7 +62,7 @@ export default function TeamAvailabilityScreen(props: Props) {
 
   return (
     <div className="bg-default flex flex-1 flex-col rounded-sm border border-neutral-200">
-      <div className="flex w-full space-x-5 border-b border-subtle p-4 rtl:space-x-reverse">
+      <div className="border-subtle flex w-full space-x-5 border-b p-4 rtl:space-x-reverse">
         <div className="flex flex-col">
           <span className="text-default text-sm font-medium">Date</span>
           <DatePicker

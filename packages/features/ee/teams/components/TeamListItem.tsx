@@ -105,7 +105,7 @@ export default function TeamListItem(props: Props) {
         alt="Team Logo"
         className="inline-flex justify-center"
       />
-      <div className="inline-block ltr:ml-3 rtl:mr-3">
+      <div className="ms-3 inline-block">
         <span className="text-default text-sm font-bold">{team.name}</span>
         <span className="text-muted block text-xs">
           {team.slug ? `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}` : "Unpublished team"}
@@ -154,7 +154,7 @@ export default function TeamListItem(props: Props) {
                   type="button"
                   color="secondary"
                   StartIcon={FiCheck}
-                  className="ltr:ml-2 ltr:mr-2 rtl:ml-2"
+                  className="ms-2 me-2"
                   onClick={acceptInvite}>
                   {t("accept")}
                 </Button>
