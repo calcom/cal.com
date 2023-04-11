@@ -12,9 +12,7 @@ import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPl
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
-import { COMMAND_PRIORITY_LOW, KEY_TAB_COMMAND } from "lexical";
 import type { Dispatch, SetStateAction } from "react";
-import { useEffect } from "react";
 
 import { classNames } from "@calcom/lib";
 
