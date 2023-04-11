@@ -63,7 +63,7 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
       let category =
         app.categories.length >= 2 ? app.categories.find((category) => category !== "video") : app.category;
       if (!category) category = "video";
-      const option = { ...app.locationOption, icon: app.imageSrc, slug: app.slug };
+      const option = { ...app.locationOption, icon: app.logo, slug: app.slug };
       if (apps[category]) {
         apps[category] = [...apps[category], option];
       } else {
