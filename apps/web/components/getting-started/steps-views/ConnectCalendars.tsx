@@ -64,7 +64,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
                     type={item.type}
                     title={item.title}
                     description={item.description}
-                    imageSrc={item.logo}
+                    logo={item.logo}
                   />
                 )}
               </li>
