@@ -8,6 +8,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import type z from "zod";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Input, SettingsToggle, RadioField, Select } from "@calcom/ui";
@@ -54,8 +55,7 @@ export default function RequiresConfirmationController({
 
   const defaultValue = options.find(
     (opt) =>
-      opt.value === metadata?.requiresConfirmationThreshold?.unit ??
-      opt.value === defaultRequiresConfirmationSetup.unit
+      opt.value === (metadata?.requiresConfirmationThreshold?.unit ?? defaultRequiresConfirmationSetup.unit)
   );
 
   return (
@@ -123,6 +123,7 @@ export default function RequiresConfirmationController({
                                   <Input
                                     type="number"
                                     min={1}
+                                    disabled={requiresConfirmationLockedProps.disabled}
                                     onChange={(evt) => {
                                       const val = Number(evt.target?.value);
                                       setRequiresConfirmationSetup({
@@ -139,11 +140,15 @@ export default function RequiresConfirmationController({
                                     className="border-default !m-0 block w-16 rounded-md text-sm [appearance:textfield]"
                                     defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}
                                   />
-                                  <label>
+                                  <label
+                                    className={classNames(
+                                      requiresConfirmationLockedProps.disabled && "cursor-not-allowed"
+                                    )}>
                                     <Select
                                       inputId="notice"
                                       options={options}
                                       isSearchable={false}
+                                      isDisabled={requiresConfirmationLockedProps.disabled}
                                       className="ml-2"
                                       onChange={(opt) => {
                                         setRequiresConfirmationSetup({
