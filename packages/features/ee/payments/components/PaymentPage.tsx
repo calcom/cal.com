@@ -109,10 +109,14 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         {props.payment.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
                       </div>
                       <div className="col-span-2 mb-6 font-semibold">
-                        {t("currency_string", {
+                        {/* {t("currency_string", {
                           amount: paymentAppData.price / 100.0,
                           formatParams: { amount: { currency: paymentAppData.currency } },
-                        })}
+                        })} */}
+                        {new Intl.NumberFormat(undefined, {
+                          style: "currency",
+                          currency: paymentAppData.currency,
+                        }).format(paymentAppData.price / 100.0)}
                       </div>
                     </div>
                   </div>

@@ -245,10 +245,14 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                             </>
                           ) : (
                             <>
-                              {t("currency_string", {
+                              {/* {t("currency_string", {
                                 amount: paymentAppData.price / 100.0,
                                 formatParams: { amount: { currency: paymentAppData.currency } },
-                              })}
+                              })} */}
+                              {new Intl.NumberFormat(undefined, {
+                                style: "currency",
+                                currency: paymentAppData.currency,
+                              }).format(paymentAppData.price / 100)}
                             </>
                           )}
                         </p>

@@ -96,10 +96,14 @@ export const EventTypeDescription = ({
           {stripeAppData.price > 0 && (
             <li>
               <Badge variant="gray" startIcon={FiCreditCard}>
-                {t("currency_string", {
+                {/* {t("currency_string", {
                   amount: stripeAppData.price / 100,
                   formatParams: { amount: { currency: stripeAppData.currency } },
-                })}
+                })} */}
+                {new Intl.NumberFormat(undefined, {
+                  style: "currency",
+                  currency: stripeAppData.currency,
+                }).format(stripeAppData.price / 100)}
               </Badge>
             </li>
           )}

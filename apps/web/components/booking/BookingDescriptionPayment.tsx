@@ -21,7 +21,12 @@ const BookingDescriptionPayment = (props: {
       {paymentAppData.paymentOption === "HOLD" ? (
         <>{props.t("no_show_fee_amount", params)}</>
       ) : (
-        <>{props.t("currency_string", params)}</>
+        <>
+          {new Intl.NumberFormat(undefined, {
+            style: "currency",
+            currency: paymentAppData.currency,
+          }).format(paymentAppData.price / 100)}
+        </>
       )}
     </p>
   );
