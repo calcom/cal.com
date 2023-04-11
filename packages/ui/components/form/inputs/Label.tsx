@@ -5,7 +5,7 @@ export function Label(props: JSX.IntrinsicElements["label"]) {
     <label
       {...props}
       className={classNames(
-        "dark:text-darkgray-900 mb-2 block text-sm font-medium leading-none text-gray-700",
+        "text-default text-emphasis mb-2 block text-sm font-medium leading-none",
         props.className
       )}>
       {props.children}

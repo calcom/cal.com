@@ -15,7 +15,10 @@ import {
   getGroupName,
   getUsernameList,
 } from "@calcom/lib/defaultEvents";
+import getBooking from "@calcom/lib/getBooking";
+import type { GetBookingType } from "@calcom/lib/getBooking";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma, { bookEventTypeSelect } from "@calcom/prisma";
 import {
   customInputSchema,
@@ -34,12 +37,12 @@ export type BookPageProps = inferSSRProps<typeof getServerSideProps>;
 export default function Book(props: BookPageProps) {
   const { t } = useLocale();
   return props.away ? (
-    <div className="h-screen dark:bg-gray-900">
+    <div className="dark:bg-inverted h-screen">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
           <div className="overflow-hidden rounded-sm border dark:border-gray-900">
-            <div className="p-8 text-center text-gray-400 dark:text-white">
-              <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">
+            <div className="text-muted dark:text-inverted p-8 text-center">
+              <h2 className="font-cal dark:text-inverted text-default mb-2 text-3xl">
                 😴{" " + t("user_away")}
               </h2>
               <p className="mx-auto max-w-md">{t("user_away_description")}</p>
@@ -49,12 +52,12 @@ export default function Book(props: BookPageProps) {
       </main>
     </div>
   ) : props.isDynamicGroupBooking && !props.profile.allowDynamicBooking ? (
-    <div className="h-screen dark:bg-gray-900">
+    <div className="dark:bg-inverted h-screen">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
           <div className="overflow-hidden rounded-sm border dark:border-gray-900">
-            <div className="p-8 text-center text-gray-400 dark:text-white">
-              <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">
+            <div className="text-muted dark:text-inverted p-8 text-center">
+              <h2 className="font-cal dark:text-inverted text-default mb-2 text-3xl">
                 {" " + t("unavailable")}
               </h2>
               <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled")}</p>
@@ -67,8 +70,6 @@ export default function Book(props: BookPageProps) {
     <BookingPage {...props} />
   );
 }
-
-Book.isThemeSupported = true;
 
 const querySchema = z.object({
   bookingUid: z.string().optional(),
@@ -189,6 +190,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         slug: u.username,
         theme: u.theme,
       })),
+      descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
     };
   })[0];
 

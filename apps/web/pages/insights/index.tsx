@@ -1,3 +1,4 @@
+import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import {
   AverageEventDurationChart,
   BookingKPICards,
@@ -7,7 +8,6 @@ import {
   PopularEventsTable,
 } from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
-import { useFilterContext } from "@calcom/features/insights/context/provider";
 import { Filters } from "@calcom/features/insights/filters";
 import Shell from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
@@ -19,17 +19,13 @@ import { FiRefreshCcw, FiUserPlus, FiUsers } from "@calcom/ui/components/icon";
 
 const Heading = () => {
   const { t } = useLocale();
-  const {
-    filter: { selectedTeamName },
-  } = useFilterContext();
+
   return (
-    <div className="min-w-52">
-      <h3 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 hidden truncate text-xl font-semibold tracking-wide text-black md:block xl:max-w-full">
-        {t("analytics_for_organisation", {
-          organisationName: selectedTeamName,
-        })}
+    <div className="min-w-52 hidden md:block">
+      <h3 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis truncate text-xl font-semibold tracking-wide xl:max-w-full">
+        {t("analytics_for_organisation")}
       </h3>
-      <p className="hidden text-sm text-gray-500 md:block">{t("subtitle_analytics")}</p>
+      <p className="text-default hidden text-sm md:block">{t("subtitle_analytics")}</p>
     </div>
   );
 };
@@ -39,17 +35,17 @@ export default function InsightsPage() {
   const { data: user } = trpc.viewer.me.useQuery();
   const features = [
     {
-      icon: <FiUsers className="h-5 w-5 text-red-500" />,
+      icon: <FiUsers className="h-5 w-5" />,
       title: t("view_bookings_across"),
       description: t("view_bookings_across_description"),
     },
     {
-      icon: <FiRefreshCcw className="h-5 w-5 text-blue-500" />,
+      icon: <FiRefreshCcw className="h-5 w-5" />,
       title: t("identify_booking_trends"),
       description: t("identify_booking_trends_description"),
     },
     {
-      icon: <FiUserPlus className="h-5 w-5 text-green-500" />,
+      icon: <FiUserPlus className="h-5 w-5" />,
       title: t("spot_popular_event_types"),
       description: t("spot_popular_event_types_description"),
     },
@@ -62,14 +58,14 @@ export default function InsightsPage() {
           title={t("make_informed_decisions")}
           description={t("make_informed_decisions_description")}
           features={features}
-          background="/banners/insights.jpg"
+          background="/tips/insights"
           buttons={
             <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
               <ButtonGroup>
                 <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                   {t("create_team")}
                 </Button>
-                <Button color="secondary" href="https://go.cal.com/insights" target="_blank">
+                <Button color="minimal" href="https://go.cal.com/insights" target="_blank">
                   {t("learn_more")}
                 </Button>
               </ButtonGroup>
@@ -79,7 +75,7 @@ export default function InsightsPage() {
             <></>
           ) : (
             <FiltersProvider>
-              <div className="mb-4 mt-0 ml-auto flex w-full flex-wrap justify-between md:-mt-8">
+              <div className="mb-8 mt-0 ml-auto flex w-full flex-wrap justify-between md:-mt-8">
                 <Heading />
                 <Filters />
               </div>
@@ -97,8 +93,8 @@ export default function InsightsPage() {
                   <MostBookedTeamMembersTable />
                   <LeastBookedTeamMembersTable />
                 </div>
-                <small className="block text-center text-gray-600">
-                  {t("looking_for_more_analytics")}
+                <small className="text-default block text-center">
+                  {t("looking_for_more_insights")}{" "}
                   <a
                     className="text-blue-500 hover:underline"
                     href="mailto:updates@cal.com?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.com%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20...">
@@ -114,3 +110,19 @@ export default function InsightsPage() {
     </div>
   );
 }
+
+// If feature flag is disabled, return not found on getServerSideProps
+export const getServerSideProps = async () => {
+  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+  const flags = await getFeatureFlagMap(prisma);
+
+  if (flags.insights === false) {
+    return {
+      notFound: true,
+    };
+  }
+
+  return {
+    props: {},
+  };
+};

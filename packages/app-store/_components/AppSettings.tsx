@@ -5,7 +5,7 @@ import { DynamicComponent } from "./DynamicComponent";
 export const AppSettings = (props: { slug: string }) => {
   return (
     <DynamicComponent<typeof AppSettingsComponentsMap>
-      wrapperClassName="border-t border-gray-200 p-6"
+      wrapperClassName="border-t border-subtle p-6"
       componentMap={AppSettingsComponentsMap}
       {...props}
     />

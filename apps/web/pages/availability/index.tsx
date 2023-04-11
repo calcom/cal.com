@@ -82,8 +82,8 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
           />
         </div>
       ) : (
-        <div className="mb-16 overflow-hidden rounded-md border border-gray-200 bg-white">
-          <ul className="divide-y divide-gray-200" data-testid="schedules" ref={animationParentRef}>
+        <div className="border-subtle bg-default mb-16 overflow-hidden rounded-md border">
+          <ul className="divide-subtle divide-y" data-testid="schedules" ref={animationParentRef}>
             {schedules.map((schedule) => (
               <ScheduleListItem
                 displayOptions={{
@@ -92,14 +92,9 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
                 }}
                 key={schedule.id}
                 schedule={schedule}
+                isDeletable={schedules.length !== 1}
                 updateDefault={updateMutation.mutate}
-                deleteFunction={() => {
-                  if (schedules.length === 1) {
-                    showToast(t("requires_at_least_one_schedule"), "error");
-                  } else {
-                    deleteMutation.mutate;
-                  }
-                }}
+                deleteFunction={deleteMutation.mutate}
               />
             ))}
           </ul>

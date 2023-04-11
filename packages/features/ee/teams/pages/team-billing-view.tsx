@@ -15,7 +15,7 @@ const BillingView = () => {
   return (
     <>
       <Meta title={t("team_billing")} description={t("team_billing_description")} />
-      <div className="flex flex-col text-sm sm:flex-row">
+      <div className="text-default flex flex-col text-sm sm:flex-row">
         <div>
           <h2 className="font-medium">{t("billing_manage_details_title")}</h2>
           <p>{t("billing_manage_details_description")}</p>

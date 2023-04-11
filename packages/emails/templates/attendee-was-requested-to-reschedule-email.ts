@@ -47,7 +47,7 @@ export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerSche
         .slice(0, 6)
         .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
       startInputType: "utc",
-      productId: "calendso/ics",
+      productId: "calcom/ics",
       title: this.t("ics_event_title", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,

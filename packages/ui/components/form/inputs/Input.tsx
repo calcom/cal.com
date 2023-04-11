@@ -23,12 +23,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       {...props}
       ref={ref}
       className={classNames(
-        // @TODO: In globals.css there's an override that disabled the box shadow on inputs,
-        // This causes the focus state to be different for different types of fields.
-        "dark:text-darkgray-900 dark:disabled:text-darkgray-500 dark:disabled:bg-darkgray-100 dark:border-darkgray-500 dark:bg-darkgray-100 dark:focus:border-darkgray-500 dark:disabled:hover:border-darkgray-500 mb-2 block h-9 rounded-md border border-gray-300 py-2 px-3 text-sm placeholder:text-gray-400 hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:bg-gray-100 disabled:text-gray-400 disabled:hover:border-gray-300",
-        // Renders additional styles when field is wrapped in InputField, which can add addon fields.
-        !isStandaloneField &&
-          "[&:not(:only-child):first-child]:border-r-0 [&:not(:only-child):last-child]:border-l-0",
+        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default mb-2 block h-9 rounded-md border py-2 px-3 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
         isFullWidth && "w-full",
         props.className
       )}
@@ -38,7 +33,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 
 export function InputLeading(props: JSX.IntrinsicElements["div"]) {
   return (
-    <span className="inline-flex flex-shrink-0 items-center rounded-l-sm border border-gray-300 bg-gray-50 px-3 text-gray-500 ltr:border-r-0 rtl:border-l-0 sm:text-sm">
+    <span className="bg-muted border-default text-subtle inline-flex flex-shrink-0 items-center rounded-l-sm border px-3 ltr:border-r-0 rtl:border-l-0 sm:text-sm">
       {props.children}
     </span>
   );
@@ -72,12 +67,15 @@ type AddonProps = {
 const Addon = ({ isFilled, children, className, error }: AddonProps) => (
   <div
     className={classNames(
-      "addon-wrapper dark:border-darkgray-500 relative z-10 h-9 border border-gray-300 px-3",
-      isFilled && "dark:bg-darkgray-100 dark:text-darkgray-600 dark:bg-darkgray-100 bg-gray-50",
-      !isFilled && "border-l-0",
+      "addon-wrapper border-default h-9 border px-3",
+      isFilled && "bg-subtle",
       className
     )}>
-    <div className={classNames("flex h-full flex-col justify-center text-sm", error && "text-red-900")}>
+    <div
+      className={classNames(
+        "flex h-full flex-col justify-center text-sm",
+        error ? "text-error" : "text-default"
+      )}>
       <span className="whitespace-nowrap py-2.5">{children}</span>
     </div>
   </div>
@@ -120,7 +118,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           htmlFor={id}
           loadingClassName="w-16"
           {...labelProps}
-          className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-red-900")}>
+          className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-error")}>
           {label}
         </Skeleton>
       )}
@@ -166,7 +164,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           )}
           {type === "search" && inputValue?.toString().length > 0 && (
             <FiX
-              className="absolute top-2.5 h-4 w-4 cursor-pointer text-gray-500 ltr:right-2 rtl:left-2"
+              className="text-subtle absolute top-2.5 h-4 w-4 cursor-pointer ltr:right-2 rtl:left-2"
               onClick={(e) => {
                 setInputValue("");
                 props.onChange && props.onChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
@@ -187,7 +185,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
         />
       )}
       <HintsOrErrors hintErrors={hintErrors} fieldName={name} t={t} />
-      {hint && <div className="text-gray mt-2 flex items-center text-sm text-gray-700">{hint}</div>}
+      {hint && <div className="text-default mt-2 flex items-center text-sm">{hint}</div>}
     </div>
   );
 });
@@ -209,7 +207,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
   const textLabel = isPasswordVisible ? t("hide_password") : t("show_password");
 
   return (
-    <div className="relative [&_.group:focus-within_.addon-wrapper]:border-neutral-300 [&_.group:hover_.addon-wrapper]:border-gray-400">
+    <div className="[&_.group:hover_.addon-wrapper]:border-emphasis relative [&_.group:focus-within_.addon-wrapper]:border-neutral-300">
       <InputField
         type={isPasswordVisible ? "text" : "password"}
         placeholder={props.placeholder || "•••••••••••••"}
@@ -219,7 +217,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
         addOnFilled={false}
         addOnSuffix={
           <Tooltip content={textLabel}>
-            <button className="h-9 text-gray-900" type="button" onClick={() => toggleIsPasswordVisible()}>
+            <button className="text-emphasis h-9" type="button" onClick={() => toggleIsPasswordVisible()}>
               {isPasswordVisible ? (
                 <FiEyeOff className="h-4 stroke-[2.5px]" />
               ) : (
@@ -270,7 +268,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "dark:text-darkgray-900 dark:border-darkgray-500 dark:bg-darkgray-100 block w-full rounded-md border border-gray-300 py-2 px-3 text-sm hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
+        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default mb-2 block w-full rounded-md border py-2 px-3 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
         props.className
       )}
     />
@@ -361,7 +359,7 @@ export const Form = forwardRef(PlainForm) as <T extends FieldValues>(
 
 export function FieldsetLegend(props: JSX.IntrinsicElements["legend"]) {
   return (
-    <legend {...props} className={classNames("text-sm font-medium text-gray-700", props.className)}>
+    <legend {...props} className={classNames("text-default text-sm font-medium", props.className)}>
       {props.children}
     </legend>
   );
@@ -371,7 +369,7 @@ export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
   return (
     <div
       {...props}
-      className={classNames("space-y-2 rounded-sm border border-gray-300 bg-white p-2", props.className)}>
+      className={classNames("bg-default border-default space-y-2 rounded-sm border p-2", props.className)}>
       {props.children}
     </div>
   );

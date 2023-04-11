@@ -12,6 +12,7 @@
   "scripts": {
     "lint": "eslint .",
     "type-check": "tsc --pretty --noEmit",
+    "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint:fix": "eslint . --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/ui.json"
   },

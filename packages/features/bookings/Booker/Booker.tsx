@@ -4,7 +4,6 @@ import { Fragment, useEffect, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
-import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -68,9 +67,6 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
 
   return (
     <>
-      {/* @TODO: This is imported because the DatePicker relies on it. Perhaps
-      rewrite the datepicker as well? */}
-      <CustomBranding lightVal={null} darkVal={null} />
       {/*
         If we would render this on mobile, it would unset the mobile variant,
         since that's not a valid option, so it would set the layout to null.

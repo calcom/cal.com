@@ -404,10 +404,11 @@ function getBookingData({
   const reqBody = bookingDataSchema.parse(req.body);
   if ("responses" in reqBody) {
     const responses = reqBody.responses;
-    const { calEventUserFieldsResponses, calEventResponses } = getCalEventResponses({
-      bookingFields: eventType.bookingFields,
-      responses,
-    });
+    const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
+      getCalEventResponses({
+        bookingFields: eventType.bookingFields,
+        responses,
+      });
     return {
       ...reqBody,
       name: responses.name,
@@ -622,6 +623,7 @@ async function handler(
 
   let locationBodyString = location;
   let defaultLocationUrl = undefined;
+
   if (dynamicUserList.length > 1) {
     users = users.sort((a, b) => {
       const aIndex = (a.username && dynamicUserList.indexOf(a.username)) || 0;
@@ -701,6 +703,18 @@ async function handler(
 
   const [organizerUser] = users;
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
+  // use host default
+  if (isTeamEventType && locationBodyString === "conferencing") {
+    const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
+    const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
+    if (organizerMetadata) {
+      const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
+      locationBodyString = app?.appData?.location?.type || locationBodyString;
+      defaultLocationUrl = organizerMetadata?.defaultConferencingApp?.appLink;
+    } else {
+      locationBodyString = "";
+    }
+  }
 
   const invitee = [
     {
@@ -729,6 +743,7 @@ async function handler(
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   const bookingLocation = getLocationValueForDB(locationBodyString, eventType.locations);
+
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const teamMemberPromises =
     users.length > 1
@@ -870,7 +885,7 @@ async function handler(
               integrationsToDelete.push(deleteMeeting(credential, reference.uid));
             }
             if (reference.type.includes("_calendar") && originalBookingEvt) {
-              const calendar = getCalendar(credential);
+              const calendar = await getCalendar(credential);
               if (calendar) {
                 integrationsToDelete.push(
                   calendar?.deleteEvent(reference.uid, originalBookingEvt, reference.externalCalendarId)
@@ -882,9 +897,12 @@ async function handler(
       }
 
       await Promise.all(integrationsToDelete).then(async () => {
-        await prisma.booking.delete({
+        await prisma.booking.update({
           where: {
             id: originalRescheduledBooking.id,
+          },
+          data: {
+            status: BookingStatus.CANCELLED,
           },
         });
       });
@@ -927,14 +945,6 @@ async function handler(
 
     // There are two paths here, reschedule a booking with seats and booking seats without reschedule
     if (rescheduleUid) {
-      const seatAttendee: Partial<Person> | null = bookingSeat?.attendee || null;
-      // Required for Typescript, these should always be set.
-      if (!seatAttendee || !bookingSeat || !rescheduleUid) {
-        throw new Error("Internal Error.");
-      }
-
-      seatAttendee.language = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
-
       // See if the new date has a booking already
       const newTimeSlotBooking = await prisma.booking.findFirst({
         where: {
@@ -998,9 +1008,26 @@ async function handler(
         }),
       };
 
-      // If owner reschedules the event we want to update the entire booking
-      // Also if owner is rescheduling there should be no bookingSeat
-      if (booking.user?.id === req.userId && !bookingSeat) {
+      if (!bookingSeat) {
+        // if no bookingSeat is given and the userId != owner, 401.
+        // TODO: Next step; Evaluate ownership, what about teams?
+        if (booking.user?.id !== req.userId) {
+          throw new HttpError({ statusCode: 401 });
+        }
+
+        // Moving forward in this block is the owner making changes to the booking. All attendees should be affected
+        evt.attendees = originalRescheduledBooking.attendees.map((attendee) => {
+          return {
+            name: attendee.name,
+            email: attendee.email,
+            timeZone: attendee.timeZone,
+            language: { translate: tAttendees, locale: attendee.locale ?? "en" },
+          };
+        });
+
+        // If owner reschedules the event we want to update the entire booking
+        // Also if owner is rescheduling there should be no bookingSeat
+
         // If there is no booking during the new time slot then update the current booking to the new date
         if (!newTimeSlotBooking) {
           const newBooking: (Booking & { appsStatus?: AppsStatus[] }) | null = await prisma.booking.update({
@@ -1032,6 +1059,10 @@ async function handler(
 
           const results = updateManager.results;
 
+          const calendarResult = results.find((result) => result.type.includes("_calendar"));
+
+          evt.iCalUID = calendarResult.updatedEvent.iCalUID || undefined;
+
           if (results.length > 0 && results.some((res) => !res.success)) {
             const error = {
               errorCode: "BookingReschedulingMeetingFailed",
@@ -1059,7 +1090,7 @@ async function handler(
             await sendRescheduledEmails({
               ...copyEvent,
               additionalNotes, // Resets back to the additionalNote input and not the override value
-              cancellationReason: "$RCH$" + rescheduleReason ? rescheduleReason : "", // Removable code prefix to differentiate cancellation from rescheduling for email
+              cancellationReason: "$RCH$" + (rescheduleReason ? rescheduleReason : ""), // Removable code prefix to differentiate cancellation from rescheduling for email
             });
           }
           const resultBooking = await resultBookingQuery(newBooking.id);
@@ -1158,19 +1189,30 @@ async function handler(
 
         const copyEvent = cloneDeep(evt);
 
-        await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
+        const updateManager = await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
+
+        const results = updateManager.results;
+
+        const calendarResult = results.find((result) => result.type.includes("_calendar"));
+
+        evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
+          ? calendarResult?.updatedEvent[0]?.iCalUID
+          : calendarResult?.updatedEvent?.iCalUID || undefined;
 
         // TODO send reschedule emails to attendees of the old booking
         await sendRescheduledEmails({
           ...copyEvent,
           additionalNotes, // Resets back to the additionalNote input and not the override value
-          cancellationReason: "$RCH$" + rescheduleReason ? rescheduleReason : "", // Removable code prefix to differentiate cancellation from rescheduling for email
+          cancellationReason: "$RCH$" + (rescheduleReason ? rescheduleReason : ""), // Removable code prefix to differentiate cancellation from rescheduling for email
         });
 
-        // Delete the old booking
-        await prisma.booking.delete({
+        // Update the old booking with the cancelled status
+        await prisma.booking.update({
           where: {
             id: booking.id,
+          },
+          data: {
+            status: BookingStatus.CANCELLED,
           },
         });
 
@@ -1179,14 +1221,13 @@ async function handler(
         return { ...resultBooking };
       }
 
+      // seatAttendee is null when the organizer is rescheduling.
+      const seatAttendee: Partial<Person> | null = bookingSeat?.attendee || null;
+
+      seatAttendee.language = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
+
       // If there is no booking then remove the attendee from the old booking and create a new one
       if (!newTimeSlotBooking) {
-        await prisma.bookingSeat.delete({
-          where: {
-            id: bookingSeat.id,
-          },
-        });
-
         await prisma.attendee.delete({
           where: {
             id: seatAttendee.id,
@@ -1239,7 +1280,15 @@ async function handler(
 
       const copyEvent = cloneDeep(evt);
 
-      await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
+      const updateManager = await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
+
+      const results = updateManager.results;
+
+      const calendarResult = results.find((result) => result.type.includes("_calendar"));
+
+      evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
+        ? calendarResult?.updatedEvent[0]?.iCalUID
+        : calendarResult?.updatedEvent?.iCalUID || undefined;
 
       await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
       const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
@@ -1273,6 +1322,8 @@ async function handler(
         };
       }
 
+      const attendeeUniqueId = uuid();
+
       const bookingUpdated = await prisma.booking.update({
         where: {
           uid: reqBody.bookingUid,
@@ -1287,32 +1338,25 @@ async function handler(
               name: invitee[0].name,
               timeZone: invitee[0].timeZone,
               locale: invitee[0].language.locale,
+              bookingSeat: {
+                create: {
+                  referenceUid: attendeeUniqueId,
+                  data: {
+                    description: additionalNotes,
+                  },
+                  booking: {
+                    connect: {
+                      id: booking.id,
+                    },
+                  },
+                },
+              },
             },
           },
           ...(booking.status === BookingStatus.CANCELLED && { status: BookingStatus.ACCEPTED }),
         },
       });
 
-      // Add entry to bookingSeat table
-      const attendeeUniqueId = uuid();
-      await prisma.bookingSeat.create({
-        data: {
-          data: {
-            description: additionalNotes,
-          },
-          booking: {
-            connect: {
-              id: booking.id,
-            },
-          },
-          referenceUid: attendeeUniqueId,
-          attendee: {
-            connect: {
-              id: bookingUpdated.attendees[bookingUpdated.attendees.length - 1].id,
-            },
-          },
-        },
-      });
       evt.attendeeSeatId = attendeeUniqueId;
 
       const newSeat = booking.attendees.length !== 0;
@@ -1497,6 +1541,9 @@ async function handler(
       };
       newBookingData["paid"] = originalRescheduledBooking.paid;
       newBookingData["fromReschedule"] = originalRescheduledBooking.uid;
+      if (originalRescheduledBooking.uid) {
+        newBookingData.cancellationReason = rescheduleReason;
+      }
       if (newBookingData.attendees?.createMany?.data) {
         // Reschedule logic with booking with seats
         if (eventType?.seatsPerTimeSlot && bookerEmail) {
@@ -1550,7 +1597,7 @@ async function handler(
     return prisma.booking.create(createBookingObj);
   }
 
-  let results: EventResult<AdditionalInformation & { url?: string }>[] = [];
+  let results: EventResult<AdditionalInformation & { url?: string; iCalUID?: string }>[] = [];
   let referencesToCreate: PartialReference[] = [];
 
   type Booking = Prisma.PromiseReturnType<typeof createBooking>;
@@ -1664,11 +1711,14 @@ async function handler(
     addVideoCallDataToEvt(originalRescheduledBooking.references);
     const updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid);
 
-    //delete original rescheduled booking (no seats event)
+    //update original rescheduled booking (no seats event)
     if (!eventType.seatsPerTimeSlot) {
-      await prisma.booking.delete({
+      await prisma.booking.update({
         where: {
           id: originalRescheduledBooking.id,
+        },
+        data: {
+          status: BookingStatus.CANCELLED,
         },
       });
     }
@@ -1688,6 +1738,11 @@ async function handler(
       log.error(`Booking ${organizerUser.name} failed`, error, results);
     } else {
       const metadata: AdditionalInformation = {};
+      const calendarResult = results.find((result) => result.type.includes("_calendar"));
+
+      evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
+        ? calendarResult?.updatedEvent[0]?.iCalUID
+        : calendarResult?.updatedEvent?.iCalUID || undefined;
 
       if (results.length) {
         // TODO: Handle created event metadata more elegantly
@@ -1708,7 +1763,7 @@ async function handler(
           ...copyEvent,
           additionalInformation: metadata,
           additionalNotes, // Resets back to the additionalNote input and not the override value
-          cancellationReason: "$RCH$" + rescheduleReason ? rescheduleReason : "", // Removable code prefix to differentiate cancellation from rescheduling for email
+          cancellationReason: "$RCH$" + (rescheduleReason ? rescheduleReason : ""), // Removable code prefix to differentiate cancellation from rescheduling for email
         });
       }
     }

@@ -7,7 +7,6 @@ import type { z } from "zod";
 import { classNames, parseRecurringEvent } from "@calcom/lib";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { addListFormatting, md } from "@calcom/lib/markdownIt";
 import type { baseEventTypeSelect } from "@calcom/prisma";
 import type { EventTypeModel } from "@calcom/prisma/zod";
 import { Badge } from "@calcom/ui";
@@ -26,6 +25,7 @@ export type EventTypeDescriptionProps = {
     z.infer<typeof EventTypeModel>,
     Exclude<keyof typeof baseEventTypeSelect, "recurringEvent"> | "metadata"
   > & {
+    descriptionAsSafeHTML?: string | null;
     recurringEvent: Prisma.JsonValue;
     seatsPerTimeSlot?: number;
   };
@@ -49,15 +49,15 @@ export const EventTypeDescription = ({
 
   return (
     <>
-      <div className={classNames("dark:text-darkgray-800 text-gray-500", className)}>
+      <div className={classNames("text-subtle", className)}>
         {eventType.description && (
           <div
             className={classNames(
-              "dark:text-darkgray-800 max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
+              "text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[500px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
               shortenDescription ? "line-clamp-4" : ""
             )}
             dangerouslySetInnerHTML={{
-              __html: addListFormatting(md.render(eventType.description)),
+              __html: eventType.descriptionAsSafeHTML || "",
             }}
           />
         )}

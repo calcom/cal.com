@@ -7,6 +7,9 @@ import getBooking from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
+import type { GetBookingType } from "@calcom/lib/getBooking";
+import getBooking from "@calcom/lib/getBooking";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma from "@calcom/prisma";
 import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -22,8 +25,6 @@ export type TeamBookingPageProps = inferSSRProps<typeof getServerSideProps>;
 export default function TeamBookingPage(props: TeamBookingPageProps) {
   return <BookingPage {...props} />;
 }
-
-TeamBookingPage.isThemeSupported = true;
 
 const querySchema = z.object({
   rescheduleUid: z.string().optional(),
@@ -66,6 +67,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       seatsPerTimeSlot: true,
       schedulingType: true,
       bookingFields: true,
+      successRedirectUrl: true,
       workflows: {
         include: {
           workflow: {
@@ -121,6 +123,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         image: u.avatar,
         slug: u.username,
       })),
+      descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
     };
   })[0];
 
