@@ -33,6 +33,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   const { recordingId, bookingUID } = response.data;
+  const session = await getServerSession({ req, res });
+
+  if (!session?.user) {
+    return res.status(401).send({
+      message: "User not logged in",
+    });
+  }
 
   try {
     const booking = await prisma.booking.findFirst({
@@ -64,6 +71,32 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       });
     }
 
+    const t = await getTranslation(booking?.user?.locale ?? "en", "common");
+    const attendeesListPromises = booking.attendees.map(async (attendee) => {
+      return {
+        id: attendee.id,
+        name: attendee.name,
+        email: attendee.email,
+        timeZone: attendee.timeZone,
+        language: {
+          translate: await getTranslation(attendee.locale ?? "en", "common"),
+          locale: attendee.locale ?? "en",
+        },
+      };
+    });
+
+    const attendeesList = await Promise.all(attendeesListPromises);
+
+    const isUserAttendeeOrOrganiser =
+      booking?.user?.id === session.user.id ||
+      attendeesList.find((attendee) => attendee.id === session.user.id);
+
+    if (!isUserAttendeeOrOrganiser) {
+      return res.status(403).send({
+        message: "Unauthorised",
+      });
+    }
+
     await prisma.booking.update({
       where: {
         uid: booking.uid,
@@ -73,8 +106,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    const session = await getServerSession({ req, res });
-
     const isSendingEmailsAllowed = IS_SELF_HOSTED || session?.user?.belongsToActiveTeam;
 
     // send emails to all attendees only when user has team plan
@@ -83,20 +114,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       const downloadLinkResponse = downloadLinkSchema.parse(response);
       const downloadLink = downloadLinkResponse.download_link;
-      const t = await getTranslation(booking?.user?.locale ?? "en", "common");
-      const attendeesListPromises = booking.attendees.map(async (attendee) => {
-        return {
-          name: attendee.name,
-          email: attendee.email,
-          timeZone: attendee.timeZone,
-          language: {
-            translate: await getTranslation(attendee.locale ?? "en", "common"),
-            locale: attendee.locale ?? "en",
-          },
-        };
-      });
-
-      const attendeesList = await Promise.all(attendeesListPromises);
 
       const evt: CalendarEvent = {
         type: booking.title,
