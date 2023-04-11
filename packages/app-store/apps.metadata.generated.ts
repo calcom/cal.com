@@ -30,6 +30,7 @@ import { metadata as office365calendar__metadata_ts } from "./office365calendar/
 import office365video_config_json from "./office365video/config.json";
 import ping_config_json from "./ping/config.json";
 import pipedream_config_json from "./pipedream/config.json";
+import plausible_custom_config_json from "./plausible-custom/config.json";
 import plausible_config_json from "./plausible/config.json";
 import qr_code_config_json from "./qr_code/config.json";
 import rainbow_config_json from "./rainbow/config.json";
@@ -92,6 +93,7 @@ export const appStoreMetadata = {
   ping: ping_config_json,
   pipedream: pipedream_config_json,
   plausible: plausible_config_json,
+  "plausible-custom": plausible_custom_config_json,
   qr_code: qr_code_config_json,
   rainbow: rainbow_config_json,
   raycast: raycast_config_json,

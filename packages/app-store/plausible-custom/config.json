@@ -1,0 +1,28 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Plausible (Custom)",
+  "slug": "plausible-custom",
+  "type": "plausible-custom_analytics",
+  "imageSrc": "/api/app-store/plausible-custom/icon.svg",
+  "logo": "/api/app-store/plausible-custom/icon.svg",
+  "url": "https://cal.com/apps/plausible-custom",
+  "variant": "analytics",
+  "categories": ["analytics"],
+  "publisher": "Ben Hybert",
+  "email": "hello@connectdorset.com",
+  "extendsFeature": "EventType",
+  "appData": {
+    "tag": {
+      "scripts": [
+        {
+          "src": "https://{PLAUSIBLE_URL}/js/script.js",
+          "attrs": {
+            "data-domain": "{TRACKING_ID}"
+          }
+        }
+      ]
+    }
+  },
+  "description": "Self-hosted, simple, privacy-friendly Google Analytics alternative.",
+  "__createdUsingCli": true
+}

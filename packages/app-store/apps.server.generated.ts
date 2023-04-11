@@ -31,6 +31,7 @@ export const apiHandlers = {
   ping: import("./ping/api"),
   pipedream: import("./pipedream/api"),
   plausible: import("./plausible/api"),
+  "plausible-custom": import("./plausible-custom/api"),
   qr_code: import("./qr_code/api"),
   rainbow: import("./rainbow/api"),
   raycast: import("./raycast/api"),
