@@ -129,7 +129,7 @@ export const appsRouter = router({
         },
         create: {
           slug: input.slug,
-          dirName: appMetadata?.dirName || "",
+          dirName: appMetadata?.dirName || appMetadata?.slug || "",
           categories:
             (appMetadata?.categories as AppCategories[]) ||
             ([appMetadata?.category] as AppCategories[]) ||
@@ -261,7 +261,7 @@ export const appsRouter = router({
         update: { keys },
         create: {
           slug: input.slug,
-          dirName: appMetadata?.dirName || "",
+          dirName: appMetadata?.dirName || appMetadata?.slug || "",
           categories:
             (appMetadata?.categories as AppCategories[]) ||
             ([appMetadata?.category] as AppCategories[]) ||
