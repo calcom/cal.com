@@ -297,16 +297,6 @@ export default abstract class BaseCalendarService implements Calendar {
     return true;
   };
 
-  // registerTimezone = (tzid: string): void => {
-  //   if (!ICAL.TimezoneService.has(tzid) && tzid.startsWith("/freeassociation.sourceforge.net/Tzfile/")) {
-  //     const unprefixedTzid = tzid.replace("/freeassociation.sourceforge.net/Tzfile/", "");
-  //     const timezone = ICAL.TimezoneService.get(unprefixedTzid);
-  //     if (timezone) {
-  //       ICAL.TimezoneService.register(tzid, timezone);
-  //     }
-  //   }
-  // };
-
   async getAvailability(
     dateFrom: string,
     dateTo: string,
@@ -325,9 +315,6 @@ export default abstract class BaseCalendarService implements Calendar {
       if (object.data == null || JSON.stringify(object.data) == "{}") return;
       let vcalendar: ICAL.Component;
       try {
-        // maybe confirm that this is a valid calendar object by hitting the following URL like so:
-        // https://icalendar.org/validator.html?url=https://example.com/somecalendar_feed&json=1
-        // but we'd need to access the Ical URL and send that for validation
         const jcalData = ICAL.parse(sanitizeCalendarObject(object));
         vcalendar = new ICAL.Component(jcalData);
       } catch (e) {
@@ -550,8 +537,6 @@ export default abstract class BaseCalendarService implements Calendar {
       .filter((obj) => obj !== null);
     return flatResult as DAVObject[];
   }
-
-  // The rest of the code remains the same
 
   private async getEvents(
     calId: string,
