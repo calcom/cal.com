@@ -65,6 +65,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       seatsPerTimeSlot: true,
       schedulingType: true,
       bookingFields: true,
+      successRedirectUrl: true,
       workflows: {
         include: {
           workflow: {
