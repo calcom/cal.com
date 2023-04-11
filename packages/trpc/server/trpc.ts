@@ -101,7 +101,8 @@ const perfMiddleware = t.middleware(async ({ path, type, next }) => {
   performance.mark("Start");
   const result = await next();
   performance.mark("End");
-  performance.measure(`[${result.ok ? "OK" : "ERROR"}][$1] ${type} '${path}'`, "Start", "End");
+  const perfResult = performance.measure(`[${result.ok ? "OK" : "ERROR"}][${type}]'${path}'`, "Start", "End");
+  console.log(`${perfResult.name}: ${perfResult.duration.toFixed(2)}ms`);
   return result;
 });
 
