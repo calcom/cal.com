@@ -30,6 +30,7 @@ import getBookingResponsesSchema, {
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilder";
+import { bookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
@@ -264,15 +265,19 @@ const BookingPage = ({
         );
       }
 
-      return router.push({
-        pathname: `/booking/${uid}`,
-        query: {
-          isSuccessBookingPage: true,
-          email: bookingForm.getValues("responses.email"),
-          eventTypeSlug: eventType.slug,
-          seatReferenceUid: "seatReferenceUid" in responseData ? responseData.seatReferenceUid : null,
-          ...(rescheduleUid && booking?.startTime && { formerTime: booking.startTime.toString() }),
-        },
+      const query = {
+        isSuccessBookingPage: true,
+        email: bookingForm.getValues("responses.email"),
+        eventTypeSlug: eventType.slug,
+        seatReferenceUid: "seatReferenceUid" in responseData ? responseData.seatReferenceUid : null,
+        ...(rescheduleUid && booking?.startTime && { formerTime: booking.startTime.toString() }),
+      };
+
+      return bookingSuccessRedirect({
+        router,
+        successRedirectUrl: eventType.successRedirectUrl,
+        query,
+        bookingUid: uid,
       });
     },
   });
@@ -280,16 +285,18 @@ const BookingPage = ({
   const recurringMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData = []) => {
       const { uid } = responseData[0] || {};
-
-      return router.push({
-        pathname: `/booking/${uid}`,
-        query: {
-          isSuccessBookingPage: true,
-          allRemainingBookings: true,
-          email: bookingForm.getValues("responses.email"),
-          eventTypeSlug: eventType.slug,
-          formerTime: booking?.startTime.toString(),
-        },
+      const query = {
+        isSuccessBookingPage: true,
+        allRemainingBookings: true,
+        email: bookingForm.getValues("responses.email"),
+        eventTypeSlug: eventType.slug,
+        formerTime: booking?.startTime.toString(),
+      };
+      return bookingSuccessRedirect({
+        router,
+        successRedirectUrl: eventType.successRedirectUrl,
+        query,
+        bookingUid: uid,
       });
     },
   });
@@ -667,7 +674,7 @@ function ErrorMessage({ error }: { error: unknown }) {
         <div className="flex-shrink-0">
           <AlertTriangle className="h-5 w-5 text-blue-400" aria-hidden="true" />
         </div>
-        <div className="ltr:ml-3 rtl:mr-3">
+        <div className="ms-3">
           <p className="text-sm text-blue-700">
             {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
             {error instanceof HttpError || error instanceof Error ? (

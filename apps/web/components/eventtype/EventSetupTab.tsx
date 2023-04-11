@@ -238,7 +238,7 @@ export const EventSetupTab = (
                         className="h-4 w-4"
                         alt={`${eventLocationType.label} logo`}
                       />
-                      <span className="line-clamp-1 text-sm ltr:ml-1 rtl:mr-1">{eventLabel}</span>
+                      <span className="line-clamp-1 ms-1 text-sm">{eventLabel}</span>
                     </div>
                     <div className="flex">
                       <button

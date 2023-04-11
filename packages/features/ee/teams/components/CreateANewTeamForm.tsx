@@ -123,7 +123,7 @@ export const CreateANewTeamForm = () => {
             render={({ field: { value } }) => (
               <div className="flex items-center">
                 <Avatar alt="" imageSrc={value || null} gravatarFallbackMd5="newTeam" size="lg" />
-                <div className="ltr:ml-4 rtl:mr-4">
+                <div className="ms-4">
                   <ImageUploader
                     target="avatar"
                     id="avatar-upload"

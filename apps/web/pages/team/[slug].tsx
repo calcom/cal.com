@@ -157,16 +157,20 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
 
-  const unpublishedTeam = await prisma.team.findFirst({
-    where: {
-      metadata: {
-        path: ["requestedSlug"],
-        equals: slug,
-      },
-    },
-  });
+  const team = await getTeamWithMembers(undefined, slug);
 
-  if (unpublishedTeam) {
+  if (!team) {
+    const unpublishedTeam = await prisma.team.findFirst({
+      where: {
+        metadata: {
+          path: ["requestedSlug"],
+          equals: slug,
+        },
+      },
+    });
+
+    if (!unpublishedTeam) return { notFound: true } as const;
+
     return {
       props: {
         isUnpublished: true,
@@ -175,10 +179,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
     } as const;
   }
-
-  const team = await getTeamWithMembers(undefined, slug);
-
-  if (!team) return { notFound: true } as { notFound: true };
 
   team.eventTypes = team.eventTypes.map((type) => ({
     ...type,

@@ -353,7 +353,7 @@ const ProfileForm = ({
           render={({ field: { value } }) => (
             <>
               <Avatar alt="" imageSrc={value} gravatarFallbackMd5="fallback" size="lg" />
-              <div className="ltr:ml-4 rtl:mr-4">
+              <div className="ms-4">
                 <ImageUploader
                   target="avatar"
                   id="avatar-upload"
