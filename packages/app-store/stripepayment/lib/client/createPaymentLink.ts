@@ -9,12 +9,11 @@ export function createPaymentLink(opts: {
   name?: Maybe<string>;
   date?: Maybe<string>;
   email?: Maybe<string>;
-  tz?: Maybe<string>;
   absolute?: boolean;
 }): string {
-  const { paymentUid, name, email, date, tz, absolute = true } = opts;
+  const { paymentUid, name, email, date, absolute = true } = opts;
   let link = "";
   if (absolute) link = WEBSITE_URL;
-  const query = stringify({ date, name, email, tz });
+  const query = stringify({ date, name, email });
   return link + `/payment/${paymentUid}?${query}`;
 }
