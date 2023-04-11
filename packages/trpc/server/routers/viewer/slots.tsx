@@ -42,15 +42,9 @@ const getScheduleSchema = z
     rescheduleWithSameUser: z.boolean().optional(),
     proxy: z.object({}).optional(),
     // max booking days: allows to override eventType.periodDays (number of days)
-    maxbd: z
-      .string()
-      .optional()
-      .transform((val) => val && parseInt(val)),
+    maxbd: z.number().optional(),
     // min booking notice: allows to override eventType.minimumBookingNotice (number of minutes)
-    minbn: z
-      .string()
-      .optional()
-      .transform((val) => val && parseInt(val)),
+    minbn: z.number().optional(),
   })
   .refine(
     (data) => !!data.eventTypeId || !!data.usernameList,
