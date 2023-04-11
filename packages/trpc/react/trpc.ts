@@ -1,6 +1,7 @@
 import type { NextPageContext } from "next/types";
 import superjson from "superjson";
 
+import { httpBatchLink } from "../client/links/httpBatchLink";
 import { httpLink } from "../client/links/httpLink";
 import { loggerLink } from "../client/links/loggerLink";
 import { splitLink } from "../client/links/splitLink";
@@ -46,7 +47,7 @@ export const trpc = createTRPCNext<AppRouter, NextPageContext, "ExperimentalSusp
           // when condition is true, use normal request
           true: httpLink({ url }),
           // when condition is false, use batching
-          false: httpLink({
+          false: httpBatchLink({
             url,
             /** @link https://github.com/trpc/trpc/issues/2008 */
             // maxBatchSize: 7
