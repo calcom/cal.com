@@ -165,7 +165,7 @@ const ProfileView = () => {
                   render={({ field: { value } }) => (
                     <>
                       <Avatar alt="" imageSrc={getPlaceholderAvatar(value, team?.name as string)} size="lg" />
-                      <div className="ltr:ml-4 rtl:mr-4">
+                      <div className="ms-4">
                         <ImageUploader
                           target="avatar"
                           id="avatar-upload"
