@@ -62,8 +62,8 @@ export function TimezoneSelect({
         control: (state) =>
           classNames(
             variant === "default"
-              ? "px-3 py-2 bg-default border-default !min-h-9 text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-2 focus-within:ring-emphasis hover:border-emphasis rounded-md border "
-              : "text-sm",
+              ? "px-3 py-2 bg-default border-default !min-h-9 text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-2 focus-within:ring-emphasis hover:border-emphasis rounded-md border gap-1"
+              : "text-sm gap-1",
             props.classNames?.control
           ),
         singleValue: () => classNames("text-emphasis placeholder:text-muted", props.classNames?.singleValue),

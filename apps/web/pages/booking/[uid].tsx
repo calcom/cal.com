@@ -1013,15 +1013,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
   };
 
-  if (eventType.successRedirectUrl && isSuccessBookingPage && !cancel) {
-    return {
-      redirect: {
-        destination: eventType.successRedirectUrl,
-        permanent: false,
-      },
-    };
-  }
-
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,
     email: eventType.team ? null : eventType.users[0].email || null,
