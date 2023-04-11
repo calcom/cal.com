@@ -67,7 +67,7 @@ export default function JoinCall(props: JoinCallPageProps) {
   const onRecordingStopped = () => {
     const data = { recordingId: recordingId.current, bookingUID: booking.uid };
 
-    fetch("/api/sendDailyVideoRecordingEmail", {
+    fetch("/api/recorded-daily-video", {
       method: "POST",
       body: JSON.stringify(data),
     }).catch((err) => {
@@ -78,8 +78,8 @@ export default function JoinCall(props: JoinCallPageProps) {
   };
 
   const onRecordingStarted = (event?: DailyEventObjectRecordingStarted | undefined) => {
-    const res = recordingStartedEventResponse.safeParse(event);
-    if (res.success) recordingId.current = res.data.recordingId;
+    const response = recordingStartedEventResponse.parse(event);
+    recordingId.current = response.recordingId;
   };
 
   const title = `${APP_NAME} Video`;

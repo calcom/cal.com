@@ -295,21 +295,10 @@ export const sendNoShowFeeChargedEmail = async (attendee: Person, evt: CalendarE
 export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, downloadLink: string) => {
   const emailsToSend: Promise<unknown>[] = [];
 
-  emailsToSend.push(
-    ...calEvent.attendees.map((attendee) => {
-      return new Promise((resolve, reject) => {
-        try {
-          const recordingEmail = new AttendeeDailyVideoDownloadRecordingEmail(
-            calEvent,
-            attendee,
-            downloadLink
-          );
-          resolve(recordingEmail.sendEmail());
-        } catch (e) {
-          reject(console.error("AttendeeDailyVideoDownloadRecordingEmail.sendEmail failed", e));
-        }
-      });
-    })
-  );
+  for (const attendee of calEvent.attendees) {
+    emailsToSend.push(
+      sendEmail(() => new AttendeeDailyVideoDownloadRecordingEmail(calEvent, attendee, downloadLink))
+    );
+  }
   await Promise.all(emailsToSend);
 };

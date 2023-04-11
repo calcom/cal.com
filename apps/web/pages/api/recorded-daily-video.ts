@@ -1,8 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
+import { DailyLocationType } from "@calcom/app-store/locations";
 import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
@@ -22,7 +25,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).json({ message: "No SendGrid API key or email" });
   }
   const response = schema.safeParse(JSON.parse(req.body));
-  console.log("REQ", response);
 
   if (!response.success) {
     return res.status(400).send({
@@ -56,16 +58,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    if (!booking || booking.location !== "integrations:daily") {
+    if (!booking || booking.location !== DailyLocationType) {
       return res.status(404).send({
         message: `Booking of uid ${bookingUID} does not exist or does not contain daily video as location`,
       });
     }
-
-    const response = await getDownloadLinkOfCalVideoByRecordingId(recordingId);
-
-    const downloadLinkResponse = downloadLinkSchema.parse(response);
-    const downloadLink = downloadLinkResponse.download_link;
 
     await prisma.booking.update({
       where: {
@@ -76,21 +73,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    const checkMembership = await prisma.membership.findFirst({
-      where: {
-        userId: booking?.user?.id,
-        team: {
-          slug: {
-            not: null,
-          },
-        },
-      },
-    });
+    const session = await getServerSession({ req, res });
 
-    const hasTeamPlan = !!checkMembership;
+    const isSendingEmailsAllowed = IS_SELF_HOSTED || session?.user?.belongsToActiveTeam;
 
     // send emails to all attendees only when user has team plan
-    if (hasTeamPlan) {
+    if (isSendingEmailsAllowed) {
+      const response = await getDownloadLinkOfCalVideoByRecordingId(recordingId);
+
+      const downloadLinkResponse = downloadLinkSchema.parse(response);
+      const downloadLink = downloadLinkResponse.download_link;
       const t = await getTranslation(booking?.user?.locale ?? "en", "common");
       const attendeesListPromises = booking.attendees.map(async (attendee) => {
         return {
@@ -123,9 +115,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       };
 
       await sendDailyVideoRecordingEmails(evt, downloadLink);
+      return res.status(200).json({ message: "Success" });
     }
 
-    return res.status(200).json({ message: "Success" });
+    return res.status(403).json({ message: "User does not have team plan to send out emails" });
   } catch (err) {
     console.warn("something_went_wrong", err);
     return res.status(500).json({ message: "something went wrong" });

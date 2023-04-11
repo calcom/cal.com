@@ -1,4 +1,5 @@
-import { TFunction } from "next-i18next";
+// TODO: We should find a way to keep App specific email templates within the App itself
+import type { TFunction } from "next-i18next";
 
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 

@@ -90,7 +90,7 @@ export const AttendeeDailyVideoDownloadRecordingEmail = (
       </div>
 
       <p style={{ fontWeight: 400, lineHeight: "24px", marginTop: "32px", marginBottom: "8px" }}>
-        <>{props.language("happy_schdeduling")},</>
+        <>{props.language("happy_scheduling")},</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px", marginTop: "0px" }}>
         <>{props.language("the_calcom_team")}</>
