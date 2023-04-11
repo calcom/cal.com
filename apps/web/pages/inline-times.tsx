@@ -73,7 +73,7 @@ export const getServerSideProps = async function getServerSideProps(): Promise<a
       if (index === 0) {
         return 0;
       }
-      return time - times[index - 1];
+      return `${index - 1}: ${time - times[index - 1]}`;
     }),
     hot: wasHot,
   };
