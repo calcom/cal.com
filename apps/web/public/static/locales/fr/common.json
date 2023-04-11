@@ -1695,5 +1695,6 @@
   "clear_filters": "Effacer les filtres",
   "insights": "Insights",
   "insights_no_data_found_for_filter": "Aucune donnée trouvée pour le filtre ou les dates sélectionnés.",
+  "card_details": "Détails de la carte",
   "email_invite_team": "{{email}} a été invité"
 }
