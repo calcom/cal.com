@@ -27,9 +27,7 @@ export const EventDuration = ({ event }: { event: PublicEvent }) => {
       {event.metadata.multipleDuration.map((duration) => (
         <Badge
           variant="gray"
-          className={classNames(
-            selectedDuration === duration && "bg-darkgray-200 dark:bg-darkgray-900 text-white dark:text-black"
-          )}
+          className={classNames(selectedDuration === duration && "bg-inverted text-inverted")}
           size="md"
           key={duration}
           onClick={() => setSelectedDuration(duration)}>{`${duration} ${t("minute_timeUnit")}`}</Badge>

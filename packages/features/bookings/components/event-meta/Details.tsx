@@ -75,8 +75,8 @@ export const EventMetaBlock = ({
   return (
     <div
       className={classNames(
-        "flex items-start justify-start text-sm text-gray-700",
-        highlight ? "dark:text-white" : "dark:text-darkgray-600",
+        "flex items-start justify-start text-sm",
+        highlight ? "text-emphasis" : "text-text",
         className
       )}>
       {typeof Icon === "string" ? (
@@ -84,7 +84,7 @@ export const EventMetaBlock = ({
           src={Icon}
           alt=""
           // @TODO: Use SVG's instead of images, so we can get rid of the filter.
-          className="mr-2 mt-[2px] h-4 w-4 flex-shrink-0 [filter:invert(0.5)_brightness(0.5)] dark:[filter:invert(1)_brightness(0.6)]"
+          className="mr-2 mt-[2px] h-4 w-4 flex-shrink-0 [filter:invert(0.5)_brightness(0.5)] dark:[filter:invert(1)_brightness(0.9)]"
         />
       ) : (
         <Icon className="relative z-20 mr-2 mt-[2px] h-4 w-4 flex-shrink-0" />
@@ -110,6 +110,7 @@ export const EventMetaBlock = ({
  */
 export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: EventDetailsProps) => {
   const { t } = useLocale();
+
   return (
     <>
       {blocks.map((block) => {
@@ -125,8 +126,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
                 key={block}
                 icon={FiInfo}
                 contentClassName="break-words max-w-full overflow-clip">
-                {/*  @ts-expect-error: @see packages/prisma/middleware/eventTypeDescriptionParseAndSanitize.ts */}
-                <div dangerouslySetInnerHTML={{ __html: event.descriptionAsSafeHTML }} />
+                <div dangerouslySetInnerHTML={{ __html: event.description }} />
               </EventMetaBlock>
             );
 

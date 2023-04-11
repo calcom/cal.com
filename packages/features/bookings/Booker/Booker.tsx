@@ -5,9 +5,10 @@ import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
 import classNames from "@calcom/lib/classNames";
+import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
-import { Logo, ToggleGroup } from "@calcom/ui";
+import { Logo, ToggleGroup, useCalcomTheme } from "@calcom/ui";
 import { FiCalendar, FiColumns, FiGrid } from "@calcom/ui/components/icon";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
@@ -21,6 +22,14 @@ import { fadeInUp, fadeInLeft, resizeAnimationConfig } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
 import { useEvent } from "./utils/event";
+
+const useBrandColors = ({ brandColor, darkBrandColor }: { brandColor?: string; darkBrandColor?: string }) => {
+  const brandTheme = useGetBrandingColours({
+    lightVal: brandColor,
+    darkVal: darkBrandColor,
+  });
+  useCalcomTheme(brandTheme);
+};
 
 const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: BookerProps) => {
   const { t } = useLocale();
@@ -38,6 +47,11 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
     shallow
   );
+
+  useBrandColors({
+    brandColor: event.data?.profile.brandColor,
+    darkBrandColor: event.data?.profile.darkBrandColor,
+  });
 
   useInitializeBookerStore({
     username,
@@ -72,7 +86,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
         since that's not a valid option, so it would set the layout to null.
       */}
       {!isMobile && (
-        <div className="dark:[&>div]:bg-darkgray-100 fixed top-2 right-3 z-10 [&>div]:bg-white">
+        <div className="[&>div]:bg-muted fixed top-2 right-3 z-10">
           <ToggleGroup
             onValueChange={(layout) => setLayout(layout as BookerLayout)}
             defaultValue="small_calendar"
@@ -95,9 +109,9 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
           transition={{ ease: "easeInOut", duration: 0.4 }}
           className={classNames(
             "mb-6 [--booker-meta-width:280px] [--booker-main-width:480px] [--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
-            "dark:bg-darkgray-100 max-w-screen grid items-start overflow-x-clip bg-white dark:[color-scheme:dark] md:flex-row",
+            "bg-muted max-w-screen grid items-start overflow-x-clip dark:[color-scheme:dark] md:flex-row",
             layout === "small_calendar" &&
-              "dark:border-darkgray-300 mt-20 min-h-[450px] w-[calc(var(--booker-meta-width)+var(--booker-main-width))] rounded-md border border-gray-200",
+              "border-subtle mt-20 min-h-[450px] w-[calc(var(--booker-meta-width)+var(--booker-main-width))] rounded-md border",
             layout !== "small_calendar" && "h-auto min-h-screen w-screen"
           )}>
           <AnimatePresence>
@@ -115,7 +129,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             <BookerSection
               key="book-event-form"
               area="main"
-              className="dark:border-darkgray-300 sticky top-0 ml-[-1px] h-full border-gray-200 p-6 md:w-[var(--booker-main-width)] md:border-l"
+              className="border-subtle sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInUp}
               visible={bookerState === "booking"}>
               <BookEventForm onCancel={() => setSelectedTimeslot(null)} />
@@ -127,7 +141,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
               visible={bookerState !== "booking" && layout === "small_calendar"}
               {...fadeInUp}
               initial="visible"
-              className="md:dark:border-darkgray-300 ml-[-1px] h-full flex-shrink p-6 md:border-l md:border-gray-200 lg:w-[var(--booker-main-width)]">
+              className="md:border-subtle ml-[-1px] h-full flex-shrink p-6 md:border-l lg:w-[var(--booker-main-width)]">
               <DatePicker />
             </BookerSection>
 
@@ -138,7 +152,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
                 layout === "large_calendar" &&
                 (bookerState === "selecting_date" || bookerState === "selecting_time")
               }
-              className="dark:border-darkgray-300 sticky top-0 ml-[-1px] h-full border-gray-200 md:border-l"
+              className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l"
               {...fadeInUp}>
               <LargeCalendar />
             </BookerSection>
@@ -151,7 +165,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
                 (layout === "large_timeslots" && bookerState !== "booking")
               }
               className={classNames(
-                "dark:border-darkgray-300 flex h-full w-full flex-row border-gray-200 p-6 pb-0 md:border-l",
+                "border-subtle flex h-full w-full flex-row p-6 pb-0 md:border-l",
                 layout === "small_calendar" && "h-full overflow-auto md:w-[var(--booker-timeslots-width)]",
                 layout !== "small_calendar" && "sticky top-0"
               )}
@@ -165,7 +179,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             </BookerSection>
           </AnimatePresence>
         </m.div>
-        <span className="mt-auto mb-6 dark:[&_img]:invert">
+        <span className="mt-auto mb-6">
           <Logo small />
         </span>
       </div>

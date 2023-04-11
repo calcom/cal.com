@@ -15,8 +15,6 @@ import {
   getGroupName,
   getUsernameList,
 } from "@calcom/lib/defaultEvents";
-import getBooking from "@calcom/lib/getBooking";
-import type { GetBookingType } from "@calcom/lib/getBooking";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma, { bookEventTypeSelect } from "@calcom/prisma";

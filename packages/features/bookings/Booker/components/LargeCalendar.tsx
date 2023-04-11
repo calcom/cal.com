@@ -11,7 +11,7 @@ export const LargeCalendar = () => {
   );
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center dark:text-white">
+    <div className="bg-subtle flex h-full w-full flex-col items-center justify-center">
       Something big is coming...
       <br />
       <button

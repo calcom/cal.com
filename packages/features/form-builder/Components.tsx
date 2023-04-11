@@ -249,7 +249,7 @@ export const Components: Record<BookingFieldType, Component> = {
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
-                <span className="dark:text-inverted ms-2 me-2 text-sm">{option.label ?? ""}</span>
+                <span className="text-emphasis ms-2 me-2 text-sm">{option.label ?? ""}</span>
               </label>
             );
           })}
@@ -304,7 +304,7 @@ export const Components: Record<BookingFieldType, Component> = {
                         type="radio"
                         disabled={readOnly}
                         name={name}
-                        className="dark:bg-darkgray-300 dark:border-darkgray-300 border-default text-emphasis h-4 w-4 focus:ring-black ltr:mr-2 rtl:ml-2"
+                        className="bg-subtle border-default text-default dark:text-inverted h-4 w-4 ltr:mr-2 rtl:ml-2"
                         value={option.value}
                         onChange={(e) => {
                           setValue({
@@ -314,7 +314,7 @@ export const Components: Record<BookingFieldType, Component> = {
                         }}
                         checked={value?.value === option.value}
                       />
-                      <span className="dark:text-inverted ms-2 me-2 text-sm">{option.label ?? ""}</span>
+                      <span className="text-emphasis ms-2 me-2 text-sm">{option.label ?? ""}</span>
                     </label>
                   );
                 })

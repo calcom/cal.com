@@ -276,6 +276,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
           )}
           <Button
             type="submit"
+            color="primary"
             loading={createBookingMutation.isLoading || createRecurringBookingMutation.isLoading}
             data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}>
             {rescheduleUid ? t("reschedule") : t("confirm")}
@@ -323,10 +324,4 @@ const getError = (
   ) : (
     "Unknown error"
   );
-
-  return bookingMutation.isError && (bookingMutation?.error as HttpError)?.message
-    ? t((bookingMutation.error as HttpError).message)
-    : recurringBookingMutation.isError && (recurringBookingMutation?.error as HttpError)?.message
-    ? t((recurringBookingMutation.error as HttpError).message)
-    : "Unknown error";
 };

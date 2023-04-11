@@ -32,9 +32,9 @@ export const AvailableTimes = ({
 
   return (
     <div className={classNames("dark:text-white", className)}>
-      <header className="dark:bg-darkgray-100 dark:before:bg-darkgray-100 sticky top-0 left-0 z-10 mb-8 flex flex w-full w-full flex-row items-center bg-white before:absolute before:-top-12 before:h-24 before:w-full before:bg-white md:flex-col md:items-start lg:flex-row lg:items-center">
+      <header className="bg-muted before:bg-muted sticky top-0 left-0 z-10 mb-8 flex w-full flex-row items-center before:absolute before:-top-12 before:h-24 before:w-full md:flex-col md:items-start lg:flex-row lg:items-center">
         <span className="relative z-10">
-          <span className="font-semibold text-gray-900 dark:text-white">
+          <span className="text-text font-semibold">
             {nameOfDay(i18n.language, Number(date.format("d")), "short")},
           </span>
           <span className="dark:text-darkgray-500 text-gray-500">
@@ -51,11 +51,7 @@ export const AvailableTimes = ({
       </header>
       <div className="pb-4">
         {!slots.length && (
-          <p
-            className={classNames(
-              "text-black dark:text-white",
-              showTimeformatToggle ? "-mt-1 text-lg" : "text-sm"
-            )}>
+          <p className={classNames("text-emphasis", showTimeformatToggle ? "-mt-1 text-lg" : "text-sm")}>
             {t("all_booked_today")}
           </p>
         )}

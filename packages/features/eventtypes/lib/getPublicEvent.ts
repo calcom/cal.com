@@ -8,6 +8,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { PrismaClient } from "@calcom/prisma/client";
 import {
   EventTypeMetaDataSchema,
@@ -51,6 +52,8 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
           username: true,
           name: true,
           weekStart: true,
+          brandColor: true,
+          darkBrandColor: true,
         },
       },
     },
@@ -74,6 +77,8 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
         name: true,
         weekStart: true,
         metadata: true,
+        brandColor: true,
+        darkBrandColor: true,
       },
     });
 
@@ -105,6 +110,8 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
         name: users[0].name,
         weekStart: users[0].weekStart,
         image: `${WEBAPP_URL}/${users[0].username}/avatar.png`,
+        brandColor: users[0].brandColor,
+        darkBrandColor: users[0].darkBrandColor,
       },
     };
   }
@@ -135,6 +142,7 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
 
   return {
     ...event,
+    description: markdownToSafeHTML(event.description),
     metadata: EventTypeMetaDataSchema.parse(event.metadata || {}),
     customInputs: customInputSchema.array().parse(event.customInputs || []),
     locations: privacyFilteredLocations((event.locations || []) as LocationObject[]),
@@ -167,6 +175,8 @@ function getProfileFromEvent(event: Event) {
     name: profile.name,
     weekStart,
     image: `${WEBAPP_URL}${basePath}/avatar.png`,
+    brandColor: profile.brandColor,
+    darkBrandColor: profile.darkBrandColor,
   };
 }
 

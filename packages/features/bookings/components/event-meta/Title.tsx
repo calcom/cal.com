@@ -11,9 +11,5 @@ interface EventTitleProps {
 
 export const EventTitle = ({ children, as, className }: EventTitleProps) => {
   const El = as || "h1";
-  return (
-    <El className={classNames("text-brand-900 text-xl font-semibold dark:text-white", className)}>
-      {children}
-    </El>
-  );
+  return <El className={classNames("text-text text-xl font-semibold", className)}>{children}</El>;
 };
