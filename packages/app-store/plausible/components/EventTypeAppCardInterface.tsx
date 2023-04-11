@@ -9,6 +9,7 @@ import type { appDataSchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
+  const plausibleUrl = getAppData("plausibleUrl");
   const trackingId = getAppData("trackingId");
   const [enabled, setEnabled] = useState(getAppData("enabled"));
 
@@ -24,6 +25,14 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         }
       }}
       switchChecked={enabled}>
+      <TextField
+        name="Plausible URL"
+        defaultValue="plausible.io"
+        value={plausibleUrl}
+        onChange={(e) => {
+          setAppData("plausibleUrl", e.target.value);
+        }}
+      />
       <TextField
         name="Tracked Domain"
         value={trackingId}

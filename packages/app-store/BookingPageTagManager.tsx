@@ -17,13 +17,22 @@ export default function BookingPageTagManager({
         if (!tag) {
           return null;
         }
+        const plausibleUrl = getEventTypeAppData(
+          eventType,
+          appId as keyof typeof appDataSchemas
+        )?.plausibleUrl;
+        if (!plausibleUrl) {
+          return null;
+        }
         const trackingId = getEventTypeAppData(eventType, appId as keyof typeof appDataSchemas)?.trackingId;
         if (!trackingId) {
           return null;
         }
         const parseValue = <T extends string | undefined>(val: T): T =>
           //TODO: Support more template variables.
-          val ? (val.replace(/\{TRACKING_ID\}/g, trackingId) as T) : val;
+          val
+            ? (val.replace(/\{TRACKING_ID\}/g, trackingId).replace(/\{PLAUSIBLE_URL\}/g, plausibleUrl) as T)
+            : val;
 
         return tag.scripts.map((script, index) => {
           const parsedAttributes: NonNullable<(typeof tag.scripts)[number]["attrs"]> = {};
