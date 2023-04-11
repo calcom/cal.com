@@ -119,7 +119,14 @@ export async function getBusyTimes(params: {
   performance.mark("prismaBookingGetEnd");
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
   if (credentials?.length > 0) {
+    const startConnectedCalendarsGet = performance.now();
     const calendarBusyTimes = await getBusyCalendarTimes(username, credentials, startTime, endTime);
+    const endConnectedCalendarsGet = performance.now();
+    logger.debug(
+      `Connected Calendars get took ${
+        endConnectedCalendarsGet - startConnectedCalendarsGet
+      } ms for user ${username}`
+    );
     busyTimes.push(
       ...calendarBusyTimes.map((value) => ({
         ...value,

@@ -178,6 +178,7 @@ export async function getSchedule(input: GetScheduleInput, ctx: { prisma: typeof
     logger.setSettings({ minLevel: "silly" });
   }
   const startPrismaEventTypeGet = performance.now();
+  logger.debug("Start get Prisma eventType");
   const eventType = await getRegularOrDynamicEventType(ctx, input);
   const endPrismaEventTypeGet = performance.now();
   logger.debug(
