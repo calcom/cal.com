@@ -74,6 +74,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               },
               price: true,
               currency: true,
+              successRedirectUrl: true,
             },
           },
         },

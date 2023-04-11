@@ -7,7 +7,7 @@ import type {
   ProviderProps,
 } from "react-awesome-query-builder";
 
-import { Button as CalButton, SelectWithValidation as Select, TextField } from "@calcom/ui";
+import { Button as CalButton, SelectWithValidation as Select, TextField, TextArea } from "@calcom/ui";
 import { FiTrash, FiPlus } from "@calcom/ui/components/icon";
 
 export type CommonProps<
@@ -79,13 +79,12 @@ const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
 
   const textValue = value || "";
   return (
-    <textarea
+    <TextArea
       value={textValue}
       placeholder={placeholder}
       disabled={readOnly}
       onChange={onChange}
       maxLength={maxLength}
-      className=" border-default bg-default dark:bg-muted text-default disabled:bg-emphasis disabled:dark:text-subtle placeholder:text-subtle block w-full rounded-md text-sm focus:ring-black disabled:hover:cursor-not-allowed "
       {...customProps}
       {...remainingProps}
     />
@@ -112,7 +111,6 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
     <TextField
       containerClassName="w-full"
       type={type}
-      className="focus:border-brand-default bg-default dark:bg-muted  border-default disabled:bg-emphasis focus:ring-brand block w-full rounded-md text-sm disabled:hover:cursor-not-allowed"
       value={textValue}
       labelSrOnly={noLabel}
       placeholder={placeholder}

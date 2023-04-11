@@ -151,7 +151,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             <Button
               type="submit"
               color="primary"
-              className="ltr:ml-2 ltr:mr-2 rtl:ml-2"
+              className="ms-2 me-2"
               data-testid="invite-new-member-button">
               {t("invite")}
             </Button>

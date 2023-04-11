@@ -84,7 +84,14 @@ const CalcomThemeProvider = (
   // One such example is our Embeds Demo and Testing page at http://localhost:3100
   // Having `getEmbedNamespace` defined on window before react initializes the app, ensures that embedNamespace is available on the first mount and can be used as part of storageKey
   const embedNamespace = typeof window !== "undefined" ? window.getEmbedNamespace() : null;
-  const storageKey = typeof embedNamespace === "string" ? `embed-theme-${embedNamespace}` : "theme";
+  // If embedNamespace is not defined, we use the default storageKey -> The default storage key changs based on if we force light mode or not
+  // This is done to ensure that the default theme is light when we force light mode and as soon as you navigate to a page that is dark we dont need a hard refresh to change
+  const storageKey =
+    typeof embedNamespace === "string"
+      ? `embed-theme-${embedNamespace}`
+      : !isThemeSupported
+      ? "cal-light"
+      : "theme";
 
   return (
     <ThemeProvider
