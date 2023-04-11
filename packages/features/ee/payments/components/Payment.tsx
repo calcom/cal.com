@@ -83,8 +83,6 @@ export default function PaymentComponent(props: Props) {
       uid: props.bookingUid,
       email: router.query.email,
     };
-    const query = stringify(params);
-    const successUrl = `/booking/${props.bookingUid}?${query}`;
     if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
       const setupIntentData = props.payment.data as unknown as StripeSetupIntentData;
       payload = await stripe.confirmCardSetup(setupIntentData.setupIntent.client_secret!, {
