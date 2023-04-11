@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import { getCachedResults } from "@calcom/core";
 import dayjs from "@calcom/dayjs";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
 const CalendarCache = () => <div />;
@@ -18,6 +19,7 @@ export const getStaticProps: GetStaticProps<
   { user: string }
 > = async (context) => {
   const { user: username, month } = paramsSchema.parse(context.params);
+  const startGetUSerSelectedCalendars = performance.now();
   const user = await prisma.user.findUnique({
     where: {
       username,
@@ -29,6 +31,12 @@ export const getStaticProps: GetStaticProps<
       selectedCalendars: true,
     },
   });
+  const endGetUSerSelectedCalendars = performance.now();
+  logger.debug(
+    `Get Prisma user selectedCalendars took ${
+      endGetUSerSelectedCalendars - startGetUSerSelectedCalendars
+    }ms from user: ${username}`
+  );
   const startDate = (
     dayjs(month, "YYYY-MM").isSame(dayjs(), "month") ? dayjs.utc() : dayjs.utc(month, "YYYY-MM")
   ).startOf("day");
