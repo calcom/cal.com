@@ -50,7 +50,7 @@ const WebhooksList = () => {
     <>
       {webhooks?.length ? (
         <>
-          <div className="mt-6 mb-8 rounded-md border">
+          <div className="border-subtle mt-6 mb-8 rounded-md border">
             {webhooks.map((webhook, index) => (
               <WebhookListItem
                 key={webhook.id}
