@@ -56,7 +56,10 @@ export const ChildrenEventTypeSelect = ({
       {/* This class name conditional looks a bit odd but it allows a seemless transition when using autoanimate
        - Slides down from the top instead of just teleporting in from nowhere*/}
       <ul
-        className={classNames("mt-3 divide-y rounded-md", value.length >= 1 && "border")}
+        className={classNames(
+          "border-subtle divide-subtle mt-3 divide-y rounded-md",
+          value.length >= 1 && "border"
+        )}
         ref={animationRef}>
         {value.map((children, index) => (
           <li key={index}>
@@ -68,10 +71,10 @@ export const ChildrenEventTypeSelect = ({
               />
               <div className="flex w-full flex-row justify-between">
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold leading-none text-black">
+                  <span className="text text-sm font-semibold leading-none">
                     {children.owner.name}
                     {children.owner.membership === MembershipRole.OWNER ? (
-                      <Badge className="ml-2" variant="blue">
+                      <Badge className="ml-2" variant="gray">
                         {t("owner")}
                       </Badge>
                     ) : (
@@ -80,14 +83,14 @@ export const ChildrenEventTypeSelect = ({
                       </Badge>
                     )}
                   </span>
-                  <small className="font-normal leading-normal text-gray-700">
+                  <small className="text-subtle font-normal leading-normal">
                     {`/${children.owner.username}/${children.slug}`}
                   </small>
                 </div>
                 <div className="flex flex-row items-center gap-2">
                   {children.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
                   <Tooltip content={t("show_eventtype_on_profile")}>
-                    <div className="self-center rounded-md p-2 hover:bg-gray-200">
+                    <div className="self-center rounded-md p-2">
                       <Switch
                         name="Hidden"
                         checked={!children.hidden}

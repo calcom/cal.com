@@ -10,8 +10,8 @@ import { FiLock } from "@calcom/ui/components/icon";
 
 const Indicator = (label: string) => (
   <Tooltip content={<>{label}</>}>
-    <div className="ml-1 -mt-0.5 inline-flex h-4 w-4 rounded-sm bg-gray-100 p-0.5">
-      <FiLock className="h-3 w-3 text-gray-500 hover:text-black" />
+    <div className="bg ml-1 -mt-0.5 inline-flex h-4 w-4 rounded-sm p-0.5">
+      <FiLock className="text-subtle hover:text-muted h-3 w-3" />
     </div>
   </Tooltip>
 );

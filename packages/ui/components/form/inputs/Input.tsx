@@ -145,7 +145,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             isFullWidth={inputIsFullWidth}
             className={classNames(
               className,
-              "disabled:cursor-not-allowed disabled:bg-gray-100 disabled:hover:border-gray-300",
+              "disabled:bg-muted disabled:hover:border-subtle disabled:cursor-not-allowed",
               addOnLeading && "ltr:rounded-l-none rtl:rounded-r-none",
               addOnSuffix && "ltr:rounded-r-none rtl:rounded-l-none",
               type === "search" && "pr-8",
@@ -189,7 +189,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           placeholder={placeholder}
           className={classNames(
             className,
-            "disabled:cursor-not-allowed disabled:bg-gray-100 disabled:hover:border-gray-300"
+            "disabled:bg-muted disabled:hover:border-subtle disabled:cursor-not-allowed"
           )}
           {...passThrough}
           readOnly={readOnly}
