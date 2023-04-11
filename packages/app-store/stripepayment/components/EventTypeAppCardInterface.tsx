@@ -93,7 +93,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   isDisabled={seatsEnabled}
                 />
               </div>
-              {seatsEnabled && (
+              {seatsEnabled && paymentOption === "HOLD" && (
                 <Alert className="mt-2" severity="warning" title={t("seats_and_no_show_fee_error")} />
               )}
             </>
