@@ -1,7 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { SchedulingType } from "@prisma/client";
 import { useMemo } from "react";
-import { FormattedNumber, IntlProvider } from "react-intl";
 import type { z } from "zod";
 
 import { classNames, parseRecurringEvent } from "@calcom/lib";
@@ -97,13 +96,10 @@ export const EventTypeDescription = ({
           {stripeAppData.price > 0 && (
             <li>
               <Badge variant="gray" startIcon={FiCreditCard}>
-                <IntlProvider locale="en">
-                  <FormattedNumber
-                    value={stripeAppData.price / 100.0}
-                    style="currency"
-                    currency={stripeAppData?.currency?.toUpperCase()}
-                  />
-                </IntlProvider>
+                {t("currency_string", {
+                  amount: stripeAppData.price / 100,
+                  formatParams: { amount: { currency: stripeAppData.currency } },
+                })}
               </Badge>
             </li>
           )}

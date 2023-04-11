@@ -3,7 +3,6 @@ import classNames from "classnames";
 import Head from "next/head";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
-import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
@@ -110,13 +109,10 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         {props.payment.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
                       </div>
                       <div className="col-span-2 mb-6 font-semibold">
-                        <IntlProvider locale="en">
-                          <FormattedNumber
-                            value={paymentAppData.price / 100.0}
-                            style="currency"
-                            currency={paymentAppData?.currency?.toUpperCase()}
-                          />
-                        </IntlProvider>
+                        {t("currency_string", {
+                          amount: paymentAppData.price / 100.0,
+                          formatParams: { amount: { currency: paymentAppData.currency } },
+                        })}
                       </div>
                     </div>
                   </div>
