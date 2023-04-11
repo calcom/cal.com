@@ -41,6 +41,16 @@ const getScheduleSchema = z
     rescheduleUid: z.string().optional(),
     rescheduleWithSameUser: z.boolean().optional(),
     proxy: z.object({}).optional(),
+    // max booking days: allows to override eventType.periodDays (number of days)
+    maxbd: z
+      .string()
+      .optional()
+      .transform((val) => val && parseInt(val)),
+    // min booking notice: allows to override eventType.minimumBookingNotice (number of minutes)
+    minbn: z
+      .string()
+      .optional()
+      .transform((val) => val && parseInt(val)),
   })
   .refine(
     (data) => !!data.eventTypeId || !!data.usernameList,
@@ -263,7 +273,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   });
   const maximumEndTime = getMaximumEndTime(timeZone, {
     periodType: eventType.periodType,
-    periodDays: eventType.periodDays,
+    periodDays: input.maxbd || eventType.periodDays,
     periodCountCalendarDays: eventType.periodCountCalendarDays,
     periodEndDate: eventType.periodEndDate,
   });
@@ -345,6 +355,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       endTime: dayjs().tz("Europe/Berlin").set("hour", shiftEndHour).set("minute", 0).set("second", 0),
     },
   ]);
+  const minimumBookingNotice = input.minbn || eventType.minimumBookingNotice;
 
   const computedAvailableSlots: Record<string, Slot[]> = {};
   const needAllUsers = !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE;
@@ -375,14 +386,14 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
             .utc(),
           days,
           eventLength,
-          minStartTime: dayjs().add(eventType.minimumBookingNotice, "minute"),
+          minStartTime: dayjs().add(minimumBookingNotice, "minute"),
           busyTimes: userBusyTimesByDay[currentCheckedTime.format("YYYY-MM-DD")] || [],
         })
       : getTimeSlots({
           inviteeDate: currentCheckedTime,
           eventLength,
           workingHours,
-          minimumBookingNotice: eventType.minimumBookingNotice,
+          minimumBookingNotice: minimumBookingNotice,
           frequency: eventType.slotInterval || eventLength,
         });
 
