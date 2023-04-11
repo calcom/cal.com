@@ -47,6 +47,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         <>
           <div className="">
             {t("payment_app_commission", {
+              paymentFeePercentage: 0.5,
               fee: 0.1,
               formatParams: { fee: { currency } },
             })}
