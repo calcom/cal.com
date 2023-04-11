@@ -15,7 +15,6 @@ import path from "path";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
-import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { APP_NAME, IS_TEAM_BILLING_ENABLED, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { defaultCookies } from "@calcom/lib/default-cookies";
@@ -265,7 +264,7 @@ if (isSAMLLoginEnabled) {
         if (!code) {
           return null;
         }
-
+        const { jackson } = (await import("@calcom/features/ee/sso/lib/jackson")).default;
         const { oauthController } = await jackson();
 
         // Fetch access token
