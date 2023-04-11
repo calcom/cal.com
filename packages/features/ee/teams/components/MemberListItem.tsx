@@ -97,7 +97,7 @@ export default function MemberListItem(props: Props) {
   const bookingLink = `${urlWithoutProtocol}/${props.member.username}`;
 
   return (
-    <li className="divide-y px-5">
+    <li className="divide-subtle divide-y px-5">
       <div className="my-4 flex justify-between">
         <div className="flex w-full flex-col justify-between sm:flex-row">
           <div className="flex">
@@ -108,7 +108,7 @@ export default function MemberListItem(props: Props) {
               className="h-10 w-10 rounded-full"
             />
 
-            <div className="inline-block ltr:ml-3 rtl:mr-3">
+            <div className="ms-3 inline-block">
               <div className="mb-1 flex">
                 <span className="text-default mr-1 text-sm font-bold leading-4">{name}</span>
 

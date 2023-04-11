@@ -3,13 +3,15 @@ import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import type { StripeCardElementChangeEvent, StripeElementLocale } from "@stripe/stripe-js";
 import type stripejs from "@stripe/stripe-js";
 import { useRouter } from "next/router";
-import { stringify } from "querystring";
 import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
 
 import type { StripePaymentData, StripeSetupIntentData } from "@calcom/app-store/stripepayment/lib/server";
+import { bookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Checkbox } from "@calcom/ui";
+
+import type { EventType } from ".prisma/client";
 
 const CARD_OPTIONS: stripejs.StripeCardElementOptions = {
   iconStyle: "solid" as const,
@@ -34,7 +36,7 @@ type Props = {
   payment: Omit<Payment, "id" | "fee" | "success" | "refunded" | "externalId" | "data"> & {
     data: StripePaymentData | StripeSetupIntentData;
   };
-  eventType: { id: number };
+  eventType: { id: number; successRedirectUrl: EventType["successRedirectUrl"] };
   user: { username: string | null };
   location?: string | null;
   bookingId: number;
@@ -112,7 +114,12 @@ export default function PaymentComponent(props: Props) {
         }
       }
 
-      await router.push(successUrl);
+      return bookingSuccessRedirect({
+        router,
+        successRedirectUrl: props.eventType.successRedirectUrl,
+        query: params,
+        bookingUid: props.bookingUid,
+      });
     }
   };
   return (

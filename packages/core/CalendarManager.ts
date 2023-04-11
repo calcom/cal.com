@@ -193,6 +193,9 @@ const getNextCache = async (username: string, month: string): Promise<EventBusyD
     )
       .then((r) => r.json())
       .then((json) => json?.pageProps?.results);
+    // No need to wait for this, the purpose is to force re-validation every second as indicated
+    // in page getStaticProps.
+    fetch(`${baseUrl}/${username}/calendar-cache/${month}`).catch(console.log);
   } catch (e) {
     log.warn(e);
   }
