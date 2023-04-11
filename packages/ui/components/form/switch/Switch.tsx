@@ -47,7 +47,7 @@ const Switch = (
             id={id}
             className={cx(
               "block h-[14px] w-[14px] rounded-full transition will-change-transform ltr:translate-x-[4px] rtl:-translate-x-[4px] ltr:[&[data-state='checked']]:translate-x-[17px] rtl:[&[data-state='checked']]:-translate-x-[17px]",
-              props.checked || props.defaultChecked ? "bg-default shadow-inner" : "bg-inverted",
+              "bg-default shadow-inner",
               classNames?.thumb
             )}
           />
