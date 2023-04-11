@@ -210,10 +210,12 @@ export default async function getEventTypeById({
   const newMetadata = EventTypeMetaDataSchema.parse(metadata || {})!;
   const apps = newMetadata.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
+  const stripeMetaData = getPaymentAppData(eventTypeWithParsedMetadata, true);
   newMetadata.apps = {
     ...apps,
     stripe: {
-      ...getPaymentAppData(eventTypeWithParsedMetadata, true),
+      ...stripeMetaData,
+      paymentOption: stripeMetaData.paymentOption as string,
       currency:
         (
           credentials.find((integration) => integration.type === "stripe_payment")

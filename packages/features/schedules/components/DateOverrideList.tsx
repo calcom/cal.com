@@ -53,7 +53,7 @@ const DateOverrideList = ({
   };
 
   return (
-    <ul className="rounded border border-subtle" data-testid="date-overrides-list">
+    <ul className="border-subtle rounded border" data-testid="date-overrides-list">
       {items.sort(sortByDate).map((item, index) => (
         <li key={item.id} className="flex justify-between border-b px-5 py-4 last:border-b-0">
           <div>

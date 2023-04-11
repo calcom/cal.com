@@ -45,7 +45,7 @@ const buttonClasses = cva(
         fab: "rounded-full justify-center md:rounded-md radix-state-open:rotate-45 md:radix-state-open:rotate-0 transition-transform radix-state-open:shadown-none radix-state-open:ring-0 !shadow-none",
       },
       color: {
-        primary: "text-inverted",
+        primary: "",
         secondary: "text-emphasis",
         minimal: "text-emphasis",
         destructive: "",

@@ -98,7 +98,7 @@ const WorkflowListItem = (props: ItemProps) => {
   });
 
   return (
-    <div className="flex w-full items-center overflow-hidden rounded-md border border-subtle p-6 px-3 md:p-6">
+    <div className="border-subtle flex w-full items-center overflow-hidden rounded-md border p-6 px-3 md:p-6">
       <div className="bg-subtle mr-4 flex h-10 w-10 items-center justify-center rounded-full text-xs font-medium">
         {getActionIcon(
           workflow.steps,
