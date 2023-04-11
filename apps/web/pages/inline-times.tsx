@@ -65,9 +65,16 @@ export const getServerSideProps = async function getServerSideProps(): Promise<a
   times.push(Date.now());
   await import("@server/lib/ssr"); // 27
   times.push(Date.now());
-  import("@calcom/features/ee/sso/lib/jackson"); //28
+  await import("@calcom/features/ee/sso/lib/jackson"); //28
   times.push(Date.now());
-
+  await import("next-auth/jwt"); // 29
+  times.push(Date.now());
+  await import("next-auth/providers/credentials"); // 30
+  times.push(Date.now());
+  await import("next-auth/providers/email"); // 31
+  times.push(Date.now());
+  await import("next-auth/providers/google"); // 32
+  times.push(Date.now());
   const props = {
     times: times.map((time, index) => {
       if (index === 0) {
