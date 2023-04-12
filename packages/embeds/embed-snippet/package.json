@@ -1,7 +1,7 @@
 {
   "name": "@calcom/embed-snippet",
   "sideEffects": false,
-  "version": "1.0.6",
+  "version": "1.0.7",
   "main": "./dist/snippet.umd.js",
   "module": "./dist/snippet.es.js",
   "description": "Vanilla JS embed snippet that is responsible to fetch @calcom/embed-core and thus show Cal Link as an embed on a page.",
@@ -29,6 +29,6 @@
     "vite": "^4.1.2"
   },
   "dependencies": {
-    "@calcom/embed-core": "^1.1.4"
+    "@calcom/embed-core": "^1.1.5"
   }
 }
