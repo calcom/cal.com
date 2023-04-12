@@ -120,9 +120,9 @@ const nextConfig = {
     unoptimized: true,
   },
   webpack: (config, { webpack, buildId, isServer }) => {
-    /*if (isServer) {
+    if (isServer) {
       config.plugins.push(new ImportTimingPlugin());
-    }*/
+    }
     config.plugins.push(
       new CopyWebpackPlugin({
         patterns: [
