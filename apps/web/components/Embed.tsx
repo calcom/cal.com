@@ -386,7 +386,7 @@ const embeds: {
   },
   {
     title: "Floating pop-up button",
-    subtitle: "Adds a floating button on your site that launches Cal in a dialog.",
+    subtitle: "Puts a floating button on your site that triggers a modal with your event type.",
     type: "floating-popup",
     illustration: (
       <svg
@@ -806,11 +806,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const FloatingPopupPositionOptions = [
     {
       value: "bottom-right",
-      label: "Bottom Right",
+      label: "Bottom right",
     },
     {
       value: "bottom-left",
-      label: "Bottom Left",
+      label: "Bottom left",
     },
   ];
 
@@ -834,7 +834,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             </button>
             {embed.title}
           </h3>
-          <h4 className="text-emphasis mb-6 text-sm font-normal">{embed.subtitle}</h4>
+          <h4 className="text-subtle mb-6 text-sm font-normal">{embed.subtitle}</h4>
           <div className="flex flex-col">
             <div className={classNames("font-medium", embedType === "element-click" ? "hidden" : "")}>
               <Collapsible
@@ -892,10 +892,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   </div>
                   <div
                     className={classNames(
-                      "mt-4 items-center justify-between",
+                      "items-center justify-between",
                       embedType === "floating-popup" ? "text-emphasis" : "hidden"
                     )}>
-                    <div className="mb-2 text-sm">Button Text</div>
+                    <div className="mb-2 text-sm">Button text</div>
                     {/* Default Values should come from preview iframe */}
                     <TextField
                       labelProps={{ className: "hidden" }}
@@ -935,14 +935,14 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         });
                       }}
                     />
-                    <div className="text-default text-sm">Display Calendar Icon Button</div>
+                    <div className="text-default my-2 text-sm">Display calendar icon</div>
                   </div>
                   <div
                     className={classNames(
                       "mt-4 items-center justify-between",
                       embedType === "floating-popup" ? "text-emphasis" : "hidden"
                     )}>
-                    <div className="mb-2">Position of Button</div>
+                    <div className="mb-2">Position of button</div>
                     <Select
                       onChange={(position) => {
                         setPreviewState((previewState) => {
@@ -959,54 +959,50 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       options={FloatingPopupPositionOptions}
                     />
                   </div>
-                  <div
-                    className={classNames(
-                      "mt-4",
-                      embedType === "floating-popup" ? "text-emphasis" : "hidden"
-                    )}>
-                    <div>Button Color</div>
-                    <div className="w-full">
-                      <ColorPicker
-                        popoverAlign="start"
-                        container={dialogContentRef?.current ?? undefined}
-                        defaultValue="#000000"
-                        onChange={(color) => {
-                          setPreviewState((previewState) => {
-                            return {
-                              ...previewState,
-                              floatingPopup: {
-                                ...previewState.floatingPopup,
-                                buttonColor: color,
-                              },
-                            };
-                          });
-                        }}
-                      />
+                  <div className="mt-3 flex justify-between">
+                    <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
+                      <div className="whitespace-nowrap">Button color</div>
+                      <div className="w-full">
+                        <ColorPicker
+                          colorInputClassName="w-[130px]"
+                          popoverAlign="start"
+                          container={dialogContentRef?.current ?? undefined}
+                          defaultValue="#000000"
+                          onChange={(color) => {
+                            setPreviewState((previewState) => {
+                              return {
+                                ...previewState,
+                                floatingPopup: {
+                                  ...previewState.floatingPopup,
+                                  buttonColor: color,
+                                },
+                              };
+                            });
+                          }}
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div
-                    className={classNames(
-                      "mt-4",
-                      embedType === "floating-popup" ? "text-emphasis" : "hidden"
-                    )}>
-                    <div>Text Color</div>
-                    <div className="w-full">
-                      <ColorPicker
-                        popoverAlign="start"
-                        container={dialogContentRef?.current ?? undefined}
-                        defaultValue="#000000"
-                        onChange={(color) => {
-                          setPreviewState((previewState) => {
-                            return {
-                              ...previewState,
-                              floatingPopup: {
-                                ...previewState.floatingPopup,
-                                buttonTextColor: color,
-                              },
-                            };
-                          });
-                        }}
-                      />
+                    <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
+                      <div className="whitespace-nowrap">Text color</div>
+                      <div className="w-full">
+                        <ColorPicker
+                          colorInputClassName="w-[130px]"
+                          popoverAlign="start"
+                          container={dialogContentRef?.current ?? undefined}
+                          defaultValue="#000000"
+                          onChange={(color) => {
+                            setPreviewState((previewState) => {
+                              return {
+                                ...previewState,
+                                floatingPopup: {
+                                  ...previewState.floatingPopup,
+                                  buttonTextColor: color,
+                                },
+                              };
+                            });
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
                 </CollapsibleContent>
@@ -1018,6 +1014,29 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}>
                 <CollapsibleContent>
                   <div className="mt-6 text-sm">
+                    <Label className="mb-6">
+                      <div className="mb-2">Theme</div>
+                      <Select
+                        className="w-full"
+                        defaultValue={ThemeOptions[0]}
+                        components={{
+                          Control: ThemeSelectControl,
+                          IndicatorSeparator: () => null,
+                        }}
+                        onChange={(option) => {
+                          if (!option) {
+                            return;
+                          }
+                          setPreviewState((previewState) => {
+                            return {
+                              ...previewState,
+                              theme: option.value,
+                            };
+                          });
+                        }}
+                        options={ThemeOptions}
+                      />
+                    </Label>
                     <div className="mb-6 flex items-center justify-start space-x-2 rtl:space-x-reverse">
                       <Switch
                         checked={previewState.hideEventTypeDetails}
@@ -1056,29 +1075,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         </div>
                       </Label>
                     ))}
-                    <Label>
-                      <div className="mb-2">Theme</div>
-                      <Select
-                        className="w-full"
-                        defaultValue={ThemeOptions[0]}
-                        components={{
-                          Control: ThemeSelectControl,
-                          IndicatorSeparator: () => null,
-                        }}
-                        onChange={(option) => {
-                          if (!option) {
-                            return;
-                          }
-                          setPreviewState((previewState) => {
-                            return {
-                              ...previewState,
-                              theme: option.value,
-                            };
-                          });
-                        }}
-                        options={ThemeOptions}
-                      />
-                    </Label>
                   </div>
                 </CollapsibleContent>
               </Collapsible>
