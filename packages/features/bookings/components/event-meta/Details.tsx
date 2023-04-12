@@ -1,21 +1,14 @@
 import { Fragment } from "react";
 import React from "react";
 
-import { getEventLocationType } from "@calcom/app-store/locations";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  FiInfo,
-  FiClock,
-  FiMapPin,
-  FiCheckSquare,
-  FiRefreshCcw,
-  FiCreditCard,
-} from "@calcom/ui/components/icon";
+import { FiInfo, FiClock, FiCheckSquare, FiRefreshCcw, FiCreditCard } from "@calcom/ui/components/icon";
 
 import type { PublicEvent } from "../../types";
 import { EventDetailBlocks } from "../../types";
 import { EventDuration } from "./Duration";
+import { EventLocations } from "./Locations";
 import { EventOccurences } from "./Occurences";
 import { EventPrice } from "./Price";
 
@@ -141,16 +134,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             if (!event?.locations?.length) return null;
             return (
               <React.Fragment key={block}>
-                {event.locations.map((location) => {
-                  const eventLocationType = getEventLocationType(location.type);
-                  return (
-                    <EventMetaBlock key={location.type} icon={eventLocationType?.iconUrl || FiMapPin}>
-                      <div key={location.type} className="flex flex-row items-center">
-                        {t(eventLocationType?.label ?? "")}
-                      </div>
-                    </EventMetaBlock>
-                  );
-                })}
+                <EventLocations event={event} />
               </React.Fragment>
             );
 
