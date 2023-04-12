@@ -3,7 +3,7 @@ import React, { useCallback, useRef, useState } from "react";
 
 import { classNames as cn } from "@calcom/lib";
 
-import { FiX, FiChevronDown } from "../../../icon";
+import { X, ChevronDown } from "../../../icon";
 import Options from "./Options";
 import SearchInput from "./SearchInput";
 import SelectProvider from "./SelectProvider";
@@ -162,7 +162,7 @@ function Select<T extends Option>({
                                 e.stopPropagation();
                                 removeItem(item);
                               }}>
-                              <FiX
+                              <X
                                 className={
                                   classNames?.tagItemIcon ??
                                   " dark:hover:text-darkgray-900 hover:text-emphasis text-subtle h-4 w-4"
@@ -185,7 +185,7 @@ function Select<T extends Option>({
                 <>
                   {isClearable && !isDisabled && selectedItems !== null && (
                     <div className="cursor-pointer" onClick={clearValue}>
-                      <FiX
+                      <X
                         className={
                           classNames && classNames.closeIcon ? classNames.closeIcon : "h-5 w-5 p-0.5"
                         }
@@ -193,7 +193,7 @@ function Select<T extends Option>({
                     </div>
                   )}
 
-                  <FiChevronDown className={cn("h-5 w-5 transition duration-300")} />
+                  <ChevronDown className={cn("h-5 w-5 transition duration-300")} />
                 </>
               </div>
             </div>

@@ -5,7 +5,7 @@ import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, EmptyScreen, Meta, SkeletonText } from "@calcom/ui";
-import { FiPlus, FiLink } from "@calcom/ui/components/icon";
+import { Plus, Link as LinkIcon } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../settings/layouts/SettingsLayout";
 import { WebhookListItem, WebhookListSkeleton } from "../components";
@@ -30,7 +30,7 @@ const NewWebhookButton = () => {
     <Button
       color="secondary"
       data-testid="new_webhook"
-      StartIcon={FiPlus}
+      StartIcon={Plus}
       href={`${WEBAPP_URL}/settings/developer/webhooks/new`}>
       {isLocaleReady ? t("new_webhook") : <SkeletonText className="h-4 w-24" />}
     </Button>
@@ -64,7 +64,7 @@ const WebhooksList = () => {
         </>
       ) : (
         <EmptyScreen
-          Icon={FiLink}
+          Icon={LinkIcon}
           headline={t("create_your_first_webhook")}
           description={t("create_your_first_webhook_description", { appName: APP_NAME })}
           buttonRaw={<NewWebhookButton />}

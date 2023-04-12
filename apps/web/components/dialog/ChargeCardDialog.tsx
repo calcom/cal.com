@@ -14,7 +14,7 @@ import {
   DialogHeader,
   showToast,
 } from "@calcom/ui";
-import { FiCreditCard, FiAlertTriangle } from "@calcom/ui/components/icon";
+import { CreditCard, AlertTriangle } from "@calcom/ui/components/icon";
 
 interface IRescheduleDialog {
   isOpenDialog: boolean;
@@ -45,7 +45,7 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
       <DialogContent>
         <div className="flex flex-row space-x-3">
           <div className="flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-            <FiCreditCard className="m-auto h-6 w-6" />
+            <CreditCard className="m-auto h-6 w-6" />
           </div>
           <div className="pt-1">
             <DialogHeader title={t("charge_card")} />
@@ -65,7 +65,7 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
 
             {chargeError && (
               <div className="mt-4 flex text-red-500">
-                <FiAlertTriangle className="mr-2 h-5 w-5 " aria-hidden="true" />
+                <AlertTriangle className="mr-2 h-5 w-5 " aria-hidden="true" />
                 <p className="text-sm">{t("error_charging_card")}</p>
               </div>
             )}
