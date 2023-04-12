@@ -264,7 +264,7 @@ if (isSAMLLoginEnabled) {
         if (!code) {
           return null;
         }
-        const jackson = (await import("@calcom/features/ee/sso/lib/jackson")).default;
+        const { default: jackson } = await import("@calcom/features/ee/sso/lib/jackson");
         const { oauthController } = await jackson();
 
         // Fetch access token
