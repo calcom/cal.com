@@ -35,5 +35,6 @@ export const addCitiesToDropdown = (cities: ICity[]) => {
 export const handleOptionLabel = (option: ITimezoneOption, cities: ICity[]) => {
   const timezoneValue = option.label.split(")")[0].replace("(", " ").replace("T", "T ");
   const cityName = option.label.split(") ")[1];
-  return cities.length > 0 ? `${cityName}${timezoneValue}` : `${option.value}${timezoneValue}`;
+  const refactoredOption = option.value.replace(/_/g, " ");
+  return cities.length > 0 ? `${cityName}${timezoneValue}` : `${refactoredOption}${timezoneValue}`;
 };
