@@ -36,7 +36,6 @@ import {
   formatToLocalizedTimezone,
 } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import { getBookingWithResponses } from "@calcom/lib/getBooking";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";

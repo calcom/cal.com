@@ -6,8 +6,6 @@ import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getBooking from "@calcom/features/bookings/lib/get-booking";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
-import getBooking from "@calcom/lib/getBooking";
-import type { GetBookingType } from "@calcom/lib/getBooking";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
