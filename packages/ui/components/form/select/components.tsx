@@ -43,7 +43,9 @@ export const OptionComponent = <
     // This gets styled in the select classNames prop now - handles overrides with styles vs className here doesnt
     <reactSelectComponents.Option {...props}>
       <div className="flex">
-        <span className="mr-auto">{props.label}</span>
+        <span className="mr-auto" data-testid={`select-option-${props.label}`}>
+          {props.label}
+        </span>
         {(props.data as unknown as ExtendedOption).needsUpgrade && <UpgradeTeamsBadge />}
         {props.isSelected && <Check className="ml-2 h-4 w-4" />}
       </div>
