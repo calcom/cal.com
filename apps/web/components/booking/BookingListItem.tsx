@@ -28,10 +28,11 @@ import {
   TableActions,
   TextAreaField,
 } from "@calcom/ui";
-import { Check, Clock, MapPin, RefreshCcw, Send, Slash, X } from "@calcom/ui/components/icon";
+import { Check, Clock, FiCreditCard } from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
+import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
@@ -56,7 +57,9 @@ function BookingListItem(booking: BookingItemProps) {
   const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
+  const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
+  const cardCharged = booking?.payment[0]?.success;
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
       if (data?.status === BookingStatus.REJECTED) {
@@ -116,16 +119,20 @@ function BookingListItem(booking: BookingItemProps) {
       icon: Slash,
       disabled: mutation.isLoading,
     },
-    {
-      id: "confirm",
-      label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
-      onClick: () => {
-        bookingConfirm(true);
-      },
-      icon: Check,
-      disabled: mutation.isLoading,
-      color: "primary",
-    },
+    // For bookings with payment, only confirm if the booking is paid for
+    ...((isPending && !booking?.eventType?.price) || (!!booking?.eventType?.price && booking.paid)
+      ? [
+          {
+            id: "confirm",
+            label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
+            onClick: () => {
+              bookingConfirm(true);
+            },
+            icon: Check,
+            disabled: mutation.isLoading,
+          },
+        ]
+      : []),
   ];
 
   const showRecordingActions: ActionType[] = [
@@ -181,6 +188,18 @@ function BookingListItem(booking: BookingItemProps) {
           icon: MapPin,
         },
       ],
+    },
+  ];
+
+  const chargeCardActions: ActionType[] = [
+    {
+      id: "charge_card",
+      label: cardCharged ? t("no_show_fee_charged") : t("collect_no_show_fee"),
+      disabled: cardCharged,
+      onClick: () => {
+        setChargeCardDialogIsOpen(true);
+      },
+      icon: FiCreditCard,
     },
   ];
 
@@ -254,6 +273,15 @@ function BookingListItem(booking: BookingItemProps) {
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
       />
+      {booking.paid && (
+        <ChargeCardDialog
+          isOpenDialog={chargeCardDialogIsOpen}
+          setIsOpenDialog={setChargeCardDialogIsOpen}
+          bookingId={booking.id}
+          paymentAmount={booking?.payment[0].amount}
+          paymentCurrency={booking?.payment[0].currency}
+        />
+      )}
       {showRecordingsButtons && (
         <ViewRecordingsDialog
           booking={booking}
@@ -321,7 +349,7 @@ function BookingListItem(booking: BookingItemProps) {
             )}
             {booking.paid && (
               <Badge className="ltr:mr-2 rtl:ml-2" variant="green">
-                {t("paid")}
+                {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
               </Badge>
             )}
             {recurringDates !== undefined && (
@@ -421,6 +449,11 @@ function BookingListItem(booking: BookingItemProps) {
           {isCancelled && booking.rescheduled && (
             <div className="hidden h-full items-center md:flex">
               <RequestSentMessage />
+            </div>
+          )}
+          {booking.status === "ACCEPTED" && booking.paid && booking?.payment[0]?.paymentOption === "HOLD" && (
+            <div className="ml-2">
+              <TableActions actions={chargeCardActions} />
             </div>
           )}
         </td>

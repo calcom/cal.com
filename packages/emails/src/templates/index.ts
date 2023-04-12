@@ -21,4 +21,5 @@ export { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
 export { TeamInviteEmail } from "./TeamInviteEmail";
 export { BrokenIntegrationEmail } from "./BrokenIntegrationEmail";
 export { OrganizerAttendeeCancelledSeatEmail } from "./OrganizerAttendeeCancelledSeatEmail";
+export { NoShowFeeChargedEmail } from "./NoShowFeeChargedEmail";
 export * from "@calcom/app-store/routing-forms/emails/components";

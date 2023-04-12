@@ -24,9 +24,7 @@ function WorkflowExample(props: WorkflowExampleType) {
           </div>
         </div>
         <div className="m-auto w-full flex-grow items-center justify-center ">
-          <div className="line-clamp-2 text-semibold text-emphasis w-full text-sm font-medium leading-none">
-            {text}
-          </div>
+          <div className="line-clamp-2 text-semibold text-emphasis w-full text-sm font-medium">{text}</div>
         </div>
       </div>
     </div>

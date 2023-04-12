@@ -54,7 +54,7 @@ export default function FormCard({
       <div className="w-full">
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-emphasis text-sm font-semibold leading-none">{label}</span>
+            <span className="text-emphasis text-sm font-semibold">{label}</span>
             {badge && (
               <Badge className="ml-2" variant={badge.variant}>
                 {badge.href ? <Link href={badge.href}>{badge.text}</Link> : badge.text}
