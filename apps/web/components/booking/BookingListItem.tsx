@@ -28,7 +28,7 @@ import {
   TableActions,
   TextAreaField,
 } from "@calcom/ui";
-import { Check, Clock, FiCreditCard } from "@calcom/ui/components/icon";
+import { Check, Clock, MapPin, RefreshCcw, Send, Slash, X, CreditCard } from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -199,7 +199,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setChargeCardDialogIsOpen(true);
       },
-      icon: FiCreditCard,
+      icon: CreditCard,
     },
   ];
 
