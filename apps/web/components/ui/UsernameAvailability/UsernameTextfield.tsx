@@ -79,7 +79,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
 
   const ActionButtons = () => {
     return usernameIsAvailable && currentUsername !== inputUsernameValue ? (
-      <div className="rlt:space-x-reverse mt-px flex flex-row space-x-2 ltr:ml-2 ltr:mr-2 rtl:ml-2 rtl:space-x-reverse">
+      <div className="rlt:space-x-reverse ms-2 me-2 mt-px flex flex-row space-x-2 rtl:space-x-reverse">
         <Button
           type="button"
           onClick={() => setOpenDialogSaveUsername(true)}

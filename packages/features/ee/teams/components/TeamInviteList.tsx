@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { MembershipRole } from "@calcom/prisma/client";
+import type { MembershipRole } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui";
 
@@ -47,7 +47,7 @@ export default function TeamInviteList(props: Props) {
 
   return (
     <div>
-      <ul className="mb-8 divide-y divide-neutral-200 rounded bg-default">
+      <ul className="bg-default divide-subtle mb-8 divide-y rounded">
         {props.teams.map((team) => (
           <TeamInviteListItem
             key={team?.id as number}

@@ -715,7 +715,7 @@ const MobileNavigationMoreItem: React.FC<{
   if (!shouldDisplayNavigationItem) return null;
 
   return (
-    <li className="border-b last:border-b-0" key={item.name}>
+    <li className="border-subtle border-b last:border-b-0" key={item.name}>
       <Link href={item.href} className="hover:bg-subtle flex items-center justify-between p-5">
         <span className="text-default flex items-center font-semibold ">
           {item.icon && <item.icon className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />}
@@ -912,7 +912,7 @@ function TopNav() {
 }
 
 export const MobileNavigationMoreItems = () => (
-  <ul className="mt-2 rounded-md border">
+  <ul className="border-subtle mt-2 rounded-md border">
     {mobileNavigationMoreItems.map((item) => (
       <MobileNavigationMoreItem key={item.name} item={item} />
     ))}

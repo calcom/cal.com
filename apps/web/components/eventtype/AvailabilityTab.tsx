@@ -142,7 +142,7 @@ const EventTypeScheduleDetails = () => {
                       <span className="w-16 sm:w-28 sm:text-left">
                         {format(dayRange.startTime, timeFormat === 12)}
                       </span>
-                      <span className="ltr:ml-4 rtl:mr-4">-</span>
+                      <span className="ms-4">-</span>
                       <div className="ml-6">{format(dayRange.endTime, timeFormat === 12)}</div>
                     </div>
                   ))}
