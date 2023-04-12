@@ -3,7 +3,7 @@
  */
 import { z } from "zod";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+// import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { createNextApiHandler } from "@calcom/trpc/server/adapters/next";
 import { createContext as createTRPCContext } from "@calcom/trpc/server/createContext";
 import { slotsRouter } from "@calcom/trpc/server/routers/slots";
@@ -18,14 +18,16 @@ export default createNextApiHandler({
    * @link https://trpc.io/docs/context
    */
   createContext: (opts) => {
-    const sessionGetter = () => getServerSession(opts);
+    // const sessionGetter = () => getServerSession(opts);
+    // Trying out an empty session getter as all procedures are public on the slots router
+    const sessionGetter = () => Promise.resolve(null);
     return createTRPCContext(opts, sessionGetter);
   },
 
   /**
    * @link https://trpc.io/docs/caching#api-response-caching
    */
-  responseMeta({ ctx, paths, type, errors }) {
+  responseMeta({ ctx, type, errors }) {
     // checking that no procedures errored
     const allOk = errors.length === 0;
     // checking we're doing a query request
