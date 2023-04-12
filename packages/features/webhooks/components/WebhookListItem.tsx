@@ -57,7 +57,11 @@ export default function WebhookListItem(props: {
   };
 
   return (
-    <div className={classNames("flex w-full justify-between p-4", props.lastItem ? "" : "border-b")}>
+    <div
+      className={classNames(
+        "flex w-full justify-between p-4",
+        props.lastItem ? "" : "border-subtle border-b"
+      )}>
       <div className="w-full truncate">
         <p className="text-emphasis truncate text-sm font-medium">{webhook.subscriberUrl}</p>
         <Tooltip content={t("triggers_when")}>
