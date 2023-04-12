@@ -25,7 +25,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
 import { trpc } from "@calcom/trpc";
 import { HeadSeo, useCalcomTheme } from "@calcom/ui";
-import { FiCreditCard, FiUser, FiRefreshCcw } from "@calcom/ui/components/icon";
+import { CreditCard, User, RefreshCcw } from "@calcom/ui/components/icon";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 
@@ -210,7 +210,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                             " text-default",
                             "ltr:mr-[10px] rtl:ml-[10px]"
                           )}>
-                          <FiUser
+                          <User
                             className={classNames(
                               "min-h-4 min-w-4 ml-[2px] inline-block ltr:mr-[10px] rtl:ml-[10px]",
                               "mt-[2px]"
@@ -221,7 +221,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                       )}
                       {!rescheduleUid && eventType.recurringEvent && (
                         <div className="flex items-start text-sm font-medium">
-                          <FiRefreshCcw className="float-left mt-[7px] ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
+                          <RefreshCcw className="float-left mt-[7px] ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
                           <div>
                             <p className="mb-1 -ml-2 inline px-2 py-1">
                               {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
@@ -246,7 +246,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                       )}
                       {paymentAppData.price > 0 && (
                         <p className="-ml-2 px-2 text-sm font-medium">
-                          <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                          <CreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                           {paymentAppData.paymentOption === "HOLD" ? (
                             <>
                               {t("no_show_fee_amount", {

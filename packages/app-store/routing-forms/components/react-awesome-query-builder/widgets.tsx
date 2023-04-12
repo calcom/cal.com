@@ -8,7 +8,7 @@ import type {
 } from "react-awesome-query-builder";
 
 import { Button as CalButton, SelectWithValidation as Select, TextField, TextArea } from "@calcom/ui";
-import { FiTrash, FiPlus } from "@calcom/ui/components/icon";
+import { Trash, Plus } from "@calcom/ui/components/icon";
 
 export type CommonProps<
   TVal extends
@@ -206,7 +206,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   if (type === "delRule" || type == "delGroup") {
     return (
       <button className="ml-5">
-        <FiTrash className="text-subtle m-0 h-4 w-4" onClick={onClick} />
+        <Trash className="text-subtle m-0 h-4 w-4" onClick={onClick} />
       </button>
     );
   }
@@ -220,7 +220,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   }
   return (
     <CalButton
-      StartIcon={FiPlus}
+      StartIcon={Plus}
       data-testid={dataTestId}
       type="button"
       color="secondary"

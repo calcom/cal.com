@@ -13,7 +13,7 @@ import { weekdayNames } from "@calcom/lib/weekday";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Badge, Button, Select, SettingsToggle, SkeletonText, EmptyScreen } from "@calcom/ui";
-import { FiExternalLink, FiGlobe, FiClock } from "@calcom/ui/components/icon";
+import { ExternalLink, Globe, Clock } from "@calcom/ui/components/icon";
 
 type AvailabilityOption = {
   label: string;
@@ -159,7 +159,7 @@ const EventTypeScheduleDetails = ({
       <hr className="border-subtle" />
       <div className="flex flex-col justify-center gap-2 sm:flex-row sm:justify-between">
         <span className="text-default flex items-center justify-center text-sm sm:justify-start">
-          <FiGlobe className="ltr:mr-2 rtl:ml-2" />
+          <Globe className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
           {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
         </span>
         {!!schedule?.id && !schedule.isManaged && (
@@ -167,7 +167,7 @@ const EventTypeScheduleDetails = ({
             href={`/availability/${schedule.id}`}
             disabled={isLoading}
             color="minimal"
-            EndIcon={FiExternalLink}
+            EndIcon={ExternalLink}
             target="_blank"
             rel="noopener noreferrer">
             {t("edit_availability")}
@@ -194,7 +194,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   if (!data?.schedules.length && !isLoading)
     return (
       <EmptyScreen
-        Icon={FiClock}
+        Icon={Clock}
         headline={t("new_schedule_heading")}
         description={t("new_schedule_description")}
         buttonRaw={<NewScheduleButton fromEventType />}

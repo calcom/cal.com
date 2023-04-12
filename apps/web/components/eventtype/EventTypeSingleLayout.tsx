@@ -1,11 +1,11 @@
 import { SchedulingType } from "@prisma/client";
+import { Webhook as TbWebhook } from "lucide-react";
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import { useRouter } from "next/router";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { TbWebhook } from "react-icons/tb";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import Shell from "@calcom/features/shell/Shell";
@@ -35,19 +35,19 @@ import {
   VerticalTabs,
 } from "@calcom/ui";
 import {
-  FiLink,
-  FiCalendar,
-  FiClock,
-  FiSliders,
-  FiRepeat,
-  FiGrid,
-  FiZap,
-  FiUsers,
-  FiExternalLink,
-  FiCode,
-  FiTrash,
-  FiMoreHorizontal,
-  FiLoader,
+  Link as LinkIcon,
+  Calendar,
+  Clock,
+  Sliders,
+  Repeat,
+  Grid,
+  Zap,
+  Users,
+  ExternalLink,
+  Code,
+  Trash,
+  MoreHorizontal,
+  Loader,
 } from "@calcom/ui/components/icon";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
@@ -80,38 +80,38 @@ function getNavigation(props: {
     {
       name: "event_setup_tab_title",
       href: `/event-types/${eventType.id}?tabName=setup`,
-      icon: FiLink,
+      icon: LinkIcon,
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
     },
     {
       name: "event_limit_tab_title",
       href: `/event-types/${eventType.id}?tabName=limits`,
-      icon: FiClock,
+      icon: Clock,
       info: `event_limit_tab_description`,
     },
     {
       name: "event_advanced_tab_title",
       href: `/event-types/${eventType.id}?tabName=advanced`,
-      icon: FiSliders,
+      icon: Sliders,
       info: `event_advanced_tab_description`,
     },
     {
       name: "recurring",
       href: `/event-types/${eventType.id}?tabName=recurring`,
-      icon: FiRepeat,
+      icon: Repeat,
       info: `recurring_event_tab_description`,
     },
     {
       name: "apps",
       href: `/event-types/${eventType.id}?tabName=apps`,
-      icon: FiGrid,
+      icon: Grid,
       //TODO: Handle proper translation with count handling
       info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
     },
     {
       name: "workflows",
       href: `/event-types/${eventType.id}?tabName=workflows`,
-      icon: FiZap,
+      icon: Zap,
       info: `${enabledWorkflowsNumber} ${t("active")}`,
     },
   ];
@@ -175,7 +175,7 @@ function EventTypeSingleLayout({
     navigation.splice(1, 0, {
       name: "availability",
       href: `/event-types/${eventType.id}?tabName=availability`,
-      icon: FiCalendar,
+      icon: Calendar,
       info:
         isManagedEventType || isChildrenManagedEventType
           ? eventType.schedule === null
@@ -194,7 +194,7 @@ function EventTypeSingleLayout({
       navigation.splice(2, 0, {
         name: "assignment",
         href: `/event-types/${eventType.id}?tabName=team`,
-        icon: FiUsers,
+        icon: Users,
         info: `${t(eventType.schedulingType?.toLowerCase() ?? "")}${
           isManagedEventType
             ? ` - ${t("count_members", { count: formMethods.watch("children").length || 0 })}`
@@ -264,14 +264,14 @@ function EventTypeSingleLayout({
                     variant="icon"
                     href={permalink}
                     rel="noreferrer"
-                    StartIcon={FiExternalLink}
+                    StartIcon={ExternalLink}
                   />
                 </Tooltip>
 
                 <Button
                   color="secondary"
                   variant="icon"
-                  StartIcon={FiLink}
+                  StartIcon={LinkIcon}
                   tooltip={t("copy_link")}
                   onClick={() => {
                     navigator.clipboard.writeText(permalink);
@@ -280,7 +280,7 @@ function EventTypeSingleLayout({
                 />
                 <EmbedButton
                   embedUrl={encodeURIComponent(embedLink)}
-                  StartIcon={FiCode}
+                  StartIcon={Code}
                   color="secondary"
                   variant="icon"
                   tooltip={t("embed")}
@@ -291,7 +291,7 @@ function EventTypeSingleLayout({
               <Button
                 color="destructive"
                 variant="icon"
-                StartIcon={FiTrash}
+                StartIcon={Trash}
                 tooltip={t("delete")}
                 disabled={!hasPermsToDelete}
                 onClick={() => setDeleteDialogOpen(true)}
@@ -303,14 +303,14 @@ function EventTypeSingleLayout({
 
           <Dropdown>
             <DropdownMenuTrigger asChild>
-              <Button className="lg:hidden" StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
+              <Button className="lg:hidden" StartIcon={MoreHorizontal} variant="icon" color="secondary" />
             </DropdownMenuTrigger>
             <DropdownMenuContent style={{ minWidth: "200px" }}>
               <DropdownMenuItem className="focus:ring-muted">
                 <DropdownItem
                   target="_blank"
                   type="button"
-                  StartIcon={FiExternalLink}
+                  StartIcon={ExternalLink}
                   href={permalink}
                   rel="noreferrer">
                   {t("preview")}
@@ -319,7 +319,7 @@ function EventTypeSingleLayout({
               <DropdownMenuItem className="focus:ring-muted">
                 <DropdownItem
                   type="button"
-                  StartIcon={FiLink}
+                  StartIcon={LinkIcon}
                   onClick={() => {
                     navigator.clipboard.writeText(permalink);
                     showToast("Link copied!", "success");
@@ -331,7 +331,7 @@ function EventTypeSingleLayout({
                 <DropdownItem
                   type="button"
                   color="destructive"
-                  StartIcon={FiTrash}
+                  StartIcon={Trash}
                   disabled={!hasPermsToDelete}
                   onClick={() => setDeleteDialogOpen(true)}>
                   {t("delete")}
@@ -366,7 +366,7 @@ function EventTypeSingleLayout({
           </Button>
         </div>
       }>
-      <Suspense fallback={<FiLoader />}>
+      <Suspense fallback={<Loader />}>
         <div className="flex flex-col xl:flex-row xl:space-x-6">
           <div className="hidden xl:block">
             <VerticalTabs

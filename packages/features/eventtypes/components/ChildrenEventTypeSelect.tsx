@@ -6,7 +6,7 @@ import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar, Badge, Button, ButtonGroup, Select, Switch, Tooltip } from "@calcom/ui";
-import { FiExternalLink, FiX } from "@calcom/ui/components/icon";
+import { ExternalLink, X } from "@calcom/ui/components/icon";
 
 export type ChildrenEventType = {
   value: string;
@@ -111,7 +111,7 @@ export const ChildrenEventTypeSelect = ({
                           target="_blank"
                           variant="icon"
                           href={`${CAL_URL}/${children.owner?.username}/${children.slug}`}
-                          StartIcon={FiExternalLink}
+                          StartIcon={ExternalLink}
                         />
                       </Tooltip>
                     )}
@@ -123,7 +123,7 @@ export const ChildrenEventTypeSelect = ({
                         onClick={() =>
                           props.onChange(value.filter((item) => item.owner.id !== children.owner.id))
                         }
-                        StartIcon={FiX}
+                        StartIcon={X}
                       />
                     </Tooltip>
                   </ButtonGroup>

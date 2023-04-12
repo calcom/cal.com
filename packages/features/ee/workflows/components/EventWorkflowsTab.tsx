@@ -10,7 +10,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button, EmptyScreen, showToast, Switch, Tooltip, Alert } from "@calcom/ui";
-import { FiExternalLink, FiZap, FiLock } from "@calcom/ui/components/icon";
+import { ExternalLink, Zap, Lock } from "@calcom/ui/components/icon";
 
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import { getActionIcon } from "../lib/getActionIcon";
@@ -135,7 +135,7 @@ const WorkflowListItem = (props: ItemProps) => {
         <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
           <Button type="button" color="minimal" className="mr-4">
             <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
-            <FiExternalLink className="text-default -mt-[2px] h-4 w-4 stroke-2" />
+            <ExternalLink className="text-default -mt-[2px] h-4 w-4 stroke-2" />
           </Button>
         </Link>
       </div>
@@ -234,12 +234,12 @@ function EventWorkflowsTab(props: Props) {
           ) : (
             <div className="pt-2 before:border-0">
               <EmptyScreen
-                Icon={FiZap}
+                Icon={Zap}
                 headline={t("workflows")}
                 description={t("no_workflows_description")}
                 buttonRaw={
                   isChildrenManagedEventType && !isManagedEventType ? (
-                    <Button StartIcon={FiLock} color="secondary" disabled>
+                    <Button StartIcon={Lock} color="secondary" disabled>
                       {t("locked_by_admin")}
                     </Button>
                   ) : (

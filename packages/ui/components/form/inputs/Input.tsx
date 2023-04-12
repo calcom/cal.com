@@ -8,7 +8,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Alert, showToast, Skeleton, Tooltip, UnstyledSelect } from "../../..";
-import { FiEye, FiEyeOff, FiX } from "../../icon";
+import { Eye, EyeOff, X } from "../../icon";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
@@ -74,10 +74,10 @@ const Addon = ({ isFilled, children, className, error }: AddonProps) => (
     )}>
     <div
       className={classNames(
-        "flex h-full flex-col justify-center text-sm",
+        "min-h-9 flex flex-col justify-center text-sm",
         error ? "text-error" : "text-default"
       )}>
-      <span className="whitespace-nowrap py-2">{children}</span>
+      <span className="flex whitespace-nowrap">{children}</span>
     </div>
   </div>
 );
@@ -173,7 +173,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             </Addon>
           )}
           {type === "search" && inputValue?.toString().length > 0 && (
-            <FiX
+            <X
               className="text-subtle absolute top-2.5 h-4 w-4 cursor-pointer ltr:right-2 rtl:left-2"
               onClick={(e) => {
                 setInputValue("");
@@ -236,9 +236,9 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
               type="button"
               onClick={() => toggleIsPasswordVisible()}>
               {isPasswordVisible ? (
-                <FiEyeOff className="h-4 stroke-[2.5px]" />
+                <EyeOff className="h-4 stroke-[2.5px]" />
               ) : (
-                <FiEye className="h-4 stroke-[2.5px]" />
+                <Eye className="h-4 stroke-[2.5px]" />
               )}
               <span className="sr-only">{textLabel}</span>
             </button>

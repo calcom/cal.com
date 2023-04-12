@@ -23,7 +23,7 @@ import {
   showToast,
   Switch,
 } from "@calcom/ui";
-import { FiArrowDown, FiArrowUp, FiX, FiPlus, FiTrash2, FiInfo } from "@calcom/ui/components/icon";
+import { ArrowDown, ArrowUp, X, Plus, Trash2, Info } from "@calcom/ui/components/icon";
 
 import { Components } from "./Components";
 import type { fieldsSchema } from "./FormBuilderFieldsSchema";
@@ -214,7 +214,7 @@ export const FormBuilder = function FormBuilder({
                       className="mb-2 -ml-8 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
                       size="sm"
                       color="minimal"
-                      StartIcon={FiX}
+                      StartIcon={X}
                       onClick={() => {
                         if (!value) {
                           return;
@@ -236,7 +236,7 @@ export const FormBuilder = function FormBuilder({
                 value.push({ label: "", value: "" });
                 onChange(value);
               }}
-              StartIcon={FiPlus}>
+              StartIcon={Plus}>
               Add an Option
             </Button>
           )}
@@ -323,7 +323,7 @@ export const FormBuilder = function FormBuilder({
                         type="button"
                         className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-default hover:border-emphasis invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index - 1)}>
-                        <FiArrowUp className="h-5 w-5" />
+                        <ArrowUp className="h-5 w-5" />
                       </button>
                     )}
                     {index < fields.length - 1 && (
@@ -331,7 +331,7 @@ export const FormBuilder = function FormBuilder({
                         type="button"
                         className="bg-default text-muted hover:border-emphasis border-default hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index + 1)}>
-                        <FiArrowDown className="h-5 w-5" />
+                        <ArrowDown className="h-5 w-5" />
                       </button>
                     )}
                   </>
@@ -383,7 +383,7 @@ export const FormBuilder = function FormBuilder({
                         onClick={() => {
                           removeField(index);
                         }}
-                        StartIcon={FiTrash2}
+                        StartIcon={Trash2}
                       />
                     )}
                     <Button
@@ -406,7 +406,7 @@ export const FormBuilder = function FormBuilder({
             data-testid="add-field"
             onClick={addField}
             className="mt-4"
-            StartIcon={FiPlus}>
+            StartIcon={Plus}>
             {addFieldLabel}
           </Button>
         )}
@@ -785,7 +785,7 @@ export const FormBuilderField = ({
                     <div
                       data-testid={`error-message-${field.name}`}
                       className="mt-2 flex items-center text-sm text-red-700 ">
-                      <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                      <Info className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                       <p>{t(message || "invalid_input")}</p>
                     </div>
                   );

@@ -18,7 +18,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip, Alert } from "@calcom/ui";
-import { FiEdit, FiCopy } from "@calcom/ui/components/icon";
+import { Edit, Copy } from "@calcom/ui/components/icon";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
@@ -148,7 +148,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               aria-label="edit custom name"
               className="hover:stroke-3 hover:text-emphasis min-w-fit px-0 !py-0 hover:bg-transparent"
               onClick={() => setShowEventNameTip((old) => !old)}>
-              <FiEdit />
+              <Edit className="h-4 w-4" />
             </Button>
           }
         />
@@ -267,7 +267,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                       showToast(t("enabled_after_update_description"), "warning");
                     }
                   }}>
-                  <FiCopy />
+                  <Copy className="h-4 w-4" />
                 </Button>
               </Tooltip>
             }
@@ -316,6 +316,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                       disabled={seatsLocked.disabled}
                       defaultValue={value || 2}
                       min={1}
+                      className="w-24"
                       addOnSuffix={<>{t("seats")}</>}
                       onChange={(e) => {
                         onChange(Math.abs(Number(e.target.value)));

@@ -29,7 +29,7 @@ import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, AvatarGroup, HeadSeo } from "@calcom/ui";
-import { FiArrowRight } from "@calcom/ui/components/icon";
+import { ArrowRight } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
@@ -60,7 +60,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
         <li
           key={index}
           className=" border-subtle bg-default hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
-          <FiArrowRight className="text-emphasis absolute right-3 top-3 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
+          <ArrowRight className="text-emphasis absolute right-3 top-3 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
           <Link
             href={getUsernameSlugLink({ users: props.users, slug: type.slug })}
             className="flex justify-between px-6 py-4"
@@ -161,7 +161,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                   key={type.id}
                   style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
                   className=" border-subtle bg-default hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
-                  <FiArrowRight className="text-emphasis  absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                  <ArrowRight className="text-emphasis  absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
                   {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <div className="block w-full p-5">
                     <Link
