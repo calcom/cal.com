@@ -1,17 +1,8 @@
 import { expect } from "@playwright/test";
 
-import { prisma } from "@calcom/prisma";
-
 import { test } from "./lib/fixtures";
 
 test.afterEach(({ users }) => users.deleteAll());
-test.afterEach(async () => {
-  await prisma.eventType.deleteMany({
-    where: {
-      parentId: { not: null },
-    },
-  });
-});
 
 test.describe("Managed Event Types tests", () => {
   test("Can create managed event type", async ({ page, users }) => {
