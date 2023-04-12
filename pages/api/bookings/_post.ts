@@ -24,12 +24,20 @@ import { defaultResponder } from "@calcom/lib/server";
  *           schema:
  *             type: object
  *             required:
+ *               - eventTypeId
  *               - start
  *               - end
+ *               - name
+ *               - email
+ *               - timeZone
+ *               - language
+ *               - metadata
+ *               - customInputs
+ *               - location
  *             properties:
- *               title:
- *                 type: string
- *                 description: 'Booking event title'
+ *               eventTypeId:
+ *                 type: integer
+ *                 description: 'ID of the event type to book'
  *               start:
  *                 type: string
  *                 format: date-time
@@ -38,6 +46,32 @@ import { defaultResponder } from "@calcom/lib/server";
  *                 type: string
  *                 format: date-time
  *                 description: 'End time of the Event'
+ *               name:
+ *                 type: string
+ *                 description: 'Name of the Attendee'
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: 'Email ID of the Attendee'
+ *               timeZone:
+ *                 type: string
+ *                 description: 'TimeZone of the Attendee'
+ *               language:
+ *                 type: string
+ *                 description: 'Language of the Attendee'
+ *               metadata:
+ *                 type: object
+ *                 properties: {}
+ *                 description: 'Any metadata associated with the booking'
+ *               customInputs:
+ *                 type: array
+ *                 items: {}
+ *               location:
+ *                 type: string
+ *                 description: 'Meeting location'
+ *               title:
+ *                 type: string
+ *                 description: 'Booking event title'
  *               recurringEventId:
  *                 type: integer
  *                 description: 'Recurring event ID if the event is recurring'
@@ -47,9 +81,6 @@ import { defaultResponder } from "@calcom/lib/server";
  *               status:
  *                 type: string
  *                 description: 'Acceptable values one of ["ACCEPTED", "PENDING", "CANCELLED", "REJECTED"]'
- *               location:
- *                 type: string
- *                 description: 'Meeting location'
  *               seatsPerTimeSlot:
  *                 type: integer
  *                 description: 'The number of seats for each time slot'
@@ -59,21 +90,21 @@ import { defaultResponder } from "@calcom/lib/server";
  *               smsReminderNumber:
  *                 type: number
  *                 description: 'SMS reminder number'
- *               attendees:
- *                 type: array
- *                 description: 'List of attendees of the booking'
- *                 items:
- *                   type: object
- *                   properties:
- *                     name:
- *                       type: string
- *                     email:
- *                       type: string
- *                       format: email
- *                     timeZone:
- *                       type: string
- *                     locale:
- *                       type: string
+ *            examples:
+ *              New Booking example:
+ *                value:
+ *                  {
+ *                     "eventTypeId": 1,
+ *                     "start": "2023-05-01T14:00:00Z",
+ *                     "end": "2023-05-01T15:00:00Z",
+ *                     "name": "John Doe",
+ *                     "email": "john.doe@example.com",
+ *                     "timeZone": "America/New_York",
+ *                     "language": "en-US",
+ *                     "metadata": {},
+ *                     "customInputs": [],
+ *                     "location": "Conference Room A"
+ *                  }
  *
  *     tags:
  *       - bookings
