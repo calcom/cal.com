@@ -24,7 +24,7 @@ import {
   SkeletonText,
   showToast,
 } from "@calcom/ui";
-import { FiPlus, FiCalendar } from "@calcom/ui/components/icon";
+import { Plus, Calendar } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -50,7 +50,7 @@ const AddCalendarButton = () => {
 
   return (
     <>
-      <Button color="secondary" StartIcon={FiPlus} href="/apps/categories/calendar">
+      <Button color="secondary" StartIcon={Plus} href="/apps/categories/calendar">
         {t("add_calendar")}
       </Button>
     </>
@@ -87,7 +87,7 @@ const CalendarsView = () => {
             <div>
               <div className="bg-muted border-subtle mt-4 flex space-x-4 rounded-md p-2 sm:mx-0 sm:p-10 md:border md:p-6 xl:mt-0">
                 <div className=" bg-default border-subtle flex h-9 w-9 items-center justify-center rounded-md border-2 p-[6px]">
-                  <FiCalendar className="text-default h-6 w-6" />
+                  <Calendar className="text-default h-6 w-6" />
                 </div>
 
                 <div className="flex w-full flex-col space-y-3">
@@ -198,7 +198,7 @@ const CalendarsView = () => {
             </div>
           ) : (
             <EmptyScreen
-              Icon={FiCalendar}
+              Icon={Calendar}
               headline={t("no_calendar_installed")}
               description={t("no_calendar_installed_description")}
               buttonText={t("add_a_calendar")}

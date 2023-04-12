@@ -17,7 +17,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip, Alert } from "@calcom/ui";
-import { FiEdit, FiCopy } from "@calcom/ui/components/icon";
+import { Edit, Copy } from "@calcom/ui/components/icon";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
@@ -134,7 +134,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           addOnSuffix={
             <Button
               type="button"
-              StartIcon={FiEdit}
+              StartIcon={Edit}
               variant="icon"
               color="minimal"
               className="hover:stroke-3 hover:text-emphasis min-w-fit px-0 hover:bg-transparent"
@@ -250,7 +250,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   }}
                   className="hover:stroke-3 hover:text-emphasis hover:bg-transparent"
                   type="button">
-                  <FiCopy />
+                  <Copy />
                 </Button>
               </Tooltip>
             }

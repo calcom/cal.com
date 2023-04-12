@@ -27,7 +27,7 @@ import { createPortal } from "react-dom";
 
 import { Button } from "../../button";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../form/dropdown";
-import { FiBold, FiChevronDown, FiItalic, FiLink } from "../../icon";
+import { Bold, ChevronDown, Italic, Link } from "../../icon";
 import type { TextEditorProps } from "../Editor";
 import { AddVariablesDropdown } from "./AddVariablesDropdown";
 
@@ -396,7 +396,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                   <span className="text text-default hidden sm:flex">
                     {blockTypeToBlockName[blockType as keyof BlockType]}
                   </span>
-                  <FiChevronDown className="text-default ml-2 h-4 w-4" />
+                  <ChevronDown className="text-default ml-2 h-4 w-4" />
                 </>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
@@ -430,7 +430,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               color="minimal"
               variant="icon"
               type="button"
-              StartIcon={FiBold}
+              StartIcon={Bold}
               onClick={() => {
                 editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
                 if (isItalic) {
@@ -445,7 +445,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               color="minimal"
               variant="icon"
               type="button"
-              StartIcon={FiItalic}
+              StartIcon={Italic}
               onClick={() => {
                 editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
                 if (isItalic) {
@@ -461,7 +461,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                 color="minimal"
                 variant="icon"
                 type="button"
-                StartIcon={FiLink}
+                StartIcon={Link}
                 onClick={insertLink}
                 className={isLink ? "bg-subtle" : ""}
               />

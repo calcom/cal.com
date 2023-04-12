@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, showToast } from "@calcom/ui";
-import { FiCopy } from "@calcom/ui/components/icon";
+import { Copy } from "@calcom/ui/components/icon";
 
 export default function Error500() {
   const { t } = useLocale();
@@ -34,7 +34,7 @@ export default function Error500() {
               <Button
                 color="secondary"
                 className="mt-2 border-0 font-sans font-normal hover:bg-gray-300"
-                StartIcon={FiCopy}
+                StartIcon={Copy}
                 onClick={() => {
                   navigator.clipboard.writeText(router.query.error as string);
                   showToast("Link copied!", "success");

@@ -16663,6 +16663,7 @@ __metadata:
     jest-watch-select-projects: ^2.0.0
     jest-watch-typeahead: ^2.0.0
     lint-staged: ^12.5.0
+    lucide-react: ^0.130.0
     prettier: ^2.8.6
     ts-jest: ^28.0.8
     tsc-absolute: ^1.0.0
@@ -27400,6 +27401,15 @@ __metadata:
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0
   checksum: 6d86330fd4316a42624d537cc07adc3c51c18a699a02ef3abbd221c3140ae5ac5685396e1f5cb20f5f5ba80fa100523a5a6811c22a51bd13bbfdf65546cfffdf
+  languageName: node
+  linkType: hard
+
+"lucide-react@npm:^0.130.0":
+  version: 0.130.1
+  resolution: "lucide-react@npm:0.130.1"
+  peerDependencies:
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0
+  checksum: 83ba516f60859053380bbe07c23c24695ff479f787aa0e18f2994b63cdf6a48867b7119b10c313a384e301b2521c460c48ebd59a8448ed62cf20a1224839389e
   languageName: node
   linkType: hard
 
