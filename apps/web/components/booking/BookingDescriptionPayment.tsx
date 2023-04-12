@@ -1,3 +1,4 @@
+import { i18n } from "next-i18next";
 import type { TFunction } from "next-i18next";
 
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
@@ -6,6 +7,7 @@ import { FiCreditCard } from "@calcom/ui/components/icon";
 const BookingDescriptionPayment = (props: {
   eventType: Parameters<typeof getPaymentAppData>[0];
   t: TFunction;
+  i18n: typeof i18n;
 }) => {
   const paymentAppData = getPaymentAppData(props.eventType);
   if (!paymentAppData || paymentAppData.price <= 0) return null;
@@ -22,7 +24,8 @@ const BookingDescriptionPayment = (props: {
         <>{props.t("no_show_fee_amount", params)}</>
       ) : (
         <>
-          {new Intl.NumberFormat(undefined, {
+          {/* If undefined this will default to the browser locale */}
+          {new Intl.NumberFormat(i18n?.language, {
             style: "currency",
             currency: paymentAppData.currency,
           }).format(paymentAppData.price / 100)}

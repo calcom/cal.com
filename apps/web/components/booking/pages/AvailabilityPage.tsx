@@ -75,7 +75,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
   });
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
   //TODO: Plan to remove shouldAlignCentrallyInEmbed config
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
@@ -245,11 +245,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                             </>
                           ) : (
                             <>
-                              {/* {t("currency_string", {
-                                amount: paymentAppData.price / 100.0,
-                                formatParams: { amount: { currency: paymentAppData.currency } },
-                              })} */}
-                              {new Intl.NumberFormat(undefined, {
+                              {new Intl.NumberFormat(i18n.language, {
                                 style: "currency",
                                 currency: paymentAppData.currency,
                               }).format(paymentAppData.price / 100)}

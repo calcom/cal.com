@@ -4,7 +4,6 @@ import { useMemo } from "react";
 import type { z } from "zod";
 
 import { classNames, parseRecurringEvent } from "@calcom/lib";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { baseEventTypeSelect } from "@calcom/prisma";
 import type { EventTypeModel } from "@calcom/prisma/zod";
@@ -37,14 +36,12 @@ export const EventTypeDescription = ({
   className,
   shortenDescription,
 }: EventTypeDescriptionProps) => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
 
   const recurringEvent = useMemo(
     () => parseRecurringEvent(eventType.recurringEvent),
     [eventType.recurringEvent]
   );
-
-  const stripeAppData = getPaymentAppData(eventType);
 
   return (
     <>
@@ -93,17 +90,13 @@ export const EventTypeDescription = ({
               </Badge>
             </li>
           )}
-          {stripeAppData.price > 0 && (
+          {eventType.price > 0 && (
             <li>
               <Badge variant="gray" startIcon={FiCreditCard}>
-                {/* {t("currency_string", {
-                  amount: stripeAppData.price / 100,
-                  formatParams: { amount: { currency: stripeAppData.currency } },
-                })} */}
-                {new Intl.NumberFormat(undefined, {
+                {new Intl.NumberFormat(i18n.language, {
                   style: "currency",
-                  currency: stripeAppData.currency,
-                }).format(stripeAppData.price / 100)}
+                  currency: eventType.currency,
+                }).format(eventType.price / 100)}
               </Badge>
             </li>
           )}
