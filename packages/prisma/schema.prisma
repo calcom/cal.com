@@ -412,19 +412,25 @@ model ReminderMail {
 }
 
 model Payment {
-  id         Int      @id @default(autoincrement())
-  uid        String   @unique
-  app        App?     @relation(fields: [appId], references: [slug], onDelete: Cascade)
-  appId      String?
-  bookingId  Int
-  booking    Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  amount     Int
-  fee        Int
-  currency   String
-  success    Boolean
-  refunded   Boolean
-  data       Json
-  externalId String   @unique
+  id            Int            @id @default(autoincrement())
+  uid           String         @unique
+  app           App?           @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId         String?
+  bookingId     Int
+  booking       Booking?       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  amount        Int
+  fee           Int
+  currency      String
+  success       Boolean
+  refunded      Boolean
+  data          Json
+  externalId    String         @unique
+  paymentOption PaymentOption? @default(ON_BOOKING)
+}
+
+enum PaymentOption {
+  ON_BOOKING
+  HOLD
 }
 
 enum WebhookTriggerEvents {

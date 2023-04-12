@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 
-import { FiSearch } from "../../../icon";
+import { Search } from "../../../icon";
 import { SelectContext } from "./SelectProvider";
 
 interface SearchInputProps {
@@ -24,7 +24,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
       className={
         classNames && classNames.searchContainer ? classNames.searchContainer : "relative py-1 px-2.5"
       }>
-      <FiSearch
+      <Search
         className={
           classNames && classNames.searchIcon
             ? classNames.searchIcon
@@ -36,7 +36,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
         className={
           classNames && classNames.searchBox
             ? classNames.searchBox
-            : "dark:border-darkgray-300 dark:bg-darkgray-100   focus:border-darkgray-900 text-subtle border-subtle w-full rounded-[6px] border py-2 pl-8 text-sm focus:border-gray-900 focus:outline-none focus:ring-0"
+            : "border-subtle dark:bg-darkgray-100   focus:border-darkgray-900 text-subtle border-subtle w-full rounded-[6px] border py-2 pl-8 text-sm focus:border-gray-900 focus:outline-none focus:ring-0"
         }
         autoFocus
         type="text"

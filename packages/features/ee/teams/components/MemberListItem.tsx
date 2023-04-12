@@ -26,7 +26,7 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
-import { FiExternalLink, FiMoreHorizontal, FiEdit2, FiLock, FiTrash } from "@calcom/ui/components/icon";
+import { ExternalLink, MoreHorizontal, Edit2, Lock, Trash } from "@calcom/ui/components/icon";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamPill, { TeamRole } from "./TeamPill";
@@ -149,7 +149,7 @@ export default function MemberListItem(props: Props) {
                   onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
                   color="secondary"
                   variant="icon"
-                  StartIcon={FiClock}
+                  StartIcon={Clock}
                 />
               </Tooltip> */}
               <Tooltip content={t("view_public_page")}>
@@ -159,7 +159,7 @@ export default function MemberListItem(props: Props) {
                   color="secondary"
                   className={classNames(!editMode ? "rounded-r-md" : "")}
                   variant="icon"
-                  StartIcon={FiExternalLink}
+                  StartIcon={ExternalLink}
                 />
               </Tooltip>
               {editMode && (
@@ -169,7 +169,7 @@ export default function MemberListItem(props: Props) {
                       className="radix-state-open:rounded-r-md"
                       color="secondary"
                       variant="icon"
-                      StartIcon={FiMoreHorizontal}
+                      StartIcon={MoreHorizontal}
                     />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
@@ -177,7 +177,7 @@ export default function MemberListItem(props: Props) {
                       <DropdownItem
                         type="button"
                         onClick={() => setShowChangeMemberRoleModal(true)}
-                        StartIcon={FiEdit2}>
+                        StartIcon={Edit2}>
                         {t("edit")}
                       </DropdownItem>
                     </DropdownMenuItem>
@@ -187,7 +187,7 @@ export default function MemberListItem(props: Props) {
                           <DropdownItem
                             type="button"
                             onClick={() => setShowImpersonateModal(true)}
-                            StartIcon={FiLock}>
+                            StartIcon={Lock}>
                             {t("impersonate")}
                           </DropdownItem>
                         </DropdownMenuItem>
@@ -199,7 +199,7 @@ export default function MemberListItem(props: Props) {
                         type="button"
                         onClick={() => setShowDeleteModal(true)}
                         color="destructive"
-                        StartIcon={FiTrash}>
+                        StartIcon={Trash}>
                         {t("delete")}
                       </DropdownItem>
                     </DropdownMenuItem>
@@ -210,11 +210,11 @@ export default function MemberListItem(props: Props) {
             <div className="flex md:hidden">
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="icon" color="minimal" StartIcon={FiMoreHorizontal} />
+                  <Button type="button" variant="icon" color="minimal" StartIcon={MoreHorizontal} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem className="outline-none">
-                    <DropdownItem type="button" StartIcon={FiExternalLink}>
+                    <DropdownItem type="button" StartIcon={ExternalLink}>
                       {t("view_public_page")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -224,7 +224,7 @@ export default function MemberListItem(props: Props) {
                         <DropdownItem
                           type="button"
                           onClick={() => setShowChangeMemberRoleModal(true)}
-                          StartIcon={FiEdit2}>
+                          StartIcon={Edit2}>
                           {t("edit")}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -233,7 +233,7 @@ export default function MemberListItem(props: Props) {
                           type="button"
                           color="destructive"
                           onClick={() => setShowDeleteModal(true)}
-                          StartIcon={FiTrash}>
+                          StartIcon={Trash}>
                           {t("delete")}
                         </DropdownItem>
                       </DropdownMenuItem>
