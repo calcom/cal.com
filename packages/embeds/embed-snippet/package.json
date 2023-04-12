@@ -18,7 +18,7 @@
     "lint": "eslint --ext .ts,.js src",
     "prepublishOnly": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn build",
     "prepublish": "yarn prepublishOnly",
-    "publish-prod:patch": "yarn publish --access public --patch",
+    "publish-prod:patch": "yarn npm publish --access public",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "files": [

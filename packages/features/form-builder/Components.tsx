@@ -125,7 +125,7 @@ export const Components: Record<BookingFieldType, Component> = {
       const { t } = useLocale();
       value = value || [];
       const inputClassName =
-        "dark:placeholder:text-darkgray-600 focus:border-brand-default dark:border-darkgray-300  block w-full rounded-md border-default text-sm focus:ring-black disabled:bg-emphasis disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-subtle";
+        "dark:placeholder:text-darkgray-600 focus:border-brand-default border-subtle  block w-full rounded-md border-default text-sm focus:ring-black disabled:bg-emphasis disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-subtle";
       return (
         <>
           {value.length ? (
@@ -145,7 +145,7 @@ export const Components: Record<BookingFieldType, Component> = {
                       }}
                       className={classNames(inputClassName, "border-r-0")}
                       addOnClassname={classNames(
-                        "border-default border block border-l-0 disabled:bg-emphasis disabled:hover:cursor-not-allowed bg-transparent disabled:text-subtle dark:border-darkgray-300 "
+                        "border-default border block border-l-0 disabled:bg-emphasis disabled:hover:cursor-not-allowed bg-transparent disabled:text-subtle border-subtle "
                       )}
                       placeholder={placeholder}
                       label={<></>}
@@ -245,7 +245,7 @@ export const Components: Record<BookingFieldType, Component> = {
                     }
                     setValue(newValue);
                   }}
-                  className="dark:bg-darkgray-300 dark:border-darkgray-300 border-default text-emphasis h-4 w-4 rounded focus:ring-black ltr:mr-2 rtl:ml-2"
+                  className="dark:bg-darkgray-300 border-subtle border-default text-emphasis h-4 w-4 rounded focus:ring-black ltr:mr-2 rtl:ml-2"
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
@@ -304,7 +304,7 @@ export const Components: Record<BookingFieldType, Component> = {
                         type="radio"
                         disabled={readOnly}
                         name={name}
-                        className="dark:bg-darkgray-300 dark:border-darkgray-300 border-default text-emphasis h-4 w-4 focus:ring-black ltr:mr-2 rtl:ml-2"
+                        className="dark:bg-darkgray-300 border-subtle border-default text-emphasis h-4 w-4 focus:ring-black ltr:mr-2 rtl:ml-2"
                         value={option.value}
                         onChange={(e) => {
                           setValue({
