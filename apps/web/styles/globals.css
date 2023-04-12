@@ -44,8 +44,6 @@
   --cal-brand-text: white;
 }
 .dark {
-  color-scheme: dark;
-
   /* background */
 
   --cal-bg-emphasis: #2b2b2b;

@@ -36,8 +36,8 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
               className={cn(
                 "flex h-4 w-4 items-center justify-center rounded-[4px]  border opacity-70 ltr:mr-2 rtl:ml-2",
                 isSelected
-                  ? "dark:bg-darkgray-200  dark:border-darkgray-300 bg-gray-800 text-gray-50"
-                  : " dark:bg-darkgray-200 dark:border-darkgray-300 border-default bg-mutedext-gray-600"
+                  ? "dark:bg-darkgray-200  border-subtle bg-gray-800 text-gray-50"
+                  : " dark:bg-darkgray-200 border-subtle border-default bg-mutedext-gray-600"
               )}>
               {isSelected && <FiCheck className="h-3 w-3 text-current" />}
             </div>
@@ -73,8 +73,8 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
           className={cn(
             "flex h-4 w-4 items-center justify-center rounded-[4px]  border ltr:mr-2 rtl:ml-2",
             isSelected
-              ? "dark:bg-darkgray-200  dark:border-darkgray-300 bg-gray-800 text-gray-50"
-              : " dark:bg-darkgray-200 dark:border-darkgray-300 border-default bg-mutedext-gray-600"
+              ? "dark:bg-darkgray-200  border-subtle bg-gray-800 text-gray-50"
+              : " dark:bg-darkgray-200 border-subtle border-default bg-mutedext-gray-600"
           )}>
           {isSelected && <FiCheck className="h-3 w-3 text-current" />}
         </div>
