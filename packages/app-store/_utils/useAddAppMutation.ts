@@ -73,7 +73,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
 
     if (!isOmniInstall) {
       gotoUrl(json.url, json.newTab);
-      return;
+      return { setupPending: externalUrl || json.url.endsWith("/setup") };
     }
 
     // Skip redirection only if it is an OmniInstall and redirect URL isn't of some other origin
@@ -83,7 +83,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
     if (externalUrl) {
       // TODO: For Omni installation to authenticate and come back to the page where installation was initiated, some changes need to be done in all apps' add callbacks
       gotoUrl(json.url, json.newTab);
-      return;
+      return { setupPending: externalUrl };
     }
 
     return { setupPending: externalUrl || json.url.endsWith("/setup") };

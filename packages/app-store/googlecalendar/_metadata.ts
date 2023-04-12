@@ -9,7 +9,6 @@ export const metadata = {
   installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
   type: "google_calendar",
   title: "Google Calendar",
-  imageSrc: "/api/app-store/googlecalendar/icon.svg",
   variant: "calendar",
   category: "calendar",
   categories: ["calendar"],
