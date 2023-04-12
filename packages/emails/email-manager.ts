@@ -21,6 +21,7 @@ import type { Feedback } from "./templates/feedback-email";
 import FeedbackEmail from "./templates/feedback-email";
 import type { PasswordReset } from "./templates/forgot-password-email";
 import ForgotPasswordEmail from "./templates/forgot-password-email";
+import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
 import OrganizerAttendeeCancelledSeatEmail from "./templates/organizer-attendee-cancelled-seat-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
@@ -284,4 +285,8 @@ export const sendDisabledAppEmail = async ({
   eventTypeId?: number;
 }) => {
   await sendEmail(() => new DisabledAppEmail(email, appName, appType, t, title, eventTypeId));
+};
+
+export const sendNoShowFeeChargedEmail = async (attendee: Person, evt: CalendarEvent) => {
+  await sendEmail(() => new NoShowFeeChargedEmail(evt, attendee));
 };

@@ -3,7 +3,6 @@
   "name": "Link as An App",
   "slug": "link-as-an-app",
   "type": "link-as-an-app_other",
-  "imageSrc": "icon.svg",
   "logo": "icon.svg",
   "url": "https://example.com/link",
   "variant": "other",
