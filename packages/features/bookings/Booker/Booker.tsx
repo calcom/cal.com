@@ -98,7 +98,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
           />
         </div>
       )}
-      <div className="flex h-full flex-col items-center">
+      <div className="flex h-full w-full flex-col items-center">
         <m.div
           layout
           // Passing the default animation styles here as the styles, makes sure that there's no initial loading state
@@ -108,8 +108,8 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
           animate={resizeAnimationConfig[layout]?.[bookerState] || resizeAnimationConfig[layout].default}
           transition={{ ease: "easeInOut", duration: 0.4 }}
           className={classNames(
-            "mb-6 [--booker-meta-width:280px] [--booker-main-width:480px] [--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
-            "bg-muted max-w-screen grid items-start overflow-x-clip dark:[color-scheme:dark] md:flex-row",
+            "[--booker-meta-width:280px] [--booker-main-width:480px] [--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
+            "bg-muted grid max-w-full items-start overflow-clip dark:[color-scheme:dark] md:flex-row",
             layout === "small_calendar" &&
               "border-subtle mt-20 min-h-[450px] w-[calc(var(--booker-meta-width)+var(--booker-main-width))] rounded-md border",
             layout !== "small_calendar" && "h-auto min-h-screen w-screen"
@@ -152,7 +152,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
                 layout === "large_calendar" &&
                 (bookerState === "selecting_date" || bookerState === "selecting_time")
               }
-              className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l"
+              className="border-muted sticky top-0 ml-[-1px] h-full md:border-l"
               {...fadeInUp}>
               <LargeCalendar />
             </BookerSection>
@@ -179,9 +179,12 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             </BookerSection>
           </AnimatePresence>
         </m.div>
-        <span className="mt-auto mb-6">
+
+        <m.span
+          key="logo"
+          className={classNames("mt-auto mb-6 pt-6", layout === "small_calendar" ? "block" : "hidden")}>
           <Logo small />
-        </span>
+        </m.span>
       </div>
     </>
   );

@@ -44,13 +44,13 @@ type ResizeAnimationConfig = {
 export const resizeAnimationConfig: ResizeAnimationConfig = {
   mobile: {
     default: {
-      width: "100vw",
+      width: "100%",
       gridTemplateAreas: `
           "meta"
           "main"
           "timeslots"
         `,
-      gridTemplateColumns: "100vw",
+      gridTemplateColumns: "100%",
     },
   },
   small_calendar: {
@@ -67,14 +67,14 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
   },
   large_calendar: {
     default: {
-      width: "100vw",
+      width: "100%",
       gridTemplateAreas: `"meta main"`,
       gridTemplateColumns: "var(--booker-meta-width) 1fr",
     },
   },
   large_timeslots: {
     default: {
-      width: "100vw",
+      width: "100%",
       gridTemplateAreas: `"meta main"`,
       gridTemplateColumns: "var(--booker-meta-width) 1fr",
     },

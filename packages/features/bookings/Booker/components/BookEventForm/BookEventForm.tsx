@@ -256,11 +256,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
 
   return (
     <div className="flex h-full flex-col">
-      <Form
-        className="flex h-full flex-col justify-between"
-        form={bookingForm}
-        handleSubmit={bookEvent}
-        noValidate>
+      <Form className="flex h-full flex-col" form={bookingForm} handleSubmit={bookEvent} noValidate>
         <BookingFields
           isDynamicGroupBooking={!!(username && username.indexOf("+") > -1)}
           fields={eventType.bookingFields}
