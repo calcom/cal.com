@@ -324,7 +324,7 @@ export const Components: Record<BookingFieldType, Component> = {
                   <Label>
                     {options[0].label}
                     {!readOnly && optionsInputs[options[0].value]?.required ? (
-                      <span className="text-default ml-1 mb-1 text-sm font-medium leading-none">*</span>
+                      <span className="text-default ml-1 mb-1 text-sm font-medium">*</span>
                     ) : null}
                   </Label>
                 </>
