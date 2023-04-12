@@ -126,6 +126,7 @@ export const appsRouter = router({
         },
         update: {
           enabled: !input.enabled,
+          dirName: appMetadata?.dirName || appMetadata?.slug || "",
         },
         create: {
           slug: input.slug,
