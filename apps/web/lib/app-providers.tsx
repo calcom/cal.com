@@ -63,8 +63,11 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
 };
 
 const enum ThemeSupport {
+  // e.g. Login Page
   None = "none",
+  // Entire App except Booking Pages
   App = "systemOnly",
+  // Booking Pages(including Routing Forms)
   Booking = "userConfigured",
 }
 
@@ -89,7 +92,8 @@ const CalcomThemeProvider = (
 
   const themeSupport = isBookingPage
     ? ThemeSupport.Booking
-    : props.isThemeSupported === false
+    : // if isThemeSupported is explicitly false, we don't use theme there
+    props.isThemeSupported === false
     ? ThemeSupport.None
     : ThemeSupport.App;
 
@@ -115,6 +119,7 @@ const CalcomThemeProvider = (
       forcedTheme={forcedTheme}
       storageKey={storageKey}
       // next-themes doesn't listen to changes on storageKey. So we need to force a re-render when storageKey changes
+      // This is how login to dashboard soft navigation changes theme from light to dark
       key={storageKey}
       attribute="class">
       {props.children}
