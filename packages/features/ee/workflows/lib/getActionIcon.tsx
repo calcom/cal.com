@@ -1,26 +1,25 @@
-import { WorkflowActions, WorkflowStep } from "@prisma/client";
+import type { WorkflowStep } from "@prisma/client";
+import { WorkflowActions } from "@prisma/client";
 
 import { classNames } from "@calcom/lib";
-import { FiZap, FiSmartphone, FiMail, FiBell } from "@calcom/ui/components/icon";
+import { Zap, Smartphone, Mail, Bell } from "@calcom/ui/components/icon";
 
 export function getActionIcon(steps: WorkflowStep[], className?: string): JSX.Element {
   if (steps.length === 0) {
-    return (
-      <FiZap className={classNames(className ? className : "mr-1.5 inline h-3 w-3")} aria-hidden="true" />
-    );
+    return <Zap className={classNames(className ? className : "mr-1.5 inline h-3 w-3")} aria-hidden="true" />;
   }
 
   if (steps.length === 1) {
     if (steps[0].action === WorkflowActions.SMS_ATTENDEE || steps[0].action === WorkflowActions.SMS_NUMBER) {
       return (
-        <FiSmartphone
+        <Smartphone
           className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
           aria-hidden="true"
         />
       );
     } else {
       return (
-        <FiMail className={classNames(className ? className : "mr-1.5 inline h-3 w-3")} aria-hidden="true" />
+        <Mail className={classNames(className ? className : "mr-1.5 inline h-3 w-3")} aria-hidden="true" />
       );
     }
   }
@@ -49,27 +48,21 @@ export function getActionIcon(steps: WorkflowStep[], className?: string): JSX.El
     switch (messageType) {
       case "SMS":
         return (
-          <FiSmartphone
+          <Smartphone
             className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
             aria-hidden="true"
           />
         );
       case "EMAIL":
         return (
-          <FiMail
-            className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
-            aria-hidden="true"
-          />
+          <Mail className={classNames(className ? className : "mr-1.5 inline h-3 w-3")} aria-hidden="true" />
         );
       case "MIX":
         return (
-          <FiBell
-            className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
-            aria-hidden="true"
-          />
+          <Bell className={classNames(className ? className : "mr-1.5 inline h-3 w-3")} aria-hidden="true" />
         );
       default:
-        <FiZap className={classNames(className ? className : "mr-1.5 inline h-3 w-3")} aria-hidden="true" />;
+        <Zap className={classNames(className ? className : "mr-1.5 inline h-3 w-3")} aria-hidden="true" />;
     }
   }
 

@@ -4,7 +4,7 @@ import { getEventLocationType, locationKeyToString } from "@calcom/app-store/loc
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui";
-import { FiLink } from "@calcom/ui/components/icon";
+import { Link } from "@calcom/ui/components/icon";
 
 import type { Props } from "./pages/AvailabilityPage";
 
@@ -41,7 +41,7 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
     return (
       <div key={`${location.type}-${index}`} className="flex flex-row items-center text-sm font-medium">
         {eventLocationType.iconUrl === "/link.svg" ? (
-          <FiLink className="text-default min-h-4 min-w-4 ml-[2px] opacity-70 ltr:mr-[10px] rtl:ml-[10px] " />
+          <Link className="text-default min-h-4 min-w-4 ml-[2px] opacity-70 ltr:mr-[10px] rtl:ml-[10px] " />
         ) : (
           <img
             src={eventLocationType.iconUrl}

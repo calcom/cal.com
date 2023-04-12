@@ -12,7 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen } from "@calcom/ui";
-import { FiCalendar } from "@calcom/ui/components/icon";
+import { Calendar } from "@calcom/ui/components/icon";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
@@ -180,7 +180,7 @@ export default function Bookings() {
         {query.status === "success" && isEmpty && (
           <div className="flex items-center justify-center pt-2 xl:pt-0">
             <EmptyScreen
-              Icon={FiCalendar}
+              Icon={Calendar}
               headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
               description={t("no_status_bookings_yet_description", {
                 status: t(status).toLowerCase(),
