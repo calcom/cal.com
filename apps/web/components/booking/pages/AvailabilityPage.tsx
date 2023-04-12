@@ -124,6 +124,16 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
     [timeZone]
   );
   const paymentAppData = getPaymentAppData(eventType);
+  const paymentAmount = () => {
+    return;
+    <IntlProvider locale="en">
+      <FormattedNumber
+        value={paymentAppData.price / 100.0}
+        style="currency"
+        currency={paymentAppData.currency?.toUpperCase()}
+      />
+    </IntlProvider>;
+  };
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
@@ -236,14 +246,23 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                       )}
                       {paymentAppData.price > 0 && (
                         <p className="-ml-2 px-2 text-sm font-medium">
-                          <FiCreditCard className="-mt-1 ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-                          <IntlProvider locale="en">
-                            <FormattedNumber
-                              value={paymentAppData.price / 100.0}
-                              style="currency"
-                              currency={paymentAppData.currency?.toUpperCase()}
-                            />
-                          </IntlProvider>
+                          <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                          {paymentAppData.paymentOption === "HOLD" ? (
+                            <>
+                              {t("no_show_fee_amount", {
+                                amount: paymentAppData.price / 100.0,
+                                formatParams: { amount: { currency: paymentAppData.currency } },
+                              })}
+                            </>
+                          ) : (
+                            <IntlProvider locale="en">
+                              <FormattedNumber
+                                value={paymentAppData.price / 100.0}
+                                style="currency"
+                                currency={paymentAppData.currency?.toUpperCase()}
+                              />
+                            </IntlProvider>
+                          )}
                         </p>
                       )}
                       {timezoneDropdown}

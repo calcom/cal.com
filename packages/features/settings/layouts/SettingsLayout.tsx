@@ -264,7 +264,7 @@ const SettingsSidebarContainer = ({
                               />
                               <p className="w-1/2 truncate">{team.name}</p>
                               {!team.accepted && (
-                                <Badge className="ltr:ml-3 rtl:mr-3" variant="orange">
+                                <Badge className="ms-3" variant="orange">
                                   Inv.
                                 </Badge>
                               )}
@@ -448,7 +448,7 @@ function ShellHeader() {
             <div className="bg-emphasis mb-1 h-6 w-32 animate-pulse rounded-md" />
           )}
         </div>
-        <div className="flex-shrink-0 ltr:ml-auto rtl:mr-auto">{meta.CTA}</div>
+        <div className="ms-auto flex-shrink-0">{meta.CTA}</div>
       </div>
     </header>
   );

@@ -551,7 +551,7 @@ const WithLabel = ({
         <div className="mb-2 flex items-center">
           <Label className="!mb-0">
             <span>{field.label}</span>
-            <span className="dark:text-inverted -mb-1 ml-1 text-sm font-medium leading-none">
+            <span className="text-emphasis ml-1 -mb-1 text-sm font-medium leading-none">
               {!readOnly && field.required ? "*" : ""}
             </span>
           </Label>

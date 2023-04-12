@@ -58,14 +58,14 @@ export default function InsightsPage() {
           title={t("make_informed_decisions")}
           description={t("make_informed_decisions_description")}
           features={features}
-          background="/tips/insights.jpg"
+          background="/tips/insights"
           buttons={
             <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
               <ButtonGroup>
                 <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                   {t("create_team")}
                 </Button>
-                <Button color="secondary" href="https://go.cal.com/insights" target="_blank">
+                <Button color="minimal" href="https://go.cal.com/insights" target="_blank">
                   {t("learn_more")}
                 </Button>
               </ButtonGroup>

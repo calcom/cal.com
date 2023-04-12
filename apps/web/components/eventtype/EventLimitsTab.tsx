@@ -353,7 +353,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                       </div>
                     )}
                     {period.type === "RANGE" && (
-                      <div className="inline-flex space-x-2 ltr:ml-2 ltr:mr-2 rtl:ml-2 rtl:space-x-reverse">
+                      <div className="ms-2 me-2 inline-flex space-x-2 rtl:space-x-reverse">
                         <Controller
                           name="periodDates"
                           control={formMethods.control}
@@ -373,9 +373,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                         />
                       </div>
                     )}
-                    {period.suffix ? (
-                      <span className="ltr:ml-2 ltr:mr-2 rtl:ml-2">&nbsp;{period.suffix}</span>
-                    ) : null}
+                    {period.suffix ? <span className="ms-2 me-2">&nbsp;{period.suffix}</span> : null}
                   </div>
                 );
               })}

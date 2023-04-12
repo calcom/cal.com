@@ -30,7 +30,7 @@ export const Label = (props: JSX.IntrinsicElements["label"] & { disabled?: boole
   <label
     {...props}
     className={classNames(
-      "text-emphasis w-full text-sm font-medium leading-5 ltr:ml-2 rtl:mr-2",
+      "text-emphasis ms-2 w-full text-sm font-medium leading-5",
       props.disabled && "text-subtle"
     )}
   />

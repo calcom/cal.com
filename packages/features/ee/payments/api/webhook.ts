@@ -6,7 +6,7 @@ import type Stripe from "stripe";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
-import { sendScheduledEmails } from "@calcom/emails";
+import { sendScheduledEmails, sendOrganizerRequestEmail, sendAttendeeRequestEmail } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
@@ -33,6 +33,92 @@ async function getEventType(id: number) {
       requiresConfirmation: true,
     },
   });
+}
+
+async function getBooking(bookingId: number) {
+  const booking = await prisma.booking.findUnique({
+    where: {
+      id: bookingId,
+    },
+    select: {
+      ...bookingMinimalSelect,
+      eventType: true,
+      smsReminderNumber: true,
+      location: true,
+      eventTypeId: true,
+      userId: true,
+      uid: true,
+      paid: true,
+      destinationCalendar: true,
+      status: true,
+      user: {
+        select: {
+          id: true,
+          username: true,
+          credentials: true,
+          timeZone: true,
+          email: true,
+          name: true,
+          locale: true,
+          destinationCalendar: true,
+        },
+      },
+    },
+  });
+
+  if (!booking) throw new HttpCode({ statusCode: 204, message: "No booking found" });
+
+  type EventTypeRaw = Awaited<ReturnType<typeof getEventType>>;
+  let eventTypeRaw: EventTypeRaw | null = null;
+  if (booking.eventTypeId) {
+    eventTypeRaw = await getEventType(booking.eventTypeId);
+  }
+
+  const { user } = booking;
+
+  if (!user) throw new HttpCode({ statusCode: 204, message: "No user found" });
+
+  const t = await getTranslation(user.locale ?? "en", "common");
+  const attendeesListPromises = booking.attendees.map(async (attendee) => {
+    return {
+      name: attendee.name,
+      email: attendee.email,
+      timeZone: attendee.timeZone,
+      language: {
+        translate: await getTranslation(attendee.locale ?? "en", "common"),
+        locale: attendee.locale ?? "en",
+      },
+    };
+  });
+
+  const attendeesList = await Promise.all(attendeesListPromises);
+
+  const evt: CalendarEvent = {
+    type: booking.title,
+    title: booking.title,
+    description: booking.description || undefined,
+    startTime: booking.startTime.toISOString(),
+    endTime: booking.endTime.toISOString(),
+    customInputs: isPrismaObjOrUndefined(booking.customInputs),
+    organizer: {
+      email: user.email,
+      name: user.name!,
+      timeZone: user.timeZone,
+      language: { translate: t, locale: user.locale ?? "en" },
+      id: user.id,
+    },
+    attendees: attendeesList,
+    uid: booking.uid,
+    destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
+    recurringEvent: parseRecurringEvent(eventTypeRaw?.recurringEvent),
+  };
+
+  return {
+    booking,
+    user,
+    evt,
+    eventTypeRaw,
+  };
 }
 
 async function handlePaymentSuccess(event: Stripe.Event) {
@@ -180,10 +266,61 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   });
 }
 
+const handleSetupSuccess = async (event: Stripe.Event) => {
+  const setupIntent = event.data.object as Stripe.SetupIntent;
+  const payment = await prisma.payment.findFirst({
+    where: {
+      externalId: setupIntent.id,
+    },
+  });
+
+  if (!payment?.data || !payment?.id) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
+
+  const { booking, user, evt, eventTypeRaw } = await getBooking(payment.bookingId);
+
+  const bookingData: Prisma.BookingUpdateInput = {
+    paid: true,
+  };
+
+  if (!eventTypeRaw?.requiresConfirmation) {
+    const eventManager = new EventManager(user);
+    const scheduleResult = await eventManager.create(evt);
+    bookingData.references = { create: scheduleResult.referencesToCreate };
+    bookingData.status = BookingStatus.ACCEPTED;
+  }
+
+  await prisma.payment.update({
+    where: {
+      id: payment.id,
+    },
+    data: {
+      data: {
+        ...(payment.data as Prisma.JsonObject),
+        setupIntent: setupIntent as unknown as Prisma.JsonObject,
+      },
+      booking: {
+        update: {
+          ...bookingData,
+        },
+      },
+    },
+  });
+
+  // If the card information was already captured in the same customer. Delete the previous payment method
+
+  if (!eventTypeRaw?.requiresConfirmation) {
+    await sendScheduledEmails({ ...evt });
+  } else {
+    await sendOrganizerRequestEmail({ ...evt });
+    await sendAttendeeRequestEmail({ ...evt }, evt.attendees[0]);
+  }
+};
+
 type WebhookHandler = (event: Stripe.Event) => Promise<void>;
 
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handlePaymentSuccess,
+  "setup_intent.succeeded": handleSetupSuccess,
 };
 
 /**
