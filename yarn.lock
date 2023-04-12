@@ -4994,6 +4994,7 @@ __metadata:
     typescript: ^4.9.4
     uuid: ^8.3.2
     web3: ^1.7.5
+    webpack-sources: ^3.2.3
     zod: ^3.20.2
   languageName: unknown
   linkType: soft
