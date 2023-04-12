@@ -337,7 +337,7 @@ export async function login(
   await signInLocator.click();
 
   // Moving away from waiting 2 seconds, as it is not a reliable way to expect session to be started
-  await page.waitForSelector('[data-testid="dashboard-shell"]');
+  await page.waitForLoadState("networkidle");
 }
 
 export async function getPaymentCredential(page: Page) {
