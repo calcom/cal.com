@@ -4373,15 +4373,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/google-tag-manager@workspace:packages/app-store/google-tag-manager":
-  version: 0.0.0-use.local
-  resolution: "@calcom/google-tag-manager@workspace:packages/app-store/google-tag-manager"
-  dependencies:
-    "@calcom/lib": "*"
-    "@calcom/types": "*"
-  languageName: unknown
-  linkType: soft
-
 "@calcom/googlecalendar@workspace:packages/app-store/googlecalendar":
   version: 0.0.0-use.local
   resolution: "@calcom/googlecalendar@workspace:packages/app-store/googlecalendar"
@@ -4399,6 +4390,15 @@ __metadata:
     "@calcom/prisma": "*"
     "@calcom/types": "*"
     googleapis: ^84.0.0
+  languageName: unknown
+  linkType: soft
+
+"@calcom/gtm@workspace:packages/app-store/gtm":
+  version: 0.0.0-use.local
+  resolution: "@calcom/gtm@workspace:packages/app-store/gtm"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
   languageName: unknown
   linkType: soft
 

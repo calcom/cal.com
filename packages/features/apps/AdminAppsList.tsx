@@ -49,7 +49,7 @@ const IntegrationContainer = ({
   const utils = trpc.useContext();
   const [disableDialog, setDisableDialog] = useState(false);
 
-  const showKeyModal = () => {
+  const showKeyModal = (fromEnabled?: boolean) => {
     // FIXME: This is preventing the modal from opening for apps that has null keys
     if (app.keys) {
       handleModelOpen({
@@ -58,6 +58,8 @@ const IntegrationContainer = ({
         slug: app.slug,
         type: app.type,
         isOpen: "editKeys",
+        fromEnabled,
+        appName: app.name,
       });
     }
   };
@@ -99,6 +101,8 @@ const IntegrationContainer = ({
               onClick={() => {
                 if (app.enabled) {
                   setDisableDialog(true);
+                } else if (app.keys) {
+                  showKeyModal(true);
                 } else {
                   enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
                 }
@@ -179,9 +183,12 @@ const EditKeysModal: FC<{
   isOpen: boolean;
   keys: App["keys"];
   handleModelClose: () => void;
+  fromEnabled?: boolean;
+  appName?: string;
 }> = (props) => {
+  const utils = trpc.useContext();
   const { t } = useLocale();
-  const { dirName, slug, type, isOpen, keys, handleModelClose } = props;
+  const { dirName, slug, type, isOpen, keys, handleModelClose, fromEnabled, appName } = props;
   const appKeySchema = appKeysSchemas[dirName as keyof typeof appKeysSchemas];
 
   const formMethods = useForm({
@@ -190,7 +197,8 @@ const EditKeysModal: FC<{
 
   const saveKeysMutation = trpc.viewer.appsRouter.saveKeys.useMutation({
     onSuccess: () => {
-      showToast(t("keys_have_been_saved"), "success");
+      showToast(fromEnabled ? t("app_is_enabled", { appName }) : t("keys_have_been_saved"), "success");
+      utils.viewer.appsRouter.listLocal.invalidate();
       handleModelClose();
     },
     onError: (error) => {
@@ -211,6 +219,7 @@ const EditKeysModal: FC<{
                 type,
                 keys: values,
                 dirName,
+                fromEnabled,
               })
             }
             className="px-4 pb-4">
@@ -251,6 +260,8 @@ interface EditModalState extends Pick<App, "keys"> {
   dirName: string;
   type: string;
   slug: string;
+  fromEnabled?: boolean;
+  appName?: string;
 }
 
 const AdminAppsListContainer = () => {
@@ -310,6 +321,8 @@ const AdminAppsListContainer = () => {
         isOpen={modalState.isOpen === "editKeys"}
         slug={modalState.slug}
         type={modalState.type}
+        fromEnabled={modalState.fromEnabled}
+        appName={modalState.appName}
       />
     </>
   );
