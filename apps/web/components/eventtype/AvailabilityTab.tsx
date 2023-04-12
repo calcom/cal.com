@@ -157,7 +157,7 @@ const EventTypeScheduleDetails = () => {
       <hr className="border-subtle" />
       <div className="flex flex-col justify-center gap-2 sm:flex-row sm:justify-between">
         <span className="text-default flex items-center justify-center text-sm sm:justify-start">
-          <Globe className="ltr:mr-2 rtl:ml-2" />
+          <Globe className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
           {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
         </span>
         {!!schedule?.id && (

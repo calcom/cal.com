@@ -67,7 +67,7 @@ export function ScheduleListItem({
                 ))}
               {(schedule.timeZone || displayOptions?.timeZone) && (
                 <p className="my-1 flex items-center first-letter:text-xs">
-                  <Globe />
+                  <Globe className="h-3.5 w-3.5" />
                   &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
                 </p>
               )}

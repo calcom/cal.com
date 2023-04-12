@@ -57,7 +57,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
           <span className="inline-block">
-            <Info />
+            <Info className="h-4 w-4" />
           </span>
         </Tooltip>
       </h3>
