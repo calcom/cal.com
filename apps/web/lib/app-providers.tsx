@@ -107,8 +107,6 @@ const CalcomThemeProvider = (
       ? "booking-theme"
       : undefined;
 
-  console.log("storageKey", storageKey);
-
   return (
     <ThemeProvider
       nonce={props.nonce}
@@ -116,6 +114,8 @@ const CalcomThemeProvider = (
       enableSystem={themeSupport !== ThemeSupport.None}
       forcedTheme={forcedTheme}
       storageKey={storageKey}
+      // next-themes doesn't listen to changes on storageKey. So we need to force a re-render when storageKey changes
+      key={storageKey}
       attribute="class">
       {props.children}
     </ThemeProvider>
