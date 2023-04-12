@@ -1,5 +1,6 @@
 import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
 import { WorkflowActions, WorkflowTriggerEvents } from "@prisma/client";
+import type { MailData } from "@sendgrid/helpers/classes/mail";
 
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -18,6 +19,7 @@ export interface ScheduleWorkflowRemindersArgs {
   requiresConfirmation?: boolean;
   isRescheduleEvent?: boolean;
   isFirstRecurringEvent?: boolean;
+  emailAttendeeSendToOverride?: string;
 }
 
 export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) => {
@@ -28,6 +30,7 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     requiresConfirmation = false,
     isRescheduleEvent = false,
     isFirstRecurringEvent = false,
+    emailAttendeeSendToOverride = "",
   } = args;
   if (workflows.length > 0 && !requiresConfirmation) {
     for (const workflowReference of workflows) {
@@ -73,7 +76,9 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
                 sendTo = evt.organizer?.email || "";
                 break;
               case WorkflowActions.EMAIL_ATTENDEE:
-                sendTo = evt.attendees?.[0]?.email || "";
+                sendTo = !!emailAttendeeSendToOverride
+                  ? emailAttendeeSendToOverride
+                  : evt.attendees?.[0]?.email || "";
                 break;
             }
 
@@ -99,21 +104,25 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
   }
 };
 
-export const sendCancelledReminders = async (
+export interface SendCancelledRemindersArgs {
   workflows: (WorkflowsOnEventTypes & {
     workflow: Workflow & {
       steps: WorkflowStep[];
     };
-  })[],
-  smsReminderNumber: string | null,
-  evt: CalendarEvent
-) => {
+  })[];
+  smsReminderNumber: string | null;
+  evt: CalendarEvent;
+}
+
+export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
+  const { workflows, smsReminderNumber, evt } = args;
+
   if (workflows.length > 0) {
-    workflows
-      .filter((workflowRef) => workflowRef.workflow.trigger === WorkflowTriggerEvents.EVENT_CANCELLED)
-      .forEach((workflowRef) => {
-        const workflow = workflowRef.workflow;
-        workflow.steps.forEach(async (step) => {
+    for (const workflowRef of workflows) {
+      const { workflow } = workflowRef;
+
+      if (workflow.trigger === WorkflowTriggerEvents.EVENT_CANCELLED) {
+        for (const step of workflow.steps) {
           if (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER) {
             const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
             await scheduleSMSReminder(
@@ -137,17 +146,18 @@ export const sendCancelledReminders = async (
             step.action === WorkflowActions.EMAIL_ATTENDEE ||
             step.action === WorkflowActions.EMAIL_HOST
           ) {
-            let sendTo = "";
+            let sendTo: MailData["to"] = "";
 
             switch (step.action) {
               case WorkflowActions.EMAIL_HOST:
                 sendTo = evt.organizer.email;
                 break;
               case WorkflowActions.EMAIL_ATTENDEE:
-                sendTo = evt.attendees[0].email;
+                sendTo = evt.attendees.map((a) => a.email);
                 break;
             }
-            scheduleEmailReminder(
+
+            await scheduleEmailReminder(
               evt,
               workflow.trigger,
               step.action,
@@ -163,7 +173,8 @@ export const sendCancelledReminders = async (
               step.sender || SENDER_NAME
             );
           }
-        });
-      });
+        }
+      }
+    }
   }
 };

@@ -1395,7 +1395,6 @@ async function handler(
         resultBooking = { ...foundBooking };
         resultBooking["message"] = "Payment required";
         resultBooking["paymentUid"] = payment?.uid;
-        resultBooking["seatReferenceUid"] = bookingSeat?.referenceUid;
       }
 
       resultBooking = { ...foundBooking, seatReferenceUid: evt.attendeeSeatId };
@@ -1413,6 +1412,7 @@ async function handler(
         requiresConfirmation: evt.requiresConfirmation || false,
         isRescheduleEvent: !!rescheduleUid,
         isFirstRecurringEvent: true,
+        emailAttendeeSendToOverride: bookerEmail,
       });
     } catch (error) {
       log.error("Error while scheduling workflow reminders", error);
