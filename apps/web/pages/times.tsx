@@ -43,6 +43,12 @@ export const getServerSideProps = async function getServerSideProps(): Promise<a
     "next-auth/providers/google": () => import("next-auth/providers/google"),
     nodemailer: () => import("nodemailer"),
     crypto: () => import("crypto"),
+    "city-timezones": () => import("city-timezones"),
+    "@hubspot/api-client": () => import("@hubspot/api-client"),
+    tsdav: () => import("tsdav"),
+    "@tryvital/vital-node": () => import("@tryvital/vital-node"),
+    "react-awesome-query-builder": () => import("react-awesome-query-builder"),
+    "ews-javascript-api": () => import("ews-javascript-api"),
   };
   const times: Record<string, number> = {};
   for (const dep in dependencies) {
