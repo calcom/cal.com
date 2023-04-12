@@ -102,14 +102,15 @@ const CalcomThemeProvider = (
   // One such example is our Embeds Demo and Testing page at http://localhost:3100
   // Having `getEmbedNamespace` defined on window before react initializes the app, ensures that embedNamespace is available on the first mount and can be used as part of storageKey
   const embedNamespace = typeof window !== "undefined" ? window.getEmbedNamespace() : null;
-  const storageKey =
-    typeof embedNamespace === "string"
-      ? `embed-theme-${embedNamespace}`
-      : themeSupport === ThemeSupport.App
-      ? "app-theme"
-      : themeSupport === ThemeSupport.Booking
-      ? "booking-theme"
-      : undefined;
+  const isEmbedMode = typeof embedNamespace === "string";
+
+  const storageKey = isEmbedMode
+    ? `embed-theme-${embedNamespace}`
+    : themeSupport === ThemeSupport.App
+    ? "app-theme"
+    : themeSupport === ThemeSupport.Booking
+    ? "booking-theme"
+    : undefined;
 
   return (
     <ThemeProvider
@@ -122,6 +123,17 @@ const CalcomThemeProvider = (
       // This is how login to dashboard soft navigation changes theme from light to dark
       key={storageKey}
       attribute="class">
+      {/* Embed Mode can be detected reliably only on client side here as there can be static generated pages as well which can't determine if it's embed mode at backend */}
+      {/* color-scheme makes background:transparent not work in iframe which is required by embed. */}
+      {typeof window !== "undefined" && !isEmbedMode && (
+        <style jsx global>
+          {`
+            .dark {
+              color-scheme: dark;
+            }
+          `}
+        </style>
+      )}
       {props.children}
     </ThemeProvider>
   );
@@ -142,7 +154,6 @@ const AppProviders = (props: AppPropsWithChildren) => {
       <SessionProvider session={session || undefined}>
         <CustomI18nextProvider {...props}>
           <TooltipProvider>
-            {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
             <CalcomThemeProvider
               nonce={props.pageProps.nonce}
               isThemeSupported={props.Component.isThemeSupported}
