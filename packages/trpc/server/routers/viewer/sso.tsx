@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import jackson from "@calcom/features/ee/sso/lib/jackson";
 import {
   samlProductID,
   samlTenantID,
@@ -32,7 +31,7 @@ export const ssoRouter = router({
           message,
         });
       }
-
+      const jackson = (await import("@calcom/features/ee/sso/lib/jackson")).default;
       const { connectionController, samlSPConfig } = await jackson();
 
       // Retrieve the SP SAML Config
@@ -71,6 +70,7 @@ export const ssoRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const jackson = (await import("@calcom/features/ee/sso/lib/jackson")).default;
       const { connectionController } = await jackson();
 
       const { encodedRawMetadata, teamId } = input;
@@ -105,6 +105,7 @@ export const ssoRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const jackson = (await import("@calcom/features/ee/sso/lib/jackson")).default;
       const { connectionController } = await jackson();
 
       const { teamId } = input;
@@ -150,7 +151,7 @@ export const ssoRouter = router({
           message,
         });
       }
-
+      const jackson = (await import("@calcom/features/ee/sso/lib/jackson")).default;
       const { connectionController } = await jackson();
 
       try {
