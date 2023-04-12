@@ -1,5 +1,4 @@
 import type { Workflow, WorkflowStep, Membership } from "@prisma/client";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -56,7 +55,6 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [workflowToDeleteId, setwWorkflowToDeleteId] = useState(0);
   const router = useRouter();
-  const session = useSession();
 
   return (
     <>

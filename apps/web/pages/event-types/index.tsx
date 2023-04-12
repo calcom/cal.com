@@ -586,7 +586,7 @@ const EventTypeListHeading = ({
           {profile?.name || ""}
         </Link>
         {membershipCount && teamId && (
-          <span className="text-subtle relative -top-px text-xs ltr:ml-2 ltr:mr-2 rtl:ml-2">
+          <span className="text-subtle ms-2 me-2 relative -top-px text-xs">
             <Link href={`/settings/teams/${teamId}/members`}>
               <Badge variant="gray">
                 <FiUsers className="mr-1 -mt-px inline h-3 w-3" />
