@@ -30,15 +30,15 @@ import {
   showToast,
 } from "@calcom/ui";
 import {
-  FiBarChart,
-  FiCalendar,
-  FiCreditCard,
-  FiGrid,
-  FiMoreHorizontal,
-  FiPlus,
-  FiShare2,
-  FiTrash,
-  FiVideo,
+  BarChart,
+  Calendar,
+  CreditCard,
+  Grid,
+  MoreHorizontal,
+  Plus,
+  Share2,
+  Trash,
+  Video,
 } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -71,7 +71,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
           color="destructive"
           onClick={() => handleDisconnect(credentialId)}
           disabled={isGlobal}
-          StartIcon={FiTrash}>
+          StartIcon={Trash}>
           {t("remove_app")}
         </DropdownItem>
       </DropdownMenuItem>
@@ -159,7 +159,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
                   <div className="flex  justify-end">
                     <Dropdown modal={false}>
                       <DropdownMenuTrigger asChild>
-                        <Button StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
+                        <Button StartIcon={MoreHorizontal} variant="icon" color="secondary" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         {!appIsDefault && variant === "conferencing" && (
@@ -167,7 +167,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
                             <DropdownItem
                               type="button"
                               color="secondary"
-                              StartIcon={FiVideo}
+                              StartIcon={Video}
                               onClick={() => {
                                 const locationType = getEventLocationTypeFromApp(
                                   item?.locationOption?.value ?? ""
@@ -225,13 +225,13 @@ const IntegrationsContainer = ({
   const { t } = useLocale();
   const query = trpc.viewer.integrations.useQuery({ variant, exclude, onlyInstalled: true });
   const emptyIcon = {
-    calendar: FiCalendar,
-    conferencing: FiVideo,
-    automation: FiShare2,
-    analytics: FiBarChart,
-    payment: FiCreditCard,
-    web3: FiBarChart,
-    other: FiGrid,
+    calendar: Calendar,
+    conferencing: Video,
+    automation: Share2,
+    analytics: BarChart,
+    payment: CreditCard,
+    web3: BarChart,
+    other: Grid,
   };
 
   return (
@@ -270,7 +270,7 @@ const IntegrationsContainer = ({
                     variant ? `/apps/categories/${variant === "conferencing" ? "video" : variant}` : "/apps"
                   }
                   color="secondary"
-                  StartIcon={FiPlus}>
+                  StartIcon={Plus}>
                   {t("add")}
                 </Button>
               }

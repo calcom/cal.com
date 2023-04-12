@@ -4,7 +4,7 @@ import { components as reactSelectComponents } from "react-select";
 import { classNames } from "@calcom/lib";
 
 import { UpgradeTeamsBadge } from "../../badge";
-import { FiCheck } from "../../icon";
+import { Check } from "../../icon";
 
 export const InputComponent = <
   Option,
@@ -45,7 +45,7 @@ export const OptionComponent = <
       <div className="flex">
         <span className="mr-auto">{props.label}</span>
         {(props.data as unknown as ExtendedOption).needsUpgrade && <UpgradeTeamsBadge />}
-        {props.isSelected && <FiCheck className="ml-2 h-4 w-4" />}
+        {props.isSelected && <Check className="ml-2 h-4 w-4" />}
       </div>
     </reactSelectComponents.Option>
   );

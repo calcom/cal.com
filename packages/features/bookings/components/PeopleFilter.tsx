@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { AnimatedPopover, Avatar } from "@calcom/ui";
-import { FiUser } from "@calcom/ui/components/icon";
+import { User } from "@calcom/ui/components/icon";
 
 import { useFilterQuery } from "../lib/useFilterQuery";
 
@@ -22,7 +22,7 @@ export const PeopleFilter = () => {
     <AnimatedPopover text={userNames && userNames.length > 0 ? `${userNames.join(", ")}` : dropdownTitle}>
       <div className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] hover:cursor-pointer">
         <div className="text-default flex h-6 w-6 items-center justify-center ltr:mr-2 rtl:ml-2">
-          <FiUser className="h-5 w-5" />
+          <User className="h-5 w-5" />
         </div>
         <label htmlFor="allUsers" className="text-default mr-auto self-center truncate text-sm font-medium">
           {t("all_users_filter_label")}

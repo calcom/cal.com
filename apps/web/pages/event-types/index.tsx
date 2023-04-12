@@ -39,19 +39,19 @@ import {
   HeadSeo,
 } from "@calcom/ui";
 import {
-  FiArrowDown,
-  FiArrowUp,
-  FiClipboard,
-  FiCode,
-  FiCopy,
-  FiEdit,
-  FiEdit2,
-  FiExternalLink,
-  FiLink,
-  FiMoreHorizontal,
-  FiTrash,
-  FiUpload,
-  FiUsers,
+  ArrowDown,
+  ArrowUp,
+  Clipboard,
+  Code,
+  Copy,
+  Edit,
+  Edit2,
+  ExternalLink,
+  Link as LinkIcon,
+  MoreHorizontal,
+  Trash,
+  Upload,
+  Users,
 } from "@calcom/ui/components/icon";
 
 import { withQuery } from "@lib/QueryCell";
@@ -325,7 +325,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     <button
                       className="bg-default text-muted hover:text-emphasis border-default hover:border-emphasis invisible absolute left-[5px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
                       onClick={() => moveEventType(index, -1)}>
-                      <FiArrowUp className="h-5 w-5" />
+                      <ArrowUp className="h-5 w-5" />
                     </button>
                   )}
 
@@ -333,7 +333,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     <button
                       className="bg-default text-muted border-default hover:text-emphasis hover:border-emphasis invisible absolute left-[5px] mt-8 -ml-4 hidden h-6 w-6  scale-0 items-center justify-center rounded-md border p-1 transition-all  group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
                       onClick={() => moveEventType(index, 1)}>
-                      <FiArrowDown className="h-5 w-5" />
+                      <ArrowDown className="h-5 w-5" />
                     </button>
                   )}
                   <MemoizedItem type={type} group={group} readOnly={readOnly} />
@@ -373,7 +373,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               target="_blank"
                               variant="icon"
                               href={calLink}
-                              StartIcon={FiExternalLink}
+                              StartIcon={ExternalLink}
                             />
                           </Tooltip>
 
@@ -381,7 +381,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             <Button
                               color="secondary"
                               variant="icon"
-                              StartIcon={FiLink}
+                              StartIcon={LinkIcon}
                               onClick={() => {
                                 showToast(t("link_copied"), "success");
                                 navigator.clipboard.writeText(calLink);
@@ -394,7 +394,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 type="button"
                                 variant="icon"
                                 color="secondary"
-                                StartIcon={FiMoreHorizontal}
+                                StartIcon={MoreHorizontal}
                                 className="ltr:radix-state-open:rounded-r-md rtl:radix-state-open:rounded-l-md"
                               />
                             </DropdownMenuTrigger>
@@ -403,7 +403,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 <DropdownItem
                                   type="button"
                                   data-testid={"event-type-edit-" + type.id}
-                                  StartIcon={FiEdit2}
+                                  StartIcon={Edit2}
                                   onClick={() => router.push("/event-types/" + type.id)}>
                                   {t("edit")}
                                 </DropdownItem>
@@ -412,7 +412,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 <DropdownItem
                                   type="button"
                                   data-testid={"event-type-duplicate-" + type.id}
-                                  StartIcon={FiCopy}
+                                  StartIcon={Copy}
                                   onClick={() => openDuplicateModal(type, group)}>
                                   {t("duplicate")}
                                 </DropdownItem>
@@ -421,7 +421,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 <EmbedButton
                                   as={DropdownItem}
                                   type="button"
-                                  StartIcon={FiCode}
+                                  StartIcon={Code}
                                   className="w-full rounded-none"
                                   embedUrl={encodeURIComponent(embedLink)}>
                                   {t("embed")}
@@ -437,7 +437,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                       setDeleteDialogOpen(true);
                                       setDeleteDialogTypeId(type.id);
                                     }}
-                                    StartIcon={FiTrash}
+                                    StartIcon={Trash}
                                     className="w-full rounded-none">
                                     {t("delete")}
                                   </DropdownItem>
@@ -453,7 +453,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                 <div className="min-w-9 mx-5 flex sm:hidden">
                   <Dropdown>
                     <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
-                      <Button type="button" variant="icon" color="secondary" StartIcon={FiMoreHorizontal} />
+                      <Button type="button" variant="icon" color="secondary" StartIcon={MoreHorizontal} />
                     </DropdownMenuTrigger>
                     <DropdownMenuPortal>
                       <DropdownMenuContent>
@@ -461,7 +461,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           <DropdownItem
                             href={calLink}
                             target="_blank"
-                            StartIcon={FiExternalLink}
+                            StartIcon={ExternalLink}
                             className="w-full rounded-none">
                             {t("preview")}
                           </DropdownItem>
@@ -473,7 +473,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               navigator.clipboard.writeText(calLink);
                               showToast(t("link_copied"), "success");
                             }}
-                            StartIcon={FiClipboard}
+                            StartIcon={Clipboard}
                             className="w-full rounded-none text-left">
                             {t("copy_link")}
                           </DropdownItem>
@@ -492,7 +492,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                   .then(() => showToast(t("link_shared"), "success"))
                                   .catch(() => showToast(t("failed"), "error"));
                               }}
-                              StartIcon={FiUpload}
+                              StartIcon={Upload}
                               className="w-full rounded-none">
                               {t("share")}
                             </DropdownItem>
@@ -501,7 +501,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         <DropdownMenuItem className="outline-none">
                           <DropdownItem
                             onClick={() => router.push("/event-types/" + type.id)}
-                            StartIcon={FiEdit}
+                            StartIcon={Edit}
                             className="w-full rounded-none">
                             {t("edit")}
                           </DropdownItem>
@@ -509,7 +509,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         <DropdownMenuItem className="outline-none">
                           <DropdownItem
                             onClick={() => openDuplicateModal(type, group)}
-                            StartIcon={FiCopy}
+                            StartIcon={Copy}
                             data-testid={"event-type-duplicate-" + type.id}>
                             {t("duplicate")}
                           </DropdownItem>
@@ -522,7 +522,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               setDeleteDialogOpen(true);
                               setDeleteDialogTypeId(type.id);
                             }}
-                            StartIcon={FiTrash}
+                            StartIcon={Trash}
                             className="w-full rounded-none">
                             {t("delete")}
                           </DropdownItem>
@@ -589,7 +589,7 @@ const EventTypeListHeading = ({
           <span className="text-subtle ms-2 me-2 relative -top-px text-xs">
             <Link href={`/settings/teams/${teamId}/members`}>
               <Badge variant="gray">
-                <FiUsers className="mr-1 -mt-px inline h-3 w-3" />
+                <Users className="mr-1 -mt-px inline h-3 w-3" />
                 {membershipCount}
               </Badge>
             </Link>
@@ -617,7 +617,7 @@ const CreateFirstEventTypeView = () => {
 
   return (
     <EmptyScreen
-      Icon={FiLink}
+      Icon={LinkIcon}
       headline={t("new_event_type_heading")}
       description={t("new_event_type_description")}
     />
