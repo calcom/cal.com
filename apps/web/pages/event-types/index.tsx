@@ -1,6 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { User } from "@prisma/client";
-import { SchedulingType, MembershipRole } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -357,6 +357,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
           const embedLink = `${group.profile.slug}/${type.slug}`;
           const calLink = `${CAL_URL}/${embedLink}`;
           const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
+          const isChildrenManagedEventType =
+            type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
           return (
             <li key={type.id}>
               <div className="hover:bg-muted flex w-full items-center justify-between">
@@ -472,7 +474,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                   </DropdownItem>
                                 </DropdownMenuItem>
                               )}
-                              {isManagedEventType && group.membershipRole !== MembershipRole.MEMBER && (
+                              {!isManagedEventType && !isChildrenManagedEventType && (
                                 <>
                                   <DropdownMenuItem className="outline-none">
                                     <DropdownItem
@@ -483,18 +485,16 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                       {t("duplicate")}
                                     </DropdownItem>
                                   </DropdownMenuItem>
-                                  {!isManagedEventType && (
-                                    <DropdownMenuItem className="outline-none">
-                                      <EmbedButton
-                                        as={DropdownItem}
-                                        type="button"
-                                        StartIcon={FiCode}
-                                        className="w-full rounded-none"
-                                        embedUrl={encodeURIComponent(embedLink)}>
-                                        {t("embed")}
-                                      </EmbedButton>
-                                    </DropdownMenuItem>
-                                  )}
+                                  <DropdownMenuItem className="outline-none">
+                                    <EmbedButton
+                                      as={DropdownItem}
+                                      type="button"
+                                      StartIcon={FiCode}
+                                      className="w-full rounded-none"
+                                      embedUrl={encodeURIComponent(embedLink)}>
+                                      {t("embed")}
+                                    </EmbedButton>
+                                  </DropdownMenuItem>
                                 </>
                               )}
                               {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
