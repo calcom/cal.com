@@ -1,6 +1,6 @@
 import type { TFunction } from "next-i18next";
 
-import { WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { V2BaseEmailHtml, CallToAction } from "../components";
 
@@ -15,9 +15,7 @@ interface AttendeeDailyVideoDownloadRecordingEmailProps {
 export const AttendeeDailyVideoDownloadRecordingEmail = (
   props: AttendeeDailyVideoDownloadRecordingEmailProps & Partial<React.ComponentProps<typeof V2BaseEmailHtml>>
 ) => {
-  const image = IS_PRODUCTION
-    ? WEBAPP_URL + "/emails/CalLogo@2x.png"
-    : "https://app.cal.com/emails/CalLogo@2x.png";
+  const image = WEBAPP_URL + "/emails/logo.png";
   return (
     <V2BaseEmailHtml
       subject={props.language("download_your_recording", {
