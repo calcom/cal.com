@@ -392,6 +392,7 @@ export default function SettingsLayout({
     <Shell
       withoutSeo={true}
       flexChildrenContainer
+      hideHeadingOnMobile
       {...rest}
       SidebarContainer={
         <>

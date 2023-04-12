@@ -18,6 +18,7 @@ const Switch = (
     label?: string;
     fitToHeight?: boolean;
     tooltip?: string;
+    isRoutingForm?: boolean;
     classNames?: {
       container?: string;
       thumb?: string;
@@ -29,40 +30,76 @@ const Switch = (
 
   return (
     <Wrapper tooltip={props.tooltip}>
-      <div
-        className={cx(
-          "flex h-auto w-auto flex-row items-center",
-          fitToHeight && "h-fit",
-          classNames?.container
-        )}>
-        <PrimitiveSwitch.Root
+      {props.isRoutingForm ? (
+        <div
           className={cx(
-            props.checked || props.defaultChecked ? "bg-inverted" : "bg-emphasis",
-            primitiveProps.disabled && "cursor-not-allowed",
-            "focus:ring-brand-default h-5 w-[34px] rounded-full shadow-none",
-            props.className
+            "hover:bg-subtle flex h-auto w-auto flex-row items-center justify-between",
+            fitToHeight && "h-fit"
+          )}>
+          {label && (
+            <Label.Root
+              htmlFor={id}
+              className={cx(
+                "text-emphasis ms-2 align-text-top text-sm font-medium",
+                primitiveProps.disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer "
+              )}>
+              {label}
+            </Label.Root>
           )}
-          {...primitiveProps}>
-          <PrimitiveSwitch.Thumb
-            id={id}
+          <PrimitiveSwitch.Root
             className={cx(
-              "block h-[14px] w-[14px] rounded-full transition will-change-transform ltr:translate-x-[4px] rtl:-translate-x-[4px] ltr:[&[data-state='checked']]:translate-x-[17px] rtl:[&[data-state='checked']]:-translate-x-[17px]",
-              props.checked || props.defaultChecked ? "bg-default shadow-inner" : "bg-inverted",
-              classNames?.thumb
+              props.checked || props.defaultChecked ? "bg-inverted" : "bg-emphasis",
+              primitiveProps.disabled && "cursor-not-allowed",
+              "focus:ring-brand-default h-5 w-[34px] rounded-full shadow-none",
+              props.className
             )}
-          />
-        </PrimitiveSwitch.Root>
-        {label && (
-          <Label.Root
-            htmlFor={id}
+            {...primitiveProps}>
+            <PrimitiveSwitch.Thumb
+              id={id}
+              className={cx(
+                "block h-[14px] w-[14px] rounded-full transition will-change-transform ltr:translate-x-[4px] rtl:-translate-x-[4px] ltr:[&[data-state='checked']]:translate-x-[17px] rtl:[&[data-state='checked']]:-translate-x-[17px]",
+                props.checked || props.defaultChecked ? "bg-default shadow-inner" : "bg-inverted",
+                classNames?.thumb
+              )}
+            />
+          </PrimitiveSwitch.Root>
+        </div>
+      ) : (
+        <div
+          className={cx(
+            "flex h-auto w-auto flex-row items-center",
+            fitToHeight && "h-fit",
+            classNames?.container
+          )}>
+          <PrimitiveSwitch.Root
             className={cx(
-              "text-emphasis ms-2 align-text-top text-sm font-medium",
-              primitiveProps.disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer "
-            )}>
-            {label}
-          </Label.Root>
-        )}
-      </div>
+              props.checked || props.defaultChecked ? "bg-inverted" : "bg-emphasis",
+              primitiveProps.disabled && "cursor-not-allowed",
+              "focus:ring-brand-default h-5 w-[34px] rounded-full shadow-none",
+              props.className
+            )}
+            {...primitiveProps}>
+            <PrimitiveSwitch.Thumb
+              id={id}
+              className={cx(
+                "block h-[14px] w-[14px] rounded-full transition will-change-transform ltr:translate-x-[4px] rtl:-translate-x-[4px] ltr:[&[data-state='checked']]:translate-x-[17px] rtl:[&[data-state='checked']]:-translate-x-[17px]",
+                props.checked || props.defaultChecked ? "bg-default shadow-inner" : "bg-inverted",
+                classNames?.thumb
+              )}
+            />
+          </PrimitiveSwitch.Root>
+          {label && (
+            <Label.Root
+              htmlFor={id}
+              className={cx(
+                "text-emphasis ms-2 align-text-top text-sm font-medium",
+                primitiveProps.disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer "
+              )}>
+              {label}
+            </Label.Root>
+          )}
+        </div>
+      )}
     </Wrapper>
   );
 };

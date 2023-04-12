@@ -32,6 +32,7 @@ export function TeamAvailabilityPage() {
     <Shell
       backPath={!errorMessage ? `/settings/teams/${team?.id}` : undefined}
       heading={team?.name}
+      hideHeadingOnMobile
       flexChildrenContainer
       subtitle={team && "Your team's availability at a glance"}
       HeadingLeftIcon={

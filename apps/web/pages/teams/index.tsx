@@ -12,6 +12,7 @@ function Teams() {
   return (
     <Shell
       heading={t("teams")}
+      hideHeadingOnMobile
       subtitle={t("create_manage_teams_collaborative")}
       CTA={
         <Button

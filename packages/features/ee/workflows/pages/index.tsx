@@ -95,6 +95,7 @@ function WorkflowsPage() {
       heading={t("workflows")}
       title={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
+      hideHeadingOnMobile
       CTA={
         query?.data?.profiles.length === 1 &&
         session.data?.hasValidLicense &&

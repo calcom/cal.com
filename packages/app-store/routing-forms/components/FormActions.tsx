@@ -410,15 +410,24 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     },
     toggle: {
       render: ({ routingForm, label = "", ...restProps }) => {
+        const isRoutingForm = routingForm !== undefined;
         if (!routingForm) {
           return <></>;
         }
         return (
-          <div {...restProps} className="hover:bg-emphasis self-center rounded-md p-2">
+          <div
+            {...restProps}
+            className={classNames(
+              "sm:hover:bg-subtle self-center p-2",
+              label === "Disable Form"
+                ? "hover:bg-subtle cursor-pointer rounded-[5px] pr-4"
+                : "rounded-md hover:bg-gray-200"
+            )}>
             <Switch
               checked={!routingForm.disabled}
               label={label}
               onCheckedChange={(checked) => toggle.onAction({ routingForm, checked })}
+              isRoutingForm={isRoutingForm}
             />
           </div>
         );

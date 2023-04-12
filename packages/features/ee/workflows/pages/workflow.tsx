@@ -266,6 +266,7 @@ function WorkflowPage() {
             </Button>
           </div>
         }
+        hideHeadingOnMobile
         heading={
           session.data?.hasValidLicense &&
           isAllDataLoaded && (
