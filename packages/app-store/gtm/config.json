@@ -1,7 +1,7 @@
 {
   "name": "Google Tag Manager",
-  "slug": "google-tag-manager",
-  "type": "google-tag-manager_analytics",
+  "slug": "gtm",
+  "type": "gtm_analytics",
   "imageSrc": "icon.svg",
   "logo": "icon.svg",
   "url": "https://tagmanager.google.com",
@@ -22,6 +22,5 @@
   },
   "isTemplate": false,
   "__createdUsingCli": true,
-  "__template": "booking-pages-tag",
-  "dirName": "google-tag-manager"
+  "__template": "booking-pages-tag"
 }
