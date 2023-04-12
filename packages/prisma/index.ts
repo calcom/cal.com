@@ -1,6 +1,8 @@
 import type { Prisma } from "@prisma/client";
 import { PrismaClient } from "@prisma/client";
 
+import logger from "@calcom/lib/logger";
+
 import { bookingReferenceMiddleware } from "./middleware";
 
 declare global {
@@ -11,8 +13,10 @@ declare global {
 const prismaOptions: Prisma.PrismaClientOptions = {};
 
 if (!!process.env.NEXT_PUBLIC_DEBUG) prismaOptions.log = ["query", "error", "warn"];
-
+const startPrismaClient = performance.now();
 export const prisma = globalThis.prisma || new PrismaClient(prismaOptions);
+const endPrismaClient = performance.now();
+logger.debug(`Prisma client took ${(endPrismaClient - startPrismaClient).toFixed()}ms`);
 
 export const customPrisma = (options: Prisma.PrismaClientOptions) =>
   new PrismaClient({ ...prismaOptions, ...options });
