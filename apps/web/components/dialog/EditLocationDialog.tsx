@@ -164,7 +164,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
       return (
         <div>
-          <label htmlFor="locationInput" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="locationInput" className="text-default block text-sm font-medium">
             {t(eventLocationType.messageForOrganizer || "")}
           </label>
           <div className="mt-1">
@@ -174,6 +174,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               id="locationInput"
               placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
               required
+              className="border-default block w-full rounded-sm text-sm"
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               defaultValue={
                 defaultLocation ? defaultLocation[eventLocationType.defaultValueVariable] : undefined
@@ -182,7 +183,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             <ErrorMessage
               errors={locationFormMethods.formState.errors}
               name={eventLocationType.variable}
-              className="mt-1 text-sm text-red-500"
+              className="text-error mt-1 text-sm"
               as="p"
             />
           </div>
@@ -208,7 +209,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
         </div>
       );
     } else {
-      return <p className="text-sm">{getMessageForOrganizer(selectedLocation, t)}</p>;
+      return <p className="text-default text-sm">{getMessageForOrganizer(selectedLocation, t)}</p>;
     }
   })();
 
@@ -216,16 +217,16 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     <Dialog open={isOpenDialog} onOpenChange={(open) => setShowLocationModal(open)}>
       <DialogContent>
         <div className="flex flex-row space-x-3">
-          <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
-            <FiMapPin className="text-primary-600 h-6 w-6" />
+          <div className="bg-subtle mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
+            <FiMapPin className="text-emphasis h-6 w-6" />
           </div>
           <div className="w-full">
             <div className="mt-3 text-center sm:mt-0 sm:text-left">
-              <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+              <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
                 {t("edit_location")}
               </h3>
               {!booking && (
-                <p className="text-sm text-gray-400">
+                <p className="text-default text-sm">
                   <Trans i18nKey="cant_find_the_right_video_app_visit_our_app_store">
                     Can&apos;t find the right video app? Visit our
                     <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/video">
@@ -240,8 +241,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
             {booking && (
               <>
-                <p className="mt-6 mb-2 ml-1 text-sm font-bold text-black">{t("current_location")}:</p>
-                <p className="mb-2 ml-1 text-sm text-black">
+                <p className="text-emphasis mt-6 mb-2 ml-1 text-sm font-bold">{t("current_location")}:</p>
+                <p className="text-emphasis mb-2 ml-1 text-sm">
                   {getHumanReadableLocationValue(booking.location, t)}
                 </p>
               </>

@@ -32,7 +32,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="mt-6 mb-8 space-y-6 divide-y">
+      <div className="divide-subtle mt-6 mb-8 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
       </div>
@@ -89,7 +89,7 @@ const ConferencingLayout = () => {
     return <SkeletonLoader title={t("conferencing")} description={t("conferencing_description")} />;
 
   return (
-    <div className="w-full bg-white sm:mx-0 xl:mt-0">
+    <div className="bg-default w-full sm:mx-0 xl:mt-0">
       <Meta title={t("conferencing")} description={t("conferencing_description")} />
       <List>
         {apps?.items &&

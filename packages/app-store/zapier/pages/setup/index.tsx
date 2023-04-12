@@ -41,19 +41,19 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   }
 
   if (integrations.isLoading) {
-    return <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200" />;
+    return <div className="bg-emphasis absolute z-50 flex h-screen w-full items-center" />;
   }
 
   return (
-    <div className="flex h-screen bg-gray-200">
+    <div className="bg-emphasis flex h-screen">
       {showContent ? (
-        <div className="m-auto max-w-[43em] overflow-auto rounded bg-white pb-10 md:p-10">
+        <div className="bg-default m-auto max-w-[43em] overflow-auto rounded pb-10 md:p-10">
           <div className="md:flex md:flex-row">
             <div className="invisible md:visible">
               <img className="h-11" src="/api/app-store/zapier/icon.svg" alt="Zapier Logo" />
             </div>
             <div className="ml-2 ltr:mr-2 rtl:ml-2 md:ml-5">
-              <div className="text-gray-600">{t("setting_up_zapier")}</div>
+              <div className="text-default">{t("setting_up_zapier")}</div>
               {!newApiKey ? (
                 <>
                   <div className="mt-1 text-xl">{t("generate_api_key")}:</div>
@@ -65,7 +65,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                 <>
                   <div className="mt-1 text-xl">{t("your_unique_api_key")}</div>
                   <div className="my-2 mt-3 flex-wrap sm:flex sm:flex-nowrap">
-                    <code className="h-full w-full whitespace-pre-wrap rounded-md bg-gray-100 py-[6px] pl-2 pr-2 sm:rounded-r-none sm:pr-5">
+                    <code className="bg-subtle h-full w-full whitespace-pre-wrap rounded-md py-[6px] pl-2 pr-2 sm:rounded-r-none sm:pr-5">
                       {newApiKey}
                     </code>
                     <Tooltip side="top" content={t("copy_to_clipboard")}>
@@ -81,9 +81,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                       </Button>
                     </Tooltip>
                   </div>
-                  <div className="mt-2 mb-5 text-sm font-semibold text-gray-600">
-                    {t("copy_safe_api_key")}
-                  </div>
+                  <div className="text-default mt-2 mb-5 text-sm font-semibold">{t("copy_safe_api_key")}</div>
                 </>
               )}
 

@@ -28,10 +28,20 @@ import {
   TableActions,
   TextAreaField,
 } from "@calcom/ui";
-import { FiCheck, FiClock, FiMapPin, FiRefreshCcw, FiSend, FiSlash, FiX } from "@calcom/ui/components/icon";
+import {
+  FiCheck,
+  FiClock,
+  FiMapPin,
+  FiRefreshCcw,
+  FiSend,
+  FiSlash,
+  FiX,
+  FiCreditCard,
+} from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
+import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
@@ -56,7 +66,9 @@ function BookingListItem(booking: BookingItemProps) {
   const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
+  const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
+  const cardCharged = booking?.payment[0]?.success;
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
       if (data?.status === BookingStatus.REJECTED) {
@@ -116,16 +128,20 @@ function BookingListItem(booking: BookingItemProps) {
       icon: FiSlash,
       disabled: mutation.isLoading,
     },
-    {
-      id: "confirm",
-      label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
-      onClick: () => {
-        bookingConfirm(true);
-      },
-      icon: FiCheck,
-      disabled: mutation.isLoading,
-      color: "primary",
-    },
+    // For bookings with payment, only confirm if the booking is paid for
+    ...((isPending && !booking?.eventType?.price) || (!!booking?.eventType?.price && booking.paid)
+      ? [
+          {
+            id: "confirm",
+            label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
+            onClick: () => {
+              bookingConfirm(true);
+            },
+            icon: FiCheck,
+            disabled: mutation.isLoading,
+          },
+        ]
+      : []),
   ];
 
   const showRecordingActions: ActionType[] = [
@@ -181,6 +197,18 @@ function BookingListItem(booking: BookingItemProps) {
           icon: FiMapPin,
         },
       ],
+    },
+  ];
+
+  const chargeCardActions: ActionType[] = [
+    {
+      id: "charge_card",
+      label: cardCharged ? t("no_show_fee_charged") : t("collect_no_show_fee"),
+      disabled: cardCharged,
+      onClick: () => {
+        setChargeCardDialogIsOpen(true);
+      },
+      icon: FiCreditCard,
     },
   ];
 
@@ -254,6 +282,15 @@ function BookingListItem(booking: BookingItemProps) {
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
       />
+      {booking.paid && (
+        <ChargeCardDialog
+          isOpenDialog={chargeCardDialogIsOpen}
+          setIsOpenDialog={setChargeCardDialogIsOpen}
+          bookingId={booking.id}
+          paymentAmount={booking?.payment[0].amount}
+          paymentCurrency={booking?.payment[0].currency}
+        />
+      )}
       {showRecordingsButtons && (
         <ViewRecordingsDialog
           booking={booking}
@@ -271,7 +308,7 @@ function BookingListItem(booking: BookingItemProps) {
               label={
                 <>
                   {t("rejection_reason")}
-                  <span className="font-normal text-gray-500"> (Optional)</span>
+                  <span className="text-subtle font-normal"> (Optional)</span>
                 </>
               }
               value={rejectionReason}
@@ -292,13 +329,13 @@ function BookingListItem(booking: BookingItemProps) {
         </DialogContent>
       </Dialog>
 
-      <tr className="group flex flex-col hover:bg-gray-50 sm:flex-row">
+      <tr className="hover:bg-muted group flex flex-col sm:flex-row">
         <td
           className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[12rem]"
           onClick={onClickTableData}>
           <div className="cursor-pointer py-4">
-            <div className="text-sm leading-6 text-gray-900">{startTime}</div>
-            <div className="text-sm text-gray-500">
+            <div className="text-emphasis text-sm leading-6">{startTime}</div>
+            <div className="text-subtle text-sm">
               {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)} -{" "}
               {formatTime(booking.endTime, user?.timeFormat, user?.timeZone)}
               <MeetingTimeInTimezones
@@ -321,11 +358,11 @@ function BookingListItem(booking: BookingItemProps) {
             )}
             {booking.paid && (
               <Badge className="ltr:mr-2 rtl:ml-2" variant="green">
-                {t("paid")}
+                {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
               </Badge>
             )}
             {recurringDates !== undefined && (
-              <div className="mt-2 text-sm text-gray-400">
+              <div className="text-muted mt-2 text-sm">
                 <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
               </div>
             )}
@@ -335,8 +372,8 @@ function BookingListItem(booking: BookingItemProps) {
           {/* Time and Badges for mobile */}
           <div className="w-full pt-4 pb-2 sm:hidden">
             <div className="flex w-full items-center justify-between sm:hidden">
-              <div className="text-sm leading-6 text-gray-900">{startTime}</div>
-              <div className="pr-2 text-sm text-gray-500">
+              <div className="text-emphasis text-sm leading-6">{startTime}</div>
+              <div className="text-subtle pr-2 text-sm">
                 {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)} -{" "}
                 {formatTime(booking.endTime, user?.timeFormat, user?.timeZone)}
                 <MeetingTimeInTimezones
@@ -365,7 +402,7 @@ function BookingListItem(booking: BookingItemProps) {
               </Badge>
             )}
             {recurringDates !== undefined && (
-              <div className="text-sm text-gray-400 sm:hidden">
+              <div className="text-muted text-sm sm:hidden">
                 <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
               </div>
             )}
@@ -375,21 +412,21 @@ function BookingListItem(booking: BookingItemProps) {
             <div
               title={title}
               className={classNames(
-                "max-w-10/12 sm:max-w-56 text-sm font-medium leading-6 text-gray-900 md:max-w-full",
+                "max-w-10/12 sm:max-w-56 text-emphasis text-sm font-medium leading-6 md:max-w-full",
                 isCancelled ? "line-through" : ""
               )}>
               {title}
               <span> </span>
 
               {!!booking?.eventType?.price && !booking.paid && (
-                <Badge className="hidden ltr:ml-2 ltr:mr-2 rtl:ml-2 sm:inline-flex" variant="orange">
+                <Badge className="ms-2 me-2 hidden sm:inline-flex" variant="orange">
                   {t("pending_payment")}
                 </Badge>
               )}
             </div>
             {booking.description && (
               <div
-                className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 truncate text-sm text-gray-600"
+                className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 text-default truncate text-sm"
                 title={booking.description}>
                 &quot;{booking.description}&quot;
               </div>
@@ -413,7 +450,7 @@ function BookingListItem(booking: BookingItemProps) {
             <>
               {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
               {isConfirmed && <TableActions actions={bookedActions} />}
-              {isRejected && <div className="text-sm text-gray-500">{t("rejected")}</div>}
+              {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
             </>
           ) : null}
           {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
@@ -421,6 +458,11 @@ function BookingListItem(booking: BookingItemProps) {
           {isCancelled && booking.rescheduled && (
             <div className="hidden h-full items-center md:flex">
               <RequestSentMessage />
+            </div>
+          )}
+          {booking.status === "ACCEPTED" && booking.paid && booking?.payment[0]?.paymentOption === "HOLD" && (
+            <div className="ml-2">
+              <TableActions actions={chargeCardActions} />
             </div>
           )}
         </td>
@@ -475,10 +517,10 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                   </p>
                 );
               })}>
-              <div className="text-gray-600 dark:text-white">
+              <div className="text-default">
                 <FiRefreshCcw
                   strokeWidth="3"
-                  className="float-left mr-1 mt-1.5 inline-block h-3 w-3 text-gray-400"
+                  className="text-muted float-left mr-1 mt-1.5 inline-block h-3 w-3"
                 />
                 <p className="mt-1 pl-5 text-xs">
                   {booking.status === BookingStatus.ACCEPTED
@@ -551,13 +593,13 @@ const DisplayAttendees = ({
 }) => {
   const { t } = useLocale();
   return (
-    <div className="text-sm text-gray-900">
+    <div className="text-emphasis text-sm">
       {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
       {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>}
       <Attendee {...attendees[0]} />
       {attendees.length > 1 && (
         <>
-          <div className="inline-block text-sm text-gray-900">&nbsp;{t("and")}&nbsp;</div>
+          <div className="text-emphasis inline-block text-sm">&nbsp;{t("and")}&nbsp;</div>
           {attendees.length > 2 ? (
             <Tooltip
               content={attendees.slice(1).map((attendee) => (

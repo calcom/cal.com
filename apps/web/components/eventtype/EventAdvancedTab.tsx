@@ -8,13 +8,15 @@ import { v5 as uuidv5 } from "uuid";
 
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
+import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
-import { APP_NAME, CAL_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { classNames } from "@calcom/lib";
+import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Badge, Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip } from "@calcom/ui";
+import { Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip, Alert } from "@calcom/ui";
 import { FiEdit, FiCopy } from "@calcom/ui/components/icon";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
@@ -56,6 +58,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [requiresConfirmation, setRequiresConfirmation] = useState(eventType.requiresConfirmation);
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
+  const noShowFeeEnabled = eventType.metadata.apps?.stripe?.paymentOption === "HOLD";
 
   useEffect(() => {
     !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0]?.id ?? team?.id));
@@ -99,7 +102,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             <Link
               href="/apps/categories/calendar"
               target="_blank"
-              className="text-sm text-gray-600 hover:text-gray-900">
+              className="hover:text-emphasis text-default text-sm">
               {t("add_another_calendar")}
             </Link>
           </div>
@@ -118,7 +121,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               )}
             />
           </div>
-          <p className="text-sm text-gray-600">{t("select_which_cal")}</p>
+          <p className="text-default text-sm">{t("select_which_cal")}</p>
         </div>
       )}
       <div className="w-full">
@@ -134,28 +137,33 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               StartIcon={FiEdit}
               variant="icon"
               color="minimal"
-              className="hover:stroke-3 min-w-fit px-0 hover:bg-transparent hover:text-black"
+              className="hover:stroke-3 hover:text-emphasis min-w-fit px-0 hover:bg-transparent"
               onClick={() => setShowEventNameTip((old) => !old)}
               aria-label="edit custom name"
             />
           }
         />
       </div>
-      <hr />
+      <hr className="border-subtle" />
       <FormBuilder
         title={t("booking_questions_title")}
         description={t("booking_questions_description")}
         addFieldLabel={t("add_a_booking_question")}
         formProp="bookingFields"
+        dataStore={{
+          options: {
+            locations: getLocationsOptionsForSelect(eventType?.locations ?? [], t),
+          },
+        }}
       />
-      <hr />
+      <hr className="border-subtle" />
       <RequiresConfirmationController
         seatsEnabled={seatsEnabled}
         metadata={eventType.metadata}
         requiresConfirmation={requiresConfirmation}
         onRequiresConfirmation={setRequiresConfirmation}
       />
-      <hr />
+      <hr className="border-subtle" />
       <Controller
         name="hideCalendarNotes"
         control={formMethods.control}
@@ -169,7 +177,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         )}
       />
-      <hr />
+      <hr className="border-subtle" />
       <Controller
         name="successRedirectUrl"
         control={formMethods.control}
@@ -183,9 +191,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 setRedirectUrlVisible(e);
                 onChange(e ? value : "");
               }}>
-              {/* Textfield has some margin by default we remove that so we can keep consitant aligment */}
-              <div className="lg:-ml-2">
+              {/* Textfield has some margin by default we remove that so we can keep consistent alignment */}
+              <div className="lg:-ml-2 lg:-mb-2">
                 <TextField
+                  className="w-full"
                   label={t("redirect_success_booking")}
                   labelSrOnly
                   placeholder={t("external_redirect_url")}
@@ -194,28 +203,19 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   defaultValue={eventType.successRedirectUrl || ""}
                   {...formMethods.register("successRedirectUrl")}
                 />
-                <div className="mt-2 flex">
-                  <Checkbox
-                    description={t("disable_success_page")}
-                    // Disable if it's not Self Hosted or if the redirect url is not set
-                    disabled={!IS_SELF_HOSTED || !formMethods.watch("successRedirectUrl")}
-                    {...formMethods.register("metadata.disableSuccessPage")}
-                  />
-                  {/*TODO: Extract it out into a component when used more than once*/}
-                  {!IS_SELF_HOSTED && (
-                    <Link href="https://cal.com/pricing" target="_blank">
-                      <Badge variant="orange" className="ml-2">
-                        Platform Only
-                      </Badge>
-                    </Link>
-                  )}
+                <div
+                  className={classNames(
+                    "p-1 text-sm text-orange-600",
+                    formMethods.getValues("successRedirectUrl") ? "block" : "hidden"
+                  )}>
+                  {t("redirect_url_warning")}
                 </div>
               </div>
             </SettingsToggle>
           </>
         )}
       />
-      <hr />
+      <hr className="border-subtle" />
       <SettingsToggle
         data-testid="hashedLinkCheck"
         title={t("private_link")}
@@ -248,7 +248,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                       showToast(t("enabled_after_update_description"), "warning");
                     }
                   }}
-                  className="hover:stroke-3 hover:bg-transparent hover:text-black"
+                  className="hover:stroke-3 hover:text-emphasis hover:bg-transparent"
                   type="button">
                   <FiCopy />
                 </Button>
@@ -257,60 +257,64 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         </div>
       </SettingsToggle>
-      <hr />
+      <hr className="border-subtle" />
       <Controller
         name="seatsPerTimeSlotEnabled"
         control={formMethods.control}
         defaultValue={!!eventType.seatsPerTimeSlot}
         render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            data-testid="offer-seats-toggle"
-            title={t("offer_seats")}
-            description={t("offer_seats_description")}
-            checked={value}
-            onCheckedChange={(e) => {
-              // Enabling seats will disable guests and requiring confirmation until fully supported
-              if (e) {
-                toggleGuests(false);
-                formMethods.setValue("requiresConfirmation", false);
-                setRequiresConfirmation(false);
-                formMethods.setValue("seatsPerTimeSlot", 2);
-              } else {
-                formMethods.setValue("seatsPerTimeSlot", null);
-                toggleGuests(true);
-              }
-              onChange(e);
-            }}>
-            <Controller
-              name="seatsPerTimeSlot"
-              control={formMethods.control}
-              defaultValue={eventType.seatsPerTimeSlot}
-              render={({ field: { value, onChange } }) => (
-                <div className="lg:-ml-2">
-                  <TextField
-                    required
-                    name="seatsPerTimeSlot"
-                    labelSrOnly
-                    label={t("number_of_seats")}
-                    type="number"
-                    defaultValue={value || 2}
-                    min={1}
-                    addOnSuffix={<>{t("seats")}</>}
-                    onChange={(e) => {
-                      onChange(Math.abs(Number(e.target.value)));
-                    }}
-                  />
-                  <div className="mt-2">
-                    <Checkbox
-                      description={t("show_attendees")}
-                      onChange={(e) => formMethods.setValue("seatsShowAttendees", e.target.checked)}
-                      defaultChecked={!!eventType.seatsShowAttendees}
+          <>
+            <SettingsToggle
+              data-testid="offer-seats-toggle"
+              title={t("offer_seats")}
+              description={t("offer_seats_description")}
+              checked={value}
+              disabled={noShowFeeEnabled}
+              onCheckedChange={(e) => {
+                // Enabling seats will disable guests and requiring confirmation until fully supported
+                if (e) {
+                  toggleGuests(false);
+                  formMethods.setValue("requiresConfirmation", false);
+                  setRequiresConfirmation(false);
+                  formMethods.setValue("seatsPerTimeSlot", 2);
+                } else {
+                  formMethods.setValue("seatsPerTimeSlot", null);
+                  toggleGuests(true);
+                }
+                onChange(e);
+              }}>
+              <Controller
+                name="seatsPerTimeSlot"
+                control={formMethods.control}
+                defaultValue={eventType.seatsPerTimeSlot}
+                render={({ field: { value, onChange } }) => (
+                  <div className="lg:-ml-2">
+                    <TextField
+                      required
+                      name="seatsPerTimeSlot"
+                      labelSrOnly
+                      label={t("number_of_seats")}
+                      type="number"
+                      defaultValue={value || 2}
+                      min={1}
+                      addOnSuffix={<>{t("seats")}</>}
+                      onChange={(e) => {
+                        onChange(Math.abs(Number(e.target.value)));
+                      }}
                     />
+                    <div className="mt-2">
+                      <Checkbox
+                        description={t("show_attendees")}
+                        onChange={(e) => formMethods.setValue("seatsShowAttendees", e.target.checked)}
+                        defaultChecked={!!eventType.seatsShowAttendees}
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
-            />
-          </SettingsToggle>
+                )}
+              />
+            </SettingsToggle>
+            {noShowFeeEnabled && <Alert severity="warning" title={t("seats_and_no_show_fee_error")} />}
+          </>
         )}
       />
 

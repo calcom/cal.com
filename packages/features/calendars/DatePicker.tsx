@@ -51,12 +51,12 @@ export const Day = ({
       type="button"
       style={disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }}
       className={classNames(
-        "disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-md border-2 border-transparent text-center font-medium disabled:cursor-default disabled:border-transparent disabled:font-light disabled:dark:border-transparent",
+        "disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-md border-2 border-transparent text-center text-sm font-medium disabled:cursor-default disabled:border-transparent disabled:font-light ",
         active
-          ? "dark:bg-darkmodebrand dark:hover:border-darkmodebrand dark:text-darkmodebrandcontrast bg-brand text-brandcontrast border-2"
+          ? "bg-brand-default text-brand"
           : !disabled
-          ? "dark:bg-darkgray-200 hover:border-brand dark:hover:border-darkmodebrand bg-gray-100 dark:text-white"
-          : ""
+          ? " hover:border-brand-default text-emphasis bg-emphasis"
+          : "text-muted"
       )}
       data-testid="day"
       data-disabled={disabled}
@@ -80,10 +80,8 @@ const NoAvailabilityOverlay = ({
   const { t } = useLocale();
 
   return (
-    <div className="dark:border-darkgray-300 dark:bg-darkgray-200 absolute top-40 left-1/2 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border border-gray-200 bg-gray-50 p-8 shadow-sm">
-      <h4 className="mb-4 font-medium text-gray-900 dark:text-white">
-        {t("no_availability_in_month", { month: month })}
-      </h4>
+    <div className=" bg-muted border-subtle absolute top-40 left-1/2 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border p-8 shadow-sm">
+      <h4 className="text-emphasis  mb-4 font-medium">{t("no_availability_in_month", { month: month })}</h4>
       <Button onClick={nextMonthButton} color="primary" EndIcon={FiArrowRight}>
         {t("view_next_month")}
       </Button>
@@ -146,7 +144,7 @@ const Days = ({
             <div key={`e-${idx}`} />
           ) : props.isLoading ? (
             <button
-              className="dark:bg-darkgray-200 absolute top-0 left-0 right-0 bottom-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent bg-gray-50 text-center text-gray-400 opacity-50 dark:text-gray-400"
+              className=" bg-muted text-muted opcaity-50 absolute top-0 left-0 right-0 bottom-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center"
               key={`e-${idx}`}
               disabled>
               <SkeletonText className="h-4 w-5" />
@@ -199,23 +197,23 @@ const DatePicker = ({
   return (
     <div className={className}>
       <div className="mb-4 flex items-center justify-between text-xl font-light">
-        <span className="w-1/2 text-base dark:text-white">
+        <span className="text-default w-1/2 text-base">
           {browsingDate ? (
             <>
-              <strong className="text-bookingdarker font-semibold dark:text-white">{month}</strong>{" "}
-              <span className="text-bookinglight">{browsingDate.format("YYYY")}</span>
+              <strong className="text-emphasis font-semibold">{month}</strong>{" "}
+              <span className="text-subtle">{browsingDate.format("YYYY")}</span>
             </>
           ) : (
             <SkeletonText className="h-8 w-24" />
           )}
         </span>
-        <div className="text-black dark:text-white">
+        <div className="text-emphasis">
           <div className="flex">
             <Button
               className={classNames(
-                "group p-1 opacity-50 hover:opacity-100",
+                "group p-1 opacity-70 hover:opacity-100",
                 !browsingDate.isAfter(dayjs()) &&
-                  "disabled:text-bookinglighter hover:bg-background hover:opacity-50"
+                  "disabled:text-bookinglighter hover:bg-background hover:opacity-70"
               )}
               onClick={() => changeMonth(-1)}
               disabled={!browsingDate.isAfter(dayjs())}
@@ -225,7 +223,7 @@ const DatePicker = ({
               StartIcon={ChevronLeftIcon}
             />
             <Button
-              className="group p-1 opacity-50 hover:opacity-100"
+              className="group p-1 opacity-70 hover:opacity-100"
               onClick={() => changeMonth(+1)}
               data-testid="incrementMonth"
               color="minimal"
@@ -235,11 +233,9 @@ const DatePicker = ({
           </div>
         </div>
       </div>
-      <div className="border-bookinglightest mb-2 grid grid-cols-7 gap-4 border-t border-b text-center dark:border-neutral-900 md:mb-0 md:border-0">
+      <div className="border-subtle mb-2 grid grid-cols-7 gap-4 border-t border-b text-center md:mb-0 md:border-0">
         {weekdayNames(locale, weekStart, "short").map((weekDay) => (
-          <div
-            key={weekDay}
-            className="text-bookinglight dark:text-darkgray-900 my-4 text-xs uppercase tracking-widest">
+          <div key={weekDay} className="text-emphasis my-4 text-xs uppercase tracking-widest">
             {weekDay}
           </div>
         ))}
