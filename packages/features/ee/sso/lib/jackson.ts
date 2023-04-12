@@ -1,4 +1,3 @@
-import jackson from "@boxyhq/saml-jackson";
 import type {
   IConnectionAPIController,
   IOAuthController,
@@ -36,6 +35,7 @@ declare global {
 
 export default async function init() {
   if (!globalThis.connectionController || !globalThis.oauthController || !globalThis.samlSPConfig) {
+    const { default: jackson } = await import("@boxyhq/saml-jackson");
     const ret = await jackson(opts);
     globalThis.connectionController = ret.connectionAPIController;
     globalThis.oauthController = ret.oauthController;
