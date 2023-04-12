@@ -20,11 +20,10 @@
     "embed-tests": "yarn playwright test --config=./playwright/config/playwright.config.ts",
     "embed-tests-quick": "QUICK=true yarn embed-tests",
     "embed-tests-update-snapshots:ci": "yarn embed-tests-quick --update-snapshots",
-    "prepublishOnly": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn build",
-    "prepublish": "yarn prepublishOnly",
+    "prepack": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn build",
     "embed-web-start": "yarn workspace @calcom/web start",
     "embed-dev": "yarn workspace @calcom/embed-react dev",
-    "publish-prod:patch": "yarn npm publish --access public",
+    "publish-prod": "yarn npm publish --access public",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "main": "./dist/Cal.umd.js",
