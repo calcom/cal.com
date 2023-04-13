@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { baseEventTypeSelect } from "@calcom/prisma";
 import type { EventTypeModel } from "@calcom/prisma/zod";
 import { Badge } from "@calcom/ui";
-import { Clock, Users, RefreshCw, CreditCard, Clipboard, Plus, User } from "@calcom/ui/components/icon";
+import { Clock, Users, RefreshCw, CreditCard, Clipboard, Plus, User, Lock } from "@calcom/ui/components/icon";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<
@@ -23,12 +23,14 @@ export type EventTypeDescriptionProps = {
   };
   className?: string;
   shortenDescription?: boolean;
+  isPublic?: boolean;
 };
 
 export const EventTypeDescription = ({
   eventType,
   className,
   shortenDescription,
+  isPublic,
 }: EventTypeDescriptionProps) => {
   const { t } = useLocale();
 
@@ -69,13 +71,18 @@ export const EventTypeDescription = ({
               </Badge>
             </li>
           )}
-          {eventType.schedulingType && (
+          {eventType.schedulingType && eventType.schedulingType !== SchedulingType.MANAGED && (
             <li>
               <Badge variant="gray" startIcon={Users}>
                 {eventType.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
                 {eventType.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
               </Badge>
             </li>
+          )}
+          {eventType.metadata?.managedEventConfig && !isPublic && (
+            <Badge variant="gray" startIcon={Lock}>
+              {t("managed")}
+            </Badge>
           )}
           {recurringEvent?.count && recurringEvent.count > 0 && (
             <li className="hidden xl:block">

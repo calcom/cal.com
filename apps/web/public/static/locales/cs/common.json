@@ -736,9 +736,6 @@
   "minimum_booking_notice": "Minimální potřebná doba",
   "slot_interval": "Časové intervaly",
   "slot_interval_default": "Použít délku události (výchozí)",
-  "delete_event_type_description": "Opravdu chcete smazat tento typ události? Všichni, se kterými jsme tento odkaz sdíleli, ho nebudou moct používat pro rezervování.",
-  "delete_event_type": "Smazat typ události",
-  "confirm_delete_event_type": "Ano, smazat typ události",
   "delete_account": "Smazat účet",
   "confirm_delete_account": "Ano, smazat účet",
   "delete_account_confirmation_message": "Opravdu chcete odstranit svůj účet na {{appName}}? Všichni, se kterými jste sdíleli odkaz na účet, přijdou o možnost vytvářet rezervace a vy přijdete o uložené předvolby.",
@@ -1652,8 +1649,8 @@
   "verification_code": "Ověřovací kód",
   "can_you_try_again": "Můžete to zkusit znovu a použít jiný čas?",
   "verify": "Ověřit",
-  "invalid_event_name_variables": "V názvu události je neplatná proměnná",
   "select_all": "Vybrat vše",
   "default_conferencing_bulk_title": "Hromadná aktualizace stávajících typů událostí",
+  "invalid_event_name_variables": "V názvu události je neplatná proměnná",
   "default_conferencing_bulk_description": "Aktualizujte místa pro vybrané typy událostí"
 }

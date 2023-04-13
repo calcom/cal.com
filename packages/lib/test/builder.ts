@@ -99,7 +99,8 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     slotInterval: null,
     metadata: null,
     successRedirectUrl: null,
-    bookingFields: null,
+    bookingFields: [],
+    parentId: null,
     ...eventType,
   };
 };

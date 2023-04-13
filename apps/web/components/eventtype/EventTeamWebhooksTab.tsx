@@ -1,16 +1,17 @@
+import type { Webhook } from "@prisma/client";
 import { Webhook as TbWebhook } from "lucide-react";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useState } from "react";
 
+import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
 import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { Webhook } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
+import { Alert, Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
+import { Plus, Lock } from "@calcom/ui/components/icon";
 
 export const EventTeamWebhooksTab = ({
   eventType,
@@ -91,6 +92,14 @@ export const EventTeamWebhooksTab = ({
       </Button>
     );
   };
+
+  const { shouldLockDisableProps, isChildrenManagedEventType, isManagedEventType } = useLockedFieldsManager(
+    eventType,
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
+  );
+  const webhookLockedStatus = shouldLockDisableProps("webhooks");
+
   return (
     <div>
       {team && webhooks && !isLoading && (
@@ -98,15 +107,24 @@ export const EventTeamWebhooksTab = ({
           <div>
             <div>
               <>
+                {isManagedEventType && (
+                  <Alert
+                    severity="neutral"
+                    className="mb-2"
+                    title={t("locked_for_members")}
+                    message={t("locked_webhooks_description")}
+                  />
+                )}
                 {webhooks.length ? (
                   <>
-                    <div className="mb-8 rounded-md border">
+                    <div className="mb-2 rounded-md border">
                       {webhooks.map((webhook, index) => {
                         return (
                           <WebhookListItem
                             key={webhook.id}
                             webhook={webhook}
                             lastItem={webhooks.length === index + 1}
+                            canEditWebhook={!webhookLockedStatus.disabled}
                             onEditWebhook={() => {
                               setEditModalOpen(true);
                               setWebhookToEdit(webhook);
@@ -122,7 +140,15 @@ export const EventTeamWebhooksTab = ({
                     Icon={TbWebhook}
                     headline={t("create_your_first_webhook")}
                     description={t("create_your_first_team_webhook_description", { appName: APP_NAME })}
-                    buttonRaw={<NewWebhookButton />}
+                    buttonRaw={
+                      isChildrenManagedEventType && !isManagedEventType ? (
+                        <Button StartIcon={Lock} color="secondary" disabled>
+                          {t("locked_by_admin")}
+                        </Button>
+                      ) : (
+                        <NewWebhookButton />
+                      )
+                    }
                   />
                 )}
               </>

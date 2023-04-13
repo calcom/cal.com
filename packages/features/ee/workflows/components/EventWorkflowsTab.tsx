@@ -3,12 +3,14 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
+import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, showToast, Switch, Tooltip } from "@calcom/ui";
-import { ExternalLink, Zap } from "@calcom/ui/components/icon";
+import { Button, EmptyScreen, showToast, Switch, Tooltip, Alert } from "@calcom/ui";
+import { ExternalLink, Zap, Lock } from "@calcom/ui/components/icon";
 
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import { getActionIcon } from "../lib/getActionIcon";
@@ -151,15 +153,10 @@ const WorkflowListItem = (props: ItemProps) => {
   );
 };
 
+type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
+
 type Props = {
-  eventType: {
-    id: number;
-    title: string;
-    userId: number | null;
-    team: {
-      id?: number;
-    } | null;
-  };
+  eventType: EventTypeSetup;
   workflows: WorkflowType[];
 };
 
@@ -207,33 +204,58 @@ function EventWorkflowsTab(props: Props) {
     },
   });
 
+  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
+    eventType,
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
+  );
+
   return (
     <LicenseRequired>
       {!isLoading ? (
-        data?.workflows && data?.workflows.length > 0 ? (
-          <div className="space-y-4">
-            {sortedWorkflows.map((workflow) => {
-              return <WorkflowListItem key={workflow.id} workflow={workflow} eventType={props.eventType} />;
-            })}
-          </div>
-        ) : (
-          <div className="pt-4 before:border-0">
-            <EmptyScreen
-              Icon={Zap}
-              headline={t("workflows")}
-              description={t("no_workflows_description")}
-              buttonRaw={
-                <Button
-                  target="_blank"
-                  color="secondary"
-                  onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
-                  loading={createMutation.isLoading}>
-                  {t("create_workflow")}
-                </Button>
-              }
+        <>
+          {isManagedEventType && (
+            <Alert
+              severity="neutral"
+              title={t("locked_for_members")}
+              message={t("locked_workflows_description")}
             />
-          </div>
-        )
+          )}
+          {data?.workflows && data?.workflows.length > 0 ? (
+            <div>
+              <div className="space-y-4">
+                {sortedWorkflows.map((workflow) => {
+                  return (
+                    <WorkflowListItem key={workflow.id} workflow={workflow} eventType={props.eventType} />
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="pt-2 before:border-0">
+              <EmptyScreen
+                Icon={Zap}
+                headline={t("workflows")}
+                description={t("no_workflows_description")}
+                buttonRaw={
+                  isChildrenManagedEventType && !isManagedEventType ? (
+                    <Button StartIcon={Lock} color="secondary" disabled>
+                      {t("locked_by_admin")}
+                    </Button>
+                  ) : (
+                    <Button
+                      target="_blank"
+                      color="secondary"
+                      onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
+                      loading={createMutation.isLoading}>
+                      {t("create_workflow")}
+                    </Button>
+                  )
+                }
+              />
+            </div>
+          )}
+        </>
       ) : (
         <SkeletonLoader />
       )}

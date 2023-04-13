@@ -32,6 +32,7 @@ import OrganizerRequestReminderEmail from "./templates/organizer-request-reminde
 import OrganizerRequestedToRescheduleEmail from "./templates/organizer-requested-to-reschedule-email";
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
+import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
 
@@ -286,6 +287,22 @@ export const sendDisabledAppEmail = async ({
   eventTypeId?: number;
 }) => {
   await sendEmail(() => new DisabledAppEmail(email, appName, appType, t, title, eventTypeId));
+};
+
+export const sendSlugReplacementEmail = async ({
+  email,
+  name,
+  teamName,
+  t,
+  slug,
+}: {
+  email: string;
+  name: string;
+  teamName: string | null;
+  t: TFunction;
+  slug: string;
+}) => {
+  await sendEmail(() => new SlugReplacementEmail(email, name, teamName, slug, t));
 };
 
 export const sendNoShowFeeChargedEmail = async (attendee: Person, evt: CalendarEvent) => {

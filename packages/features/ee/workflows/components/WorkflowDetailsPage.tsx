@@ -1,5 +1,5 @@
 import type { WorkflowActions } from "@prisma/client";
-import { WorkflowTemplates } from "@prisma/client";
+import { WorkflowTemplates, SchedulingType } from "@prisma/client";
 import { useRouter } from "next/router";
 import type { Dispatch, SetStateAction } from "react";
 import { useMemo, useState } from "react";
@@ -48,10 +48,15 @@ export default function WorkflowDetailsPage(props: Props) {
         if (teamId && teamId !== group.teamId) return options;
         return [
           ...options,
-          ...group.eventTypes.map((eventType) => ({
-            value: String(eventType.id),
-            label: eventType.title,
-          })),
+          ...group.eventTypes
+            .filter(
+              (evType) =>
+                !evType.metadata?.managedEventConfig && evType.schedulingType !== SchedulingType.MANAGED
+            )
+            .map((eventType) => ({
+              value: String(eventType.id),
+              label: eventType.title,
+            })),
         ];
       }, [] as Option[]) || [],
     [data]
