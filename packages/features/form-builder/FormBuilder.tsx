@@ -21,9 +21,9 @@ import {
   InputField,
   Input,
   showToast,
+  Switch,
 } from "@calcom/ui";
-import { Switch } from "@calcom/ui";
-import { FiArrowDown, FiArrowUp, FiX, FiPlus, FiTrash2, FiInfo } from "@calcom/ui/components/icon";
+import { ArrowDown, ArrowUp, X, Plus, Trash2, Info } from "@calcom/ui/components/icon";
 
 import { Components } from "./Components";
 import type { fieldsSchema } from "./FormBuilderFieldsSchema";
@@ -44,11 +44,22 @@ export const FormBuilder = function FormBuilder({
   description,
   addFieldLabel,
   formProp,
+  disabled,
+  LockedIcon,
+  dataStore,
 }: {
   formProp: string;
   title: string;
   description: string;
   addFieldLabel: string;
+  disabled: boolean;
+  LockedIcon: false | JSX.Element;
+  /**
+   * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options
+   */
+  dataStore: {
+    options: Record<string, { label: string; value: string; inputPlaceholder?: string }[]>;
+  };
 }) {
   const FieldTypesMap: Record<
     string,
@@ -112,6 +123,8 @@ export const FormBuilder = function FormBuilder({
       value: "radioInput",
       isTextType: false,
       systemOnly: true,
+      // This is false currently because we don't want to show the options for Location field right now. It is the only field with type radioInput.
+      // needsOptions: true,
     },
     checkbox: {
       label: "Checkbox Group",
@@ -148,13 +161,14 @@ export const FormBuilder = function FormBuilder({
   function OptionsField({
     label = "Options",
     value,
-    onChange,
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    onChange = () => {},
     className = "",
     readOnly = false,
   }: {
     label?: string;
     value: { label: string; value: string }[];
-    onChange: (value: { label: string; value: string }[]) => void;
+    onChange?: (value: { label: string; value: string }[]) => void;
     className?: string;
     readOnly?: boolean;
   }) {
@@ -174,7 +188,7 @@ export const FormBuilder = function FormBuilder({
     return (
       <div className={className}>
         <Label>{label}</Label>
-        <div className="rounded-md bg-gray-50 p-4">
+        <div className="bg-muted rounded-md p-4">
           <ul ref={animationRef}>
             {value?.map((option, index) => (
               <li key={index}>
@@ -200,7 +214,7 @@ export const FormBuilder = function FormBuilder({
                       className="mb-2 -ml-8 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
                       size="sm"
                       color="minimal"
-                      StartIcon={FiX}
+                      StartIcon={X}
                       onClick={() => {
                         if (!value) {
                           return;
@@ -222,7 +236,7 @@ export const FormBuilder = function FormBuilder({
                 value.push({ label: "", value: "" });
                 onChange(value);
               }}
-              StartIcon={FiPlus}>
+              StartIcon={Plus}>
               Add an Option
             </Button>
           )}
@@ -257,16 +271,31 @@ export const FormBuilder = function FormBuilder({
 
   const fieldType = FieldTypesMap[fieldForm.watch("type") || "text"];
   const isFieldEditMode = fieldDialog.fieldIndex !== -1;
+
   return (
     <div>
       <div>
-        <div className="text-sm font-semibold text-gray-700 ltr:mr-1 rtl:ml-1">{title}</div>
-        <p className="max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">{description}</p>
-        <ul className="mt-2 rounded-md border">
+        <div className="text-default text-sm font-semibold ltr:mr-1 rtl:ml-1">
+          {title}
+          {LockedIcon}
+        </div>
+        <p className="text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[500px]">{description}</p>
+        <ul className="border-default divide-subtle mt-2 divide-y rounded-md border">
           {fields.map((field, index) => {
+            const options = field.options
+              ? field.options
+              : field.getOptionsAt
+              ? dataStore.options[field.getOptionsAt as keyof typeof dataStore]
+              : [];
+            const numOptions = options?.length ?? 0;
+            if (field.hideWhenJustOneOption && numOptions <= 1) {
+              return null;
+            }
             const fieldType = FieldTypesMap[field.type];
-
             const isRequired = field.required;
+            const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
+            const isFieldEditableSystem = field.editable === "system";
+            const isUserField = !isFieldEditableSystem && !isFieldEditableSystemButOptional;
 
             if (!fieldType) {
               throw new Error(`Invalid field type - ${field.type}`);
@@ -286,34 +315,39 @@ export const FormBuilder = function FormBuilder({
               <li
                 key={field.name}
                 data-testid={`field-${field.name}`}
-                className="group relative flex items-center justify-between border-b p-4 last:border-b-0">
-                {index >= 1 && (
-                  <button
-                    type="button"
-                    className="invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
-                    onClick={() => swap(index, index - 1)}>
-                    <FiArrowUp className="h-5 w-5" />
-                  </button>
+                className="hover:bg-muted group relative flex items-center  justify-between p-4 ">
+                {!disabled && (
+                  <>
+                    {index >= 1 && (
+                      <button
+                        type="button"
+                        className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-default hover:border-emphasis invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                        onClick={() => swap(index, index - 1)}>
+                        <ArrowUp className="h-5 w-5" />
+                      </button>
+                    )}
+                    {index < fields.length - 1 && (
+                      <button
+                        type="button"
+                        className="bg-default text-muted hover:border-emphasis border-default hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                        onClick={() => swap(index, index + 1)}>
+                        <ArrowDown className="h-5 w-5" />
+                      </button>
+                    )}
+                  </>
                 )}
-                {index < fields.length - 1 && (
-                  <button
-                    type="button"
-                    className="invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
-                    onClick={() => swap(index, index + 1)}>
-                    <FiArrowDown className="h-5 w-5" />
-                  </button>
-                )}
+
                 <div>
                   <div className="flex flex-col lg:flex-row lg:items-center">
-                    <div className="text-sm font-semibold text-gray-700 ltr:mr-1 rtl:ml-1">
+                    <div className="text-default text-sm font-semibold ltr:mr-2 rtl:ml-2">
                       {field.label || t(field.defaultLabel || "")}
                     </div>
                     <div className="flex items-center space-x-2">
                       {field.hidden ? (
                         // Hidden field can't be required, so we don't need to show the Optional badge
-                        <Badge variant="gray">{t("hidden")}</Badge>
+                        <Badge variant="grayWithoutHover">{t("hidden")}</Badge>
                       ) : (
-                        <Badge variant="gray">{isRequired ? t("required") : t("optional")}</Badge>
+                        <Badge variant="grayWithoutHover">{isRequired ? t("required") : t("optional")}</Badge>
                       )}
                       {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
                         // We don't know how to pluralize `sourceLabel` because it can be anything
@@ -323,57 +357,59 @@ export const FormBuilder = function FormBuilder({
                       ))}
                     </div>
                   </div>
-                  <p className="max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">
+                  <p className="text-subtle max-w-[280px] break-words pt-1 text-sm sm:max-w-[500px]">
                     {fieldType.label}
                   </p>
                 </div>
-                {field.editable !== "user-readonly" && (
+                {field.editable !== "user-readonly" && !disabled && (
                   <div className="flex items-center space-x-2">
-                    <Switch
-                      data-testid="toggle-field"
-                      disabled={field.editable === "system"}
-                      tooltip={field.editable === "system" ? t("form_builder_system_field_cant_toggle") : ""}
-                      checked={!field.hidden}
-                      onCheckedChange={(checked) => {
-                        update(index, { ...field, hidden: !checked });
-                      }}
-                    />
+                    {!isFieldEditableSystem && !disabled && (
+                      <Switch
+                        data-testid="toggle-field"
+                        disabled={isFieldEditableSystem}
+                        checked={!field.hidden}
+                        onCheckedChange={(checked) => {
+                          update(index, { ...field, hidden: !checked });
+                        }}
+                        classNames={{ container: "p-2 hover:bg-gray-100 rounded" }}
+                        tooltip={t("show_on_booking_page")}
+                      />
+                    )}
+                    {isUserField && (
+                      <Button
+                        color="destructive"
+                        disabled={!isUserField}
+                        variant="icon"
+                        onClick={() => {
+                          removeField(index);
+                        }}
+                        StartIcon={Trash2}
+                      />
+                    )}
                     <Button
                       data-testid="edit-field-action"
                       color="secondary"
                       onClick={() => {
                         editField(index, field);
                       }}>
-                      Edit
+                      {t("edit")}
                     </Button>
-                    <Button
-                      color="minimal"
-                      tooltip={
-                        field.editable === "system" || field.editable === "system-but-optional"
-                          ? t("form_builder_system_field_cant_delete")
-                          : ""
-                      }
-                      disabled={field.editable === "system" || field.editable === "system-but-optional"}
-                      variant="icon"
-                      onClick={() => {
-                        removeField(index);
-                      }}
-                      StartIcon={FiTrash2}
-                    />
                   </div>
                 )}
               </li>
             );
           })}
         </ul>
-        <Button
-          color="minimal"
-          data-testid="add-field"
-          onClick={addField}
-          className="mt-4"
-          StartIcon={FiPlus}>
-          {addFieldLabel}
-        </Button>
+        {!disabled && (
+          <Button
+            color="minimal"
+            data-testid="add-field"
+            onClick={addField}
+            className="mt-4"
+            StartIcon={Plus}>
+            {addFieldLabel}
+          </Button>
+        )}
       </div>
       <Dialog
         open={fieldDialog.isOpen}
@@ -434,7 +470,7 @@ export const FormBuilder = function FormBuilder({
                 }}
                 value={FieldTypesMap[fieldForm.getValues("type")]}
                 options={FieldTypes.filter((f) => !f.systemOnly)}
-                label="Input Type"
+                label={t("input_type")}
               />
               <InputField
                 required
@@ -444,7 +480,7 @@ export const FormBuilder = function FormBuilder({
                   fieldForm.getValues("editable") === "system" ||
                   fieldForm.getValues("editable") === "system-but-optional"
                 }
-                label="Name"
+                label="Identifier"
               />
               <InputField
                 {...fieldForm.register("label")}
@@ -462,8 +498,7 @@ export const FormBuilder = function FormBuilder({
                   placeholder={t(fieldForm.getValues("defaultPlaceholder") || "")}
                 />
               ) : null}
-
-              {fieldType?.needsOptions ? (
+              {fieldType?.needsOptions && !fieldForm.getValues("getOptionsAt") ? (
                 <Controller
                   name="options"
                   render={({ field: { value, onChange } }) => {
@@ -471,6 +506,14 @@ export const FormBuilder = function FormBuilder({
                   }}
                 />
               ) : null}
+              {/* TODO: Maybe we should show location options in readOnly mode in Booking Questions. Right now options are not shown in Manage Booking Questions UI for location Booking Question */}
+              {/* {fieldForm.getValues("getOptionsAt") ? (
+                <OptionsField
+                  readOnly={true}
+                  value={dataStore.options[fieldForm.getValues("getOptionsAt") as keyof typeof dataStore]}
+                  className="mt-6"
+                />
+              ) : null} */}
               <Controller
                 name="required"
                 control={fieldForm.control}
@@ -489,7 +532,7 @@ export const FormBuilder = function FormBuilder({
                 }}
               />
               <DialogFooter>
-                <DialogClose color="secondary">Cancel</DialogClose>
+                <DialogClose color="secondary">{t("cancel")}</DialogClose>
                 <Button data-testid="field-add-save" type="submit">
                   {isFieldEditMode ? t("save") : t("add")}
                 </Button>
@@ -520,10 +563,12 @@ const WithLabel = ({
       {/* Component itself managing it's label should remove these checks */}
       {field.type !== "boolean" && field.type !== "multiemail" && field.label && (
         <div className="mb-2 flex items-center">
-          <Label className="!mb-0 flex items-center">{field.label}</Label>
-          <span className="ml-1 -mb-1 text-sm font-medium dark:text-white">
-            {!readOnly && field.required ? "*" : ""}
-          </span>
+          <Label className="!mb-0">
+            <span>{field.label}</span>
+            <span className="text-emphasis ml-1 -mb-1 text-sm font-medium leading-none">
+              {!readOnly && field.required ? "*" : ""}
+            </span>
+          </Label>
         </div>
       )}
       {children}
@@ -587,7 +632,6 @@ export const ComponentForField = ({
       `Value ${value} is not valid for type ${componentConfig.propsType} for field ${field.name}`
     );
   }
-
   if (componentConfig.propsType === "text") {
     return (
       <WithLabel field={field} readOnly={readOnly}>
@@ -683,6 +727,7 @@ export const ComponentForField = ({
           setValue={setValue as (arg: typeof value) => void}
           optionsInputs={field.optionsInputs}
           options={field.options}
+          required={field.required}
         />
       </WithLabel>
     ) : null;
@@ -708,7 +753,7 @@ export const FormBuilderField = ({
         control={control}
         // Make it a variable
         name={`responses.${field.name}`}
-        render={({ field: { value, onChange } }) => {
+        render={({ field: { value, onChange }, fieldState: { error } }) => {
           return (
             <div>
               <ComponentForField
@@ -722,10 +767,13 @@ export const FormBuilderField = ({
               <ErrorMessage
                 name="responses"
                 errors={formState.errors}
-                render={({ message }) => {
-                  const name = message?.replace(/\{([^}]+)\}.*/, "$1");
-                  // Use the message targeted for it.
-                  if (name !== field.name) {
+                render={({ message }: { message: string | undefined }) => {
+                  message = message || "";
+                  // If the error comes due to parsing the `responses` object(which can have error for any field), we need to identify the field that has the error from the message
+                  const name = message.replace(/\{([^}]+)\}.*/, "$1");
+                  const isResponsesErrorForThisField = name === field.name;
+                  // If the error comes for the specific property of responses(Possible for system fields), then also we would go ahead and show the error
+                  if (!isResponsesErrorForThisField && !error) {
                     return null;
                   }
 
@@ -737,8 +785,8 @@ export const FormBuilderField = ({
                     <div
                       data-testid={`error-message-${field.name}`}
                       className="mt-2 flex items-center text-sm text-red-700 ">
-                      <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                      <p>{t(message)}</p>
+                      <Info className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                      <p>{t(message || "invalid_input")}</p>
                     </div>
                   );
                 }}

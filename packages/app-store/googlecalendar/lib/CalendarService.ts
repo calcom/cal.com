@@ -165,6 +165,7 @@ export default class GoogleCalendarService implements Calendar {
             type: "google_calendar",
             password: "",
             url: "",
+            iCalUID: event.data.iCalUID,
           });
         }
       );
@@ -201,6 +202,9 @@ export default class GoogleCalendarService implements Calendar {
             id: String(event.organizer.id),
             organizer: true,
             responseStatus: "accepted",
+            email: event.destinationCalendar?.externalId
+              ? event.destinationCalendar.externalId
+              : event.organizer.email,
           },
           // eslint-disable-next-line
           ...eventAttendees,
@@ -268,6 +272,7 @@ export default class GoogleCalendarService implements Calendar {
               type: "google_calendar",
               password: "",
               url: "",
+              iCalUID: evt.data.iCalUID,
             });
           }
           return resolve(evt?.data);

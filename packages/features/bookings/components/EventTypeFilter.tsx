@@ -50,13 +50,13 @@ export const EventTypeFilter = () => {
         {groupedEventTypes &&
           Object.keys(groupedEventTypes).map((teamName) => (
             <Fragment key={teamName}>
-              <div className="p-4 text-xs font-medium uppercase leading-none text-gray-500">
+              <div className="text-subtle p-4 text-xs font-medium uppercase leading-none">
                 {teamName === "user_own_event_types" ? t("individual") : teamName}
               </div>
               {groupedEventTypes[teamName].map((eventType) => (
                 <Fragment key={eventType.id}>
                   <div className="item-center flex px-4 py-[6px]">
-                    <p className="block self-center truncate text-sm font-medium text-gray-700">
+                    <p className="text-default block self-center truncate text-sm font-medium">
                       {eventType.title}
                     </p>
                     <div className="ml-auto">
@@ -64,7 +64,7 @@ export const EventTypeFilter = () => {
                         type="checkbox"
                         name=""
                         id=""
-                        className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300 ltr:mr-2 rtl:ml-2 "
+                        className="text-primary-600 focus:ring-primary-500 border-default h-4 w-4 rounded ltr:mr-2 rtl:ml-2 "
                       />
                     </div>
                   </div>
