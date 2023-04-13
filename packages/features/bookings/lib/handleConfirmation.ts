@@ -175,14 +175,12 @@ export async function handleConfirmation(args: {
 
         const isFirstBooking = index === 0;
 
-        await scheduleWorkflowReminders(
-          updatedBookings[index]?.eventType?.workflows || [],
-          updatedBookings[index].smsReminderNumber,
-          evtOfBooking,
-          false,
-          false,
-          isFirstBooking
-        );
+        await scheduleWorkflowReminders({
+          workflows: updatedBookings[index]?.eventType?.workflows || [],
+          smsReminderNumber: updatedBookings[index].smsReminderNumber,
+          calendarEvent: evtOfBooking,
+          isFirstRecurringEvent: isFirstBooking,
+        });
       }
     }
   } catch (error) {

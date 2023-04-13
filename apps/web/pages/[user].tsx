@@ -122,7 +122,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
         <main
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
-            isEmbed ? " border-bookinglightest  bg-default rounded-md border" : "",
+            isEmbed ? " border-booker border-booker-width  bg-default rounded-md border" : "",
             "max-w-3xl py-24 px-4"
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group

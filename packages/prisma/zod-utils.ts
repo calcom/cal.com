@@ -450,6 +450,15 @@ export const getAccessLinkResponseSchema = z.object({
 
 export type GetAccessLinkResponseSchema = z.infer<typeof getAccessLinkResponseSchema>;
 
+export const sendDailyVideoRecordingEmailsSchema = z.object({
+  recordingId: z.string(),
+  bookingUID: z.string(),
+});
+
+export const downloadLinkSchema = z.object({
+  download_link: z.string(),
+});
+
 // All properties within event type that can and will be updated if needed
 export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true } = {
   title: true,
