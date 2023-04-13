@@ -404,6 +404,13 @@ function getBookingData({
   const reqBody = bookingDataSchema.parse(req.body);
   if ("responses" in reqBody) {
     const responses = reqBody.responses;
+    const name = responses.name;
+    const providedFullName = typeof name === "string" ? name : "fullName" in name ? name.fullName : null;
+
+    // Keep responses.name backward compatible for default scenario which is providing fullName
+    // It is sent in webhook as is, so webhook response won't change
+    responses.name = providedFullName ? providedFullName : name;
+
     const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
       getCalEventResponses({
         bookingFields: eventType.bookingFields,
@@ -515,6 +522,14 @@ async function handler(
     isNotAnApiCall,
     eventType,
   });
+
+  const bookerNameString =
+    // Is it fair to assume the full name would be concatenation of first and last name?
+    typeof bookerName === "string"
+      ? bookerName
+      : "firstName" in bookerName
+      ? bookerName.firstName /* + " " + bookerName.lastName */
+      : bookerName.fullName;
 
   const tAttendees = await getTranslation(language ?? "en", "common");
   const tGuests = await getTranslation("en", "common");
@@ -719,7 +734,7 @@ async function handler(
   const invitee = [
     {
       email: bookerEmail,
-      name: bookerName,
+      name: bookerNameString,
       timeZone: reqBody.timeZone,
       language: { translate: tAttendees, locale: language ?? "en" },
     },
@@ -768,7 +783,7 @@ async function handler(
 
   const eventNameObject = {
     //TODO: Can we have an unnamed attendee? If not, I would really like to throw an error here.
-    attendeeName: bookerName || "Nameless",
+    attendeeName: bookerNameString || "Nameless",
     eventType: eventType.title,
     eventName: eventType.eventName,
     // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.

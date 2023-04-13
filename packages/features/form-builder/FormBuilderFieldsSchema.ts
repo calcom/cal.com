@@ -29,26 +29,36 @@ const fieldSchema = z.object({
   // TODO: We should make at least one of `defaultPlaceholder` and `placeholder` required. Do the same for label.
   label: z.string().optional(),
   placeholder: z.string().optional(),
+  variant: z.string().optional(),
 
   /**
    * Supports translation
    */
   defaultLabel: z.string().optional(),
   defaultPlaceholder: z.string().optional(),
-
-  subFields: z
-    .record(
-      z
-        .object({
-          name: z.string(),
-          type: fieldTypeEnum,
-          label: z.string().optional(),
-          defaultLabel: z.string().optional(),
-          defaultPlaceholder: z.string().optional(),
-          required: z.boolean().optional(),
+  //TODO: This is never supposed to be allowed to edit. Can we avoid it from being saved in DB?
+  variantsConfig: z
+    .object({
+      // TODO: Move all variant related props to a single object
+      toggleLabel: z.string().optional(),
+      // TODO: Make it key of variantsConfig
+      defaultVariant: z.string().optional(),
+      variants: z.record(
+        z.object({
+          label: z.string(),
+          fields: z
+            .object({
+              name: z.string(),
+              type: fieldTypeEnum,
+              label: z.string().optional(),
+              defaultLabel: z.string().optional(),
+              defaultPlaceholder: z.string().optional(),
+              required: z.boolean().optional(),
+            })
+            .array(),
         })
-        .array()
-    )
+      ),
+    })
     .optional(),
   views: z
     .object({

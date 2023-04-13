@@ -9,7 +9,17 @@ import type {
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingFieldType } from "@calcom/prisma/zod-utils";
-import { PhoneInput, AddressInput, Button, Label, Group, RadioField, EmailField, Tooltip } from "@calcom/ui";
+import {
+  PhoneInput,
+  AddressInput,
+  Button,
+  Label,
+  Group,
+  RadioField,
+  EmailField,
+  Tooltip,
+  InputField,
+} from "@calcom/ui";
 import { UserPlus, X } from "@calcom/ui/components/icon";
 
 import { ComponentForField } from "./FormBuilder";
@@ -55,7 +65,7 @@ type Component =
       ) => JSX.Element;
     }
   | {
-      propsType: "subFields";
+      propsType: "variants";
       factory: Function;
     };
 
@@ -77,40 +87,42 @@ export const Components: Record<BookingFieldType, Component> = {
     factory: (props) => <Widgets.NumberWidget noLabel={true} {...props} />,
   },
   name: {
-    propsType: "subFields",
+    propsType: "variants",
     // Keep special "name" type field and later build split(FirstName and LastName) variant of it.
     factory: (
       props: Omit<TextLikeComponentProps, "value" | "setValue"> & {
         variant: "firstAndLastName" | "fullName";
-        subFields: z.infer<typeof fieldsSchema>[number]["subFields"];
+        variants: NonNullable<z.infer<typeof fieldsSchema>[number]["variantsConfig"]>["variants"];
         value: Record<string, string>;
         setValue: (value: Record<string, string>) => void;
       }
     ) => {
-      const { variant = "firstAndLastName" } = props;
+      const { variant: variantName } = props;
       const onChange = (name: string, value: string) => {
         props.setValue({
           ...props.value,
           [name]: value,
         });
       };
-      if (!props.subFields) {
-        throw new Error("'subFields' is required for 'name' field");
+      if (!props.variants) {
+        throw new Error("'variantsConfig' is required for 'name' field");
       }
-      const subFields = props.subFields[variant];
+      const variant = props.variants[variantName];
       const value = props.value || {};
-      if (subFields) {
+      if (variant) {
         return (
           <div className="flex space-x-4">
-            {subFields.map((subField) => (
+            {variant.fields.map((variantField) => (
               <InputField
-                key={subField.name}
-                name={subField.name}
-                label={subField.label}
-                value={value[subField.name]}
+                key={variantField.name}
+                name={variantField.name}
+                label={variantField.label}
+                containerClassName="w-full"
+                value={value[variantField.name]}
+                required={variantField.required}
                 className="dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500"
                 type="text"
-                onChange={(e) => onChange(subField.name, e.target.value)}
+                onChange={(e) => onChange(variantField.name, e.target.value)}
               />
             ))}
           </div>
@@ -345,7 +357,7 @@ export const Components: Record<BookingFieldType, Component> = {
                         type="radio"
                         disabled={readOnly}
                         name={name}
-                        className="dark:bg-darkgray-300 border-subtle border-default text-emphasis h-4 w-4 focus:ring-black ltr:mr-2 rtl:ml-2"
+                        className="dark:bg-darkgray-300 border-default text-emphasis h-4 w-4 focus:ring-black ltr:mr-2 rtl:ml-2"
                         value={option.value}
                         onChange={(e) => {
                           setValue({

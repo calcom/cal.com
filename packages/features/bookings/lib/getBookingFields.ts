@@ -159,38 +159,53 @@ export const ensureBookingInputsHaveSystemFields = ({
   // These fields should be added before other user fields
   const systemBeforeFields: typeof bookingFields = [
     {
+      //TODO: Ensure that if type name is chosen, it asks for variants, firstAndLastName, fullName
       type: "name",
       name: "name",
       editable: "system",
       required: true,
-      // Variant supported
-      subFields: {
-        firstAndLastName: [
-          {
-            // Do we really need to configure the name here?
-            name: "firstName",
-            type: "text",
-            defaultLabel: "first_name",
-            label: "First Name",
-            required: true,
+
+      variantsConfig: {
+        defaultVariant: "fullName",
+        //Makes sense only when there are 2 variants
+        toggleLabel: 'Split "Full name" into “First name" and "Last name"',
+        variants: {
+          firstAndLastName: {
+            // This label isn't shown to user, it's just for us to show the variant name in UI
+            label: "First, Last Name",
+            fields: [
+              {
+                // Do we really need to configure the name here?
+                name: "firstName",
+                type: "text",
+                defaultLabel: "first_name",
+                label: "First Name",
+                required: true,
+              },
+              {
+                name: "lastName",
+                type: "text",
+                defaultLabel: "last_name",
+                label: "Last Name",
+                required: false,
+              },
+            ],
           },
-          {
-            name: "lastName",
-            type: "text",
-            defaultLabel: "last_name",
-            label: "Last Name",
-            required: false,
+          fullName: {
+            label: "your_name",
+            fields: [
+              {
+                // Can it be same as the name of the parent field?
+                name: "fullName",
+                type: "text",
+                defaultLabel: "your_name",
+                defaultPlaceholder: "example_name",
+                label: "Your Name",
+                required: true,
+              },
+            ],
           },
-        ],
-        fullName: [
-          {
-            name: "name",
-            type: "text",
-            defaultLabel: "your_name",
-            defaultPlaceholder: "example_name",
-            label: "Your Name",
-          },
-        ],
+        },
       },
       sources: [
         {

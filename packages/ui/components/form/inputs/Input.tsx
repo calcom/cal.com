@@ -123,6 +123,9 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           {...labelProps}
           className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-error")}>
           {label}
+          {!readOnly && passThrough.required ? (
+            <span className="text-default ml-1 font-medium">*</span>
+          ) : null}
           {LockedIcon}
         </Skeleton>
       )}

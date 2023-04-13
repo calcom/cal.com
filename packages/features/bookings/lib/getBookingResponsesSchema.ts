@@ -17,6 +17,8 @@ export const bookingResponse = z.union([
     optionValue: z.string(),
     value: z.string(),
   }),
+  // For variantsConfig case
+  z.record(z.string()),
 ]);
 
 export const bookingResponsesDbSchema = z.record(bookingResponse);
@@ -224,15 +226,24 @@ function preprocess<T extends z.ZodType>({
           return;
         }
 
-        if (bookingField.subFields) {
+        if (bookingField.variantsConfig) {
           // If name is sent as a string, then we use the parent field otherwise the variant would be available in response and according to that we validate the data
-          const variantInResponse = "firstAndLastName";
-          bookingField.subFields[variantInResponse].forEach((subField) => {
+          const variantInResponse = bookingField.variant;
+          if (!variantInResponse) {
+            throw new Error("`variant` must be there for booking field with `variantsConfig`");
+          }
+          bookingField.variantsConfig.variants[
+            variantInResponse as keyof typeof bookingField.variantsConfig.variants
+          ].fields.forEach((subField) => {
             const schema = stringSchema;
             const valueIdentified = value as unknown as Record<string, string>;
-            if (subField.required && !schema.safeParse(valueIdentified[subField.name]).success) {
-              debugger;
-              ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
+            if (subField.required) {
+              if (!schema.safeParse(valueIdentified[subField.name]).success) {
+                ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
+                return;
+              }
+              if (!isPartialSchema && !valueIdentified[subField.name])
+                ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
             }
           });
           return;

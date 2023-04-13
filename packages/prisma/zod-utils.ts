@@ -69,7 +69,12 @@ export type BookingFieldType = typeof BookingFieldType extends z.Values<infer T>
 export const bookingResponses = z
   .object({
     email: z.string(),
-    name: z.union([z.string(), z.object({ firstName: z.string(), lastName: z.string().optional() })]),
+    //TODO: Why don't we move name out of bookingResponses and let it be handled like user fields?
+    name: z.union([
+      z.string(),
+      z.object({ firstName: z.string(), lastName: z.string().optional() }),
+      z.object({ fullName: z.string() }),
+    ]),
     guests: z.array(z.string()).optional(),
     notes: z.string().optional(),
     location: z

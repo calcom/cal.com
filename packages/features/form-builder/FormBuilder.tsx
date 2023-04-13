@@ -33,6 +33,7 @@ type RhfForm = {
 };
 
 type RhfFormFields = RhfForm["fields"];
+
 type RhfFormField = RhfFormFields[number];
 
 /**
@@ -271,7 +272,6 @@ export const FormBuilder = function FormBuilder({
 
   const fieldType = FieldTypesMap[fieldForm.watch("type") || "text"];
   const isFieldEditMode = fieldDialog.fieldIndex !== -1;
-
   return (
     <div>
       <div>
@@ -340,7 +340,19 @@ export const FormBuilder = function FormBuilder({
                 <div>
                   <div className="flex flex-col lg:flex-row lg:items-center">
                     <div className="text-default text-sm font-semibold ltr:mr-2 rtl:ml-2">
-                      {field.label || t(field.defaultLabel || "")}
+                      {(() => {
+                        if (!field.variantsConfig) {
+                          return field.label || t(field.defaultLabel || "");
+                        }
+                        const variant = field.variant || field.variantsConfig.defaultVariant;
+                        if (!variant) {
+                          throw new Error("Field has variantsConfig but no defaultVariant");
+                        }
+                        return t(
+                          field.variantsConfig.variants[variant as keyof typeof field.variantsConfig.variants]
+                            .label
+                        );
+                      })()}
                     </div>
                     <div className="flex items-center space-x-2">
                       {field.hidden ? (
@@ -472,6 +484,39 @@ export const FormBuilder = function FormBuilder({
                 options={FieldTypes.filter((f) => !f.systemOnly)}
                 label={t("input_type")}
               />
+              {(() => {
+                const variantsConfig = fieldForm.getValues("variantsConfig");
+                const variantToggleLabel = variantsConfig?.toggleLabel;
+
+                if (!variantsConfig || !variantToggleLabel) {
+                  return null;
+                }
+
+                const defaultVariant = variantsConfig.defaultVariant;
+                if (!defaultVariant) {
+                  throw new Error("Field has variantsConfig but no defaultVariant");
+                }
+
+                const variants = Object.keys(variantsConfig.variants);
+                const otherVariants = variants.filter((v) => v !== defaultVariant);
+                if (otherVariants.length > 1) {
+                  throw new Error("More than one other variant. Remove toggleLabel ");
+                }
+                const otherVariant = otherVariants[0];
+                const variant = fieldForm.watch("variant");
+                return (
+                  <Switch
+                    checked={variant !== defaultVariant}
+                    label={variantToggleLabel}
+                    onCheckedChange={(checked) => {
+                      fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
+                    }}
+                    classNames={{ container: "p-2 hover:bg-gray-100 rounded" }}
+                    tooltip={t("show_on_booking_page")}
+                  />
+                );
+              })()}
+
               <InputField
                 required
                 {...fieldForm.register("name")}
@@ -620,7 +665,7 @@ export const ComponentForField = ({
       select: typeof val === "string",
       text: typeof val === "string",
       textList: val instanceof Array && val.every((v) => typeof v === "string"),
-      subFields: typeof val === "object" && val !== null,
+      variants: typeof val === "object" && val !== null,
     } as const;
     if (!propsTypeConditionMap[propsType])
       throw new Error(`Invalid value for propsType ${propsType}:"${JSON.stringify(val)}"`);
@@ -735,15 +780,19 @@ export const ComponentForField = ({
     ) : null;
   }
 
-  if (componentConfig.propsType === "subFields") {
+  if (componentConfig.propsType === "variants") {
+    if (!field.variantsConfig?.variants) {
+      throw new Error("Field variantsConfig.variants is not defined");
+    }
     return (
       <componentConfig.factory
         placeholder={field.placeholder}
         readOnly={readOnly}
         name={field.name}
+        variant={field.variant}
         value={value as { value: string; optionValue: string }}
         setValue={setValue as (arg: typeof value) => void}
-        subFields={field.subFields}
+        variants={field.variantsConfig.variants}
       />
     );
   }
@@ -814,5 +863,5 @@ export const FormBuilderField = ({
   );
 };
 function assertUnreachable(arg: never) {
-  throw new Error(`Don't know how to handle ${arg}`);
+  throw new Error(`Don't know how to handle ${JSON.stringify(arg)}`);
 }
