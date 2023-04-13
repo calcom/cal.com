@@ -655,10 +655,6 @@ export const eventTypesRouter = router({
         set: [],
         connect: users.map((userId: number) => ({ id: userId })),
       };
-    } else {
-      data.users = {
-        set: [],
-      };
     }
 
     if (hosts) {
