@@ -19,9 +19,9 @@ export async function GET() {
   return NextResponse.json({
     coldStart,
     ...result,
-    prismaImportTime: endImport - startImport,
-    prismaConnectionTime: endConnection - startConnection,
-    prismaQueryTime: endCount - startCount,
+    pgImportTime: endImport - startImport,
+    pgConnectionTime: endConnection - startConnection,
+    pgQueryTime: endCount - startCount,
     date: new Date().toISOString(),
   });
 }
