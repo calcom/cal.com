@@ -736,9 +736,6 @@
   "minimum_booking_notice": "Senaste tid för att boka",
   "slot_interval": "Tid mellan bokningar",
   "slot_interval_default": "Använd händelsens längd (standard)",
-  "delete_event_type_description": "Är du säker på att du vill ta bort denna händelsetyp? Alla som du har delat den här länken med kommer inte längre att kunna boka med den.",
-  "delete_event_type": "Radera händelsetyp",
-  "confirm_delete_event_type": "Ja, radera händelsetyp",
   "delete_account": "Radera konto",
   "confirm_delete_account": "Ja, radera konto",
   "delete_account_confirmation_message": "Är du säker på att du vill radera ditt {{appName}} konto? Alla som du har delat din kontolänk med kommer inte längre att kunna boka med hjälp av den och eventuella inställningar du har sparat kommer att gå förlorade.",
@@ -1652,8 +1649,8 @@
   "verification_code": "Verifieringskod",
   "can_you_try_again": "Kan du försöka igen med en annan tid?",
   "verify": "Verifiera",
-  "invalid_event_name_variables": "Det finns en ogiltig variabel i ditt händelsenamn",
   "select_all": "Välj alla",
   "default_conferencing_bulk_title": "Uppdatera befintliga händelsetyper i bulk",
+  "invalid_event_name_variables": "Det finns en ogiltig variabel i ditt händelsenamn",
   "default_conferencing_bulk_description": "Uppdatera platserna för de valda händelsetyperna"
 }

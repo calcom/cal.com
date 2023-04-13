@@ -28,16 +28,7 @@ import {
   TableActions,
   TextAreaField,
 } from "@calcom/ui";
-import {
-  FiCheck,
-  FiClock,
-  FiMapPin,
-  FiRefreshCcw,
-  FiSend,
-  FiSlash,
-  FiX,
-  FiCreditCard,
-} from "@calcom/ui/components/icon";
+import { Check, Clock, MapPin, RefreshCcw, Send, Slash, X, CreditCard } from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -125,7 +116,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setRejectionDialogIsOpen(true);
       },
-      icon: FiSlash,
+      icon: Slash,
       disabled: mutation.isLoading,
     },
     // For bookings with payment, only confirm if the booking is paid for
@@ -137,7 +128,7 @@ function BookingListItem(booking: BookingItemProps) {
             onClick: () => {
               bookingConfirm(true);
             },
-            icon: FiCheck,
+            icon: Check,
             disabled: mutation.isLoading,
           },
         ]
@@ -165,7 +156,7 @@ function BookingListItem(booking: BookingItemProps) {
         isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
       }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
       `,
-      icon: FiX,
+      icon: X,
     },
     {
       id: "edit_booking",
@@ -173,7 +164,7 @@ function BookingListItem(booking: BookingItemProps) {
       actions: [
         {
           id: "reschedule",
-          icon: FiClock,
+          icon: Clock,
           label: t("reschedule_booking"),
           href: `/reschedule/${booking.uid}${
             booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
@@ -181,7 +172,7 @@ function BookingListItem(booking: BookingItemProps) {
         },
         {
           id: "reschedule_request",
-          icon: FiSend,
+          icon: Send,
           iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
           label: t("send_reschedule_request"),
           onClick: () => {
@@ -194,7 +185,7 @@ function BookingListItem(booking: BookingItemProps) {
           onClick: () => {
             setIsOpenLocationDialog(true);
           },
-          icon: FiMapPin,
+          icon: MapPin,
         },
       ],
     },
@@ -208,7 +199,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setChargeCardDialogIsOpen(true);
       },
-      icon: FiCreditCard,
+      icon: CreditCard,
     },
   ];
 
@@ -222,7 +213,7 @@ function BookingListItem(booking: BookingItemProps) {
 
   const RequestSentMessage = () => {
     return (
-      <Badge startIcon={FiSend} size="md" variant="gray" data-testid="request_reschedule_sent">
+      <Badge startIcon={Send} size="md" variant="gray" data-testid="request_reschedule_sent">
         {t("reschedule_request_sent")}
       </Badge>
     );
@@ -518,7 +509,7 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                 );
               })}>
               <div className="text-default">
-                <FiRefreshCcw
+                <RefreshCcw
                   strokeWidth="3"
                   className="text-muted float-left mr-1 mt-1.5 inline-block h-3 w-3"
                 />

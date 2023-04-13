@@ -736,9 +736,6 @@
   "minimum_booking_notice": "Preavviso minimo",
   "slot_interval": "Intervalli di fascia oraria",
   "slot_interval_default": "Usa durata evento (impostazione predefinita)",
-  "delete_event_type_description": "Sei sicuro di voler eliminare questo tipo di evento? Chiunque abbia condiviso questo link non potrà più utilizzarlo per prenotare.",
-  "delete_event_type": "Elimina Tipo Evento",
-  "confirm_delete_event_type": "Sì, elimina tipo evento",
   "delete_account": "Elimina account",
   "confirm_delete_account": "Sì, elimina account",
   "delete_account_confirmation_message": "Sei sicuro di voler eliminare il tuo account {{appName}}? Chiunque abbia il link del tuo account non potrà più utilizzarlo per prenotare e le preferenze che hai salvato andranno perse.",
@@ -1652,8 +1649,8 @@
   "verification_code": "Codice di verifica",
   "can_you_try_again": "Riprovare specificando un orario differente.",
   "verify": "Verifica",
-  "invalid_event_name_variables": "Nel nome dell'evento è presente una variabile non valida",
   "select_all": "Seleziona tutto",
   "default_conferencing_bulk_title": "Aggiorna in blocco i tipi di eventi esistenti",
+  "invalid_event_name_variables": "Nel nome dell'evento è presente una variabile non valida",
   "default_conferencing_bulk_description": "Aggiorna le posizioni per i tipi di eventi selezionati"
 }

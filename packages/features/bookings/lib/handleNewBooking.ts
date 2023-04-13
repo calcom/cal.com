@@ -1582,11 +1582,10 @@ async function handler(
     }
 
     if (typeof paymentAppData.price === "number" && paymentAppData.price > 0) {
-      /* Validate if there is any stripe_payment credential for this user */
-      /*  note: removes custom error message about stripe */
+      /* Validate if there is any payment app credential for this user */
       await prisma.credential.findFirstOrThrow({
         where: {
-          type: "stripe_payment",
+          appId: paymentAppData.appId,
           userId: organizerUser.id,
         },
         select: {

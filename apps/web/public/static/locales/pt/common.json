@@ -736,9 +736,6 @@
   "minimum_booking_notice": "Aviso de mínimo",
   "slot_interval": "Intervalos do horário",
   "slot_interval_default": "Usar duração do evento (por omissão)",
-  "delete_event_type_description": "De certeza que quer eliminar este tipo de evento? Qualquer pessoa com quem tenha partilhado esta ligação deixará de poder fazer reservas através da respectiva ligação.",
-  "delete_event_type": "Apagar Tipo de Evento",
-  "confirm_delete_event_type": "Sim, apagar tipo de evento",
   "delete_account": "Eliminar conta",
   "confirm_delete_account": "Sim, eliminar conta",
   "delete_account_confirmation_message": "De certeza que quer eliminar a sua conta {{appName}}? Qualquer pessoa com quem tenha partilhado esta ligação de equipa deixará de poder fazer reservas através da respetiva ligação, e quaisquer preferências que tenha guardado serão perdidas.",
@@ -1652,8 +1649,8 @@
   "verification_code": "Código de verificação",
   "can_you_try_again": "Pode tentar novamente noutra altura?",
   "verify": "Verificar",
-  "invalid_event_name_variables": "Existe uma variável inválida no nome do seu evento",
   "select_all": "Selecionar tudo",
   "default_conferencing_bulk_title": "Atualizar os tipos de evento existentes em conjunto",
+  "invalid_event_name_variables": "Existe uma variável inválida no nome do seu evento",
   "default_conferencing_bulk_description": "Atualizar os locais para os tipos de evento selecionados"
 }

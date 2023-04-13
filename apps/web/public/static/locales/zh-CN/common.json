@@ -736,9 +736,6 @@
   "minimum_booking_notice": "最小预约通知提前时间",
   "slot_interval": "时间段间隔",
   "slot_interval_default": "使用活动时长 (默认)",
-  "delete_event_type_description": "您确定要删除此活动类型吗？ 任何曾使用该链接的人都将无法再使用它和您预约。",
-  "delete_event_type": "删除活动类型",
-  "confirm_delete_event_type": "是，删除活动类型",
   "delete_account": "删除账户",
   "confirm_delete_account": "是，删除账户",
   "delete_account_confirmation_message": "您确定要删除您的 {{appName}} 账户？ 任何曾通过您的账户链接与您预约过的人都将无法再使用它和您预约，您保存的任何偏好设置都将丢失。",
@@ -1653,8 +1650,8 @@
   "verification_code": "验证码",
   "can_you_try_again": "可否用不同的时间再次尝试？",
   "verify": "验证",
-  "invalid_event_name_variables": "活动名称中存在无效变量",
   "select_all": "全选",
   "default_conferencing_bulk_title": "批量更新现有事件类型",
+  "invalid_event_name_variables": "活动名称中存在无效变量",
   "default_conferencing_bulk_description": "更新选定活动类型的位置"
 }

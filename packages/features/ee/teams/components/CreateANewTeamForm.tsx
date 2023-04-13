@@ -9,7 +9,7 @@ import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Form, ImageUploader, TextField, Alert } from "@calcom/ui";
-import { FiArrowRight } from "@calcom/ui/components/icon";
+import { ArrowRight } from "@calcom/ui/components/icon";
 
 import type { NewTeamFormValues } from "../lib/types";
 
@@ -151,7 +151,7 @@ export const CreateANewTeamForm = () => {
           <Button
             disabled={newTeamFormMethods.formState.isSubmitting || createTeamMutation.isLoading}
             color="primary"
-            EndIcon={FiArrowRight}
+            EndIcon={ArrowRight}
             type="submit"
             className="w-full justify-center">
             {t("continue")}

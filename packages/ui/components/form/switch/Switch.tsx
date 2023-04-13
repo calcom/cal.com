@@ -17,6 +17,7 @@ const Switch = (
   props: React.ComponentProps<typeof PrimitiveSwitch.Root> & {
     label?: string;
     fitToHeight?: boolean;
+    disabled?: boolean;
     tooltip?: string;
     classNames?: {
       container?: string;

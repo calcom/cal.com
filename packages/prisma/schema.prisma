@@ -21,6 +21,7 @@ generator zod {
 enum SchedulingType {
   ROUND_ROBIN @map("roundRobin")
   COLLECTIVE  @map("collective")
+  MANAGED     @map("managed")
 }
 
 enum PeriodType {
@@ -64,6 +65,9 @@ model EventType {
   destinationCalendar     DestinationCalendar?
   eventName               String?
   customInputs            EventTypeCustomInput[]
+  parentId                Int?
+  parent                  EventType?              @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
+  children                EventType[]             @relation("managed_eventtype")
   /// @zod.custom(imports.eventTypeBookingFields)
   bookingFields           Json?
   timeZone                String?
@@ -103,6 +107,7 @@ model EventType {
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
+  @@unique([userId, parentId])
 }
 
 model Credential {

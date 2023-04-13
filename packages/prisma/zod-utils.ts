@@ -1,5 +1,7 @@
+import type { Prisma } from "@prisma/client";
 import { EventTypeCustomInputType } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
+import { pick } from "lodash";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 /* eslint-disable no-underscore-dangle */
@@ -39,6 +41,11 @@ export const EventTypeMetaDataSchema = z
     apps: z.object(appDataSchemas).partial().optional(),
     additionalNotesRequired: z.boolean().optional(),
     disableSuccessPage: z.boolean().optional(),
+    managedEventConfig: z
+      .object({
+        unlockedFields: z.custom<{ [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true }>().optional(),
+      })
+      .optional(),
     requiresConfirmationThreshold: z
       .object({
         time: z.number(),
@@ -442,3 +449,51 @@ export const getAccessLinkResponseSchema = z.object({
 });
 
 export type GetAccessLinkResponseSchema = z.infer<typeof getAccessLinkResponseSchema>;
+
+// All properties within event type that can and will be updated if needed
+export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true } = {
+  title: true,
+  description: true,
+  currency: true,
+  periodDays: true,
+  position: true,
+  price: true,
+  slug: true,
+  length: true,
+  locations: true,
+  hidden: true,
+  availability: true,
+  recurringEvent: true,
+  customInputs: true,
+  disableGuests: true,
+  requiresConfirmation: true,
+  eventName: true,
+  metadata: true,
+  children: true,
+  hideCalendarNotes: true,
+  minimumBookingNotice: true,
+  beforeEventBuffer: true,
+  afterEventBuffer: true,
+  successRedirectUrl: true,
+  seatsPerTimeSlot: true,
+  seatsShowAttendees: true,
+  periodType: true,
+  hashedLink: true,
+  webhooks: true,
+  periodStartDate: true,
+  periodEndDate: true,
+  destinationCalendar: true,
+  periodCountCalendarDays: true,
+  bookingLimits: true,
+  slotInterval: true,
+  schedule: true,
+  workflows: true,
+  bookingFields: true,
+  durationLimits: true,
+};
+
+// All properties that are defined as unlocked based on all managed props
+// Eventually this is going to be just a default and the user can change the config through the UI
+export const unlockedManagedEventTypeProps = {
+  ...pick(allManagedEventTypeProps, ["locations", "schedule", "destinationCalendar"]),
+};
