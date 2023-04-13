@@ -2,7 +2,7 @@ import { SkeletonAvatar, SkeletonText } from "@calcom/ui";
 
 function SkeletonLoader() {
   return (
-    <ul className="bg-default animate-pulse divide-neutral-200 sm:overflow-hidden">
+    <ul className="bg-default divide-subtle animate-pulse sm:overflow-hidden">
       <SkeletonItem />
       <SkeletonItem />
     </ul>

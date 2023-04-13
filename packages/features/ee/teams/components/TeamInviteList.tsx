@@ -47,7 +47,7 @@ export default function TeamInviteList(props: Props) {
 
   return (
     <div>
-      <ul className="bg-default mb-8 divide-y divide-neutral-200 rounded">
+      <ul className="bg-default divide-subtle mb-8 divide-y rounded">
         {props.teams.map((team) => (
           <TeamInviteListItem
             key={team?.id as number}

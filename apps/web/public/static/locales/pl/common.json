@@ -736,9 +736,6 @@
   "minimum_booking_notice": "Minimalne powiadomienie",
   "slot_interval": "Przedziały czasowe",
   "slot_interval_default": "Użyj długości zdarzenia (domyślnie)",
-  "delete_event_type_description": "Czy na pewno chcesz usunąć ten typ wydarzenia? Każdy, kto podzieliłeś się tym linkiem nie będzie już mógł zarezerwować za jego użyciem.",
-  "delete_event_type": "Usuń typ wydarzenia",
-  "confirm_delete_event_type": "Tak, usuń typ wydarzenia",
   "delete_account": "Usuń konto",
   "confirm_delete_account": "Tak, usuń konto",
   "delete_account_confirmation_message": "Czy na pewno chcesz usunąć swój {{appName}}. umówić konto? Każdy, kto udostępnił link do Twojego konta, nie będzie już mógł zarezerwować za jego pomocą i wszystkie zapisane preferencje zostaną utracone.",
@@ -1652,8 +1649,8 @@
   "verification_code": "Kod weryfikacyjny",
   "can_you_try_again": "Możesz spróbować ponownie w innym terminie?",
   "verify": "Zweryfikuj",
-  "invalid_event_name_variables": "W Twojej nazwie wydarzenia występuje nieprawidłowa zmienna.",
   "select_all": "Zaznacz wszystko",
   "default_conferencing_bulk_title": "Zbiorcza aktualizacja istniejących typów wydarzeń",
+  "invalid_event_name_variables": "W Twojej nazwie wydarzenia występuje nieprawidłowa zmienna.",
   "default_conferencing_bulk_description": "Aktualizuj lokalizacje wybranych typów wydarzeń"
 }

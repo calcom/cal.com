@@ -268,6 +268,14 @@ export const bookingsRouter = router({
           },
           status: true,
           paid: true,
+          payment: {
+            select: {
+              paymentOption: true,
+              amount: true,
+              currency: true,
+              success: true,
+            },
+          },
           user: {
             select: {
               id: true,

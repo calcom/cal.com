@@ -42,7 +42,7 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { Button, Form, Tooltip, useCalcomTheme } from "@calcom/ui";
-import { FiAlertTriangle, FiCalendar, FiRefreshCw, FiUser } from "@calcom/ui/components/icon";
+import { AlertTriangle, Calendar, RefreshCw, User } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
@@ -529,16 +529,16 @@ const BookingPage = ({
           className={classNames(
             "main",
             isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-default dark:border",
-            "dark:border-darkgray-300 rounded-md sm:border"
+            "border-subtle rounded-md sm:border"
           )}>
           <div className="sm:flex">
             {showEventTypeDetails && (
-              <div className="sm:dark:border-darkgray-300  text-default flex flex-col px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6">
+              <div className="sm:border-subtle  text-default flex flex-col px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
-                  <BookingDescriptionPayment eventType={eventType} />
+                  <BookingDescriptionPayment eventType={eventType} t={t} />
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
                     <div className="dark:text-inverted text-default items-start text-sm font-medium">
-                      <FiRefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                      <RefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                       <p className="-ml-2 inline-block items-center px-2">
                         {getEveryFreqFor({
                           t,
@@ -549,7 +549,7 @@ const BookingPage = ({
                     </div>
                   )}
                   <div className="text-bookinghighlight flex items-start text-sm">
-                    <FiCalendar className="ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                    <Calendar className="ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                     <div className="text-sm font-medium">
                       {isClientTimezoneAvailable &&
                         (rescheduleUid || !eventType.recurringEvent?.freq) &&
@@ -580,7 +580,7 @@ const BookingPage = ({
                         {t("former_time")}
                       </p>
                       <p className="line-through ">
-                        <FiCalendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                        <Calendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                         {isClientTimezoneAvailable &&
                           typeof booking.startTime === "string" &&
                           parseDate(dayjs(booking.startTime), i18n, timeFormat)}
@@ -589,7 +589,7 @@ const BookingPage = ({
                   )}
                   {!!eventType.seatsPerTimeSlot && (
                     <div className="text-bookinghighlight flex items-start text-sm">
-                      <FiUser
+                      <User
                         className={`ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] ${
                           currentSlotBooking &&
                           currentSlotBooking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
@@ -672,7 +672,7 @@ function ErrorMessage({ error }: { error: unknown }) {
     <div data-testid="booking-fail" className="mt-2 border-l-4 border-blue-400 bg-blue-50 p-4">
       <div className="flex">
         <div className="flex-shrink-0">
-          <FiAlertTriangle className="h-5 w-5 text-blue-400" aria-hidden="true" />
+          <AlertTriangle className="h-5 w-5 text-blue-400" aria-hidden="true" />
         </div>
         <div className="ms-3">
           <p className="text-sm text-blue-700">

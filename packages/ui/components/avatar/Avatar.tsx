@@ -7,7 +7,7 @@ import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
 
 import type { Maybe } from "@trpc/server";
 
-import { FiCheck } from "../icon";
+import { Check } from "../icon";
 
 export type AvatarProps = {
   className?: string;
@@ -62,7 +62,7 @@ export function Avatar(props: AvatarProps) {
               size === "lg" ? "h-5 w-5" : "h-2 w-2"
             )}>
             <div className="flex h-full items-center justify-center p-[2px]">
-              {size === "lg" && <FiCheck />}
+              {size === "lg" && <Check />}
             </div>
           </div>
         )}
