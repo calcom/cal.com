@@ -55,7 +55,7 @@ const DateOverrideList = ({
   return (
     <ul className="border-subtle rounded border" data-testid="date-overrides-list">
       {items.sort(sortByDate).map((item, index) => (
-        <li key={item.id} className="flex justify-between border-b px-5 py-4 last:border-b-0">
+        <li key={item.id} className="border-subtle flex justify-between border-b px-5 py-4 last:border-b-0">
           <div>
             <h3 className="text-emphasis text-sm">
               {new Intl.DateTimeFormat("en-GB", {
