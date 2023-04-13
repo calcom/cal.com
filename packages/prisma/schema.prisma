@@ -723,3 +723,16 @@ enum FeatureType {
   KILL_SWITCH
   PERMISSION
 }
+
+model SelectedSlots {
+  id               Int      @id @default(autoincrement())
+  eventTypeId      Int
+  userId           Int
+  slotUtcStartDate DateTime
+  slotUtcEndDate   DateTime
+  uid              String
+  releaseAt        DateTime
+  isSeat           Boolean  @default(false)
+
+  @@unique(fields: [userId, slotUtcStartDate, slotUtcEndDate, uid], name: "selectedSlotUnique")
+}

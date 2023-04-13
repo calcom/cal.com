@@ -158,7 +158,6 @@ const publicViewerRouter = router({
         };
       }
     }),
-  // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
   cityTimezones: publicProcedure.query(async () => {
     /**
@@ -1330,7 +1329,6 @@ export const viewerRouter = mergeRouters(
     teams: viewerTeamsRouter,
     webhook: webhookRouter,
     apiKeys: apiKeysRouter,
-    slots: slotsRouter,
     workflows: workflowsRouter,
     saml: ssoRouter,
     insights: insightsRouter,
