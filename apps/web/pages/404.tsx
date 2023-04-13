@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HeadSeo } from "@calcom/ui";
-import { FiBookOpen, FiCheck, FiChevronRight, FiFileText } from "@calcom/ui/components/icon";
+import { BookOpen, Check, ChevronRight, FileText } from "@calcom/ui/components/icon";
 
 import { ssgInit } from "@server/lib/ssg";
 
@@ -20,13 +20,13 @@ export default function Custom404() {
     {
       title: t("documentation"),
       description: t("documentation_description"),
-      icon: FiFileText,
+      icon: FileText,
       href: DOCS_URL,
     },
     {
       title: t("blog"),
       description: t("blog_description"),
-      icon: FiBookOpen,
+      icon: BookOpen,
       href: `${WEBSITE_URL}/blog`,
     },
   ];
@@ -112,7 +112,7 @@ export default function Custom404() {
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
-                          <FiCheck className="h-6 w-6 text-green-500" aria-hidden="true" />
+                          <Check className="h-6 w-6 text-green-500" aria-hidden="true" />
                         </span>
                       </div>
                       <div className="min-w-0 flex-1">
@@ -127,7 +127,7 @@ export default function Custom404() {
                         <p className="text-subtle text-base">{t("the_infrastructure_plan")}</p>
                       </div>
                       <div className="flex-shrink-0 self-center">
-                        <FiChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
+                        <ChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
                       </div>
                     </a>
                   </li>
@@ -140,7 +140,7 @@ export default function Custom404() {
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
-                          <FiFileText className="text-default h-6 w-6" aria-hidden="true" />
+                          <FileText className="text-default h-6 w-6" aria-hidden="true" />
                         </span>
                       </div>
                       <div className="min-w-0 flex-1">
@@ -153,7 +153,7 @@ export default function Custom404() {
                         <p className="text-subtle text-base">{t("prisma_studio_tip_description")}</p>
                       </div>
                       <div className="flex-shrink-0 self-center">
-                        <FiChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
+                        <ChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
                       </div>
                     </Link>
                   </li>
@@ -198,7 +198,7 @@ export default function Custom404() {
                         <p className="text-subtle text-base">{t("join_our_community")}</p>
                       </div>
                       <div className="flex-shrink-0 self-center">
-                        <FiChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
+                        <ChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
                       </div>
                     </a>
                   </li>
@@ -257,7 +257,7 @@ export default function Custom404() {
                         rel="noreferrer">
                         <div className="flex-shrink-0">
                           <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
-                            <FiCheck className="h-6 w-6 text-green-500" aria-hidden="true" />
+                            <Check className="h-6 w-6 text-green-500" aria-hidden="true" />
                           </span>
                         </div>
                         <div className="min-w-0 flex-1">
@@ -272,7 +272,7 @@ export default function Custom404() {
                           <p className="text-subtle text-base">{t("claim_username_and_schedule_events")}</p>
                         </div>
                         <div className="flex-shrink-0 self-center">
-                          <FiChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
+                          <ChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
                         </div>
                       </a>
                     </li>
@@ -300,7 +300,7 @@ export default function Custom404() {
                           <p className="text-subtle text-base">{link.description}</p>
                         </div>
                         <div className="flex-shrink-0 self-center">
-                          <FiChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
+                          <ChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
                         </div>
                       </Link>
                     </li>
@@ -346,7 +346,7 @@ export default function Custom404() {
                         <p className="text-subtle text-base">{t("join_our_community")}</p>
                       </div>
                       <div className="flex-shrink-0 self-center">
-                        <FiChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
+                        <ChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
                       </div>
                     </a>
                   </li>

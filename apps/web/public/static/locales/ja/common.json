@@ -736,9 +736,6 @@
   "minimum_booking_notice": "最低頻度の通知",
   "slot_interval": "時間帯の間隔",
   "slot_interval_default": "イベントの長さを使用する (デフォルト)",
-  "delete_event_type_description": "このイベントタイプを削除してもよろしいですか？ あなたがこのリンクを共有した人は、それを使って予約することができなくなります。",
-  "delete_event_type": "イベントタイプを削除する",
-  "confirm_delete_event_type": "はい、イベントタイプを削除します",
   "delete_account": "アカウントを削除する",
   "confirm_delete_account": "はい。アカウントを削除します",
   "delete_account_confirmation_message": "あなたの {{appName}} アカウントを本当に削除してもよろしいですか？あなたのアカウントリンクを共有しているユーザーは、そのアカウントを使用して予約を行うことができなくなり、保存していた設定も失われます。",
@@ -1652,8 +1649,8 @@
   "verification_code": "確認コード",
   "can_you_try_again": "別のタイミングでもう1度お試しください",
   "verify": "確認する",
-  "invalid_event_name_variables": "イベント名に無効な変数があります",
   "select_all": "すべてを選択",
   "default_conferencing_bulk_title": "既存のイベントタイプを一括更新する",
+  "invalid_event_name_variables": "イベント名に無効な変数があります",
   "default_conferencing_bulk_description": "選択したイベントタイプの場所を更新します"
 }

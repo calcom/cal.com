@@ -21,6 +21,7 @@ export const metadata = {
   url: "https://cal.com/",
   verified: true,
   email: "help@cal.com",
+  dirName: "caldavcalendar",
 } as App;
 
 export * as api from "./api";

@@ -15,7 +15,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Button, Dialog, DialogClose, DialogContent, Input, Label } from "@calcom/ui";
-import { FiCheck, FiEdit2, FiExternalLink } from "@calcom/ui/components/icon";
+import { Check, Edit2, ExternalLink } from "@calcom/ui/components/icon";
 
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",
@@ -235,7 +235,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 usernameIsAvailable ? "" : ""
               )}>
               {isInputUsernamePremium ? <StarIconSolid className="mt-[2px] w-6" /> : <></>}
-              {!isInputUsernamePremium && usernameIsAvailable ? <FiCheck className="mt-2 w-6" /> : <></>}
+              {!isInputUsernamePremium && usernameIsAvailable ? <Check className="mt-2 w-6" /> : <></>}
             </span>
           </div>
         </div>
@@ -251,7 +251,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
       <Dialog open={openDialogSaveUsername}>
         <DialogContent
-          Icon={FiEdit2}
+          Icon={Edit2}
           title={t("confirm_username_change_dialog_title")}
           description={
             <>
@@ -288,7 +288,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 data-testid="go-to-billing"
                 href={paymentLink}>
                 <>
-                  {t("go_to_stripe_billing")} <FiExternalLink className="ml-1 h-4 w-4" />
+                  {t("go_to_stripe_billing")} <ExternalLink className="ml-1 h-4 w-4" />
                 </>
               </Button>
             )}

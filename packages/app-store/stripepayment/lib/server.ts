@@ -6,6 +6,11 @@ export type StripePaymentData = Stripe.Response<Stripe.PaymentIntent> & {
   stripeAccount: string;
 };
 
+export type StripeSetupIntentData = {
+  setupIntent: Stripe.Response<Stripe.SetupIntent>;
+  paymentIntent?: StripePaymentData;
+};
+
 export const stripeOAuthTokenSchema = z.object({
   access_token: z.string().optional(),
   scope: z.string().optional(),

@@ -5,7 +5,7 @@ import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, SkeletonText } from "@calcom/ui";
-import { FiX } from "@calcom/ui/components/icon";
+import { X } from "@calcom/ui/components/icon";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
@@ -29,7 +29,7 @@ export default function Error() {
     <AuthContainer title="" description="">
       <div>
         <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-          <FiX className="h-6 w-6 text-red-600" />
+          <X className="h-6 w-6 text-red-600" />
         </div>
         <div className="mt-3 text-center sm:mt-5">
           <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">

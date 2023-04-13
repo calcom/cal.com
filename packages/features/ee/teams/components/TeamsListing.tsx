@@ -5,7 +5,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, ButtonGroup, Label } from "@calcom/ui";
-import { FiUsers, FiRefreshCcw, FiUserPlus, FiMail, FiVideo, FiEyeOff } from "@calcom/ui/components/icon";
+import { Users, RefreshCcw, UserPlus, Mail, Video, EyeOff } from "@calcom/ui/components/icon";
 
 import { UpgradeTip } from "../../../tips";
 import SkeletonLoaderTeamList from "./SkeletonloaderTeamList";
@@ -26,32 +26,32 @@ export function TeamsListing() {
 
   const features = [
     {
-      icon: <FiUsers className="h-5 w-5 text-red-500" />,
+      icon: <Users className="h-5 w-5 text-red-500" />,
       title: t("collective_scheduling"),
       description: t("make_it_easy_to_book"),
     },
     {
-      icon: <FiRefreshCcw className="h-5 w-5 text-blue-500" />,
+      icon: <RefreshCcw className="h-5 w-5 text-blue-500" />,
       title: t("round_robin"),
       description: t("find_the_best_person"),
     },
     {
-      icon: <FiUserPlus className="h-5 w-5 text-green-500" />,
+      icon: <UserPlus className="h-5 w-5 text-green-500" />,
       title: t("fixed_round_robin"),
       description: t("add_one_fixed_attendee"),
     },
     {
-      icon: <FiMail className="h-5 w-5 text-orange-500" />,
+      icon: <Mail className="h-5 w-5 text-orange-500" />,
       title: t("sms_attendee_action"),
       description: t("make_it_easy_to_book"),
     },
     {
-      icon: <FiVideo className="h-5 w-5 text-purple-500" />,
+      icon: <Video className="h-5 w-5 text-purple-500" />,
       title: "Cal Video" + " " + t("recordings_title"),
       description: t("upgrade_to_access_recordings_description"),
     },
     {
-      icon: <FiEyeOff className="h-5 w-5 text-indigo-500" />,
+      icon: <EyeOff className="h-5 w-5 text-indigo-500" />,
       title: t("disable_cal_branding", { appName: APP_NAME }),
       description: t("disable_cal_branding_description", { appName: APP_NAME }),
     },

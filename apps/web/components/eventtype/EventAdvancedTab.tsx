@@ -10,14 +10,15 @@ import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
+import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import { classNames } from "@calcom/lib";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip } from "@calcom/ui";
-import { FiEdit, FiCopy } from "@calcom/ui/components/icon";
+import { Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip, Alert } from "@calcom/ui";
+import { Edit, Copy } from "@calcom/ui/components/icon";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
@@ -58,6 +59,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [requiresConfirmation, setRequiresConfirmation] = useState(eventType.requiresConfirmation);
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
+  const noShowFeeEnabled = eventType.metadata.apps?.stripe?.paymentOption === "HOLD";
 
   useEffect(() => {
     !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0]?.id ?? team?.id));
@@ -79,10 +81,18 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     );
   };
 
+  const { shouldLockDisableProps } = useLockedFieldsManager(
+    eventType,
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
+  );
   const eventNamePlaceholder = getEventName({
     ...eventNameObject,
     eventName: formMethods.watch("eventName"),
   });
+
+  const successRedirectUrlLocked = shouldLockDisableProps("successRedirectUrl");
+  const seatsLocked = shouldLockDisableProps("seatsPerTimeSlotEnabled");
 
   const closeEventNameTip = () => setShowEventNameTip(false);
 
@@ -127,19 +137,19 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         <TextField
           label={t("event_name_in_calendar")}
           type="text"
+          {...shouldLockDisableProps("eventName")}
           placeholder={eventNamePlaceholder}
           defaultValue={eventType.eventName || ""}
           {...formMethods.register("eventName")}
           addOnSuffix={
             <Button
-              type="button"
-              StartIcon={FiEdit}
-              variant="icon"
               color="minimal"
-              className="hover:stroke-3 hover:text-emphasis min-w-fit px-0 hover:bg-transparent"
-              onClick={() => setShowEventNameTip((old) => !old)}
+              size="sm"
               aria-label="edit custom name"
-            />
+              className="hover:stroke-3 hover:text-emphasis min-w-fit px-0 !py-0 hover:bg-transparent"
+              onClick={() => setShowEventNameTip((old) => !old)}>
+              <Edit className="h-4 w-4" />
+            </Button>
           }
         />
       </div>
@@ -149,6 +159,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         description={t("booking_questions_description")}
         addFieldLabel={t("add_a_booking_question")}
         formProp="bookingFields"
+        {...shouldLockDisableProps("bookingFields")}
         dataStore={{
           options: {
             locations: getLocationsOptionsForSelect(eventType?.locations ?? [], t),
@@ -157,6 +168,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       />
       <hr className="border-subtle" />
       <RequiresConfirmationController
+        eventType={eventType}
         seatsEnabled={seatsEnabled}
         metadata={eventType.metadata}
         requiresConfirmation={requiresConfirmation}
@@ -170,6 +182,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
             title={t("disable_notes")}
+            {...shouldLockDisableProps("hideCalendarNotes")}
             description={t("disable_notes_description")}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
@@ -184,6 +197,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           <>
             <SettingsToggle
               title={t("redirect_success_booking")}
+              {...successRedirectUrlLocked}
               description={t("redirect_url_description")}
               checked={redirectUrlVisible}
               onCheckedChange={(e) => {
@@ -196,6 +210,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   className="w-full"
                   label={t("redirect_success_booking")}
                   labelSrOnly
+                  disabled={successRedirectUrlLocked.disabled}
                   placeholder={t("external_redirect_url")}
                   required={redirectUrlVisible}
                   type="text"
@@ -218,6 +233,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       <SettingsToggle
         data-testid="hashedLinkCheck"
         title={t("private_link")}
+        {...shouldLockDisableProps("hashedLinkCheck")}
         description={t("private_link_description", { appName: APP_NAME })}
         checked={hashedLinkVisible}
         onCheckedChange={(e) => {
@@ -239,6 +255,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               <Tooltip content={eventType.hashedLink ? t("copy_to_clipboard") : t("enabled_after_update")}>
                 <Button
                   color="minimal"
+                  size="sm"
+                  type="button"
+                  className="hover:stroke-3 hover:text-emphasis min-w-fit px-0 !py-0 hover:bg-transparent"
+                  aria-label="copy link"
                   onClick={() => {
                     navigator.clipboard.writeText(placeholderHashedLink);
                     if (eventType.hashedLink) {
@@ -246,10 +266,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                     } else {
                       showToast(t("enabled_after_update_description"), "warning");
                     }
-                  }}
-                  className="hover:stroke-3 hover:text-emphasis hover:bg-transparent"
-                  type="button">
-                  <FiCopy />
+                  }}>
+                  <Copy className="h-4 w-4" />
                 </Button>
               </Tooltip>
             }
@@ -262,54 +280,62 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         control={formMethods.control}
         defaultValue={!!eventType.seatsPerTimeSlot}
         render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            data-testid="offer-seats-toggle"
-            title={t("offer_seats")}
-            description={t("offer_seats_description")}
-            checked={value}
-            onCheckedChange={(e) => {
-              // Enabling seats will disable guests and requiring confirmation until fully supported
-              if (e) {
-                toggleGuests(false);
-                formMethods.setValue("requiresConfirmation", false);
-                setRequiresConfirmation(false);
-                formMethods.setValue("seatsPerTimeSlot", 2);
-              } else {
-                formMethods.setValue("seatsPerTimeSlot", null);
-                toggleGuests(true);
-              }
-              onChange(e);
-            }}>
-            <Controller
-              name="seatsPerTimeSlot"
-              control={formMethods.control}
-              defaultValue={eventType.seatsPerTimeSlot}
-              render={({ field: { value, onChange } }) => (
-                <div className="lg:-ml-2">
-                  <TextField
-                    required
-                    name="seatsPerTimeSlot"
-                    labelSrOnly
-                    label={t("number_of_seats")}
-                    type="number"
-                    defaultValue={value || 2}
-                    min={1}
-                    addOnSuffix={<>{t("seats")}</>}
-                    onChange={(e) => {
-                      onChange(Math.abs(Number(e.target.value)));
-                    }}
-                  />
-                  <div className="mt-2">
-                    <Checkbox
-                      description={t("show_attendees")}
-                      onChange={(e) => formMethods.setValue("seatsShowAttendees", e.target.checked)}
-                      defaultChecked={!!eventType.seatsShowAttendees}
+          <>
+            <SettingsToggle
+              data-testid="offer-seats-toggle"
+              title={t("offer_seats")}
+              {...seatsLocked}
+              description={t("offer_seats_description")}
+              checked={value}
+              disabled={noShowFeeEnabled}
+              onCheckedChange={(e) => {
+                // Enabling seats will disable guests and requiring confirmation until fully supported
+                if (e) {
+                  toggleGuests(false);
+                  formMethods.setValue("requiresConfirmation", false);
+                  setRequiresConfirmation(false);
+                  formMethods.setValue("seatsPerTimeSlot", 2);
+                } else {
+                  formMethods.setValue("seatsPerTimeSlot", null);
+                  toggleGuests(true);
+                }
+                onChange(e);
+              }}>
+              <Controller
+                name="seatsPerTimeSlot"
+                control={formMethods.control}
+                defaultValue={eventType.seatsPerTimeSlot}
+                render={({ field: { value, onChange } }) => (
+                  <div className="lg:-ml-2">
+                    <TextField
+                      required
+                      name="seatsPerTimeSlot"
+                      labelSrOnly
+                      label={t("number_of_seats")}
+                      type="number"
+                      disabled={seatsLocked.disabled}
+                      defaultValue={value || 2}
+                      min={1}
+                      className="w-24"
+                      addOnSuffix={<>{t("seats")}</>}
+                      onChange={(e) => {
+                        onChange(Math.abs(Number(e.target.value)));
+                      }}
                     />
+                    <div className="mt-2">
+                      <Checkbox
+                        description={t("show_attendees")}
+                        disabled={seatsLocked.disabled}
+                        onChange={(e) => formMethods.setValue("seatsShowAttendees", e.target.checked)}
+                        defaultChecked={!!eventType.seatsShowAttendees}
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
-            />
-          </SettingsToggle>
+                )}
+              />
+            </SettingsToggle>
+            {noShowFeeEnabled && <Alert severity="warning" title={t("seats_and_no_show_fee_error")} />}
+          </>
         )}
       />
 
