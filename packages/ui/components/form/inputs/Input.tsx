@@ -406,3 +406,17 @@ export const InputFieldWithSelect = forwardRef<
     />
   );
 });
+
+export const NumberInput = forwardRef<HTMLInputElement, InputFieldProps>(function NumberInput(props, ref) {
+  return (
+    <Input
+      ref={ref}
+      type="number"
+      autoCapitalize="none"
+      autoComplete="numeric"
+      autoCorrect="off"
+      inputMode="numeric"
+      {...props}
+    />
+  );
+});
