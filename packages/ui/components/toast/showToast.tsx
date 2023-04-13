@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import toast from "react-hot-toast";
 
-import { FiCheck, FiInfo } from "../icon";
+import { Check, Info } from "../icon";
 
 type IToast = {
   message: string;
@@ -15,7 +15,7 @@ export const SuccessToast = ({ message, toastVisible }: IToast) => (
       toastVisible && "animate-fade-in-up"
     )}>
     <span>
-      <FiCheck className="h-4 w-4" />
+      <Check className="h-4 w-4" />
     </span>
     <p data-testid="toast-success">{message}</p>
   </div>
@@ -28,7 +28,7 @@ export const ErrorToast = ({ message, toastVisible }: IToast) => (
       toastVisible && "animate-fade-in-up"
     )}>
     <span>
-      <FiInfo className="h-4 w-4" />
+      <Info className="h-4 w-4" />
     </span>
     <p data-testid="toast-error">{message}</p>
   </div>
@@ -41,7 +41,7 @@ export const WarningToast = ({ message, toastVisible }: IToast) => (
       toastVisible && "animate-fade-in-up"
     )}>
     <span>
-      <FiInfo className="h-4 w-4" />
+      <Info className="h-4 w-4" />
     </span>
     <p data-testid="toast-warning">{message}</p>
   </div>
@@ -54,7 +54,7 @@ export const DefaultToast = ({ message, toastVisible }: IToast) => (
       toastVisible && "animate-fade-in-up"
     )}>
     <span>
-      <FiCheck className="h-4 w-4" />
+      <Check className="h-4 w-4" />
     </span>
     <p>{message}</p>
   </div>

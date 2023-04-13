@@ -25,6 +25,8 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
   const displayedAvatars = props.items.filter((avatar) => avatar.image).slice(0, truncateAfter);
   const numTruncatedAvatars = LENGTH - displayedAvatars.length;
 
+  if (!displayedAvatars.length) return <></>;
+
   return (
     <ul className={classNames("flex items-center", props.className)}>
       {displayedAvatars.map((item, idx) => (

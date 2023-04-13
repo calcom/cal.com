@@ -3,7 +3,6 @@
     Don't modify this file manually.
 **/
 import dynamic from "next/dynamic";
-
 export const InstallAppButtonMap = {
   exchange2013calendar: dynamic(() => import("./exchange2013calendar/components/InstallAppButton")),
   exchange2016calendar: dynamic(() => import("./exchange2016calendar/components/InstallAppButton")),
@@ -23,7 +22,7 @@ export const EventTypeAddonMap = {
   fathom: dynamic(() => import("./fathom/components/EventTypeAppCardInterface")),
   ga4: dynamic(() => import("./ga4/components/EventTypeAppCardInterface")),
   giphy: dynamic(() => import("./giphy/components/EventTypeAppCardInterface")),
-  "google-tag-manager": dynamic(() => import("./google-tag-manager/components/EventTypeAppCardInterface")),
+  gtm: dynamic(() => import("./gtm/components/EventTypeAppCardInterface")),
   plausible: dynamic(() => import("./plausible/components/EventTypeAppCardInterface")),
   qr_code: dynamic(() => import("./qr_code/components/EventTypeAppCardInterface")),
   rainbow: dynamic(() => import("./rainbow/components/EventTypeAppCardInterface")),
