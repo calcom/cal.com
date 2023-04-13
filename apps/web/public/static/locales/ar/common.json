@@ -736,9 +736,6 @@
   "minimum_booking_notice": "الحد الأدنى من الوقت للحجز",
   "slot_interval": "الفترات الزمنية بين عمليات الحجز",
   "slot_interval_default": "استخدام طول الحدث (الوضع الافتراضي)",
-  "delete_event_type_description": "هل تريد بالتأكيد حذف نوع الحدث هذا؟ أي شخص شاركت هذا الرابط معه لن يستطيع بعد الآن الحجز باستخدامه.",
-  "delete_event_type": "حذف نوع الحدث",
-  "confirm_delete_event_type": "نعم، احذف نوع الحدث",
   "delete_account": "حذف الحساب",
   "confirm_delete_account": "نعم، احذف الحساب",
   "delete_account_confirmation_message": "هل تريد بالتأكيد حذف حسابك على {{appName}}؟ أي شخص شاركت رابط حسابك معه لن يستطيع بعد الآن الحجز باستخدامه، وستفقد أي تفضيلات حفظتها.",
@@ -1652,8 +1649,8 @@
   "verification_code": "رمز التحقق",
   "can_you_try_again": "هلّا جربت المحاولة ثانيةً في وقت مختلف؟",
   "verify": "التحقق",
-  "invalid_event_name_variables": "ثمة متغيّر غير غير صالح في اسم فعاليتك",
   "select_all": "اختيار الكل",
   "default_conferencing_bulk_title": "التحديث الجماعي لمجموعة أنواع الفعاليات الحالية",
+  "invalid_event_name_variables": "ثمة متغيّر غير غير صالح في اسم فعاليتك",
   "default_conferencing_bulk_description": "تحديث المواقع لأنواع الفعاليات المحددة"
 }
