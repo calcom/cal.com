@@ -1,4 +1,4 @@
-import type { SchedulingType } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useRef } from "react";
 import type { ComponentProps } from "react";
@@ -7,23 +7,45 @@ import type { Options } from "react-select";
 
 import type { CheckedSelectOption } from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTeamSelect";
+import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label, Select } from "@calcom/ui";
 
-interface IMemberToValue {
+interface IUserToValue {
   id: number | null;
   name: string | null;
   username: string | null;
   email: string;
 }
 
-const mapUserToValue = ({ id, name, username, email }: IMemberToValue) => ({
+const mapUserToValue = ({ id, name, username, email }: IUserToValue) => ({
   value: `${id || ""}`,
   label: `${name || ""}`,
   avatar: `${WEBAPP_URL}/${username}/avatar.png`,
   email,
 });
+
+export const mapMemberToChildrenOption = (
+  member: EventTypeSetupProps["teamMembers"][number],
+  slug: string
+) => {
+  return {
+    slug,
+    hidden: false,
+    created: false,
+    owner: {
+      id: member.id,
+      name: member.name ?? "",
+      email: member.email,
+      username: member.username ?? "",
+      membership: member.membership,
+      eventTypeSlugs: member.eventTypes ?? [],
+    },
+    value: `${member.id ?? ""}`,
+    label: member.name ?? "",
+  };
+};
 
 const sortByLabel = (a: ReturnType<typeof mapUserToValue>, b: ReturnType<typeof mapUserToValue>) => {
   if (a.label < b.label) {
@@ -33,6 +55,40 @@ const sortByLabel = (a: ReturnType<typeof mapUserToValue>, b: ReturnType<typeof 
     return 1;
   }
   return 0;
+};
+
+const ChildrenEventTypesList = ({
+  options = [],
+  value,
+  onChange,
+  ...rest
+}: {
+  value: ReturnType<typeof mapMemberToChildrenOption>[];
+  onChange?: (options: ReturnType<typeof mapMemberToChildrenOption>[]) => void;
+  options?: Options<ReturnType<typeof mapMemberToChildrenOption>>;
+} & Omit<Partial<ComponentProps<typeof ChildrenEventTypeSelect>>, "onChange" | "value">) => {
+  const { t } = useLocale();
+  return (
+    <div className="flex flex-col space-y-5">
+      <div>
+        <Label>{t("assign_to")}</Label>
+        <ChildrenEventTypeSelect
+          onChange={(options) => {
+            onChange &&
+              onChange(
+                options.map((option) => ({
+                  ...option,
+                }))
+              );
+          }}
+          value={value}
+          options={options.filter((opt) => !value.find((val) => val.owner.id.toString() === opt.value))}
+          controlShouldRenderValue={false}
+          {...rest}
+        />
+      </div>
+    </div>
+  );
 };
 
 const CheckedHostField = ({
@@ -123,6 +179,21 @@ const RoundRobinHosts = ({
   );
 };
 
+const ChildrenEventTypes = ({
+  childrenEventTypeOptions,
+}: {
+  childrenEventTypeOptions: ReturnType<typeof mapMemberToChildrenOption>[];
+}) => {
+  return (
+    <Controller<FormValues>
+      name="children"
+      render={({ field: { onChange, value } }) => (
+        <ChildrenEventTypesList value={value} options={childrenEventTypeOptions} onChange={onChange} />
+      )}
+    />
+  );
+};
+
 const Hosts = ({
   teamMembers,
 }: {
@@ -189,6 +260,7 @@ const Hosts = ({
                 />*/}
             </>
           ),
+          MANAGED: <></>,
         };
         return !!schedulingType ? schedulingTypeRender[schedulingType] : <></>;
       }}
@@ -196,7 +268,11 @@ const Hosts = ({
   );
 };
 
-export const EventTeamTab = ({ team, teamMembers }: Pick<EventTypeSetupProps, "teamMembers" | "team">) => {
+export const EventTeamTab = ({
+  team,
+  teamMembers,
+  eventType,
+}: Pick<EventTypeSetupProps, "teamMembers" | "team" | "eventType">) => {
   const { t } = useLocale();
 
   const schedulingTypeOptions: {
@@ -216,9 +292,13 @@ export const EventTeamTab = ({ team, teamMembers }: Pick<EventTypeSetupProps, "t
     },
   ];
   const teamMembersOptions = teamMembers.map(mapUserToValue);
+  const childrenEventTypeOptions = teamMembers.map((member) => {
+    return mapMemberToChildrenOption(member, eventType.slug);
+  });
+  const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
   return (
     <div>
-      {team && (
+      {team && !isManagedEventType && (
         <div className="space-y-5">
           <div className="flex flex-col">
             <Label>{t("scheduling_type")}</Label>
@@ -238,6 +318,9 @@ export const EventTeamTab = ({ team, teamMembers }: Pick<EventTypeSetupProps, "t
           </div>
           <Hosts teamMembers={teamMembersOptions} />
         </div>
+      )}
+      {team && isManagedEventType && (
+        <ChildrenEventTypes childrenEventTypeOptions={childrenEventTypeOptions} />
       )}
     </div>
   );

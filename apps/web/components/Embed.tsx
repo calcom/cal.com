@@ -22,7 +22,7 @@ import {
   TextField,
   ColorPicker,
 } from "@calcom/ui";
-import { FiCode, FiTrello, FiSun, FiArrowLeft } from "@calcom/ui/components/icon";
+import { Code, Trello, Sun, ArrowLeft } from "@calcom/ui/components/icon";
 
 import Select from "@components/ui/form/Select";
 
@@ -493,7 +493,7 @@ const tabs = [
   {
     name: "HTML",
     href: "embedTabName=embed-code",
-    icon: FiCode,
+    icon: Code,
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
@@ -546,7 +546,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
   {
     name: "React",
     href: "embedTabName=embed-react",
-    icon: FiCode,
+    icon: Code,
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
@@ -586,7 +586,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
   {
     name: "Preview",
     href: "embedTabName=embed-preview",
-    icon: FiTrello,
+    icon: Trello,
     type: "iframe",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
@@ -622,7 +622,7 @@ Cal("init", {origin:"${WEBAPP_URL}"});
 const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
   return (
     <components.Control {...props}>
-      <FiSun className="text-subtle ml-2 h-4 w-4" />
+      <Sun className="text-subtle ml-2 h-4 w-4" />
       {children}
     </components.Control>
   );
@@ -830,7 +830,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               onClick={() => {
                 removeQueryParams(router, ["embedType", "embedTabName"]);
               }}>
-              <FiArrowLeft className="mr-4 w-4" />
+              <ArrowLeft className="mr-4 w-4" />
             </button>
             {embed.title}
           </h3>

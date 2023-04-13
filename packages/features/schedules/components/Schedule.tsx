@@ -29,7 +29,7 @@ import {
   SkeletonText,
   Switch,
 } from "@calcom/ui";
-import { FiCopy, FiPlus, FiTrash } from "@calcom/ui/components/icon";
+import { Copy, Plus, Trash } from "@calcom/ui/components/icon";
 
 export type { TimeRange };
 
@@ -52,7 +52,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   const watchDayRange = watch(name);
 
   return (
-    <div className="flex mb-4 w-full flex-col last:mb-0 sm:flex-row sm:px-0">
+    <div className="mb-4 flex w-full flex-col last:mb-0 sm:flex-row sm:px-0">
       {/* Label & switch container */}
       <div className="flex h-[36px] items-center justify-between sm:w-32">
         <div>
@@ -109,7 +109,7 @@ const CopyButton = ({
           tooltip={t("copy_times_to_tooltip")}
           color="minimal"
           variant="icon"
-          StartIcon={FiCopy}
+          StartIcon={Copy}
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -179,7 +179,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
     <div>
       {fields.map((field, index: number) => (
         <Fragment key={field.id}>
-          <div className="flex mb-2 last:mb-0">
+          <div className="mb-2 flex last:mb-0">
             <Controller name={`${name}.${index}`} render={({ field }) => <TimeRangeField {...field} />} />
             {index === 0 && (
               <Button
@@ -188,7 +188,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 type="button"
                 color="minimal"
                 variant="icon"
-                StartIcon={FiPlus}
+                StartIcon={Plus}
                 onClick={() => {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const nextRange: any = getNextRange(fields[fields.length - 1]);
@@ -218,7 +218,7 @@ const RemoveTimeButton = ({
       type="button"
       variant="icon"
       color="minimal"
-      StartIcon={FiTrash}
+      StartIcon={Trash}
       onClick={() => remove(index)}
       className={className}
     />

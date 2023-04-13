@@ -9,7 +9,7 @@ import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
 import { EmptyScreen } from "../empty-screen";
-import { FiChevronLeft, FiChevronRight, FiSearch } from "../icon";
+import { ChevronLeft, ChevronRight, Search } from "../icon";
 import { AppCard } from "./AppCard";
 
 export function useShouldShowArrows() {
@@ -79,7 +79,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
       {leftVisible && (
         <button onClick={handleLeft} className="absolute bottom-0 flex md:left-1/2 md:-top-1">
           <div className="bg-default flex h-12 w-5 items-center justify-end">
-            <FiChevronLeft className="text-subtle h-4 w-4" />
+            <ChevronLeft className="text-subtle h-4 w-4" />
           </div>
           <div className="to-default flex h-12 w-5 bg-gradient-to-l from-transparent" />
         </button>
@@ -122,7 +122,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
         <button onClick={handleRight} className="absolute bottom-0 right-0 flex md:-top-1">
           <div className="to-default flex h-12 w-5 bg-gradient-to-r from-transparent" />
           <div className="bg-default flex h-12 w-5 items-center justify-end">
-            <FiChevronRight className="text-subtle h-4 w-4" />
+            <ChevronRight className="text-subtle h-4 w-4" />
           </div>
         </button>
       )}
@@ -176,7 +176,7 @@ export function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
         </div>
       ) : (
         <EmptyScreen
-          Icon={FiSearch}
+          Icon={Search}
           headline={t("no_results")}
           description={searchText ? searchText?.toString() : ""}
         />

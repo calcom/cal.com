@@ -1,3 +1,4 @@
+import type { Payment } from "@prisma/client";
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import type { StripeCardElementChangeEvent, StripeElementLocale } from "@stripe/stripe-js";
 import type stripejs from "@stripe/stripe-js";
@@ -5,10 +6,10 @@ import { useRouter } from "next/router";
 import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
 
-import type { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
+import type { StripePaymentData, StripeSetupIntentData } from "@calcom/app-store/stripepayment/lib/server";
 import { bookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui";
+import { Button, Checkbox } from "@calcom/ui";
 
 import type { EventType } from ".prisma/client";
 
@@ -32,8 +33,8 @@ const CARD_OPTIONS: stripejs.StripeCardElementOptions = {
 } as const;
 
 type Props = {
-  payment: {
-    data: StripePaymentData;
+  payment: Omit<Payment, "id" | "fee" | "success" | "refunded" | "externalId" | "data"> & {
+    data: StripePaymentData | StripeSetupIntentData;
   };
   eventType: { id: number; successRedirectUrl: EventType["successRedirectUrl"] };
   user: { username: string | null };
@@ -54,6 +55,8 @@ export default function PaymentComponent(props: Props) {
   const [state, setState] = useState<States>({ status: "idle" });
   const stripe = useStripe();
   const elements = useElements();
+  const paymentOption = props.payment.paymentOption;
+  const [holdAcknowledged, setHoldAcknowledged] = useState<boolean>(paymentOption === "HOLD" ? false : true);
 
   useEffect(() => {
     elements?.update({ locale: i18n.language as StripeElementLocale });
@@ -74,22 +77,33 @@ export default function PaymentComponent(props: Props) {
     const card = elements.getElement(CardElement);
     if (!card) return;
     setState({ status: "processing" });
-    const payload = await stripe.confirmCardPayment(props.payment.data.client_secret!, {
-      payment_method: {
-        card,
-      },
-    });
-    if (payload.error) {
+
+    let payload;
+    const params: { [k: string]: any } = {
+      uid: props.bookingUid,
+      email: router.query.email,
+    };
+    if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
+      const setupIntentData = props.payment.data as unknown as StripeSetupIntentData;
+      payload = await stripe.confirmCardSetup(setupIntentData.setupIntent.client_secret!, {
+        payment_method: {
+          card,
+        },
+      });
+    } else if (paymentOption === "ON_BOOKING") {
+      const paymentData = props.payment.data as unknown as StripePaymentData;
+      payload = await stripe.confirmCardPayment(paymentData.client_secret!, {
+        payment_method: {
+          card,
+        },
+      });
+    }
+    if (payload?.error) {
       setState({
         status: "error",
         error: new Error(`Payment failed: ${payload.error.message}`),
       });
     } else {
-      const params: { [k: string]: any } = {
-        uid: props.bookingUid,
-        email: router.query.email,
-      };
-
       if (props.location) {
         if (props.location.includes("integration")) {
           params.location = t("web_conferencing_details_to_follow");
@@ -107,22 +121,53 @@ export default function PaymentComponent(props: Props) {
     }
   };
   return (
-    <form id="payment-form" className="mt-4" onSubmit={handleSubmit}>
-      <CardElement id="card-element" options={CARD_OPTIONS} onChange={handleChange} />
-      <div className="mt-2 flex justify-center">
+    <form id="payment-form" className="bg-subtle mt-4 rounded-md p-6" onSubmit={handleSubmit}>
+      <p className="font-semibold">{t("card_details")}</p>
+      <CardElement
+        className="my-5 bg-white p-2"
+        id="card-element"
+        options={CARD_OPTIONS}
+        onChange={handleChange}
+      />
+      {paymentOption === "HOLD" && (
+        <div className="bg-info mt-2 mb-5 rounded-md p-3">
+          <Checkbox
+            description={t("acknowledge_booking_no_show_fee", {
+              amount: props.payment.amount / 100,
+              formatParams: { amount: { currency: props.payment.currency } },
+            })}
+            onChange={(e) => setHoldAcknowledged(e.target.checked)}
+            descriptionClassName="text-blue-900 font-semibold"
+          />
+        </div>
+      )}
+      <div className="mt-2 flex justify-end space-x-2">
+        <Button
+          color="minimal"
+          disabled={!holdAcknowledged || ["processing", "error"].includes(state.status)}
+          id="cancel">
+          <span id="button-text">{t("cancel")}</span>
+        </Button>
         <Button
           color="primary"
           type="submit"
-          disabled={["processing", "error"].includes(state.status)}
+          disabled={!holdAcknowledged || ["processing", "error"].includes(state.status)}
           loading={state.status === "processing"}
-          id="submit">
+          id="submit"
+          className="border-subtle border">
           <span id="button-text">
-            {state.status === "processing" ? <div className="spinner" id="spinner" /> : t("pay_now")}
+            {state.status === "processing" ? (
+              <div className="spinner" id="spinner" />
+            ) : paymentOption === "HOLD" ? (
+              t("submit_card")
+            ) : (
+              t("pay_now")
+            )}
           </span>
         </Button>
       </div>
       {state.status === "error" && (
-        <div className="text-default mt-4 text-center dark:text-gray-300" role="alert">
+        <div className="mt-4 text-center text-red-900 dark:text-gray-300" role="alert">
           {state.error.message}
         </div>
       )}
