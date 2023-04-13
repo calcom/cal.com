@@ -57,6 +57,7 @@ export const buildBooking = (booking?: Partial<Booking>): Booking => {
     scheduledJobs: [],
     metadata: null,
     responses: null,
+    isRecorded: false,
     ...booking,
   };
 };
