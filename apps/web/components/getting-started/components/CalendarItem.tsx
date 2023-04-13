@@ -6,17 +6,17 @@ import { Button } from "@calcom/ui";
 interface ICalendarItem {
   title: string;
   description?: string;
-  imageSrc: string;
+  logo: string;
   type: App["type"];
 }
 
 const CalendarItem = (props: ICalendarItem) => {
-  const { title, imageSrc, type } = props;
+  const { title, logo, type } = props;
   const { t } = useLocale();
   return (
     <div className="flex flex-row items-center justify-between p-5">
       <div className="flex items-center space-x-3">
-        <img src={imageSrc} alt={title} className="h-8 w-8" />
+        <img src={logo} alt={title} className="h-8 w-8" />
         <p className="text-sm font-bold">{title}</p>
       </div>
       <InstallAppButtonWithoutPlanCheck

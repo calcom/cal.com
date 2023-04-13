@@ -1,5 +1,5 @@
-import type { BookingReference, EventType, User, WebhookTriggerEvents } from "@prisma/client";
 import { BookingStatus, MembershipRole, Prisma, SchedulingType, WorkflowMethods } from "@prisma/client";
+import type { BookingReference, EventType, User, WebhookTriggerEvents } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 import { z } from "zod";
 
@@ -268,6 +268,14 @@ export const bookingsRouter = router({
           },
           status: true,
           paid: true,
+          payment: {
+            select: {
+              paymentOption: true,
+              amount: true,
+              currency: true,
+              success: true,
+            },
+          },
           user: {
             select: {
               id: true,
@@ -277,6 +285,7 @@ export const bookingsRouter = router({
           },
           rescheduled: true,
           references: true,
+          isRecorded: true,
           seatsReferences: {
             where: {
               attendee: {

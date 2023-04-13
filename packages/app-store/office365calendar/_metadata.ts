@@ -20,7 +20,6 @@ export const metadata = {
   url: "https://cal.com/",
   verified: true,
   email: "help@cal.com",
-  dirName: "office365calendar",
 } as AppMeta;
 
 export default metadata;

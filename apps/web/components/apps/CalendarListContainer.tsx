@@ -17,7 +17,7 @@ import {
   Switch,
   ShellSubHeading,
 } from "@calcom/ui";
-import { FiArrowLeft, FiCalendar, FiPlus } from "@calcom/ui/components/icon";
+import { ArrowLeft, Calendar, Plus } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -100,7 +100,7 @@ function CalendarSwitch(props: {
       />
       {!!props.destination && (
         <span className="bg-subtle text-default ml-8 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-normal sm:ml-4">
-          <FiArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4" />
           {t("adding_events_to")}
         </span>
       )}
@@ -282,8 +282,8 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                     <div className="bg-muted border-subtle flex justify-between rounded-md border p-4">
                       <div className="flex w-full flex-col items-start gap-4 md:flex-row md:items-center">
                         <div className="bg-default border-subtle relative rounded-md border p-1.5">
-                          <FiCalendar className="text-default h-8 w-8" strokeWidth="1" />
-                          <FiPlus
+                          <Calendar className="text-default h-8 w-8" strokeWidth="1" />
+                          <Plus
                             className="text-emphasis absolute left-4 top-1/2 ml-0.5 mt-[1px] h-2 w-2"
                             strokeWidth="4"
                           />
@@ -322,7 +322,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
               </>
             ) : (
               <EmptyScreen
-                Icon={FiCalendar}
+                Icon={Calendar}
                 headline={t("no_category_apps", {
                   category: t("calendar").toLowerCase(),
                 })}

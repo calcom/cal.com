@@ -8,7 +8,7 @@ import classNames from "@calcom/lib/classNames";
 import { applyStyleToMultipleVariants } from "@calcom/lib/cva";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 
-import { FiPlus } from "../icon";
+import { Plus } from "../icon";
 import { Tooltip } from "../tooltip";
 
 type InferredVariantProps = VariantProps<typeof buttonClasses>;
@@ -45,7 +45,7 @@ const buttonClasses = cva(
         fab: "rounded-full justify-center md:rounded-md radix-state-open:rotate-45 md:radix-state-open:rotate-0 transition-transform radix-state-open:shadown-none radix-state-open:ring-0 !shadow-none",
       },
       color: {
-        primary: "text-inverted",
+        primary: "",
         secondary: "text-emphasis",
         minimal: "text-emphasis",
         destructive: "",
@@ -73,12 +73,12 @@ const buttonClasses = cva(
       {
         disabled: true,
         color: "primary",
-        className: "bg-brand-subtle bg-opacity-30",
+        className: "bg-brand-subtle text-brand-subtle opacity-40",
       },
       {
         loading: true,
         color: "primary",
-        className: "bg-brand-default bg-opacity-30 text-brand-subtle",
+        className: "bg-brand-subtle text-brand-subtle",
       },
       // Secondary variants
       {
@@ -202,7 +202,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           {variant === "fab" ? (
             <>
               <StartIcon className="hidden h-4 w-4 stroke-[1.5px] ltr:mr-2 ltr:-ml-1 rtl:-mr-1 rtl:ml-2 md:inline-flex" />
-              <FiPlus className="inline h-6 w-6 md:hidden" />
+              <Plus className="inline h-6 w-6 md:hidden" />
             </>
           ) : (
             <StartIcon
@@ -238,8 +238,8 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         <>
           {variant === "fab" ? (
             <>
-              <EndIcon className="-mr-1 hidden h-5 w-5 ltr:ml-2 rtl:-ml-1 rtl:mr-2 md:inline" />
-              <FiPlus className="inline h-6 w-6 md:hidden" />
+              <EndIcon className="ms-2 me-2 -mr-1 hidden h-5 w-5 md:inline" />
+              <Plus className="inline h-6 w-6 md:hidden" />
             </>
           ) : (
             <EndIcon

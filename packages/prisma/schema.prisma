@@ -21,6 +21,7 @@ generator zod {
 enum SchedulingType {
   ROUND_ROBIN @map("roundRobin")
   COLLECTIVE  @map("collective")
+  MANAGED     @map("managed")
 }
 
 enum PeriodType {
@@ -64,6 +65,9 @@ model EventType {
   destinationCalendar     DestinationCalendar?
   eventName               String?
   customInputs            EventTypeCustomInput[]
+  parentId                Int?
+  parent                  EventType?              @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
+  children                EventType[]             @relation("managed_eventtype")
   /// @zod.custom(imports.eventTypeBookingFields)
   bookingFields           Json?
   timeZone                String?
@@ -103,6 +107,7 @@ model EventType {
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
+  @@unique([userId, parentId])
 }
 
 model Credential {
@@ -330,6 +335,7 @@ model Booking {
   seatsReferences       BookingSeat[]
   /// @zod.custom(imports.bookingMetadataSchema)
   metadata              Json?
+  isRecorded            Boolean              @default(false)
 }
 
 model Schedule {
@@ -412,19 +418,25 @@ model ReminderMail {
 }
 
 model Payment {
-  id         Int      @id @default(autoincrement())
-  uid        String   @unique
-  app        App?     @relation(fields: [appId], references: [slug], onDelete: Cascade)
-  appId      String?
-  bookingId  Int
-  booking    Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  amount     Int
-  fee        Int
-  currency   String
-  success    Boolean
-  refunded   Boolean
-  data       Json
-  externalId String   @unique
+  id            Int            @id @default(autoincrement())
+  uid           String         @unique
+  app           App?           @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId         String?
+  bookingId     Int
+  booking       Booking?       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  amount        Int
+  fee           Int
+  currency      String
+  success       Boolean
+  refunded      Boolean
+  data          Json
+  externalId    String         @unique
+  paymentOption PaymentOption? @default(ON_BOOKING)
+}
+
+enum PaymentOption {
+  ON_BOOKING
+  HOLD
 }
 
 enum WebhookTriggerEvents {
@@ -710,4 +722,17 @@ enum FeatureType {
   OPERATIONAL
   KILL_SWITCH
   PERMISSION
+}
+
+model SelectedSlots {
+  id               Int      @id @default(autoincrement())
+  eventTypeId      Int
+  userId           Int
+  slotUtcStartDate DateTime
+  slotUtcEndDate   DateTime
+  uid              String
+  releaseAt        DateTime
+  isSeat           Boolean  @default(false)
+
+  @@unique(fields: [userId, slotUtcStartDate, slotUtcEndDate, uid], name: "selectedSlotUnique")
 }
