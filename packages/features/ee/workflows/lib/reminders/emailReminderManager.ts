@@ -5,6 +5,7 @@ import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
 
 import dayjs from "@calcom/dayjs";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -15,6 +16,7 @@ import emailReminderTemplate from "./templates/emailReminderTemplate";
 
 let sendgridAPIKey, senderEmail: string;
 
+const log = logger.getChildLogger({ prefix: ["[emailReminderManager]"] });
 if (process.env.SENDGRID_API_KEY) {
   sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
   senderEmail = process.env.SENDGRID_EMAIL as string;
@@ -52,15 +54,11 @@ export const scheduleEmailReminder = async (
   } else if (triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(endTime).add(timeSpan.time, timeUnit) : null;
   }
+
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
     console.error("Sendgrid credentials are missing from the .env file");
     return;
   }
-
-  const batchIdResponse = await client.request({
-    url: "/v3/mail/batch",
-    method: "POST",
-  });
 
   let name = "";
   let attendeeName = "";
@@ -120,6 +118,15 @@ export const scheduleEmailReminder = async (
       name
     );
   }
+
+  // Allows debugging generated email content without waiting for sendgrid to send emails
+  log.debug(`Sending Email for trigger ${triggerEvent}`, JSON.stringify(emailContent));
+
+  const batchIdResponse = await client.request({
+    url: "/v3/mail/batch",
+    method: "POST",
+  });
+
   if (
     triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
     triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ||
