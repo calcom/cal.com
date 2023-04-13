@@ -6,8 +6,6 @@ module.exports = withAxiom({
     "@calcom/core",
     "@calcom/dayjs",
     "@calcom/emails",
-    "@calcom/embed-core",
-    "@calcom/embed-snippet",
     "@calcom/features",
     "@calcom/lib",
     "@calcom/prisma",
