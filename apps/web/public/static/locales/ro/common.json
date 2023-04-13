@@ -1661,6 +1661,7 @@
   "default_conferencing_bulk_title": "Actualizează în masă tipurile de evenimente existente",
   "invalid_event_name_variables": "Numele evenimentului include o variabilă nevalidă",
   "default_conferencing_bulk_description": "Actualizează locațiile pentru tipurile de evenimente selectate",
+  "looking_for_more_analytics": "Cauți mai multe analize?",
   "add_filter": "Adaugă filtru",
   "select_user": "Selectează utilizatorul",
   "select_event_type": "Selectează tipul de eveniment",
