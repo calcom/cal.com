@@ -82,6 +82,7 @@ const nextConfig = {
   },
   experimental: {
     appDir: true,
+    appDocumentPreloading: false,
   },
   transpilePackages: [
     "@calcom/app-store",
