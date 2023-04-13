@@ -132,6 +132,8 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
   );
 }
 
+ForgotPassword.isThemeSupported = false;
+
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, res } = context;
 

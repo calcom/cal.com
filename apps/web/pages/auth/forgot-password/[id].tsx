@@ -164,6 +164,8 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
   );
 }
 
+Page.isThemeSupported = false;
+
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const id = context.params?.id as string;
 
