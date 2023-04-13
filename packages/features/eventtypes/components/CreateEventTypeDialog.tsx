@@ -1,16 +1,21 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SchedulingType } from "@prisma/client";
+import { MembershipRole } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/router";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useFlagMap } from "@calcom/features/flags/context/provider";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
+import { unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -29,6 +34,7 @@ import {
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {
   teamId: number | null | undefined; // if undefined, then it's a profile
+  membershipRole?: MembershipRole | null;
   name?: string | null;
   slug?: string | null;
   image?: string | null;
@@ -61,13 +67,23 @@ const querySchema = z.object({
     .optional(),
 });
 
-export default function CreateEventTypeDialog() {
+export default function CreateEventTypeDialog({
+  profileOptions,
+}: {
+  profileOptions: {
+    teamId: number | null | undefined;
+    label: string | null;
+    image: string | undefined;
+    membershipRole: MembershipRole | null | undefined;
+  }[];
+}) {
   const { t } = useLocale();
   const router = useRouter();
 
   const {
     data: { teamId, eventPage: pageSlug },
   } = useTypedQuery(querySchema);
+  const teamProfile = profileOptions.find((profile) => profile.teamId === teamId);
 
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     defaultValues: {
@@ -76,7 +92,23 @@ export default function CreateEventTypeDialog() {
     resolver: zodResolver(createEventTypeInput),
   });
 
+  const schedulingTypeWatch = form.watch("schedulingType");
+  const isManagedEventType = schedulingTypeWatch === SchedulingType.MANAGED;
+
+  useEffect(() => {
+    if (isManagedEventType) {
+      form.setValue("metadata.managedEventConfig.unlockedFields", unlockedManagedEventTypeProps);
+    } else {
+      form.setValue("metadata", null);
+    }
+  }, [schedulingTypeWatch]);
+
   const { register } = form;
+
+  const isAdmin =
+    teamId !== undefined &&
+    (teamProfile?.membershipRole === MembershipRole.OWNER ||
+      teamProfile?.membershipRole === MembershipRole.ADMIN);
 
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {
@@ -100,6 +132,8 @@ export default function CreateEventTypeDialog() {
       }
     },
   });
+
+  const flags = useFlagMap();
 
   return (
     <Dialog
@@ -147,52 +181,67 @@ export default function CreateEventTypeDialog() {
 
             {process.env.NEXT_PUBLIC_WEBSITE_URL !== undefined &&
             process.env.NEXT_PUBLIC_WEBSITE_URL?.length >= 21 ? (
-              <TextField
-                label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
-                required
-                addOnLeading={<>/{pageSlug}/</>}
-                {...register("slug")}
-                onChange={(e) => {
-                  form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
-                }}
-              />
+              <div>
+                <TextField
+                  label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
+                  required
+                  addOnLeading={<>/{!isManagedEventType ? pageSlug : t("username_placeholder")}/</>}
+                  {...register("slug")}
+                  onChange={(e) => {
+                    form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
+                  }}
+                />
+
+                {isManagedEventType && (
+                  <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
+                )}
+              </div>
             ) : (
-              <TextField
-                label={t("url")}
-                required
-                addOnLeading={
-                  <>
-                    {process.env.NEXT_PUBLIC_WEBSITE_URL}/{pageSlug}/
-                  </>
-                }
-                {...register("slug")}
-              />
+              <div>
+                <TextField
+                  label={t("url")}
+                  required
+                  addOnLeading={
+                    <>
+                      {process.env.NEXT_PUBLIC_WEBSITE_URL}/
+                      {!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                    </>
+                  }
+                  {...register("slug")}
+                />
+                {isManagedEventType && (
+                  <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
+                )}
+              </div>
             )}
+            {!teamId && (
+              <>
+                <Editor
+                  getText={() => md.render(form.getValues("description") || "")}
+                  setText={(value: string) => form.setValue("description", turndown(value))}
+                  excludedToolbarItems={["blockType", "link"]}
+                  placeholder={t("quick_video_meeting")}
+                />
 
-            <Editor
-              getText={() => md.render(form.getValues("description") || "")}
-              setText={(value: string) => form.setValue("description", turndown(value))}
-              excludedToolbarItems={["blockType", "link"]}
-              placeholder={t("quick_video_meeting")}
-            />
-
-            <div className="relative">
-              <TextField
-                type="number"
-                required
-                min="10"
-                placeholder="15"
-                label={t("length")}
-                className="pr-4"
-                {...register("length", { valueAsNumber: true })}
-                addOnSuffix={t("minutes")}
-              />
-            </div>
+                <div className="relative">
+                  <TextField
+                    type="number"
+                    required
+                    min="10"
+                    placeholder="15"
+                    label={t("length")}
+                    className="pr-4"
+                    {...register("length", { valueAsNumber: true })}
+                    addOnSuffix={t("minutes")}
+                  />
+                </div>
+              </>
+            )}
 
             {teamId && (
               <div className="mb-4">
                 <label htmlFor="schedulingType" className="text-default block text-sm font-bold">
-                  {t("scheduling_type")}
+                  {t("assignment")}
                 </label>
                 {form.formState.errors.schedulingType && (
                   <Alert
@@ -201,21 +250,39 @@ export default function CreateEventTypeDialog() {
                     message={form.formState.errors.schedulingType.message}
                   />
                 )}
-                <RadioArea.Group className="mt-1 flex space-x-4">
+                <RadioArea.Group
+                  className={classNames(
+                    "mt-1 flex gap-4",
+                    isAdmin && flags["managed-event-types"] && "flex-col"
+                  )}>
                   <RadioArea.Item
                     {...register("schedulingType")}
                     value={SchedulingType.COLLECTIVE}
-                    className="w-1/2 text-sm">
+                    className={classNames("w-full text-sm", !isAdmin && "w-1/2")}
+                    classNames={{ container: classNames(isAdmin && "w-full") }}>
                     <strong className="mb-1 block">{t("collective")}</strong>
                     <p>{t("collective_description")}</p>
                   </RadioArea.Item>
                   <RadioArea.Item
                     {...register("schedulingType")}
                     value={SchedulingType.ROUND_ROBIN}
-                    className="w-1/2 text-sm">
+                    className={classNames("text-sm", !isAdmin && "w-1/2")}
+                    classNames={{ container: classNames(isAdmin && "w-full") }}>
                     <strong className="mb-1 block">{t("round_robin")}</strong>
                     <p>{t("round_robin_description")}</p>
                   </RadioArea.Item>
+                  <>
+                    {isAdmin && flags["managed-event-types"] && (
+                      <RadioArea.Item
+                        {...register("schedulingType")}
+                        value={SchedulingType.MANAGED}
+                        className={classNames("text-sm", !isAdmin && "w-1/2")}
+                        classNames={{ container: classNames(isAdmin && "w-full") }}>
+                        <strong className="mb-1 block">{t("managed_event")}</strong>
+                        <p>{t("managed_event_description")}</p>
+                      </RadioArea.Item>
+                    )}
+                  </>
                 </RadioArea.Group>
               </div>
             )}

@@ -271,6 +271,11 @@ export const viewerTeamsRouter = router({
         },
       });
 
+      // Deleted managed event types from this team from this member
+      await ctx.prisma.eventType.deleteMany({
+        where: { parent: { teamId: input.teamId }, userId: membership.userId },
+      });
+
       // Sync Services
       closeComDeleteTeamMembership(membership.user);
       if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(input.teamId);

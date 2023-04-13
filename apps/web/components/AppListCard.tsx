@@ -6,7 +6,7 @@ import { z } from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { Badge, ListItemText } from "@calcom/ui";
-import { FiAlertCircle } from "@calcom/ui/components/icon";
+import { AlertCircle } from "@calcom/ui/components/icon";
 
 type ShouldHighlight = { slug: string; shouldHighlight: true } | { shouldHighlight?: never; slug?: never };
 
@@ -77,7 +77,7 @@ export default function AppListCard(props: AppListCardProps) {
           <ListItemText component="p">{description}</ListItemText>
           {invalidCredential && (
             <div className="flex gap-x-2 pt-2">
-              <FiAlertCircle className="h-8 w-8 text-red-500 sm:h-4 sm:w-4" />
+              <AlertCircle className="h-8 w-8 text-red-500 sm:h-4 sm:w-4" />
               <ListItemText component="p" className="whitespace-pre-wrap text-red-500">
                 {t("invalid_credential")}
               </ListItemText>

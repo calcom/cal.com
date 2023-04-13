@@ -736,9 +736,6 @@
   "minimum_booking_notice": "Mindesvorlaufzeit für eine Buchung",
   "slot_interval": "Zeit-Slot-Intervalle",
   "slot_interval_default": "Verwende Terminlänge (Standard)",
-  "delete_event_type_description": "Sind Sie sicher, dass Sie diesen Termintypen löschen möchten? Empfänger dieses Links können dann nicht mehr buchen.",
-  "delete_event_type": "Termintyp löschen",
-  "confirm_delete_event_type": "Ja, Termintyp löschen",
   "delete_account": "Account löschen",
   "confirm_delete_account": "Ja, Account löschen",
   "delete_account_confirmation_message": "Sind Sie sicher, dass Sie Ihr {{appName}}-Konto löschen möchten? Sie können dann nicht mehr über Ihre geteilten Links gebucht werden und alle Einstellungen werden gelöscht.",
@@ -1652,8 +1649,8 @@
   "verification_code": "Bestätigungscode",
   "can_you_try_again": "Können Sie es zu einem anderen Zeitpunkt erneut versuchen?",
   "verify": "Verifizieren",
-  "invalid_event_name_variables": "Es gibt eine ungültige Variable in Ihrem Terminnamen",
   "select_all": "Alle auswählen",
   "default_conferencing_bulk_title": "Massenaktualisierung vorhandener Termintypen",
+  "invalid_event_name_variables": "Es gibt eine ungültige Variable in Ihrem Terminnamen",
   "default_conferencing_bulk_description": "Orte für die ausgewählten Termintypen aktualisieren"
 }

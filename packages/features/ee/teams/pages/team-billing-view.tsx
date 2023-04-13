@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Meta } from "@calcom/ui";
-import { FiExternalLink } from "@calcom/ui/components/icon";
+import { ExternalLink } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
@@ -21,7 +21,7 @@ const BillingView = () => {
           <p>{t("billing_manage_details_description")}</p>
         </div>
         <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pt-0 sm:pl-3">
-          <Button color="primary" href={billingHref} target="_blank" EndIcon={FiExternalLink}>
+          <Button color="primary" href={billingHref} target="_blank" EndIcon={ExternalLink}>
             {t("billing_portal")}
           </Button>
         </div>
