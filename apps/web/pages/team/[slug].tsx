@@ -15,7 +15,7 @@ import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { Avatar, AvatarGroup, Button, EmptyScreen, HeadSeo } from "@calcom/ui";
-import { FiArrowRight } from "@calcom/ui/components/icon";
+import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -55,12 +55,12 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
   }
 
   const EventTypes = () => (
-    <ul className="dark:border-darkgray-300 border-subtle rounded-md border">
+    <ul className="border-subtle border-subtle rounded-md border">
       {team.eventTypes.map((type, index) => (
         <li
           key={index}
           className={classNames(
-            "dark:bg-darkgray-100 dark:border-darkgray-300 bg-default hover:bg-muted border-subtle group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0",
+            "dark:bg-darkgray-100 border-subtle bg-default hover:bg-muted border-subtle group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0",
             !isEmbed && "bg-default"
           )}>
           <div className="px-6 py-4 ">
@@ -125,7 +125,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
               <div>
                 <div className="relative mt-12">
                   <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                    <div className="dark:border-darkgray-300 border-subtle w-full border-t" />
+                    <div className="border-subtle border-subtle w-full border-t" />
                   </div>
                   <div className="relative flex justify-center">
                     <span className="dark:bg-darkgray-50 bg-subtle text-subtle dark:text-inverted px-2 text-sm">
@@ -137,7 +137,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
                 <aside className="dark:text-inverted mt-8 flex justify-center text-center">
                   <Button
                     color="minimal"
-                    EndIcon={FiArrowRight}
+                    EndIcon={ArrowRight}
                     className="dark:hover:bg-darkgray-200"
                     href={`/team/${team.slug}?members=1`}
                     shallow={true}>
@@ -157,16 +157,20 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
 
-  const unpublishedTeam = await prisma.team.findFirst({
-    where: {
-      metadata: {
-        path: ["requestedSlug"],
-        equals: slug,
-      },
-    },
-  });
+  const team = await getTeamWithMembers(undefined, slug);
 
-  if (unpublishedTeam) {
+  if (!team) {
+    const unpublishedTeam = await prisma.team.findFirst({
+      where: {
+        metadata: {
+          path: ["requestedSlug"],
+          equals: slug,
+        },
+      },
+    });
+
+    if (!unpublishedTeam) return { notFound: true } as const;
+
     return {
       props: {
         isUnpublished: true,
@@ -175,10 +179,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
     } as const;
   }
-
-  const team = await getTeamWithMembers(undefined, slug);
-
-  if (!team) return { notFound: true } as { notFound: true };
 
   team.eventTypes = team.eventTypes.map((type) => ({
     ...type,
