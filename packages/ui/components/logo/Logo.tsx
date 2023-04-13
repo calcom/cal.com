@@ -1,5 +1,9 @@
 import { LOGO_ICON, LOGO } from "@calcom/lib/constants";
 
+const DOMAIN_LOGO_MAP = {
+  archimed: "https://www.archimed.group/wp-content/uploads/2022/09/archimed-logo.svg",
+};
+
 export default function Logo({ small, icon }: { small?: boolean; icon?: boolean }) {
   return (
     <h3 className="logo inline dark:invert">
