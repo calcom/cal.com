@@ -85,8 +85,14 @@
   --cal-brand-text: black;
 }
 
-dark::selection {
-  background: var(--cal-bg-subtle);
+::-moz-selection {
+  color: var(--cal-brand-text);
+  background: var(--cal-brand);
+}
+
+::selection {
+  color: var(--cal-brand-text);
+   background: var(--cal-brand);
 }
 
 body  {
@@ -268,17 +274,6 @@ select:focus {
   .slider .slider-thumb:focus {
     box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.2);
   }
-}
-
-/* !important to style multi-email input */
-::-moz-selection {
-  color: white;
-  background: black;
-}
-
-::selection {
-  color: white;
-  background: black;
 }
 
 /* hide chat bubble on mobile */
