@@ -1412,7 +1412,8 @@ async function handler(
           evt,
           eventType,
           eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
-          booking
+          booking,
+          bookerEmail
         );
 
         return {
@@ -1581,11 +1582,10 @@ async function handler(
     }
 
     if (typeof paymentAppData.price === "number" && paymentAppData.price > 0) {
-      /* Validate if there is any stripe_payment credential for this user */
-      /*  note: removes custom error message about stripe */
+      /* Validate if there is any payment app credential for this user */
       await prisma.credential.findFirstOrThrow({
         where: {
-          type: "stripe_payment",
+          appId: paymentAppData.appId,
           userId: organizerUser.id,
         },
         select: {
@@ -1846,17 +1846,18 @@ async function handler(
     }
   }
 
-  if (!isConfirmedByDefault && noEmail !== true) {
+  const bookingRequiresPayment =
+    !Number.isNaN(paymentAppData.price) &&
+    paymentAppData.price > 0 &&
+    !originalRescheduledBooking?.paid &&
+    !!booking;
+
+  if (!isConfirmedByDefault && noEmail !== true && !bookingRequiresPayment) {
     await sendOrganizerRequestEmail({ ...evt, additionalNotes });
     await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
   }
 
-  if (
-    !Number.isNaN(paymentAppData.price) &&
-    paymentAppData.price > 0 &&
-    !originalRescheduledBooking?.paid &&
-    !!booking
-  ) {
+  if (bookingRequiresPayment) {
     // Load credentials.app.categories
     const credentialPaymentAppCategories = await prisma.credential.findMany({
       where: {
@@ -1892,7 +1893,8 @@ async function handler(
       evt,
       eventType,
       eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
-      booking
+      booking,
+      bookerEmail
     );
 
     req.statusCode = 201;

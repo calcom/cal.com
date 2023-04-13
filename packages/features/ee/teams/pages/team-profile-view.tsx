@@ -29,7 +29,7 @@ import {
   TextField,
   Editor,
 } from "@calcom/ui";
-import { FiExternalLink, FiLink, FiTrash2, FiLogOut } from "@calcom/ui/components/icon";
+import { ExternalLink, Link as LinkIcon, Trash2, LogOut } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
@@ -106,6 +106,7 @@ const ProfileView = () => {
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.teams.list.invalidate();
+      await utils.viewer.eventTypes.invalidate();
       showToast(t("success"), "success");
     },
     async onError(err) {
@@ -263,10 +264,10 @@ const ProfileView = () => {
               </div>
               <div className="">
                 <Link href={permalink} passHref={true} target="_blank">
-                  <LinkIconButton Icon={FiExternalLink}>{t("preview")}</LinkIconButton>
+                  <LinkIconButton Icon={ExternalLink}>{t("preview")}</LinkIconButton>
                 </Link>
                 <LinkIconButton
-                  Icon={FiLink}
+                  Icon={LinkIcon}
                   onClick={() => {
                     navigator.clipboard.writeText(permalink);
                     showToast("Copied to clipboard", "success");
@@ -282,7 +283,7 @@ const ProfileView = () => {
           {team?.membership.role === "OWNER" ? (
             <Dialog>
               <DialogTrigger asChild>
-                <Button color="destructive" className="border" StartIcon={FiTrash2}>
+                <Button color="destructive" className="border" StartIcon={Trash2}>
                   {t("disband_team")}
                 </Button>
               </DialogTrigger>
@@ -297,7 +298,7 @@ const ProfileView = () => {
           ) : (
             <Dialog>
               <DialogTrigger asChild>
-                <Button color="destructive" className="border" StartIcon={FiLogOut}>
+                <Button color="destructive" className="border" StartIcon={LogOut}>
                   {t("leave_team")}
                 </Button>
               </DialogTrigger>
