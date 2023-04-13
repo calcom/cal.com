@@ -1,7 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+/**
+* Add css variables here as well for light mode in addition to tailwind.config to avoid FOUC
+*/
 :root {
   /* background */
 
@@ -21,6 +23,7 @@
   --cal-border-emphasis: #9ca3af;
   --cal-border: #d1d5db;
   --cal-border-subtle: #e5e7eb;
+  --cal-border-booker: #e5e7eb;
   --cal-border-muted: #f3f4f6;
 
   /* Content/Text */
@@ -62,6 +65,7 @@
   --cal-border-emphasis: #575757;
   --cal-border: #444444;
   --cal-border-subtle: #2b2b2b;
+  --cal-border-booker: #2b2b2b;
   --cal-border-muted: #1c1c1c;
 
   /* Content/Text */
