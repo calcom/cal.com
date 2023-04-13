@@ -27398,22 +27398,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ltgt@npm:^2.1.2":
-  version: 2.2.1
-  resolution: "ltgt@npm:2.2.1"
-  checksum: 7e3874296f7538bc8087b428ac4208008d7b76916354b34a08818ca7c83958c1df10ec427eeeaad895f6b81e41e24745b18d30f89abcc21d228b94f6961d50a2
-  languageName: node
-  linkType: hard
-
-"lucide-react@npm:^0.125.0":
-  version: 0.125.0
-  resolution: "lucide-react@npm:0.125.0"
-  peerDependencies:
-    react: ^16.5.1 || ^17.0.0 || ^18.0.0
-  checksum: 6d86330fd4316a42624d537cc07adc3c51c18a699a02ef3abbd221c3140ae5ac5685396e1f5cb20f5f5ba80fa100523a5a6811c22a51bd13bbfdf65546cfffdf
-  languageName: node
-  linkType: hard
-
 "lucide-react@npm:^0.130.0":
   version: 0.130.1
   resolution: "lucide-react@npm:0.130.1"
