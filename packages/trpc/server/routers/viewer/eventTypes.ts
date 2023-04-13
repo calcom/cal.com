@@ -9,6 +9,7 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getAppFromLocationValue, getAppFromSlug } from "@calcom/app-store/utils";
+import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
@@ -20,7 +21,6 @@ import { eventTypeLocations as eventTypeLocationsSchema } from "@calcom/prisma/z
 import {
   customInputSchema,
   EventTypeMetaDataSchema,
-  stringOrNumber,
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
@@ -88,7 +88,19 @@ const EventTypeUpdateInput = _EventTypeModel
       integration: true,
       externalId: true,
     }),
-    users: z.array(stringOrNumber).optional(),
+    children: z
+      .array(
+        z.object({
+          owner: z.object({
+            id: z.number(),
+            name: z.string(),
+            email: z.string(),
+            eventTypeSlugs: z.array(z.string()),
+          }),
+          hidden: z.boolean(),
+        })
+      )
+      .optional(),
     hosts: z
       .array(
         z.object({
@@ -124,7 +136,7 @@ const eventOwnerProcedure = authedProcedure
   .input(
     z.object({
       id: z.number(),
-      users: z.array(z.string()).optional().default([]),
+      users: z.array(z.number()).optional().default([]),
     })
   )
   .use(async ({ ctx, input, next }) => {
@@ -168,9 +180,9 @@ const eventOwnerProcedure = authedProcedure
     const isAllowed = (function () {
       if (event.team) {
         const allTeamMembers = event.team.members.map((member) => member.userId);
-        return input.users.every((userId: string) => allTeamMembers.includes(Number.parseInt(userId)));
+        return input.users.every((userId: number) => allTeamMembers.includes(userId));
       }
-      return input.users.every((userId: string) => Number.parseInt(userId) === ctx.user.id);
+      return input.users.every((userId: number) => userId === ctx.user.id);
     })();
 
     if (!isAllowed) {
@@ -193,6 +205,7 @@ export const eventTypesRouter = router({
       hashedLink: true,
       locations: true,
       destinationCalendar: true,
+      userId: true,
       team: {
         select: {
           id: true,
@@ -206,6 +219,11 @@ export const eventTypesRouter = router({
       metadata: true,
       users: {
         select: baseUserSelect,
+      },
+      children: {
+        include: {
+          users: true,
+        },
       },
       hosts: {
         select: {
@@ -286,8 +304,7 @@ export const eventTypesRouter = router({
       ...eventType,
       safeDescription: markdownToSafeHTML(eventType.description),
       users: !!eventType.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users,
-      // @FIXME: cc @hariombalhara This is failing with production data
-      // metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+      metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
     });
 
     const userEventTypes = user.eventTypes.map(mapEventType);
@@ -311,6 +328,7 @@ export const eventTypesRouter = router({
 
     type EventTypeGroup = {
       teamId?: number | null;
+      membershipRole?: MembershipRole | null;
       profile: {
         slug: (typeof user)["username"];
         name: (typeof user)["name"];
@@ -329,9 +347,12 @@ export const eventTypesRouter = router({
       hashMap[newItem.id] = { ...oldItem, ...newItem };
       return hashMap;
     }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
-    const mergedEventTypes = Object.values(eventTypesHashMap).map((eventType) => eventType);
+    const mergedEventTypes = Object.values(eventTypesHashMap)
+      .map((eventType) => eventType)
+      .filter((evType) => evType.schedulingType !== SchedulingType.MANAGED);
     eventTypeGroups.push({
       teamId: null,
+      membershipRole: null,
       profile: {
         slug: user.username,
         name: user.name,
@@ -348,6 +369,7 @@ export const eventTypesRouter = router({
       eventTypeGroups,
       user.teams.map((membership) => ({
         teamId: membership.team.id,
+        membershipRole: membership.role,
         profile: {
           name: membership.team.name,
           image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
@@ -357,7 +379,14 @@ export const eventTypesRouter = router({
           membershipCount: membership.team.members.length,
           readOnly: membership.role === MembershipRole.MEMBER,
         },
-        eventTypes: membership.team.eventTypes.map(mapEventType),
+        eventTypes: membership.team.eventTypes
+          .map(mapEventType)
+          .filter((evType) => evType.userId === null || evType.userId === ctx.user.id)
+          .filter((evType) =>
+            membership.role === MembershipRole.MEMBER
+              ? evType.schedulingType !== SchedulingType.MANAGED
+              : true
+          ),
       }))
     );
     return {
@@ -366,6 +395,7 @@ export const eventTypesRouter = router({
       // so we can show a dropdown when the user has teams
       profiles: eventTypeGroups.map((group) => ({
         teamId: group.teamId,
+        membershipRole: group.membershipRole,
         ...group.profile,
         ...group.metadata,
       })),
@@ -419,9 +449,9 @@ export const eventTypesRouter = router({
     });
   }),
   create: authedProcedure.input(createEventTypeInput).mutation(async ({ ctx, input }) => {
-    const { schedulingType, teamId, ...rest } = input;
-
+    const { schedulingType, teamId, metadata, ...rest } = input;
     const userId = ctx.user.id;
+    const isManagedEventType = schedulingType === SchedulingType.MANAGED;
     // Get Users default conferncing app
 
     const defaultConferencingData = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
@@ -448,11 +478,9 @@ export const eventTypesRouter = router({
     const data: Prisma.EventTypeCreateInput = {
       ...rest,
       owner: teamId ? undefined : { connect: { id: userId } },
-      users: {
-        connect: {
-          id: userId,
-        },
-      },
+      metadata: (metadata as Prisma.InputJsonObject) ?? undefined,
+      // Only connecting the current user for non-managed event type
+      users: isManagedEventType ? undefined : { connect: { id: userId } },
       locations,
     };
 
@@ -535,6 +563,7 @@ export const eventTypesRouter = router({
       customInputs,
       recurringEvent,
       users,
+      children,
       hosts,
       id,
       hashedLink,
@@ -552,7 +581,7 @@ export const eventTypesRouter = router({
     const data: Prisma.EventTypeUpdateInput = {
       ...rest,
       bookingFields,
-      metadata: rest.metadata === null ? Prisma.DbNull : rest.metadata,
+      metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
     };
     data.locations = locations ?? undefined;
     if (periodType) {
@@ -697,10 +726,38 @@ export const eventTypesRouter = router({
         });
       }
     }
+    const [oldEventType, eventType] = await ctx.prisma.$transaction([
+      ctx.prisma.eventType.findFirst({
+        where: { id },
+        select: {
+          children: {
+            select: {
+              userId: true,
+            },
+          },
+          team: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      }),
+      ctx.prisma.eventType.update({
+        where: { id },
+        data,
+      }),
+    ]);
 
-    const eventType = await ctx.prisma.eventType.update({
-      where: { id },
-      data,
+    // Handling updates to children event types (managed events types)
+    await updateChildrenEventTypes({
+      eventTypeId: id,
+      currentUserId: ctx.user.id,
+      oldEventType,
+      hashedLink,
+      connectedLink,
+      updatedEventType: eventType,
+      children,
+      prisma: ctx.prisma,
     });
     const res = ctx.res as NextApiResponse;
     if (typeof res?.revalidate !== "undefined") {

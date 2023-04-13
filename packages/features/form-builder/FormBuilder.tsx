@@ -44,12 +44,16 @@ export const FormBuilder = function FormBuilder({
   description,
   addFieldLabel,
   formProp,
+  disabled,
+  LockedIcon,
   dataStore,
 }: {
   formProp: string;
   title: string;
   description: string;
   addFieldLabel: string;
+  disabled: boolean;
+  LockedIcon: false | JSX.Element;
   /**
    * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options
    */
@@ -271,9 +275,12 @@ export const FormBuilder = function FormBuilder({
   return (
     <div>
       <div>
-        <div className="text-default text-sm font-semibold ltr:mr-1 rtl:ml-1">{title}</div>
+        <div className="text-default text-sm font-semibold ltr:mr-1 rtl:ml-1">
+          {title}
+          {LockedIcon}
+        </div>
         <p className="text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[500px]">{description}</p>
-        <ul className="border-default divide-subtle mt-2 divide-y-2 rounded-md border ">
+        <ul className="border-default divide-subtle mt-2 divide-y rounded-md border">
           {fields.map((field, index) => {
             const options = field.options
               ? field.options
@@ -309,22 +316,27 @@ export const FormBuilder = function FormBuilder({
                 key={field.name}
                 data-testid={`field-${field.name}`}
                 className="hover:bg-muted group relative flex items-center  justify-between p-4 ">
-                {index >= 1 && (
-                  <button
-                    type="button"
-                    className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-default hover:border-emphasis invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
-                    onClick={() => swap(index, index - 1)}>
-                    <ArrowUp className="h-5 w-5" />
-                  </button>
+                {!disabled && (
+                  <>
+                    {index >= 1 && (
+                      <button
+                        type="button"
+                        className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-default hover:border-emphasis invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                        onClick={() => swap(index, index - 1)}>
+                        <ArrowUp className="h-5 w-5" />
+                      </button>
+                    )}
+                    {index < fields.length - 1 && (
+                      <button
+                        type="button"
+                        className="bg-default text-muted hover:border-emphasis border-default hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                        onClick={() => swap(index, index + 1)}>
+                        <ArrowDown className="h-5 w-5" />
+                      </button>
+                    )}
+                  </>
                 )}
-                {index < fields.length - 1 && (
-                  <button
-                    type="button"
-                    className="bg-default text-muted hover:border-emphasis border-default hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
-                    onClick={() => swap(index, index + 1)}>
-                    <ArrowDown className="h-5 w-5" />
-                  </button>
-                )}
+
                 <div>
                   <div className="flex flex-col lg:flex-row lg:items-center">
                     <div className="text-default text-sm font-semibold ltr:mr-2 rtl:ml-2">
@@ -349,9 +361,9 @@ export const FormBuilder = function FormBuilder({
                     {fieldType.label}
                   </p>
                 </div>
-                {field.editable !== "user-readonly" && (
+                {field.editable !== "user-readonly" && !disabled && (
                   <div className="flex items-center space-x-2">
-                    {!isFieldEditableSystem && (
+                    {!isFieldEditableSystem && !disabled && (
                       <Switch
                         data-testid="toggle-field"
                         disabled={isFieldEditableSystem}
@@ -388,9 +400,16 @@ export const FormBuilder = function FormBuilder({
             );
           })}
         </ul>
-        <Button color="minimal" data-testid="add-field" onClick={addField} className="mt-4" StartIcon={Plus}>
-          {addFieldLabel}
-        </Button>
+        {!disabled && (
+          <Button
+            color="minimal"
+            data-testid="add-field"
+            onClick={addField}
+            className="mt-4"
+            StartIcon={Plus}>
+            {addFieldLabel}
+          </Button>
+        )}
       </div>
       <Dialog
         open={fieldDialog.isOpen}

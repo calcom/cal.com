@@ -325,7 +325,7 @@ export default function Success(props: SuccessProps) {
               <div
                 className={classNames(
                   "main inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
-                  isBackgroundTransparent ? "" : " bg-default dark:bg-muted border-subtle",
+                  !isBackgroundTransparent && " bg-default dark:bg-muted border-booker border-booker-width",
                   "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
