@@ -368,8 +368,8 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                       <RadioGroup.Item
                         id={period.type}
                         value={period.type}
-                        className="min-w-4 bg-default flex h-4 w-4 cursor-pointer items-center rounded-full border border-black focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
-                        <RadioGroup.Indicator className="relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full after:bg-black" />
+                        className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+                        <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
                       </RadioGroup.Item>
                     )}
                     {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
