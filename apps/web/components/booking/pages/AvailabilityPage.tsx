@@ -191,7 +191,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
               style={availabilityDatePickerEmbedStyles}
               className={classNames(
                 isBackgroundTransparent ? "" : "bg-default dark:bg-muted pb-4 md:pb-0",
-                "border-subtle md:rounded-md md:border",
+                "border-booker md:border-booker-width md:rounded-md",
                 isEmbed && "mx-auto"
               )}>
               <div className="md:flex">
