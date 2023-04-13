@@ -28,7 +28,7 @@ function PhoneInput({ name, className = "", onChange, ...rest }: PhoneInputProps
       onChange={onChange}
       countrySelectProps={{ className: "text-emphasis" }}
       numberInputProps={{
-        className: "border-0 text-sm focus:ring-0 bg-default text-default",
+        className: "border-0 text-sm focus:ring-0 bg-default text-default mr-1",
       }}
       className={classNames(
         "hover:border-emphasis border-default bg-default rounded-md border py-px pl-3 focus-within:border-neutral-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1 disabled:cursor-not-allowed",
