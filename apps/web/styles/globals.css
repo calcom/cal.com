@@ -162,14 +162,20 @@ html.todesktop aside {
   margin: 0px -6px;
 }
 
-/* TODO: add "native" MacOS colors
-   requires darkmode for MacOS first
-
 html.todesktop .desktop-transparent{
   background: transparent !important;
   border: none !important;
 }
 
+html.todesktop.dark main.bg-default{
+  background: rgba(0,0,0,0.6) !important
+}
+
+html.todesktop.light main.bg-default{
+  background: rgba(255,255,255,0.8) !important
+}
+
+/* 
 html.todesktop aside a {
   height: 28px;
   padding: 0px 8px;
@@ -187,8 +193,7 @@ html.todesktop nav a[aria-current="page"]{
 
 html.todesktop nav a svg{
   color: #0272F7 !important
-}
-*/
+} */
 
 /*
   Adds Utility to hide scrollbar to tailwind
