@@ -1,4 +1,4 @@
-import debounce from "lodash/debounce";
+import { debounce } from "lodash";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
@@ -95,7 +95,7 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
       footerText={
         !success && (
           <>
-            <Link href="/auth/login" className="font-medium text-gray-900">
+            <Link href="/auth/login" className="text-emphasis font-medium">
               {t("back_to_signin")}
             </Link>
           </>

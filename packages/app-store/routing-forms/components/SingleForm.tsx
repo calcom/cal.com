@@ -34,7 +34,7 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
-import { FiExternalLink, FiLink, FiDownload, FiCode, FiTrash } from "@calcom/ui/components/icon";
+import { ExternalLink, Link as LinkIcon, Download, Code, Trash } from "@calcom/ui/components/icon";
 
 import { RoutingPages } from "../lib/RoutingPages";
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -78,7 +78,7 @@ const Actions = ({
             type="button"
             rel="noreferrer"
             action="preview"
-            StartIcon={FiExternalLink}
+            StartIcon={ExternalLink}
           />
         </Tooltip>
         <FormAction
@@ -87,7 +87,7 @@ const Actions = ({
           color="secondary"
           variant="icon"
           type="button"
-          StartIcon={FiLink}
+          StartIcon={LinkIcon}
           tooltip={t("copy_link_to_form")}
         />
 
@@ -99,7 +99,7 @@ const Actions = ({
             color="secondary"
             variant="icon"
             type="button"
-            StartIcon={FiDownload}
+            StartIcon={Download}
           />
         </Tooltip>
         <FormAction
@@ -107,7 +107,7 @@ const Actions = ({
           action="embed"
           color="secondary"
           variant="icon"
-          StartIcon={FiCode}
+          StartIcon={Code}
           tooltip={t("embed")}
         />
         <DropdownMenuSeparator />
@@ -116,7 +116,7 @@ const Actions = ({
           action="_delete"
           // className="mr-3"
           variant="icon"
-          StartIcon={FiTrash}
+          StartIcon={Trash}
           color="secondary"
           type="button"
           tooltip={t("delete")}
@@ -129,7 +129,7 @@ const Actions = ({
               action="copyRedirectUrl"
               color="minimal"
               type="button"
-              StartIcon={FiLink}>
+              StartIcon={LinkIcon}>
               {t("Copy Typeform Redirect Url")}
             </FormAction>
           </FormActionsDropdown>
@@ -145,7 +145,7 @@ const Actions = ({
             type="button"
             rel="noreferrer"
             action="preview"
-            StartIcon={FiExternalLink}>
+            StartIcon={ExternalLink}>
             {t("preview")}
           </FormAction>
           <FormAction
@@ -154,7 +154,7 @@ const Actions = ({
             routingForm={form}
             color="minimal"
             type="button"
-            StartIcon={FiLink}>
+            StartIcon={LinkIcon}>
             {t("copy_link_to_form")}
           </FormAction>
           <FormAction
@@ -163,7 +163,7 @@ const Actions = ({
             className="w-full"
             color="minimal"
             type="button"
-            StartIcon={FiDownload}>
+            StartIcon={Download}>
             {t("download_responses")}
           </FormAction>
           <FormAction
@@ -172,7 +172,7 @@ const Actions = ({
             color="minimal"
             type="button"
             className="w-full"
-            StartIcon={FiCode}>
+            StartIcon={Code}>
             {t("embed")}
           </FormAction>
           {typeformApp ? (
@@ -182,7 +182,7 @@ const Actions = ({
               action="copyRedirectUrl"
               color="minimal"
               type="button"
-              StartIcon={FiLink}>
+              StartIcon={LinkIcon}>
               {t("Copy Typeform Redirect Url")}
             </FormAction>
           ) : null}
@@ -193,7 +193,7 @@ const Actions = ({
             className="w-full"
             type="button"
             color="destructive"
-            StartIcon={FiTrash}>
+            StartIcon={Trash}>
             {t("delete")}
           </FormAction>
         </FormActionsDropdown>
@@ -309,8 +309,10 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
 
                   {form.routers.length ? (
                     <div className="mt-6">
-                      <div className="mb-2 block text-sm font-semibold leading-none text-black ">Routers</div>
-                      <p className="-mt-1 text-xs leading-normal text-gray-600">
+                      <div className="text-emphasis mb-2 block text-sm font-semibold leading-none ">
+                        Routers
+                      </div>
+                      <p className="text-default -mt-1 text-xs leading-normal">
                         {t("modifications_in_fields_warning")}
                       </p>
                       <div className="flex">
@@ -329,10 +331,10 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
 
                   {connectedForms?.length ? (
                     <div className="mt-6">
-                      <div className="mb-2 block text-sm font-semibold leading-none text-black ">
+                      <div className="text-emphasis mb-2 block text-sm font-semibold leading-none ">
                         {t("connected_forms")}
                       </div>
-                      <p className="-mt-1 text-xs leading-normal text-gray-600">
+                      <p className="text-default -mt-1 text-xs leading-normal">
                         {t("form_modifications_warning")}
                       </p>
                       <div className="flex">
@@ -368,7 +370,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     </>
                   )}
                 </div>
-                <div className="w-full rounded-md border border-gray-200 p-8">
+                <div className="border-subtle w-full rounded-md border p-8">
                   <RoutingNavBar appUrl={appUrl} form={form} />
                   <Page hookForm={hookForm} form={form} appUrl={appUrl} />
                 </div>
@@ -391,7 +393,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
               </div>
               <div>
                 {decidedAction && (
-                  <div className="mt-5 rounded-md bg-gray-100 p-3">
+                  <div className="bg-subtle text-default mt-5 rounded-md p-3">
                     <div className="font-bold ">{t("route_to")}:</div>
                     <div className="mt-2">
                       {RoutingPages.map((page) => {
@@ -404,11 +406,11 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                       })}
                       :{" "}
                       {decidedAction.type === "customPageMessage" ? (
-                        <span className="text-gray-700" data-testid="test-routing-result">
+                        <span className="text-default" data-testid="test-routing-result">
                           {decidedAction.value}
                         </span>
                       ) : decidedAction.type === "externalRedirectUrl" ? (
-                        <span className="text-gray-700 underline">
+                        <span className="text-default underline">
                           <a
                             target="_blank"
                             data-testid="test-routing-result"
@@ -423,7 +425,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                           </a>
                         </span>
                       ) : (
-                        <span className="text-gray-700 underline">
+                        <span className="text-default underline">
                           <a
                             target="_blank"
                             href={`/${decidedAction.value}`}

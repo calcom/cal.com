@@ -1,12 +1,14 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { IdentityProvider } from "@prisma/client";
-import crypto from "crypto";
 import { signOut } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
+import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -36,7 +38,7 @@ import {
   TextField,
   Editor,
 } from "@calcom/ui";
-import { FiAlertTriangle, FiTrash2 } from "@calcom/ui/components/icon";
+import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
@@ -45,7 +47,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="mt-6 mb-8 space-y-6 divide-y">
+      <div className="mt-6 mb-8 space-y-6">
         <div className="flex items-center">
           <SkeletonAvatar className="h-12 w-12 px-4" />
           <SkeletonButton className="h-6 w-32 rounded-md p-5" />
@@ -224,13 +226,13 @@ const ProfileView = () => {
         }
       />
 
-      <hr className="my-6 border-gray-200" />
+      <hr className="border-subtle my-6" />
 
       <Label>{t("danger_zone")}</Label>
       {/* Delete account Dialog */}
       <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
         <DialogTrigger asChild>
-          <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon={FiTrash2}>
+          <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon={Trash2}>
             {t("delete_account")}
           </Button>
         </DialogTrigger>
@@ -238,9 +240,11 @@ const ProfileView = () => {
           title={t("delete_account_modal_title")}
           description={t("confirm_delete_account_modal", { appName: APP_NAME })}
           type="creation"
-          Icon={FiAlertTriangle}>
+          Icon={AlertTriangle}>
           <>
-            <p className="mb-7">{t("delete_account_confirmation_message", { appName: APP_NAME })}</p>
+            <p className="text-default mb-7">
+              {t("delete_account_confirmation_message", { appName: APP_NAME })}
+            </p>
             {isCALIdentityProviver && (
               <PasswordField
                 data-testid="password"
@@ -279,7 +283,7 @@ const ProfileView = () => {
           title={t("confirm_password")}
           description={t("confirm_password_change_email")}
           type="creation"
-          Icon={FiAlertTriangle}>
+          Icon={AlertTriangle}>
           <>
             <PasswordField
               data-testid="password"
@@ -315,13 +319,23 @@ const ProfileForm = ({
   extraField?: React.ReactNode;
 }) => {
   const { t } = useLocale();
-  const emailMd5 = crypto
-    .createHash("md5")
-    .update(defaultValues.email || "example@example.com")
-    .digest("hex");
+
+  const profileFormSchema = z.object({
+    username: z.string(),
+    avatar: z.string(),
+    name: z
+      .string()
+      .min(1)
+      .max(FULL_NAME_LENGTH_MAX_LIMIT, {
+        message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
+      }),
+    email: z.string().email(),
+    bio: z.string(),
+  });
 
   const formMethods = useForm<FormValues>({
     defaultValues,
+    resolver: zodResolver(profileFormSchema),
   });
 
   const {
@@ -338,8 +352,8 @@ const ProfileForm = ({
           name="avatar"
           render={({ field: { value } }) => (
             <>
-              <Avatar alt="" imageSrc={value} gravatarFallbackMd5={emailMd5} size="lg" />
-              <div className="ltr:ml-4 rtl:mr-4">
+              <Avatar alt="" imageSrc={value} gravatarFallbackMd5="fallback" size="lg" />
+              <div className="ms-4">
                 <ImageUploader
                   target="avatar"
                   id="avatar-upload"

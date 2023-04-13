@@ -2,7 +2,7 @@ import DailyIframe from "@daily-co/daily-js";
 import MarkdownIt from "markdown-it";
 import type { GetServerSidePropsContext } from "next";
 import Head from "next/head";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -12,7 +12,7 @@ import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-f
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { FiChevronRight } from "@calcom/ui/components/icon";
+import { ChevronRight } from "@calcom/ui/components/icon";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -93,13 +93,14 @@ interface ProgressBarProps {
 }
 
 function ProgressBar(props: ProgressBarProps) {
+  const { t } = useLocale();
   const { startTime, endTime } = props;
   const currentTime = dayjs().second(0).millisecond(0);
   const startingTime = dayjs(startTime).second(0).millisecond(0);
   const isPast = currentTime.isAfter(startingTime);
   const currentDifference = dayjs().diff(startingTime, "minutes");
   const startDuration = dayjs(endTime).diff(startingTime, "minutes");
-  const [duration] = useState(() => {
+  const [duration, setDuration] = useState(() => {
     if (currentDifference >= 0 && isPast) {
       return startDuration - currentDifference;
     } else {
@@ -107,11 +108,46 @@ function ProgressBar(props: ProgressBarProps) {
     }
   });
 
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const now = dayjs();
+    const remainingMilliseconds = (60 - now.get("seconds")) * 1000 - now.get("milliseconds");
+
+    timeoutRef.current = setTimeout(() => {
+      const past = dayjs().isAfter(startingTime);
+
+      if (past) {
+        setDuration((prev) => prev - 1);
+      }
+
+      intervalRef.current = setInterval(() => {
+        if (dayjs().isAfter(startingTime)) {
+          setDuration((prev) => prev - 1);
+        }
+      }, 60000);
+    }, remainingMilliseconds);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, []);
+
   const prev = startDuration - duration;
   const percentage = prev * (100 / startDuration);
   return (
     <div>
-      <p>{duration} minutes</p>
+      <p>
+        {duration} {t("minutes")}
+      </p>
       <div className="relative h-2 max-w-xl overflow-hidden rounded-full">
         <div className="absolute h-full w-full bg-gray-500/10" />
         <div className={classNames("relative h-full bg-green-500")} style={{ width: `${percentage}%` }} />
@@ -127,6 +163,7 @@ interface VideoMeetingInfo {
 export function VideoMeetingInfo(props: VideoMeetingInfo) {
   const [open, setOpen] = useState(false);
   const { booking } = props;
+  const { t } = useLocale();
 
   const endTime = new Date(booking.endTime);
   const startTime = new Date(booking.startTime);
@@ -139,25 +176,25 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           open ? "translate-x-0" : "-translate-x-[232px]"
         )}>
         <main className="prose-sm prose max-w-64 prose-a:text-white prose-h3:text-white prose-h3:font-cal scroll-bar scrollbar-track-w-20 w-full overflow-scroll overflow-x-hidden border-r border-gray-300/20 bg-black/80 p-4 text-white shadow-sm backdrop-blur-lg">
-          <h3>What:</h3>
+          <h3>{t("what")}:</h3>
           <p>{booking.title}</p>
-          <h3>Invitee Time Zone:</h3>
+          <h3>{t("invitee_timezone")}:</h3>
           <p>{booking.user?.timeZone}</p>
-          <h3>When:</h3>
+          <h3>{t("when")}:</h3>
           <p>
             {formatToLocalizedDate(startTime)} <br />
             {formatToLocalizedTime(startTime)}
           </p>
-          <h3>Time left</h3>
+          <h3>{t("time_left")}</h3>
           <ProgressBar
             key={String(open)}
             endTime={endTime.toISOString()}
             startTime={startTime.toISOString()}
           />
 
-          <h3>Who:</h3>
+          <h3>{t("who")}:</h3>
           <p>
-            {booking?.user?.name} - Organizer{" "}
+            {booking?.user?.name} - {t("organizer")}:{" "}
             <a href={`mailto:${booking?.user?.email}`}>{booking?.user?.email}</a>
           </p>
 
@@ -169,19 +206,23 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
               ))
             : null}
 
-          <h3>Description</h3>
+          {booking.description && (
+            <>
+              <h3>{t("description")}:</h3>
 
-          <div
-            className="prose-sm prose prose-invert"
-            dangerouslySetInnerHTML={{ __html: md.render(booking.description ?? "") }}
-          />
+              <div
+                className="prose-sm prose prose-invert"
+                dangerouslySetInnerHTML={{ __html: booking.description }}
+              />
+            </>
+          )}
         </main>
         <div className="flex items-center justify-center">
           <button
             aria-label={`${open ? "close" : "open"} booking description sidebar`}
             className="h-20 w-6 rounded-r-md border border-l-0 border-gray-300/20 bg-black/60 text-white shadow-sm backdrop-blur-lg"
             onClick={() => setOpen(!open)}>
-            <FiChevronRight
+            <ChevronRight
               aria-hidden
               className={classNames(open && "rotate-180", "w-5 transition-all duration-300 ease-in-out")}
             />
@@ -272,7 +313,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...(typeof bookingObj.references[0].meetingPassword === "string" && {
         meetingPassword: bookingObj.references[0].meetingPassword,
       }),
-      booking: bookingObj,
+      booking: {
+        ...bookingObj,
+        ...(bookingObj.description && { description: md.render(bookingObj.description) }),
+      },
       trpcState: ssr.dehydrate(),
     },
   };

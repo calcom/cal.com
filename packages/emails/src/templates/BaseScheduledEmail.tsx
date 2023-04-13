@@ -76,10 +76,20 @@ export const BaseScheduledEmail = (
       <WhenInfo calEvent={props.calEvent} t={t} timeZone={timeZone} />
       <WhoInfo calEvent={props.calEvent} t={t} />
       <LocationInfo calEvent={props.calEvent} t={t} />
-      <Info label={t("description")} description={props.calEvent.description} withSpacer />
+      <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
       <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />
       {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
       <UserFieldsResponses calEvent={props.calEvent} />
+      {props.calEvent.paymentInfo?.amount && (
+        <Info
+          label={props.calEvent.paymentInfo?.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
+          description={new Intl.NumberFormat(props.attendee.language.locale, {
+            style: "currency",
+            currency: props.calEvent.paymentInfo?.currency || "USD",
+          }).format(props.calEvent.paymentInfo?.amount / 100.0)}
+          withSpacer
+        />
+      )}
     </BaseEmailHtml>
   );
 };

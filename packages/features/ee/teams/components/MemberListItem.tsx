@@ -26,7 +26,7 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
-import { FiExternalLink, FiMoreHorizontal, FiEdit2, FiLock, FiTrash } from "@calcom/ui/components/icon";
+import { ExternalLink, MoreHorizontal, Edit2, Lock, Trash } from "@calcom/ui/components/icon";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamPill, { TeamRole } from "./TeamPill";
@@ -56,6 +56,7 @@ export default function MemberListItem(props: Props) {
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
+      await utils.viewer.eventTypes.invalidate();
       showToast(t("success"), "success");
     },
     async onError(err) {
@@ -93,8 +94,11 @@ export default function MemberListItem(props: Props) {
     props.member.accepted &&
     process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
 
+  const urlWithoutProtocol = WEBAPP_URL.replace(/^https?:\/\//, "");
+  const bookingLink = `${urlWithoutProtocol}/${props.member.username}`;
+
   return (
-    <li className="divide-y px-5">
+    <li className="divide-subtle divide-y px-5">
       <div className="my-4 flex justify-between">
         <div className="flex w-full flex-col justify-between sm:flex-row">
           <div className="flex">
@@ -105,25 +109,35 @@ export default function MemberListItem(props: Props) {
               className="h-10 w-10 rounded-full"
             />
 
-            <div className="inline-block ltr:ml-3 rtl:mr-3">
+            <div className="ms-3 inline-block">
               <div className="mb-1 flex">
-                <span className="mr-1 text-sm font-bold leading-4">{name}</span>
+                <span className="text-default mr-1 text-sm font-bold leading-4">{name}</span>
 
                 {!props.member.accepted && <TeamPill color="orange" text={t("pending")} />}
                 {props.member.role && <TeamRole role={props.member.role} />}
               </div>
-              <span
-                className="block text-sm text-gray-600"
-                data-testid="member-email"
-                data-email={props.member.email}>
-                {props.member.email}
-              </span>
+              <div className="text-default flex items-center">
+                <span className=" block text-sm" data-testid="member-email" data-email={props.member.email}>
+                  {props.member.email}
+                </span>
+                {bookingLink && (
+                  <>
+                    <span className="text-default mx-2 block">•</span>
+                    <a
+                      target="_blank"
+                      href={`${WEBAPP_URL}/${props.member.username}`}
+                      className="text-default block text-sm">
+                      {bookingLink}
+                    </a>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
         {props.team.membership.accepted && (
           <div className="flex items-center justify-center">
-            <ButtonGroup combined containerProps={{ className: "border-gray-300 hidden md:flex" }}>
+            <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
               {/* TODO: bring availability back. right now its ugly and broken
                <Tooltip
                 content={
@@ -136,7 +150,7 @@ export default function MemberListItem(props: Props) {
                   onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
                   color="secondary"
                   variant="icon"
-                  StartIcon={FiClock}
+                  StartIcon={Clock}
                 />
               </Tooltip> */}
               <Tooltip content={t("view_public_page")}>
@@ -146,7 +160,7 @@ export default function MemberListItem(props: Props) {
                   color="secondary"
                   className={classNames(!editMode ? "rounded-r-md" : "")}
                   variant="icon"
-                  StartIcon={FiExternalLink}
+                  StartIcon={ExternalLink}
                 />
               </Tooltip>
               {editMode && (
@@ -156,7 +170,7 @@ export default function MemberListItem(props: Props) {
                       className="radix-state-open:rounded-r-md"
                       color="secondary"
                       variant="icon"
-                      StartIcon={FiMoreHorizontal}
+                      StartIcon={MoreHorizontal}
                     />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
@@ -164,7 +178,7 @@ export default function MemberListItem(props: Props) {
                       <DropdownItem
                         type="button"
                         onClick={() => setShowChangeMemberRoleModal(true)}
-                        StartIcon={FiEdit2}>
+                        StartIcon={Edit2}>
                         {t("edit")}
                       </DropdownItem>
                     </DropdownMenuItem>
@@ -174,7 +188,7 @@ export default function MemberListItem(props: Props) {
                           <DropdownItem
                             type="button"
                             onClick={() => setShowImpersonateModal(true)}
-                            StartIcon={FiLock}>
+                            StartIcon={Lock}>
                             {t("impersonate")}
                           </DropdownItem>
                         </DropdownMenuItem>
@@ -186,7 +200,7 @@ export default function MemberListItem(props: Props) {
                         type="button"
                         onClick={() => setShowDeleteModal(true)}
                         color="destructive"
-                        StartIcon={FiTrash}>
+                        StartIcon={Trash}>
                         {t("delete")}
                       </DropdownItem>
                     </DropdownMenuItem>
@@ -197,11 +211,11 @@ export default function MemberListItem(props: Props) {
             <div className="flex md:hidden">
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="icon" color="minimal" StartIcon={FiMoreHorizontal} />
+                  <Button type="button" variant="icon" color="minimal" StartIcon={MoreHorizontal} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem className="outline-none">
-                    <DropdownItem type="button" StartIcon={FiExternalLink}>
+                    <DropdownItem type="button" StartIcon={ExternalLink}>
                       {t("view_public_page")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -211,7 +225,7 @@ export default function MemberListItem(props: Props) {
                         <DropdownItem
                           type="button"
                           onClick={() => setShowChangeMemberRoleModal(true)}
-                          StartIcon={FiEdit2}>
+                          StartIcon={Edit2}>
                           {t("edit")}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -220,7 +234,7 @@ export default function MemberListItem(props: Props) {
                           type="button"
                           color="destructive"
                           onClick={() => setShowDeleteModal(true)}
-                          StartIcon={FiTrash}>
+                          StartIcon={Trash}>
                           {t("delete")}
                         </DropdownItem>
                       </DropdownMenuItem>

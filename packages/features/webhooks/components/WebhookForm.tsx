@@ -4,7 +4,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Form, Label, Select, Switch, TextArea, TextField, ToggleGroup } from "@calcom/ui";
 
 import customTemplate, { hasTemplateIntegration } from "../lib/integrationTemplate";
@@ -94,7 +94,7 @@ const WebhookForm = (props: {
               <TextField
                 name="subscriberUrl"
                 label={t("subscriber_url")}
-                labelClassName="font-medium text-gray-900 font-sm"
+                labelClassName="font-medium text-emphasis font-sm"
                 value={value}
                 required
                 type="url"
@@ -113,7 +113,7 @@ const WebhookForm = (props: {
           name="active"
           control={formMethods.control}
           render={({ field: { value } }) => (
-            <div className="font-sm mt-8 font-medium text-gray-900">
+            <div className="font-sm text-emphasis mt-8 font-medium">
               <Switch
                 label={t("enable_webhook")}
                 checked={value}
@@ -132,7 +132,7 @@ const WebhookForm = (props: {
             const selectValue = translatedTriggerOptions.filter((option) => value.includes(option.value));
             return (
               <div className="mt-8">
-                <Label className="font-sm mt-8 font-medium text-gray-900">
+                <Label className="font-sm text-emphasis mt-8 font-medium">
                   <>{t("event_triggers")}</>
                 </Label>
                 <Select
@@ -154,9 +154,9 @@ const WebhookForm = (props: {
             <div className="mt-8 ">
               {!!hasSecretKey && !changeSecret && (
                 <>
-                  <Label className="font-sm font-medium text-gray-900">Secret</Label>
-                  <div className="space-y-0 rounded-md border-0 border-neutral-200 bg-white sm:mx-0 md:border">
-                    <div className="rounded-sm border-b p-2 text-sm text-gray-900">
+                  <Label className="font-sm text-emphasis font-medium">Secret</Label>
+                  <div className="bg-default space-y-0 rounded-md border-0 border-neutral-200 sm:mx-0 md:border">
+                    <div className="text-emphasis rounded-sm border-b p-2 text-sm">
                       {t("forgotten_secret_description")}
                     </div>
                     <div className="p-2">
@@ -177,7 +177,7 @@ const WebhookForm = (props: {
                   <TextField
                     autoComplete="off"
                     label={t("secret")}
-                    labelClassName="font-medium text-gray-900 font-sm"
+                    labelClassName="font-medium text-emphasis font-sm"
                     {...formMethods.register("secret")}
                     value={newSecret}
                     onChange={(event) => setNewSecret(event.currentTarget.value)}
@@ -199,7 +199,7 @@ const WebhookForm = (props: {
                 <TextField
                   name="secret"
                   label={t("secret")}
-                  labelClassName="font-medium text-gray-900 font-sm"
+                  labelClassName="font-medium text-emphasis font-sm"
                   value={value}
                   onChange={(e) => {
                     formMethods.setValue("secret", e?.target.value);
@@ -215,7 +215,7 @@ const WebhookForm = (props: {
           control={formMethods.control}
           render={({ field: { value } }) => (
             <>
-              <Label className="font-sm mt-8 text-gray-900">
+              <Label className="font-sm text-emphasis mt-8">
                 <>{t("payload_template")}</>
               </Label>
               <div className="mb-2">
@@ -249,7 +249,7 @@ const WebhookForm = (props: {
             </>
           )}
         />
-        <div className="mt-8 rounded-md bg-gray-100 p-6">
+        <div className="bg-subtle mt-8 rounded-md p-6">
           <WebhookTestDisclosure />
         </div>
 

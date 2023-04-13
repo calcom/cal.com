@@ -15,6 +15,7 @@ import dayjs from "@calcom/dayjs";
 import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import { sendDeclinedEmails, sendLocationChangeEmails, sendRequestRescheduleEmail } from "@calcom/emails";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
@@ -267,6 +268,14 @@ export const bookingsRouter = router({
           },
           status: true,
           paid: true,
+          payment: {
+            select: {
+              paymentOption: true,
+              amount: true,
+              currency: true,
+              success: true,
+            },
+          },
           user: {
             select: {
               id: true,
@@ -415,6 +424,7 @@ export const bookingsRouter = router({
           smsReminderNumber: true,
           scheduledJobs: true,
           workflowReminders: true,
+          responses: true,
         },
         where: {
           uid: bookingId,
@@ -548,10 +558,10 @@ export const bookingsRouter = router({
         const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter(
           (ref) => !!credentialsMap.get(ref.type)
         );
-        bookingRefsFiltered.forEach((bookingRef) => {
+        bookingRefsFiltered.forEach(async (bookingRef) => {
           if (bookingRef.uid) {
             if (bookingRef.type.endsWith("_calendar")) {
-              const calendar = getCalendar(credentialsMap.get(bookingRef.type));
+              const calendar = await getCalendar(credentialsMap.get(bookingRef.type));
 
               return calendar?.deleteEvent(
                 bookingRef.uid,
@@ -574,6 +584,10 @@ export const bookingsRouter = router({
           type: event && event.title ? event.title : bookingToReschedule.title,
           description: bookingToReschedule?.description || "",
           customInputs: isPrismaObjOrUndefined(bookingToReschedule.customInputs),
+          ...getCalEventResponses({
+            booking: bookingToReschedule,
+            bookingFields: bookingToReschedule.eventType?.bookingFields ?? null,
+          }),
           startTime: bookingToReschedule?.startTime ? dayjs(bookingToReschedule.startTime).format() : "",
           endTime: bookingToReschedule?.endTime ? dayjs(bookingToReschedule.endTime).format() : "",
           organizer: userAsPeopleType,
@@ -669,6 +683,8 @@ export const bookingsRouter = router({
           recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
           location,
           destinationCalendar: booking?.destinationCalendar || booking?.user?.destinationCalendar,
+          seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+          seatsShowAttendees: booking.eventType?.seatsShowAttendees,
         };
 
         const eventManager = new EventManager(ctx.user);
@@ -729,6 +745,7 @@ export const bookingsRouter = router({
         endTime: true,
         attendees: true,
         eventTypeId: true,
+        responses: true,
         eventType: {
           select: {
             id: true,
@@ -741,6 +758,9 @@ export const bookingsRouter = router({
             length: true,
             description: true,
             price: true,
+            bookingFields: true,
+            disableGuests: true,
+            metadata: true,
             workflows: {
               include: {
                 workflow: {
@@ -750,6 +770,7 @@ export const bookingsRouter = router({
                 },
               },
             },
+            customInputs: true,
           },
         },
         location: true,
@@ -765,6 +786,7 @@ export const bookingsRouter = router({
         scheduledJobs: true,
       },
     });
+
     const authorized = async () => {
       // if the organizer
       if (booking.userId === user.id) {
@@ -826,6 +848,11 @@ export const bookingsRouter = router({
       type: booking.eventType?.title || booking.title,
       title: booking.title,
       description: booking.description,
+      // TODO: Remove the usage of `bookingFields` in computing responses. We can do that by storing `label` with the response. Also, this would allow us to correctly show the label for a field even after the Event Type has been deleted.
+      ...getCalEventResponses({
+        bookingFields: booking.eventType?.bookingFields ?? null,
+        booking,
+      }),
       customInputs: isPrismaObjOrUndefined(booking.customInputs),
       startTime: booking.startTime.toISOString(),
       endTime: booking.endTime.toISOString(),
@@ -945,7 +972,7 @@ export const bookingsRouter = router({
             }
 
             // Posible to refactor TODO:
-            const paymentApp = appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore];
+            const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore];
             if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
               console.warn(`payment App service of type ${paymentApp} is not implemented`);
               return null;

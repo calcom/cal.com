@@ -45,7 +45,7 @@ export const createEmbedsFixture = (page: Page) => {
           }
           api("on", {
             action: "*",
-            callback: (e: any) => {
+            callback: (e) => {
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
               window.iframeReady = true; // Technically if there are multiple cal embeds, it can be set due to some other iframe. But it works for now. Improve it when it doesn't work

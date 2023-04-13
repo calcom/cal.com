@@ -26,6 +26,7 @@ type UsernameSlugLinkProps = {
 };
 
 const user: User = {
+  metadata: null,
   theme: null,
   credentials: [],
   username: "john.doe",

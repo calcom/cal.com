@@ -29,7 +29,7 @@ import {
   SkeletonText,
   Switch,
 } from "@calcom/ui";
-import { FiCopy, FiPlus, FiTrash } from "@calcom/ui/components/icon";
+import { Copy, Plus, Trash } from "@calcom/ui/components/icon";
 
 export type { TimeRange };
 
@@ -56,7 +56,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
       {/* Label & switch container */}
       <div className="flex h-[36px] items-center justify-between sm:w-32">
         <div>
-          <label className="flex flex-row items-center space-x-2 rtl:space-x-reverse">
+          <label className="text-default flex flex-row items-center space-x-2 rtl:space-x-reverse">
             <div>
               <Switch
                 disabled={!watchDayRange}
@@ -102,14 +102,14 @@ const CopyButton = ({
       <DropdownMenuTrigger asChild>
         <Button
           className={classNames(
-            "text-gray-700",
-            open && "ring-brand-500 !bg-gray-100 outline-none ring-2 ring-offset-1"
+            "text-default",
+            open && "ring-brand-500 !bg-subtle outline-none ring-2 ring-offset-1"
           )}
           type="button"
           tooltip={t("copy_times_to_tooltip")}
           color="minimal"
           variant="icon"
-          StartIcon={FiCopy}
+          StartIcon={Copy}
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -184,11 +184,11 @@ export const DayRanges = <TFieldValues extends FieldValues>({
             {index === 0 && (
               <Button
                 tooltip={t("add_time_availability")}
-                className="mx-2 text-gray-700 "
+                className="text-default mx-2 "
                 type="button"
                 color="minimal"
                 variant="icon"
-                StartIcon={FiPlus}
+                StartIcon={Plus}
                 onClick={() => {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const nextRange: any = getNextRange(fields[fields.length - 1]);
@@ -196,7 +196,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 }}
               />
             )}
-            {index !== 0 && <RemoveTimeButton index={index} remove={remove} className="mx-2 text-gray-700" />}
+            {index !== 0 && <RemoveTimeButton index={index} remove={remove} className="text-default mx-2" />}
           </div>
         </Fragment>
       ))}
@@ -218,7 +218,7 @@ const RemoveTimeButton = ({
       type="button"
       variant="icon"
       color="minimal"
-      StartIcon={FiTrash}
+      StartIcon={Trash}
       onClick={() => remove(index)}
       className={className}
     />
@@ -237,7 +237,7 @@ const TimeRangeField = ({ className, value, onChange }: { className?: string } &
           onChange({ ...value, start: new Date(option?.value as number) });
         }}
       />
-      <span className="mx-2 w-2 self-center"> - </span>
+      <span className="text-default mx-2 w-2 self-center"> - </span>
       <LazySelect
         className="inline-block w-[100px] rounded-md"
         value={value.end}
@@ -346,10 +346,16 @@ const useOptions = () => {
 };
 
 const getNextRange = (field?: FieldArrayWithId) => {
-  const nextRangeStart = dayjs((field as unknown as TimeRange).end);
-  const nextRangeEnd = dayjs(nextRangeStart).add(1, "hour");
+  const nextRangeStart = dayjs((field as unknown as TimeRange).end).utc();
+  const nextRangeEnd =
+    nextRangeStart.hour() === 23
+      ? dayjs(nextRangeStart).add(59, "minutes").add(59, "seconds").add(999, "milliseconds")
+      : dayjs(nextRangeStart).add(1, "hour");
 
-  if (nextRangeEnd.isBefore(nextRangeStart.endOf("day"))) {
+  if (
+    nextRangeEnd.isBefore(nextRangeStart.endOf("day")) ||
+    nextRangeEnd.isSame(nextRangeStart.endOf("day"))
+  ) {
     return {
       start: nextRangeStart.toDate(),
       end: nextRangeEnd.toDate(),
@@ -374,13 +380,13 @@ const CopyTimes = ({
   return (
     <div className="space-y-2 py-2">
       <div className="p-2">
-        <p className="h6 pb-3 pl-1 text-xs font-medium uppercase text-gray-400">{t("copy_times_to")}</p>
+        <p className="h6 text-emphasis pb-3 pl-1 text-xs font-medium uppercase">{t("copy_times_to")}</p>
         <ol className="space-y-2">
           {weekdayNames(i18n.language, weekStart).map((weekday, num) => {
             const weekdayIndex = (num + weekStart) % 7;
             return (
               <li key={weekday}>
-                <label className="flex w-full items-center justify-between">
+                <label className="text-default flex w-full items-center justify-between">
                   <span className="px-1">{weekday}</span>
                   <input
                     value={weekdayIndex}
@@ -394,7 +400,7 @@ const CopyTimes = ({
                       }
                     }}
                     type="checkbox"
-                    className="inline-block rounded-[4px] border-gray-300 text-gray-900 focus:ring-neutral-500 disabled:text-gray-400"
+                    className="border-default bg-default text-emphasis disabled:text-muted focus:ring-emphasis dark:checked:bg-muted focus:bg-default dark:checked:focus:bg-default dark:checked:hover:bg-subtle dark:checked:hover:text-inverted inline-block rounded-[4px]"
                   />
                 </label>
               </li>
@@ -402,7 +408,7 @@ const CopyTimes = ({
           })}
         </ol>
       </div>
-      <hr />
+      <hr className="border-subtle" />
       <div className="space-x-2 px-2 rtl:space-x-reverse">
         <Button color="minimal" onClick={() => onCancel()}>
           {t("cancel")}

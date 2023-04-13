@@ -12,13 +12,20 @@ export type DefaultEventLocationType = {
   type: DefaultEventLocationTypeEnum;
   label: string;
   messageForOrganizer: string;
-  category: "in person" | "other" | "phone";
+  category: "in person" | "conferencing" | "other" | "phone";
 
   iconUrl: string;
   urlRegExp?: string;
   // HACK: `variable` and `defaultValueVariable` are required due to legacy reason where different locations were stored in different places.
-  variable: "locationType" | "locationAddress" | "address" | "locationLink" | "locationPhoneNumber" | "phone";
-  defaultValueVariable: "address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "phone";
+  variable:
+    | "locationType"
+    | "locationAddress"
+    | "address"
+    | "locationLink"
+    | "locationPhoneNumber"
+    | "phone"
+    | "hostDefault";
+  defaultValueVariable: "address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone";
 } & (
   | {
       organizerInputType: "phone" | "text" | null;
@@ -60,6 +67,7 @@ export enum DefaultEventLocationTypeEnum {
    */
   UserPhone = "userPhone",
   Link = "link",
+  Conferencing = "conferencing",
 }
 
 export const defaultLocations: DefaultEventLocationType[] = [
@@ -87,6 +95,17 @@ export const defaultLocations: DefaultEventLocationType[] = [
     defaultValueVariable: "address",
     iconUrl: "/map-pin.svg",
     category: "in person",
+  },
+  {
+    default: true,
+    type: DefaultEventLocationTypeEnum.Conferencing,
+    iconUrl: "/link.svg",
+    organizerInputType: null,
+    label: "organizer_default_conferencing_app",
+    variable: "hostDefault",
+    defaultValueVariable: "hostDefault",
+    category: "conferencing",
+    messageForOrganizer: "",
   },
   {
     default: true,
@@ -130,7 +149,9 @@ export const defaultLocations: DefaultEventLocationType[] = [
 export type LocationObject = {
   type: string;
   displayLocationPublicly?: boolean;
-} & Partial<Record<"address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "phone", string>>;
+} & Partial<
+  Record<"address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone", string>
+>;
 
 // integrations:jitsi | 919999999999 | Delhi | https://manual.meeting.link | Around Video
 export type BookingLocationValue = string;
