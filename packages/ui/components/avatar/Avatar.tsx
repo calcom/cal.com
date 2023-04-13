@@ -7,9 +7,8 @@ import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
 
 import type { Maybe } from "@trpc/server";
 
-import { Tooltip } from "../tooltip";
 import { Check } from "../icon";
-
+import { Tooltip } from "../tooltip";
 
 export type AvatarProps = {
   className?: string;
