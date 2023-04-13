@@ -24,7 +24,7 @@ import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
 import { trpc } from "@calcom/trpc";
-import { HeadSeo, useCalcomTheme } from "@calcom/ui";
+import { HeadSeo, NumberInput, useCalcomTheme } from "@calcom/ui";
 import { CreditCard, User, RefreshCcw } from "@calcom/ui/components/icon";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
@@ -226,16 +226,18 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                             <p className="mb-1 -ml-2 inline px-2 py-1">
                               {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
                             </p>
-                            <input
-                              type="number"
+
+                            <NumberInput
+                              defaultValue={eventType.recurringEvent.count}
                               min="1"
                               max={eventType.recurringEvent.count}
-                              className="w-15 border-default bg-default dark:border-empthasis h-7 rounded-sm text-sm font-medium [appearance:textfield] ltr:mr-2 rtl:ml-2"
-                              defaultValue={eventType.recurringEvent.count}
+                              isFullWidth={false}
+                              className="me-2 inline w-16"
                               onChange={(event) => {
                                 setRecurringEventCount(parseInt(event?.target.value));
                               }}
                             />
+
                             <p className="inline">
                               {t("occurrence", {
                                 count: recurringEventCount,
