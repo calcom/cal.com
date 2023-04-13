@@ -128,7 +128,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
       </span>
       {group.profile.slug ? (
         <small
-          className="hidden font-normal leading-4 text-gray-600 sm:inline"
+          className="text-subtle hidden font-normal leading-4 sm:inline"
           data-testid={"event-type-slug-" + type.id}>
           {`/${
             type.schedulingType !== SchedulingType.MANAGED ? group.profile.slug : t("username_placeholder")
