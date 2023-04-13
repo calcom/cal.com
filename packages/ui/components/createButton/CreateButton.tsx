@@ -83,6 +83,7 @@ export function CreateButton(props: CreateBtnProps) {
             <Button
               variant={props.disableMobileButton ? "button" : "fab"}
               StartIcon={Plus}
+              data-testid="new-event-type-dropdown"
               loading={props.isLoading}>
               {props.buttonText ? props.buttonText : t("new")}
             </Button>
@@ -91,10 +92,11 @@ export function CreateButton(props: CreateBtnProps) {
             <DropdownMenuLabel>
               <div className="w-48 text-left text-xs">{props.subtitle}</div>
             </DropdownMenuLabel>
-            {props.options.map((option) => (
+            {props.options.map((option, idx) => (
               <DropdownMenuItem key={option.label}>
                 <DropdownItem
                   type="button"
+                  data-testid={`option${option.teamId ? "-team" : ""}-${idx}`}
                   StartIcon={(props) => (
                     <Avatar
                       alt={option.label || ""}

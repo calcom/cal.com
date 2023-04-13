@@ -30,6 +30,7 @@ type WebhookProps = {
 
 export default function WebhookListItem(props: {
   webhook: WebhookProps;
+  canEditWebhook?: boolean;
   onEditWebhook: () => void;
   lastItem: boolean;
 }) {
@@ -81,6 +82,7 @@ export default function WebhookListItem(props: {
       <div className="ml-2 flex items-center space-x-4">
         <Switch
           defaultChecked={webhook.active}
+          disabled={!props.canEditWebhook}
           onCheckedChange={() =>
             toggleWebhook.mutate({
               id: webhook.id,

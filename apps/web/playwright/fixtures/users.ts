@@ -268,6 +268,9 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     routingForms: user.routingForms,
     self,
     login: async () => login({ ...(await self()), password: user.username }, store.page),
+    logout: async () => {
+      await page.goto("/auth/logout");
+    },
     getPaymentCredential: async () => getPaymentCredential(store.page),
     // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
     debug: async (message: string | Record<string, JSONValue>) => {
@@ -333,9 +336,8 @@ export async function login(
   await passwordLocator.fill(user.password ?? user.username!);
   await signInLocator.click();
 
-  // 2 seconds of delay to give the session enough time for a clean load
-  // eslint-disable-next-line playwright/no-wait-for-timeout
-  await page.waitForTimeout(2000);
+  // Moving away from waiting 2 seconds, as it is not a reliable way to expect session to be started
+  await page.waitForLoadState("networkidle");
 }
 
 export async function getPaymentCredential(page: Page) {

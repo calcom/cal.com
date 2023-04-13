@@ -180,7 +180,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                       <div className="flex flex-wrap items-center">
                         <h2 className=" text-default pr-2 text-sm font-semibold">{type.title}</h2>
                       </div>
-                      <EventTypeDescription eventType={type} />
+                      <EventTypeDescription eventType={type} isPublic={true} />
                     </Link>
                   </div>
                 </div>

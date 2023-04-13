@@ -153,6 +153,7 @@ export default function TeamListItem(props: Props) {
                 <Button
                   type="button"
                   color="secondary"
+                  data-testid={`accept-invitation-${team.id}`}
                   StartIcon={Check}
                   className="ms-2 me-2"
                   onClick={acceptInvite}>
