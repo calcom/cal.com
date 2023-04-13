@@ -59,14 +59,14 @@ const ChangePasswordSection = () => {
 
   return (
     <>
-      <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={changePasswordHandler}>
+      <form className="divide-subtle divide-y lg:col-span-9" onSubmit={changePasswordHandler}>
         <div className="py-6 lg:pb-5">
           <div className="my-3">
-            <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">{t("change_password")}</h2>
+            <h2 className="font-cal text-emphasis text-lg font-medium leading-6">{t("change_password")}</h2>
           </div>
           <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0">
             <div className="w-full ltr:mr-2 rtl:ml-2 sm:w-1/2">
-              <label htmlFor="current_password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="current_password" className="text-default block text-sm font-medium">
                 {t("current_password")}
               </label>
               <div className="mt-1">
@@ -77,13 +77,13 @@ const ChangePasswordSection = () => {
                   name="current_password"
                   id="current_password"
                   required
-                  className="block w-full rounded-sm border-gray-300 text-sm"
+                  className="border-default block w-full rounded-sm text-sm"
                   placeholder={t("your_old_password")}
                 />
               </div>
             </div>
             <div className="w-full sm:w-1/2">
-              <label htmlFor="new_password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="new_password" className="text-default block text-sm font-medium">
                 {t("new_password")}
               </label>
               <div className="mt-1">
@@ -94,7 +94,7 @@ const ChangePasswordSection = () => {
                   value={newPassword}
                   required
                   onInput={(e) => setNewPassword(e.currentTarget.value)}
-                  className="block w-full rounded-sm border-gray-300 text-sm"
+                  className="border-default block w-full rounded-sm text-sm"
                   placeholder={t("super_secure_new_password")}
                 />
               </div>

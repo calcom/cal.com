@@ -16,20 +16,18 @@ export default class AttendeeScheduledEmail extends BaseEmail {
   attendee: Person;
   showAttendees: boolean | undefined;
   t: TFunction;
-  attendees: Person[];
 
   constructor(calEvent: CalendarEvent, attendee: Person, showAttendees?: boolean | undefined) {
     super();
-    this.name = "SEND_BOOKING_CONFIRMATION";
-    this.calEvent = calEvent;
-    this.attendee = attendee;
-    this.showAttendees = showAttendees;
-    this.t = attendee.language.translate;
-    this.attendees = [...this.calEvent.attendees];
-    if (!this.showAttendees && this.calEvent.seatsPerTimeSlot) {
-      this.attendees = [this.attendee];
-      this.calEvent.attendees = [this.attendee];
+    if (!showAttendees && calEvent.seatsPerTimeSlot) {
+      this.calEvent = cloneDeep(calEvent);
+      this.calEvent.attendees = [attendee];
+    } else {
+      this.calEvent = calEvent;
     }
+    this.name = "SEND_BOOKING_CONFIRMATION";
+    this.attendee = attendee;
+    this.t = attendee.language.translate;
   }
 
   protected getiCalEventAsString(): string | undefined {
@@ -39,21 +37,21 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       // ics appends "RRULE:" already, so removing it from RRule generated string
       recurrenceRule = new RRule(this.calEvent.recurringEvent).toString().replace("RRULE:", "");
     }
-    const partstat: ParticipationStatus = "NEEDS-ACTION";
+    const partstat: ParticipationStatus = "ACCEPTED";
     const role: ParticipationRole = "REQ-PARTICIPANT";
     const icsEvent = createEvent({
+      uid: this.calEvent.iCalUID || this.calEvent.uid!,
       start: dayjs(this.calEvent.startTime)
         .utc()
         .toArray()
         .slice(0, 6)
         .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
       startInputType: "utc",
-      productId: "calendso/ics",
+      productId: "calcom/ics",
       title: this.calEvent.title,
       description: this.getTextBody(),
       duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), "minute") },
       organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
-
       attendees: [
         ...this.calEvent.attendees.map((attendee: Person) => ({
           name: attendee.name,

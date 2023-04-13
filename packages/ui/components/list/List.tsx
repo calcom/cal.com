@@ -17,7 +17,8 @@ export function List(props: ListProps) {
         "-mx-4 rounded-sm sm:mx-0 sm:overflow-hidden ",
         // Add rounded top and bottome if roundContainer is true
         props.roundContainer && "[&>*:first-child]:rounded-t-md [&>*:last-child]:rounded-b-md ",
-        !props.noBorderTreatment && "divide-y divide-gray-200 rounded-md border border-l border-r ",
+        !props.noBorderTreatment &&
+          "border-subtle divide-subtle divide-y rounded-md border border-l border-r ",
         props.className
       )}>
       {props.children}
@@ -39,12 +40,12 @@ export function ListItem(props: ListItemProps) {
     {
       ...passThroughProps,
       className: classNames(
-        "items-center bg-white min-w-0 flex-1 flex border-neutral-200 p-4 sm:mx-0 md:border md:p-4 xl:mt-0",
+        "items-center bg-default min-w-0 flex-1 flex border-neutral-200 p-4 sm:mx-0 md:border md:p-4 xl:mt-0 border-subtle",
         expanded ? "my-2 border" : "border -mb-px last:mb-0",
         // Pass rounded false to not round the corners -> Usefull when used in list we can use roundedContainer to create the right design
         rounded ? "rounded-md" : "rounded-none",
         props.className,
-        (props.onClick || href) && "hover:bg-neutral-50"
+        (props.onClick || href) && "hover:bg-muted"
       ),
     },
     props.children
@@ -76,15 +77,15 @@ export function ListLinkItem(props: ListLinkItemProps) {
   return (
     <li
       className={classNames(
-        "group flex w-full items-center justify-between p-5 hover:bg-neutral-50",
+        "group flex w-full items-center justify-between p-5",
         className,
-        disabled ? "hover:bg-white" : ""
+        disabled ? "hover:bg-muted" : ""
       )}>
       <Link
         passHref
         href={href}
         className={classNames(
-          "flex-grow truncate text-sm",
+          "text-default flex-grow truncate text-sm",
           disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
         )}>
         <h1 className="text-sm font-semibold leading-none">{heading}</h1>
@@ -108,7 +109,7 @@ export function ListItemTitle<TComponent extends keyof JSX.IntrinsicElements = "
     component,
     {
       ...passThroughProps,
-      className: classNames("text-sm font-medium text-gray-900 truncate", props.className),
+      className: classNames("text-sm font-medium text-emphasis truncate", props.className),
     },
     props.children
   );
@@ -123,7 +124,7 @@ export function ListItemText<TComponent extends keyof JSX.IntrinsicElements = "s
     component,
     {
       ...passThroughProps,
-      className: classNames("text-sm text-gray-500 truncate", props.className),
+      className: classNames("text-sm text-subtle truncate", props.className),
     },
     props.children
   );

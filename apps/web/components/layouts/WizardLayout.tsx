@@ -24,7 +24,9 @@ export default function WizardLayout({
   }, [router.asPath]);
 
   return (
-    <div className="dark:bg-brand dark:text-brand-contrast min-h-screen text-black" data-testid="onboarding">
+    <div
+      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen"
+      data-testid="onboarding">
       <div>
         <Toaster position="bottom-right" />
       </div>
@@ -34,7 +36,7 @@ export default function WizardLayout({
             <div className="mx-auto sm:max-w-[520px]">
               <header>
                 <p className="font-cal mb-3 text-[28px] font-medium leading-7">{title}&nbsp;</p>
-                <p className="font-sans text-sm font-normal text-gray-500">{subtitle}&nbsp;</p>
+                <p className="text-subtle font-sans text-sm font-normal">{subtitle}&nbsp;</p>
               </header>
               <Steps maxSteps={maxSteps} currentStep={currentStep} navigateToStep={noop} />
             </div>

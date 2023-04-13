@@ -6,7 +6,8 @@ import { appWithTranslation } from "next-i18next";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import type { NextRouter } from "next/router";
-import type { ComponentProps, ReactNode } from "react";
+import { useRouter } from "next/router";
+import type { ComponentProps, PropsWithChildren, ReactNode } from "react";
 
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
@@ -60,6 +61,62 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
   return <I18nextAdapter {...passedProps} />;
 };
 
+const CalcomThemeProvider = (
+  props: PropsWithChildren<
+    WithNonceProps & { isThemeSupported?: boolean | ((arg: { router: NextRouter }) => boolean) }
+  >
+) => {
+  // We now support the inverse of how we handled it in the past. Setting this to false will disable theme.
+  // undefined or true means we use system theme
+  const router = useRouter();
+  const isThemeSupported = (() => {
+    if (typeof props.isThemeSupported === "function") {
+      return props.isThemeSupported({ router: router });
+    }
+    if (typeof props.isThemeSupported === "undefined") {
+      return true;
+    }
+    return props.isThemeSupported;
+  })();
+
+  const forcedTheme = !isThemeSupported ? "light" : undefined;
+  // Use namespace of embed to ensure same namespaced embed are displayed with same theme. This allows different embeds on the same website to be themed differently
+  // One such example is our Embeds Demo and Testing page at http://localhost:3100
+  // Having `getEmbedNamespace` defined on window before react initializes the app, ensures that embedNamespace is available on the first mount and can be used as part of storageKey
+  const embedNamespace = typeof window !== "undefined" ? window.getEmbedNamespace() : null;
+  const isEmbedMode = typeof embedNamespace === "string";
+  // If embedNamespace is not defined, we use the default storageKey -> The default storage key changs based on if we force light mode or not
+  // This is done to ensure that the default theme is light when we force light mode and as soon as you navigate to a page that is dark we dont need a hard refresh to change
+  const storageKey = isEmbedMode
+    ? `embed-theme-${embedNamespace}`
+    : !isThemeSupported
+    ? "cal-light"
+    : "theme";
+
+  return (
+    <ThemeProvider
+      nonce={props.nonce}
+      enableColorScheme={false}
+      enableSystem={isThemeSupported}
+      forcedTheme={forcedTheme}
+      storageKey={storageKey}
+      attribute="class">
+      {/* Embed Mode can be detected reliably only on client side here as there can be static generated pages as well which can't determine if it's embed mode at backend */}
+      {/* color-scheme makes background:transparent not work in iframe which is required by embed. */}
+      {typeof window !== "undefined" && !isEmbedMode && (
+        <style jsx global>
+          {`
+            .dark {
+              color-scheme: dark;
+            }
+          `}
+        </style>
+      )}
+      {props.children}
+    </ThemeProvider>
+  );
+};
+
 function FeatureFlagsProvider({ children }: { children: React.ReactNode }) {
   const flags = useFlags();
   return <FeatureProvider value={flags}>{children}</FeatureProvider>;
@@ -69,33 +126,19 @@ const AppProviders = (props: AppPropsWithChildren) => {
   const session = trpc.viewer.public.session.useQuery().data;
   // No need to have intercom on public pages - Good for Page Performance
   const isPublicPage = usePublicPage();
-  const isThemeSupported =
-    typeof props.Component.isThemeSupported === "function"
-      ? props.Component.isThemeSupported({ router: props.router })
-      : props.Component.isThemeSupported;
-  const forcedTheme = isThemeSupported ? undefined : "light";
-  // Use namespace of embed to ensure same namespaced embed are displayed with same theme. This allows different embeds on the same website to be themed differently
-  // One such example is our Embeds Demo and Testing page at http://localhost:3100
-  // Having `getEmbedNamespace` defined on window before react initializes the app, ensures that embedNamespace is available on the first mount and can be used as part of storageKey
-  const embedNamespace = typeof window !== "undefined" ? window.getEmbedNamespace() : null;
-  const storageKey = typeof embedNamespace === "string" ? `embed-theme-${embedNamespace}` : "theme";
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
       <SessionProvider session={session || undefined}>
         <CustomI18nextProvider {...props}>
           <TooltipProvider>
-            {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-            <ThemeProvider
+            <CalcomThemeProvider
               nonce={props.pageProps.nonce}
-              enableColorScheme={false}
-              storageKey={storageKey}
-              forcedTheme={forcedTheme}
-              attribute="class">
+              isThemeSupported={props.Component.isThemeSupported}>
               <FeatureFlagsProvider>
                 <MetaProvider>{props.children}</MetaProvider>
               </FeatureFlagsProvider>
-            </ThemeProvider>
+            </CalcomThemeProvider>
           </TooltipProvider>
         </CustomI18nextProvider>
       </SessionProvider>

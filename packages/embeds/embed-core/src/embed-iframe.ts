@@ -98,13 +98,6 @@ interface EmbedNonStylesConfig {
   align?: "left";
   branding?: {
     brandColor?: string;
-    lightColor?: string;
-    lighterColor?: string;
-    lightestColor?: string;
-    highlightColor?: string;
-    darkColor?: string;
-    darkerColor?: string;
-    medianColor?: string;
   };
 }
 

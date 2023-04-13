@@ -17,7 +17,7 @@ import {
   UpgradeTeamsBadge,
 } from "@calcom/ui";
 import { Button } from "@calcom/ui";
-import { FiDownload } from "@calcom/ui/components/icon";
+import { Download } from "@calcom/ui/components/icon";
 
 import RecordingListSkeleton from "./components/RecordingListSkeleton";
 
@@ -127,13 +127,11 @@ const ViewRecordingsList = ({ roomName, hasPaidPlan }: { roomName: string; hasPa
                   <h1 className="text-sm font-semibold">
                     {t("recording")} {index + 1}
                   </h1>
-                  <p className="text-sm font-normal text-gray-500">
-                    {convertSecondsToMs(recording.duration)}
-                  </p>
+                  <p className="text-subtle text-sm font-normal">{convertSecondsToMs(recording.duration)}</p>
                 </div>
                 {hasPaidPlan ? (
                   <Button
-                    StartIcon={FiDownload}
+                    StartIcon={Download}
                     className="ml-4 lg:ml-0"
                     loading={isFetching && recordingId === recording.id}
                     onClick={() => handleDownloadClick(recording.id)}>
