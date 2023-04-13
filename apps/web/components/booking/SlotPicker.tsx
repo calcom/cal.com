@@ -133,10 +133,7 @@ export const SlotPicker = ({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
     usernameList: users,
-    startTime:
-      browsingDate === undefined || browsingDate.get("month") === dayjs.tz(undefined, timeZone).get("month")
-        ? dayjs.tz(undefined, timeZone).subtract(2, "days").startOf("day")
-        : browsingDate?.startOf("month"),
+    startTime: dayjs().startOf("day"),
     endTime: browsingDate?.endOf("month"),
     timeZone,
     duration,
@@ -167,7 +164,7 @@ export const SlotPicker = ({
         isLoading={isLoading}
         className={classNames(
           "mt-8 px-4 pb-4 sm:mt-0 md:min-w-[300px] md:px-4 lg:min-w-[455px]",
-          selectedDate ? "sm:dark:border-darkgray-200 border-gray-200 sm:border-r sm:p-4 sm:pr-6" : "sm:p-4"
+          selectedDate ? " border-subtle sm:border-r sm:p-4 sm:pr-6" : "sm:p-4"
         )}
         includedDates={Object.keys(monthSlots).filter((k) => monthSlots[k].length > 0)}
         locale={isLocaleReady ? i18n.language : "en"}
@@ -197,6 +194,7 @@ export const SlotPicker = ({
         bookingAttendees={bookingAttendees}
         recurringCount={recurringEventCount}
         ethSignature={ethSignature}
+        duration={parseInt(duration)}
       />
     </>
   );

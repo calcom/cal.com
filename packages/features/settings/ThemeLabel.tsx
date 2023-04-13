@@ -21,7 +21,7 @@ export default function ThemeLabel(props: ThemeLabelProps) {
         defaultChecked={defaultChecked}
         {...register("theme")}
       />
-      <div className="relative z-10 rounded-lg ring-black transition-all peer-checked:ring-2">
+      <div className="ring-inverted relative z-10 rounded-lg ring-offset-2 transition-all peer-checked:ring-2">
         <img
           aria-hidden="true"
           className="cover w-full rounded-lg"
@@ -29,7 +29,7 @@ export default function ThemeLabel(props: ThemeLabelProps) {
           alt={`theme ${variant}`}
         />
       </div>
-      <p className="mt-2 text-sm font-medium text-gray-600 peer-checked:text-gray-900">{label}</p>
+      <p className="peer-checked:text-emphasis text-default mt-2 text-sm font-medium">{label}</p>
     </label>
   );
 }

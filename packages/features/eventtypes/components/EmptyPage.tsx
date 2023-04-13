@@ -2,7 +2,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 const SkeletonEventType = () => {
   return (
-    <div className="dark:bg-darkgray-100 h-24 w-full bg-white">
+    <div className="dark:bg-darkgray-100 bg-default h-24 w-full">
       <div className="p-5">
         <div className="flex space-x-2 rtl:space-x-reverse">
           <div className="dark:bg-darkgray-400 h-2 w-1/6 rounded-md bg-neutral-200" />
@@ -32,8 +32,8 @@ function EmptyPage({ name }: { name: string }) {
         <SkeletonEventType />
       </div>
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform">
-        <h3 className="text-lg font-semibold text-gray-600 dark:text-white">{t("no_event_types")} </h3>
-        <h4 className="text-sm leading-normal text-gray-600 dark:text-white">
+        <h3 className="dark:text-inverted text-default text-lg font-semibold">{t("no_event_types")} </h3>
+        <h4 className="dark:text-inverted text-default text-sm leading-normal">
           {t("no_event_types_description", { name })}
         </h4>
       </div>

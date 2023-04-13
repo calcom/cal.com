@@ -1,4 +1,5 @@
 import { useRouter } from "next/router";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -7,8 +8,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Button, Form, ImageUploader, TextField } from "@calcom/ui";
-import { FiArrowRight } from "@calcom/ui/components/icon";
+import { Avatar, Button, Form, ImageUploader, TextField, Alert } from "@calcom/ui";
+import { ArrowRight } from "@calcom/ui/components/icon";
 
 import type { NewTeamFormValues } from "../lib/types";
 
@@ -34,6 +35,7 @@ export const CreateANewTeamForm = () => {
   const router = useRouter();
   const telemetry = useTelemetry();
   const returnToParsed = querySchema.safeParse(router.query);
+  const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
 
   const returnToParam =
     (returnToParsed.success ? getSafeRedirectUrl(returnToParsed.data.returnTo) : "/settings/teams") ||
@@ -46,29 +48,32 @@ export const CreateANewTeamForm = () => {
       telemetry.event(telemetryEventTypes.team_created);
       router.push(`/settings/teams/${data.id}/onboard-members`);
     },
+    onError: (err) => {
+      if (err.message === "team_url_taken") {
+        newTeamFormMethods.setError("slug", { type: "custom", message: t("team_url_taken") });
+      } else {
+        setServerErrorMessage(err.message);
+      }
+    },
   });
-
-  const validateTeamSlugQuery = trpc.viewer.teams.validateTeamSlug.useQuery(
-    { slug: newTeamFormMethods.watch("slug") },
-    {
-      enabled: false,
-      refetchOnWindowFocus: false,
-    }
-  );
-
-  const validateTeamSlug = async () => {
-    await validateTeamSlugQuery.refetch();
-    if (validateTeamSlugQuery.isFetched) return validateTeamSlugQuery.data || t("team_url_taken");
-  };
 
   return (
     <>
       <Form
         form={newTeamFormMethods}
         handleSubmit={(v) => {
-          if (!createTeamMutation.isLoading) createTeamMutation.mutate(v);
+          if (!createTeamMutation.isLoading) {
+            setServerErrorMessage(null);
+            createTeamMutation.mutate(v);
+          }
         }}>
         <div className="mb-8">
+          {serverErrorMessage && (
+            <div className="mb-4">
+              <Alert severity="error" message={serverErrorMessage} />
+            </div>
+          )}
+
           <Controller
             name="name"
             control={newTeamFormMethods.control}
@@ -80,6 +85,7 @@ export const CreateANewTeamForm = () => {
               <>
                 <TextField
                   className="mt-2"
+                  placeholder="Acme Inc."
                   name="name"
                   label={t("team_name")}
                   defaultValue={value}
@@ -100,11 +106,12 @@ export const CreateANewTeamForm = () => {
           <Controller
             name="slug"
             control={newTeamFormMethods.control}
-            rules={{ required: t("team_url_required"), validate: async () => await validateTeamSlug() }}
+            rules={{ required: t("team_url_required") }}
             render={({ field: { value } }) => (
               <TextField
                 className="mt-2"
                 name="slug"
+                placeholder="acme"
                 label={t("team_url")}
                 addOnLeading={`${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace("https://", "")?.replace(
                   "http://",
@@ -115,6 +122,7 @@ export const CreateANewTeamForm = () => {
                   newTeamFormMethods.setValue("slug", noTrailingHyphenSlugify(e?.target.value), {
                     shouldTouch: true,
                   });
+                  newTeamFormMethods.clearErrors("slug");
                 }}
               />
             )}
@@ -128,13 +136,14 @@ export const CreateANewTeamForm = () => {
             render={({ field: { value } }) => (
               <div className="flex items-center">
                 <Avatar alt="" imageSrc={value || null} gravatarFallbackMd5="newTeam" size="lg" />
-                <div className="ltr:ml-4 rtl:mr-4">
+                <div className="ms-4">
                   <ImageUploader
                     target="avatar"
                     id="avatar-upload"
                     buttonMsg={t("update")}
                     handleAvatarChange={(newAvatar: string) => {
                       newTeamFormMethods.setValue("logo", newAvatar);
+                      createTeamMutation.reset();
                     }}
                     imageSrc={value}
                   />
@@ -153,21 +162,14 @@ export const CreateANewTeamForm = () => {
             {t("cancel")}
           </Button>
           <Button
-            disabled={
-              newTeamFormMethods.formState.isSubmitting ||
-              createTeamMutation.isError ||
-              createTeamMutation.isLoading
-            }
+            disabled={newTeamFormMethods.formState.isSubmitting || createTeamMutation.isLoading}
             color="primary"
-            EndIcon={FiArrowRight}
+            EndIcon={ArrowRight}
             type="submit"
             className="w-full justify-center">
             {t("continue")}
           </Button>
         </div>
-        {createTeamMutation.isError && (
-          <p className="mt-4 text-red-700">{createTeamMutation.error.message}</p>
-        )}
       </Form>
     </>
   );

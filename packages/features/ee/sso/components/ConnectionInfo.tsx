@@ -11,7 +11,7 @@ import {
   DialogTrigger,
   Label,
 } from "@calcom/ui";
-import { FiClipboard } from "@calcom/ui/components/icon";
+import { Clipboard } from "@calcom/ui/components/icon";
 
 export default function ConnectionInfo({
   teamId,
@@ -88,7 +88,7 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: strin
           <Label>ACS URL</Label>
         </div>
         <div className="flex">
-          <code className="flex w-full items-center truncate rounded rounded-r-none bg-gray-100 pl-2 font-mono text-gray-800">
+          <code className="bg-subtle text-default flex w-full items-center truncate rounded rounded-r-none pl-2 font-mono">
             {acsUrl}
           </code>
           <Tooltip side="top" content={t("copy_to_clipboard")}>
@@ -99,7 +99,7 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: strin
               }}
               type="button"
               className="rounded-l-none py-[19px] text-base ">
-              <FiClipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
+              <Clipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
               {t("copy")}
             </Button>
           </Tooltip>
@@ -110,7 +110,7 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: strin
           <Label>Entity ID</Label>
         </div>
         <div className="flex">
-          <code className="flex w-full items-center truncate rounded rounded-r-none bg-gray-100 pl-2 font-mono text-gray-800">
+          <code className="bg-subtle text-default flex w-full items-center truncate rounded rounded-r-none pl-2 font-mono">
             {entityId}
           </code>
           <Tooltip side="top" content={t("copy_to_clipboard")}>
@@ -121,7 +121,7 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: strin
               }}
               type="button"
               className="rounded-l-none py-[19px] text-base ">
-              <FiClipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
+              <Clipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
               {t("copy")}
             </Button>
           </Tooltip>
@@ -146,7 +146,7 @@ const OIDCInfo = ({ callbackUrl }: { callbackUrl: string | null }) => {
           <Label>Callback URL</Label>
         </div>
         <div className="flex">
-          <code className="flex w-full items-center truncate rounded rounded-r-none bg-gray-100 pl-2 font-mono text-gray-800">
+          <code className="bg-subtle text-default flex w-full items-center truncate rounded rounded-r-none pl-2 font-mono">
             {callbackUrl}
           </code>
           <Tooltip side="top" content={t("copy_to_clipboard")}>
@@ -157,7 +157,7 @@ const OIDCInfo = ({ callbackUrl }: { callbackUrl: string | null }) => {
               }}
               type="button"
               className="rounded-l-none py-[19px] text-base ">
-              <FiClipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
+              <Clipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
               {t("copy")}
             </Button>
           </Tooltip>

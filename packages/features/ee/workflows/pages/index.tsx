@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
@@ -78,9 +79,7 @@ function WorkflowsPage() {
     }
   }, [session.status, query.isLoading, allWorkflowsData]);
 
-  if (!query.data) return null;
-
-  const profileOptions = query.data.profiles
+  const profileOptions = query?.data?.profiles
     .filter((profile) => !profile.readOnly)
     .map((profile) => {
       return {
@@ -97,10 +96,11 @@ function WorkflowsPage() {
       title={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
       CTA={
-        query.data.profiles.length === 1 &&
+        query?.data?.profiles.length === 1 &&
         session.data?.hasValidLicense &&
         allWorkflowsData?.workflows &&
-        allWorkflowsData?.workflows.length > 0 ? (
+        allWorkflowsData?.workflows.length &&
+        profileOptions ? (
           <CreateButton
             subtitle={t("new_workflow_subtitle").toUpperCase()}
             options={profileOptions}
@@ -110,40 +110,42 @@ function WorkflowsPage() {
             isLoading={createMutation.isLoading}
             disableMobileButton={true}
           />
-        ) : (
-          <></>
-        )
+        ) : null
       }>
       <LicenseRequired>
         {isLoading ? (
           <SkeletonLoader />
         ) : (
           <>
-            {query.data.profiles.length > 1 &&
-              allWorkflowsData?.workflows &&
-              allWorkflowsData.workflows.length > 0 && (
-                <div className="mb-4 flex">
-                  <Filter
-                    profiles={query.data.profiles}
-                    checked={checkedFilterItems}
-                    setChecked={setCheckedFilterItems}
+            {query?.data?.profiles &&
+            query?.data?.profiles.length > 1 &&
+            allWorkflowsData?.workflows &&
+            allWorkflowsData.workflows.length &&
+            profileOptions ? (
+              <div className="mb-4 flex">
+                <Filter
+                  profiles={query.data.profiles}
+                  checked={checkedFilterItems}
+                  setChecked={setCheckedFilterItems}
+                />
+                <div className="ml-auto">
+                  <CreateButton
+                    subtitle={t("new_workflow_subtitle").toUpperCase()}
+                    options={profileOptions}
+                    createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
+                    isLoading={createMutation.isLoading}
+                    disableMobileButton={true}
                   />
-                  <div className="ml-auto">
-                    <CreateButton
-                      subtitle={t("new_workflow_subtitle").toUpperCase()}
-                      options={profileOptions}
-                      createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
-                      isLoading={createMutation.isLoading}
-                      disableMobileButton={true}
-                    />
-                  </div>
                 </div>
-              )}
-            <WorkflowList
-              workflows={filteredWorkflows}
-              profileOptions={profileOptions}
-              hasNoWorkflows={!allWorkflowsData?.workflows || allWorkflowsData?.workflows.length === 0}
-            />
+              </div>
+            ) : null}
+            {profileOptions && profileOptions?.length ? (
+              <WorkflowList
+                workflows={filteredWorkflows}
+                profileOptions={profileOptions}
+                hasNoWorkflows={!allWorkflowsData?.workflows || allWorkflowsData?.workflows.length === 0}
+              />
+            ) : null}
           </>
         )}
       </LicenseRequired>
@@ -157,6 +159,7 @@ const Filter = (props: {
     slug: string | null;
     name: string | null;
     teamId: number | null | undefined;
+    image?: string | undefined | null;
   }[];
   checked: {
     userId: number | null;
@@ -171,7 +174,9 @@ const Filter = (props: {
 }) => {
   const session = useSession();
   const userId = session.data?.user.id || 0;
-  const userName = session.data?.user.name || "";
+  const user = session.data?.user.name || "";
+  const userName = session.data?.user.username;
+  const userAvatar = WEBAPP_URL + "/" + userName + "/avatar.png";
 
   const teams = props.profiles.filter((profile) => !!profile.teamId);
   const { checked, setChecked } = props;
@@ -181,25 +186,25 @@ const Filter = (props: {
   return (
     <div className={classNames("-mb-2", noFilter ? "w-16" : "w-[100px]")}>
       <AnimatedPopover text={noFilter ? "All" : "Filtered"}>
-        <div className="item-center flex px-4 py-[6px] focus-within:bg-gray-100 hover:cursor-pointer hover:bg-gray-50">
+        <div className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] hover:cursor-pointer">
           <Avatar
-            imageSrc=""
+            imageSrc={userAvatar || ""}
             size="sm"
-            alt={`${userName} Avatar`}
+            alt={`${user} Avatar`}
             gravatarFallbackMd5="fallback"
             className="self-center"
             asChild
           />
           <label
             htmlFor="yourWorkflows"
-            className="ml-2 mr-auto self-center truncate text-sm font-medium text-gray-700">
-            {userName}
+            className="text-default ml-2 mr-auto self-center truncate text-sm font-medium">
+            {user}
           </label>
 
           <input
             id="yourWorkflows"
             type="checkbox"
-            className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-gray-300 "
+            className="text-primary-600 focus:ring-primary-500 border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
             checked={!!checked.userId}
             onChange={(e) => {
               if (e.target.checked) {
@@ -217,10 +222,10 @@ const Filter = (props: {
         </div>
         {teams.map((profile) => (
           <div
-            className="item-center flex px-4 py-[6px] focus-within:bg-gray-100 hover:cursor-pointer hover:bg-gray-50"
+            className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] hover:cursor-pointer"
             key={`${profile.teamId || 0}`}>
             <Avatar
-              imageSrc=""
+              imageSrc={profile.image || ""}
               size="sm"
               alt={`${profile.slug} Avatar`}
               gravatarFallbackMd5="fallback"
@@ -229,7 +234,7 @@ const Filter = (props: {
             />
             <label
               htmlFor={profile.slug || ""}
-              className="ml-2 mr-auto select-none self-center truncate text-sm font-medium text-gray-700 hover:cursor-pointer">
+              className="text-default ml-2 mr-auto select-none self-center truncate text-sm font-medium hover:cursor-pointer">
               {profile.slug}
             </label>
 
@@ -264,7 +269,7 @@ const Filter = (props: {
                   }
                 }
               }}
-              className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-gray-300 "
+              className="text-primary-600 focus:ring-primary-500 border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
             />
           </div>
         ))}

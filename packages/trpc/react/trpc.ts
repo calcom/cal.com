@@ -1,3 +1,4 @@
+import type { NextPageContext } from "next/types";
 import superjson from "superjson";
 
 import { httpLink } from "../client/links/httpLink";
@@ -15,14 +16,14 @@ import type { AppRouter } from "../server/routers/_app";
  * A set of strongly-typed React hooks from your `AppRouter` type signature with `createTRPCReact`.
  * @link https://trpc.io/docs/v10/react#2-create-trpc-hooks
  */
-export const trpc = createTRPCNext<AppRouter>({
+export const trpc = createTRPCNext<AppRouter, NextPageContext, "ExperimentalSuspense">({
   config() {
     const url =
       typeof window !== "undefined"
         ? "/api/trpc"
         : process.env.VERCEL_URL
         ? `https://${process.env.VERCEL_URL}/api/trpc`
-        : `http://${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
+        : `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
 
     /**
      * If you want to use SSR, you need to use the server's full URL

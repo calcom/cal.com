@@ -15,6 +15,9 @@ jobs:
     steps:
       - uses: actions/stale@v7
         with:
-          days-before-stale: 60
-          include-only-assigned: true
-          days-before-close: -1
+          days-before-issue-stale: 60
+          days-before-issue-close: -1
+          days-before-pr-stale: 14
+          days-before-pr-close: 7
+          stale-pr-message: "This PR is being marked as stale due to inactivity."
+          close-pr-message: "This PR is being closed due to inactivity. Please reopen if work is intended to be continued.
