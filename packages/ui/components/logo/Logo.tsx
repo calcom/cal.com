@@ -10,12 +10,12 @@ const DOMAIN_LOGO_MAP = {
 };
 
 export default function Logo({ small, icon }: { small?: boolean; icon?: boolean }) {
-  const hostname = typeof window !== "undefined" && window.location.hostname ? window.location.hostname : "";
-
   const domainLogo = useMemo(() => {
+    const hostname =
+      typeof window !== "undefined" && window.location.hostname ? window.location.hostname : "";
     const domain = hostname.split(".").slice(-2).join(".") as keyof typeof DOMAIN_LOGO_MAP;
     return DOMAIN_LOGO_MAP[domain];
-  }, [hostname]);
+  }, []);
 
   if (domainLogo) {
     return (
