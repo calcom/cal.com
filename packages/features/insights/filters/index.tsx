@@ -55,7 +55,7 @@ export const Filters = () => {
                     color="secondary"
                     target="_blank"
                     rel="noreferrer"
-                    StartIcon={FiSettings}
+                    StartIcon={Settings}
                     className="h-[38px]"
                   />
                 </Tooltip>
@@ -65,7 +65,7 @@ export const Filters = () => {
             color="secondary"
             target="_blank"
             rel="noreferrer"
-            StartIcon={FiDownload}
+            StartIcon={Download}
             className="h-[38px]"
           />
         </Tooltip>

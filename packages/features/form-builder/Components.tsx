@@ -10,7 +10,7 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingFieldType } from "@calcom/prisma/zod-utils";
 import { PhoneInput, AddressInput, Button, Label, Group, RadioField, EmailField, Tooltip } from "@calcom/ui";
-import { FiUserPlus, FiX } from "@calcom/ui/components/icon";
+import { UserPlus, X } from "@calcom/ui/components/icon";
 
 import { ComponentForField } from "./FormBuilder";
 import type { fieldsSchema } from "./FormBuilderFieldsSchema";
@@ -160,7 +160,7 @@ export const Components: Record<BookingFieldType, Component> = {
                                 value.splice(index, 1);
                                 setValue(value);
                               }}>
-                              <FiX className="text-default" />
+                              <X className="text-default" />
                             </button>
                           </Tooltip>
                         ) : null
@@ -174,7 +174,7 @@ export const Components: Record<BookingFieldType, Component> = {
                   data-testid="add-another-guest"
                   type="button"
                   color="minimal"
-                  StartIcon={FiUserPlus}
+                  StartIcon={UserPlus}
                   className="my-2.5"
                   onClick={() => {
                     value.push("");
@@ -193,7 +193,7 @@ export const Components: Record<BookingFieldType, Component> = {
               data-testid="add-guests"
               color="minimal"
               variant="button"
-              StartIcon={FiUserPlus}
+              StartIcon={UserPlus}
               onClick={() => {
                 value.push("");
                 setValue(value);

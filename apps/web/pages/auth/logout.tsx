@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
-import { FiCheck } from "@calcom/ui/components/icon";
+import { Check } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -32,7 +32,7 @@ export function Logout(props: Props) {
     <AuthContainer title={t("logged_out")} description={t("youve_been_logged_out")} showLogo>
       <div className="mb-4">
         <div className="bg-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-          <FiCheck className="h-6 w-6 text-green-600" />
+          <Check className="h-6 w-6 text-green-600" />
         </div>
         <div className="mt-3 text-center sm:mt-5">
           <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">

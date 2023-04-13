@@ -12,7 +12,7 @@ import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-f
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { FiChevronRight } from "@calcom/ui/components/icon";
+import { ChevronRight } from "@calcom/ui/components/icon";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -222,7 +222,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
             aria-label={`${open ? "close" : "open"} booking description sidebar`}
             className="h-20 w-6 rounded-r-md border border-l-0 border-gray-300/20 bg-black/60 text-white shadow-sm backdrop-blur-lg"
             onClick={() => setOpen(!open)}>
-            <FiChevronRight
+            <ChevronRight
               aria-hidden
               className={classNames(open && "rotate-180", "w-5 transition-all duration-300 ease-in-out")}
             />
