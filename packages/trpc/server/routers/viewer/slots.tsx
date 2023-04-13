@@ -58,12 +58,21 @@ const checkIfIsAvailable = ({
   time,
   busy,
   eventLength,
+  dateOverrides,
   currentSeats,
+  isFixedHost,
+  organizerTimeZone,
 }: {
   time: Dayjs;
   busy: EventBusyDate[];
   eventLength: number;
+  dateOverrides: {
+    start: Date;
+    end: Date;
+  }[];
   currentSeats?: CurrentSeats;
+  isFixedHost?: boolean;
+  organizerTimeZone?: string;
 }): boolean => {
   if (currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString())) {
     return true;
@@ -71,6 +80,41 @@ const checkIfIsAvailable = ({
 
   const slotEndTime = time.add(eventLength, "minutes").utc();
   const slotStartTime = time.utc();
+
+  let fixedDateOverrides: {
+    start: Date;
+    end: Date;
+  }[] = [];
+
+  if (isFixedHost) {
+    fixedDateOverrides = dateOverrides;
+  }
+  if (
+    fixedDateOverrides.find((date) => {
+      const utcOffset = organizerTimeZone ? dayjs.tz(date.start, organizerTimeZone).utcOffset() * -1 : 0;
+
+      if (
+        dayjs(date.start).add(utcOffset, "minutes").format("YYYY MM DD") ===
+        slotStartTime.format("YYYY MM DD")
+      ) {
+        if (dayjs(date.start).add(utcOffset, "minutes") === dayjs(date.end).add(utcOffset, "minutes")) {
+          return true;
+        }
+        if (
+          slotEndTime.isBefore(dayjs(date.start).add(utcOffset, "minutes")) ||
+          slotEndTime.isSame(dayjs(date.start).add(utcOffset, "minutes"))
+        ) {
+          return true;
+        }
+        if (slotStartTime.isAfter(dayjs(date.end).add(utcOffset, "minutes"))) {
+          return true;
+        }
+      }
+    })
+  ) {
+    // not available: slot is not withing the date override
+    return false;
+  }
 
   return busy.every((busyTime) => {
     const startTime = dayjs.utc(busyTime.start).utc();
@@ -305,6 +349,9 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
 
   const timeSlots: ReturnType<typeof getTimeSlots> = [];
 
+  const organizerTimeZone =
+    eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone;
+
   for (
     let currentCheckedTime = startTime;
     currentCheckedTime.isBefore(endTime);
@@ -319,8 +366,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         dateOverrides,
         minimumBookingNotice: eventType.minimumBookingNotice,
         frequency: eventType.slotInterval || input.duration || eventType.length,
-        organizerTimeZone:
-          eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
+        organizerTimeZone: organizerTimeZone,
       })
     );
   }
@@ -334,6 +380,8 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         time: slot.time,
         ...schedule,
         ...availabilityCheckProps,
+        isFixedHost: true,
+        organizerTimeZone: organizerTimeZone,
       });
       const endCheckForAvailability = performance.now();
       checkForAvailabilityCount++;
