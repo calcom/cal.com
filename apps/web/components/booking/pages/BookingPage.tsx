@@ -211,7 +211,7 @@ const BookingPage = ({
   hashedLink,
   ...restProps
 }: BookingPageProps) => {
-  const releaseSlotMutation = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation();
+  const removeSelectedSlotMarkMutation = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation();
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const { t, i18n } = useLocale();
   const { duration: queryDuration } = useRouterQuery("duration");
@@ -263,7 +263,7 @@ const BookingPage = ({
     const interval = setInterval(reserveSlot, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
     return () => {
       clearInterval(interval);
-      releaseSlotMutation.mutate();
+      removeSelectedSlotMarkMutation.mutate();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
