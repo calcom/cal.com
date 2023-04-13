@@ -7,16 +7,16 @@ import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
-
 // This page is used to initiate the SAML authentication flow by redirecting to the SAML provider.
 // Accessible only on self-hosted Cal.com instances.
 export default function Page({ samlTenantID, samlProductID }: inferSSRProps<typeof getServerSideProps>) {
   const router = useRouter();
 
-  if (HOSTED_CAL_FEATURES) {
-    router.push("/auth/login");
-    return;
-  }
+  useEffect(() => {
+    if (HOSTED_CAL_FEATURES) {
+      router.push("/auth/login");
+    }
+  }, []);
 
   useEffect(() => {
     // Initiate SAML authentication flow
