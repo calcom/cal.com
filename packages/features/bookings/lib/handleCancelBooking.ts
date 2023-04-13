@@ -1,4 +1,4 @@
-import type { WebhookTriggerEvents, WorkflowReminder, Prisma } from "@prisma/client";
+import type { Prisma, WebhookTriggerEvents, WorkflowReminder } from "@prisma/client";
 import { BookingStatus, MembershipRole, WorkflowMethods } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
@@ -332,15 +332,15 @@ async function handler(req: CustomRequest) {
 
   //Workflows - schedule reminders
   if (bookingToDelete.eventType?.workflows) {
-    await sendCancelledReminders(
-      bookingToDelete.eventType?.workflows,
-      bookingToDelete.smsReminderNumber,
-      {
+    await sendCancelledReminders({
+      workflows: bookingToDelete.eventType?.workflows,
+      smsReminderNumber: bookingToDelete.smsReminderNumber,
+      evt: {
         ...evt,
         ...{ eventType: { slug: bookingToDelete.eventType.slug } },
       },
-      !!bookingToDelete.eventType.owner?.hideBranding
-    );
+      hideBranding: !!bookingToDelete.eventType.owner?.hideBranding,
+    });
   }
 
   let updatedBookings: {

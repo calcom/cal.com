@@ -217,19 +217,19 @@ export async function handleConfirmation(args: {
         const eventTypeSlug = updatedBookings[index].eventType ? updatedBookings[index].eventType?.slug : "";
 
         const isFirstBooking = index === 0;
-
         const videoCallUrl =
           bookingMetadataSchema.parse(updatedBookings[index].metadata || {})?.videoCallUrl || "";
 
-        await scheduleWorkflowReminders(
-          updatedBookings[index]?.eventType?.workflows || [],
-          updatedBookings[index].smsReminderNumber,
-          { ...evtOfBooking, ...{ metadata: { videoCallUrl }, eventType: { slug: eventTypeSlug } } },
-          false,
-          false,
-          isFirstBooking,
-          !!updatedBookings[index].eventType?.owner?.hideBranding
-        );
+        await scheduleWorkflowReminders({
+          workflows: updatedBookings[index]?.eventType?.workflows || [],
+          smsReminderNumber: updatedBookings[index].smsReminderNumber,
+          calendarEvent: {
+            ...evtOfBooking,
+            ...{ metadata: { videoCallUrl }, eventType: { slug: eventTypeSlug } },
+          },
+          isFirstRecurringEvent: isFirstBooking,
+          hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+        });
       }
     }
   } catch (error) {
