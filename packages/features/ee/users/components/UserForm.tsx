@@ -71,6 +71,7 @@ export const UserForm = ({
   const identityProviderOptions = [
     { value: "CAL", label: "CAL" },
     { value: "GOOGLE", label: "GOOGLE" },
+    { value: "SAML", label: "SAML" },
   ];
 
   const form = useForm<FormValues>({
