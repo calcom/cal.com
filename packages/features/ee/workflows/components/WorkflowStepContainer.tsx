@@ -381,6 +381,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
                               // email action changes to sms action
                               if (!isSMSAction(oldValue)) {
+                                form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
                                 form.setValue(`steps.${step.stepNumber - 1}.sender`, SENDER_ID);
                               }
 
