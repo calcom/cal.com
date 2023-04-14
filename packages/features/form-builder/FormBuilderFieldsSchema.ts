@@ -39,13 +39,10 @@ const fieldSchema = z.object({
   //TODO: This is never supposed to be allowed to edit. Can we avoid it from being saved in DB?
   variantsConfig: z
     .object({
-      // TODO: Move all variant related props to a single object
-      toggleLabel: z.string().optional(),
       // TODO: Make it key of variantsConfig
       defaultVariant: z.string().optional(),
       variants: z.record(
         z.object({
-          label: z.string(),
           fields: z
             .object({
               name: z.string(),
@@ -58,6 +55,23 @@ const fieldSchema = z.object({
             .array(),
         })
       ),
+    })
+    .optional(),
+  // It has the config that is always read from the Code(even if it's stored in DB. Though we shouldn't store it there)
+  // This allows making changes to the UI without having to make changes to the existing stored configs
+  appUiConfig: z
+    .object({
+      variantsConfig: z
+        .object({
+          // Used only when there are 2 variants, so that UI can be simplified by showing a switch
+          toggleLabel: z.string().optional(),
+          variants: z.record(
+            z.object({
+              label: z.string(),
+            })
+          ),
+        })
+        .optional(),
     })
     .optional(),
   views: z

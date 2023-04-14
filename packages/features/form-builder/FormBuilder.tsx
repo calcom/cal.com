@@ -341,17 +341,16 @@ export const FormBuilder = function FormBuilder({
                   <div className="flex flex-col lg:flex-row lg:items-center">
                     <div className="text-default text-sm font-semibold ltr:mr-2 rtl:ml-2">
                       {(() => {
-                        if (!field.variantsConfig) {
+                        const appUiConfigVariants = field.appUiConfig?.variantsConfig?.variants;
+                        const variantsConfig = field.variantsConfig;
+                        if (!appUiConfigVariants || !variantsConfig) {
                           return field.label || t(field.defaultLabel || "");
                         }
-                        const variant = field.variant || field.variantsConfig.defaultVariant;
+                        const variant = field.variant || variantsConfig.defaultVariant;
                         if (!variant) {
                           throw new Error("Field has variantsConfig but no defaultVariant");
                         }
-                        return t(
-                          field.variantsConfig.variants[variant as keyof typeof field.variantsConfig.variants]
-                            .label
-                        );
+                        return t(appUiConfigVariants[variant as keyof typeof appUiConfigVariants].label);
                       })()}
                     </div>
                     <div className="flex items-center space-x-2">
@@ -489,7 +488,8 @@ export const FormBuilder = function FormBuilder({
               />
               {(() => {
                 const variantsConfig = fieldForm.getValues("variantsConfig");
-                const variantToggleLabel = variantsConfig?.toggleLabel;
+                const appUiVariantsConfig = fieldForm.getValues("appUiConfig")?.variantsConfig;
+                const variantToggleLabel = t(appUiVariantsConfig?.toggleLabel || "");
 
                 if (!variantsConfig || !variantToggleLabel) {
                   return null;
@@ -530,15 +530,19 @@ export const FormBuilder = function FormBuilder({
                 }
                 label="Identifier"
               />
-              <InputField
-                {...fieldForm.register("label")}
-                // System fields have a defaultLabel, so there a label is not required
-                required={!["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")}
-                placeholder={t(fieldForm.getValues("defaultLabel") || "")}
-                containerClassName="mt-6"
-                label={t("label")}
-              />
-              {fieldType?.isTextType ? (
+              {!fieldForm.getValues("variantsConfig") && (
+                <InputField
+                  {...fieldForm.register("label")}
+                  // System fields have a defaultLabel, so there a label is not required
+                  required={
+                    !["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")
+                  }
+                  placeholder={t(fieldForm.getValues("defaultLabel") || "")}
+                  containerClassName="mt-6"
+                  label={t("label")}
+                />
+              )}
+              {fieldType?.isTextType && !fieldForm.getValues("variantsConfig") ? (
                 <InputField
                   {...fieldForm.register("placeholder")}
                   containerClassName="mt-6"
