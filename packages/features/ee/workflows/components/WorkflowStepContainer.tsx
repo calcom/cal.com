@@ -35,7 +35,7 @@ import {
   AddVariablesDropdown,
   Input,
 } from "@calcom/ui";
-import { FiArrowDown, FiMoreHorizontal, FiTrash2, FiHelpCircle } from "@calcom/ui/components/icon";
+import { ArrowDown, MoreHorizontal, Trash2, HelpCircle } from "@calcom/ui/components/icon";
 
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
@@ -281,7 +281,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return (
       <>
         <div className="my-3 flex justify-center">
-          <FiArrowDown className="text-subtle stroke-[1.5px] text-3xl" />
+          <ArrowDown className="text-subtle stroke-[1.5px] text-3xl" />
         </div>
         <div className="flex justify-center">
           <div className="min-w-80 bg-default border-subtle flex w-full rounded-md border p-7">
@@ -301,13 +301,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div>
                   <Dropdown>
                     <DropdownMenuTrigger asChild>
-                      <Button type="button" color="minimal" variant="icon" StartIcon={FiMoreHorizontal} />
+                      <Button type="button" color="minimal" variant="icon" StartIcon={MoreHorizontal} />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                       <DropdownMenuItem>
                         <DropdownItem
                           type="button"
-                          StartIcon={FiTrash2}
+                          StartIcon={Trash2}
                           color="destructive"
                           onClick={() => {
                             const steps = form.getValues("steps");
@@ -645,7 +645,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <div className="mt-3 ">
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                       <div className="text-default mt-2 flex text-sm">
-                        <FiHelpCircle className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                        <HelpCircle className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
                         <p className="text-left">{t("using_additional_inputs_as_variables")}</p>
                       </div>
                     </button>

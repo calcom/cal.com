@@ -15,25 +15,25 @@ import { trpc } from "@calcom/trpc/react";
 import type { VerticalTabItemProps } from "@calcom/ui";
 import { Badge, Button, ErrorBoundary, Skeleton, useMeta, VerticalTabItem } from "@calcom/ui";
 import {
-  FiArrowLeft,
-  FiChevronDown,
-  FiChevronRight,
-  FiCreditCard,
-  FiKey,
-  FiLoader,
-  FiLock,
-  FiMenu,
-  FiPlus,
-  FiTerminal,
-  FiUser,
-  FiUsers,
+  User,
+  Key,
+  CreditCard,
+  Terminal,
+  Users,
+  Loader,
+  Lock,
+  ArrowLeft,
+  ChevronDown,
+  ChevronRight,
+  Plus,
+  Menu,
 } from "@calcom/ui/components/icon";
 
 const tabs: VerticalTabItemProps[] = [
   {
     name: "my_account",
     href: "/settings/my-account",
-    icon: FiUser,
+    icon: User,
     children: [
       { name: "profile", href: "/settings/my-account/profile" },
       { name: "general", href: "/settings/my-account/general" },
@@ -47,7 +47,7 @@ const tabs: VerticalTabItemProps[] = [
   {
     name: "security",
     href: "/settings/security",
-    icon: FiKey,
+    icon: Key,
     children: [
       { name: "password", href: "/settings/security/password" },
       { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
@@ -57,13 +57,13 @@ const tabs: VerticalTabItemProps[] = [
   {
     name: "billing",
     href: "/settings/billing",
-    icon: FiCreditCard,
+    icon: CreditCard,
     children: [{ name: "manage_billing", href: "/settings/billing" }],
   },
   {
     name: "developer",
     href: "/settings/developer",
-    icon: FiTerminal,
+    icon: Terminal,
     children: [
       //
       { name: "webhooks", href: "/settings/developer/webhooks" },
@@ -75,13 +75,13 @@ const tabs: VerticalTabItemProps[] = [
   {
     name: "teams",
     href: "/settings/teams",
-    icon: FiUsers,
+    icon: Users,
     children: [],
   },
   {
     name: "admin",
     href: "/settings/admin",
-    icon: FiLock,
+    icon: Lock,
     children: [
       //
       { name: "features", href: "/settings/admin/flags" },
@@ -130,7 +130,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
       href="/"
       className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-64 flex-row items-center rounded-md py-2 px-3 text-sm font-medium leading-4"
       data-testid={`vertical-tab-${name}`}>
-      <FiArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] md:mt-0" />
+      <ArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] md:mt-0" />
       <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate">
         {name}
       </Skeleton>
@@ -256,7 +256,7 @@ const SettingsSidebarContainer = ({
                                 ])
                               }>
                               <div className="ltr:mr-3 rtl:ml-3">
-                                {teamMenuState[index].teamMenuOpen ? <FiChevronDown /> : <FiChevronRight />}
+                                {teamMenuState[index].teamMenuOpen ? <ChevronDown /> : <ChevronRight />}
                               </div>
                               <img
                                 src={getPlaceholderAvatar(team.logo, team?.name as string)}
@@ -325,7 +325,7 @@ const SettingsSidebarContainer = ({
                   name={t("add_a_team")}
                   href={`${WEBAPP_URL}/settings/teams/new`}
                   textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
-                  icon={FiPlus}
+                  icon={Plus}
                   disableChevron
                 />
               </div>
@@ -345,14 +345,14 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
     <>
       <nav className="bg-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b sm:relative lg:hidden">
         <div className="flex items-center space-x-3 ">
-          <Button StartIcon={FiMenu} color="minimal" variant="icon" onClick={props.onSideContainerOpen}>
+          <Button StartIcon={Menu} color="minimal" variant="icon" onClick={props.onSideContainerOpen}>
             <span className="sr-only">{t("show_navigation")}</span>
           </Button>
 
           <button
             className="hover:bg-emphasis flex items-center space-x-2 rounded-md px-3 py-1 rtl:space-x-reverse"
             onClick={() => router.back()}>
-            <FiArrowLeft className="text-default" />
+            <ArrowLeft className="text-default" />
             <p className="text-emphasis font-semibold">{t("settings")}</p>
           </button>
         </div>
@@ -416,7 +416,7 @@ export default function SettingsLayout({
         <div className="mx-auto max-w-full justify-center md:max-w-3xl">
           <ShellHeader />
           <ErrorBoundary>
-            <Suspense fallback={<FiLoader />}>{children}</Suspense>
+            <Suspense fallback={<Loader />}>{children}</Suspense>
           </ErrorBoundary>
         </div>
       </div>
@@ -434,7 +434,7 @@ function ShellHeader() {
       <div className="border-subtle mb-8 flex w-full items-center border-b pb-6">
         {meta.backButton && (
           <a href="javascript:history.back()">
-            <FiArrowLeft className="mr-7" />
+            <ArrowLeft className="mr-7" />
           </a>
         )}
         <div>

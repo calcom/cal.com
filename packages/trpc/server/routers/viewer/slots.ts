@@ -1,4 +1,7 @@
 import { SchedulingType } from "@prisma/client";
+import { serialize } from "cookie";
+import { countBy } from "lodash";
+import { v4 as uuid } from "uuid";
 import { z } from "zod";
 
 import { getAggregateWorkingHours } from "@calcom/core/getAggregateWorkingHours";
@@ -6,6 +9,7 @@ import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -18,7 +22,7 @@ import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
-import { router, publicProcedure } from "../../trpc";
+import { publicProcedure, router } from "../../trpc";
 
 const getScheduleSchema = z
   .object({
@@ -44,6 +48,19 @@ const getScheduleSchema = z
   .refine(
     (data) => !!data.eventTypeId || !!data.usernameList,
     "Either usernameList or eventTypeId should be filled in."
+  );
+
+const reverveSlotSchema = z
+  .object({
+    eventTypeId: z.number().int(),
+    // startTime ISOString
+    slotUtcStartDate: z.string(),
+    // endTime ISOString
+    slotUtcEndDate: z.string(),
+  })
+  .refine(
+    (data) => !!data.eventTypeId || !!data.slotUtcStartDate || !!data.slotUtcEndDate,
+    "Either slotUtcStartDate, slotUtcEndDate or eventTypeId should be filled in."
   );
 
 export type Slot = {
@@ -108,6 +125,55 @@ export const slotsRouter = router({
   getSchedule: publicProcedure.input(getScheduleSchema).query(async ({ input, ctx }) => {
     return await getSchedule(input, ctx);
   }),
+  reserveSlot: publicProcedure.input(reverveSlotSchema).mutation(async ({ ctx, input }) => {
+    const { prisma, req, res } = ctx;
+    const uid = req?.cookies?.uid || uuid();
+    const { slotUtcStartDate, slotUtcEndDate, eventTypeId } = input;
+    const releaseAt = dayjs.utc().add(parseInt(MINUTES_TO_BOOK), "minutes").format();
+    const eventType = await prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: { users: { select: { id: true } }, seatsPerTimeSlot: true },
+    });
+    if (eventType) {
+      await Promise.all(
+        eventType.users.map((user) =>
+          prisma.selectedSlots.upsert({
+            where: { selectedSlotUnique: { userId: user.id, slotUtcStartDate, slotUtcEndDate, uid } },
+            update: {
+              slotUtcStartDate,
+              slotUtcEndDate,
+              releaseAt,
+              eventTypeId,
+            },
+            create: {
+              userId: user.id,
+              eventTypeId,
+              slotUtcStartDate,
+              slotUtcEndDate,
+              uid,
+              releaseAt,
+              isSeat: eventType.seatsPerTimeSlot !== null,
+            },
+          })
+        )
+      );
+    } else {
+      throw new TRPCError({
+        message: "Event type not found",
+        code: "NOT_FOUND",
+      });
+    }
+    res?.setHeader("Set-Cookie", serialize("uid", uid, { path: "/", sameSite: "lax" }));
+    return;
+  }),
+  removeSelectedSlotMark: publicProcedure.mutation(async ({ ctx }) => {
+    const { req, prisma } = ctx;
+    const uid = req?.cookies?.uid;
+    if (uid) {
+      await prisma.selectedSlots.deleteMany({ where: { uid: { equals: uid } } });
+    }
+    return;
+  }),
 });
 
 async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeof getScheduleSchema>) {
@@ -117,6 +183,7 @@ async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeo
     },
     select: {
       id: true,
+      slug: true,
       minimumBookingNotice: true,
       length: true,
       seatsPerTimeSlot: true,
@@ -236,7 +303,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   if (!startTime.isValid() || !endTime.isValid()) {
     throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
   }
-  let currentSeats: CurrentSeats | undefined = undefined;
+  let currentSeats: CurrentSeats | undefined;
 
   let users = eventType.users.map((user) => ({
     isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
@@ -326,10 +393,32 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   }
 
   let availableTimeSlots: typeof timeSlots = [];
+  // Load cached busy slots
+  const selectedSlots =
+    /* FIXME: For some reason this returns undefined while testing in Jest */
+    (await ctx.prisma.selectedSlots.findMany({
+      where: {
+        userId: { in: users.map((user) => user.id) },
+        releaseAt: { gt: dayjs.utc().format() },
+      },
+      select: {
+        id: true,
+        slotUtcStartDate: true,
+        slotUtcEndDate: true,
+        userId: true,
+        isSeat: true,
+        eventTypeId: true,
+      },
+    })) || [];
+  await ctx.prisma.selectedSlots.deleteMany({
+    where: { eventTypeId: { equals: eventType.id }, id: { notIn: selectedSlots.map((item) => item.id) } },
+  });
+
   availableTimeSlots = timeSlots.filter((slot) => {
     const fixedHosts = userAvailability.filter((availability) => availability.user.isFixed);
     return fixedHosts.every((schedule) => {
       const startCheckForAvailability = performance.now();
+
       const isAvailable = checkIfIsAvailable({
         time: slot.time,
         ...schedule,
@@ -356,6 +445,71 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
           return checkIfIsAvailable({
             time: slot.time,
             ...userSchedule,
+            ...availabilityCheckProps,
+          });
+        });
+        return slot;
+      })
+      .filter((slot) => !!slot.userIds?.length);
+  }
+
+  if (selectedSlots?.length > 0) {
+    let occupiedSeats: typeof selectedSlots = selectedSlots.filter(
+      (item) => item.isSeat && item.eventTypeId === eventType.id
+    );
+    if (occupiedSeats?.length) {
+      const addedToCurrentSeats: string[] = [];
+      if (typeof availabilityCheckProps.currentSeats !== undefined) {
+        availabilityCheckProps.currentSeats = (availabilityCheckProps.currentSeats as CurrentSeats).map(
+          (item) => {
+            const attendees =
+              occupiedSeats.filter(
+                (seat) => seat.slotUtcStartDate.toISOString() === item.startTime.toISOString()
+              )?.length || 0;
+            if (attendees) addedToCurrentSeats.push(item.startTime.toISOString());
+            return {
+              ...item,
+              _count: {
+                attendees: item._count.attendees + attendees,
+              },
+            };
+          }
+        ) as CurrentSeats;
+        occupiedSeats = occupiedSeats.filter(
+          (item) => !addedToCurrentSeats.includes(item.slotUtcStartDate.toISOString())
+        );
+      }
+
+      if (occupiedSeats?.length && typeof availabilityCheckProps.currentSeats === undefined)
+        availabilityCheckProps.currentSeats = [];
+      const occupiedSeatsCount = countBy(occupiedSeats, (item) => item.slotUtcStartDate.toISOString());
+      Object.keys(occupiedSeatsCount).forEach((date) => {
+        (availabilityCheckProps.currentSeats as CurrentSeats).push({
+          uid: uuid(),
+          startTime: dayjs(date).toDate(),
+          _count: { attendees: occupiedSeatsCount[date] },
+        });
+      });
+      currentSeats = availabilityCheckProps.currentSeats;
+    }
+
+    availableTimeSlots = availableTimeSlots
+      .map((slot) => {
+        slot.userIds = slot.userIds?.filter((slotUserId) => {
+          const busy = selectedSlots.reduce<EventBusyDate[]>((r, c) => {
+            if (c.userId === slotUserId && !c.isSeat) {
+              r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
+            }
+            return r;
+          }, []);
+
+          if (!busy?.length && eventType.seatsPerTimeSlot === null) {
+            return false;
+          }
+
+          return checkIfIsAvailable({
+            time: slot.time,
+            busy,
             ...availabilityCheckProps,
           });
         });

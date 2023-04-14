@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
   showToast,
 } from "@calcom/ui";
-import { FiGlobe, FiMoreHorizontal, FiTrash, FiClock } from "@calcom/ui/components/icon";
+import { Globe, MoreHorizontal, Trash, Clock } from "@calcom/ui/components/icon";
 
 export function ScheduleListItem({
   schedule,
@@ -67,7 +67,7 @@ export function ScheduleListItem({
                 ))}
               {(schedule.timeZone || displayOptions?.timeZone) && (
                 <p className="my-1 flex items-center first-letter:text-xs">
-                  <FiGlobe />
+                  <Globe className="h-3.5 w-3.5" />
                   &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
                 </p>
               )}
@@ -82,7 +82,7 @@ export function ScheduleListItem({
               type="button"
               variant="icon"
               color="secondary"
-              StartIcon={FiMoreHorizontal}
+              StartIcon={MoreHorizontal}
             />
           </DropdownMenuTrigger>
           {!isLoading && data && (
@@ -91,7 +91,7 @@ export function ScheduleListItem({
                 {!schedule.isDefault && (
                   <DropdownItem
                     type="button"
-                    StartIcon={FiClock}
+                    StartIcon={Clock}
                     onClick={() => {
                       updateDefault({
                         scheduleId: schedule.id,
@@ -106,7 +106,7 @@ export function ScheduleListItem({
                 <DropdownItem
                   type="button"
                   color="destructive"
-                  StartIcon={FiTrash}
+                  StartIcon={Trash}
                   data-testid="delete-schedule"
                   onClick={() => {
                     if (!isDeletable) {

@@ -56,6 +56,7 @@ export {
   SettingsToggle,
   Stepper,
   Switch,
+  NumberInput,
 } from "./components/form";
 export type { ITimezone, ITimezoneOption } from "./components/form";
 export {

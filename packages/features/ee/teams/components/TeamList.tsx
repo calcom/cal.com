@@ -4,7 +4,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Card, showToast } from "@calcom/ui";
-import { FiUserPlus, FiUsers, FiEdit } from "@calcom/ui/components/icon";
+import { UserPlus, Users, Edit } from "@calcom/ui/components/icon";
 
 import TeamListItem from "./TeamListItem";
 
@@ -66,7 +66,7 @@ export default function TeamList(props: Props) {
                   <h3 className="text-emphasis mb-4 text-sm font-semibold">{t("recommended_next_steps")}</h3>
                   <div className="grid-col-1 grid gap-2 md:grid-cols-3">
                     <Card
-                      icon={<FiUserPlus className="h-5 w-5 text-green-700" />}
+                      icon={<UserPlus className="h-5 w-5 text-green-700" />}
                       variant="basic"
                       title={t("invite_team_member")}
                       description={t("meetings_are_better_with_the_right")}
@@ -77,7 +77,7 @@ export default function TeamList(props: Props) {
                     />
                     {/* @TODO: uncomment once managed event types is live
                     <Card
-                      icon={<FiUnlock className="h-5 w-5 text-blue-700" />}
+                      icon={<Unlock className="h-5 w-5 text-blue-700" />}
                       variant="basic"
                       title={t("create_a_managed_event")}
                       description={t("create_a_one_one_template")}
@@ -92,7 +92,7 @@ export default function TeamList(props: Props) {
                       }}
                     /> */}
                     <Card
-                      icon={<FiUsers className="h-5 w-5 text-orange-700" />}
+                      icon={<Users className="h-5 w-5 text-orange-700" />}
                       variant="basic"
                       title={t("collective_or_roundrobin")}
                       description={t("book_your_team_members")}
@@ -102,7 +102,7 @@ export default function TeamList(props: Props) {
                       }}
                     />
                     <Card
-                      icon={<FiEdit className="h-5 w-5 text-purple-700" />}
+                      icon={<Edit className="h-5 w-5 text-purple-700" />}
                       variant="basic"
                       title={t("appearance")}
                       description={t("appearance_subtitle")}
