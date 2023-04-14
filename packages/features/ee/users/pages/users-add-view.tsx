@@ -27,6 +27,7 @@ const UsersAddView = () => {
     <LicenseRequired>
       <Meta title="Add new user" description="Here you can add a new user." />
       <UserForm
+        submitLabel="Add user"
         onSubmit={async (values) => {
           const parser = getParserWithGeneric(userBodySchema);
           const parsedValues = parser(values);

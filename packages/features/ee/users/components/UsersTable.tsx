@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { trpc } from "@calcom/trpc/react";
 import { Badge, ConfirmationDialogContent, Dialog, DropdownActions, showToast, Table } from "@calcom/ui";
-import { FiEdit, FiTrash } from "@calcom/ui/components/icon";
+import { Edit, Trash } from "@calcom/ui/components/icon";
 
 import { withLicenseRequired } from "../../common/components/v2/LicenseRequired";
 
@@ -53,8 +53,8 @@ function UsersTableBare() {
                     alt={`Avatar of ${user.name}`}
                   />
 
-                  <div className="ml-4 font-medium text-gray-500">
-                    <span className="text-gray-900">{user.name}</span>
+                  <div className="text-subtle ml-4 font-medium">
+                    <span className="text-default">{user.name}</span>
                     <span className="ml-3">/{user.username}</span>
                     <br />
                     <span className="break-all">{user.email}</span>
@@ -75,7 +75,7 @@ function UsersTableBare() {
                         id: "edit",
                         label: "Edit",
                         href: `/settings/admin/users/${user.id}/edit`,
-                        icon: FiEdit,
+                        icon: Edit,
                       },
                       // {
                       //   id: "reset-password",
@@ -88,7 +88,7 @@ function UsersTableBare() {
                         label: "Delete",
                         color: "destructive",
                         onClick: () => setUserToDelete(user.id),
-                        icon: FiTrash,
+                        icon: Trash,
                       },
                     ]}
                   />

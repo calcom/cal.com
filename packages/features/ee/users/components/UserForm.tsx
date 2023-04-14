@@ -5,17 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
-import {
-  Avatar,
-  Button,
-  EmailField,
-  Form,
-  ImageUploader,
-  Label,
-  Select,
-  TextField,
-  TimezoneSelect,
-} from "@calcom/ui";
+import { Button, EmailField, Form, Label, Select, TextField, TimezoneSelect } from "@calcom/ui";
 
 import type { UserAdminRouterOutputs } from "../server/trpc-router";
 
@@ -32,6 +22,7 @@ type OptionValues = {
   timeZone: string;
   weekStart: Option;
   role: Option;
+  identityProvider: Option;
 };
 
 type FormValues = Pick<User, "avatar" | "name" | "username" | "email" | "bio"> & OptionValues;
@@ -40,10 +31,12 @@ export const UserForm = ({
   defaultValues,
   localeProp = "en",
   onSubmit = noop,
+  submitLabel = "update",
 }: {
   defaultValues?: Pick<User, keyof FormValues>;
   localeProp?: string;
   onSubmit: (data: FormValues) => void;
+  submitLabel?: string;
 }) => {
   const router = useRouter();
   const { t } = useLocale();
@@ -75,6 +68,11 @@ export const UserForm = ({
     { value: "ADMIN", label: t("admin") },
   ];
 
+  const identityProviderOptions = [
+    { value: "CAL", label: "CAL" },
+    { value: "GOOGLE", label: "GOOGLE" },
+  ];
+
   const form = useForm<FormValues>({
     defaultValues: {
       avatar: defaultValues?.avatar,
@@ -101,12 +99,19 @@ export const UserForm = ({
           userRoleOptions.find((option) => option.value === defaultValues?.role)?.label ||
           userRoleOptions[0].label,
       },
+      identityProvider: {
+        value: defaultValues?.identityProvider || identityProviderOptions[0].value,
+        label:
+          identityProviderOptions.find((option) => option.value === defaultValues?.role)?.label ||
+          identityProviderOptions[0].label,
+      },
     },
   });
 
   return (
     <Form form={form} className="space-y-4" handleSubmit={onSubmit}>
-      <div className="flex items-center">
+      {/* TODO: Enable Avatar uploader in a follow up */}
+      {/*  <div className="flex items-center">
         <Controller
           control={form.control}
           name="avatar"
@@ -127,18 +132,34 @@ export const UserForm = ({
             </>
           )}
         />
-      </div>
+      </div> */}
       <Controller
         name="role"
         control={form.control}
         render={({ field: { onChange, value } }) => (
           <div>
-            <Label className="font-medium text-gray-900" htmlFor="role">
+            <Label className="text-default font-medium" htmlFor="role">
               {t("role")}
             </Label>
             <Select<{ label: string; value: string }>
               value={value}
               options={userRoleOptions}
+              onChange={onChange}
+            />
+          </div>
+        )}
+      />
+      <Controller
+        name="identityProvider"
+        control={form.control}
+        render={({ field: { onChange, value } }) => (
+          <div>
+            <Label className="text-default font-medium" htmlFor="identityProvider">
+              {t("identity_provider")}
+            </Label>
+            <Select<{ label: string; value: string }>
+              value={value}
+              options={identityProviderOptions}
               onChange={onChange}
             />
           </div>
@@ -152,7 +173,7 @@ export const UserForm = ({
         name="locale"
         render={({ field: { value, onChange } }) => (
           <>
-            <Label className="text-gray-900">
+            <Label className="text-default">
               <>{t("language")}</>
             </Label>
             <Select<{ label: string; value: string }>
@@ -169,7 +190,7 @@ export const UserForm = ({
         control={form.control}
         render={({ field: { value } }) => (
           <>
-            <Label className="mt-8 text-gray-900">
+            <Label className="text-default mt-8">
               <>{t("timezone")}</>
             </Label>
             <TimezoneSelect
@@ -187,7 +208,7 @@ export const UserForm = ({
         control={form.control}
         render={({ field: { value } }) => (
           <>
-            <Label className="mt-8 text-gray-900">
+            <Label className="text-default mt-8">
               <>{t("time_format")}</>
             </Label>
             <Select
@@ -205,7 +226,7 @@ export const UserForm = ({
         control={form.control}
         render={({ field: { value } }) => (
           <>
-            <Label className="mt-8 text-gray-900">
+            <Label className="text-default mt-8">
               <>{t("start_of_week")}</>
             </Label>
             <Select
@@ -221,7 +242,7 @@ export const UserForm = ({
 
       <br />
       <Button type="submit" color="primary">
-        {t("update")}
+        {t(submitLabel)}
       </Button>
     </Form>
   );

@@ -10,7 +10,7 @@ interface DynamicWidth {
 
 const Header = ({ children }: TableProps) => (
   <thead className="rounded-md">
-    <tr className="bg-gray-50">{children}</tr>
+    <tr className="bg-default">{children}</tr>
   </thead>
 );
 
@@ -18,7 +18,7 @@ const ColumnTitle = ({ children, widthClassNames }: TableProps & DynamicWidth) =
   <th
     scope="col"
     className={classNames(
-      "p-3 text-left text-xs font-medium uppercase text-gray-500",
+      "text-default p-3 text-left text-xs font-medium uppercase",
       !widthClassNames ? "w-auto" : widthClassNames
     )}>
     {children}
@@ -26,7 +26,7 @@ const ColumnTitle = ({ children, widthClassNames }: TableProps & DynamicWidth) =
 );
 
 const Body = ({ children }: TableProps) => (
-  <tbody className="divide-y divide-gray-200 rounded-md">{children}</tbody>
+  <tbody className="divide-subtle divide-y rounded-md">{children}</tbody>
 );
 
 const Row = ({ children }: TableProps) => <tr>{children}</tr>;
@@ -34,7 +34,7 @@ const Row = ({ children }: TableProps) => <tr>{children}</tr>;
 const Cell = ({ children, widthClassNames }: TableProps & DynamicWidth) => (
   <td
     className={classNames(
-      "relative py-2 px-3 text-sm font-medium text-gray-900",
+      "text-default relative py-2 px-3 text-sm font-medium",
       !widthClassNames ? "w-auto" : widthClassNames
     )}>
     {children}
@@ -42,8 +42,8 @@ const Cell = ({ children, widthClassNames }: TableProps & DynamicWidth) => (
 );
 
 export const Table = ({ children }: TableProps) => (
-  <div className="overflow-x-auto rounded-md border border-gray-200 bg-white">
-    <table className="w-full divide-y divide-gray-200 rounded-md">{children}</table>
+  <div className="bg-default border-subtle overflow-x-auto rounded-md border">
+    <table className="divide-subtle w-full divide-y rounded-md">{children}</table>
   </div>
 );
 
