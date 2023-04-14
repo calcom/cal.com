@@ -18,7 +18,7 @@ export default function Logo({
     <h3 className={classNames("logo dark:invert", inline && "inline", className)}>
       <strong>
         {isSubdomain && (
-          <img className={small ? "h-4 w-auto" : "h-5 w-auto"} alt="Cal" title="Cal" src={logoSrc} />
+          <img className={small ? "h-4 w-auto" : "h-5 w-auto"} alt="Cal" title="Cal" src={logoSrc ?? LOGO} />
         )}
         {!isSubdomain &&
           (icon ? (
