@@ -19,6 +19,7 @@ import type { CredentialPayload, CredentialWithAppName } from "@calcom/types/Cre
 import type { EventResult } from "@calcom/types/EventManager";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
+let coldStart = true;
 
 export const getCalendarCredentials = (credentials: Array<CredentialPayload>) => {
   const calendarCredentials = getApps(credentials)
@@ -174,6 +175,12 @@ export const getCachedResults = async (
   return awaitedResults;
 };
 
+const getCalendarCacheJsonBaseUrl = (username: string, month: string) => {
+  const { NODE_ENV } = process.env;
+  const cacheDir = `${NODE_ENV === "development" ? NODE_ENV : process.env.BUILD_ID}`;
+  const baseUrl = `${WEBAPP_URL}/_next/data/${cacheDir}/en`;
+  return `${baseUrl}/${username}/calendar-cache/${month}.json?user=${username}&month=${month}`;
+};
 /**
  * This function fetch the json file that NextJS generates and uses to hydrate the static page on browser.
  * If for some reason NextJS still doesn't generate this file, it will wait until it finishes generating it.
@@ -184,47 +191,67 @@ export const getCachedResults = async (
 const getNextCache = async (username: string, month: string): Promise<EventBusyDate[][]> => {
   let localCache: EventBusyDate[][] = [];
   try {
-    const { NODE_ENV } = process.env;
-    const cacheDir = `${NODE_ENV === "development" ? NODE_ENV : process.env.BUILD_ID}`;
-    const baseUrl = `${WEBAPP_URL}/_next/data/${cacheDir}/en`;
-    console.log(`${baseUrl}/${username}/calendar-cache/${month}.json?user=${username}&month=${month}`);
-    localCache = await fetch(
-      `${baseUrl}/${username}/calendar-cache/${month}.json?user=${username}&month=${month}`
-    )
+    const baseUrl = getCalendarCacheJsonBaseUrl(username, month);
+    const url = `${baseUrl}/${username}/calendar-cache/${month}.json?user=${username}&month=${month}`;
+    console.log(url);
+    localCache = await fetch(url)
       .then((r) => r.json())
       .then((json) => json?.pageProps?.results);
-    // No need to wait for this, the purpose is to force re-validation every second as indicated
-    // in page getStaticProps.
-    fetch(`${baseUrl}/${username}/calendar-cache/${month}`).catch(console.log);
+    revalidateCalendarCache(username, month);
   } catch (e) {
     log.warn(e);
   }
   return localCache;
 };
 
+const getMonths = (dateFrom: string, dateTo: string) => {
+  const months: string[] = [dayjs(dateFrom).format("YYYY-MM")];
+  for (
+    let i = 1;
+    dayjs(dateFrom).add(i, "month").isBefore(dateTo) ||
+    dayjs(dateFrom).add(i, "month").isSame(dateTo, "month");
+    i++
+  ) {
+    months.push(dayjs(dateFrom).add(i, "month").format("YYYY-MM"));
+  }
+  return months;
+};
+
+const revalidateCalendarCache = (username: string, month: string) => {
+  const baseUrl = getCalendarCacheJsonBaseUrl(username, month);
+  // No need to wait for this, the purpose is to force re-validation every second as indicated
+  // in page getStaticProps.
+  fetch(`${baseUrl}/${username}/calendar-cache/${month}`).catch(console.log);
+};
 export const getBusyCalendarTimes = async (
   username: string,
   withCredentials: CredentialPayload[],
   dateFrom: string,
-  dateTo: string
+  dateTo: string,
+  selectedCalendars: SelectedCalendar[]
 ) => {
   let results: EventBusyDate[][] = [];
-  if (dayjs(dateFrom).isSame(dayjs(dateTo), "month")) {
-    results = await getNextCache(username, dayjs(dateFrom).format("YYYY-MM"));
-  } else {
-    // if dateFrom and dateTo is from different months get cache by each month
-    const months: string[] = [dayjs(dateFrom).format("YYYY-MM")];
-    for (
-      let i = 1;
-      dayjs(dateFrom).add(i, "month").isBefore(dateTo) ||
-      dayjs(dateFrom).add(i, "month").isSame(dateTo, "month");
-      i++
-    ) {
-      months.push(dayjs(dateFrom).add(i, "month").format("YYYY-MM"));
+  const months = getMonths(dateFrom, dateTo);
+  try {
+    console.log({ coldStart });
+    if (coldStart) {
+      results = await getCachedResults(withCredentials, dateFrom, dateTo, selectedCalendars);
+      Promise.all(months.map((month) => revalidateCalendarCache(username, month)));
+    } else {
+      if (months.length === 1) {
+        results = await getNextCache(username, dayjs(dateFrom).format("YYYY-MM"));
+      } else {
+        // if dateFrom and dateTo is from different months get cache by each month
+        const data: EventBusyDate[][][] = await Promise.all(
+          months.map((month) => getNextCache(username, month))
+        );
+        results = data.flat(1);
+      }
     }
-    const data: EventBusyDate[][][] = await Promise.all(months.map((month) => getNextCache(username, month)));
-    results = data.flat(1);
+  } catch (e) {
+    logger.warn(e);
   }
+  coldStart = false;
   return results.reduce((acc, availability) => acc.concat(availability), []);
 };
 

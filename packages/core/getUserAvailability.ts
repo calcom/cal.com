@@ -148,6 +148,7 @@ export async function getUserAvailability(
     username: `${user.username}`,
     beforeEventBuffer,
     afterEventBuffer,
+    selectedCalendars: user.selectedCalendars,
   });
 
   let bufferedBusyTimes: EventBusyDetails[] = busyTimes.map((a) => ({

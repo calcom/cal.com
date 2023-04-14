@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
+import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 
 export async function getBusyTimes(params: {
@@ -17,6 +18,7 @@ export async function getBusyTimes(params: {
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
   endTime: string;
+  selectedCalendars: SelectedCalendar[];
 }) {
   const {
     credentials,
@@ -27,6 +29,7 @@ export async function getBusyTimes(params: {
     endTime,
     beforeEventBuffer,
     afterEventBuffer,
+    selectedCalendars,
   } = params;
   logger.silly(
     `Checking Busy time from Cal Bookings in range ${startTime} to ${endTime} for input ${JSON.stringify({
@@ -120,7 +123,13 @@ export async function getBusyTimes(params: {
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
   if (credentials?.length > 0) {
     const startConnectedCalendarsGet = performance.now();
-    const calendarBusyTimes = await getBusyCalendarTimes(username, credentials, startTime, endTime);
+    const calendarBusyTimes = await getBusyCalendarTimes(
+      username,
+      credentials,
+      startTime,
+      endTime,
+      selectedCalendars
+    );
     const endConnectedCalendarsGet = performance.now();
     logger.debug(
       `Connected Calendars get took ${
