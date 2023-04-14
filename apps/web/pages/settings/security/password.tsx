@@ -1,8 +1,10 @@
 import { signOut, useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 
+import { identityProviderNameMap } from "@calcom/features/auth/lib/identityProviderNameMap";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { IdentityProvider } from "@calcom/prisma/client";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Form, Meta, PasswordField, Select, SettingsToggle, showToast } from "@calcom/ui";
@@ -126,81 +128,137 @@ const PasswordView = () => {
   return (
     <>
       <Meta title={t("password")} description={t("password_description")} />
-      <Form form={formMethods} handleSubmit={handleSubmit}>
-        {formMethods.formState.errors.apiError && (
-          <div className="pb-6">
-            <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />
-          </div>
-        )}
-        <div className="max-w-[38rem] sm:grid sm:grid-cols-2 sm:gap-x-4">
-          {!allowEmptyOldPassword && (
-            <div>
-              <PasswordField {...formMethods.register("oldPassword")} label={t("old_password")} />
-            </div>
-          )}
-          <div>
-            <PasswordField
-              {...formMethods.register("newPassword", {
-                minLength: {
-                  message: t(isUser ? "password_hint_min" : "password_hint_admin_min"),
-                  value: passwordMinLength,
-                },
-                pattern: {
-                  message: "Should contain a number, uppercase and lowercase letters",
-                  value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
-                },
+
+      {user && user.identityProvider !== IdentityProvider.CAL ? (
+        <div>
+          <div className="mt-6">
+            <h2 className="font-cal text-emphasis text-lg font-medium leading-6">
+              {t("account_managed_by_identity_provider", {
+                provider: identityProviderNameMap[user.identityProvider],
               })}
-              label={t("new_password")}
-            />
+            </h2>
           </div>
+          <p className="text-subtle mt-1 text-sm">
+            {t("account_managed_by_identity_provider_description", {
+              provider: identityProviderNameMap[user.identityProvider],
+            })}
+          </p>
         </div>
-        <p className="mt-4 max-w-[38rem] text-sm text-gray-600">
-          {t("invalid_password_hint", { passwordLength: passwordMinLength })}
-        </p>
-        <div className="mt-8 border-t border-gray-200 py-8">
-          <SettingsToggle
-            title={t("session_timeout")}
-            description={t("session_timeout_description")}
-            checked={sessionTimeoutWatch !== undefined}
-            data-testid="session-check"
-            onCheckedChange={(e) => {
-              if (!e) {
-                formMethods.setValue("sessionTimeout", undefined, { shouldDirty: true });
-              } else {
-                formMethods.setValue("sessionTimeout", 10, { shouldDirty: true });
-              }
-            }}
-          />
-          {sessionTimeoutWatch && (
-            <div className="mt-4 text-sm">
-              <div className="flex items-center">
-                <p className="text-neutral-900 ltr:mr-2 rtl:ml-2">{t("session_timeout_after")}</p>
-                <Select
-                  options={timeoutOptions}
-                  defaultValue={
-                    sessionTimeout
-                      ? timeoutOptions.find((tmo) => tmo.value === sessionTimeout)
-                      : timeoutOptions[1]
-                  }
-                  isSearchable={false}
-                  className="block h-[36px] !w-auto min-w-0 flex-none rounded-md text-sm"
-                  onChange={(event) => {
-                    formMethods.setValue("sessionTimeout", event?.value, { shouldDirty: true });
-                  }}
-                />
-              </div>
+      ) : (
+        <Form form={formMethods} handleSubmit={handleSubmit}>
+          {formMethods.formState.errors.apiError && (
+            <div className="pb-6">
+              <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />
             </div>
           )}
-        </div>
-        {/* TODO: Why is this Form not submitting? Hacky fix but works */}
-        <Button
-          color="primary"
-          className="mt-8"
-          type="submit"
-          disabled={isDisabled || passwordMutation.isLoading || sessionMutation.isLoading}>
-          {t("update")}
-        </Button>
-      </Form>
+          <div className="max-w-[38rem] sm:grid sm:grid-cols-2 sm:gap-x-4">
+            {!allowEmptyOldPassword && (
+              <div>
+                <PasswordField {...formMethods.register("oldPassword")} label={t("old_password")} />
+              </div>
+            )}
+            <div>
+              <PasswordField
+                {...formMethods.register("newPassword", {
+                  minLength: {
+                    message: t(isUser ? "password_hint_min" : "password_hint_admin_min"),
+                    value: passwordMinLength,
+                  },
+                  pattern: {
+                    message: "Should contain a number, uppercase and lowercase letters",
+                    value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
+                  },
+                })}
+                label={t("new_password")}
+              />
+            </div>
+            <p className="text-default mt-4 max-w-[38rem] text-sm">
+              {t("invalid_password_hint", { passwordLength: passwordMinLength })}
+            </p>
+            <div className="border-subtle mt-8 border-t py-8">
+              <SettingsToggle
+                title={t("session_timeout")}
+                description={t("session_timeout_description")}
+                checked={sessionTimeoutWatch !== undefined}
+                data-testid="session-check"
+                onCheckedChange={(e) => {
+                  if (!e) {
+                    formMethods.setValue("sessionTimeout", undefined, { shouldDirty: true });
+                  } else {
+                    formMethods.setValue("sessionTimeout", 10, { shouldDirty: true });
+                  }
+                }}
+              />
+              {sessionTimeoutWatch && (
+                <div className="mt-4 text-sm">
+                  <div className="flex items-center">
+                    <p className="text-default ltr:mr-2 rtl:ml-2">{t("session_timeout_after")}</p>
+                    <Select
+                      options={timeoutOptions}
+                      defaultValue={
+                        sessionTimeout
+                          ? timeoutOptions.find((tmo) => tmo.value === sessionTimeout)
+                          : timeoutOptions[1]
+                      }
+                      isSearchable={false}
+                      className="block h-[36px] !w-auto min-w-0 flex-none rounded-md text-sm"
+                      onChange={(event) => {
+                        formMethods.setValue("sessionTimeout", event?.value, { shouldDirty: true });
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          <p className="mt-4 max-w-[38rem] text-sm text-gray-600">
+            {t("invalid_password_hint", { passwordLength: passwordMinLength })}
+          </p>
+          <div className="mt-8 border-t border-gray-200 py-8">
+            <SettingsToggle
+              title={t("session_timeout")}
+              description={t("session_timeout_description")}
+              checked={sessionTimeoutWatch !== undefined}
+              data-testid="session-check"
+              onCheckedChange={(e) => {
+                if (!e) {
+                  formMethods.setValue("sessionTimeout", undefined, { shouldDirty: true });
+                } else {
+                  formMethods.setValue("sessionTimeout", 10, { shouldDirty: true });
+                }
+              }}
+            />
+            {sessionTimeoutWatch && (
+              <div className="mt-4 text-sm">
+                <div className="flex items-center">
+                  <p className="text-neutral-900 ltr:mr-2 rtl:ml-2">{t("session_timeout_after")}</p>
+                  <Select
+                    options={timeoutOptions}
+                    defaultValue={
+                      sessionTimeout
+                        ? timeoutOptions.find((tmo) => tmo.value === sessionTimeout)
+                        : timeoutOptions[1]
+                    }
+                    isSearchable={false}
+                    className="block h-[36px] !w-auto min-w-0 flex-none rounded-md text-sm"
+                    onChange={(event) => {
+                      formMethods.setValue("sessionTimeout", event?.value, { shouldDirty: true });
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+          {/* TODO: Why is this Form not submitting? Hacky fix but works */}
+          <Button
+            color="primary"
+            className="mt-8"
+            type="submit"
+            disabled={isDisabled || passwordMutation.isLoading || sessionMutation.isLoading}>
+            {t("update")}
+          </Button>
+        </Form>
+      )}
     </>
   );
 };

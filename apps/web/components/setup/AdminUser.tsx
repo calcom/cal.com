@@ -9,7 +9,7 @@ import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmailField, EmptyScreen, Label, PasswordField, TextField } from "@calcom/ui";
-import { FiUserCheck } from "@calcom/ui/components/icon";
+import { UserCheck } from "@calcom/ui/components/icon";
 
 export const AdminUserContainer = (props: React.ComponentProps<typeof AdminUser> & { userCount: number }) => {
   const { t } = useLocale();
@@ -24,7 +24,7 @@ export const AdminUserContainer = (props: React.ComponentProps<typeof AdminUser>
           props.onSuccess();
         }}>
         <EmptyScreen
-          Icon={FiUserCheck}
+          Icon={UserCheck}
           headline={t("admin_user_created")}
           description={t("admin_user_created_description")}
         />
@@ -111,7 +111,7 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
                 <Label htmlFor="username" className={classNames(longWebsiteUrl && "mb-0")}>
                   <span className="block">{t("username")}</span>
                   {longWebsiteUrl && (
-                    <small className="items-centerpx-3 mt-2 inline-flex rounded-t-md border border-b-0 border-gray-300 bg-gray-100 py-1 px-3 text-gray-500">
+                    <small className="items-centerpx-3 bg-subtle border-default text-subtle mt-2 inline-flex rounded-t-md border border-b-0 py-1 px-3">
                       {process.env.NEXT_PUBLIC_WEBSITE_URL}
                     </small>
                   )}
@@ -119,7 +119,7 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
                 <TextField
                   addOnLeading={
                     !longWebsiteUrl && (
-                      <span className="inline-flex items-center rounded-none px-3 text-sm text-gray-500">
+                      <span className="text-subtle inline-flex items-center rounded-none px-3 text-sm">
                         {process.env.NEXT_PUBLIC_WEBSITE_URL}/
                       </span>
                     )

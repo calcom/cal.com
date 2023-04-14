@@ -2,15 +2,15 @@ import type { GetServerSidePropsContext } from "next";
 
 import type { LocationObject } from "@calcom/core/location";
 import { privacyFilteredLocations } from "@calcom/core/location";
-import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
+import getBooking from "@calcom/lib/getBooking";
+import type { GetBookingType } from "@calcom/lib/getBooking";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
-import type { GetBookingType } from "@lib/getBooking";
-import getBooking from "@lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
@@ -23,7 +23,6 @@ export type AvailabilityTeamPageProps = inferSSRProps<typeof getServerSideProps>
 export default function TeamType(props: AvailabilityTeamPageProps) {
   return <AvailabilityPage {...props} />;
 }
-TeamType.isThemeSupported = true;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const slugParam = asStringOrNull(context.query.slug);
@@ -64,7 +63,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
                 select: {
                   id: true,
                   name: true,
-                  avatar: true,
                   username: true,
                   timeZone: true,
                   hideBranding: true,
@@ -171,13 +169,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hideBranding,
       timeZone,
     })),
+    descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
   });
 
   eventTypeObject.availability = [];
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBooking(prisma, rescheduleUid, getBookingFieldsWithSystemFields(eventTypeObject));
+    booking = await getBooking(prisma, rescheduleUid);
   }
 
   const weekStart = eventType.team?.members?.[0]?.user?.weekStart;

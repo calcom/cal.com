@@ -9,10 +9,7 @@ const PoweredByCal = () => {
   const isEmbed = useIsEmbed();
   return (
     <div className={"p-2 text-center text-xs sm:text-right" + (isEmbed ? " max-w-3xl" : "")}>
-      <Link
-        href={POWERED_BY_URL}
-        target="_blank"
-        className="text-bookinglight opacity-50 hover:opacity-100 dark:text-white">
+      <Link href={POWERED_BY_URL} target="_blank" className="text-subtle opacity-50 hover:opacity-100">
         {t("powered_by")}{" "}
         <img
           className="relative -mt-px inline h-[10px] w-auto dark:hidden"

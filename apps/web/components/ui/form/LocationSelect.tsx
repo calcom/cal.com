@@ -19,7 +19,10 @@ export type GroupOptionType = GroupBase<LocationOption>;
 const OptionWithIcon = ({ icon, label }: { icon?: string; label: string }) => {
   return (
     <div className="flex items-center gap-3">
-      {icon && <img src={icon} alt="cover" className="h-3.5 w-3.5" />}
+      {/* TODO: figure out a way to invert icons when in dark mode. We can't just
+        dark:invert due to google meet cal etc all breaking when we do this
+      */}
+      {icon && <img src={icon} alt="cover" className="h-3.5 w-3.5 dark:hidden" />}
       <span className={classNames("text-sm font-medium")}>{label}</span>
     </div>
   );
@@ -48,7 +51,7 @@ export default function LocationSelect(props: Props<LocationOption, false, Group
           <span>{e.label}</span>
         </div>
       )}
-      formatGroupLabel={(e) => <p className="text-xs font-medium text-gray-600">{e.label}</p>}
+      formatGroupLabel={(e) => <p className="text-default text-xs font-medium">{e.label}</p>}
       {...props}
     />
   );
