@@ -41,6 +41,7 @@ export const EventTypeMetaDataSchema = z
     apps: z.object(appDataSchemas).partial().optional(),
     additionalNotesRequired: z.boolean().optional(),
     disableSuccessPage: z.boolean().optional(),
+    passExtraParamsToRedirectUrl: z.boolean().optional(),
     managedEventConfig: z
       .object({
         unlockedFields: z.custom<{ [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true }>().optional(),

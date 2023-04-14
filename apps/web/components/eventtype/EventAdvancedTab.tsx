@@ -213,7 +213,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   disabled={successRedirectUrlLocked.disabled}
                   placeholder={t("external_redirect_url")}
                   required={redirectUrlVisible}
-                  type="text"
+                  type="url"
                   defaultValue={eventType.successRedirectUrl || ""}
                   {...formMethods.register("successRedirectUrl")}
                 />
@@ -223,6 +223,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                     formMethods.getValues("successRedirectUrl") ? "block" : "hidden"
                   )}>
                   {t("redirect_url_warning")}
+                </div>
+                <div className="mt-2 flex">
+                  <Checkbox
+                    description={t("pass_extra_params_to_redirect_url")}
+                    defaultChecked={eventType.metadata.passExtraParamsToRedirectUrl || false}
+                    disabled={!formMethods.watch("successRedirectUrl")}
+                    {...formMethods.register("metadata.passExtraParamsToRedirectUrl")}
+                  />
                 </div>
               </div>
             </SettingsToggle>

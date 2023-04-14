@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import _ from "lodash";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
@@ -268,6 +269,30 @@ const BookingPage = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const getBookingRedirectExtraParams = (booking: any) => {
+    if (!eventType.metadata?.passExtraParamsToRedirectUrl) {
+      return {};
+    }
+
+    const objectQueryParamKeys = ["customInputs", "responses", "metadata", "user", "attendees"];
+    const redirectQueryParamKeys = [
+      "title",
+      "description",
+      "startTime",
+      "endTime",
+      "location",
+      ...objectQueryParamKeys,
+    ];
+
+    const params = _.pick(booking, redirectQueryParamKeys);
+
+    objectQueryParamKeys.forEach((param) => {
+      params[param] = JSON.stringify(params[param]);
+    });
+
+    return params;
+  };
+
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
       const { uid } = responseData;
@@ -290,6 +315,7 @@ const BookingPage = ({
         eventTypeSlug: eventType.slug,
         seatReferenceUid: "seatReferenceUid" in responseData ? responseData.seatReferenceUid : null,
         ...(rescheduleUid && booking?.startTime && { formerTime: booking.startTime.toString() }),
+        ...getBookingRedirectExtraParams(responseData),
       };
 
       return bookingSuccessRedirect({
