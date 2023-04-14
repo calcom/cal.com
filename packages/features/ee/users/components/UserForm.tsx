@@ -31,7 +31,7 @@ export const UserForm = ({
   defaultValues,
   localeProp = "en",
   onSubmit = noop,
-  submitLabel = "update",
+  submitLabel = "save",
 }: {
   defaultValues?: Pick<User, keyof FormValues>;
   localeProp?: string;
