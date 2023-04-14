@@ -1696,7 +1696,7 @@
   "can_you_try_again": "Can you try again with a different time?",
   "verify": "Verify",
   "timezone_variable": "Timezone",
-  "timezone_info": "The person booking or your timezone",
+  "timezone_info": "The timezone of the person receiving",
   "event_end_time_variable": "Event end time",
   "event_end_time_info": "The event end time",
   "cancel_url_variable": "Cancel URL",
