@@ -10,7 +10,7 @@ const emailReminderTemplate = (
   endTime?: string,
   eventName?: string,
   timeZone?: string,
-  attendee?: string,
+  otherPerson?: string,
   name?: string,
   isBrandingDisabled?: boolean
 ) => {
@@ -20,7 +20,7 @@ const emailReminderTemplate = (
     endTime = "{EVENT_END_TIME}";
     eventName = "{EVENT_NAME}";
     timeZone = "{TIMEZONE}";
-    attendee = action === WorkflowActions.EMAIL_ATTENDEE ? "{ORGANIZER}" : "{ATTENDEE}";
+    otherPerson = action === WorkflowActions.EMAIL_ATTENDEE ? "{ORGANIZER}" : "{ATTENDEE}";
     name = action === WorkflowActions.EMAIL_ATTENDEE ? "{ATTENDEE}" : "{ORGANIZER}";
     eventDate = "{EVENT_DATE_ddd, MMM D, YYYY H:mmA}";
   } else {
@@ -38,7 +38,7 @@ const emailReminderTemplate = (
 
   const dateTimeHtml = `<div><strong class="editor-text-bold">Date & Time:</strong></div>${eventDate} - ${endTime} (${timeZone})<br><br>`;
 
-  const attendeeHtml = `<div><strong class="editor-text-bold">Attendees:</strong></div>You & ${attendee}<br><br>`;
+  const attendeeHtml = `<div><strong class="editor-text-bold">Attendees:</strong></div>You & ${otherPerson}<br><br>`;
 
   const branding = !isBrandingDisabled && !isEditingMode ? `<br><br>_<br><br>Scheduling by ${APP_NAME}` : "";
 

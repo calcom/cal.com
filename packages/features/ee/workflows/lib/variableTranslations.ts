@@ -2,6 +2,7 @@ import type { TFunction } from "next-i18next";
 
 import { DYNAMIC_TEXT_VARIABLES, FORMATTED_DYNAMIC_TEXT_VARIABLES } from "./constants";
 
+// variables are saved in the db always in english, so here we translate them to the user's language
 export function getTranslatedText(text: string, language: { locale: string; t: TFunction }) {
   let translatedText = text;
 
@@ -18,11 +19,13 @@ export function getTranslatedText(text: string, language: { locale: string; t: T
         ? language.t(variable.toLowerCase().concat("_name_variable")).replace(/ /g, "_").toLocaleUpperCase()
         : variable;
 
+      // this takes care of translating formatted variables (e.g. {EVENT_DATE_DD MM YYYY})
       const formattedVarToTranslate = FORMATTED_DYNAMIC_TEXT_VARIABLES.map((formattedVar) => {
         if (variable.toLowerCase().startsWith(formattedVar)) return variable;
       })[0];
 
       if (formattedVarToTranslate) {
+        // only translate the variable part not the formatting
         const variableName = formattedVarToTranslate
           .substring(0, formattedVarToTranslate?.lastIndexOf("_"))
           .toLowerCase()
