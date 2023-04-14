@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import _ from "lodash";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
@@ -284,7 +283,9 @@ const BookingPage = ({
       ...objectQueryParamKeys,
     ];
 
-    const params = _.pick(booking, redirectQueryParamKeys);
+    const params = Object.keys(booking)
+      .filter((key) => redirectQueryParamKeys.includes(key))
+      .reduce((obj, key) => Object.assign(obj, { [key]: booking[key] }), {});
 
     objectQueryParamKeys.forEach((param) => {
       params[param] = JSON.stringify(params[param]);
