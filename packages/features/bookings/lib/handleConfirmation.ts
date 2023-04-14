@@ -79,7 +79,6 @@ export async function handleConfirmation(args: {
     smsReminderNumber: string | null;
     metadata: Prisma.JsonValue | null;
     customInputs: Prisma.JsonValue;
-    responses: Prisma.JsonValue;
     eventType: {
       bookingFields: Prisma.JsonValue | null;
       slug: string;
@@ -146,7 +145,6 @@ export async function handleConfirmation(args: {
           endTime: true,
           smsReminderNumber: true,
           customInputs: true,
-          responses: true,
           id: true,
           scheduledJobs: true,
         },
@@ -198,7 +196,6 @@ export async function handleConfirmation(args: {
         attendees: true,
         location: true,
         customInputs: true,
-        responses: true,
         id: true,
         scheduledJobs: true,
       },
