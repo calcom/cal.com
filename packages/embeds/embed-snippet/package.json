@@ -17,7 +17,6 @@
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint": "eslint --ext .ts,.js src",
     "prepack": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn build",
-    "publish-prod": "yarn npm publish --access public",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "files": [
@@ -29,6 +28,6 @@
     "vite": "^4.1.2"
   },
   "dependencies": {
-    "@calcom/embed-core": "^1.1.5"
+    "@calcom/embed-core": "workspace:*"
   }
 }

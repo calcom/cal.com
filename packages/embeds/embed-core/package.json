@@ -30,7 +30,6 @@
     "embed-tests-quick": "QUICK=true yarn embed-tests",
     "embed-tests-update-snapshots:ci": "yarn embed-tests-quick --update-snapshots",
     "prepack": "NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn build",
-    "publish-prod": "yarn npm publish --access public",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf ../../../apps/web/public/embed"
   },
   "files": [

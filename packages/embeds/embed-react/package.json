@@ -23,7 +23,6 @@
     "prepack": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn build",
     "embed-web-start": "yarn workspace @calcom/web start",
     "embed-dev": "yarn workspace @calcom/embed-react dev",
-    "publish-prod": "yarn npm publish --access public",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "main": "./dist/Cal.umd.js",
@@ -53,7 +52,7 @@
     "vite": "^4.1.2"
   },
   "dependencies": {
-    "@calcom/embed-core": "^1.1.5",
-    "@calcom/embed-snippet": "^1.0.7"
+    "@calcom/embed-core": "workspace:*",
+    "@calcom/embed-snippet": "workspace:*"
   }
 }
