@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { z } from "zod";
 
+import NoSSR from "@calcom/core/components/NoSSR";
 import { getParserWithGeneric } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Meta, showToast } from "@calcom/ui";
@@ -41,23 +42,25 @@ const UsersEditView = ({ userId }: { userId: number }) => {
   return (
     <LicenseRequired>
       <Meta title={`Editing user: ${user.username}`} description="Here you can edit a current user." />
-      <UserForm
-        key={JSON.stringify(user)}
-        onSubmit={(values) => {
-          const parser = getParserWithGeneric(userBodySchema);
-          const parsedValues = parser(values);
-          const data: Partial<typeof parsedValues & { userId: number }> = {
-            ...parsedValues,
-            userId: user.id,
-          };
-          // TODO: Add support for avatar in the API
-          delete data.avatar;
-          // Don't send username if it's the same as the current one
-          if (user.username === data.username) delete data.username;
-          mutation.mutate(data);
-        }}
-        defaultValues={user}
-      />
+      <NoSSR>
+        <UserForm
+          key={JSON.stringify(user)}
+          onSubmit={(values) => {
+            const parser = getParserWithGeneric(userBodySchema);
+            const parsedValues = parser(values);
+            const data: Partial<typeof parsedValues & { userId: number }> = {
+              ...parsedValues,
+              userId: user.id,
+            };
+            // TODO: Add support for avatar in the API
+            delete data.avatar;
+            // Don't send username if it's the same as the current one
+            if (user.username === data.username) delete data.username;
+            mutation.mutate(data);
+          }}
+          defaultValues={user}
+        />
+      </NoSSR>
     </LicenseRequired>
   );
 };

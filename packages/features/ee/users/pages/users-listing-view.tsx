@@ -1,3 +1,4 @@
+import NoSSR from "@calcom/core/components/NoSSR";
 import { Button, Meta } from "@calcom/ui";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
@@ -18,7 +19,9 @@ const DeploymentUsersListPage = () => {
           </div>
         }
       />
-      <UsersTable />
+      <NoSSR>
+        <UsersTable />
+      </NoSSR>
     </LicenseRequired>
   );
 };
