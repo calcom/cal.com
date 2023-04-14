@@ -71,8 +71,8 @@ export const UserForm = ({
   ];
 
   const userRoleOptions = [
-    { value: "USER", label: "USER" },
-    { value: "ADMIN", label: "ADMIN" },
+    { value: "USER", label: t("user") },
+    { value: "ADMIN", label: t("admin") },
   ];
 
   const form = useForm<FormValues>({
