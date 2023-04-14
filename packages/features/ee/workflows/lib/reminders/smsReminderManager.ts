@@ -2,6 +2,7 @@ import type { TimeUnit } from "@prisma/client";
 import { WorkflowTriggerEvents, WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -18,6 +19,7 @@ export enum timeUnitLowerCase {
   MINUTE = "minute",
   YEAR = "year",
 }
+const log = logger.getChildLogger({ prefix: ["[smsReminderManager]"] });
 
 export type BookingInfo = {
   uid?: string | null;
@@ -119,6 +121,9 @@ export const scheduleSMSReminder = async (
     message =
       smsReminderTemplate(false, action, evt.startTime, evt.title, timeZone, attendeeName, name) || message;
   }
+
+  // Allows debugging generated email content without waiting for sendgrid to send emails
+  log.debug(`Sending sms for trigger ${triggerEvent}`, message);
 
   if (message.length > 0 && reminderPhone && isNumberVerified) {
     //send SMS when event is booked/cancelled/rescheduled
