@@ -165,7 +165,7 @@ export default function PaymentComponent(props: Props) {
   const stripePromise = getStripe((props.payment.data as StripePaymentData).stripe_publishable_key);
   const paymentOption = props.payment.paymentOption;
   const [darkMode, setDarkMode] = useState<boolean>(false);
-  let clientSecret;
+  let clientSecret: string;
 
   useEffect(() => {
     setDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
