@@ -736,9 +736,6 @@
   "minimum_booking_notice": "Thời gian đệm tối thiểu",
   "slot_interval": "Khoảng thời gian giữa các lịch hẹn",
   "slot_interval_default": "Sử dụng độ dài sự kiện (mặc định)",
-  "delete_event_type_description": "Bạn có chắc chắn muốn xóa loại sự kiện này không? Bất kỳ ai mà bạn đã chia sẻ liên kết này sẽ không thể sử dụng liên kết này nữa.",
-  "delete_event_type": "Xóa loại sự kiện",
-  "confirm_delete_event_type": "Có, xóa loại sự kiện này",
   "delete_account": "Xóa tài khoản",
   "confirm_delete_account": "Có, xóa tài khoản",
   "delete_account_confirmation_message": "Bạn có chắc chắn muốn xóa tài khoản {{appName}} của mình không? Bất kỳ ai mà bạn đã chia sẻ liên kết tài khoản của mình sẽ không thể đặt trước bằng liên kết đó nữa và mọi tùy chọn bạn đã lưu sẽ bị mất.",
@@ -1652,8 +1649,8 @@
   "verification_code": "Mã xác minh",
   "can_you_try_again": "Bạn có thể thử lại lúc khác được chứ?",
   "verify": "Xác minh",
-  "invalid_event_name_variables": "Có biến số không hợp lệ trong tên sự kiện của bạn",
   "select_all": "Chọn tất cả",
   "default_conferencing_bulk_title": "Cập nhật hàng loại những loại sự kiện hiện có",
+  "invalid_event_name_variables": "Có biến số không hợp lệ trong tên sự kiện của bạn",
   "default_conferencing_bulk_description": "Cập nhật địa điểm cho những loại sự kiện đã chọn"
 }

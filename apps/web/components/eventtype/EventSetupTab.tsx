@@ -11,6 +11,7 @@ import { z } from "zod";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
+import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -45,8 +46,33 @@ const getLocationFromType = (
   }
 };
 
+const getLocationInfo = (props: Pick<EventTypeSetupProps, "eventType" | "locationOptions">) => {
+  const locationAvailable =
+    props.eventType.locations &&
+    props.eventType.locations.length > 0 &&
+    props.locationOptions.some((op) =>
+      op.options.find((opt) => opt.value === props.eventType.locations[0].type)
+    );
+  const locationDetails = props.eventType.locations &&
+    props.eventType.locations.length > 0 &&
+    !locationAvailable && {
+      slug: props.eventType.locations[0].type
+        .replace("integrations:", "")
+        .replace(":", "-")
+        .replace("_video", ""),
+      name: props.eventType.locations[0].type
+        .replace("integrations:", "")
+        .replace(":", " ")
+        .replace("_video", "")
+        .split(" ")
+        .map((word) => word[0].toUpperCase() + word.slice(1))
+        .join(" "),
+    };
+  return { locationAvailable, locationDetails };
+};
 interface DescriptionEditorProps {
   description?: string | null;
+  editable?: boolean;
 }
 
 const DescriptionEditor = (props: DescriptionEditorProps) => {
@@ -64,6 +90,7 @@ const DescriptionEditor = (props: DescriptionEditorProps) => {
       setText={(value: string) => formMethods.setValue("description", turndown(value))}
       excludedToolbarItems={["blockType"]}
       placeholder={t("quick_video_meeting")}
+      editable={props.editable}
     />
   ) : (
     <SkeletonContainer>
@@ -174,6 +201,13 @@ export const EventSetupTab = (
     resolver: zodResolver(locationFormSchema),
   });
 
+  const { isChildrenManagedEventType, isManagedEventType, shouldLockIndicator, shouldLockDisableProps } =
+    useLockedFieldsManager(
+      eventType,
+      t("locked_fields_admin_description"),
+      t("locked_fields_member_description")
+    );
+
   const Locations = () => {
     const { t } = useLocale();
 
@@ -188,6 +222,12 @@ export const EventSetupTab = (
       return true;
     });
 
+    const defaultValue = isManagedEventType
+      ? locationOptions.find((op) => op.label === t("default"))?.options[0]
+      : undefined;
+
+    const { locationDetails, locationAvailable } = getLocationInfo(props);
+
     return (
       <div className="w-full">
         {validLocations.length === 0 && (
@@ -195,6 +235,8 @@ export const EventSetupTab = (
             <LocationSelect
               placeholder={t("select")}
               options={locationOptions}
+              isDisabled={shouldLockDisableProps("locations").disabled}
+              defaultValue={defaultValue}
               isSearchable={false}
               className="block w-full min-w-0 flex-1 rounded-sm text-sm"
               menuPlacement="auto"
@@ -282,7 +324,15 @@ export const EventSetupTab = (
                 </Trans>
               </div>
             )}
-            {validLocations.length > 0 && (
+            {isChildrenManagedEventType && !locationAvailable && locationDetails && (
+              <p className="pl-1 text-sm leading-none text-red-600">
+                {t("app_not_connected", { appName: locationDetails.name })}{" "}
+                <a className="underline" href={`${CAL_URL}/apps/${locationDetails.slug}`}>
+                  {t("connect_now")}
+                </a>
+              </p>
+            )}
+            {validLocations.length > 0 && !isManagedEventType && !isChildrenManagedEventType && (
               <li>
                 <Button
                   data-testid="add-location"
@@ -299,22 +349,33 @@ export const EventSetupTab = (
     );
   };
 
+  const lengthLockedProps = shouldLockDisableProps("length");
+  const descriptionLockedProps = shouldLockDisableProps("description");
+
   return (
     <div>
       <div className="space-y-8">
         <TextField
           required
           label={t("title")}
+          {...shouldLockDisableProps("title")}
           defaultValue={eventType.title}
           {...formMethods.register("title")}
         />
         <div>
-          <Label>{t("description")}</Label>
-          <DescriptionEditor description={eventType?.description} />
+          <Label>
+            {t("description")}
+            {shouldLockIndicator("description")}
+          </Label>
+          <DescriptionEditor
+            description={eventType?.description}
+            editable={!descriptionLockedProps.disabled}
+          />
         </div>
         <TextField
           required
           label={t("URL")}
+          {...shouldLockDisableProps("slug")}
           defaultValue={eventType.slug}
           addOnLeading={
             <>
@@ -367,12 +428,14 @@ export const EventSetupTab = (
             <div>
               <Skeleton as={Label} loadingClassName="w-16">
                 {t("default_duration")}
+                {shouldLockIndicator("length")}
               </Skeleton>
               <Select
                 value={defaultDuration}
                 isSearchable={false}
                 name="length"
                 className="text-sm"
+                isDisabled={lengthLockedProps.disabled}
                 noOptionsMessage={() => t("default_duration_no_options")}
                 options={selectedMultipleDuration}
                 onChange={(option) => {
@@ -388,32 +451,36 @@ export const EventSetupTab = (
           <TextField
             required
             type="number"
+            {...lengthLockedProps}
             label={t("duration")}
             defaultValue={eventType.length ?? 15}
             {...formMethods.register("length")}
             addOnSuffix={<>{t("minutes")}</>}
           />
         )}
-        <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">
-          <SettingsToggle
-            title={t("allow_booker_to_select_duration")}
-            checked={multipleDuration !== undefined}
-            onCheckedChange={() => {
-              if (multipleDuration !== undefined) {
-                setMultipleDuration(undefined);
-                formMethods.setValue("metadata.multipleDuration", undefined);
-                formMethods.setValue("length", eventType.length);
-              } else {
-                setMultipleDuration([]);
-                formMethods.setValue("metadata.multipleDuration", []);
-                formMethods.setValue("length", 0);
-              }
-            }}
-          />
-        </div>
+        {!lengthLockedProps.disabled && (
+          <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">
+            <SettingsToggle
+              title={t("allow_booker_to_select_duration")}
+              checked={multipleDuration !== undefined}
+              onCheckedChange={() => {
+                if (multipleDuration !== undefined) {
+                  setMultipleDuration(undefined);
+                  formMethods.setValue("metadata.multipleDuration", undefined);
+                  formMethods.setValue("length", eventType.length);
+                } else {
+                  setMultipleDuration([]);
+                  formMethods.setValue("metadata.multipleDuration", []);
+                  formMethods.setValue("length", 0);
+                }
+              }}
+            />
+          </div>
+        )}
         <div>
           <Skeleton as={Label} loadingClassName="w-16">
             {t("location")}
+            {shouldLockIndicator("locations")}
           </Skeleton>
 
           <Controller

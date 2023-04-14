@@ -5,10 +5,11 @@ import type { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppConte
 import { EventTypeAppCard } from "@calcom/app-store/_components/EventTypeAppCardInterface";
 import type { EventTypeAppCardComponentProps } from "@calcom/app-store/types";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
+import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen } from "@calcom/ui";
-import { Grid } from "@calcom/ui/components/icon";
+import { Button, EmptyScreen, Alert } from "@calcom/ui";
+import { Grid, Lock } from "@calcom/ui/components/icon";
 
 export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
   EventTypeAppCardComponentProps["eventType"];
@@ -55,19 +56,39 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     };
   };
 
+  const { shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
+    eventType,
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
+  );
+
   return (
     <>
       <div>
         <div className="before:border-0">
+          {!installedApps?.length && isManagedEventType && (
+            <Alert
+              severity="neutral"
+              className="mb-2"
+              title={t("locked_for_members")}
+              message={t("locked_apps_description")}
+            />
+          )}
           {!isLoading && !installedApps?.length ? (
             <EmptyScreen
               Icon={Grid}
               headline={t("empty_installed_apps_headline")}
               description={t("empty_installed_apps_description")}
               buttonRaw={
-                <Button target="_blank" color="secondary" href="/apps">
-                  {t("empty_installed_apps_button")}{" "}
-                </Button>
+                isChildrenManagedEventType && !isManagedEventType ? (
+                  <Button StartIcon={Lock} color="secondary" disabled>
+                    {t("locked_by_admin")}
+                  </Button>
+                ) : (
+                  <Button target="_blank" color="secondary" href="/apps">
+                    {t("empty_installed_apps_button")}{" "}
+                  </Button>
+                )
               }
             />
           ) : null}
@@ -82,22 +103,24 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
           ))}
         </div>
       </div>
-      <div>
-        {!isLoading && notInstalledApps?.length ? (
-          <h2 className="text-emphasis mt-0 mb-2 text-lg font-semibold">Available Apps</h2>
-        ) : null}
-        <div className="before:border-0">
-          {notInstalledApps?.map((app) => (
-            <EventTypeAppCard
-              getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
-              setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
-              key={app.slug}
-              app={app}
-              eventType={eventType}
-            />
-          ))}
+      {!shouldLockDisableProps("apps").disabled && (
+        <div>
+          {!isLoading && notInstalledApps?.length ? (
+            <h2 className="text-emphasis mt-0 mb-2 text-lg font-semibold">{t("available_apps")}</h2>
+          ) : null}
+          <div className="before:border-0">
+            {notInstalledApps?.map((app) => (
+              <EventTypeAppCard
+                getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
+                setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+                key={app.slug}
+                app={app}
+                eventType={eventType}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 };

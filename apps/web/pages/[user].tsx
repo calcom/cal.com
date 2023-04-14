@@ -122,7 +122,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
         <main
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
-            isEmbed ? " border-bookinglightest  bg-default rounded-md border" : "",
+            isEmbed ? " border-booker border-booker-width  bg-default rounded-md border" : "",
             "max-w-3xl py-24 px-4"
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
@@ -180,7 +180,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                       <div className="flex flex-wrap items-center">
                         <h2 className=" text-default pr-2 text-sm font-semibold">{type.title}</h2>
                       </div>
-                      <EventTypeDescription eventType={type} />
+                      <EventTypeDescription eventType={type} isPublic={true} />
                     </Link>
                   </div>
                 </div>

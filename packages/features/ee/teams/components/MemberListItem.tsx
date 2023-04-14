@@ -56,6 +56,7 @@ export default function MemberListItem(props: Props) {
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
+      await utils.viewer.eventTypes.invalidate();
       showToast(t("success"), "success");
     },
     async onError(err) {
@@ -94,7 +95,7 @@ export default function MemberListItem(props: Props) {
     process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
 
   const urlWithoutProtocol = WEBAPP_URL.replace(/^https?:\/\//, "");
-  const bookingLink = `${urlWithoutProtocol}/${props.member.username}`;
+  const bookingLink = !!props.member.username && `${urlWithoutProtocol}/${props.member.username}`;
 
   return (
     <li className="divide-subtle divide-y px-5">

@@ -2,7 +2,7 @@ const plugin = require("tailwindcss/plugin");
 const { fontFamily } = require("tailwindcss/defaultTheme");
 
 /** @type {import('tailwindcss').Config} */
-
+const subtleColor = "#E5E7EB";
 module.exports = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
@@ -58,8 +58,9 @@ module.exports = {
       borderColor: {
         emphasis: "var(--cal-border-emphasis, #9CA3AF)",
         default: "var(--cal-border, #D1D5DB)",
-        subtle: "var(--cal-border-subtle, #E5E7EB)",
+        subtle: `var(--cal-border-subtle, ${subtleColor})`,
         muted: "var(--cal-border-muted, #F3F4F6)",
+        booker: `var(--cal-border-booker, ${subtleColor})`,
       },
       textColor: {
         emphasis: "var(--cal-text-emphasis, #111827)",
@@ -105,6 +106,9 @@ module.exports = {
       },
       boxShadow: {
         dropdown: "0px 2px 6px -1px rgba(0, 0, 0, 0.08)",
+      },
+      borderWidth: {
+        "booker-width": "var(--cal-border-booker-width, 1px)",
       },
       fontFamily: {
         cal: ["var(--font-cal)", ...fontFamily.serif],

@@ -736,9 +736,6 @@
   "minimum_booking_notice": "Minimum Bildirim",
   "slot_interval": "Zaman dilimi aralıkları",
   "slot_interval_default": "Etkinlik uzunluğunu kullan (varsayılan)",
-  "delete_event_type_description": "Bu aktivite türünü silmek istediğinizden emin misiniz? Bu bağlantıyı paylaştığınız kimse artık bu bağlantıyı kullanarak rezervasyon yapamayacak.",
-  "delete_event_type": "Etkinlik Türünü Sil",
-  "confirm_delete_event_type": "Evet, etkinlik türünü sil",
   "delete_account": "Hesabı sil",
   "confirm_delete_account": "Evet, hesabı sil",
   "delete_account_confirmation_message": "{{appName}} hesabınızı silmek istediğinizden emin misiniz? Hesap bağlantısı paylaştığınız herkes artık bu bağlantıyı kullanarak rezervasyon yapamayacak ve kaydettiğiniz tüm tercihler kaybolacak.",
@@ -1652,8 +1649,8 @@
   "verification_code": "Doğrulama kodu",
   "can_you_try_again": "Başka bir zaman tekrar deneyebilir misiniz?",
   "verify": "Doğrula",
-  "invalid_event_name_variables": "Etkinlik adınızda geçersiz bir değişken var",
   "select_all": "Tümünü Seç",
   "default_conferencing_bulk_title": "Mevcut etkinlik türlerini toplu olarak güncelleyin",
+  "invalid_event_name_variables": "Etkinlik adınızda geçersiz bir değişken var",
   "default_conferencing_bulk_description": "Seçilen etkinlik türleri için konumları güncelleyin"
 }

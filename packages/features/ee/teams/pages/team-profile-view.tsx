@@ -106,6 +106,7 @@ const ProfileView = () => {
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.teams.list.invalidate();
+      await utils.viewer.eventTypes.invalidate();
       showToast(t("success"), "success");
     },
     async onError(err) {
