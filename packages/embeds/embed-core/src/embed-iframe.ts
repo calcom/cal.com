@@ -40,6 +40,7 @@ declare global {
     CalEmbed: {
       __logQueue?: unknown[];
       embedStore: typeof embedStore;
+      applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
     };
     CalComPageStatus: string;
     isEmbed: () => boolean;
@@ -305,6 +306,9 @@ const methods = {
     embedStore.uiConfig = uiConfig;
     if (embedStore.setUiConfig) {
       embedStore.setUiConfig(uiConfig);
+      if (uiConfig.cssVarsPerTheme) {
+        window.CalEmbed.applyCssVars(uiConfig.cssVarsPerTheme);
+      }
     }
 
     setEmbedStyles(stylesConfig || {});
