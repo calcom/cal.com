@@ -25,6 +25,7 @@ import { appDataSchema as vital_zod_ts } from "./vital/zod";
 import { appDataSchema as wordpress_zod_ts } from "./wordpress/zod";
 import { appDataSchema as zapier_zod_ts } from "./zapier/zod";
 import { appDataSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
+
 export const appDataSchemas = {
   dailyvideo: dailyvideo_zod_ts,
   fathom: fathom_zod_ts,
