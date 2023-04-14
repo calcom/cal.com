@@ -121,7 +121,16 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       },
     },
   });
-  if (!user || !user.eventTypes.length) return { notFound: true };
+  if (!user) return { notFound: true };
+  if (!user.eventTypes.length)
+    return {
+      redirect: {
+        destination: `/${user.username}`,
+
+        // statusCode: 301
+        permanent: false,
+      },
+    };
 
   const [eventType]: ((typeof user.eventTypes)[number] & {
     users: Pick<User, "name" | "username" | "hideBranding" | "timeZone">[];
@@ -139,7 +148,15 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     },
   ];
 
-  if (!eventType) return { notFound: true };
+  if (!eventType)
+    return {
+      redirect: {
+        destination: `/${user.username}`,
+
+        // statusCode: 301
+        permanent: false,
+      },
+    };
 
   //TODO: Use zodSchema to verify it instead of using Type Assertion
   const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
