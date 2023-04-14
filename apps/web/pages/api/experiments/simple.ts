@@ -1,11 +1,8 @@
-import cache from "memory-cache";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+let cold = true;
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const cacheKey = "experiment";
-  const memory = cache.get(cacheKey);
-  if (!memory) {
-    cache.put(cacheKey, new Date());
-  }
-  res.json({ coldStart: !Boolean(memory) });
+  const coldStart = cold;
+  cold = false;
+  res.json({ coldStart });
 }
