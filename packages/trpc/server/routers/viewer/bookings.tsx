@@ -145,15 +145,7 @@ export const bookingsRouter = router({
         },
         unconfirmed: {
           endTime: { gte: new Date() },
-          OR: [
-            {
-              recurringEventId: { not: null },
-              status: { equals: BookingStatus.PENDING },
-            },
-            {
-              status: { equals: BookingStatus.PENDING },
-            },
-          ],
+          status: { equals: BookingStatus.PENDING },
         },
       };
       const bookingListingOrderby: Record<
