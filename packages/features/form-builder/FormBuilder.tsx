@@ -419,7 +419,7 @@ export const FormBuilder = function FormBuilder({
             fieldIndex: -1,
           })
         }>
-        <DialogContent enableOverflow data-testid="edit-field-dialog">
+        <DialogContent data-testid="edit-field-dialog">
           <DialogHeader title={t("add_a_booking_question")} subtitle={t("form_builder_field_add_subtitle")} />
           <div>
             <Form
@@ -471,6 +471,9 @@ export const FormBuilder = function FormBuilder({
                 value={FieldTypesMap[fieldForm.getValues("type")]}
                 options={FieldTypes.filter((f) => !f.systemOnly)}
                 label={t("input_type")}
+                classNames={{
+                  menuList: () => "min-h-[27.25rem]",
+                }}
               />
               <InputField
                 required
