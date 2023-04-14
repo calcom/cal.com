@@ -21,7 +21,6 @@ const useSubdomainCheck = () => {
           if (subdomain !== "app" && subdomain !== "console") {
             setIsSubdomain(true);
             setSubdomain(subdomain);
-            console.log(`Subdomain found: ${subdomain}.${domain}`);
           }
         }
       }
