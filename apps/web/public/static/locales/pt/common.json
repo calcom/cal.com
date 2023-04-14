@@ -799,7 +799,7 @@
   "trending_apps": "Aplicações em destaque",
   "most_popular": "Mais populares",
   "explore_apps": "Aplicações de {{category}}",
-  "installed_apps": "Aplicações instaladas",
+  "installed_apps": "Apps instaladas",
   "free_to_use_apps": "Grátis",
   "no_category_apps": "Sem aplicações de {{category}}",
   "no_category_apps_description_calendar": "Adicione uma aplicação de calendário para verificar se existem conflitos e assim evitar sobreposição de marcações",
