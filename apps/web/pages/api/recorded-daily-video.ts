@@ -1,3 +1,4 @@
+import type { WebhookTriggerEvents } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
@@ -5,6 +6,8 @@ import { DailyLocationType } from "@calcom/app-store/locations";
 import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -19,6 +22,36 @@ const schema = z.object({
 const downloadLinkSchema = z.object({
   download_link: z.string(),
 });
+
+const triggerWebhook = async ({ booking, downloadLink }: { booking: any; downloadLink: string }) => {
+  const evt: CalendarEvent = {
+    type: booking?.title,
+    title: booking?.title,
+    startTime: booking?.startTime,
+    endTime: booking?.endTime,
+    attendees: booking?.attendees,
+    organizer: booking?.user,
+  };
+  // Send webhook
+  const eventTrigger: WebhookTriggerEvents = "RECORDING_READY";
+  // Send Webhook call if hooked to BOOKING.RECORDING_READY
+  const subscriberOptions = {
+    userId: booking.userId,
+    eventTypeId: (booking.eventTypeId as number) || 0,
+    triggerEvent: eventTrigger,
+  };
+  const webhooks = await getWebhooks(subscriberOptions);
+  console.log("webhooks", webhooks);
+  const promises = webhooks.map((webhook) =>
+    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
+      ...evt,
+      downloadLink,
+    }).catch((e) => {
+      console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`, e);
+    })
+  );
+  await Promise.all(promises);
+};
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
@@ -51,6 +84,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         uid: true,
         location: true,
         isRecorded: true,
+        eventTypeId: true,
         user: {
           select: {
             id: true,
@@ -106,15 +140,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
+    const response = await getDownloadLinkOfCalVideoByRecordingId(recordingId);
+    const downloadLinkResponse = downloadLinkSchema.parse(response);
+    const downloadLink = downloadLinkResponse.download_link;
+
+    await triggerWebhook({ booking, downloadLink });
+
     const isSendingEmailsAllowed = IS_SELF_HOSTED || session?.user?.belongsToActiveTeam;
 
     // send emails to all attendees only when user has team plan
     if (isSendingEmailsAllowed) {
-      const response = await getDownloadLinkOfCalVideoByRecordingId(recordingId);
-
-      const downloadLinkResponse = downloadLinkSchema.parse(response);
-      const downloadLink = downloadLinkResponse.download_link;
-
       const evt: CalendarEvent = {
         type: booking.title,
         title: booking.title,

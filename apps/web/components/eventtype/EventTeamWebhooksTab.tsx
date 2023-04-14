@@ -170,7 +170,7 @@ export const EventTeamWebhooksTab = ({
           </Dialog>
           {/* Edit webhook dialog */}
           <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
-            <DialogContent title={t("edit_webhook")}>
+            <DialogContent enableOverflow title={t("edit_webhook")}>
               <WebhookForm
                 webhook={webhookToEdit}
                 apps={installedApps?.items.map((app) => app.slug)}
