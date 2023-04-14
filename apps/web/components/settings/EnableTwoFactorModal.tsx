@@ -2,7 +2,7 @@ import type { BaseSyntheticEvent } from "react";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { ErrorCode } from "@calcom/lib/auth";
+import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Dialog, DialogContent, Form, TextField } from "@calcom/ui";
 
@@ -171,22 +171,19 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
             <WithStep step={SetupStep.ConfirmPassword} current={step}>
               <Button
                 type="submit"
-                className="ltr:ml-2 ltr:mr-2 rtl:ml-2"
+                className="ms-2 me-2"
                 onClick={handleSetup}
                 disabled={password.length === 0 || isSubmitting}>
                 {t("continue")}
               </Button>
             </WithStep>
             <WithStep step={SetupStep.DisplayQrCode} current={step}>
-              <Button
-                type="submit"
-                className="ltr:ml-2 ltr:mr-2 rtl:ml-2"
-                onClick={() => setStep(SetupStep.EnterTotpCode)}>
+              <Button type="submit" className="ms-2 me-2" onClick={() => setStep(SetupStep.EnterTotpCode)}>
                 {t("continue")}
               </Button>
             </WithStep>
             <WithStep step={SetupStep.EnterTotpCode} current={step}>
-              <Button type="submit" className="ltr:ml-2 ltr:mr-2 rtl:ml-2" disabled={isSubmitting}>
+              <Button type="submit" className="ms-2 me-2" disabled={isSubmitting}>
                 {t("enable")}
               </Button>
             </WithStep>

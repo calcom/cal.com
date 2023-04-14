@@ -1,38 +1,57 @@
-import type { Props } from "react-phone-number-input/react-hook-form";
-import BasePhoneInput from "react-phone-number-input/react-hook-form";
+import { isSupportedCountry } from "libphonenumber-js";
+import { useState } from "react";
+import BasePhoneInput from "react-phone-number-input";
+import type { Props, Country } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
-export type PhoneInputProps<FormValues> = Props<
-  {
-    value: string;
-    id: string;
-    placeholder: string;
-    required: boolean;
-  },
-  FormValues
-> & { onChange?: (e: any) => void };
+import { classNames } from "@calcom/lib";
+import { trpc } from "@calcom/trpc/react";
 
-function PhoneInput<FormValues>({
-  control,
-  name,
-  className,
-  onChange,
-  ...rest
-}: PhoneInputProps<FormValues>) {
+export type PhoneInputProps = Props<{
+  value: string;
+  id?: string;
+  placeholder?: string;
+  required?: boolean;
+  className?: string;
+  name?: string;
+}>;
+
+function PhoneInput({ name, className = "", onChange, ...rest }: PhoneInputProps) {
+  const defaultCountry = useDefaultCountry();
+
   return (
     <BasePhoneInput
       {...rest}
       international
+      defaultCountry={defaultCountry}
       name={name}
-      control={control}
       onChange={onChange}
-      countrySelectProps={{ className: "text-black" }}
+      countrySelectProps={{ className: "text-emphasis" }}
       numberInputProps={{
-        className: "border-0 text-sm focus:ring-0 dark:bg-darkgray-100 dark:placeholder:text-darkgray-600",
+        className: "border-0 text-sm focus:ring-0 bg-default text-default",
       }}
-      className={`${className} focus-within:border-brand dark:bg-darkgray-100 dark:border-darkgray-300 block w-full rounded-md rounded-sm border border border-gray-300 py-px pl-3 ring-black focus-within:ring-1 disabled:text-gray-500 disabled:opacity-50 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500`}
+      className={classNames(
+        "hover:border-emphasis border-default bg-default rounded-md border py-px pl-3 focus-within:border-neutral-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1 disabled:cursor-not-allowed",
+        className
+      )}
     />
   );
 }
+
+const useDefaultCountry = () => {
+  const [defaultCountry, setDefaultCountry] = useState<Country>("US");
+  trpc.viewer.public.countryCode.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: false,
+    onSuccess: (data) => {
+      if (isSupportedCountry(data?.countryCode)) {
+        setDefaultCountry(data.countryCode as Country);
+      }
+    },
+  });
+
+  return defaultCountry;
+};
 
 export default PhoneInput;

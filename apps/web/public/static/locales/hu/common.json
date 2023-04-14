@@ -180,7 +180,7 @@
   "not_installed": "Nem telepített",
   "error_required_field": "Ez a mező kötelező.",
   "status": "Állapot",
-  "installed_apps": "Telepített alkalmazások",
+  "installed_apps": "Telepített apps",
   "empty_installed_apps_headline": "Nincsen telepített alkalmazás",
   "features": "Funkciók",
   "install_app": "Alkalmazás telepítése",

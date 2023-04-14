@@ -1,23 +1,26 @@
 import { MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
-// REVIEW: From lint error
-import _ from "lodash";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { orderBy } from "lodash";
+import type { NextApiResponse } from "next";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import type { LocationObject } from "@calcom/app-store/locations";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
-import getApps from "@calcom/app-store/utils";
-import { validateBookingLimitOrder } from "@calcom/lib";
+import getApps, { getAppFromLocationValue, getAppFromSlug } from "@calcom/app-store/utils";
+import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
+import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeLocations as eventTypeLocationsSchema } from "@calcom/prisma/zod-utils";
 import {
   customInputSchema,
   EventTypeMetaDataSchema,
-  stringOrNumber,
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
@@ -85,7 +88,19 @@ const EventTypeUpdateInput = _EventTypeModel
       integration: true,
       externalId: true,
     }),
-    users: z.array(stringOrNumber).optional(),
+    children: z
+      .array(
+        z.object({
+          owner: z.object({
+            id: z.number(),
+            name: z.string(),
+            email: z.string(),
+            eventTypeSlugs: z.array(z.string()),
+          }),
+          hidden: z.boolean(),
+        })
+      )
+      .optional(),
     hosts: z
       .array(
         z.object({
@@ -117,61 +132,68 @@ const EventTypeDuplicateInput = z.object({
   length: z.number(),
 });
 
-const eventOwnerProcedure = authedProcedure.use(async ({ ctx, rawInput, next }) => {
-  // Prevent non-owners to update/delete a team event
-  const event = await ctx.prisma.eventType.findUnique({
-    where: { id: (rawInput as Record<"id", number>)?.id },
-    include: {
-      users: true,
-      team: {
-        select: {
-          members: {
-            select: {
-              userId: true,
-              role: true,
+const eventOwnerProcedure = authedProcedure
+  .input(
+    z.object({
+      id: z.number(),
+      users: z.array(z.number()).optional().default([]),
+    })
+  )
+  .use(async ({ ctx, input, next }) => {
+    // Prevent non-owners to update/delete a team event
+    const event = await ctx.prisma.eventType.findUnique({
+      where: { id: input.id },
+      include: {
+        users: true,
+        team: {
+          select: {
+            members: {
+              select: {
+                userId: true,
+                role: true,
+              },
             },
           },
         },
       },
-    },
+    });
+
+    if (!event) {
+      throw new TRPCError({ code: "NOT_FOUND" });
+    }
+
+    const isAuthorized = (function () {
+      if (event.team) {
+        return event.team.members
+          .filter((member) => member.role === MembershipRole.OWNER || member.role === MembershipRole.ADMIN)
+          .map((member) => member.userId)
+          .includes(ctx.user.id);
+      }
+      return event.userId === ctx.user.id || event.users.find((user) => user.id === ctx.user.id);
+    })();
+
+    if (!isAuthorized) {
+      console.warn(`User ${ctx.user.id} attempted to an access an event ${event.id} they do not own.`);
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    const isAllowed = (function () {
+      if (event.team) {
+        const allTeamMembers = event.team.members.map((member) => member.userId);
+        return input.users.every((userId: number) => allTeamMembers.includes(userId));
+      }
+      return input.users.every((userId: number) => userId === ctx.user.id);
+    })();
+
+    if (!isAllowed) {
+      console.warn(
+        `User ${ctx.user.id} attempted to an create an event for users ${input.users.join(", ")}.`
+      );
+      throw new TRPCError({ code: "FORBIDDEN" });
+    }
+
+    return next();
   });
-
-  if (!event) {
-    throw new TRPCError({ code: "NOT_FOUND" });
-  }
-
-  const isAuthorized = (function () {
-    if (event.team) {
-      return event.team.members
-        .filter((member) => member.role === MembershipRole.OWNER || member.role === MembershipRole.ADMIN)
-        .map((member) => member.userId)
-        .includes(ctx.user.id);
-    }
-    return event.userId === ctx.user.id || event.users.find((user) => user.id === ctx.user.id);
-  })();
-
-  if (!isAuthorized) {
-    console.warn(`User ${ctx.user.id} attempted to an access an event ${event.id} they do not own.`);
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  const inputUsers = (rawInput as any).users || [];
-
-  const isAllowed = (function () {
-    if (event.team) {
-      const allTeamMembers = event.team.members.map((member) => member.userId);
-      return inputUsers.every((userId: string) => allTeamMembers.includes(Number.parseInt(userId)));
-    }
-    return inputUsers.every((userId: string) => Number.parseInt(userId) === ctx.user.id);
-  })();
-
-  if (!isAllowed) {
-    console.warn(`User ${ctx.user.id} attempted to an create an event for users ${inputUsers.join(", ")}.`);
-    throw new TRPCError({ code: "FORBIDDEN" });
-  }
-
-  return next();
-});
 
 export const eventTypesRouter = router({
   // REVIEW: What should we name this procedure?
@@ -183,6 +205,7 @@ export const eventTypesRouter = router({
       hashedLink: true,
       locations: true,
       destinationCalendar: true,
+      userId: true,
       team: {
         select: {
           id: true,
@@ -196,6 +219,11 @@ export const eventTypesRouter = router({
       metadata: true,
       users: {
         select: baseUserSelect,
+      },
+      children: {
+        include: {
+          users: true,
+        },
       },
       hosts: {
         select: {
@@ -219,6 +247,7 @@ export const eventTypesRouter = router({
         startTime: true,
         endTime: true,
         bufferTime: true,
+        avatar: true,
         teams: {
           where: {
             accepted: true,
@@ -273,9 +302,9 @@ export const eventTypesRouter = router({
 
     const mapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
       ...eventType,
+      safeDescription: markdownToSafeHTML(eventType.description),
       users: !!eventType.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users,
-      // @FIXME: cc @hariombalhara This is failing with production data
-      // metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+      metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
     });
 
     const userEventTypes = user.eventTypes.map(mapEventType);
@@ -299,6 +328,7 @@ export const eventTypesRouter = router({
 
     type EventTypeGroup = {
       teamId?: number | null;
+      membershipRole?: MembershipRole | null;
       profile: {
         slug: (typeof user)["username"];
         name: (typeof user)["name"];
@@ -317,14 +347,18 @@ export const eventTypesRouter = router({
       hashMap[newItem.id] = { ...oldItem, ...newItem };
       return hashMap;
     }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
-    const mergedEventTypes = Object.values(eventTypesHashMap).map((eventType) => eventType);
+    const mergedEventTypes = Object.values(eventTypesHashMap)
+      .map((eventType) => eventType)
+      .filter((evType) => evType.schedulingType !== SchedulingType.MANAGED);
     eventTypeGroups.push({
       teamId: null,
+      membershipRole: null,
       profile: {
         slug: user.username,
         name: user.name,
+        image: user.avatar || undefined,
       },
-      eventTypes: _.orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
+      eventTypes: orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
       metadata: {
         membershipCount: 1,
         readOnly: false,
@@ -335,6 +369,7 @@ export const eventTypesRouter = router({
       eventTypeGroups,
       user.teams.map((membership) => ({
         teamId: membership.team.id,
+        membershipRole: membership.role,
         profile: {
           name: membership.team.name,
           image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
@@ -344,7 +379,14 @@ export const eventTypesRouter = router({
           membershipCount: membership.team.members.length,
           readOnly: membership.role === MembershipRole.MEMBER,
         },
-        eventTypes: membership.team.eventTypes.map(mapEventType),
+        eventTypes: membership.team.eventTypes
+          .map(mapEventType)
+          .filter((evType) => evType.userId === null || evType.userId === ctx.user.id)
+          .filter((evType) =>
+            membership.role === MembershipRole.MEMBER
+              ? evType.schedulingType !== SchedulingType.MANAGED
+              : true
+          ),
       }))
     );
     return {
@@ -353,6 +395,7 @@ export const eventTypesRouter = router({
       // so we can show a dropdown when the user has teams
       profiles: eventTypeGroups.map((group) => ({
         teamId: group.teamId,
+        membershipRole: group.membershipRole,
         ...group.profile,
         ...group.metadata,
       })),
@@ -406,8 +449,9 @@ export const eventTypesRouter = router({
     });
   }),
   create: authedProcedure.input(createEventTypeInput).mutation(async ({ ctx, input }) => {
-    const { schedulingType, teamId, ...rest } = input;
+    const { schedulingType, teamId, metadata, ...rest } = input;
     const userId = ctx.user.id;
+    const isManagedEventType = schedulingType === SchedulingType.MANAGED;
     // Get Users default conferncing app
 
     const defaultConferencingData = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
@@ -434,11 +478,9 @@ export const eventTypesRouter = router({
     const data: Prisma.EventTypeCreateInput = {
       ...rest,
       owner: teamId ? undefined : { connect: { id: userId } },
-      users: {
-        connect: {
-          id: userId,
-        },
-      },
+      metadata: (metadata as Prisma.InputJsonObject) ?? undefined,
+      // Only connecting the current user for non-managed event type
+      users: isManagedEventType ? undefined : { connect: { id: userId } },
       locations,
     };
 
@@ -516,10 +558,12 @@ export const eventTypesRouter = router({
       periodType,
       locations,
       bookingLimits,
+      durationLimits,
       destinationCalendar,
       customInputs,
       recurringEvent,
       users,
+      children,
       hosts,
       id,
       hashedLink,
@@ -528,12 +572,16 @@ export const eventTypesRouter = router({
       userId,
       // eslint-disable-next-line
       teamId,
+      bookingFields,
       ...rest
     } = input;
 
+    ensureUniqueBookingFields(bookingFields);
+
     const data: Prisma.EventTypeUpdateInput = {
       ...rest,
-      metadata: rest.metadata === null ? Prisma.DbNull : rest.metadata,
+      bookingFields,
+      metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
     };
     data.locations = locations ?? undefined;
     if (periodType) {
@@ -566,10 +614,17 @@ export const eventTypesRouter = router({
     }
 
     if (bookingLimits) {
-      const isValid = validateBookingLimitOrder(bookingLimits);
+      const isValid = validateIntervalLimitOrder(bookingLimits);
       if (!isValid)
         throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
       data.bookingLimits = bookingLimits;
+    }
+
+    if (durationLimits) {
+      const isValid = validateIntervalLimitOrder(durationLimits);
+      if (!isValid)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Duration limits must be in ascending order." });
+      data.durationLimits = durationLimits;
     }
 
     if (schedule) {
@@ -595,21 +650,20 @@ export const eventTypesRouter = router({
       };
     }
 
-    if (users) {
+    if (users.length) {
       data.users = {
         set: [],
         connect: users.map((userId: number) => ({ id: userId })),
       };
     }
+
     if (hosts) {
       data.hosts = {
-        deleteMany: {
-          eventTypeId: id,
-        },
-        createMany: {
-          // when schedulingType is COLLECTIVE, remove unFixed hosts.
-          data: hosts.filter((host) => !(data.schedulingType === SchedulingType.COLLECTIVE && !host.isFixed)),
-        },
+        deleteMany: {},
+        create: hosts.map((host) => ({
+          ...host,
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+        })),
       };
     }
 
@@ -672,12 +726,43 @@ export const eventTypesRouter = router({
         });
       }
     }
+    const [oldEventType, eventType] = await ctx.prisma.$transaction([
+      ctx.prisma.eventType.findFirst({
+        where: { id },
+        select: {
+          children: {
+            select: {
+              userId: true,
+            },
+          },
+          team: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      }),
+      ctx.prisma.eventType.update({
+        where: { id },
+        data,
+      }),
+    ]);
 
-    const eventType = await ctx.prisma.eventType.update({
-      where: { id },
-      data,
+    // Handling updates to children event types (managed events types)
+    await updateChildrenEventTypes({
+      eventTypeId: id,
+      currentUserId: ctx.user.id,
+      oldEventType,
+      hashedLink,
+      connectedLink,
+      updatedEventType: eventType,
+      children,
+      prisma: ctx.prisma,
     });
-
+    const res = ctx.res as NextApiResponse;
+    if (typeof res?.revalidate !== "undefined") {
+      await res?.revalidate(`/${ctx.user.username}/${eventType.slug}`);
+    }
     return { eventType };
   }),
   delete: eventOwnerProcedure
@@ -754,6 +839,7 @@ export const eventTypesRouter = router({
         team,
         recurringEvent,
         bookingLimits,
+        durationLimits,
         metadata,
         workflows,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -762,8 +848,8 @@ export const eventTypesRouter = router({
         webhooks: _webhooks,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         schedule: _schedule,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore - not typed correctly as its set on SSR
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment
+        // @ts-ignore - descriptionAsSafeHTML is added on the fly using a prisma middleware it shouldn't be used to create event type. Such a property doesn't exist on schema
         descriptionAsSafeHTML: _descriptionAsSafeHTML,
         ...rest
       } = eventType;
@@ -779,7 +865,9 @@ export const eventTypesRouter = router({
         users: users ? { connect: users.map((user) => ({ id: user.id })) } : undefined,
         recurringEvent: recurringEvent || undefined,
         bookingLimits: bookingLimits ?? undefined,
+        durationLimits: durationLimits ?? undefined,
         metadata: metadata === null ? Prisma.DbNull : metadata,
+        bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
       };
 
       const newEventType = await ctx.prisma.eventType.create({ data });
@@ -816,4 +904,91 @@ export const eventTypesRouter = router({
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     }
   }),
+  bulkEventFetch: authedProcedure.query(async ({ ctx }) => {
+    const eventTypes = await ctx.prisma.eventType.findMany({
+      where: {
+        userId: ctx.user.id,
+        team: null,
+      },
+      select: {
+        id: true,
+        title: true,
+        locations: true,
+      },
+    });
+
+    const eventTypesWithLogo = eventTypes.map((eventType) => {
+      const locationParsed = eventTypeLocationsSchema.safeParse(eventType.locations);
+
+      // some events has null as location for legacy reasons, so this fallbacks to daily video
+      const app = getAppFromLocationValue(
+        locationParsed.success && locationParsed.data?.[0]?.type
+          ? locationParsed.data[0].type
+          : "integrations:daily"
+      );
+      return {
+        ...eventType,
+        logo: app?.logo,
+      };
+    });
+
+    return {
+      eventTypes: eventTypesWithLogo,
+    };
+  }),
+
+  bulkUpdateToDefaultLocation: authedProcedure
+    .input(
+      z.object({
+        eventTypeIds: z.array(z.number()),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { eventTypeIds } = input;
+      const defaultApp = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
+
+      if (!defaultApp) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Default conferencing app not set",
+        });
+      }
+
+      const foundApp = getAppFromSlug(defaultApp.appSlug);
+      const appType = foundApp?.appData?.location?.type;
+      if (!appType) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Default conferencing app '${defaultApp.appSlug}' doesnt exist.`,
+        });
+      }
+
+      return await ctx.prisma.eventType.updateMany({
+        where: {
+          id: {
+            in: eventTypeIds,
+          },
+          userId: ctx.user.id,
+        },
+        data: {
+          locations: [{ type: appType, link: defaultApp.appLink }] as LocationObject[],
+        },
+      });
+    }),
 });
+
+function ensureUniqueBookingFields(fields: z.infer<typeof EventTypeUpdateInput>["bookingFields"]) {
+  if (!fields) {
+    return;
+  }
+  fields.reduce((discoveredFields, field) => {
+    if (discoveredFields[field.name]) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Duplicate booking field name: ${field.name}`,
+      });
+    }
+    discoveredFields[field.name] = true;
+    return discoveredFields;
+  }, {} as Record<string, true>);
+}

@@ -1,15 +1,15 @@
-import debounce from "lodash/debounce";
+import { debounce } from "lodash";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import type { SyntheticEvent } from "react";
+import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmailField } from "@calcom/ui";
-
-import { getSession } from "@lib/auth";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
@@ -95,7 +95,7 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
       footerText={
         !success && (
           <>
-            <Link href="/auth/login" className="font-medium text-gray-900">
+            <Link href="/auth/login" className="text-emphasis font-medium">
               {t("back_to_signin")}
             </Link>
           </>
@@ -105,7 +105,18 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
       {!success && (
         <>
           <div className="space-y-6">{error && <p className="text-red-600">{error.message}</p>}</div>
-          <form className="space-y-6" onSubmit={handleSubmit} action="#">
+          <form
+            className="space-y-6"
+            onSubmit={handleSubmit}
+            action="#"
+            style={
+              {
+                "--cal-brand": "#111827",
+                "--cal-brand-emphasis": "#101010",
+                "--cal-brand-text": "white",
+                "--cal-brand-subtle": "#9CA3AF",
+              } as CSSProperties
+            }>
             <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
             <EmailField
               onChange={handleChange}
@@ -132,17 +143,23 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
   );
 }
 
-ForgotPassword.getInitialProps = async (context: GetServerSidePropsContext) => {
+ForgotPassword.isThemeSupported = false;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, res } = context;
-  const session = await getSession({ req });
+
+  const session = await getServerSession({ req, res });
 
   if (session) {
     res.writeHead(302, { Location: "/" });
     res.end();
-    return;
+    return { props: {} };
   }
 
   return {
-    csrfToken: await getCsrfToken(context),
+    props: {
+      csrfToken: await getCsrfToken(context),
+      ...(await serverSideTranslations(context.locale || "en", ["common"])),
+    },
   };
 };

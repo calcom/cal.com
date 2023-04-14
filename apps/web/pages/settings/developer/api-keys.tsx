@@ -1,4 +1,3 @@
-import type { GetServerSidePropsContext } from "next";
 import { useState } from "react";
 
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
@@ -17,9 +16,7 @@ import {
   Meta,
   AppSkeletonLoader as SkeletonLoader,
 } from "@calcom/ui";
-import { FiLink, FiPlus } from "@calcom/ui/components/icon";
-
-import { ssrInit } from "@server/lib/ssr";
+import { Link as LinkIcon, Plus } from "@calcom/ui/components/icon";
 
 const ApiKeysView = () => {
   const { t } = useLocale();
@@ -35,7 +32,7 @@ const ApiKeysView = () => {
     return (
       <Button
         color="secondary"
-        StartIcon={FiPlus}
+        StartIcon={Plus}
         onClick={() => {
           setApiKeyToEdit(undefined);
           setApiKeyModal(true);
@@ -75,7 +72,7 @@ const ApiKeysView = () => {
               </>
             ) : (
               <EmptyScreen
-                Icon={FiLink}
+                Icon={LinkIcon}
                 headline={t("create_first_api_key")}
                 description={t("create_first_api_key_description", { appName: APP_NAME })}
                 buttonRaw={<NewApiKeyButton />}
@@ -95,15 +92,5 @@ const ApiKeysView = () => {
 };
 
 ApiKeysView.getLayout = getLayout;
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};
 
 export default ApiKeysView;

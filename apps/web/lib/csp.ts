@@ -3,6 +3,7 @@ import type { IncomingMessage, OutgoingMessage } from "http";
 import { z } from "zod";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 
 function getCspPolicy(nonce: string) {
   //TODO: Do we need to explicitly define it in turbo.json
@@ -12,7 +13,12 @@ function getCspPolicy(nonce: string) {
   // We can remove 'unsafe-inline' from style-src when we add nonces to all style tags
   // Maybe see how @next-safe/middleware does it if it's supported.
   const useNonStrictPolicy = CSP_POLICY === "non-strict";
+  const SENTRY_ENDPOINT = process.env.NEXT_PUBLIC_SENTRY_DSN
+    ? new URL(process.env.NEXT_PUBLIC_SENTRY_DSN, "http://base_url").origin
+    : "";
 
+  // We add WEBAPP_URL to img-src because of booking pages, which end up loading images from app.cal.com on cal.com
+  // FIXME: Write a layer to extract out EventType Analytics tracking endpoints and add them to img-src or connect-src as needed. e.g. fathom, Google Analytics and others
   return `
 	  default-src 'self' ${IS_PRODUCTION ? "" : "data:"};
 	  script-src ${
@@ -29,7 +35,8 @@ function getCspPolicy(nonce: string) {
       IS_PRODUCTION ? (useNonStrictPolicy ? "'unsafe-inline'" : "") : "'unsafe-inline'"
     } app.cal.com;
 	  font-src 'self';
-	  img-src 'self' https://www.gravatar.com https://img.youtube.com https://eu.ui-avatars.com/api/ data:
+	  img-src 'self' ${WEBAPP_URL} https://www.gravatar.com https://img.youtube.com https://eu.ui-avatars.com/api/ data:;
+    connect-src 'self' ${SENTRY_ENDPOINT}
 	`;
 }
 

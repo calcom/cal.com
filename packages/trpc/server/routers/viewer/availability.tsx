@@ -1,13 +1,18 @@
-import { Availability as AvailabilityModel, Prisma, Schedule as ScheduleModel, User } from "@prisma/client";
+import type {
+  Availability as AvailabilityModel,
+  Prisma,
+  Schedule as ScheduleModel,
+  User,
+} from "@prisma/client";
 import { z } from "zod";
 
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule, getWorkingHours } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
-import { PrismaClient } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma/client";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
-import { Schedule, TimeRange } from "@calcom/types/schedule";
+import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
 
@@ -33,6 +38,16 @@ export const availabilityRouter = router({
     });
 
     const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+    if (!user.defaultScheduleId) {
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          defaultScheduleId,
+        },
+      });
+    }
 
     return {
       schedules: schedules.map((schedule) => ({
@@ -54,81 +69,12 @@ export const availabilityRouter = router({
     .query(({ input }) => {
       return getUserAvailability(input);
     }),
-  defaultValues: authedProcedure.input(z.object({ scheduleId: z.number() })).query(async ({ ctx, input }) => {
-    const { prisma, user } = ctx;
-    const schedule = await prisma.schedule.findUnique({
-      where: {
-        id: input.scheduleId || (await getDefaultScheduleId(user.id, prisma)),
-      },
-      select: {
-        id: true,
-        userId: true,
-        name: true,
-        availability: true,
-        timeZone: true,
-        eventType: {
-          select: {
-            _count: true,
-            id: true,
-            eventName: true,
-          },
-        },
-      },
-    });
-    if (!schedule || schedule.userId !== user.id) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-      });
-    }
-    const availability = convertScheduleToAvailability(schedule);
-    return {
-      name: schedule.name,
-      rawSchedule: schedule,
-      schedule: availability.map((a) =>
-        a.map((startAndEnd) => ({
-          ...startAndEnd,
-          // Turn our limited granularity into proper end of day.
-          end: new Date(startAndEnd.end.toISOString().replace("23:59:00.000Z", "23:59:59.999Z")),
-        }))
-      ),
-      dateOverrides: schedule.availability.reduce((acc, override) => {
-        // only iff future date override
-        if (!override.date || override.date < new Date()) {
-          return acc;
-        }
-        const newValue = {
-          start: dayjs
-            .utc(override.date)
-            .hour(override.startTime.getUTCHours())
-            .minute(override.startTime.getUTCMinutes())
-            .toDate(),
-          end: dayjs
-            .utc(override.date)
-            .hour(override.endTime.getUTCHours())
-            .minute(override.endTime.getUTCMinutes())
-            .toDate(),
-        };
-        const dayRangeIndex = acc.findIndex(
-          // early return prevents override.date from ever being empty.
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          (item) => yyyymmdd(item.ranges[0].start) === yyyymmdd(override.date!)
-        );
-        if (dayRangeIndex === -1) {
-          acc.push({ ranges: [newValue] });
-          return acc;
-        }
-        acc[dayRangeIndex].ranges.push(newValue);
-        return acc;
-      }, [] as { ranges: TimeRange[] }[]),
-      timeZone: schedule.timeZone || user.timeZone,
-      isDefault: !input.scheduleId || user.defaultScheduleId === schedule.id,
-    };
-  }),
   schedule: router({
     get: authedProcedure
       .input(
         z.object({
           scheduleId: z.optional(z.number()),
+          isManagedEventType: z.optional(z.boolean()),
         })
       )
       .query(async ({ ctx, input }) => {
@@ -152,21 +98,66 @@ export const availabilityRouter = router({
             },
           },
         });
-        if (!schedule || schedule.userId !== user.id) {
+        if (!schedule || (schedule.userId !== user.id && !input.isManagedEventType)) {
           throw new TRPCError({
             code: "UNAUTHORIZED",
           });
         }
-        const availability = convertScheduleToAvailability(schedule);
+        const timeZone = schedule.timeZone || user.timeZone;
+
+        const schedulesCount = await ctx.prisma.schedule.count({
+          where: {
+            userId: ctx.user.id,
+          },
+        });
         return {
-          schedule,
+          id: schedule.id,
+          name: schedule.name,
+          isManaged: schedule.userId !== user.id,
           workingHours: getWorkingHours(
             { timeZone: schedule.timeZone || undefined },
             schedule.availability || []
           ),
-          availability,
-          timeZone: schedule.timeZone || user.timeZone,
+          schedule: schedule.availability,
+          availability: convertScheduleToAvailability(schedule).map((a) =>
+            a.map((startAndEnd) => ({
+              ...startAndEnd,
+              // Turn our limited granularity into proper end of day.
+              end: new Date(startAndEnd.end.toISOString().replace("23:59:00.000Z", "23:59:59.999Z")),
+            }))
+          ),
+          timeZone,
+          dateOverrides: schedule.availability.reduce((acc, override) => {
+            // only iff future date override
+            if (!override.date || dayjs.tz(override.date, timeZone).isBefore(dayjs(), "day")) {
+              return acc;
+            }
+            const newValue = {
+              start: dayjs
+                .utc(override.date)
+                .hour(override.startTime.getUTCHours())
+                .minute(override.startTime.getUTCMinutes())
+                .toDate(),
+              end: dayjs
+                .utc(override.date)
+                .hour(override.endTime.getUTCHours())
+                .minute(override.endTime.getUTCMinutes())
+                .toDate(),
+            };
+            const dayRangeIndex = acc.findIndex(
+              // early return prevents override.date from ever being empty.
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              (item) => yyyymmdd(item.ranges[0].start) === yyyymmdd(override.date!)
+            );
+            if (dayRangeIndex === -1) {
+              acc.push({ ranges: [newValue] });
+              return acc;
+            }
+            acc[dayRangeIndex].ranges.push(newValue);
+            return acc;
+          }, [] as { ranges: TimeRange[] }[]),
           isDefault: !input.scheduleId || user.defaultScheduleId === schedule.id,
+          isLastSchedule: schedulesCount <= 1,
         };
       }),
     create: authedProcedure
@@ -229,9 +220,16 @@ export const availabilityRouter = router({
         const schedule = await prisma.schedule.create({
           data,
         });
-        const hasDefaultScheduleId = await hasDefaultSchedule(user, prisma);
-        if (!hasDefaultScheduleId) {
-          await setupDefaultSchedule(user.id, schedule.id, prisma);
+
+        if (!user.defaultScheduleId) {
+          await prisma.user.update({
+            where: {
+              id: user.id,
+            },
+            data: {
+              defaultScheduleId: schedule.id,
+            },
+          });
         }
 
         return { schedule };
@@ -275,7 +273,7 @@ export const availabilityRouter = router({
               id: user.id,
             },
             data: {
-              defaultScheduleId: scheduleToSetAsDefault?.id,
+              defaultScheduleId: scheduleToSetAsDefault?.id || null,
             },
           });
         }
@@ -464,10 +462,6 @@ const setupDefaultSchedule = async (userId: number, scheduleId: number, prisma: 
   });
 };
 
-const isDefaultSchedule = (scheduleId: number, user: Partial<User>) => {
-  return !user.defaultScheduleId || user.defaultScheduleId === scheduleId;
-};
-
 const getDefaultScheduleId = async (userId: number, prisma: PrismaClient) => {
   const user = await prisma.user.findUnique({
     where: {
@@ -482,6 +476,7 @@ const getDefaultScheduleId = async (userId: number, prisma: PrismaClient) => {
     return user.defaultScheduleId;
   }
 
+  // If we're returning the default schedule for the first time then we should set it in the user record
   const defaultSchedule = await prisma.schedule.findFirst({
     where: {
       userId,

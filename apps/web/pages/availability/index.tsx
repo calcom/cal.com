@@ -1,5 +1,4 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { GetServerSidePropsContext } from "next";
 
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import Shell from "@calcom/features/shell/Shell";
@@ -7,14 +6,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { EmptyScreen, showToast } from "@calcom/ui";
-import { FiClock } from "@calcom/ui/components/icon";
+import { Clock } from "@calcom/ui/components/icon";
 
 import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
 import SkeletonLoader from "@components/availability/SkeletonLoader";
-
-import { ssrInit } from "@server/lib/ssr";
 
 export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
   const { t } = useLocale();
@@ -78,15 +75,15 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
       {schedules.length === 0 ? (
         <div className="flex justify-center">
           <EmptyScreen
-            Icon={FiClock}
+            Icon={Clock}
             headline={t("new_schedule_heading")}
             description={t("new_schedule_description")}
             buttonRaw={<NewScheduleButton />}
           />
         </div>
       ) : (
-        <div className="mb-16 overflow-hidden rounded-md border border-gray-200 bg-white">
-          <ul className="divide-y divide-gray-200" data-testid="schedules" ref={animationParentRef}>
+        <div className="border-subtle bg-default mb-16 overflow-hidden rounded-md border">
+          <ul className="divide-subtle divide-y" data-testid="schedules" ref={animationParentRef}>
             {schedules.map((schedule) => (
               <ScheduleListItem
                 displayOptions={{
@@ -95,6 +92,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
                 }}
                 key={schedule.id}
                 schedule={schedule}
+                isDeletable={schedules.length !== 1}
                 updateDefault={updateMutation.mutate}
                 deleteFunction={deleteMutation.mutate}
               />
@@ -118,13 +116,3 @@ export default function AvailabilityPage() {
     </div>
   );
 }
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};

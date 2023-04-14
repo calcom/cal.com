@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useReducer, useState } from "react";
+import { useCallback, useReducer, useState } from "react";
 import z from "zod";
 
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
@@ -7,8 +7,9 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import { InstalledAppVariants } from "@calcom/app-store/utils";
-import { AppSetDefaultLinkDailog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
+import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
+import { BulkEditDefaultConferencingModal } from "@calcom/features/eventtypes/components/BulkEditDefaultConferencingModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -29,15 +30,15 @@ import {
   showToast,
 } from "@calcom/ui";
 import {
-  FiBarChart,
-  FiCalendar,
-  FiCreditCard,
-  FiGrid,
-  FiMoreHorizontal,
-  FiPlus,
-  FiShare2,
-  FiTrash,
-  FiVideo,
+  BarChart,
+  Calendar,
+  CreditCard,
+  Grid,
+  MoreHorizontal,
+  Plus,
+  Share2,
+  Trash,
+  Video,
 } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -70,7 +71,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
           color="destructive"
           onClick={() => handleDisconnect(credentialId)}
           disabled={isGlobal}
-          StartIcon={FiTrash}>
+          StartIcon={Trash}>
           {t("remove_app")}
         </DropdownItem>
       </DropdownMenuItem>
@@ -113,10 +114,15 @@ interface IntegrationsListProps {
 const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListProps) => {
   const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
   const utils = trpc.useContext();
-
+  const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
     undefined
   );
+
+  const onSuccessCallback = useCallback(() => {
+    setBulkUpdateModal(true);
+    showToast("Default app updated successfully", "success");
+  }, []);
 
   const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation({
     onSuccess: () => {
@@ -153,7 +159,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
                   <div className="flex  justify-end">
                     <Dropdown modal={false}>
                       <DropdownMenuTrigger asChild>
-                        <Button StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
+                        <Button StartIcon={MoreHorizontal} variant="icon" color="secondary" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         {!appIsDefault && variant === "conferencing" && (
@@ -161,7 +167,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
                             <DropdownItem
                               type="button"
                               color="secondary"
-                              StartIcon={FiVideo}
+                              StartIcon={Video}
                               onClick={() => {
                                 const locationType = getEventLocationTypeFromApp(
                                   item?.locationOption?.value ?? ""
@@ -172,6 +178,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
                                   updateDefaultAppMutation.mutate({
                                     appSlug,
                                   });
+                                  setBulkUpdateModal(true);
                                 }
                               }}>
                               {t("change_default_conferencing_app")}
@@ -196,10 +203,15 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
           })}
       </List>
       {locationType && (
-        <AppSetDefaultLinkDailog
+        <AppSetDefaultLinkDialog
           locationType={locationType}
           setLocationType={() => setLocationType(undefined)}
+          onSuccess={onSuccessCallback}
         />
+      )}
+
+      {bulkUpdateModal && (
+        <BulkEditDefaultConferencingModal open={bulkUpdateModal} setOpen={setBulkUpdateModal} />
       )}
     </>
   );
@@ -213,13 +225,13 @@ const IntegrationsContainer = ({
   const { t } = useLocale();
   const query = trpc.viewer.integrations.useQuery({ variant, exclude, onlyInstalled: true });
   const emptyIcon = {
-    calendar: FiCalendar,
-    conferencing: FiVideo,
-    automation: FiShare2,
-    analytics: FiBarChart,
-    payment: FiCreditCard,
-    web3: FiBarChart,
-    other: FiGrid,
+    calendar: Calendar,
+    conferencing: Video,
+    automation: Share2,
+    analytics: BarChart,
+    payment: CreditCard,
+    web3: BarChart,
+    other: Grid,
   };
 
   return (
@@ -247,7 +259,7 @@ const IntegrationsContainer = ({
           );
         }
         return (
-          <>
+          <div className="border-subtle rounded-md border p-7">
             <ShellSubHeading
               title={t(variant || "other")}
               subtitle={t(`installed_app_${variant || "other"}_description`)}
@@ -258,13 +270,13 @@ const IntegrationsContainer = ({
                     variant ? `/apps/categories/${variant === "conferencing" ? "video" : variant}` : "/apps"
                   }
                   color="secondary"
-                  StartIcon={FiPlus}>
+                  StartIcon={Plus}>
                   {t("add")}
                 </Button>
               }
             />
             <IntegrationsList handleDisconnect={handleDisconnect} data={data} variant={variant} />
-          </>
+          </div>
         );
       }}
     />
@@ -313,19 +325,17 @@ export default function InstalledApps() {
   return (
     <>
       <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
-        <div className="rounded-md border border-gray-200 p-7">
-          {categoryList.includes(category) && (
-            <IntegrationsContainer handleDisconnect={handleDisconnect} variant={category} />
-          )}
-          {category === "calendar" && <CalendarListContainer />}
-          {category === "other" && (
-            <IntegrationsContainer
-              handleDisconnect={handleDisconnect}
-              variant={category}
-              exclude={[...categoryList, "calendar"]}
-            />
-          )}
-        </div>
+        {categoryList.includes(category) && (
+          <IntegrationsContainer handleDisconnect={handleDisconnect} variant={category} />
+        )}
+        {category === "calendar" && <CalendarListContainer />}
+        {category === "other" && (
+          <IntegrationsContainer
+            handleDisconnect={handleDisconnect}
+            variant={category}
+            exclude={[...categoryList, "calendar"]}
+          />
+        )}
       </InstalledAppsLayout>
       <DisconnectIntegrationModal
         handleModelClose={handleModelClose}

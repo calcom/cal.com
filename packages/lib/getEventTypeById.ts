@@ -1,10 +1,13 @@
 import type { PrismaClient } from "@prisma/client";
+import { MembershipRole } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import type { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData, getLocationGroupedOptions } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
-import { parseBookingLimit, parseRecurringEvent } from "@calcom/lib";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
@@ -98,8 +101,10 @@ export default async function getEventTypeById({
       slotInterval: true,
       hashedLink: true,
       bookingLimits: true,
+      durationLimits: true,
       successRedirectUrl: true,
       currency: true,
+      bookingFields: true,
       team: {
         select: {
           id: true,
@@ -111,7 +116,14 @@ export default async function getEventTypeById({
             select: {
               role: true,
               user: {
-                select: userSelect,
+                select: {
+                  ...userSelect,
+                  eventTypes: {
+                    select: {
+                      slug: true,
+                    },
+                  },
+                },
               },
             },
           },
@@ -124,6 +136,7 @@ export default async function getEventTypeById({
       schedule: {
         select: {
           id: true,
+          name: true,
         },
       },
       hosts: {
@@ -134,6 +147,20 @@ export default async function getEventTypeById({
       },
       userId: true,
       price: true,
+      children: {
+        select: {
+          owner: {
+            select: {
+              name: true,
+              username: true,
+              email: true,
+              id: true,
+            },
+          },
+          hidden: true,
+          slug: true,
+        },
+      },
       destinationCalendar: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
@@ -152,6 +179,14 @@ export default async function getEventTypeById({
         include: {
           workflow: {
             include: {
+              team: {
+                select: {
+                  id: true,
+                  slug: true,
+                  name: true,
+                  members: true,
+                },
+              },
               activeOn: {
                 select: {
                   eventType: {
@@ -174,7 +209,7 @@ export default async function getEventTypeById({
     if (isTrpcCall) {
       throw new TRPCError({ code: "NOT_FOUND" });
     } else {
-      throw new Error("Event type noy found");
+      throw new Error("Event type not found");
     }
   }
 
@@ -199,10 +234,12 @@ export default async function getEventTypeById({
   const newMetadata = EventTypeMetaDataSchema.parse(metadata || {})!;
   const apps = newMetadata.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
+  const stripeMetaData = getPaymentAppData(eventTypeWithParsedMetadata, true);
   newMetadata.apps = {
     ...apps,
     stripe: {
-      ...getPaymentAppData(eventTypeWithParsedMetadata, true),
+      ...stripeMetaData,
+      paymentOption: stripeMetaData.paymentOption as string,
       currency:
         (
           credentials.find((integration) => integration.type === "stripe_payment")
@@ -222,11 +259,31 @@ export default async function getEventTypeById({
   const eventType = {
     ...restEventType,
     schedule: rawEventType.schedule?.id || rawEventType.users[0]?.defaultScheduleId || null,
+    scheduleName: rawEventType.schedule?.name || null,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     bookingLimits: parseBookingLimit(restEventType.bookingLimits),
+    durationLimits: parseDurationLimit(restEventType.durationLimits),
     locations: locations as unknown as LocationObject[],
     metadata: parsedMetaData,
     customInputs: parsedCustomInputs,
+    users: rawEventType.users,
+    children: restEventType.children.flatMap((ch) =>
+      ch.owner !== null
+        ? {
+            ...ch,
+            owner: {
+              ...ch.owner,
+              email: ch.owner.email,
+              name: ch.owner.name ?? "",
+              username: ch.owner.username ?? "",
+              membership:
+                restEventType.team?.members.find((tm) => tm.user.id === ch.owner?.id)?.role ||
+                MembershipRole.MEMBER,
+            },
+            created: true,
+          }
+        : []
+    ),
   };
 
   // backwards compat
@@ -253,17 +310,30 @@ export default async function getEventTypeById({
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const integrations = await getEnabledApps(credentials);
   const locationOptions = getLocationGroupedOptions(integrations, t);
+  if (eventType.schedulingType === SchedulingType.MANAGED) {
+    locationOptions.splice(0, 0, {
+      label: t("default"),
+      options: [
+        {
+          label: t("members_default_location"),
+          value: "",
+          icon: "/user-check.svg",
+        },
+      ],
+    });
+  }
 
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
+    bookingFields: getBookingFieldsWithSystemFields(eventType),
   });
 
   const teamMembers = eventTypeObject.team
     ? eventTypeObject.team.members.map((member) => {
         const user = member.user;
         user.avatar = `${CAL_URL}/${user.username}/avatar.png`;
-        return user;
+        return { ...user, eventTypes: user.eventTypes.map((evTy) => evTy.slug), membership: member.role };
       })
     : [];
 
@@ -271,9 +341,20 @@ export default async function getEventTypeById({
   // Sets to null if no membership is found - this must mean we are in a none team event type
   const currentUserMembership = eventTypeObject.team?.members.find((el) => el.user.id === userId) ?? null;
 
+  let destinationCalendar = eventTypeObject.destinationCalendar;
+  if (!destinationCalendar) {
+    destinationCalendar = await prisma.destinationCalendar.findFirst({
+      where: {
+        userId: userId,
+        eventTypeId: null,
+      },
+    });
+  }
+
   const finalObj = {
     eventType: eventTypeObject,
     locationOptions,
+    destinationCalendar,
     team: eventTypeObject.team || null,
     teamMembers,
     currentUserMembership,

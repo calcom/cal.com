@@ -1,11 +1,12 @@
 import DOMPurify from "dompurify";
 import { useSession } from "next-auth/react";
-import React, { AriaRole, ComponentType, Fragment } from "react";
+import type { AriaRole, ComponentType } from "react";
+import React, { Fragment } from "react";
 
 import { APP_NAME, CONSOLE_URL, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen } from "@calcom/ui";
-import { FiAlertTriangle } from "@calcom/ui/components/icon";
+import { AlertTriangle } from "@calcom/ui/components/icon";
 
 type LicenseRequiredProps = {
   as?: keyof JSX.IntrinsicElements | "";
@@ -26,7 +27,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
         children
       ) : (
         <EmptyScreen
-          Icon={FiAlertTriangle}
+          Icon={AlertTriangle}
           headline={t("enterprise_license")}
           description={
             <div

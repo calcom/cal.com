@@ -1,5 +1,6 @@
 import { MembershipRole } from "@prisma/client";
-import { SyntheticEvent, useMemo, useState } from "react";
+import type { SyntheticEvent } from "react";
+import { useMemo, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -71,14 +72,14 @@ export default function MemberChangeRoleModal(props: {
         <>
           <div className="mb-4 sm:flex sm:items-start">
             <div className="text-center sm:text-left">
-              <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+              <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
                 {t("change_member_role")}
               </h3>
             </div>
           </div>
           <form onSubmit={changeRole}>
             <div className="mb-4">
-              <label className="mb-2 block text-sm font-medium tracking-wide text-gray-700" htmlFor="role">
+              <label className="text-default mb-2 block text-sm font-medium tracking-wide" htmlFor="role">
                 {t("role")}
               </label>
               {/*<option value="OWNER">{t("owner")}</option> - needs dialog to confirm change of ownership */}
@@ -88,7 +89,7 @@ export default function MemberChangeRoleModal(props: {
                 value={role}
                 onChange={(option) => option && setRole(option)}
                 id="role"
-                className="mt-1 block w-full rounded-md border-gray-300 text-sm"
+                className="border-default mt-1 block w-full rounded-md text-sm"
               />
             </div>
             {errorMessage && (
@@ -98,7 +99,7 @@ export default function MemberChangeRoleModal(props: {
               </p>
             )}
             <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-              <Button type="submit" color="primary" className="ltr:ml-2 ltr:mr-2 rtl:ml-2">
+              <Button type="submit" color="primary" className="ms-2 me-2">
                 {t("save")}
               </Button>
               <Button type="button" color="secondary" onClick={props.onExit}>

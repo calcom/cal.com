@@ -1,5 +1,7 @@
 import type { Calendar as OfficeCalendar, User } from "@microsoft/microsoft-graph-types-beta";
+import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -37,6 +39,14 @@ interface IBatchResponse {
   responses: ISettledResponse[];
 }
 
+const refreshTokenResponseSchema = z.object({
+  access_token: z.string(),
+  expires_in: z
+    .number()
+    .transform((currentTimeOffsetInSeconds) => Math.round(+new Date() / 1000 + currentTimeOffsetInSeconds)),
+  refresh_token: z.string().optional(),
+});
+
 export default class Office365CalendarService implements Calendar {
   private url = "";
   private integrationName = "";
@@ -54,16 +64,18 @@ export default class Office365CalendarService implements Calendar {
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
     try {
-      const calendarId = event.destinationCalendar?.externalId
-        ? `${event.destinationCalendar.externalId}/`
-        : "";
+      const eventsUrl = event.destinationCalendar?.externalId
+        ? `/me/calendars/${event.destinationCalendar?.externalId}/events`
+        : "/me/calendar/events";
 
-      const response = await this.fetcher(`/me/calendars/${calendarId}events`, {
+      const response = await this.fetcher(eventsUrl, {
         method: "POST",
         body: JSON.stringify(this.translateEvent(event)),
       });
 
-      return handleErrorsJson(response);
+      const responseJson = await handleErrorsJson<NewCalendarEventType & { iCalUId: string }>(response);
+
+      return { ...responseJson, iCalUID: responseJson.iCalUId };
     } catch (error) {
       this.log.error(error);
 
@@ -78,7 +90,9 @@ export default class Office365CalendarService implements Calendar {
         body: JSON.stringify(this.translateEvent(event)),
       });
 
-      return handleErrorsRaw(response);
+      const responseJson = await handleErrorsJson<NewCalendarEventType & { iCalUId: string }>(response);
+
+      return { ...responseJson, iCalUID: responseJson.iCalUId };
     } catch (error) {
       this.log.error(error);
 
@@ -200,10 +214,16 @@ export default class Office365CalendarService implements Calendar {
   }
 
   private o365Auth = (credential: CredentialPayload) => {
-    const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date() / 1000);
+    const isExpired = (expiryDate: number) => {
+      if (!expiryDate) {
+        return true;
+      } else {
+        return expiryDate < Math.round(+new Date() / 1000);
+      }
+    };
     const o365AuthCredentials = credential.key as O365AuthCredentials;
 
-    const refreshAccessToken = async (refreshToken: string) => {
+    const refreshAccessToken = async (o365AuthCredentials: O365AuthCredentials) => {
       const { client_id, client_secret } = await getOfficeAppKeys();
       const response = await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
         method: "POST",
@@ -211,14 +231,22 @@ export default class Office365CalendarService implements Calendar {
         body: new URLSearchParams({
           scope: "User.Read Calendars.Read Calendars.ReadWrite",
           client_id,
-          refresh_token: refreshToken,
+          refresh_token: o365AuthCredentials.refresh_token,
           grant_type: "refresh_token",
           client_secret,
         }),
       });
-      const responseBody = await handleErrorsJson<{ access_token: string; expires_in: number }>(response);
-      o365AuthCredentials.access_token = responseBody.access_token;
-      o365AuthCredentials.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in);
+      const responseJson = await handleErrorsJson(response);
+      const tokenResponse = refreshTokenResponseSchema.safeParse(responseJson);
+      o365AuthCredentials = { ...o365AuthCredentials, ...(tokenResponse.success && tokenResponse.data) };
+      if (!tokenResponse.success) {
+        console.error(
+          "Outlook error grabbing new tokens ~ zodError:",
+          tokenResponse.error,
+          "MS response:",
+          responseJson
+        );
+      }
       await prisma.credential.update({
         where: {
           id: credential.id,
@@ -232,9 +260,10 @@ export default class Office365CalendarService implements Calendar {
 
     return {
       getToken: () =>
-        !isExpired(o365AuthCredentials.expiry_date)
+        refreshTokenResponseSchema.safeParse(o365AuthCredentials).success &&
+        !isExpired(o365AuthCredentials.expires_in)
           ? Promise.resolve(o365AuthCredentials.access_token)
-          : refreshAccessToken(o365AuthCredentials.refresh_token),
+          : refreshAccessToken(o365AuthCredentials),
     };
   };
 
@@ -246,20 +275,31 @@ export default class Office365CalendarService implements Calendar {
         content: getRichDescription(event),
       },
       start: {
-        dateTime: event.startTime,
+        dateTime: dayjs(event.startTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
         timeZone: event.organizer.timeZone,
       },
       end: {
-        dateTime: event.endTime,
+        dateTime: dayjs(event.endTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
         timeZone: event.organizer.timeZone,
       },
-      attendees: event.attendees.map((attendee) => ({
-        emailAddress: {
-          address: attendee.email,
-          name: attendee.name,
-        },
-        type: "required",
-      })),
+      attendees: [
+        ...event.attendees.map((attendee) => ({
+          emailAddress: {
+            address: attendee.email,
+            name: attendee.name,
+          },
+          type: "required",
+        })),
+        ...(event.team?.members
+          ? event.team?.members.map((member) => ({
+              emailAddress: {
+                address: member.email,
+                name: member.name,
+              },
+              type: "required",
+            }))
+          : []),
+      ],
       location: event.location ? { displayName: getLocation(event) } : undefined,
     };
   };

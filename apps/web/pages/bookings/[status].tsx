@@ -12,7 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen } from "@calcom/ui";
-import { FiCalendar } from "@calcom/ui/components/icon";
+import { Calendar } from "@calcom/ui/components/icon";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
@@ -122,10 +122,10 @@ export default function Bookings() {
             {!!bookingsToday.length && status === "upcoming" && (
               <div className="mb-6 pt-2 xl:pt-0">
                 <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
-                <p className="mb-2 text-xs font-medium uppercase leading-4 text-gray-500">{t("today")}</p>
-                <div className="overflow-hidden rounded-md border border-gray-200">
+                <p className="text-subtle mb-2 text-xs font-medium uppercase leading-4">{t("today")}</p>
+                <div className="border-subtle overflow-hidden rounded-md border">
                   <table className="w-full max-w-full table-fixed">
-                    <tbody className="divide-y divide-gray-200 bg-white" data-testid="today-bookings">
+                    <tbody className="bg-default divide-subtle divide-y" data-testid="today-bookings">
                       <Fragment>
                         {bookingsToday.map((booking: BookingOutput) => (
                           <BookingListItem
@@ -142,9 +142,9 @@ export default function Bookings() {
               </div>
             )}
             <div className="pt-2 xl:pt-0">
-              <div className="overflow-hidden rounded-md border border-gray-200">
+              <div className="border-subtle overflow-hidden rounded-md border">
                 <table className="w-full max-w-full table-fixed">
-                  <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">
+                  <tbody className="bg-default divide-subtle divide-y" data-testid="bookings">
                     {query.data.pages.map((page, index) => (
                       <Fragment key={index}>
                         {page.bookings.filter(filterBookings).map((booking: BookingOutput) => {
@@ -165,7 +165,7 @@ export default function Bookings() {
                   </tbody>
                 </table>
               </div>
-              <div className="p-4 text-center" ref={buttonInView.ref}>
+              <div className="text-default p-4 text-center" ref={buttonInView.ref}>
                 <Button
                   color="minimal"
                   loading={query.isFetchingNextPage}
@@ -180,7 +180,7 @@ export default function Bookings() {
         {query.status === "success" && isEmpty && (
           <div className="flex items-center justify-center pt-2 xl:pt-0">
             <EmptyScreen
-              Icon={FiCalendar}
+              Icon={Calendar}
               headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
               description={t("no_status_bookings_yet_description", {
                 status: t(status).toLowerCase(),

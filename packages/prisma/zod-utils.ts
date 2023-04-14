@@ -1,5 +1,7 @@
+import type { Prisma } from "@prisma/client";
 import { EventTypeCustomInputType } from "@prisma/client";
-import { UnitTypeLongPlural } from "dayjs";
+import type { UnitTypeLongPlural } from "dayjs";
+import { pick } from "lodash";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 /* eslint-disable no-underscore-dangle */
@@ -14,6 +16,7 @@ import type {
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import dayjs from "@calcom/dayjs";
+import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
 import { slugify } from "@calcom/lib/slugify";
 
 // Let's not import 118kb just to get an enum
@@ -38,6 +41,11 @@ export const EventTypeMetaDataSchema = z
     apps: z.object(appDataSchemas).partial().optional(),
     additionalNotesRequired: z.boolean().optional(),
     disableSuccessPage: z.boolean().optional(),
+    managedEventConfig: z
+      .object({
+        unlockedFields: z.custom<{ [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true }>().optional(),
+      })
+      .optional(),
     requiresConfirmationThreshold: z
       .object({
         time: z.number(),
@@ -49,6 +57,29 @@ export const EventTypeMetaDataSchema = z
         useHostSchedulesForTeamEvent: z.boolean().optional(),
       })
       .optional(),
+  })
+  .nullable();
+
+export const eventTypeBookingFields = formBuilderFieldsSchema;
+export const BookingFieldType = eventTypeBookingFields.element.shape.type.Enum;
+export type BookingFieldType = typeof BookingFieldType extends z.Values<infer T> ? T[number] : never;
+
+// Validation of user added bookingFields' responses happen using `getBookingResponsesSchema` which requires `eventType`.
+// So it is a dynamic validation and thus entire validation can't exist here
+export const bookingResponses = z
+  .object({
+    email: z.string(),
+    name: z.string(),
+    guests: z.array(z.string()).optional(),
+    notes: z.string().optional(),
+    location: z
+      .object({
+        optionValue: z.string(),
+        value: z.string(),
+      })
+      .optional(),
+    smsReminderNumber: z.string().optional(),
+    rescheduleReason: z.string().optional(),
   })
   .nullable();
 
@@ -90,7 +121,7 @@ export const iso8601 = z.string().transform((val, ctx) => {
   return d;
 });
 
-export const bookingLimitsType = z
+export const intervalLimitsType = z
   .object({
     PER_DAY: z.number().optional(),
     PER_WEEK: z.number().optional(),
@@ -120,14 +151,9 @@ export const stringOrNumber = z.union([
 export const stringToDayjs = z.string().transform((val) => dayjs(val));
 
 export const bookingCreateBodySchema = z.object({
-  email: z.string(),
   end: z.string(),
   eventTypeId: z.number(),
   eventTypeSlug: z.string().optional(),
-  guests: z.array(z.string()).optional(),
-  location: z.string(),
-  name: z.string(),
-  notes: z.string().optional(),
   rescheduleUid: z.string().optional(),
   recurringEventId: z.string().optional(),
   start: z.string(),
@@ -135,11 +161,11 @@ export const bookingCreateBodySchema = z.object({
   user: z.union([z.string(), z.array(z.string())]).optional(),
   language: z.string(),
   bookingUid: z.string().optional(),
-  customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
   metadata: z.record(z.string()),
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
   ethSignature: z.string().optional(),
+  seatReferenceUid: z.string().optional(),
 });
 
 export const requiredCustomInputSchema = z.union([
@@ -158,14 +184,13 @@ export const bookingConfirmPatchBodySchema = z.object({
   reason: z.string().optional(),
 });
 
+// `responses` is merged with it during handleNewBooking call because `responses` schema is dynamic and depends on eventType
 export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({
     noEmail: z.boolean().optional(),
     recurringCount: z.number().optional(),
     allRecurringDates: z.string().array().optional(),
     currentRecurringIndex: z.number().optional(),
-    rescheduleReason: z.string().optional(),
-    smsReminderNumber: z.string().optional().nullable(),
     appsStatus: z
       .array(
         z.object({
@@ -181,11 +206,29 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   })
 );
 
+// It has only the legacy props that are part of `responses` now. The API can still hit old props
+export const bookingCreateSchemaLegacyPropsForApi = z.object({
+  email: z.string(),
+  name: z.string(),
+  guests: z.array(z.string()).optional(),
+  notes: z.string().optional(),
+  location: z.string(),
+  smsReminderNumber: z.string().optional().nullable(),
+  rescheduleReason: z.string().optional(),
+  customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
+});
+
+// This is the schema that is used for the API. It has all the legacy props that are part of `responses` now.
+export const bookingCreateBodySchemaForApi = extendedBookingCreateBody.merge(
+  bookingCreateSchemaLegacyPropsForApi
+);
+
 export const schemaBookingCancelParams = z.object({
   id: z.number().optional(),
   uid: z.string().optional(),
   allRemainingBookings: z.boolean().optional(),
   cancellationReason: z.string().optional(),
+  seatReferenceUid: z.string().optional(),
 });
 
 export const vitalSettingsUpdateSchema = z.object({
@@ -199,6 +242,7 @@ export const createdEventSchema = z
     id: z.string(),
     password: z.union([z.string(), z.undefined()]),
     onlineMeetingUrl: z.string().nullable(),
+    iCalUID: z.string().optional(),
   })
   .passthrough();
 
@@ -398,4 +442,67 @@ export const fromEntries = <
   entries: E
 ): FromEntries<DeepWriteable<E>> => {
   return Object.fromEntries(entries) as FromEntries<DeepWriteable<E>>;
+};
+
+export const getAccessLinkResponseSchema = z.object({
+  download_link: z.string().url(),
+});
+
+export type GetAccessLinkResponseSchema = z.infer<typeof getAccessLinkResponseSchema>;
+
+export const sendDailyVideoRecordingEmailsSchema = z.object({
+  recordingId: z.string(),
+  bookingUID: z.string(),
+});
+
+export const downloadLinkSchema = z.object({
+  download_link: z.string(),
+});
+
+// All properties within event type that can and will be updated if needed
+export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true } = {
+  title: true,
+  description: true,
+  currency: true,
+  periodDays: true,
+  position: true,
+  price: true,
+  slug: true,
+  length: true,
+  locations: true,
+  hidden: true,
+  availability: true,
+  recurringEvent: true,
+  customInputs: true,
+  disableGuests: true,
+  requiresConfirmation: true,
+  eventName: true,
+  metadata: true,
+  children: true,
+  hideCalendarNotes: true,
+  minimumBookingNotice: true,
+  beforeEventBuffer: true,
+  afterEventBuffer: true,
+  successRedirectUrl: true,
+  seatsPerTimeSlot: true,
+  seatsShowAttendees: true,
+  periodType: true,
+  hashedLink: true,
+  webhooks: true,
+  periodStartDate: true,
+  periodEndDate: true,
+  destinationCalendar: true,
+  periodCountCalendarDays: true,
+  bookingLimits: true,
+  slotInterval: true,
+  schedule: true,
+  workflows: true,
+  bookingFields: true,
+  durationLimits: true,
+};
+
+// All properties that are defined as unlocked based on all managed props
+// Eventually this is going to be just a default and the user can change the config through the UI
+export const unlockedManagedEventTypeProps = {
+  ...pick(allManagedEventTypeProps, ["locations", "schedule", "destinationCalendar"]),
 };

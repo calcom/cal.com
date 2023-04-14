@@ -10,6 +10,7 @@ export const availabilityUserSelect = Prisma.validator<Prisma.UserSelect>()({
   username: true,
   endTime: true,
   selectedCalendars: true,
+  timeFormat: true,
   schedules: {
     select: {
       availability: true,
@@ -44,6 +45,7 @@ export const userSelect = Prisma.validator<Prisma.UserArgs>()({
     theme: true,
     brandColor: true,
     darkBrandColor: true,
+    metadata: true,
     ...availabilityUserSelect,
   },
 });

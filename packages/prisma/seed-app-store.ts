@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import dotEnv from "dotenv";
 import fs from "fs";
 import path from "path";
@@ -160,7 +160,7 @@ async function createApp(
   await prisma.app.upsert({
     where: { slug },
     create: { slug, dirName, categories, keys, enabled: true },
-    update: { dirName, categories, keys, enabled: true },
+    update: { dirName, categories, keys },
   });
   await prisma.credential.updateMany({
     where: { type },
@@ -232,6 +232,7 @@ export default async function main() {
     });
   }
   await createApp("jitsi", "jitsivideo", ["video"], "jitsi_video");
+  await createApp("sylapsvideo", "sylapsvideo", ["video"], "sylaps_video");
   // Other apps
   if (process.env.HUBSPOT_CLIENT_ID && process.env.HUBSPOT_CLIENT_SECRET) {
     await createApp("hubspot", "hubspot", ["other"], "hubspot_other_calendar", {
@@ -243,6 +244,12 @@ export default async function main() {
     await createApp("salesforce", "salesforce", ["other"], "salesforce_other_calendar", {
       consumer_key: process.env.SALESFORCE_CONSUMER_KEY,
       consumer_secret: process.env.SALESFORCE_CONSUMER_SECRET,
+    });
+  }
+  if (process.env.ZOHOCRM_CLIENT_ID && process.env.ZOHOCRM_CLIENT_SECRET) {
+    await createApp("zohocrm", "zohocrm", ["other"], "zohocrm_other_calendar", {
+      client_id: process.env.ZOHOCRM_CLIENT_ID,
+      client_secret: process.env.ZOHOCRM_CLIENT_SECRET,
     });
   }
   await createApp("wipe-my-cal", "wipemycalother", ["other"], "wipemycal_other");

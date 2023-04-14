@@ -1,7 +1,7 @@
 import type { Page, WorkerInfo } from "@playwright/test";
 import type Prisma from "@prisma/client";
 import { MembershipRole, Prisma as PrismaType } from "@prisma/client";
-import { hash } from "bcryptjs";
+import { hashSync as hash } from "bcryptjs";
 
 import dayjs from "@calcom/dayjs";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
@@ -10,8 +10,8 @@ import { prisma } from "@calcom/prisma";
 import type { TimeZoneEnum } from "./types";
 
 // Don't import hashPassword from app as that ends up importing next-auth and initializing it before NEXTAUTH_URL can be updated during tests.
-export async function hashPassword(password: string) {
-  const hashedPassword = await hash(password, 12);
+export function hashPassword(password: string) {
+  const hashedPassword = hash(password, 12);
   return hashedPassword;
 }
 
@@ -44,9 +44,6 @@ const createTeamAndAddUser = async (
       slug: `team-${workerInfo.workerIndex}-${Date.now()}`,
     },
   });
-  if (!team) {
-    return;
-  }
 
   const { role = MembershipRole.OWNER, id: userId } = user;
   await prisma.membership.create({
@@ -54,8 +51,10 @@ const createTeamAndAddUser = async (
       teamId: team.id,
       userId,
       role: role,
+      accepted: true,
     },
   });
+  return team;
 };
 
 // creates a user fixture instance and stores the collection
@@ -70,34 +69,24 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
       } = {}
     ) => {
       const _user = await prisma.user.create({
-        data: await createUser(workerInfo, opts),
+        data: createUser(workerInfo, opts),
       });
-      await prisma.eventType.create({
-        data: {
-          users: {
-            connect: {
-              id: _user.id,
-            },
-          },
-          title: "Paid",
-          slug: "paid",
-          length: 30,
-          price: 1000,
-        },
-      });
-      await prisma.eventType.create({
-        data: {
-          users: {
-            connect: {
-              id: _user.id,
-            },
-          },
-          title: "Opt in",
-          slug: "opt-in",
-          requiresConfirmation: true,
-          length: 30,
-        },
-      });
+
+      let defaultEventTypes: SupportedTestEventTypes[] = [
+        { title: "30 min", slug: "30-min", length: 30 },
+        { title: "Paid", slug: "paid", length: 30, price: 1000 },
+        { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
+      ];
+
+      if (opts?.eventTypes) defaultEventTypes = defaultEventTypes.concat(opts.eventTypes);
+      for (const eventTypeData of defaultEventTypes) {
+        eventTypeData.owner = { connect: { id: _user.id } };
+        eventTypeData.users = { connect: { id: _user.id } };
+        await prisma.eventType.create({
+          data: eventTypeData,
+        });
+      }
+
       if (scenario.seedRoutingForms) {
         await prisma.app_RoutingForms_Form.create({
           data: {
@@ -219,7 +208,29 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
         include: userIncludes,
       });
       if (scenario.hasTeam) {
-        await createTeamAndAddUser({ user: { id: user.id, role: "OWNER" } }, workerInfo);
+        const team = await createTeamAndAddUser({ user: { id: user.id, role: "OWNER" } }, workerInfo);
+        await prisma.eventType.create({
+          data: {
+            team: {
+              connect: {
+                id: team.id,
+              },
+            },
+            users: {
+              connect: {
+                id: _user.id,
+              },
+            },
+            owner: {
+              connect: {
+                id: _user.id,
+              },
+            },
+            title: "Team Event - 30min",
+            slug: "team-event-30min",
+            length: 30,
+          },
+        });
       }
       const userFixture = createUserFixture(user, store.page!);
       store.users.push(userFixture);
@@ -257,6 +268,9 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     routingForms: user.routingForms,
     self,
     login: async () => login({ ...(await self()), password: user.username }, store.page),
+    logout: async () => {
+      await page.goto("/auth/logout");
+    },
     getPaymentCredential: async () => getPaymentCredential(store.page),
     // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
     debug: async (message: string | Record<string, JSONValue>) => {
@@ -266,21 +280,24 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
   };
 };
 
+type SupportedTestEventTypes = PrismaType.EventTypeCreateInput & {
+  _bookings?: PrismaType.BookingCreateInput[];
+};
 type CustomUserOptsKeys = "username" | "password" | "completedOnboarding" | "locale" | "name";
-type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & { timeZone?: TimeZoneEnum };
+type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
+  timeZone?: TimeZoneEnum;
+  eventTypes?: SupportedTestEventTypes[];
+};
 
 // creates the actual user in the db.
-const createUser = async (
-  workerInfo: WorkerInfo,
-  opts?: CustomUserOpts | null
-): Promise<PrismaType.UserCreateInput> => {
+const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): PrismaType.UserCreateInput => {
   // build a unique name for our user
   const uname = `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
   return {
     username: uname,
     name: opts?.name,
     email: `${uname}@example.com`,
-    password: await hashPassword(uname),
+    password: hashPassword(uname),
     emailVerified: new Date(),
     completedOnboarding: opts?.completedOnboarding ?? true,
     timeZone: opts?.timeZone ?? dayjs.tz.guess(),
@@ -298,13 +315,6 @@ const createUser = async (
             },
           }
         : undefined,
-    eventTypes: {
-      create: {
-        title: "30 min",
-        slug: "30-min",
-        length: 30,
-      },
-    },
   };
 };
 
@@ -326,9 +336,8 @@ export async function login(
   await passwordLocator.fill(user.password ?? user.username!);
   await signInLocator.click();
 
-  // 2 seconds of delay to give the session enough time for a clean load
-  // eslint-disable-next-line playwright/no-wait-for-timeout
-  await page.waitForTimeout(2000);
+  // Moving away from waiting 2 seconds, as it is not a reliable way to expect session to be started
+  await page.waitForLoadState("networkidle");
 }
 
 export async function getPaymentCredential(page: Page) {

@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import z from "zod";
 
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
-import { getLocalAppMetadata } from "@calcom/app-store/utils";
+import { getLocalAppMetadata, getAppFromSlug } from "@calcom/app-store/utils";
 import { sendDisabledAppEmail } from "@calcom/emails";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -126,19 +126,21 @@ export const appsRouter = router({
         },
         update: {
           enabled: !input.enabled,
+          dirName: appMetadata?.dirName || appMetadata?.slug || "",
         },
         create: {
           slug: input.slug,
-          dirName: appMetadata?.dirName || "",
+          dirName: appMetadata?.dirName || appMetadata?.slug || "",
           categories:
             (appMetadata?.categories as AppCategories[]) ||
             ([appMetadata?.category] as AppCategories[]) ||
             undefined,
           keys: undefined,
+          enabled: !input.enabled,
         },
       });
 
-      // If disabling an app then we need to alert users basesd on the app type
+      // If disabling an app then we need to alert users based on the app type
       if (input.enabled) {
         if (app.categories.some((category) => ["calendar", "video"].includes(category))) {
           // Find all users with the app credentials
@@ -240,10 +242,12 @@ export const appsRouter = router({
         type: z.string(),
         // Validate w/ app specific schema
         keys: z.unknown(),
+        fromEnabled: z.boolean().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const appKey = deriveAppDictKeyFromType(input.type, appKeysSchemas);
+      let appKey = deriveAppDictKeyFromType(input.type, appKeysSchemas);
+      if (!appKey) appKey = deriveAppDictKeyFromType(input.slug, appKeysSchemas);
       const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
       const keys = keysSchema.parse(input.keys);
 
@@ -258,15 +262,16 @@ export const appsRouter = router({
         where: {
           slug: input.slug,
         },
-        update: { keys },
+        update: { keys, ...(input.fromEnabled && { enabled: true }) },
         create: {
           slug: input.slug,
-          dirName: appMetadata?.dirName || "",
+          dirName: appMetadata?.dirName || appMetadata?.slug || "",
           categories:
             (appMetadata?.categories as AppCategories[]) ||
             ([appMetadata?.category] as AppCategories[]) ||
             undefined,
           keys: (input.keys as Prisma.InputJsonObject) || undefined,
+          ...(input.fromEnabled && { enabled: true }),
         },
       });
     }),
@@ -320,4 +325,26 @@ export const appsRouter = router({
 
       return !!updated;
     }),
+  queryForDependencies: authedProcedure.input(z.string().array().optional()).query(async ({ ctx, input }) => {
+    if (!input) return;
+
+    const dependencyData: { name: string; slug: string; installed: boolean }[] = [];
+
+    await Promise.all(
+      input.map(async (dependency) => {
+        const appInstalled = await ctx.prisma.credential.findFirst({
+          where: {
+            appId: dependency,
+            userId: ctx.user.id,
+          },
+        });
+
+        const app = await getAppFromSlug(dependency);
+
+        dependencyData.push({ name: app?.name || dependency, slug: dependency, installed: !!appInstalled });
+      })
+    );
+
+    return dependencyData;
+  }),
 });

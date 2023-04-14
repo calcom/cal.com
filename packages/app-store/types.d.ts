@@ -24,12 +24,13 @@ export interface InstallAppButtonProps {
     }
   ) => JSX.Element;
   onChanged?: () => unknown;
+  disableInstall?: boolean;
 }
 export type EventTypeAppCardComponentProps = {
   // Limit what data should be accessible to apps
   eventType: Pick<
     z.infer<typeof _EventTypeModel>,
-    "id" | "title" | "description" | "teamId" | "length" | "recurringEvent"
+    "id" | "title" | "description" | "teamId" | "length" | "recurringEvent" | "seatsPerTimeSlot"
   > & {
     URL: string;
   };

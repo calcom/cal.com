@@ -4,6 +4,7 @@ import { v5 as uuidv5 } from "uuid";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
+import getLabelValueMapFromResponses from "./getLabelValueMapFromResponses";
 
 const translator = short();
 
@@ -29,10 +30,11 @@ ${calEvent.attendees[0].timeZone}
 };
 
 export const getWho = (calEvent: CalendarEvent) => {
+  let attendeesFromCalEvent = [...calEvent.attendees];
   if (calEvent.seatsPerTimeSlot && !calEvent.seatsShowAttendees) {
-    calEvent.attendees = [];
+    attendeesFromCalEvent = [];
   }
-  const attendees = calEvent.attendees
+  const attendees = attendeesFromCalEvent
     .map((attendee) => {
       return `
 ${attendee?.name || calEvent.organizer.language.translate("guest")}
@@ -46,9 +48,18 @@ ${calEvent.organizer.name} - ${calEvent.organizer.language.translate("organizer"
 ${calEvent.organizer.email}
   `;
 
+  const teamMembers = calEvent.team?.members
+    ? calEvent.team.members.map((member) => {
+        return `
+${member.name} - ${calEvent.organizer.language.translate("team_member")} 
+${member.email}
+    `;
+      })
+    : [];
+
   return `
 ${calEvent.organizer.language.translate("who")}:
-${organizer + attendees}
+${organizer + attendees + teamMembers.join("")}
   `;
 };
 
@@ -62,23 +73,25 @@ ${calEvent.additionalNotes}
   `;
 };
 
-export const getCustomInputs = (calEvent: CalendarEvent) => {
-  if (!calEvent.customInputs) {
+export const getUserFieldsResponses = (calEvent: CalendarEvent) => {
+  const labelValueMap = getLabelValueMapFromResponses(calEvent);
+
+  if (!labelValueMap) {
     return "";
   }
-  const customInputsString = Object.keys(calEvent.customInputs)
+  const responsesString = Object.keys(labelValueMap)
     .map((key) => {
-      if (!calEvent.customInputs) return "";
-      if (calEvent.customInputs[key] !== "") {
+      if (!labelValueMap) return "";
+      if (labelValueMap[key] !== "") {
         return `
 ${key}:
-${calEvent.customInputs[key]}
+${labelValueMap[key]}
   `;
       }
     })
     .join("");
 
-  return customInputsString;
+  return responsesString;
 };
 
 export const getAppsStatus = (calEvent: CalendarEvent) => {
@@ -107,7 +120,7 @@ export const getDescription = (calEvent: CalendarEvent) => {
     `;
 };
 export const getLocation = (calEvent: CalendarEvent) => {
-  const meetingUrl = getVideoCallUrl(calEvent);
+  const meetingUrl = getVideoCallUrlFromCalEvent(calEvent);
   if (meetingUrl) {
     return meetingUrl;
   }
@@ -132,7 +145,12 @@ export const getProviderName = (calEvent: CalendarEvent): string => {
 };
 
 export const getUid = (calEvent: CalendarEvent): string => {
-  return calEvent.uid ?? translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
+  const uid = calEvent.uid;
+  return uid ?? translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
+};
+
+const getSeatReferenceId = (calEvent: CalendarEvent): string => {
+  return calEvent.attendeeSeatId ? `seatReferenceUid=${calEvent.attendeeSeatId}` : "";
 };
 
 export const getManageLink = (calEvent: CalendarEvent) => {
@@ -144,12 +162,18 @@ ${WEBAPP_URL + "/booking/" + getUid(calEvent) + "?changes=true"}
 
 export const getCancelLink = (calEvent: CalendarEvent): string => {
   return (
-    WEBAPP_URL + `/booking/${getUid(calEvent)}?cancel=true&allRemainingBookings=${!!calEvent.recurringEvent}`
+    WEBAPP_URL +
+    `/booking/${getUid(
+      calEvent
+    )}?cancel=true&allRemainingBookings=${!!calEvent.recurringEvent}&${getSeatReferenceId}`
   );
 };
 
 export const getRescheduleLink = (calEvent: CalendarEvent): string => {
-  return WEBAPP_URL + "/reschedule/" + getUid(calEvent);
+  const Uid = getUid(calEvent);
+  const seatUid = getSeatReferenceId(calEvent);
+
+  return `${WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}`;
 };
 
 export const getRichDescription = (calEvent: CalendarEvent /*, attendee?: Person*/) => {
@@ -162,12 +186,12 @@ ${calEvent.organizer.language.translate("where")}:
 ${getLocation(calEvent)}
 ${getDescription(calEvent)}
 ${getAdditionalNotes(calEvent)}
-${getCustomInputs(calEvent)}
+${getUserFieldsResponses(calEvent)}
 ${getAppsStatus(calEvent)}
 ${
   // TODO: Only the original attendee can make changes to the event
   // Guests cannot
-  getManageLink(calEvent)
+  !calEvent.seatsPerTimeSlot && getManageLink(calEvent)
 }
 ${
   calEvent.paymentInfo
@@ -196,7 +220,7 @@ export const getPublicVideoCallUrl = (calEvent: CalendarEvent): string => {
   return WEBAPP_URL + "/video/" + getUid(calEvent);
 };
 
-export const getVideoCallUrl = (calEvent: CalendarEvent): string => {
+export const getVideoCallUrlFromCalEvent = (calEvent: CalendarEvent): string => {
   if (calEvent.videoCallData) {
     if (isDailyVideoCall(calEvent)) {
       return getPublicVideoCallUrl(calEvent);

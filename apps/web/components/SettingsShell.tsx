@@ -3,40 +3,40 @@ import React from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { ErrorBoundary } from "@calcom/ui";
-import { FiCreditCard, FiKey, FiLock, FiTerminal, FiUser, FiUsers } from "@calcom/ui/components/icon";
+import { CreditCard, Key, Lock, Terminal, User, Users } from "@calcom/ui/components/icon";
 
 import NavTabs from "./NavTabs";
 
 const tabs = [
   {
     name: "profile",
-    href: "/settings/profile",
-    icon: FiUser,
+    href: "/settings/my-account/profile",
+    icon: User,
   },
   {
     name: "teams",
     href: "/settings/teams",
-    icon: FiUsers,
+    icon: Users,
   },
   {
     name: "security",
     href: "/settings/security",
-    icon: FiKey,
+    icon: Key,
   },
   {
     name: "developer",
     href: "/settings/developer",
-    icon: FiTerminal,
+    icon: Terminal,
   },
   {
     name: "billing",
     href: "/settings/billing",
-    icon: FiCreditCard,
+    icon: CreditCard,
   },
   {
     name: "admin",
     href: "/settings/admin",
-    icon: FiLock,
+    icon: Lock,
     adminRequired: true,
   },
 ];

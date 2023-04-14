@@ -2,7 +2,6 @@ import { CodeHighlightNode, CodeNode } from "@lexical/code";
 import { AutoLinkNode, LinkNode } from "@lexical/link";
 import { ListItemNode, ListNode } from "@lexical/list";
 import { TRANSFORMERS } from "@lexical/markdown";
-import { AutoFocusPlugin } from "@lexical/react/LexicalAutoFocusPlugin";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
@@ -11,6 +10,8 @@ import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPl
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
+
+import { classNames } from "@calcom/lib";
 
 import ExampleTheme from "./ExampleTheme";
 import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
@@ -30,6 +31,9 @@ export type TextEditorProps = {
   excludedToolbarItems?: string[];
   variables?: string[];
   height?: string;
+  placeholder?: string;
+  disableLists?: boolean;
+  editable?: boolean;
 };
 
 const editorConfig = {
@@ -54,26 +58,37 @@ const editorConfig = {
 };
 
 export const Editor = (props: TextEditorProps) => {
+  const editable = props.editable ?? true;
   return (
-    <div className="editor">
-      <LexicalComposer initialConfig={editorConfig}>
-        <div className="editor-container">
+    <div className="editor rounded-md">
+      <LexicalComposer initialConfig={{ ...editorConfig, editable }}>
+        <div className="editor-container rounded-md p-0">
           <ToolbarPlugin
             getText={props.getText}
             setText={props.setText}
+            editable={editable}
             excludedToolbarItems={props.excludedToolbarItems}
             variables={props.variables}
           />
-          <div className="editor-inner" style={{ height: props.height }}>
+          <div
+            className={classNames("editor-inner", !editable && "bg-muted")}
+            style={{ height: props.height }}>
             <RichTextPlugin
               contentEditable={<ContentEditable style={{ height: props.height }} className="editor-input" />}
-              placeholder=""
+              placeholder={<div className="text-muted -mt-11 p-3 text-sm">{props.placeholder || ""}</div>}
             />
-            <AutoFocusPlugin />
             <ListPlugin />
             <LinkPlugin />
             <AutoLinkPlugin />
-            <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
+            <MarkdownShortcutPlugin
+              transformers={
+                props.disableLists
+                  ? TRANSFORMERS.filter((value, index) => {
+                      if (index !== 3 && index !== 4) return value;
+                    })
+                  : TRANSFORMERS
+              }
+            />
           </div>
         </div>
       </LexicalComposer>

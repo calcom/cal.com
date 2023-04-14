@@ -1,4 +1,5 @@
-import { createEvent, DateArray, Person } from "ics";
+import type { DateArray, Person } from "ics";
+import { createEvent } from "ics";
 
 import dayjs from "@calcom/dayjs";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
@@ -11,7 +12,7 @@ import OrganizerScheduledEmail from "./organizer-scheduled-email";
 export default class OrganizerRequestedToRescheduleEmail extends OrganizerScheduledEmail {
   private metadata: { rescheduleLink: string };
   constructor(calEvent: CalendarEvent, metadata: { rescheduleLink: string }) {
-    super(calEvent);
+    super({ calEvent });
     this.metadata = metadata;
   }
   protected getNodeMailerPayload(): Record<string, unknown> {
@@ -53,7 +54,7 @@ export default class OrganizerRequestedToRescheduleEmail extends OrganizerSchedu
         .slice(0, 6)
         .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
       startInputType: "utc",
-      productId: "calendso/ics",
+      productId: "calcom/ics",
       title: this.t("ics_event_title", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,

@@ -8,8 +8,9 @@ import around_config_json from "./around/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
 import campfire_config_json from "./campfire/config.json";
 import closecom_config_json from "./closecom/config.json";
+import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
-import routing_forms_config_json from "./ee/routing-forms/config.json";
+import discord_config_json from "./discord/config.json";
 import { metadata as exchange2013calendar__metadata_ts } from "./exchange2013calendar/_metadata";
 import { metadata as exchange2016calendar__metadata_ts } from "./exchange2016calendar/_metadata";
 import exchangecalendar_config_json from "./exchangecalendar/config.json";
@@ -19,6 +20,7 @@ import ga4_config_json from "./ga4/config.json";
 import { metadata as giphy__metadata_ts } from "./giphy/_metadata";
 import { metadata as googlecalendar__metadata_ts } from "./googlecalendar/_metadata";
 import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
+import gtm_config_json from "./gtm/config.json";
 import { metadata as hubspot__metadata_ts } from "./hubspot/_metadata";
 import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadata";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
@@ -34,11 +36,13 @@ import qr_code_config_json from "./qr_code/config.json";
 import rainbow_config_json from "./rainbow/config.json";
 import raycast_config_json from "./raycast/config.json";
 import riverside_config_json from "./riverside/config.json";
+import routing_forms_config_json from "./routing-forms/config.json";
 import salesforce_config_json from "./salesforce/config.json";
 import sendgrid_config_json from "./sendgrid/config.json";
 import signal_config_json from "./signal/config.json";
 import sirius_video_config_json from "./sirius_video/config.json";
 import { metadata as stripepayment__metadata_ts } from "./stripepayment/_metadata";
+import sylapsvideo_config_json from "./sylapsvideo/config.json";
 import { metadata as tandemvideo__metadata_ts } from "./tandemvideo/_metadata";
 import telegram_config_json from "./telegram/config.json";
 import basic_config_json from "./templates/basic/config.json";
@@ -56,6 +60,7 @@ import whereby_config_json from "./whereby/config.json";
 import { metadata as wipemycalother__metadata_ts } from "./wipemycalother/_metadata";
 import wordpress_config_json from "./wordpress/config.json";
 import { metadata as zapier__metadata_ts } from "./zapier/_metadata";
+import zohocrm_config_json from "./zohocrm/config.json";
 import { metadata as zoomvideo__metadata_ts } from "./zoomvideo/_metadata";
 
 export const appStoreMetadata = {
@@ -65,8 +70,9 @@ export const appStoreMetadata = {
   caldavcalendar: caldavcalendar__metadata_ts,
   campfire: campfire_config_json,
   closecom: closecom_config_json,
+  cron: cron_config_json,
   dailyvideo: dailyvideo__metadata_ts,
-  "routing-forms": routing_forms_config_json,
+  discord: discord_config_json,
   exchange2013calendar: exchange2013calendar__metadata_ts,
   exchange2016calendar: exchange2016calendar__metadata_ts,
   exchangecalendar: exchangecalendar_config_json,
@@ -76,6 +82,7 @@ export const appStoreMetadata = {
   giphy: giphy__metadata_ts,
   googlecalendar: googlecalendar__metadata_ts,
   googlevideo: googlevideo__metadata_ts,
+  gtm: gtm_config_json,
   hubspot: hubspot__metadata_ts,
   huddle01video: huddle01video__metadata_ts,
   jitsivideo: jitsivideo__metadata_ts,
@@ -91,11 +98,13 @@ export const appStoreMetadata = {
   rainbow: rainbow_config_json,
   raycast: raycast_config_json,
   riverside: riverside_config_json,
+  "routing-forms": routing_forms_config_json,
   salesforce: salesforce_config_json,
   sendgrid: sendgrid_config_json,
   signal: signal_config_json,
   sirius_video: sirius_video_config_json,
   stripepayment: stripepayment__metadata_ts,
+  sylapsvideo: sylapsvideo_config_json,
   tandemvideo: tandemvideo__metadata_ts,
   telegram: telegram_config_json,
   basic: basic_config_json,
@@ -113,5 +122,6 @@ export const appStoreMetadata = {
   wipemycalother: wipemycalother__metadata_ts,
   wordpress: wordpress_config_json,
   zapier: zapier__metadata_ts,
+  zohocrm: zohocrm_config_json,
   zoomvideo: zoomvideo__metadata_ts,
 };

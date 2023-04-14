@@ -1,8 +1,10 @@
 import type { ResetPasswordRequest } from "@prisma/client";
-import debounce from "lodash/debounce";
+import { debounce } from "lodash";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import React, { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -21,7 +23,7 @@ type Props = {
 export default function Page({ resetPasswordRequest, csrfToken }: Props) {
   const { t } = useLocale();
   const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<{ message: string } | null>(null);
+  const [, setError] = React.useState<{ message: string } | null>(null);
   const [success, setSuccess] = React.useState(false);
 
   const [password, setPassword] = React.useState("");
@@ -59,7 +61,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
       <>
         <div className="space-y-6">
           <div>
-            <h2 className="font-cal mt-6 text-center text-3xl font-extrabold text-gray-900">
+            <h2 className="font-cal text-emphasis mt-6 text-center text-3xl font-extrabold">
               {t("password_updated")}
             </h2>
           </div>
@@ -76,8 +78,8 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
       <>
         <div className="space-y-6">
           <div>
-            <h2 className="font-cal mt-6 text-center text-3xl font-extrabold text-gray-900">{t("whoops")}</h2>
-            <h2 className="text-center text-3xl font-extrabold text-gray-900">{t("request_is_expired")}</h2>
+            <h2 className="font-cal text-emphasis mt-6 text-center text-3xl font-extrabold">{t("whoops")}</h2>
+            <h2 className="text-emphasis text-center text-3xl font-extrabold">{t("request_is_expired")}</h2>
           </div>
           <p>{t("request_is_expired_instructions")}</p>
           <Link href="/auth/forgot-password" passHref legacyBehavior>
@@ -108,6 +110,14 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
         <>
           <form
             className="space-y-6"
+            style={
+              {
+                "--cal-brand": "#111827",
+                "--cal-brand-emphasis": "#101010",
+                "--cal-brand-text": "white",
+                "--cal-brand-subtle": "#9CA3AF",
+              } as CSSProperties
+            }
             onSubmit={async (e) => {
               e.preventDefault();
 
@@ -163,6 +173,8 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
   );
 }
 
+Page.isThemeSupported = false;
+
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const id = context.params?.id as string;
 
@@ -185,6 +197,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         },
         id,
         csrfToken: await getCsrfToken({ req: context.req }),
+        ...(await serverSideTranslations(context.locale || "en", ["common"])),
       },
     };
   } catch (reason) {

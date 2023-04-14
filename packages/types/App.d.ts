@@ -1,8 +1,8 @@
 import type { Prisma } from "@prisma/client";
 
-import { Tag } from "@calcom/app-store/types";
+import type { Tag } from "@calcom/app-store/types";
 
-import { Optional } from "./utils";
+import type { Optional } from "./utils";
 
 type CommonProperties = {
   default?: false;
@@ -135,15 +135,25 @@ export interface App {
   licenseRequired?: boolean;
   isProOnly?: boolean;
   appData?: AppData;
+  /**
+   * @deprecated
+   * Used only by legacy apps which had slug different from their directory name.
+   */
   dirName?: string;
   isTemplate?: boolean;
   __template?: string;
+  /** Slug of an app needed to be installed before the current app can be added */
+  dependencies?: string[];
 }
 
 export type AppFrontendPayload = Omit<App, "key"> & {
   /** We should type error if keys are leaked to the frontend */
   isDefault?: boolean;
   key?: never;
+  dependencyData?: {
+    name?: string;
+    installed?: boolean;
+  }[];
 };
 
 export type AppMeta = Optional<App, "rating" | "trending" | "reviews" | "verified">;
