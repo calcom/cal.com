@@ -375,6 +375,7 @@ export const EventSetupTab = (
         <TextField
           required
           label={t("URL")}
+          addOnContainerProps={{ style: { direction: "ltr" } }}
           {...shouldLockDisableProps("slug")}
           defaultValue={eventType.slug}
           addOnLeading={

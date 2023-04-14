@@ -144,7 +144,7 @@ export const Components: Record<BookingFieldType, Component> = {
                         setValue(value);
                       }}
                       className={classNames(inputClassName, "border-r-0")}
-                      addOnClassname={classNames(
+                      addOnClassName={classNames(
                         "border-default border block border-l-0 disabled:bg-emphasis disabled:hover:cursor-not-allowed bg-transparent disabled:text-subtle border-subtle "
                       )}
                       placeholder={placeholder}

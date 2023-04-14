@@ -122,6 +122,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             autoComplete="none"
             autoCapitalize="none"
             autoCorrect="none"
+            addOnContainerProps={{ style: { direction: "ltr" } }}
             className={classNames(
               "mb-0 mt-0 rounded-md ltr:rounded-l-none rtl:rounded-r-none",
               markAsError
@@ -135,7 +136,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             data-testid="username-input"
           />
           {currentUsername !== inputUsernameValue && (
-            <div className="absolute right-[2px] top-6 flex flex-row">
+            <div className="absolute top-6 right-[2px] flex flex-row">
               <span className={classNames("mx-2 py-2")}>
                 {usernameIsAvailable ? <Check className="w-6" /> : <></>}
               </span>

@@ -48,7 +48,8 @@ type InputFieldProps = {
   addOnSuffix?: ReactNode;
   inputIsFullWidth?: boolean;
   addOnFilled?: boolean;
-  addOnClassname?: string;
+  addOnClassName?: string;
+  addOnContainerProps?: React.ComponentProps<"div">;
   error?: string;
   labelSrOnly?: boolean;
   containerClassName?: string;
@@ -98,13 +99,14 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     addOnLeading,
     addOnSuffix,
     addOnFilled = true,
-    addOnClassname,
+    addOnClassName,
     inputIsFullWidth,
     hint,
     type,
     hintErrors,
     labelSrOnly,
     containerClassName,
+    addOnContainerProps,
     readOnly,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     t: __t,
@@ -127,13 +129,15 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
         </Skeleton>
       )}
       {addOnLeading || addOnSuffix ? (
-        <div className="group relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
+        <div
+          {...addOnContainerProps}
+          className="group relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
           {addOnLeading && (
             <Addon
               isFilled={addOnFilled}
               className={classNames(
                 "ltr:rounded-l-md ltr:border-r-0 rtl:rounded-r-md rtl:border-l-0",
-                addOnClassname
+                addOnClassName
               )}>
               {addOnLeading}
             </Addon>
@@ -167,7 +171,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               isFilled={addOnFilled}
               className={classNames(
                 "ltr:rounded-r-md ltr:border-l-0 rtl:rounded-l-md rtl:border-r-0",
-                addOnClassname
+                addOnClassName
               )}>
               {addOnSuffix}
             </Addon>
@@ -401,7 +405,7 @@ export const InputFieldWithSelect = forwardRef<
       ref={ref}
       {...props}
       inputIsFullWidth={false}
-      addOnClassname="!px-0"
+      addOnClassName="!px-0"
       addOnSuffix={<UnstyledSelect {...props.selectProps} />}
     />
   );
