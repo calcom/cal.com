@@ -164,15 +164,12 @@ export const ensureBookingInputsHaveSystemFields = ({
       name: "name",
       editable: "system",
       required: true,
-
       variantsConfig: {
         defaultVariant: "fullName",
-        //Makes sense only when there are 2 variants
-        toggleLabel: 'Split "Full name" into “First name" and "Last name"',
+        // Makes sense only when there are 2 variants
         variants: {
           firstAndLastName: {
             // This label isn't shown to user, it's just for us to show the variant name in UI
-            label: "First, Last Name",
             fields: [
               {
                 // Do we really need to configure the name here?
@@ -192,7 +189,6 @@ export const ensureBookingInputsHaveSystemFields = ({
             ],
           },
           fullName: {
-            label: "your_name",
             fields: [
               {
                 // Can it be same as the name of the parent field?
@@ -204,6 +200,17 @@ export const ensureBookingInputsHaveSystemFields = ({
                 required: true,
               },
             ],
+          },
+        },
+      },
+      appUiConfig: {
+        variantToggleLabel: 'Split "Full name" into "First name" and "Last name"',
+        variants: {
+          firstAndLastName: {
+            label: "First, Last Name",
+          },
+          fullName: {
+            label: "your_name",
           },
         },
       },
@@ -313,6 +320,11 @@ export const ensureBookingInputsHaveSystemFields = ({
       ],
     },
   ];
+
+  const systemFieldsByName = systemBeforeFields.concat(systemAfterFields).reduce((acc, field) => {
+    acc[field.name] = field;
+    return acc;
+  }, {} as Record<string, (typeof bookingFields)[number]>);
 
   const missingSystemBeforeFields = [];
   for (const field of systemBeforeFields) {

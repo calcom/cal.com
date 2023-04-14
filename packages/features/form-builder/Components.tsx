@@ -97,7 +97,7 @@ export const Components: Record<BookingFieldType, Component> = {
         setValue: (value: Record<string, string>) => void;
       }
     ) => {
-      const { variant: variantName } = props;
+      const { variant: variantName = "fullName" } = props;
       const onChange = (name: string, value: string) => {
         props.setValue({
           ...props.value,
@@ -105,7 +105,7 @@ export const Components: Record<BookingFieldType, Component> = {
         });
       };
       if (!props.variants) {
-        throw new Error("'variantsConfig' is required for 'name' field");
+        throw new Error("'variants' is required for 'name' type of field");
       }
       const variant = props.variants[variantName];
       const value = props.value || {};

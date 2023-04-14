@@ -341,17 +341,16 @@ export const FormBuilder = function FormBuilder({
                   <div className="flex flex-col lg:flex-row lg:items-center">
                     <div className="text-default text-sm font-semibold ltr:mr-2 rtl:ml-2">
                       {(() => {
-                        if (!field.variantsConfig) {
+                        const variantsConfig = field.variantsConfig;
+                        if (!variantsConfig) {
                           return field.label || t(field.defaultLabel || "");
                         }
-                        const variant = field.variant || field.variantsConfig.defaultVariant;
+                        const variant = field.variant || variantsConfig.defaultVariant;
+                        const variants = variantsConfig.variants;
                         if (!variant) {
                           throw new Error("Field has variantsConfig but no defaultVariant");
                         }
-                        return t(
-                          field.variantsConfig.variants[variant as keyof typeof field.variantsConfig.variants]
-                            .label
-                        );
+                        return t(variants[variant as keyof typeof variants].label);
                       })()}
                     </div>
                     <div className="flex items-center space-x-2">
@@ -489,7 +488,7 @@ export const FormBuilder = function FormBuilder({
               />
               {(() => {
                 const variantsConfig = fieldForm.getValues("variantsConfig");
-                const variantToggleLabel = variantsConfig?.toggleLabel;
+                const variantToggleLabel = t(variantsConfig?.toggleLabel || "");
 
                 if (!variantsConfig || !variantToggleLabel) {
                   return null;
