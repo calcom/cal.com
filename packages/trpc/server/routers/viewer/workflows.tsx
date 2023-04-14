@@ -350,7 +350,7 @@ export const workflowsRouter = router({
           data: {
             name: "",
             trigger: WorkflowTriggerEvents.BEFORE_EVENT,
-            time: 2,
+            time: 24,
             timeUnit: TimeUnit.HOUR,
             userId,
             teamId,

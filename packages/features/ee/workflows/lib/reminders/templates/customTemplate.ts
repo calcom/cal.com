@@ -50,7 +50,6 @@ const customTemplate = (
     .replaceAll("{EVENT_DATE}", translatedDate)
     .replaceAll("{EVENT_TIME}", variables.eventDate?.format("H:mmA") || "")
     .replaceAll("{EVENT_END_TIME}", variables.eventEndTime?.format("H:mmA") || "")
-    .replaceAll("{TIMEZONE_TIME}", variables.timeZone || "")
     .replaceAll("{LOCATION}", locationString)
     .replaceAll("{ADDITIONAL_NOTES}", variables.additionalNotes || "")
     .replaceAll("{ATTENDEE_EMAIL}", variables.attendeeEmail || "")
