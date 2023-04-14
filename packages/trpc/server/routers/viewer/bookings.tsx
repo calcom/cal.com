@@ -339,17 +339,17 @@ export const bookingsRouter = router({
             [key: string]: Date[];
           };
         } => {
-          const bookings = recurringInfoExtended
-            .filter((ext) => ext.recurringEventId === info.recurringEventId)
-            .reduce(
-              (prev, curr) => {
+          const bookings = recurringInfoExtended.reduce(
+            (prev, curr) => {
+              if (curr.recurringEventId === info.recurringEventId) {
                 prev[curr.status].push(curr.startTime);
-                return prev;
-              },
-              { ACCEPTED: [], CANCELLED: [], REJECTED: [], PENDING: [] } as {
-                [key in BookingStatus]: Date[];
               }
-            );
+              return prev;
+            },
+            { ACCEPTED: [], CANCELLED: [], REJECTED: [], PENDING: [] } as {
+              [key in BookingStatus]: Date[];
+            }
+          );
           return {
             recurringEventId: info.recurringEventId,
             count: info._count.recurringEventId,
@@ -548,8 +548,8 @@ export const bookingsRouter = router({
         user.credentials.forEach((credential) => {
           credentialsMap.set(credential.type, credential);
         });
-        const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter(
-          (ref) => !!credentialsMap.get(ref.type)
+        const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter((ref) =>
+          credentialsMap.has(ref.type)
         );
         bookingRefsFiltered.forEach(async (bookingRef) => {
           if (bookingRef.uid) {
