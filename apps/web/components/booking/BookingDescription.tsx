@@ -119,7 +119,7 @@ const BookingDescription: FC<Props> = (props) => {
           )}>
           <Clock
             className={classNames(
-              "min-h-4 min-w-4 ml-[2px] inline-block ltr:mr-[10px] rtl:ml-[10px]",
+              "ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]",
               isBookingPage && "mt-[2px]"
             )}
           />
