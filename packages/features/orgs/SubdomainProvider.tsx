@@ -50,6 +50,7 @@ interface SubdomainProviderProps {
   children: ReactNode;
 }
 
+/** A lot of this code can be adapted to handle differnt stuff when on subdomains - fetching org ID and storing in context, fetching themes etc. We just need to add to the context */
 export const SubdomainProvider = ({ children }: SubdomainProviderProps) => {
   const { subdomain, isSubdomain } = useSubdomainCheck();
   const { data } = trpc.viewer.orgs.getLogo.useQuery(
