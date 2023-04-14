@@ -3,7 +3,6 @@
     Don't modify this file manually.
 **/
 import dynamic from "next/dynamic";
-
 export const InstallAppButtonMap = {
   exchange2013calendar: dynamic(() => import("./exchange2013calendar/components/InstallAppButton")),
   exchange2016calendar: dynamic(() => import("./exchange2016calendar/components/InstallAppButton")),
