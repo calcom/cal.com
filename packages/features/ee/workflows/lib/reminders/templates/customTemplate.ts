@@ -86,7 +86,12 @@ const customTemplate = (
           .trim()
           .replaceAll(" ", "_")
           .toUpperCase();
-        if (variable === formatedToVariable && variables.responses) {
+
+        if (
+          variable === formatedToVariable &&
+          variables.responses &&
+          variables.responses[customInput as keyof typeof variables.responses].value
+        ) {
           dynamicText = dynamicText.replace(
             `{${variable}}`,
             variables.responses[customInput as keyof typeof variables.responses].value.toString()

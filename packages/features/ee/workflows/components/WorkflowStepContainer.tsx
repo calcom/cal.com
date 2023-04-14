@@ -282,7 +282,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <Label>{showTimeSectionAfter ? t("how_long_after") : t("how_long_before")}</Label>
                 <TimeTimeUnitInput form={form} />
                 <div className="mt-1 flex text-gray-500">
-                  <Info className="mr-1 mt-0.5" />
+                  <Info className="mr-1 mt-0.5 h-4 w-4" />
                   <p className="text-sm">{t("testing_workflow_info_message")}</p>
                 </div>
               </div>
@@ -739,7 +739,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                     <div className="text-default mt-2 flex text-sm">
                       <HelpCircle className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                      <p className="text-left">{t("using_additional_inputs_as_variables")}</p>
+                      <p className="text-left">{t("using_booking_questions_as_variables")}</p>
                     </div>
                   </button>
                 </div>
@@ -847,19 +847,19 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
           <DialogContent type="creation" className="sm:max-w-[610px] md:h-[570px]">
             <div className="-m-3 h-[430px] overflow-x-hidden overflow-y-scroll sm:m-0">
-              <h1 className="w-full text-xl font-semibold ">{t("how_additional_inputs_as_variables")}</h1>
+              <h1 className="w-full text-xl font-semibold ">{t("how_booking_questions_as_variables")}</h1>
               <div className="bg-muted-3 mb-7 mt-7 rounded-md sm:p-4">
                 <p className="test-sm font-medium">{t("format")}</p>
                 <ul className="text-emphasis mt-2 ml-5 list-disc">
                   <li>{t("uppercase_for_letters")}</li>
                   <li>{t("replace_whitespaces_underscores")}</li>
-                  <li>{t("ignore_special_characters")}</li>
+                  <li>{t("ignore_special_characters_booking_questions")}</li>
                 </ul>
                 <div className="mt-6">
                   <p className="test-sm w-full font-medium">{t("example_1")}</p>
                   <div className="mt-2 grid grid-cols-12">
                     <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
-                      {t("additional_input_label")}
+                      {t("booking_question_identifier")}
                     </div>
                     <div className="test-sm text-emphasis col-span-7">{t("company_size")}</div>
                     <div className="test-sm text-default col-span-5 w-full">{t("variable")}</div>
@@ -878,7 +878,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <p className="test-sm w-full font-medium">{t("example_2")}</p>
                   <div className="mt-2 grid grid-cols-12">
                     <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
-                      {t("additional_input_label")}
+                      {t("booking_question_identifier")}
                     </div>
                     <div className="test-sm text-emphasis col-span-7">{t("what_help_needed")}</div>
                     <div className="test-sm text-default col-span-5">{t("variable")}</div>
