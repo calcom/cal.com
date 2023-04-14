@@ -211,7 +211,7 @@ export async function handleConfirmation(args: {
         evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
         evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
         evtOfBooking.uid = updatedBookings[index].uid;
-        const eventTypeSlug = updatedBookings[index].eventType ? updatedBookings[index].eventType?.slug : "";
+        const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
 
         const isFirstBooking = index === 0;
         const videoCallUrl =

@@ -8,7 +8,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import { scheduleEmailReminder } from "./emailReminderManager";
 import { scheduleSMSReminder } from "./smsReminderManager";
 
-type ExetendedCalendarEvent = CalendarEvent & {
+type ExtendedCalendarEvent = CalendarEvent & {
   metadata?: { videoCallUrl: string | undefined };
   eventType: { slug?: string };
 };
@@ -20,7 +20,7 @@ export interface ScheduleWorkflowRemindersArgs {
     };
   })[];
   smsReminderNumber: string | null;
-  calendarEvent: ExetendedCalendarEvent;
+  calendarEvent: ExtendedCalendarEvent;
   requiresConfirmation?: boolean;
   isRescheduleEvent?: boolean;
   isFirstRecurringEvent?: boolean;
@@ -119,7 +119,7 @@ export interface SendCancelledRemindersArgs {
     };
   })[];
   smsReminderNumber: string | null;
-  evt: ExetendedCalendarEvent;
+  evt: ExtendedCalendarEvent;
   hideBranding?: boolean;
 }
 
