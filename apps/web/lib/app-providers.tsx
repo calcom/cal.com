@@ -13,6 +13,7 @@ import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
+import { SubdomainProvider } from "@calcom/features/orgs/SubdomainProvider";
 import { trpc } from "@calcom/trpc/react";
 import { MetaProvider } from "@calcom/ui";
 
@@ -114,14 +115,16 @@ const AppProviders = (props: AppPropsWithChildren) => {
       <SessionProvider session={session || undefined}>
         <CustomI18nextProvider {...props}>
           <TooltipProvider>
-            {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-            <CalcomThemeProvider
-              nonce={props.pageProps.nonce}
-              isThemeSupported={props.Component.isThemeSupported}>
-              <FeatureFlagsProvider>
-                <MetaProvider>{props.children}</MetaProvider>
-              </FeatureFlagsProvider>
-            </CalcomThemeProvider>
+            <SubdomainProvider>
+              {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
+              <CalcomThemeProvider
+                nonce={props.pageProps.nonce}
+                isThemeSupported={props.Component.isThemeSupported}>
+                <FeatureFlagsProvider>
+                  <MetaProvider>{props.children}</MetaProvider>
+                </FeatureFlagsProvider>
+              </CalcomThemeProvider>
+            </SubdomainProvider>
           </TooltipProvider>
         </CustomI18nextProvider>
       </SessionProvider>

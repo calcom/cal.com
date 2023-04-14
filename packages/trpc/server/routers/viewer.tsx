@@ -26,6 +26,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
+import { orgsRouter } from "@calcom/features/orgs/server/router";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { FULL_NAME_LENGTH_MAX_LIMIT, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
@@ -1338,6 +1339,7 @@ export const viewerRouter = mergeRouters(
     appRoutingForms: app_RoutingForms,
     eth: ethRouter,
     features: featureFlagRouter,
+    orgs: orgsRouter,
     appsRouter,
   })
 );
