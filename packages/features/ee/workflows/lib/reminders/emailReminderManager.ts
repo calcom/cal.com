@@ -2,6 +2,7 @@ import type { TimeUnit } from "@prisma/client";
 import { WorkflowTemplates } from "@prisma/client";
 import { WorkflowTriggerEvents, WorkflowActions, WorkflowMethods } from "@prisma/client";
 import client from "@sendgrid/client";
+import type { MailData } from "@sendgrid/helpers/classes/mail";
 import sgMail from "@sendgrid/mail";
 
 import dayjs from "@calcom/dayjs";
@@ -33,7 +34,7 @@ export const scheduleEmailReminder = async (
     time: number | null;
     timeUnit: TimeUnit | null;
   },
-  sendTo: string,
+  sendTo: MailData["to"],
   emailSubject: string,
   emailBody: string,
   workflowStepId: number,

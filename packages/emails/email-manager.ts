@@ -9,6 +9,7 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "./templates/attendee-cancelled-email";
 import AttendeeCancelledSeatEmail from "./templates/attendee-cancelled-seat-email";
+import AttendeeDailyVideoDownloadRecordingEmail from "./templates/attendee-daily-video-download-recording-email";
 import AttendeeDeclinedEmail from "./templates/attendee-declined-email";
 import AttendeeLocationChangeEmail from "./templates/attendee-location-change-email";
 import AttendeeRequestEmail from "./templates/attendee-request-email";
@@ -306,4 +307,15 @@ export const sendSlugReplacementEmail = async ({
 
 export const sendNoShowFeeChargedEmail = async (attendee: Person, evt: CalendarEvent) => {
   await sendEmail(() => new NoShowFeeChargedEmail(evt, attendee));
+};
+
+export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, downloadLink: string) => {
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const attendee of calEvent.attendees) {
+    emailsToSend.push(
+      sendEmail(() => new AttendeeDailyVideoDownloadRecordingEmail(calEvent, attendee, downloadLink))
+    );
+  }
+  await Promise.all(emailsToSend);
 };

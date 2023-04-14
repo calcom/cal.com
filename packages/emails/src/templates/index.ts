@@ -24,3 +24,4 @@ export { BrokenIntegrationEmail } from "./BrokenIntegrationEmail";
 export { OrganizerAttendeeCancelledSeatEmail } from "./OrganizerAttendeeCancelledSeatEmail";
 export { NoShowFeeChargedEmail } from "./NoShowFeeChargedEmail";
 export * from "@calcom/app-store/routing-forms/emails/components";
+export { AttendeeDailyVideoDownloadRecordingEmail } from "./AttendeeDailyVideoDownloadRecordingEmail";

@@ -5,6 +5,7 @@ import Head from "next/head";
 import Script from "next/script";
 
 import "@calcom/embed-core/src/embed-iframe";
+import { useEmbedUiConfig } from "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { trpc } from "@calcom/trpc/react";
 
@@ -27,6 +28,18 @@ const calFont = localFont({
 function MyApp(props: AppProps) {
   const { Component, pageProps, err, router } = props;
   let pageStatus = "200";
+  const { cssVarsPerTheme } = useEmbedUiConfig();
+  const cssVarsStyle = [];
+  if (cssVarsPerTheme) {
+    for (const [themeName, cssVars] of Object.entries(cssVarsPerTheme)) {
+      cssVarsStyle.push(`.${themeName} {`);
+      for (const [cssVarName, value] of Object.entries(cssVars)) {
+        cssVarsStyle.push(`--${cssVarName}: ${value};`);
+      }
+      cssVarsStyle.push(`}`);
+    }
+  }
+
   if (router.pathname === "/404") {
     pageStatus = "404";
   } else if (router.pathname === "/500") {
@@ -62,6 +75,12 @@ function MyApp(props: AppProps) {
           --font-cal: ${calFont.style.fontFamily};
         }
       `}</style>
+
+      <style jsx global>
+        {`
+          ${cssVarsStyle.join("")}
+        `}
+      </style>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
