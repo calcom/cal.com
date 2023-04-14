@@ -18,7 +18,6 @@ import {
 } from "@calcom/features/bookings/lib/getBookingFields";
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
 import { isSMSAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
-// import dayjs from "@calcom/dayjs";
 import {
   WORKFLOW_TEMPLATES,
   WORKFLOW_TRIGGER_EVENTS,
