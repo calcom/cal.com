@@ -1,6 +1,5 @@
 import type { UserPermissionRole, Membership, Team } from "@prisma/client";
 import { IdentityProvider } from "@prisma/client";
-import { SignJWT } from "jose";
 import type { AuthOptions, Session } from "next-auth";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
@@ -10,9 +9,8 @@ import GoogleProvider from "next-auth/providers/google";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
-import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
-import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
@@ -35,20 +33,8 @@ const IS_GOOGLE_LOGIN_ENABLED = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && G
 
 const usernameSlug = (username: string) => slugify(username) + "-" + randomString(6).toLowerCase();
 
-const signJwt = async (payload: { email: string }) => {
-  const secret = new TextEncoder().encode(process.env.CALENDSO_ENCRYPTION_KEY);
-  return new SignJWT(payload)
-    .setProtectedHeader({ alg: "HS256" })
-    .setSubject(payload.email)
-    .setIssuedAt()
-    .setIssuer(WEBSITE_URL)
-    .setAudience(`${WEBSITE_URL}/auth/login`)
-    .setExpirationTime("2m")
-    .sign(secret);
-};
-
 const loginWithTotp = async (user: { email: string }) =>
-  `/auth/login?totp=${await signJwt({ email: user.email })}`;
+  `/auth/login?totp=${await (await import("./signJwt")).default({ email: user.email })}`;
 
 type UserTeams = {
   teams: (Membership & {
@@ -255,7 +241,7 @@ if (isSAMLLoginEnabled) {
           return null;
         }
 
-        const { oauthController } = await jackson();
+        const { oauthController } = await (await import("@calcom/features/ee/sso/lib/jackson")).default();
 
         // Fetch access token
         const { access_token } = await oauthController.token({
