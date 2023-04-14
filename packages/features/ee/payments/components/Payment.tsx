@@ -1,12 +1,7 @@
 import type { Payment } from "@prisma/client";
-import {
-  useElements,
-  useStripe, // AddressElement,
-  PaymentElement,
-} from "@stripe/react-stripe-js";
-import { Elements } from "@stripe/react-stripe-js";
+import { useElements, useStripe, PaymentElement, Elements } from "@stripe/react-stripe-js";
 import type stripejs from "@stripe/stripe-js";
-import type { StripeCardElementChangeEvent, StripeElementLocale } from "@stripe/stripe-js";
+import type { StripeElementLocale } from "@stripe/stripe-js";
 import { useRouter } from "next/router";
 import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
@@ -19,25 +14,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Checkbox } from "@calcom/ui";
 
 import type { EventType } from ".prisma/client";
-
-const CARD_OPTIONS = {
-  // iconStyle: "solid" as const,
-  classes: {
-    base: "block p-2 w-full border-solid border-2 border-default rounded-md dark:bg-black dark:text-inverted dark:border-black focus-within:ring-black focus-within:border-black text-sm text-red-500",
-  },
-  style: {
-    base: {
-      color: "#666",
-      iconColor: "#666",
-      fontFamily: "ui-sans-serif, system-ui",
-      fontSmoothing: "antialiased",
-      fontSize: "32px",
-      "::placeholder": {
-        color: "#888888",
-      },
-    },
-  },
-} as const;
 
 type Props = {
   payment: Omit<Payment, "id" | "fee" | "success" | "refunded" | "externalId" | "data"> & {
@@ -120,20 +96,11 @@ const PaymentForm = (props: Props) => {
     }
   };
 
-  const handleChange = async (event: StripeCardElementChangeEvent) => {
-    // Listen for changes in the CardElement
-    // and display any errors as the customer types their card details
-    setState({ status: "idle" });
-    if (event.error)
-      setState({ status: "error", error: new Error(event.error?.message || t("missing_card_fields")) });
-  };
-
   return (
     <form id="payment-form" className="bg-subtle mt-4 rounded-md p-6" onSubmit={handleSubmit}>
       <div>
         <PaymentElement onChange={() => setState({ status: "idle" })} />
       </div>
-
       {paymentOption === "HOLD" && (
         <div className="bg-info mt-2 mb-5 rounded-md p-3">
           <Checkbox
@@ -181,11 +148,6 @@ const PaymentForm = (props: Props) => {
 
 const ELEMENT_STYLES: stripejs.Appearance = {
   theme: "none",
-  rules: {
-    ".Label": {
-      fontSize: "16px",
-    },
-  },
 };
 
 const ELEMENT_STYLES_DARK: stripejs.Appearance = {
