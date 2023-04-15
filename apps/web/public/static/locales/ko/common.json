@@ -1445,6 +1445,7 @@
   "fixed_round_robin": "고정 라운드 로빈",
   "add_one_fixed_attendee": "한 명의 고정 참석자를 추가하고 여러 참석자를 라운드 로빈 방식으로 순환합니다.",
   "calcom_is_better_with_team": "Cal.com이 팀 기능으로 더욱 좋아졌습니다",
+  "the_calcom_team": "Cal.com 팀",
   "add_your_team_members": "이벤트 타입에 팀원을 추가하세요. 집단 일정 관리를 사용해 모든 사람을 포함하거나 라운드 로빈 일정 관리로 가장 적합한 인원을 찾으세요.",
   "booking_limit_reached": "이 이벤트 타입에 대한 예약 한도에 도달했습니다",
   "duration_limit_reached": "이 이벤트 타입에 대한 기간 한도에 도달했습니다",
@@ -1674,7 +1675,13 @@
   "events_rescheduled": "일정이 변경된 이벤트",
   "analytics_for_organisation": "인사이트",
   "clear_filters": "필터 삭제",
+  "no_show_fee": "No-show 수수료",
+  "no_show_fee_charged_text_body": "No-show 수수료가 부과되었습니다",
+  "error_charging_card": "No-show 수수료 청구 중 문제가 발생했습니다. 나중에 다시 시도해주세요.",
+  "collect_no_show_fee": "No-show 수수료를 청구하세요",
+  "no_show_fee_charged": "No-show 수수료가 부과됩니다",
   "insights": "인사이트",
   "insights_no_data_found_for_filter": "선택한 필터 또는 날짜에 대한 데이터를 찾을 수 없습니다.",
+  "complete_your_booking": "예약을 완료하세요",
   "email_invite_team": "{{email}} 이 초대되었습니다."
 }
