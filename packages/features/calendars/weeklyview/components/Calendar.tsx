@@ -56,7 +56,7 @@ export function Calendar(props: CalendarComponentProps) {
             containerRef={container}
           /> */}
             <div className="flex flex-auto">
-              <div className="bg-default sticky left-0 z-10 w-14 flex-none ring-1 ring-muted" />
+              <div className="bg-default ring-muted sticky left-0 z-10 w-14 flex-none ring-1" />
               <div className="grid flex-auto grid-cols-1 grid-rows-1 ">
                 <HorizontalLines
                   hours={hours}

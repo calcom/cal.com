@@ -4,7 +4,7 @@ import React from "react";
 import { classNames } from "@calcom/lib";
 import { Tooltip } from "@calcom/ui";
 
-import { FiChevronDown } from "../icon";
+import { ChevronDown } from "../icon";
 
 export const AnimatedPopover = ({
   text,
@@ -54,7 +54,7 @@ export const AnimatedPopover = ({
                 )}
               </div>
             </Tooltip>
-            <FiChevronDown
+            <ChevronDown
               className={classNames("ml-2 transition-transform duration-150", open && "rotate-180")}
             />
           </div>

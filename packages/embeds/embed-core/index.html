@@ -17,15 +17,15 @@
       if (!location.search.includes("nonResponsive")) {
         document.write('<meta name="viewport" content="width=device-width"/>');
       }
-      (()=> {
+      (() => {
         const url = new URL(document.URL);
         // Only run the example specified by only=, avoids distraction and faster to test.
-        const only = window.only = url.searchParams.get("only");
-        const elementIdentifier = only !== "all" ? only.replace("ns:",""): null
+        const only = (window.only = url.searchParams.get("only"));
+        const elementIdentifier = only !== "all" ? only.replace("ns:", "") : null;
         if (elementIdentifier) {
-          location.hash="#cal-booking-place-" + elementIdentifier + "-iframe"
+          location.hash = "#cal-booking-place-" + elementIdentifier + "-iframe";
         }
-      })()
+      })();
     </script>
     <script>
       (function (C, A, L) {
@@ -70,7 +70,7 @@
       .inline-embed-container {
         /* border: 1px solid black; */
         margin-bottom: 5px;
-        border-bottom: 1px solid
+        border-bottom: 1px solid;
       }
 
       .loader {
@@ -82,8 +82,10 @@
     </style>
   </head>
   <body>
-    <span style="display: block;" ><a href="?nonResponsive">Non responsive version of this page here</a></span>
-    <span style="display: block;" ><a  href="?only=prerender-test">Go to Pre-render test page only</a><small></small></span>
+    <span style="display: block"><a href="?nonResponsive">Non responsive version of this page here</a></span>
+    <span style="display: block"
+      ><a href="?only=prerender-test">Go to Pre-render test page only</a><small></small
+    ></span>
     <div>
       <script>
         if (only === "all" || only === "prerender-test") {
@@ -94,28 +96,60 @@
             as you are reading this text, it would open up super fast[If you are running a production build on
             local]. Try switching to slow 3G or create a custom Network configuration which is impossibly
             slow</i
-          >`)
+          >`);
         }
-    </script>
+      </script>
     </div>
-    <span style="display: block;" ><a href="?only=all">Render All embeds together</a><small> - It would be slow to load</small></span>
+    <span style="display: block"
+      ><a href="?only=all">Render All embeds together</a><small> - It would be slow to load</small></span
+    >
     <div>
       <a href="?only=ns:floatingButton">Floating Popup</a>
 
       <h2>Popup Examples</h2>
-      <button data-cal-namespace="popupAutoTheme" data-cal-link="free">Book with Free User[Auto Theme]</button>
-      <button data-cal-namespace="popupDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="free">Book with Free User[Dark Theme]</button>
-      <button data-cal-namespace="popupTeamLinkLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="team/seeded-team/collective-seeded-team-event">Book with Test Team[Light Theme]</button>
-      <button data-cal-namespace="popupTeamLinkDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="team/seeded-team/collective-seeded-team-event">Book with Test Team[Dark Theme]</button>
-      <button data-cal-namespace="popupTeamLinksList" data-cal-link="team/seeded-team/">See Team Links [Auto Theme]</button>
+      <button data-cal-namespace="popupAutoTheme" data-cal-link="free">
+        Book with Free User[Auto Theme]
+      </button>
+      <button data-cal-namespace="popupDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="free">
+        Book with Free User[Dark Theme]
+      </button>
+      <button
+        data-cal-namespace="popupTeamLinkLightTheme"
+        data-cal-config='{"theme":"light"}'
+        data-cal-link="team/seeded-team/collective-seeded-team-event">
+        Book with Test Team[Light Theme]
+      </button>
+      <button
+        data-cal-namespace="popupTeamLinkDarkTheme"
+        data-cal-config='{"theme":"dark"}'
+        data-cal-link="team/seeded-team/collective-seeded-team-event">
+        Book with Test Team[Dark Theme]
+      </button>
+      <button data-cal-namespace="popupTeamLinksList" data-cal-link="team/seeded-team/">
+        See Team Links [Auto Theme]
+      </button>
       <script>
-        let popupRescheduleId = new URL(document.URL).searchParams.get("popupRescheduleId") || "qm3kwt3aTnVD7vmP9tiT2f"
-        document.write(`<button data-cal-namespace="popupReschedule" data-cal-link="reschedule/${popupRescheduleId}">Reschedule Event[Auto Theme]</button>`)
+        let popupRescheduleId =
+          new URL(document.URL).searchParams.get("popupRescheduleId") || "qm3kwt3aTnVD7vmP9tiT2f";
+        document.write(
+          `<button data-cal-namespace="popupReschedule" data-cal-link="reschedule/${popupRescheduleId}">Reschedule Event[Auto Theme]</button>`
+        );
       </script>
-      <button data-cal-namespace="popupPaidEvent" data-cal-link="pro/paid">Book Paid Event [Auto Theme]</button>
-      <button data-cal-namespace="popupHideEventTypeDetails" data-cal-link="free/30min">Book Free Event [Auto Theme][uiConfig.hideEventTypeDetails=true]</button>
-      <button data-cal-namespace="routingFormAuto" data-cal-link="forms/948ae412-d995-4865-875a-48302588de03">Book through Routing Form [Auto Theme]</button>
-      <button data-cal-namespace="routingFormDark" data-cal-config='{"theme":"dark"}' data-cal-link="forms/948ae412-d995-4865-875a-48302588de03">Book through Routing Form [Dark Theme]</button>
+      <button data-cal-namespace="popupPaidEvent" data-cal-link="pro/paid">
+        Book Paid Event [Auto Theme]
+      </button>
+      <button data-cal-namespace="popupHideEventTypeDetails" data-cal-link="free/30min">
+        Book Free Event [Auto Theme][uiConfig.hideEventTypeDetails=true]
+      </button>
+      <button data-cal-namespace="routingFormAuto" data-cal-link="forms/948ae412-d995-4865-875a-48302588de03">
+        Book through Routing Form [Auto Theme]
+      </button>
+      <button
+        data-cal-namespace="routingFormDark"
+        data-cal-config='{"theme":"dark"}'
+        data-cal-link="forms/948ae412-d995-4865-875a-48302588de03">
+        Book through Routing Form [Dark Theme]
+      </button>
       <!-- <div>
         <h2>Embed for Pages behind authentication</h2>
         <button data-cal-namespace="upcomingBookings" data-cal-config='{"theme":"dark"}' data-cal-link="bookings/upcoming">Show Upcoming Bookings</button>
@@ -128,15 +162,18 @@
           <a href="?only=ns:default">[Dark Theme][Guests(janedoe@example.com and test@example.com)]</a>
         </h3>
         <i class="last-action"> You would see last Booking page action in my place </i>
-        <div >
-          <div class="place" style="width:100%;"></div>
+        <div>
+          <div class="place" style="width: 100%"></div>
           <div class="loader" id="cal-booking-loader-"></div>
         </div>
       </div>
       <div class="inline-embed-container" id="cal-booking-place-second">
         <h3><a href="?only=ns:second">[Custom Styling]</a></h3>
         <div class="place">
-          <div>If you render booking embed in me, I won't restrict you. The entire page is yours. Content is by default aligned center</div>
+          <div>
+            If you render booking embed in me, I won't restrict you. The entire page is yours. Content is by
+            default aligned center
+          </div>
           <button
             onclick="(function () {Cal.ns.second('ui', {styles:{eventTypeListItem:{backgroundColor:'blue'}}})})()">
             Change <code>eventTypeListItem</code> bg color
@@ -144,13 +181,16 @@
           <button onclick="(function () {Cal.ns.second('ui', {styles:{body:{background:'red'}}})})()">
             Change <code>body</code> bg color
           </button>
-          <button onclick="(function () {Cal.ns.second('ui', {styles:{align:'left'}})})()">
-            Align left
+          <button
+            onclick="(function () {Cal.ns.second('ui', {cssVarsPerTheme:{light:{'cal-border-booker':'green', 'cal-border-booker-width':'20px'},dark:{'cal-border-booker':'red', 'cal-border-booker-width':'5px'}}})})()">
+            Change booker border for dark and light themes
           </button>
+          <button onclick="(function () {Cal.ns.second('ui', {styles:{align:'left'}})})()">Align left</button>
           <button onclick="(function () {Cal.ns.second('ui', {styles:{align:'center'}})})()">
             Align Center
           </button>
-          <button onclick="(function () {Cal.ns.second('ui', {styles:{enabledDateButton: {
+          <button
+            onclick="(function () {Cal.ns.second('ui', {styles:{enabledDateButton: {
             backgroundColor: generateRandomHexColor(),
           },
           disabledDateButton: {
@@ -158,7 +198,6 @@
           },}})})()">
             Change 'enabledDateButton` and `disabledDateButton` background Color
           </button>
-          
         </div>
       </div>
       <div class="inline-embed-container" id="cal-booking-place-third">
@@ -177,28 +216,21 @@
 
     <div class="inline-embed-container" id="cal-booking-place-fifth">
       <h3><a href="?only=ns:fifth">[Team Event Test][inline along with some content]</a></h3>
-      <div style="display:flex;align-items: center;">
-        <h4 style="width: 30%">
-          On the right side you can book a team meeting =>
-        </h4>
-        <div style="width: 70%" class="place">
-        </div>
+      <div style="display: flex; align-items: center">
+        <h4 style="width: 30%">On the right side you can book a team meeting =></h4>
+        <div style="width: 70%" class="place"></div>
       </div>
     </div>
     <div class="inline-embed-container" id="cal-booking-place-inline-routing-form">
       <h3><a href="?only=inline-routing-form">Inline Routing Form</a></h3>
-      <div style="display:flex;align-items: center;">
-        <h4 style="width: 30%">
-          On the right side you can book a team meeting =>
-        </h4>
-        <div style="width: 70%" class="place">
-        </div>
+      <div style="display: flex; align-items: center">
+        <h4 style="width: 30%">On the right side you can book a team meeting =></h4>
+        <div style="width: 70%" class="place"></div>
       </div>
     </div>
     <div class="inline-embed-container" id="cal-booking-place-hideEventTypeDetails">
       <h3><a href="?only=hideEventTypeDetails">Hide EventType Details Test</a></h3>
-      <div class="place">
-      </div>
+      <div class="place"></div>
     </div>
     <script src="./playground.ts"></script>
   </body>
