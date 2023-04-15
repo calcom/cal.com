@@ -303,7 +303,6 @@ export default async function main() {
     if (generatedApp.isTemplate && process.argv[2] !== "seed-templates") {
       continue;
     }
-    console.log(`Creating app ${generatedApp.slug} with ${generatedApp.dirName}...`);
     await createApp(
       generatedApp.slug,
       generatedApp.dirName,
