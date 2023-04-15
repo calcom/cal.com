@@ -232,7 +232,6 @@ export default async function main() {
     });
   }
   await createApp("jitsi", "jitsivideo", ["video"], "jitsi_video");
-  await createApp("sylapsvideo", "sylapsvideo", ["video"], "sylaps_video");
   // Other apps
   if (process.env.HUBSPOT_CLIENT_ID && process.env.HUBSPOT_CLIENT_SECRET) {
     await createApp("hubspot", "hubspot", ["other"], "hubspot_other_calendar", {
@@ -304,6 +303,7 @@ export default async function main() {
     if (generatedApp.isTemplate && process.argv[2] !== "seed-templates") {
       continue;
     }
+    console.log(`Creating app ${generatedApp.slug} with ${generatedApp.dirName}...`);
     await createApp(
       generatedApp.slug,
       generatedApp.dirName,
