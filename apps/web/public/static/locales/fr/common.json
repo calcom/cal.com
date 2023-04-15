@@ -1,4 +1,5 @@
 {
+  "identity_provider": "Fournisseur d'identité",
   "trial_days_left": "Il vous reste $t(day, {\"count\": {{days}} }) pour votre essai Pro",
   "day_one": "{{count}} jour",
   "day_other": "{{count}} jours",
