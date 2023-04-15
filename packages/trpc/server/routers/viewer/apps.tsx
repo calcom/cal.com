@@ -142,6 +142,8 @@ export const appsRouter = router({
 
       // If disabling an app then we need to alert users based on the app type
       if (input.enabled) {
+        const translations = new Map();
+
         if (app.categories.some((category) => ["calendar", "video"].includes(category))) {
           // Find all users with the app credentials
           const appCredentials = await prisma.credential.findMany({
@@ -158,18 +160,26 @@ export const appsRouter = router({
             },
           });
 
+          // TODO: This should be done async probably using a queue.
           Promise.all(
             appCredentials.map(async (credential) => {
-              const t = await getTranslation(credential.user?.locale || "en", "common");
+              // No need to continue if credential does not have a user
+              if (!credential.user || !credential.user.email) return;
 
-              if (credential.user?.email) {
-                await sendDisabledAppEmail({
-                  email: credential.user.email,
-                  appName: appMetadata?.name || app.slug,
-                  appType: app.categories,
-                  t,
-                });
+              const locale = credential.user.locale ?? "en";
+              let t = translations.get(locale);
+
+              if (!t) {
+                t = await getTranslation(locale, "common");
+                translations.set(locale, t);
               }
+
+              await sendDisabledAppEmail({
+                email: credential.user.email,
+                appName: appMetadata?.name || app.slug,
+                appType: app.categories,
+                t,
+              });
             })
           );
         } else {
@@ -193,8 +203,11 @@ export const appsRouter = router({
             },
           });
 
+          // TODO: This should be done async probably using a queue.
           Promise.all(
             eventTypesWithApp.map(async (eventType) => {
+              // TODO: This update query can be removed by merging it with
+              // the previous `findMany` query, if that query returns certain values.
               await prisma.eventType.update({
                 where: {
                   id: eventType.id,
@@ -215,18 +228,26 @@ export const appsRouter = router({
                 },
               });
 
-              eventType.users.map(async (user) => {
-                const t = await getTranslation(user.locale || "en", "common");
+              return Promise.all(
+                eventType.users.map(async (user) => {
+                  const locale = user.locale ?? "en";
+                  let t = translations.get(locale);
 
-                await sendDisabledAppEmail({
-                  email: user.email,
-                  appName: appMetadata?.name || app.slug,
-                  appType: app.categories,
-                  t,
-                  title: eventType.title,
-                  eventTypeId: eventType.id,
-                });
-              });
+                  if (!t) {
+                    t = await getTranslation(locale, "common");
+                    translations.set(locale, t);
+                  }
+
+                  await sendDisabledAppEmail({
+                    email: user.email,
+                    appName: appMetadata?.name || app.slug,
+                    appType: app.categories,
+                    t,
+                    title: eventType.title,
+                    eventTypeId: eventType.id,
+                  });
+                })
+              );
             })
           );
         }
