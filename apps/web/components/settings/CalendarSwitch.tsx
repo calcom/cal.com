@@ -75,7 +75,7 @@ export function CalendarSwitch(props: {
       />
       {props.defaultSelected && (
         <Badge variant="gray">
-          <div className="flex">
+          <div className="flex items-center">
             <ArrowLeft className="text-default mr-1" /> {t("adding_events_to")}
           </div>
         </Badge>
