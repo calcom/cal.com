@@ -20,4 +20,4 @@ jobs:
           days-before-pr-stale: 14
           days-before-pr-close: 7
           stale-pr-message: "This PR is being marked as stale due to inactivity."
-          close-pr-message: "This PR is being closed due to inactivity. Please reopen if work is intended to be continued.
+          close-pr-message: "This PR is being closed due to inactivity. Please reopen if work is intended to be continued."

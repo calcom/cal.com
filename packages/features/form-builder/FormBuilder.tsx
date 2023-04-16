@@ -419,7 +419,7 @@ export const FormBuilder = function FormBuilder({
             fieldIndex: -1,
           })
         }>
-        <DialogContent enableOverflow data-testid="edit-field-dialog">
+        <DialogContent data-testid="edit-field-dialog">
           <DialogHeader title={t("add_a_booking_question")} subtitle={t("form_builder_field_add_subtitle")} />
           <div>
             <Form
@@ -471,6 +471,9 @@ export const FormBuilder = function FormBuilder({
                 value={FieldTypesMap[fieldForm.getValues("type")]}
                 options={FieldTypes.filter((f) => !f.systemOnly)}
                 label={t("input_type")}
+                classNames={{
+                  menuList: () => "min-h-[27.25rem]",
+                }}
               />
               <InputField
                 required
@@ -637,9 +640,9 @@ export const ComponentForField = ({
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
           placeholder={field.placeholder}
+          name={field.name}
           label={field.label}
           readOnly={readOnly}
-          name={field.name}
           value={value as string}
           setValue={setValue as (arg: typeof value) => void}
         />
@@ -651,6 +654,7 @@ export const ComponentForField = ({
     return (
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
+          name={field.name}
           label={field.label}
           readOnly={readOnly}
           value={value as boolean}
@@ -666,6 +670,7 @@ export const ComponentForField = ({
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
           placeholder={field.placeholder}
+          name={field.name}
           label={field.label}
           readOnly={readOnly}
           value={value as string[]}
@@ -685,6 +690,7 @@ export const ComponentForField = ({
         <componentConfig.factory
           readOnly={readOnly}
           value={value as string}
+          name={field.name}
           placeholder={field.placeholder}
           setValue={setValue as (arg: typeof value) => void}
           options={field.options.map((o) => ({ ...o, title: o.label }))}
@@ -701,6 +707,7 @@ export const ComponentForField = ({
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
           placeholder={field.placeholder}
+          name={field.name}
           readOnly={readOnly}
           value={value as string[]}
           setValue={setValue as (arg: typeof value) => void}

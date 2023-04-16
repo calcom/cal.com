@@ -177,7 +177,7 @@ export default function Success(props: SuccessProps) {
   // - Event Type has require confirmation option enabled always
   // - EventType has conditionally enabled confirmation option based on how far the booking is scheduled.
   // - It's a paid event and payment is pending.
-  const needsConfirmation = bookingInfo.status === BookingStatus.PENDING;
+  const needsConfirmation = bookingInfo.status === BookingStatus.PENDING && eventType.requiresConfirmation;
   const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
 
   const isCancelled =
