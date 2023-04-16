@@ -547,7 +547,7 @@ const BookingPage = ({
         <div
           className={classNames(
             "main",
-            isBackgroundTransparent ? "" : "bg-default",
+            isBackgroundTransparent ? "" : "bg-default dark:bg-muted",
             "border-booker sm:border-booker-width rounded-md"
           )}>
           <div className="sm:flex">
