@@ -781,10 +781,6 @@ export const bookingsRouter = router({
     });
 
     const authorized = async () => {
-      // if the organizer
-      if (booking.userId === user.id) {
-        return true;
-      }
       const eventType = await prisma.eventType.findUnique({
         where: {
           id: booking.eventTypeId || undefined,
