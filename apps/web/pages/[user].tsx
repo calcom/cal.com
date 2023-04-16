@@ -3,7 +3,6 @@ import classNames from "classnames";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
 import {
@@ -24,7 +23,6 @@ import defaultEvents, {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -93,14 +91,15 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   const query = { ...router.query };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
   const nameOrUsername = user.name || user.username || "";
-  const telemetry = useTelemetry();
 
-  useEffect(() => {
+  /* 
+   const telemetry = useTelemetry();
+   useEffect(() => {
     if (top !== window) {
       //page_view will be collected automatically by _middleware.ts
       telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/[user]"));
     }
-  }, [telemetry, router.asPath]);
+  }, [telemetry, router.asPath]); */
   const isEventListEmpty = eventTypes.length === 0;
   return (
     <>

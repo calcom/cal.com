@@ -39,7 +39,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { trpc } from "@calcom/trpc";
 import { Button, Form, Tooltip, useCalcomTheme } from "@calcom/ui";
@@ -252,13 +252,13 @@ const BookingPage = ({
   }
 
   useEffect(() => {
-    if (top !== window) {
+    /* if (top !== window) {
       //page_view will be collected automatically by _middleware.ts
       telemetry.event(
         telemetryEventTypes.embedView,
         collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
       );
-    }
+    } */
     reserveSlot();
     const interval = setInterval(reserveSlot, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
     return () => {
