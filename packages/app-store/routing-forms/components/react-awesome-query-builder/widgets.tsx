@@ -23,6 +23,7 @@ export type CommonProps<
   placeholder?: string;
   readOnly?: boolean;
   className?: string;
+  name?: string;
   label?: string;
   value: TVal;
   setValue: (value: TVal) => void;
