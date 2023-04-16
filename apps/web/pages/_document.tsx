@@ -13,7 +13,11 @@ class MyDocument extends Document<Props> {
   static async getInitialProps(ctx: DocumentContext) {
     const { nonce } = csp(ctx.req || null, ctx.res || null);
     if (!process.env.CSP_POLICY) {
-      ctx.res?.setHeader("x-csp", "not-opted-in");
+      try {
+        ctx.res?.setHeader("x-csp", "not-opted-in");
+      } catch (e) {
+        // Getting "Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client” when revalidate calendar chache
+      }
     } else if (!ctx.res?.getHeader("x-csp")) {
       // If x-csp not set by gSSP, then it's initialPropsOnly
       ctx.res?.setHeader("x-csp", "initialPropsOnly");
