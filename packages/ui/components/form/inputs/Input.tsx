@@ -68,7 +68,7 @@ type AddonProps = {
 const Addon = ({ isFilled, children, className, error }: AddonProps) => (
   <div
     className={classNames(
-      "addon-wrapper border-default min-h-9 ltr border px-3",
+      "addon-wrapper border-default min-h-9 border px-3",
       isFilled && "bg-subtle",
       className
     )}>
