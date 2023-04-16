@@ -821,7 +821,7 @@
   "number_apps_one": "{{count}} Application",
   "number_apps_other": "{{count}} applications",
   "trending_apps": "Applications populaires",
-  "most_popular": "Le plus populaire",
+  "most_popular": "Les plus populaires",
   "explore_apps": "Applications {{category}}",
   "installed_apps": "Apps installées",
   "free_to_use_apps": "Gratuit",
