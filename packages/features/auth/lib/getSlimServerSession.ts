@@ -63,7 +63,7 @@ export async function getSlimServerSession(options: {
 
   const session: Session = {
     hasValidLicense,
-    expires: new Date(typeof token.exp === "number" ? token.exp : Date.now()).toISOString(),
+    expires: new Date(typeof token.exp === "number" ? token.exp * 1000 : Date.now()).toISOString(),
     user: {
       id: user.id,
       name: user.name,
