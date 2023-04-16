@@ -1,7 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import superjson from "superjson";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getSlimServerSession } from "@calcom/features/auth/lib/getSlimServerSession";
 import { createProxySSGHelpers } from "@calcom/trpc/react/ssg";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
@@ -13,9 +13,9 @@ import { appRouter } from "@calcom/trpc/server/routers/_app";
  * Make sure to `return { props: { trpcState: ssr.dehydrate() } }` at the end.
  */
 export async function ssrInit(context: GetServerSidePropsContext) {
-  const { req, res } = context;
+  const { req, res: _res } = context;
 
-  const sessionGetter = () => getServerSession({ req, res });
+  const sessionGetter = () => getSlimServerSession({ req });
 
   const ctx = await createContext(context, sessionGetter);
 

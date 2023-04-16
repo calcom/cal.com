@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getSlimServerSession } from "@calcom/features/auth/lib/getSlimServerSession";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmailField } from "@calcom/ui";
 
@@ -148,7 +148,7 @@ ForgotPassword.isThemeSupported = false;
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, res } = context;
 
-  const session = await getServerSession({ req, res });
+  const session = await getSlimServerSession({ req });
 
   if (session) {
     res.writeHead(302, { Location: "/" });

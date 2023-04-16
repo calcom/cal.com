@@ -11,7 +11,7 @@ import { z } from "zod";
 
 import { validateCustomEventName } from "@calcom/core/event";
 import type { EventLocationType } from "@calcom/core/location";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getSlimServerSession } from "@calcom/features/auth/lib/getSlimServerSession";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -446,9 +446,9 @@ const EventTypePageWrapper = (props: inferSSRProps<typeof getServerSideProps>) =
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, res, query } = context;
+  const { req, res: _res, query } = context;
 
-  const session = await getServerSession({ req, res });
+  const session = await getSlimServerSession({ req });
 
   const typeParam = parseInt(asStringOrThrow(query.type));
   const ssr = await ssrInit(context);

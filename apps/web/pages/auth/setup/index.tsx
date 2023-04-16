@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getSlimServerSession } from "@calcom/features/auth/lib/getSlimServerSession";
 import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
@@ -140,12 +140,12 @@ Setup.isThemeSupported = false;
 export default Setup;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, res } = context;
+  const { req, res: _res } = context;
 
   const ssr = await ssrInit(context);
   const userCount = await prisma.user.count();
 
-  const session = await getServerSession({ req, res });
+  const session = await getSlimServerSession({ req });
 
   if (session?.user.role && session?.user.role !== UserPermissionRole.ADMIN) {
     return {

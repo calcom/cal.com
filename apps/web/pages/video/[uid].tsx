@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import z from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getSlimServerSession } from "@calcom/features/auth/lib/getSlimServerSession";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
@@ -262,7 +262,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { req, res } = context;
+  const { req, res: _res } = context;
 
   const ssr = await ssrInit(context);
 
@@ -327,7 +327,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     endTime: booking.endTime.toString(),
   });
 
-  const session = await getServerSession({ req, res });
+  const session = await getSlimServerSession({ req });
 
   // set meetingPassword to null for guests
   if (session?.user.id !== bookingObj.user?.id) {

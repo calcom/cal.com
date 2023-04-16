@@ -11,7 +11,7 @@ import { FaGoogle } from "react-icons/fa";
 
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getSlimServerSession } from "@calcom/features/auth/lib/getSlimServerSession";
 import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
@@ -230,9 +230,9 @@ export default function Login({
 
 // TODO: Once we understand how to retrieve prop types automatically from getServerSideProps, remove this temporary variable
 const _getServerSideProps = async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { req, res } = context;
+  const { req, res: _res } = context;
 
-  const session = await getServerSession({ req, res });
+  const session = await getSlimServerSession({ req });
   const ssr = await ssrInit(context);
 
   const verifyJwt = (jwt: string) => {

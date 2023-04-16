@@ -3,7 +3,7 @@ import type { ChangeEventHandler } from "react";
 import { useState } from "react";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getSlimServerSession } from "@calcom/features/auth/lib/getSlimServerSession";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/client";
@@ -86,11 +86,11 @@ export default function Apps({ categories, appStore }: inferSSRProps<typeof getS
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, res } = context;
+  const { req, res: _res } = context;
 
   const ssr = await ssrInit(context);
 
-  const session = await getServerSession({ req, res });
+  const session = await getSlimServerSession({ req });
 
   let appStore;
   if (session?.user?.id) {

@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from 
 import type { Session } from "next-auth";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getSlimServerSession } from "@calcom/features/auth/lib/getSlimServerSession";
 import { getLocaleFromHeaders } from "@calcom/lib/i18n";
 import prisma from "@calcom/prisma";
 import type { SelectedCalendar, User as PrismaUser, Credential } from "@calcom/prisma/client";
@@ -39,7 +39,7 @@ export type GetSessionFn =
     }) => Promise<Session | null>)
   | (() => Promise<Session | null>);
 
-const DEFAULT_SESSION_GETTER: GetSessionFn = ({ req, res }) => getServerSession({ req, res });
+const DEFAULT_SESSION_GETTER: GetSessionFn = ({ req, res: _res }) => getSlimServerSession({ req });
 
 /**
  * Inner context. Will always be available in your procedures, in contrast to the outer context.

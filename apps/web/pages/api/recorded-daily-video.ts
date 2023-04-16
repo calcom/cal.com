@@ -4,7 +4,7 @@ import { z } from "zod";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getSlimServerSession } from "@calcom/features/auth/lib/getSlimServerSession";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -33,7 +33,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   const { recordingId, bookingUID } = response.data;
-  const session = await getServerSession({ req, res });
+  const session = await getSlimServerSession({ req });
 
   if (!session?.user) {
     return res.status(401).send({

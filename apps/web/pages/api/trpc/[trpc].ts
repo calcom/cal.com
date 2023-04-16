@@ -3,7 +3,7 @@
  */
 import { z } from "zod";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getSlimServerSession } from "@calcom/features/auth/lib/getSlimServerSession";
 import * as trpcNext from "@calcom/trpc/server/adapters/next";
 import { createContext as createTrpcContext } from "@calcom/trpc/server/createContext";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
@@ -14,7 +14,7 @@ export default trpcNext.createNextApiHandler({
    * @link https://trpc.io/docs/context
    */
   createContext: ({ req, res }) => {
-    const sessionGetter = () => getServerSession({ req, res });
+    const sessionGetter = () => getSlimServerSession({ req });
 
     return createTrpcContext({ req, res }, sessionGetter);
   },

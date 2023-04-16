@@ -2,13 +2,13 @@ import { IdentityProvider } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getSlimServerSession } from "@calcom/features/auth/lib/getSlimServerSession";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import prisma from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getServerSession({ req, res });
+  const session = await getSlimServerSession({ req });
 
   if (!session || !session.user || !session.user.email) {
     res.status(401).json({ message: "Not authenticated" });

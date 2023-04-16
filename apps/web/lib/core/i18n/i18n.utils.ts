@@ -2,7 +2,7 @@ import parser from "accept-language-parser";
 import type { IncomingMessage } from "http";
 import type { GetServerSidePropsContext } from "next";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getSlimServerSession } from "@calcom/features/auth/lib/getSlimServerSession";
 import type { Maybe } from "@calcom/trpc/server";
 
 import { i18n } from "../../../next-i18next.config";
@@ -17,11 +17,11 @@ export function getLocaleFromHeaders(req: IncomingMessage): string {
 
 export const getOrSetUserLocaleFromHeaders = async (
   req: GetServerSidePropsContext["req"],
-  res: GetServerSidePropsContext["res"]
+  _res: GetServerSidePropsContext["res"]
 ): Promise<string> => {
   const { default: prisma } = await import("@calcom/prisma");
 
-  const session = await getServerSession({ req, res });
+  const session = await getSlimServerSession({ req });
   const preferredLocale = getLocaleFromHeaders(req);
 
   if (session?.user?.id) {
