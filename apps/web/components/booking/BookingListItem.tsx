@@ -28,10 +28,11 @@ import {
   TableActions,
   TextAreaField,
 } from "@calcom/ui";
-import { FiCheck, FiClock, FiMapPin, FiRefreshCcw, FiSend, FiSlash, FiX } from "@calcom/ui/components/icon";
+import { Check, Clock, MapPin, RefreshCcw, Send, Slash, X, CreditCard } from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
+import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
@@ -56,7 +57,9 @@ function BookingListItem(booking: BookingItemProps) {
   const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
+  const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
+  const cardCharged = booking?.payment[0]?.success;
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
       if (data?.status === BookingStatus.REJECTED) {
@@ -113,19 +116,23 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setRejectionDialogIsOpen(true);
       },
-      icon: FiSlash,
+      icon: Slash,
       disabled: mutation.isLoading,
     },
-    {
-      id: "confirm",
-      label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
-      onClick: () => {
-        bookingConfirm(true);
-      },
-      icon: FiCheck,
-      disabled: mutation.isLoading,
-      color: "primary",
-    },
+    // For bookings with payment, only confirm if the booking is paid for
+    ...((isPending && !booking?.eventType?.price) || (!!booking?.eventType?.price && booking.paid)
+      ? [
+          {
+            id: "confirm",
+            label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
+            onClick: () => {
+              bookingConfirm(true);
+            },
+            icon: Check,
+            disabled: mutation.isLoading,
+          },
+        ]
+      : []),
   ];
 
   const showRecordingActions: ActionType[] = [
@@ -149,7 +156,7 @@ function BookingListItem(booking: BookingItemProps) {
         isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
       }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
       `,
-      icon: FiX,
+      icon: X,
     },
     {
       id: "edit_booking",
@@ -157,7 +164,7 @@ function BookingListItem(booking: BookingItemProps) {
       actions: [
         {
           id: "reschedule",
-          icon: FiClock,
+          icon: Clock,
           label: t("reschedule_booking"),
           href: `/reschedule/${booking.uid}${
             booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
@@ -165,7 +172,7 @@ function BookingListItem(booking: BookingItemProps) {
         },
         {
           id: "reschedule_request",
-          icon: FiSend,
+          icon: Send,
           iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
           label: t("send_reschedule_request"),
           onClick: () => {
@@ -178,9 +185,21 @@ function BookingListItem(booking: BookingItemProps) {
           onClick: () => {
             setIsOpenLocationDialog(true);
           },
-          icon: FiMapPin,
+          icon: MapPin,
         },
       ],
+    },
+  ];
+
+  const chargeCardActions: ActionType[] = [
+    {
+      id: "charge_card",
+      label: cardCharged ? t("no_show_fee_charged") : t("collect_no_show_fee"),
+      disabled: cardCharged,
+      onClick: () => {
+        setChargeCardDialogIsOpen(true);
+      },
+      icon: CreditCard,
     },
   ];
 
@@ -194,7 +213,7 @@ function BookingListItem(booking: BookingItemProps) {
 
   const RequestSentMessage = () => {
     return (
-      <Badge startIcon={FiSend} size="md" variant="gray" data-testid="request_reschedule_sent">
+      <Badge startIcon={Send} size="md" variant="gray" data-testid="request_reschedule_sent">
         {t("reschedule_request_sent")}
       </Badge>
     );
@@ -237,10 +256,9 @@ function BookingListItem(booking: BookingItemProps) {
       },
     });
   };
-  const showRecordingsButtons =
-    (booking.location === "integrations:daily" || booking?.location?.trim() === "") && isPast && isConfirmed;
 
   const title = booking.title;
+  const showRecordingsButtons = booking.isRecorded && isPast && isConfirmed;
   return (
     <>
       <RescheduleDialog
@@ -254,6 +272,15 @@ function BookingListItem(booking: BookingItemProps) {
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
       />
+      {booking.paid && (
+        <ChargeCardDialog
+          isOpenDialog={chargeCardDialogIsOpen}
+          setIsOpenDialog={setChargeCardDialogIsOpen}
+          bookingId={booking.id}
+          paymentAmount={booking?.payment[0].amount}
+          paymentCurrency={booking?.payment[0].currency}
+        />
+      )}
       {showRecordingsButtons && (
         <ViewRecordingsDialog
           booking={booking}
@@ -321,7 +348,7 @@ function BookingListItem(booking: BookingItemProps) {
             )}
             {booking.paid && (
               <Badge className="ltr:mr-2 rtl:ml-2" variant="green">
-                {t("paid")}
+                {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
               </Badge>
             )}
             {recurringDates !== undefined && (
@@ -423,6 +450,11 @@ function BookingListItem(booking: BookingItemProps) {
               <RequestSentMessage />
             </div>
           )}
+          {booking.status === "ACCEPTED" && booking.paid && booking?.payment[0]?.paymentOption === "HOLD" && (
+            <div className="ml-2">
+              <TableActions actions={chargeCardActions} />
+            </div>
+          )}
         </td>
       </tr>
     </>
@@ -476,7 +508,7 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                 );
               })}>
               <div className="text-default">
-                <FiRefreshCcw
+                <RefreshCcw
                   strokeWidth="3"
                   className="text-muted float-left mr-1 mt-1.5 inline-block h-3 w-3"
                 />

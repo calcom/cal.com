@@ -1,5 +1,5 @@
+import { Check } from "lucide-react";
 import React from "react";
-import { FiCheck } from "react-icons/fi";
 
 import { classNames as cn } from "@calcom/lib";
 
@@ -36,13 +36,13 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
               className={cn(
                 "flex h-4 w-4 items-center justify-center rounded-[4px]  border opacity-70 ltr:mr-2 rtl:ml-2",
                 isSelected
-                  ? "dark:bg-darkgray-200  dark:border-darkgray-300 bg-gray-800 text-gray-50"
-                  : " dark:bg-darkgray-200 dark:border-darkgray-300 border-default bg-mutedext-gray-600"
+                  ? "dark:bg-darkgray-200  border-subtle bg-gray-800 text-gray-50"
+                  : " dark:bg-darkgray-200 border-subtle border-default bg-mutedext-gray-600"
               )}>
-              {isSelected && <FiCheck className="h-3 w-3 text-current" />}
+              {isSelected && <Check className="h-3 w-3 text-current" />}
             </div>
           ) : (
-            isSelected && <FiCheck className="text-emphasis h-3 w-3" strokeWidth={2} />
+            isSelected && <Check className="text-emphasis h-3 w-3" strokeWidth={2} />
           )}
         </>
       </li>
@@ -73,13 +73,13 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
           className={cn(
             "flex h-4 w-4 items-center justify-center rounded-[4px]  border ltr:mr-2 rtl:ml-2",
             isSelected
-              ? "dark:bg-darkgray-200  dark:border-darkgray-300 bg-gray-800 text-gray-50"
-              : " dark:bg-darkgray-200 dark:border-darkgray-300 border-default bg-mutedext-gray-600"
+              ? "dark:bg-darkgray-200  border-subtle bg-gray-800 text-gray-50"
+              : " dark:bg-darkgray-200 border-subtle border-default bg-mutedext-gray-600"
           )}>
-          {isSelected && <FiCheck className="h-3 w-3 text-current" />}
+          {isSelected && <Check className="h-3 w-3 text-current" />}
         </div>
       ) : (
-        isSelected && <FiCheck className="text-emphasis h-3 w-3" strokeWidth={2} />
+        isSelected && <Check className="text-emphasis h-3 w-3" strokeWidth={2} />
       )}
     </li>
   );

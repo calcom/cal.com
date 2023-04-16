@@ -49,7 +49,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Button, EmailInput, HeadSeo, Badge, useCalcomTheme } from "@calcom/ui";
-import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
+import { X, ExternalLink, ChevronLeft, Check, Calendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -177,7 +177,7 @@ export default function Success(props: SuccessProps) {
   // - Event Type has require confirmation option enabled always
   // - EventType has conditionally enabled confirmation option based on how far the booking is scheduled.
   // - It's a paid event and payment is pending.
-  const needsConfirmation = bookingInfo.status === BookingStatus.PENDING;
+  const needsConfirmation = bookingInfo.status === BookingStatus.PENDING && eventType.requiresConfirmation;
   const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
 
   const isCancelled =
@@ -306,7 +306,7 @@ export default function Success(props: SuccessProps) {
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
             className="hover:bg-subtle text-subtle dark:hover:text-inverted hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
-            <FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
+            <ChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
           </Link>
         </div>
       )}
@@ -325,7 +325,7 @@ export default function Success(props: SuccessProps) {
               <div
                 className={classNames(
                   "main inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
-                  isBackgroundTransparent ? "" : " bg-default dark:bg-muted border-subtle",
+                  !isBackgroundTransparent && " bg-default dark:bg-muted border-booker border-booker-width",
                   "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
@@ -347,10 +347,10 @@ export default function Success(props: SuccessProps) {
                     <img src={giphyImage} alt="Gif from Giphy" />
                   )}
                   {!giphyImage && !needsConfirmation && !isCancelled && (
-                    <FiCheck className="h-5 w-5 text-green-600" />
+                    <Check className="h-5 w-5 text-green-600" />
                   )}
-                  {needsConfirmation && !isCancelled && <FiCalendar className="text-emphasis h-5 w-5" />}
-                  {isCancelled && <FiX className="h-5 w-5 text-red-600" />}
+                  {needsConfirmation && !isCancelled && <Calendar className="text-emphasis h-5 w-5" />}
+                  {isCancelled && <X className="h-5 w-5 text-red-600" />}
                 </div>
                 <div className="mt-6 mb-8 text-center last:mb-0">
                   <h3
@@ -458,7 +458,7 @@ export default function Success(props: SuccessProps) {
                               className="text-default flex items-center gap-2 underline"
                               rel="noreferrer">
                               {providerName || "Link"}
-                              <FiExternalLink className="text-default inline h-4 w-4" />
+                              <ExternalLink className="text-default inline h-4 w-4" />
                             </a>
                           ) : (
                             locationToDisplay
@@ -1012,15 +1012,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
   };
-
-  if (eventType.successRedirectUrl && isSuccessBookingPage && !cancel) {
-    return {
-      redirect: {
-        destination: eventType.successRedirectUrl,
-        permanent: false,
-      },
-    };
-  }
 
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,

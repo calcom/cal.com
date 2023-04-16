@@ -18,9 +18,9 @@ import facetime_config_json from "./facetime/config.json";
 import fathom_config_json from "./fathom/config.json";
 import ga4_config_json from "./ga4/config.json";
 import { metadata as giphy__metadata_ts } from "./giphy/_metadata";
-import google_tag_manager_config_json from "./google-tag-manager/config.json";
 import { metadata as googlecalendar__metadata_ts } from "./googlecalendar/_metadata";
 import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
+import gtm_config_json from "./gtm/config.json";
 import { metadata as hubspot__metadata_ts } from "./hubspot/_metadata";
 import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadata";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
@@ -79,9 +79,9 @@ export const appStoreMetadata = {
   fathom: fathom_config_json,
   ga4: ga4_config_json,
   giphy: giphy__metadata_ts,
-  "google-tag-manager": google_tag_manager_config_json,
   googlecalendar: googlecalendar__metadata_ts,
   googlevideo: googlevideo__metadata_ts,
+  gtm: gtm_config_json,
   hubspot: hubspot__metadata_ts,
   huddle01video: huddle01video__metadata_ts,
   jitsivideo: jitsivideo__metadata_ts,

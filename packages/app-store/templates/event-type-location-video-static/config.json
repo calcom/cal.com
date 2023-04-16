@@ -3,7 +3,6 @@
   "name": "EventType Location Video - Static",
   "slug": "event-type-location-video-static",
   "type": "event-type-location-video-static_video",
-  "imageSrc": "icon.svg",
   "logo": "icon.svg",
   "url": "https://example.com/link",
   "variant": "conferencing",

@@ -23,7 +23,7 @@ import {
   showToast,
   Switch,
 } from "@calcom/ui";
-import { FiArrowDown, FiArrowUp, FiX, FiPlus, FiTrash2, FiInfo } from "@calcom/ui/components/icon";
+import { ArrowDown, ArrowUp, X, Plus, Trash2, Info } from "@calcom/ui/components/icon";
 
 import { Components } from "./Components";
 import type { fieldsSchema } from "./FormBuilderFieldsSchema";
@@ -44,12 +44,16 @@ export const FormBuilder = function FormBuilder({
   description,
   addFieldLabel,
   formProp,
+  disabled,
+  LockedIcon,
   dataStore,
 }: {
   formProp: string;
   title: string;
   description: string;
   addFieldLabel: string;
+  disabled: boolean;
+  LockedIcon: false | JSX.Element;
   /**
    * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options
    */
@@ -210,7 +214,7 @@ export const FormBuilder = function FormBuilder({
                       className="mb-2 -ml-8 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
                       size="sm"
                       color="minimal"
-                      StartIcon={FiX}
+                      StartIcon={X}
                       onClick={() => {
                         if (!value) {
                           return;
@@ -232,7 +236,7 @@ export const FormBuilder = function FormBuilder({
                 value.push({ label: "", value: "" });
                 onChange(value);
               }}
-              StartIcon={FiPlus}>
+              StartIcon={Plus}>
               Add an Option
             </Button>
           )}
@@ -271,9 +275,12 @@ export const FormBuilder = function FormBuilder({
   return (
     <div>
       <div>
-        <div className="text-default text-sm font-semibold ltr:mr-1 rtl:ml-1">{title}</div>
+        <div className="text-default text-sm font-semibold ltr:mr-1 rtl:ml-1">
+          {title}
+          {LockedIcon}
+        </div>
         <p className="text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[500px]">{description}</p>
-        <ul className="border-default divide-subtle mt-2 divide-y-2 rounded-md border ">
+        <ul className="border-default divide-subtle mt-2 divide-y rounded-md border">
           {fields.map((field, index) => {
             const options = field.options
               ? field.options
@@ -309,22 +316,27 @@ export const FormBuilder = function FormBuilder({
                 key={field.name}
                 data-testid={`field-${field.name}`}
                 className="hover:bg-muted group relative flex items-center  justify-between p-4 ">
-                {index >= 1 && (
-                  <button
-                    type="button"
-                    className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-default hover:border-emphasis invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
-                    onClick={() => swap(index, index - 1)}>
-                    <FiArrowUp className="h-5 w-5" />
-                  </button>
+                {!disabled && (
+                  <>
+                    {index >= 1 && (
+                      <button
+                        type="button"
+                        className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-default hover:border-emphasis invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                        onClick={() => swap(index, index - 1)}>
+                        <ArrowUp className="h-5 w-5" />
+                      </button>
+                    )}
+                    {index < fields.length - 1 && (
+                      <button
+                        type="button"
+                        className="bg-default text-muted hover:border-emphasis border-default hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                        onClick={() => swap(index, index + 1)}>
+                        <ArrowDown className="h-5 w-5" />
+                      </button>
+                    )}
+                  </>
                 )}
-                {index < fields.length - 1 && (
-                  <button
-                    type="button"
-                    className="bg-default text-muted hover:border-emphasis border-default hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
-                    onClick={() => swap(index, index + 1)}>
-                    <FiArrowDown className="h-5 w-5" />
-                  </button>
-                )}
+
                 <div>
                   <div className="flex flex-col lg:flex-row lg:items-center">
                     <div className="text-default text-sm font-semibold ltr:mr-2 rtl:ml-2">
@@ -349,9 +361,9 @@ export const FormBuilder = function FormBuilder({
                     {fieldType.label}
                   </p>
                 </div>
-                {field.editable !== "user-readonly" && (
+                {field.editable !== "user-readonly" && !disabled && (
                   <div className="flex items-center space-x-2">
-                    {!isFieldEditableSystem && (
+                    {!isFieldEditableSystem && !disabled && (
                       <Switch
                         data-testid="toggle-field"
                         disabled={isFieldEditableSystem}
@@ -371,7 +383,7 @@ export const FormBuilder = function FormBuilder({
                         onClick={() => {
                           removeField(index);
                         }}
-                        StartIcon={FiTrash2}
+                        StartIcon={Trash2}
                       />
                     )}
                     <Button
@@ -388,14 +400,16 @@ export const FormBuilder = function FormBuilder({
             );
           })}
         </ul>
-        <Button
-          color="minimal"
-          data-testid="add-field"
-          onClick={addField}
-          className="mt-4"
-          StartIcon={FiPlus}>
-          {addFieldLabel}
-        </Button>
+        {!disabled && (
+          <Button
+            color="minimal"
+            data-testid="add-field"
+            onClick={addField}
+            className="mt-4"
+            StartIcon={Plus}>
+            {addFieldLabel}
+          </Button>
+        )}
       </div>
       <Dialog
         open={fieldDialog.isOpen}
@@ -405,7 +419,7 @@ export const FormBuilder = function FormBuilder({
             fieldIndex: -1,
           })
         }>
-        <DialogContent enableOverflow data-testid="edit-field-dialog">
+        <DialogContent data-testid="edit-field-dialog">
           <DialogHeader title={t("add_a_booking_question")} subtitle={t("form_builder_field_add_subtitle")} />
           <div>
             <Form
@@ -457,6 +471,9 @@ export const FormBuilder = function FormBuilder({
                 value={FieldTypesMap[fieldForm.getValues("type")]}
                 options={FieldTypes.filter((f) => !f.systemOnly)}
                 label={t("input_type")}
+                classNames={{
+                  menuList: () => "min-h-[27.25rem]",
+                }}
               />
               <InputField
                 required
@@ -551,7 +568,7 @@ const WithLabel = ({
         <div className="mb-2 flex items-center">
           <Label className="!mb-0">
             <span>{field.label}</span>
-            <span className="dark:text-inverted ml-1 -mb-1 text-sm font-medium leading-none">
+            <span className="text-emphasis ml-1 -mb-1 text-sm font-medium leading-none">
               {!readOnly && field.required ? "*" : ""}
             </span>
           </Label>
@@ -623,9 +640,9 @@ export const ComponentForField = ({
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
           placeholder={field.placeholder}
+          name={field.name}
           label={field.label}
           readOnly={readOnly}
-          name={field.name}
           value={value as string}
           setValue={setValue as (arg: typeof value) => void}
         />
@@ -637,6 +654,7 @@ export const ComponentForField = ({
     return (
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
+          name={field.name}
           label={field.label}
           readOnly={readOnly}
           value={value as boolean}
@@ -652,6 +670,7 @@ export const ComponentForField = ({
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
           placeholder={field.placeholder}
+          name={field.name}
           label={field.label}
           readOnly={readOnly}
           value={value as string[]}
@@ -671,6 +690,7 @@ export const ComponentForField = ({
         <componentConfig.factory
           readOnly={readOnly}
           value={value as string}
+          name={field.name}
           placeholder={field.placeholder}
           setValue={setValue as (arg: typeof value) => void}
           options={field.options.map((o) => ({ ...o, title: o.label }))}
@@ -687,6 +707,7 @@ export const ComponentForField = ({
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
           placeholder={field.placeholder}
+          name={field.name}
           readOnly={readOnly}
           value={value as string[]}
           setValue={setValue as (arg: typeof value) => void}
@@ -771,7 +792,7 @@ export const FormBuilderField = ({
                     <div
                       data-testid={`error-message-${field.name}`}
                       className="mt-2 flex items-center text-sm text-red-700 ">
-                      <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                      <Info className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                       <p>{t(message || "invalid_input")}</p>
                     </div>
                   );

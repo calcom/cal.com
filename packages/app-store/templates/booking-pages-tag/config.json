@@ -2,7 +2,6 @@
   "name": "Booking Pages Tag",
   "slug": "booking-pages-tag",
   "type": "booking-pages-tag_analytics",
-  "imageSrc": "icon.svg",
   "logo": "icon.svg",
   "url": "https://example.com/link",
   "variant": "analytics",
