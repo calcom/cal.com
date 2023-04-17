@@ -4,23 +4,28 @@ import { useEffect } from "react";
 import { useEmbedTheme } from "@calcom/embed-core/embed-iframe";
 import type { Maybe } from "@calcom/trpc/server";
 
-// makes sure the ui doesn't flash
-export default function useTheme(theme?: Maybe<string>) {
+/**
+ * It should be called once per route and only if you want to use app configured theme. System only theme works automatically by using ThemeProvider
+ * Calling it without a theme will just returns the current theme.
+ * It handles embed configured theme as well.
+ */
+export default function useTheme(themeToSet?: Maybe<string>) {
   const { resolvedTheme, setTheme, forcedTheme, theme: activeTheme } = useNextTheme();
   const embedTheme = useEmbedTheme();
-  // Embed UI configuration takes more precedence over App Configuration
-  const currentTheme = embedTheme || theme || "system";
 
   useEffect(() => {
-    if (currentTheme !== activeTheme && typeof currentTheme === "string") {
-      setTheme(currentTheme);
-    }
+    // If themeToSet is not provided the purpose is to just return the current the current values
+    if (themeToSet === undefined) return;
+
+    // Embed theme takes precedence over theme configured in app. This allows embeds to be themed differently
+    const finalThemeToSet = embedTheme || themeToSet || "system";
+
+    if (!finalThemeToSet || finalThemeToSet === activeTheme) return;
+
+    console.log("Setting theme", { resolvedTheme, finalThemeToSet, activeTheme, forcedTheme });
+    setTheme(finalThemeToSet);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- we do not want activeTheme to re-render this effect
-  }, [currentTheme, setTheme]);
-
-  useEffect(() => {
-    if (forcedTheme) setTheme(forcedTheme);
-  }, [forcedTheme, setTheme]);
+  }, [themeToSet, setTheme]);
 
   return {
     resolvedTheme,
