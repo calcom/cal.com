@@ -7,18 +7,19 @@ import { uuid } from "short-uuid";
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
+import { testBothBookers } from "./lib/new-booker";
 import { createHttpServer, waitFor, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 async function getLabelText(field: Locator) {
   return await field.locator("label").first().locator("span").first().innerText();
 }
 
-test.describe("Manage Booking Questions", () => {
+testBothBookers.describe("Manage Booking Questions", () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
 
-  test.describe("For User EventType", () => {
+  testBothBookers.describe("For User EventType", () => {
     test("Do a booking with a user added question and verify a few thing in b/w", async ({
       page,
       users,
@@ -41,7 +42,7 @@ test.describe("Manage Booking Questions", () => {
     });
   });
 
-  test.describe("For Team EventType", () => {
+  testBothBookers.describe("For Team EventType", () => {
     test("Do a booking with a user added question and verify a few thing in b/w", async ({
       page,
       users,

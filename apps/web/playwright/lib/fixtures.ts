@@ -40,11 +40,6 @@ declare global {
  *  @see https://playwright.dev/docs/test-fixtures
  */
 export const test = base.extend<Fixtures>({
-  page: async ({ page, context }, use) => {
-    // TODO: remove this once new booker is enabled for everyone
-    context.addCookies([{ name: "new-booker-enabled", value: "true", url: "http://localhost:3000" }]);
-    await use(page);
-  },
   users: async ({ page }, use, workerInfo) => {
     const usersFixture = createUsersFixture(page, workerInfo);
     await use(usersFixture);
