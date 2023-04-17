@@ -1,7 +1,7 @@
 import { SchedulingType, EventType, PeriodType } from "@prisma/client";
 import { z } from "zod";
 
-import { getBufferedBusyTimes, BusyTimes } from "@calcom/core/getBusyTimes";
+import { BusyTimes, getUsersBusyTimes, BusyTimesWithUser } from "@calcom/core/getBusyTimes";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
@@ -292,26 +292,30 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   const users =
     input.rescheduleWithSameUser && originalBooking?.user ? [originalBooking.user] : eventType.users;
 
-  /* We get all users working hours and busy slots */
-  const userAvailability = await Promise.all(
-    users.map(async (currentUser) => {
-      const busy = await getBufferedBusyTimes({
-        credentials: currentUser.credentials,
-        userId: currentUser.id,
-        eventTypeId: input.eventTypeId,
-        startTime: startTime.format(),
-        endTime: endTime.format(),
-        selectedCalendars: currentUser.selectedCalendars,
-        userBufferTime: currentUser.bufferTime,
-        afterEventBuffer: eventType.afterEventBuffer,
-      });
+  const userAvailability = await getUsersBusyTimes({
+    users,
+    startTime: startTime.format(),
+    endTime: endTime.format(),
+  }).then((res: BusyTimesWithUser[]) => {
+    const groupedByUser = res.reduce((acc, curr) => {
+      if (!curr.userId) {
+        return acc;
+      }
 
+      if (!acc[curr.userId]) {
+        acc[curr.userId] = [];
+      }
+      acc[curr.userId].push(curr);
+      return acc;
+    }, {} as Record<number, BusyTimesWithUser[]>);
+
+    return users.map((user) => {
       return {
-        busy,
-        user: currentUser,
+        userId: user.id,
+        busy: groupedByUser[user.id] || [],
       };
-    })
-  );
+    });
+  });
 
   const singleHostMode = input.eventTypeTeamId === null;
   // Collect all busy times in this record.
@@ -402,7 +406,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         // See `getTimeSlotsCompact` above.
         return true;
       }
-      const schedule = userAvailability.find((s) => s.user.id === user.id);
+      const schedule = userAvailability.find((s) => s.userId === user.id);
       if (!schedule) return false;
       const start = performance.now();
       const available = checkIfIsAvailable({

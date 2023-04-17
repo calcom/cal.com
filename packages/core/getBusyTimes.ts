@@ -1,4 +1,5 @@
 import { BookingStatus, Credential, SelectedCalendar } from "@prisma/client";
+import { google } from "googleapis";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs, { Dayjs } from "@calcom/dayjs";
@@ -13,6 +14,66 @@ export type BusyTimes = {
   title?: string;
   source?: string | null;
 };
+
+export type BusyTimesWithUser = BusyTimes & {
+  userId?: number;
+};
+
+type EventBusyDetailsWithUser = EventBusyDetails & {
+  userId?: number;
+};
+
+// function test() {
+// const scopes = [
+// "https://www.googleapis.com/auth/calendar"
+// ];
+// const auth = new google.auth.GoogleAuth({
+// keyFile: './creds.json',
+// scopes,
+// });
+
+// const calendar = google.calendar({ version: "v3", auth });
+// calendar.freebusy.query(
+// {
+// requestBody: {
+// timeMin: params.startTime,
+// timeMax: params.endTime,
+// items: [{ id: "jakob.pupke@tourlane.com" }]
+// }
+// }
+// ).then((res) => {
+// console.log("RES", JSON.stringify(res.data));
+// });
+// }
+
+export async function getUsersBusyTimes(params: {
+  users: { id: number; credentials: Credential[]; selectedCalendars: SelectedCalendar[] }[];
+  startTime: string;
+  endTime: string;
+}): Promise<BusyTimesWithUser[]> {
+  const { startTime, endTime, users } = params;
+  const dbBusyTimes = await busyTimesFromDb({
+    userIds: users.map((u) => u.id),
+    startTime: startTime,
+    endTime: endTime,
+  });
+
+  const calendarBusyTimes = await Promise.all(
+    users.map((u) => {
+      return getBusyCalendarTimes(u.credentials, startTime, endTime, u.selectedCalendars).then((busy) => {
+        return busy.map((b) => ({ ...b, userId: u.id }));
+      });
+    })
+  );
+
+  return dbBusyTimes.concat(calendarBusyTimes.flat()).map((busy) => ({
+    ...busy,
+    start: dayjs(busy.start),
+    end: dayjs(busy.end),
+    title: busy.title,
+    userId: busy.userId,
+  }));
+}
 
 export async function getBufferedBusyTimes(params: {
   credentials: Credential[];
@@ -128,6 +189,46 @@ export async function getBusyTimes(params: {
     busyTimes.push(...videoBusyTimes);
     */
   }
+  return busyTimes;
+}
+
+async function busyTimesFromDb(params: {
+  userIds: number[];
+  startTime: string;
+  endTime: string;
+}): Promise<EventBusyDetailsWithUser[]> {
+  const { userIds, startTime, endTime } = params;
+  const busyTimes: EventBusyDetails[] = await prisma.booking
+    .findMany({
+      where: {
+        userId: {
+          in: userIds,
+        },
+        startTime: { gte: new Date(startTime) },
+        endTime: { lte: new Date(endTime) },
+        status: {
+          in: [BookingStatus.ACCEPTED],
+        },
+      },
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        title: true,
+        userId: true,
+        eventTypeId: true,
+      },
+    })
+    .then((bookings) =>
+      bookings.map(({ startTime, endTime, title, id, eventTypeId, userId }) => ({
+        start: startTime,
+        end: endTime,
+        title,
+        source: `eventType-${eventTypeId}-booking-${id}`,
+        userId,
+      }))
+    );
+
   return busyTimes;
 }
 
