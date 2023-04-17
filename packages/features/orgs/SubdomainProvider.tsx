@@ -1,46 +1,15 @@
-import { useRouter } from "next/router";
 import type { ReactNode } from "react";
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 import { trpc } from "@calcom/trpc";
 
-const useSubdomainCheck = () => {
-  const router = useRouter();
-  const [isSubdomain, setIsSubdomain] = useState(false);
-  const [subdomain, setSubdomain] = useState<string | null>(null);
-
-  useEffect(() => {
-    const checkSubdomain = () => {
-      const url = new URL(router.asPath, window.location.origin);
-      const hostnameParts = url.hostname.split(".");
-
-      if (hostnameParts.length >= 3) {
-        const subdomain = hostnameParts.slice(0, -2).join(".");
-        const domain = hostnameParts.slice(-2).join(".");
-        if (domain === "cal.com" || domain === "cal.dev") {
-          if (subdomain !== "app" && subdomain !== "console") {
-            setIsSubdomain(true);
-            setSubdomain(subdomain);
-            console.log(`Subdomain found: ${subdomain}.${domain}`);
-          }
-        }
-      }
-    };
-    if (router.isReady) {
-      checkSubdomain();
-    }
-  }, [router]);
-
-  return { isSubdomain, subdomain };
-};
-
 interface SubdomainContextType {
-  subdomain: string | null;
+  subdomain: string | undefined;
   isSubdomain: boolean;
   logoSrc?: string;
 }
 
-const SubdomainContext = createContext<SubdomainContextType>({ subdomain: null, isSubdomain: false });
+const SubdomainContext = createContext<SubdomainContextType>({ subdomain: undefined, isSubdomain: false });
 
 export const useSubdomainContext = () => {
   return useContext(SubdomainContext);
@@ -50,16 +19,21 @@ interface SubdomainProviderProps {
   children: ReactNode;
 }
 
-/** A lot of this code can be adapted to handle differnt stuff when on subdomains - fetching org ID and storing in context, fetching themes etc. We just need to add to the context */
 export const SubdomainProvider = ({ children }: SubdomainProviderProps) => {
-  const { subdomain, isSubdomain } = useSubdomainCheck();
-  const { data } = trpc.viewer.orgs.getLogo.useQuery(
-    { subdomain },
-    { enabled: !!(subdomain && isSubdomain) }
-  );
+  const [enabled, setEnabled] = useState(true);
+  const { data } = trpc.viewer.orgs.getLogo.useQuery(undefined, { enabled });
+
+  // We only want this to run once so we disable the query after the first run
+  useEffect(() => {
+    if (!data?.isSubdomain) setEnabled(false); // If we're not on a subdomain, disable the query
+    if (data?.subdomain && enabled) {
+      setEnabled(false);
+    }
+  }, [data, enabled]);
 
   return (
-    <SubdomainContext.Provider value={{ subdomain, isSubdomain, logoSrc: data }}>
+    <SubdomainContext.Provider
+      value={{ subdomain: data?.subdomain, logoSrc: data?.logo, isSubdomain: !!data?.isSubdomain }}>
       {children}
     </SubdomainContext.Provider>
   );
