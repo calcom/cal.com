@@ -290,12 +290,13 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   const users =
     input.rescheduleWithSameUser && originalBooking?.user ? [originalBooking.user] : eventType.users;
 
-  const userAvailability = await getUsersBusyTimes({
+  const busyTimesByUser = await getUsersBusyTimes({
     users,
     startTime: startTime.format(),
     endTime: endTime.format(),
-  }).then((res: BusyTimesWithUser[]) => {
-    const groupedByUser = res.reduce((acc, curr) => {
+  }).then((busy: BusyTimesWithUser[]) => {
+    // Return busyTimes grouped by user.
+    return busy.reduce((acc, curr) => {
       if (!curr.userId) {
         return acc;
       }
@@ -306,13 +307,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       acc[curr.userId].push(curr);
       return acc;
     }, {} as Record<number, BusyTimesWithUser[]>);
-
-    return users.map((user) => {
-      return {
-        userId: user.id,
-        busy: groupedByUser[user.id] || [],
-      };
-    });
   });
 
   const singleHostMode = input.eventTypeTeamId === null;
@@ -320,7 +314,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   const userBusyTimesByDay = {} as Record<string, { startTime: Dayjs; endTime: Dayjs }[]>;
   if (singleHostMode) {
     // `userBusyTimesByDay` is only used in singleHostMode.
-    userAvailability.forEach(({ busy }) => {
+    Object.values(busyTimesByUser).forEach((busy) => {
       busy.forEach(({ start, end }) => {
         let currentStart = start;
         while (currentStart.isSameOrBefore(end)) {
@@ -404,12 +398,12 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         // See `getTimeSlotsCompact` above.
         return true;
       }
-      const schedule = userAvailability.find((s) => s.userId === user.id);
-      if (!schedule) return false;
+      const busy = busyTimesByUser[user.id];
+      if (!busy) return false;
       const start = performance.now();
       const available = checkIfIsAvailable({
         time,
-        busy: schedule.busy,
+        busy,
         eventLength,
       });
       checkForAvailabilityTime += performance.now() - start;
