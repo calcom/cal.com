@@ -2,7 +2,6 @@ require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const { withSentryConfig } = require("@sentry/nextjs");
 const os = require("os");
-const ImportTimingPlugin = require("./import-timing-plugin");
 
 const { withAxiom } = require("next-axiom");
 const { i18n } = require("./next-i18next.config");
@@ -120,10 +119,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  webpack: (config, { webpack, buildId, isServer }) => {
-    if (isServer) {
-      config.plugins.push(new ImportTimingPlugin());
-    }
+  webpack: (config, { webpack, buildId }) => {
     config.plugins.push(
       new CopyWebpackPlugin({
         patterns: [
