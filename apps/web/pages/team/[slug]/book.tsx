@@ -23,6 +23,7 @@ export type TeamBookingPageProps = inferSSRProps<typeof getServerSideProps>;
 export default function TeamBookingPage(props: TeamBookingPageProps) {
   return <BookingPage {...props} />;
 }
+TeamBookingPage.isBookingPage = true;
 
 const querySchema = z.object({
   rescheduleUid: z.string().optional(),

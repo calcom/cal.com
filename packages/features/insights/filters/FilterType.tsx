@@ -45,7 +45,7 @@ export const FilterType = () => {
       className="w-32 min-w-[130px]"
       placeholder={
         <div className="text-emphasis flex flex-row">
-          <Filter className="m-auto" />
+          <Filter className="m-auto h-4 w-4" />
           {t("add_filter")}
         </div>
       }
