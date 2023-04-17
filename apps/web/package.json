@@ -116,8 +116,6 @@
     "react-select": "^5.7.0",
     "react-timezone-select": "^1.4.0",
     "react-use-intercom": "1.5.1",
-    "react-virtualized-auto-sizer": "^1.0.6",
-    "react-window": "^1.8.7",
     "remark": "^14.0.2",
     "rrule": "^2.7.1",
     "sanitize-html": "^2.10.0",
