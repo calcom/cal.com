@@ -15,11 +15,11 @@ export type BusyTimes = {
 };
 
 export type BusyTimesWithUser = BusyTimes & {
-  userId?: number;
+  userId: number | null;
 };
 
 type EventBusyDetailsWithUser = EventBusyDetails & {
-  userId?: number;
+  userId: number | null;
 };
 
 // function test() {
@@ -197,7 +197,7 @@ async function busyTimesFromDb(params: {
   endTime: string;
 }): Promise<EventBusyDetailsWithUser[]> {
   const { userIds, startTime, endTime } = params;
-  const busyTimes: EventBusyDetails[] = await prisma.booking
+  return prisma.booking
     .findMany({
       where: {
         userId: {
@@ -225,8 +225,6 @@ async function busyTimesFromDb(params: {
         userId,
       }))
     );
-
-  return busyTimes;
 }
 
 export default getBusyTimes;
