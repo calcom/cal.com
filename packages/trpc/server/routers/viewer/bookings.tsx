@@ -781,7 +781,7 @@ export const bookingsRouter = router({
     });
 
     const authorized = async () => {
-      const eventType = await prisma.eventType.findUnique({
+      const eventType = await prisma.eventType.findFirst({
         where: {
           id: booking.eventTypeId || undefined,
           schedulingType: SchedulingType.COLLECTIVE,
