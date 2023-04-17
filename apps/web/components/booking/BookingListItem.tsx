@@ -256,10 +256,9 @@ function BookingListItem(booking: BookingItemProps) {
       },
     });
   };
-  const showRecordingsButtons =
-    (booking.location === "integrations:daily" || booking?.location?.trim() === "") && isPast && isConfirmed;
 
   const title = booking.title;
+  const showRecordingsButtons = booking.isRecorded && isPast && isConfirmed;
   return (
     <>
       <RescheduleDialog

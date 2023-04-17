@@ -331,11 +331,11 @@ async function handler(req: CustomRequest) {
 
   //Workflows - schedule reminders
   if (bookingToDelete.eventType?.workflows) {
-    await sendCancelledReminders(
-      bookingToDelete.eventType?.workflows,
-      bookingToDelete.smsReminderNumber,
-      evt
-    );
+    await sendCancelledReminders({
+      workflows: bookingToDelete.eventType?.workflows,
+      smsReminderNumber: bookingToDelete.smsReminderNumber,
+      evt,
+    });
   }
 
   let updatedBookings: {
