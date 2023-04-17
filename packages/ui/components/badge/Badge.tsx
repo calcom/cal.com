@@ -1,5 +1,6 @@
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
+import React from "react";
 import { GoPrimitiveDot } from "react-icons/go";
 
 import classNames from "@calcom/lib/classNames";
@@ -73,17 +74,7 @@ export const Badge = function Badge(props: BadgeProps) {
     </>
   );
 
-  if (isButton) {
-    return (
-      <button {...passThroughProps} className={classes}>
-        <Children />
-      </button>
-    );
-  }
+  const Wrapper = isButton ? "button" : "div";
 
-  return (
-    <div {...passThroughProps} className={classes}>
-      <Children />
-    </div>
-  );
+  return React.createElement(Wrapper, { ...passThroughProps, className: classes }, <Children />);
 };
