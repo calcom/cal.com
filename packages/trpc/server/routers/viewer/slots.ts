@@ -79,7 +79,6 @@ const checkIfIsAvailable = ({
   dateOverrides,
   workingHours,
   currentSeats,
-  isFixedHost,
   organizerTimeZone,
 }: {
   time: Dayjs;
@@ -91,7 +90,6 @@ const checkIfIsAvailable = ({
   }[];
   workingHours: WorkingHours[];
   currentSeats?: CurrentSeats;
-  isFixedHost?: boolean;
   organizerTimeZone?: string;
 }): boolean => {
   if (currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString())) {
@@ -101,19 +99,16 @@ const checkIfIsAvailable = ({
   const slotEndTime = time.add(eventLength, "minutes").utc();
   const slotStartTime = time.utc();
 
-  let fixedDateOverrides: {
+  const fixedDateOverrides: {
     start: Date;
     end: Date;
   }[] = [];
-  if (isFixedHost) {
-    fixedDateOverrides = dateOverrides;
-  }
 
-  //check if date override for slot exsists
+  //check if date override for slot exists
   let dateOverrideExist = false;
 
   if (
-    fixedDateOverrides.find((date) => {
+    dateOverrides.find((date) => {
       const utcOffset = organizerTimeZone ? dayjs.tz(date.start, organizerTimeZone).utcOffset() * -1 : 0;
 
       if (
@@ -136,7 +131,7 @@ const checkIfIsAvailable = ({
       }
     })
   ) {
-    // slot is not withing the date override
+    // slot is not within the date override
     return false;
   }
 
@@ -495,7 +490,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         time: slot.time,
         ...schedule,
         ...availabilityCheckProps,
-        isFixedHost: true,
         organizerTimeZone: organizerTimeZone,
       });
       const endCheckForAvailability = performance.now();
@@ -521,6 +515,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
             time: slot.time,
             ...userSchedule,
             ...availabilityCheckProps,
+            organizerTimeZone: organizerTimeZone,
           });
         });
         return slot;
@@ -581,18 +576,19 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
           if (!busy?.length && eventType.seatsPerTimeSlot === null) {
             return false;
           }
-
           return checkIfIsAvailable({
             time: slot.time,
             busy,
+            dateOverrides: [], //todo do we need the date overrides here?
+            workingHours: [], //todo do we need the date overrides here?
             ...availabilityCheckProps,
+            organizerTimeZone: organizerTimeZone,
           });
         });
         return slot;
       })
       .filter((slot) => !!slot.userIds?.length);
   }
-
   availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
 
   const computedAvailableSlots = availableTimeSlots.reduce(
