@@ -24,6 +24,7 @@ import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
+import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 import { orgsRouter } from "@calcom/features/orgs/server/router";
@@ -55,6 +56,7 @@ import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
 import { deploymentSetupRouter } from "./viewer/deploymentSetup";
 import { eventTypesRouter } from "./viewer/eventTypes";
+import { paymentsRouter } from "./viewer/payments";
 import { slotsRouter } from "./viewer/slots";
 import { ssoRouter } from "./viewer/sso";
 import { viewerTeamsRouter } from "./viewer/teams";
@@ -158,7 +160,6 @@ const publicViewerRouter = router({
         };
       }
     }),
-  // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
   cityTimezones: publicProcedure.query(async () => {
     /**
@@ -1330,7 +1331,6 @@ export const viewerRouter = mergeRouters(
     teams: viewerTeamsRouter,
     webhook: webhookRouter,
     apiKeys: apiKeysRouter,
-    slots: slotsRouter,
     workflows: workflowsRouter,
     saml: ssoRouter,
     insights: insightsRouter,
@@ -1340,6 +1340,8 @@ export const viewerRouter = mergeRouters(
     eth: ethRouter,
     features: featureFlagRouter,
     orgs: orgsRouter,
+    payments: paymentsRouter,
     appsRouter,
+    users: userAdminRouter,
   })
 );

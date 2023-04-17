@@ -18,6 +18,9 @@ type PaymentInfo = {
   link?: string | null;
   reason?: string | null;
   id?: string | null;
+  paymentOption?: string | null;
+  amount?: number;
+  currency?: string;
 };
 
 export type Person = {
