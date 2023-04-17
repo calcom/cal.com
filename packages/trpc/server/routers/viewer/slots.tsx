@@ -69,12 +69,10 @@ const checkIfIsAvailable = ({
 }): boolean => {
   const slotEndTime = time.add(eventLength, "minutes").utc();
   const slotStartTime = time.utc();
+  const slot = { startTime: slotStartTime, endTime: slotEndTime };
 
-  return busy.every((busyTime) => {
-    return !slotsOverlap(
-      { startTime: slotStartTime, endTime: slotEndTime },
-      { startTime: busyTime.start, endTime: busyTime.end }
-    );
+  return !busy.some((busyTime) => {
+    return slotsOverlap(slot, { startTime: busyTime.start, endTime: busyTime.end });
   });
 };
 
