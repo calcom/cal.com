@@ -1,30 +1,21 @@
 import type { UserPermissionRole, Membership, Team } from "@prisma/client";
 import { IdentityProvider } from "@prisma/client";
-import { readFileSync } from "fs";
-import Handlebars from "handlebars";
-import { SignJWT } from "jose";
 import type { AuthOptions, Session } from "next-auth";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
-import type { TransportOptions } from "nodemailer";
-import nodemailer from "nodemailer";
-import { authenticator } from "otplib";
-import path from "path";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
-import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
-import { APP_NAME, IS_TEAM_BILLING_ENABLED, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
 import { randomString } from "@calcom/lib/random";
 import rateLimit from "@calcom/lib/rateLimit";
-import { serverConfig } from "@calcom/lib/serverConfig";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
@@ -40,26 +31,10 @@ const { client_id: GOOGLE_CLIENT_ID, client_secret: GOOGLE_CLIENT_SECRET } =
 const GOOGLE_LOGIN_ENABLED = process.env.GOOGLE_LOGIN_ENABLED === "true";
 const IS_GOOGLE_LOGIN_ENABLED = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && GOOGLE_LOGIN_ENABLED);
 
-const transporter = nodemailer.createTransport<TransportOptions>({
-  ...(serverConfig.transport as TransportOptions),
-} as TransportOptions);
-
 const usernameSlug = (username: string) => slugify(username) + "-" + randomString(6).toLowerCase();
 
-const signJwt = async (payload: { email: string }) => {
-  const secret = new TextEncoder().encode(process.env.CALENDSO_ENCRYPTION_KEY);
-  return new SignJWT(payload)
-    .setProtectedHeader({ alg: "HS256" })
-    .setSubject(payload.email)
-    .setIssuedAt()
-    .setIssuer(WEBSITE_URL)
-    .setAudience(`${WEBSITE_URL}/auth/login`)
-    .setExpirationTime("2m")
-    .sign(secret);
-};
-
 const loginWithTotp = async (user: { email: string }) =>
-  `/auth/login?totp=${await signJwt({ email: user.email })}`;
+  `/auth/login?totp=${await (await import("./signJwt")).default({ email: user.email })}`;
 
 type UserTeams = {
   teams: (Membership & {
@@ -165,7 +140,7 @@ const providers: Provider[] = [
           throw new Error(ErrorCode.InternalServerError);
         }
 
-        const isValidToken = authenticator.check(credentials.totpCode, secret);
+        const isValidToken = (await import("otplib")).authenticator.check(credentials.totpCode, secret);
         if (!isValidToken) {
           throw new Error(ErrorCode.IncorrectTwoFactorCode);
         }
@@ -266,7 +241,7 @@ if (isSAMLLoginEnabled) {
           return null;
         }
 
-        const { oauthController } = await jackson();
+        const { oauthController } = await (await import("@calcom/features/ee/sso/lib/jackson")).default();
 
         // Fetch access token
         const { access_token } = await oauthController.token({
@@ -303,37 +278,14 @@ if (isSAMLLoginEnabled) {
   );
 }
 
-if (true) {
-  const emailsDir = path.resolve(process.cwd(), "..", "..", "packages/emails", "templates");
-  providers.push(
-    EmailProvider({
-      type: "email",
-      maxAge: 10 * 60 * 60, // Magic links are valid for 10 min only
-      // Here we setup the sendVerificationRequest that calls the email template with the identifier (email) and token to verify.
-      sendVerificationRequest: ({ identifier, url }) => {
-        const originalUrl = new URL(url);
-        const webappUrl = new URL(WEBAPP_URL);
-        if (originalUrl.origin !== webappUrl.origin) {
-          url = url.replace(originalUrl.origin, webappUrl.origin);
-        }
-        const emailFile = readFileSync(path.join(emailsDir, "confirm-email.html"), {
-          encoding: "utf8",
-        });
-        const emailTemplate = Handlebars.compile(emailFile);
-        transporter.sendMail({
-          from: `${process.env.EMAIL_FROM}` || APP_NAME,
-          to: identifier,
-          subject: "Your sign-in link for " + APP_NAME,
-          html: emailTemplate({
-            base_url: WEBAPP_URL,
-            signin_url: url,
-            email: identifier,
-          }),
-        });
-      },
-    })
-  );
-}
+providers.push(
+  EmailProvider({
+    type: "email",
+    maxAge: 10 * 60 * 60, // Magic links are valid for 10 min only
+    // Here we setup the sendVerificationRequest that calls the email template with the identifier (email) and token to verify.
+    sendVerificationRequest: async (props) => (await import("./sendVerificationRequest")).default(props),
+  })
+);
 
 function isNumber(n: string) {
   return !isNaN(parseFloat(n)) && !isNaN(+n);

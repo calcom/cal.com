@@ -1,4 +1,3 @@
-import { Elements } from "@stripe/react-stripe-js";
 import classNames from "classnames";
 import Head from "next/head";
 import type { FC } from "react";
@@ -6,8 +5,6 @@ import { useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
-import getStripe from "@calcom/app-store/stripepayment/lib/client";
-import type { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
@@ -65,9 +62,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="mx-auto max-w-3xl py-24">
-        <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div className="fixed inset-0 z-50 overflow-y-auto scroll-auto">
           <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
+            <div className="inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
               <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
                 &#8203;
               </span>
@@ -126,17 +123,14 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                     <div className="text-default mt-4 text-center dark:text-gray-300">{t("paid")}</div>
                   )}
                   {props.payment.appId === "stripe" && !props.payment.success && (
-                    <Elements
-                      stripe={getStripe((props.payment.data as StripePaymentData).stripe_publishable_key)}>
-                      <PaymentComponent
-                        payment={props.payment}
-                        eventType={props.eventType}
-                        user={props.user}
-                        location={props.booking.location}
-                        bookingId={props.booking.id}
-                        bookingUid={props.booking.uid}
-                      />
-                    </Elements>
+                    <PaymentComponent
+                      payment={props.payment}
+                      eventType={props.eventType}
+                      user={props.user}
+                      location={props.booking.location}
+                      bookingId={props.booking.id}
+                      bookingUid={props.booking.uid}
+                    />
                   )}
                   {props.payment.refunded && (
                     <div className="text-default mt-4 text-center dark:text-gray-300">{t("refunded")}</div>
