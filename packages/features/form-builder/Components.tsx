@@ -259,7 +259,7 @@ export const Components: Record<BookingFieldType, Component> = {
   },
   radio: {
     propsType: "select",
-    factory: ({ setValue, value, options }) => {
+    factory: ({ setValue, name, value, options }) => {
       return (
         <Group
           value={value}
@@ -272,7 +272,7 @@ export const Components: Record<BookingFieldType, Component> = {
                 label={option.label}
                 key={`option.${i}.radio`}
                 value={option.label}
-                id={`option.${i}.radio`}
+                id={`${name}.option.${i}.radio`}
               />
             ))}
           </>

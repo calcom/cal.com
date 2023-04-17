@@ -2,7 +2,7 @@ name: PR Update
 
 on:
   pull_request_target:
-    types: [review_requested]
+    types: [ready_for_review, review_requested]
     branches:
       - main
     paths-ignore:
