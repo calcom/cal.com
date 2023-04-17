@@ -108,7 +108,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
     <>
       {blocks.map((block) => {
         if (typeof block === "function") {
-          return <Fragment key={block.name}>block(event)</Fragment>;
+          return <Fragment key={block.name}>{block(event)}</Fragment>;
         }
 
         switch (block) {
