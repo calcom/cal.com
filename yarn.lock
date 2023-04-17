@@ -4904,8 +4904,6 @@ __metadata:
     "@types/qrcode": ^1.4.3
     "@types/react": 18.0.26
     "@types/react-phone-number-input": ^3.0.14
-    "@types/react-virtualized-auto-sizer": ^1.0.1
-    "@types/react-window": ^1.8.5
     "@types/sanitize-html": ^2.9.0
     "@types/stripe": ^8.0.417
     "@types/turndown": ^5.0.1
@@ -13048,24 +13046,6 @@ __metadata:
   dependencies:
     "@types/react": "*"
   checksum: 86e9ff9731798e12bc2afe0304678918769633b531dcf6397f86af81718fb7930ef8648e894eeb3718fc6eab6eb885cfb9b82a44d1d74e10951ee11ebc4643ae
-  languageName: node
-  linkType: hard
-
-"@types/react-virtualized-auto-sizer@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@types/react-virtualized-auto-sizer@npm:1.0.1"
-  dependencies:
-    "@types/react": "*"
-  checksum: 67eff0670a1991c2b16992274ada5f0b3f9d5c2d6209ef38e8f8ae2c0218211a3292882f5b7dd6f09519000dc20847629f049c9acc267e000626b7141e5927a6
-  languageName: node
-  linkType: hard
-
-"@types/react-window@npm:^1.8.5":
-  version: 1.8.5
-  resolution: "@types/react-window@npm:1.8.5"
-  dependencies:
-    "@types/react": "*"
-  checksum: 5f519e1402300d11b6e6595223feb6499f3227e38da166cbc565773cd7f71862abcf855b7835d391b5119fcfacdfba79d73a965b45f60a293fc1ff25986319ed
   languageName: node
   linkType: hard
 
