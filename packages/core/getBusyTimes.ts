@@ -205,9 +205,7 @@ async function busyTimesFromDb(params: {
         },
         startTime: { gte: new Date(startTime) },
         endTime: { lte: new Date(endTime) },
-        status: {
-          in: [BookingStatus.ACCEPTED],
-        },
+        status: BookingStatus.ACCEPTED,
       },
       select: {
         id: true,
