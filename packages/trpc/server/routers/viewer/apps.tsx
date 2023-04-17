@@ -112,6 +112,7 @@ export const appsRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { prisma } = ctx;
+      const { enabled } = input;
 
       // Get app name from metadata
       const localApps = getLocalAppMetadata();
@@ -125,7 +126,7 @@ export const appsRouter = router({
           slug: input.slug,
         },
         update: {
-          enabled: !input.enabled,
+          enabled,
           dirName: appMetadata?.dirName || appMetadata?.slug || "",
         },
         create: {
@@ -136,12 +137,12 @@ export const appsRouter = router({
             ([appMetadata?.category] as AppCategories[]) ||
             undefined,
           keys: undefined,
-          enabled: !input.enabled,
+          enabled,
         },
       });
 
       // If disabling an app then we need to alert users based on the app type
-      if (input.enabled) {
+      if (!enabled) {
         const translations = new Map();
 
         if (app.categories.some((category) => ["calendar", "video"].includes(category))) {
