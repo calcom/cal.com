@@ -736,9 +736,6 @@
   "minimum_booking_notice": "最晚預約通知",
   "slot_interval": "時間單位",
   "slot_interval_default": "使用活動長度（預設）",
-  "delete_event_type_description": "確定要刪除此活動類型？任何分享過連結的人再也無法以此進行預約。",
-  "delete_event_type": "刪除活動類型",
-  "confirm_delete_event_type": "是，刪除活動類型",
   "delete_account": "刪除帳號",
   "confirm_delete_account": "是，刪除帳號",
   "delete_account_confirmation_message": "確定要刪除 {{appName}} 的帳號？任何分享過帳號連結的人再也無法以此進行預約，而且任何儲存過的偏好設定都會消失。",
@@ -1652,8 +1649,8 @@
   "verification_code": "驗證碼",
   "can_you_try_again": "您可以使用不同的時間再試一次嗎？",
   "verify": "驗證",
-  "invalid_event_name_variables": "您的活動名稱包含無效的變數",
   "select_all": "全部選擇",
   "default_conferencing_bulk_title": "大量更新現有活動類型",
+  "invalid_event_name_variables": "您的活動名稱包含無效的變數",
   "default_conferencing_bulk_description": "更新所選活動類型的地點"
 }

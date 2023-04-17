@@ -30,7 +30,7 @@ import {
   TextField,
   Switch,
 } from "@calcom/ui";
-import { FiAlertCircle, FiEdit } from "@calcom/ui/components/icon";
+import { AlertCircle, Edit } from "@calcom/ui/components/icon";
 
 import AppListCard from "../../../apps/web/components/AppListCard";
 
@@ -92,7 +92,7 @@ const IntegrationContainer = ({
           <div className="flex items-center justify-self-end">
             {app.keys && (
               <Button color="secondary" className="mr-2" onClick={() => showKeyModal()}>
-                <FiEdit />
+                <Edit />
               </Button>
             )}
 
@@ -295,7 +295,7 @@ const AdminAppsListContainer = () => {
   if (!apps) {
     return (
       <EmptyScreen
-        Icon={FiAlertCircle}
+        Icon={AlertCircle}
         headline={t("no_available_apps")}
         description={t("no_available_apps_description")}
       />

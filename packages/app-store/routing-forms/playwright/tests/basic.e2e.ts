@@ -37,29 +37,29 @@ test.describe("Routing Forms", () => {
       const formId = await addForm(page);
       const description = "Test Description";
 
-      const field = {
-        label: "Test Label",
-        typeIndex: 1,
-      };
+      const label = "Test Label";
 
-      const { types } = await addOneFieldAndDescriptionAndSaveForm(formId, page, {
-        description,
-        field: field,
-      });
+      const createdFields: Record<number, { label: string; typeIndex: number }> = {};
+
+      const { types } = await addMultipleFieldsAndSaveForm(formId, page, { description, label });
 
       await page.reload();
 
       expect(await page.inputValue(`[data-testid="description"]`)).toBe(description);
-      expect(await page.locator('[data-testid="field"]').count()).toBe(1);
+      expect(await page.locator('[data-testid="field"]').count()).toBe(types.length);
 
-      await expectCurrentFormToHaveFields(page, { 0: field }, types);
+      types.forEach((item, index) => {
+        createdFields[index] = { label: `Test Label ${index + 1}`, typeIndex: index };
+      });
+      await expectCurrentFormToHaveFields(page, createdFields, types);
 
       await page.click('[href*="/apps/routing-forms/route-builder/"]');
       await selectNewRoute(page);
 
       await page.click('[data-testid="add-rule"]');
 
-      await verifyFieldOptionsInRule([field.label], page);
+      const options = Object.values(createdFields).map((item) => item.label);
+      await verifyFieldOptionsInRule(options, page);
     });
 
     test.describe("F1<-F2 Relationship", () => {
@@ -385,6 +385,45 @@ export async function addForm(page: Page, { name = "Test Form Name" } = {}) {
     throw new Error("Form ID couldn't be determined from url");
   }
   return formId;
+}
+
+async function addMultipleFieldsAndSaveForm(
+  formId: string,
+  page: Page,
+  form: { description: string; label: string }
+) {
+  await page.goto(`apps/routing-forms/form-edit/${formId}`);
+  await page.click('[data-testid="add-field"]');
+  await page.fill('[data-testid="description"]', form.description);
+
+  const { optionsInUi: types } = await verifySelectOptions(
+    { selector: ".data-testid-field-type", nth: 0 },
+    ["Email", "Long Text", "MultiSelect", "Number", "Phone", "Select", "Short Text"],
+    page
+  );
+  await page.fill(`[name="fields.0.label"]`, `${form.label} 1`);
+
+  await page.click('[data-testid="add-field"]');
+
+  const withoutFirstValue = [...types].filter((val) => val !== "Short Text");
+
+  for (let index = 0; index < withoutFirstValue.length; index++) {
+    const fieldName = withoutFirstValue[index];
+    const nth = index + 1;
+    const label = `${form.label} ${index + 2}`;
+
+    await page.locator(".data-testid-field-type").nth(nth).click();
+    await page.locator(`[data-testid="select-option-${fieldName}"]`).click();
+    await page.fill(`[name="fields.${nth}.label"]`, label);
+    if (index !== withoutFirstValue.length - 1) {
+      await page.click('[data-testid="add-field"]');
+    }
+  }
+
+  await saveCurrentForm(page);
+  return {
+    types,
+  };
 }
 
 export async function addOneFieldAndDescriptionAndSaveForm(

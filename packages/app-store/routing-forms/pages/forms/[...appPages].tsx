@@ -12,22 +12,22 @@ import { trpc } from "@calcom/trpc/react";
 import type { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { Badge, ButtonGroup, EmptyScreen, List, ListLinkItem, Tooltip, Button } from "@calcom/ui";
 import {
-  FiPlus,
-  FiGitMerge,
-  FiExternalLink,
-  FiLink,
-  FiEdit,
-  FiDownload,
-  FiCode,
-  FiCopy,
-  FiTrash,
-  FiMenu,
-  FiMessageCircle,
-  FiFileText,
-  FiShuffle,
-  FiBarChart,
-  FiCheckCircle,
-  FiMail,
+  Plus,
+  GitMerge,
+  ExternalLink,
+  Link as LinkIcon,
+  Edit,
+  Download,
+  Code,
+  Copy,
+  Trash,
+  Menu,
+  MessageCircle,
+  FileText,
+  Shuffle,
+  BarChart,
+  CheckCircle,
+  Mail,
 } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -50,32 +50,32 @@ export default function RoutingForms({
 
   const features = [
     {
-      icon: <FiFileText className="h-5 w-5 text-orange-500" />,
+      icon: <FileText className="h-5 w-5 text-orange-500" />,
       title: t("create_your_first_form"),
       description: t("create_your_first_form_description"),
     },
     {
-      icon: <FiShuffle className="h-5 w-5 text-lime-500" />,
+      icon: <Shuffle className="h-5 w-5 text-lime-500" />,
       title: t("create_your_first_route"),
       description: t("route_to_the_right_person"),
     },
     {
-      icon: <FiBarChart className="h-5 w-5 text-blue-500" />,
+      icon: <BarChart className="h-5 w-5 text-blue-500" />,
       title: t("reporting"),
       description: t("reporting_feature"),
     },
     {
-      icon: <FiCheckCircle className="h-5 w-5 text-teal-500" />,
+      icon: <CheckCircle className="h-5 w-5 text-teal-500" />,
       title: t("test_routing_form"),
       description: t("test_preview_description"),
     },
     {
-      icon: <FiMail className="h-5 w-5 text-yellow-500" />,
+      icon: <Mail className="h-5 w-5 text-yellow-500" />,
       title: t("routing_forms_send_email_owner"),
       description: t("routing_forms_send_email_owner_description"),
     },
     {
-      icon: <FiDownload className="h-5 w-5 text-violet-500" />,
+      icon: <Download className="h-5 w-5 text-violet-500" />,
       title: t("download_responses"),
       description: t("download_responses_description"),
     },
@@ -87,7 +87,7 @@ export default function RoutingForms({
         variant="fab"
         routingForm={null}
         data-testid="new-routing-form"
-        StartIcon={FiPlus}
+        StartIcon={Plus}
         action="create">
         {t("new")}
       </FormAction>
@@ -121,7 +121,7 @@ export default function RoutingForms({
             <div className="mb-10 w-full px-4 pb-2 sm:px-6 md:px-8">
               {!forms?.length ? (
                 <EmptyScreen
-                  Icon={FiGitMerge}
+                  Icon={GitMerge}
                   headline={t("create_your_first_form")}
                   description={t("create_your_first_form_description")}
                   buttonRaw={<NewFormButton />}
@@ -156,7 +156,7 @@ export default function RoutingForms({
                                     action="preview"
                                     routingForm={form}
                                     target="_blank"
-                                    StartIcon={FiExternalLink}
+                                    StartIcon={ExternalLink}
                                     color="secondary"
                                     variant="icon"
                                     disabled={disabled}
@@ -167,7 +167,7 @@ export default function RoutingForms({
                                   action="copyLink"
                                   color="secondary"
                                   variant="icon"
-                                  StartIcon={FiLink}
+                                  StartIcon={LinkIcon}
                                   disabled={disabled}
                                   tooltip={t("copy_link_to_form")}
                                 />
@@ -176,7 +176,7 @@ export default function RoutingForms({
                                   action="embed"
                                   color="secondary"
                                   variant="icon"
-                                  StartIcon={FiCode}
+                                  StartIcon={Code}
                                   disabled={disabled}
                                   tooltip={t("embed")}
                                 />
@@ -186,14 +186,14 @@ export default function RoutingForms({
                                     routingForm={form}
                                     color="minimal"
                                     className="!flex"
-                                    StartIcon={FiEdit}>
+                                    StartIcon={Edit}>
                                     {t("edit")}
                                   </FormAction>
                                   <FormAction
                                     action="download"
                                     routingForm={form}
                                     color="minimal"
-                                    StartIcon={FiDownload}>
+                                    StartIcon={Download}>
                                     {t("download_responses")}
                                   </FormAction>
                                   <FormAction
@@ -201,7 +201,7 @@ export default function RoutingForms({
                                     routingForm={form}
                                     color="minimal"
                                     className="w-full"
-                                    StartIcon={FiCopy}>
+                                    StartIcon={Copy}>
                                     {t("duplicate")}
                                   </FormAction>
                                   {typeformApp?.isInstalled ? (
@@ -211,7 +211,7 @@ export default function RoutingForms({
                                       action="copyRedirectUrl"
                                       color="minimal"
                                       type="button"
-                                      StartIcon={FiLink}>
+                                      StartIcon={LinkIcon}>
                                       {t("Copy Typeform Redirect Url")}
                                     </FormAction>
                                   ) : null}
@@ -220,7 +220,7 @@ export default function RoutingForms({
                                     routingForm={form}
                                     color="destructive"
                                     className="w-full"
-                                    StartIcon={FiTrash}>
+                                    StartIcon={Trash}>
                                     {t("delete")}
                                   </FormAction>
                                 </FormActionsDropdown>
@@ -228,13 +228,13 @@ export default function RoutingForms({
                             </>
                           }>
                           <div className="flex flex-wrap gap-1">
-                            <Badge variant="gray" startIcon={FiMenu}>
+                            <Badge variant="gray" startIcon={Menu}>
                               {fields.length} {fields.length === 1 ? "field" : "fields"}
                             </Badge>
-                            <Badge variant="gray" startIcon={FiGitMerge}>
+                            <Badge variant="gray" startIcon={GitMerge}>
                               {form.routes.length} {form.routes.length === 1 ? "route" : "routes"}
                             </Badge>
-                            <Badge variant="gray" startIcon={FiMessageCircle}>
+                            <Badge variant="gray" startIcon={MessageCircle}>
                               {form._count.responses} {form._count.responses === 1 ? "response" : "responses"}
                             </Badge>
                           </div>
