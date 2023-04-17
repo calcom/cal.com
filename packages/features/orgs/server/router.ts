@@ -11,7 +11,6 @@ export const orgsRouter = router({
   getLogo: publicProcedure.query(async ({ ctx }) => {
     const hostname = ctx?.req?.headers["host"];
     if (!hostname) return DEFAULT_LOGO;
-    console.log("hostname", hostname);
     const hostnameParts = hostname.split(".");
     let appSubdomain;
     if (hostnameParts.length >= 3) {
