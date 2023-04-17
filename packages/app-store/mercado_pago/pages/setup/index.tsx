@@ -80,7 +80,7 @@ export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
         <div className="m-auto max-w-[43em] overflow-auto rounded bg-white pb-10 md:p-10">
           <div className="md:flex md:flex-row">
             <div className="invisible md:visible">
-              <img className="h-11" src="/api/app-store/mercado_pago/icon.svg" alt="Zapier Logo" />
+              <img className="h-11" src="/api/app-store/mercado_pago/icon.svg" alt="Mercado Pago Logo" />
             </div>
             <div className="ml-2 ltr:mr-2 rtl:ml-2 md:ml-5">
               <p className="text-lg">Mercado Pago</p>
@@ -94,7 +94,7 @@ export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
                       type="text"
                       name="public_key"
                       id="public_key"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 text-black shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                       value={newPublicKey}
                       autoComplete="new-password"
                       onChange={(e) => setNewPublicKey(e.target.value)}
@@ -110,7 +110,7 @@ export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
                       type="password"
                       name="access_token"
                       id="access_token"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 text-black shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                       value={newAccessToken}
                       autoComplete="new-password"
                       onChange={(e) => setNewAccessToken(e.target.value)}
@@ -124,6 +124,7 @@ export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
                     <Select
                       options={currencyOptions}
                       value={selectedCurrency}
+                      className="text-black"
                       defaultValue={selectedCurrency?.value}
                       onChange={(e) => {
                         if (e) {

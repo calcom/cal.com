@@ -28,6 +28,7 @@ export const EventTypeAddonMap = {
   qr_code: dynamic(() => import("./qr_code/components/EventTypeAppCardInterface")),
   rainbow: dynamic(() => import("./rainbow/components/EventTypeAppCardInterface")),
   stripepayment: dynamic(() => import("./stripepayment/components/EventTypeAppCardInterface")),
+  "mercado_pago": dynamic(() => import("./mercado_pago/components/EventTypeAppCardInterface")),
   "booking-pages-tag": dynamic(() =>
     import("./templates/booking-pages-tag/components/EventTypeAppCardInterface")
   ),

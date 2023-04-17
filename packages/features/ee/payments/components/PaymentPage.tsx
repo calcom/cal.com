@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
+import { MercadoPagoPaymentComponent } from "@calcom/app-store/mercado_pago/components/MercadoPagoPaymentComponent";
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import type { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
 import dayjs from "@calcom/dayjs";
@@ -137,6 +138,16 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         bookingUid={props.booking.uid}
                       />
                     </Elements>
+                  )}
+                  {props.payment.appId === "mercado_pago" && !props.payment.success && (
+                    <MercadoPagoPaymentComponent
+                      payment={props.payment}
+                      eventType={props.eventType}
+                      user={props.user}
+                      location={props.booking.location}
+                      bookingId={props.booking.id}
+                      bookingUid={props.booking.uid}
+                    />
                   )}
                   {props.payment.refunded && (
                     <div className="text-default mt-4 text-center dark:text-gray-300">{t("refunded")}</div>

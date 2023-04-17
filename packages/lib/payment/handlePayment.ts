@@ -1,4 +1,4 @@
-import type { AppCategories, Prisma } from "@prisma/client";
+import type { AppCategories, Prisma, PaymentOption } from "@prisma/client";
 
 import appStore from "@calcom/app-store";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
@@ -25,6 +25,7 @@ const handlePayment = async (
   bookerEmail: string
 ) => {
   const paymentApp = await appStore[paymentAppCredentials?.app?.dirName as keyof typeof appStore];
+
   if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return null;
@@ -32,7 +33,7 @@ const handlePayment = async (
   const PaymentService = paymentApp.lib.PaymentService;
   const paymentInstance = new PaymentService(paymentAppCredentials);
 
-  const paymentOption =
+  const paymentOption: PaymentOption =
     selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].paymentOption || "ON_BOOKING";
 
   let paymentData;

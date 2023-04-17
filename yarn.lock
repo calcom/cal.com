@@ -3956,6 +3956,7 @@ __metadata:
     "@calcom/types": "*"
     "@calcom/ui": "*"
     "@calcom/zoomvideo": "*"
+    "@types/mercadopago": ^1.5.8
     lodash: ^4.17.21
     qs-stringify: ^1.2.1
   languageName: unknown
@@ -4465,6 +4466,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/mercado_pago@workspace:packages/app-store/mercado_pago":
+  version: 0.0.0-use.local
+  resolution: "@calcom/mercado_pago@workspace:packages/app-store/mercado_pago"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/n8n@workspace:packages/app-store/n8n":
   version: 0.0.0-use.local
   resolution: "@calcom/n8n@workspace:packages/app-store/n8n"
@@ -4939,6 +4949,7 @@ __metadata:
     markdown-it: ^13.0.1
     md5: ^2.3.0
     memory-cache: ^0.2.0
+    mercadopago: ^1.5.14
     micro: ^10.0.1
     mime-types: ^2.1.35
     mockdate: ^3.0.5
@@ -12785,6 +12796,13 @@ __metadata:
   version: 0.2.2
   resolution: "@types/memory-cache@npm:0.2.2"
   checksum: f2c9182432057f0034f6acb69d0c6f1df58adaeb970749444b86834325018a24cb7dedfbdc4086d859497167fc82a06538f80354cfccdc6a3f011af80bc75697
+  languageName: node
+  linkType: hard
+
+"@types/mercadopago@npm:^1.5.8":
+  version: 1.5.8
+  resolution: "@types/mercadopago@npm:1.5.8"
+  checksum: 0ad1e1bd98bbfe84ecf31e535aff2eb3551c7ef61d494de0b7b933182ad11d1d4300e3df12f7b179baac0c4cb0d44479f9e4467c5a168e7fd6b5f7b0575597a1
   languageName: node
   linkType: hard
 

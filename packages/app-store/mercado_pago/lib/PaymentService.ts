@@ -1,24 +1,22 @@
-import type { Booking, Payment, Prisma } from "@prisma/client";
-import { PaymentType } from "@prisma/client";
+import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
 import * as MercadoPago from "mercadopago";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
-import { AbstractPaymentService } from "@calcom/lib/PaymentService";
+import type { IAbstractPaymentService } from "@calcom/lib/PaymentService";
 import prisma from "@calcom/prisma";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const mercadoPagoCredentialKeysSchema = z.object({
   access_token: z.string(),
   public_key: z.string(),
 });
 
-export class PaymentService extends AbstractPaymentService {
+export class PaymentService implements IAbstractPaymentService {
   private mercadoPago: typeof MercadoPago;
   private credentials: z.infer<typeof mercadoPagoCredentialKeysSchema>;
 
   constructor(credentials: { key: Prisma.JsonValue }) {
-    super();
-
     this.credentials = mercadoPagoCredentialKeysSchema.parse(credentials.key);
 
     this.mercadoPago = MercadoPago;
@@ -66,7 +64,11 @@ export class PaymentService extends AbstractPaymentService {
       const paymentData = await prisma?.payment.create({
         data: {
           uid: uuidv4(),
-          type: PaymentType.MERCADO_PAGO,
+          app: {
+            connect: {
+              slug: "mercado_pago",
+            },
+          },
           booking: {
             connect: {
               id: bookingId,
@@ -99,10 +101,40 @@ export class PaymentService extends AbstractPaymentService {
   async refund(): Promise<Payment> {
     throw new Error("Method not implemented.");
   }
-  getPaymentPaidStatus(): string {
+
+  collectCard(
+    payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
+    bookingId: number,
+    bookerEmail: string,
+    paymentOption: PaymentOption
+  ): Promise<Payment> {
     throw new Error("Method not implemented.");
   }
-  getPaymentDetails(): Payment {
+  chargeCard(
+    payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
+    bookingId: number
+  ): Promise<Payment> {
+    throw new Error("Method not implemented.");
+  }
+  getPaymentPaidStatus(): Promise<string> {
+    throw new Error("Method not implemented.");
+  }
+  getPaymentDetails(): Promise<Payment> {
+    throw new Error("Method not implemented.");
+  }
+  afterPayment(
+    event: CalendarEvent,
+    booking: {
+      user: { email: string | null; name: string | null; timeZone: string } | null;
+      id: number;
+      startTime: { toISOString: () => string };
+      uid: string;
+    },
+    paymentData: Payment
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  deletePayment(paymentId: number): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
 }

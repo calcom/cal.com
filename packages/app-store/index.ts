@@ -10,6 +10,7 @@ const appStore = {
   huddle01video: import("./huddle01video"),
   jitsivideo: import("./jitsivideo"),
   larkcalendar: import("./larkcalendar"),
+  mercado_pago: import("./mercado_pago"),
   office365calendar: import("./office365calendar"),
   office365video: import("./office365video"),
   plausible: import("./plausible"),
