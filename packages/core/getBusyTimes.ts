@@ -1,5 +1,4 @@
 import { BookingStatus, Credential, SelectedCalendar } from "@prisma/client";
-import { google } from "googleapis";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs, { Dayjs } from "@calcom/dayjs";
