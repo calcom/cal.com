@@ -10,7 +10,7 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingFieldType } from "@calcom/prisma/zod-utils";
 import { PhoneInput, AddressInput, Button, Label, Group, RadioField, EmailField, Tooltip } from "@calcom/ui";
-import { FiUserPlus, FiX } from "@calcom/ui/components/icon";
+import { UserPlus, X } from "@calcom/ui/components/icon";
 
 import { ComponentForField } from "./FormBuilder";
 import type { fieldsSchema } from "./FormBuilderFieldsSchema";
@@ -160,7 +160,7 @@ export const Components: Record<BookingFieldType, Component> = {
                                 value.splice(index, 1);
                                 setValue(value);
                               }}>
-                              <FiX className="text-default" />
+                              <X className="text-default" />
                             </button>
                           </Tooltip>
                         ) : null
@@ -174,7 +174,7 @@ export const Components: Record<BookingFieldType, Component> = {
                   data-testid="add-another-guest"
                   type="button"
                   color="minimal"
-                  StartIcon={FiUserPlus}
+                  StartIcon={UserPlus}
                   className="my-2.5"
                   onClick={() => {
                     value.push("");
@@ -193,7 +193,7 @@ export const Components: Record<BookingFieldType, Component> = {
               data-testid="add-guests"
               color="minimal"
               variant="button"
-              StartIcon={FiUserPlus}
+              StartIcon={UserPlus}
               onClick={() => {
                 value.push("");
                 setValue(value);
@@ -259,7 +259,7 @@ export const Components: Record<BookingFieldType, Component> = {
   },
   radio: {
     propsType: "select",
-    factory: ({ setValue, value, options }) => {
+    factory: ({ setValue, name, value, options }) => {
       return (
         <Group
           value={value}
@@ -272,7 +272,7 @@ export const Components: Record<BookingFieldType, Component> = {
                 label={option.label}
                 key={`option.${i}.radio`}
                 value={option.label}
-                id={`option.${i}.radio`}
+                id={`${name}.option.${i}.radio`}
               />
             ))}
           </>
@@ -324,7 +324,7 @@ export const Components: Record<BookingFieldType, Component> = {
                   <Label>
                     {options[0].label}
                     {!readOnly && optionsInputs[options[0].value]?.required ? (
-                      <span className="text-default ml-1 mb-1 text-sm font-medium leading-none">*</span>
+                      <span className="text-default ml-1 mb-1 text-sm font-medium">*</span>
                     ) : null}
                   </Label>
                 </>

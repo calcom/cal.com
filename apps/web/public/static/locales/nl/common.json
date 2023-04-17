@@ -736,9 +736,6 @@
   "minimum_booking_notice": "Minimale kennisgevingstermijn",
   "slot_interval": "Tijdslot intervallen",
   "slot_interval_default": "Gebruik evenement lengte (standaard)",
-  "delete_event_type_description": "Weet u zeker dat u dit evenement wilt verwijderen? Iedereen met wie u deze link heeft gedeeld zal hem niet meer kunnen gebruiken om te boeken.",
-  "delete_event_type": "Verwijder Evenement",
-  "confirm_delete_event_type": "Ja, verwijder evenement",
   "delete_account": "Account verwijderen",
   "confirm_delete_account": "Ja, account verwijderen",
   "delete_account_confirmation_message": "Weet u zeker dat u uw {{appName}}-account wilt verwijderen? Iedereen met wie u uw accountlink gedeeld heeft, kan er niet meer mee boeken en alle voorkeuren die u opgeslagen heeft gaan verloren.",
@@ -1652,8 +1649,8 @@
   "verification_code": "Verificatiecode",
   "can_you_try_again": "Kunt u het opnieuw proberen met een andere tijd?",
   "verify": "Verifiëren",
-  "invalid_event_name_variables": "Uw gebeurtenisnaam bevat een ongeldige variabele",
   "select_all": "Alles selecteren",
   "default_conferencing_bulk_title": "Bestaande gebeurtenistypen in bulk bijwerken",
+  "invalid_event_name_variables": "Uw gebeurtenisnaam bevat een ongeldige variabele",
   "default_conferencing_bulk_description": "Werk de locaties voor de geselecteerde gebeurtenistypen bij"
 }

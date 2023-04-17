@@ -1,7 +1,7 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../form/dropdown";
-import { FiChevronDown } from "../../icon";
+import { ChevronDown } from "../../icon";
 
 interface IAddVariablesDropdown {
   addVariable: (variable: string) => void;
@@ -20,14 +20,14 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
             <>
               <div className="hidden sm:flex">
                 {t("add_variable")}
-                <FiChevronDown className="mt-[2px] ml-1 h-4 w-4" />
+                <ChevronDown className="mt-[2px] ml-1 h-4 w-4" />
               </div>
               <div className="block sm:hidden">+</div>
             </>
           ) : (
             <div className="flex">
               {t("add_variable")}
-              <FiChevronDown className="mt-[2px] ml-1 h-4 w-4" />
+              <ChevronDown className="mt-[2px] ml-1 h-4 w-4" />
             </div>
           )}
         </div>

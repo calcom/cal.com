@@ -24,6 +24,7 @@ import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
+import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
@@ -159,7 +160,6 @@ const publicViewerRouter = router({
         };
       }
     }),
-  // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
   event: publicProcedure
     .input(
@@ -1342,7 +1342,6 @@ export const viewerRouter = mergeRouters(
     teams: viewerTeamsRouter,
     webhook: webhookRouter,
     apiKeys: apiKeysRouter,
-    slots: slotsRouter,
     workflows: workflowsRouter,
     saml: ssoRouter,
     insights: insightsRouter,
@@ -1353,5 +1352,6 @@ export const viewerRouter = mergeRouters(
     features: featureFlagRouter,
     payments: paymentsRouter,
     appsRouter,
+    users: userAdminRouter,
   })
 );

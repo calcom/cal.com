@@ -7,7 +7,7 @@ import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Form, showToast, TextField } from "@calcom/ui";
-import { FiCheck, FiX } from "@calcom/ui/components/icon";
+import { Check, X } from "@calcom/ui/components/icon";
 
 const formSchema = z.object({
   api_key: z.string(),
@@ -102,7 +102,7 @@ export default function SendgridSetup() {
                     type="submit"
                     loading={testLoading}
                     disabled={testPassed === true}
-                    StartIcon={testPassed !== undefined ? (testPassed ? FiCheck : FiX) : undefined}
+                    StartIcon={testPassed !== undefined ? (testPassed ? Check : X) : undefined}
                     className={
                       testPassed !== undefined
                         ? testPassed
