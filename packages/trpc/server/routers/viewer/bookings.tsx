@@ -115,7 +115,7 @@ export const bookingsRouter = router({
           OR: [
             {
               recurringEventId: { not: null },
-              status: { notIn: [BookingStatus.PENDING, BookingStatus.CANCELLED, BookingStatus.REJECTED] },
+              status: { equals: BookingStatus.ACCEPTED },
             },
             {
               recurringEventId: { equals: null },
