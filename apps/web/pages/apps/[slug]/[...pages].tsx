@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 
 import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
 import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
-import { getSlimServerSession } from "@calcom/features/auth/lib/getSlimServerSession";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 
@@ -103,7 +103,7 @@ export async function getServerSideProps(
     appPages?: string[];
   }>
 ) {
-  const { params, req, res: _res } = context;
+  const { params, req, res } = context;
   if (!params) {
     return {
       notFound: true,
@@ -120,7 +120,7 @@ export async function getServerSideProps(
     // appPages is actually hardcoded here and no matter the fileName the same variable would be used.
     // We can write some validation logic later on that ensures that [...appPages].tsx file exists
     params.appPages = pages.slice(1);
-    const session = await getSlimServerSession({ req });
+    const session = await getServerSession({ req, res });
     const user = session?.user;
 
     const result = await route.getServerSideProps(

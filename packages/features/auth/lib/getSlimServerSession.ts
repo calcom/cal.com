@@ -1,5 +1,5 @@
-import type { GetServerSidePropsContext, NextApiRequest } from "next";
-import type { Session } from "next-auth";
+import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
+import type { AuthOptions, Session } from "next-auth";
 import { getToken } from "next-auth/jwt";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
@@ -30,9 +30,10 @@ const UNSTABLE_SESSION_CACHE = new Map<string, Session>();
  */
 export async function getSlimServerSession(options: {
   req: NextApiRequest | GetServerSidePropsContext["req"];
-  secret?: string;
+  res?: NextApiResponse | GetServerSidePropsContext["res"];
+  authOptions?: AuthOptions;
 }) {
-  const { req, secret } = options;
+  const { req, authOptions: { secret } = {} } = options;
 
   const token = await getToken({
     req,

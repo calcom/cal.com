@@ -3,7 +3,7 @@ import type Stripe from "stripe";
 import { z } from "zod";
 
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
-import { getSlimServerSession } from "@calcom/features/auth/lib/getSlimServerSession";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
@@ -64,7 +64,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     closeComUpdateTeam(prevTeam, team);
   }
 
-  const session = await getSlimServerSession({ req });
+  const session = await getServerSession({ req, res });
 
   if (!session) return { message: "Team upgraded successfully" };
 

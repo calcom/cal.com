@@ -1,7 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { getProviders, signIn, getCsrfToken } from "next-auth/react";
 
-import { getSlimServerSession } from "@calcom/features/auth/lib/getSlimServerSession";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { Button } from "@calcom/ui";
 
 type Provider = {
@@ -26,9 +26,9 @@ function signin({ providers }: { providers: Provider[] }) {
 export default signin;
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { req, res: _res } = context;
+  const { req, res } = context;
 
-  const session = await getSlimServerSession({ req });
+  const session = await getServerSession({ req, res });
   const csrfToken = await getCsrfToken(context);
   const providers = await getProviders();
   if (session) {

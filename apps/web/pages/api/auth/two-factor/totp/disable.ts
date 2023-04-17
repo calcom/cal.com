@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { authenticator } from "otplib";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { getSlimServerSession } from "@calcom/features/auth/lib/getSlimServerSession";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import prisma from "@calcom/prisma";
@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: "Method not allowed" });
   }
 
-  const session = await getSlimServerSession({ req });
+  const session = await getServerSession({ req });
   if (!session) {
     return res.status(401).json({ message: "Not authenticated" });
   }
