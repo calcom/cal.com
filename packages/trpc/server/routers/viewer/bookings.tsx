@@ -1,5 +1,5 @@
-import type { BookingReference, EventType, User, WebhookTriggerEvents } from "@prisma/client";
 import { BookingStatus, MembershipRole, Prisma, SchedulingType, WorkflowMethods } from "@prisma/client";
+import type { BookingReference, EventType, User, WebhookTriggerEvents } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 import { z } from "zod";
 
@@ -145,15 +145,7 @@ export const bookingsRouter = router({
         },
         unconfirmed: {
           endTime: { gte: new Date() },
-          OR: [
-            {
-              recurringEventId: { not: null },
-              status: { equals: BookingStatus.PENDING },
-            },
-            {
-              status: { equals: BookingStatus.PENDING },
-            },
-          ],
+          status: { equals: BookingStatus.PENDING },
         },
       };
       const bookingListingOrderby: Record<
@@ -208,124 +200,133 @@ export const bookingsRouter = router({
       const passedBookingsStatusFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
 
-      const bookingsQuery = await prisma.booking.findMany({
-        where: {
-          OR: [
-            {
-              userId: user.id,
-            },
-            {
-              attendees: {
-                some: {
-                  email: user.email,
+      const [bookingsQuery, recurringInfoBasic, recurringInfoExtended] = await Promise.all([
+        prisma.booking.findMany({
+          where: {
+            OR: [
+              {
+                userId: user.id,
+              },
+              {
+                attendees: {
+                  some: {
+                    email: user.email,
+                  },
                 },
               },
-            },
-            {
-              eventType: {
-                team: {
-                  members: {
-                    some: {
-                      userId: user.id,
-                      role: {
-                        in: ["ADMIN", "OWNER"],
+              {
+                eventType: {
+                  team: {
+                    members: {
+                      some: {
+                        userId: user.id,
+                        role: {
+                          in: ["ADMIN", "OWNER"],
+                        },
                       },
                     },
                   },
                 },
               },
-            },
-            {
-              seatsReferences: {
-                some: {
-                  attendee: {
-                    email: user.email,
+              {
+                seatsReferences: {
+                  some: {
+                    attendee: {
+                      email: user.email,
+                    },
+                  },
+                },
+              },
+            ],
+            AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
+          },
+          select: {
+            ...bookingMinimalSelect,
+            uid: true,
+            recurringEventId: true,
+            location: true,
+            eventType: {
+              select: {
+                slug: true,
+                id: true,
+                eventName: true,
+                price: true,
+                recurringEvent: true,
+                team: {
+                  select: {
+                    name: true,
                   },
                 },
               },
             },
-          ],
-          AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
-        },
-        select: {
-          ...bookingMinimalSelect,
-          uid: true,
-          recurringEventId: true,
-          location: true,
-          eventType: {
-            select: {
-              slug: true,
-              id: true,
-              eventName: true,
-              price: true,
-              recurringEvent: true,
-              team: {
-                select: {
-                  name: true,
+            status: true,
+            paid: true,
+            payment: {
+              select: {
+                paymentOption: true,
+                amount: true,
+                currency: true,
+                success: true,
+              },
+            },
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            rescheduled: true,
+            references: true,
+            isRecorded: true,
+            seatsReferences: {
+              where: {
+                attendee: {
+                  email: user.email,
+                },
+              },
+              select: {
+                referenceUid: true,
+                attendee: {
+                  select: {
+                    email: true,
+                  },
                 },
               },
             },
           },
-          status: true,
-          paid: true,
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
+          orderBy,
+          take: take + 1,
+          skip,
+        }),
+        prisma.booking.groupBy({
+          by: ["recurringEventId"],
+          _min: {
+            startTime: true,
+          },
+          _count: {
+            recurringEventId: true,
+          },
+          where: {
+            recurringEventId: {
+              not: { equals: null },
             },
+            userId: user.id,
           },
-          rescheduled: true,
-          references: true,
-          seatsReferences: {
-            where: {
-              attendee: {
-                email: user.email,
-              },
+        }),
+        prisma.booking.groupBy({
+          by: ["recurringEventId", "status", "startTime"],
+          _min: {
+            startTime: true,
+          },
+          where: {
+            recurringEventId: {
+              not: { equals: null },
             },
-            select: {
-              referenceUid: true,
-              attendee: {
-                select: {
-                  email: true,
-                },
-              },
-            },
+            userId: user.id,
           },
-        },
-        orderBy,
-        take: take + 1,
-        skip,
-      });
-
-      const recurringInfoBasic = await prisma.booking.groupBy({
-        by: ["recurringEventId"],
-        _min: {
-          startTime: true,
-        },
-        _count: {
-          recurringEventId: true,
-        },
-        where: {
-          recurringEventId: {
-            not: { equals: null },
-          },
-          userId: user.id,
-        },
-      });
-
-      const recurringInfoExtended = await prisma.booking.groupBy({
-        by: ["recurringEventId", "status", "startTime"],
-        _min: {
-          startTime: true,
-        },
-        where: {
-          recurringEventId: {
-            not: { equals: null },
-          },
-          userId: user.id,
-        },
-      });
+        }),
+      ]);
 
       const recurringInfo = recurringInfoBasic.map(
         (
@@ -338,17 +339,17 @@ export const bookingsRouter = router({
             [key: string]: Date[];
           };
         } => {
-          const bookings = recurringInfoExtended
-            .filter((ext) => ext.recurringEventId === info.recurringEventId)
-            .reduce(
-              (prev, curr) => {
+          const bookings = recurringInfoExtended.reduce(
+            (prev, curr) => {
+              if (curr.recurringEventId === info.recurringEventId) {
                 prev[curr.status].push(curr.startTime);
-                return prev;
-              },
-              { ACCEPTED: [], CANCELLED: [], REJECTED: [], PENDING: [] } as {
-                [key in BookingStatus]: Date[];
               }
-            );
+              return prev;
+            },
+            { ACCEPTED: [], CANCELLED: [], REJECTED: [], PENDING: [] } as {
+              [key in BookingStatus]: Date[];
+            }
+          );
           return {
             recurringEventId: info.recurringEventId,
             count: info._count.recurringEventId,
@@ -547,8 +548,8 @@ export const bookingsRouter = router({
         user.credentials.forEach((credential) => {
           credentialsMap.set(credential.type, credential);
         });
-        const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter(
-          (ref) => !!credentialsMap.get(ref.type)
+        const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter((ref) =>
+          credentialsMap.has(ref.type)
         );
         bookingRefsFiltered.forEach(async (bookingRef) => {
           if (bookingRef.uid) {

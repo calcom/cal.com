@@ -6,7 +6,7 @@ import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui";
-import { FiCheckSquare, FiClock } from "@calcom/ui/components/icon";
+import { CheckSquare, Clock } from "@calcom/ui/components/icon";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
@@ -103,7 +103,7 @@ const BookingDescription: FC<Props> = (props) => {
         {requiresConfirmation && (
           <div className={classNames("items-top flex", isBookingPage && "text-default text-sm font-medium")}>
             <div>
-              <FiCheckSquare className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
+              <CheckSquare className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
             </div>
             {requiresConfirmationText}
           </div>
@@ -117,9 +117,9 @@ const BookingDescription: FC<Props> = (props) => {
             isBookingPage && "text-default",
             !eventType.metadata?.multipleDuration && "items-center"
           )}>
-          <FiClock
+          <Clock
             className={classNames(
-              "min-h-4 min-w-4 ml-[2px] inline-block ltr:mr-[10px] rtl:ml-[10px]",
+              "ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]",
               isBookingPage && "mt-[2px]"
             )}
           />
@@ -132,9 +132,9 @@ const BookingDescription: FC<Props> = (props) => {
                       variant="gray"
                       className={classNames(
                         duration === dur.toString()
-                          ? "bg-darkgray-200 text-darkgray-900 dark:bg-darkmodebrand dark:!text-darkmodebrandcontrast"
-                          : "hover:bg-darkgray-200 dark:hover:bg-darkmodebrand hover:text-darkgray-900 dark:hover:text-darkmodebrandcontrast dark:bg-darkgray-200 bg-emphasis text-emphasis dark:text-inverted",
-                        "cursor-pointer"
+                          ? "bg-emphasis border-emphasis text-emphasis "
+                          : "bg-subtle text-default border-transparent ",
+                        "cursor-pointer border"
                       )}
                       onClick={() => {
                         setDuration(dur);

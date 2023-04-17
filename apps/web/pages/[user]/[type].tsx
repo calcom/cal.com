@@ -54,6 +54,8 @@ export default function Type(props: AvailabilityPageProps) {
   );
 }
 
+Type.isBookingPage = true;
+
 const paramsSchema = z.object({ type: z.string(), user: z.string() });
 async function getUserPageProps(context: GetStaticPropsContext) {
   // load server side dependencies

@@ -16,7 +16,7 @@ import {
   Meta,
   AppSkeletonLoader as SkeletonLoader,
 } from "@calcom/ui";
-import { FiLink, FiPlus } from "@calcom/ui/components/icon";
+import { Link as LinkIcon, Plus } from "@calcom/ui/components/icon";
 
 const ApiKeysView = () => {
   const { t } = useLocale();
@@ -32,7 +32,7 @@ const ApiKeysView = () => {
     return (
       <Button
         color="secondary"
-        StartIcon={FiPlus}
+        StartIcon={Plus}
         onClick={() => {
           setApiKeyToEdit(undefined);
           setApiKeyModal(true);
@@ -72,7 +72,7 @@ const ApiKeysView = () => {
               </>
             ) : (
               <EmptyScreen
-                Icon={FiLink}
+                Icon={LinkIcon}
                 headline={t("create_first_api_key")}
                 description={t("create_first_api_key_description", { appName: APP_NAME })}
                 buttonRaw={<NewApiKeyButton />}
