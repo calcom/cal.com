@@ -33,7 +33,7 @@ function getCspPolicy(nonce: string) {
     } app.cal.com;
 	  font-src 'self';
 	  img-src 'self' ${WEBAPP_URL} https://www.gravatar.com https://img.youtube.com https://eu.ui-avatars.com/api/ data:;
-    connect-src 'self
+    connect-src 'self'
 	`;
 }
 
