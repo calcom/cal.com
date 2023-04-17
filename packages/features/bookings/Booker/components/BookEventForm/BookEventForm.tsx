@@ -22,7 +22,7 @@ import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingR
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { Form, Button, Alert, EmptyScreen } from "@calcom/ui";
-import { FiCalendar } from "@calcom/ui/components/icon";
+import { Calendar } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";
 import { useEvent } from "../../utils/event";
@@ -195,7 +195,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       <EmptyScreen
         headline={t("timeslot_missing_title")}
         description={t("timeslot_missing_description")}
-        Icon={FiCalendar}
+        Icon={Calendar}
         buttonText={t("timeslot_missing_cta")}
         buttonOnClick={onCancel}
       />

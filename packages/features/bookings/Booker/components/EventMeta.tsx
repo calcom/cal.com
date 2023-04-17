@@ -5,7 +5,7 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimezoneSelect } from "@calcom/ui";
-import { FiCalendar, FiGlobe } from "@calcom/ui/components/icon";
+import { Calendar, Globe } from "@calcom/ui/components/icon";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
@@ -33,7 +33,7 @@ export const EventMeta = () => {
           <EventTitle className="mt-2 mb-8">{event?.title}</EventTitle>
           <div className="space-y-4">
             {selectedTimeslot && (
-              <EventMetaBlock icon={FiCalendar}>
+              <EventMetaBlock icon={Calendar}>
                 {formatEventFromToTime(
                   selectedTimeslot,
                   selectedDuration,
@@ -47,7 +47,7 @@ export const EventMeta = () => {
             <EventMetaBlock
               className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100 [&_>svg]:mt-[4px]"
               contentClassName="relative"
-              icon={FiGlobe}>
+              icon={Globe}>
               {bookerState === "booking" ? (
                 <>{timezone}</>
               ) : (

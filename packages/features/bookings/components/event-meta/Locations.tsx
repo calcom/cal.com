@@ -1,7 +1,7 @@
 import { getEventLocationType } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui";
-import { FiMapPin } from "@calcom/ui/components/icon";
+import { MapPin } from "@calcom/ui/components/icon";
 
 import type { PublicEvent } from "../../types";
 import { EventMetaBlock } from "./Details";
@@ -12,7 +12,7 @@ export const EventLocations = ({ event }: { event: PublicEvent }) => {
   if (!locations?.length) return null;
 
   return (
-    <EventMetaBlock icon={FiMapPin}>
+    <EventMetaBlock icon={MapPin}>
       {locations.length === 1 && (
         <div key={locations[0].type}>{t(getEventLocationType(locations[0].type)?.label ?? "")}</div>
       )}

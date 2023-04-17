@@ -3,7 +3,7 @@ import React from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { FiInfo, FiClock, FiCheckSquare, FiRefreshCcw, FiCreditCard } from "@calcom/ui/components/icon";
+import { Info, Clock, CheckSquare, RefreshCcw, CreditCard } from "@calcom/ui/components/icon";
 
 import type { PublicEvent } from "../../types";
 import { EventDetailBlocks } from "../../types";
@@ -115,17 +115,14 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
           case EventDetailBlocks.DESCRIPTION:
             if (!event.description) return null;
             return (
-              <EventMetaBlock
-                key={block}
-                icon={FiInfo}
-                contentClassName="break-words max-w-full overflow-clip">
+              <EventMetaBlock key={block} icon={Info} contentClassName="break-words max-w-full overflow-clip">
                 <div dangerouslySetInnerHTML={{ __html: event.description }} />
               </EventMetaBlock>
             );
 
           case EventDetailBlocks.DURATION:
             return (
-              <EventMetaBlock key={block} icon={FiClock}>
+              <EventMetaBlock key={block} icon={Clock}>
                 <EventDuration event={event} />
               </EventMetaBlock>
             );
@@ -142,7 +139,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             if (!event.requiresConfirmation) return null;
 
             return (
-              <EventMetaBlock key={block} icon={FiCheckSquare}>
+              <EventMetaBlock key={block} icon={CheckSquare}>
                 {t("requires_confirmation")}
               </EventMetaBlock>
             );
@@ -151,7 +148,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             if (!event.requiresConfirmation || !event.recurringEvent) return null;
 
             return (
-              <EventMetaBlock key={block} icon={FiRefreshCcw}>
+              <EventMetaBlock key={block} icon={RefreshCcw}>
                 <EventOccurences event={event} />
               </EventMetaBlock>
             );
@@ -160,7 +157,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             if (event.price === 0) return null;
 
             return (
-              <EventMetaBlock key={block} icon={FiCreditCard}>
+              <EventMetaBlock key={block} icon={CreditCard}>
                 <EventPrice event={event} />
               </EventMetaBlock>
             );

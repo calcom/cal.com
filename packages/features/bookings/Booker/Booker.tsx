@@ -9,7 +9,7 @@ import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { Logo, ToggleGroup, useCalcomTheme } from "@calcom/ui";
-import { FiCalendar, FiColumns, FiGrid } from "@calcom/ui/components/icon";
+import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { Away } from "./components/Away";
@@ -91,9 +91,21 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             onValueChange={(layout) => setLayout(layout as BookerLayout)}
             defaultValue="small_calendar"
             options={[
-              { value: "small_calendar", label: <FiCalendar />, tooltip: t("switch_monthly") },
-              { value: "large_calendar", label: <FiGrid />, tooltip: t("switch_weekly") },
-              { value: "large_timeslots", label: <FiColumns />, tooltip: t("switch_multiday") },
+              {
+                value: "small_calendar",
+                label: <Calendar width="16" height="16" />,
+                tooltip: t("switch_monthly"),
+              },
+              {
+                value: "large_calendar",
+                label: <Grid width="16" height="16" />,
+                tooltip: t("switch_weekly"),
+              },
+              {
+                value: "large_timeslots",
+                label: <Columns width="16" height="16" />,
+                tooltip: t("switch_multiday"),
+              },
             ]}
           />
         </div>
