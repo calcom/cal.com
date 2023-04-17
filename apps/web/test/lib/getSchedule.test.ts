@@ -796,7 +796,7 @@ describe("getSchedule", () => {
         ctx
       );
       // it should return the same as this is the utc time
-      expect(scheduleForEventOnADayWithDateOverride).toHaveTimeSlots(
+      expect(scheduleForEventOnADayWithDateOverrideDifferentTimezone).toHaveTimeSlots(
         ["08:30:00.000Z", "09:30:00.000Z", "10:30:00.000Z", "11:30:00.000Z"],
         {
           dateString: plus2DateString,
