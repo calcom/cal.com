@@ -66,6 +66,10 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
     await page.goto(`/${user.username}/${slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
 
+    // Kept in if statement here, since it's only temporary
+    // until the old booker isn't used anymore, and I wanted
+    // to change the test as little as possible.
+    // eslint-disable-next-line playwright/no-conditional-in-test
     if (bookerVariant === "old-booker") {
       await page.waitForNavigation({
         url(url) {
