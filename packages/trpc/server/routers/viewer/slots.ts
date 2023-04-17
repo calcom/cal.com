@@ -76,19 +76,19 @@ const checkIfIsAvailable = ({
   time,
   busy,
   eventLength,
-  dateOverrides,
-  workingHours,
+  dateOverrides = [],
+  workingHours = [],
   currentSeats,
   organizerTimeZone,
 }: {
   time: Dayjs;
   busy: EventBusyDate[];
   eventLength: number;
-  dateOverrides: {
+  dateOverrides?: {
     start: Date;
     end: Date;
   }[];
-  workingHours: WorkingHours[];
+  workingHours?: WorkingHours[];
   currentSeats?: CurrentSeats;
   organizerTimeZone?: string;
 }): boolean => {
@@ -579,8 +579,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
           return checkIfIsAvailable({
             time: slot.time,
             busy,
-            dateOverrides: [], //todo do we need the date overrides here?
-            workingHours: [], //todo do we need the date overrides here?
             ...availabilityCheckProps,
             organizerTimeZone: organizerTimeZone,
           });
