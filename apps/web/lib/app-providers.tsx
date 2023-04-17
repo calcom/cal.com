@@ -27,8 +27,8 @@ const I18nextAdapter = appWithTranslation<NextJsAppProps<SSRConfig> & { children
 export type AppProps = Omit<NextAppProps<WithNonceProps & Record<string, unknown>>, "Component"> & {
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
-    isThemeSupported?: boolean | ((arg: { router: NextRouter }) => boolean);
-    isBookingPage?: boolean;
+    isThemeSupported?: boolean;
+    isBookingPage?: boolean | ((arg: { router: NextRouter }) => boolean);
     getLayout?: (page: React.ReactElement, router: NextRouter) => ReactNode;
   };
 
