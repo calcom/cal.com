@@ -1647,7 +1647,7 @@
   "app_is_connected": "已連結 {{dependencyName}}",
   "requires_app": "需要 {{dependencyName}}",
   "verification_code": "驗證碼",
-  "can_you_try_again": "您可以使用不同的時間再試一次嗎？",
+  "can_you_try_again": "您可以再試試其他時間嗎？",
   "verify": "驗證",
   "select_all": "全部選擇",
   "default_conferencing_bulk_title": "大量更新現有活動類型",
