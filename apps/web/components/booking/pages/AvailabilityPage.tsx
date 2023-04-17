@@ -21,7 +21,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
 import { trpc } from "@calcom/trpc";
 import { HeadSeo, NumberInput, useCalcomTheme } from "@calcom/ui";
@@ -105,8 +104,9 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
 
   const [recurringEventCount, setRecurringEventCount] = useState(eventType.recurringEvent?.count);
 
+  /*
   const telemetry = useTelemetry();
-  useEffect(() => {
+   useEffect(() => {
     if (top !== window) {
       //page_view will be collected automatically by _middleware.ts
       telemetry.event(
@@ -114,7 +114,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
         collectPageParameters("/availability", { isTeamBooking: document.URL.includes("team/") })
       );
     }
-  }, [telemetry]);
+  }, [telemetry]); */
   const embedUiConfig = useEmbedUiConfig();
   // get dynamic user list here
   const userList = eventType.users ? eventType.users.map((user) => user.username).filter(notEmpty) : [];

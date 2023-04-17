@@ -15,7 +15,7 @@ type AppPageType = {
   getServerSideProps: AppGetServerSideProps;
   // A component than can accept any properties
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: ((props: any) => JSX.Element) & Pick<AppProps["Component"], "isThemeSupported" | "getLayout">;
+  default: ((props: any) => JSX.Element) & Pick<AppProps["Component"], "isBookingPage" | "getLayout">;
 };
 
 type Found = {
@@ -70,17 +70,17 @@ const AppPage: AppPageType["default"] = function AppPage(props) {
   return <route.Component {...componentProps} />;
 };
 
-AppPage.isThemeSupported = ({ router }) => {
+AppPage.isBookingPage = ({ router }) => {
   const route = getRoute(router.query.slug as string, router.query.pages as string[]);
   if (route.notFound) {
     return false;
   }
-  const isThemeSupported = route.Component.isThemeSupported;
-  if (typeof isThemeSupported === "function") {
-    return isThemeSupported({ router });
+  const isBookingPage = route.Component.isBookingPage;
+  if (typeof isBookingPage === "function") {
+    return isBookingPage({ router });
   }
 
-  return !!isThemeSupported;
+  return !!isBookingPage;
 };
 
 AppPage.getLayout = (page, router) => {

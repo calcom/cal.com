@@ -24,6 +24,8 @@ export default function Type(props: DynamicAvailabilityPageProps) {
   return <AvailabilityPage {...props} />;
 }
 
+Type.isBookingPage = true;
+
 const querySchema = z.object({
   link: z.string().optional().default(""),
   slug: z.string().optional().default(""),
