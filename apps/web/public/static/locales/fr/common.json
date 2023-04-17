@@ -1319,6 +1319,7 @@
   "exchange_authentication_standard": "Authentification de base",
   "exchange_authentication_ntlm": "Authentification NTLM",
   "exchange_compression": "Compression GZip",
+  "exchange_version": "Version d'Exchange",
   "exchange_version_2007_SP1": "2007 SP1",
   "exchange_version_2010": "2010",
   "exchange_version_2010_SP1": "2010 SP1",
