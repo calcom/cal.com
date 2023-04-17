@@ -203,4 +203,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   } as const;
 };
 
+TeamPage.isBookingPage = true;
+
 export default TeamPage;
