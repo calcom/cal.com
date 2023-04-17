@@ -1,6 +1,7 @@
 import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
 import Script from "next/script";
+import { cloneElement } from "react";
 import { z } from "zod";
 
 import { getDirFromLang } from "@calcom/lib/i18n";
@@ -8,6 +9,17 @@ import { getDirFromLang } from "@calcom/lib/i18n";
 import { csp } from "@lib/csp";
 
 type Props = Record<string, unknown> & DocumentProps;
+// So that bots without referrer header have the referrerpolicy set explicitly by the script tag
+class CustomHead extends Head {
+  getScripts(files: Parameters<Head["getScripts"]>[0]) {
+    const originalScripts = super.getScripts(files);
+    return originalScripts.map((script) => {
+      return cloneElement(script, {
+        referrerpolicy: "strict-origin-when-cross-origin",
+      });
+    });
+  }
+}
 
 class MyDocument extends Document<Props> {
   static async getInitialProps(ctx: DocumentContext) {
@@ -34,7 +46,7 @@ class MyDocument extends Document<Props> {
     const dir = getDirFromLang(locale);
     return (
       <Html lang={locale} dir={dir}>
-        <Head nonce={nonce}>
+        <CustomHead nonce={nonce}>
           <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
           <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
           <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
@@ -43,7 +55,7 @@ class MyDocument extends Document<Props> {
           <meta name="msapplication-TileColor" content="#ff0000" />
           <meta name="theme-color" content="var(--cal-bg)" />
           <Script src="/embed-init-iframe.js" strategy="beforeInteractive" />
-        </Head>
+        </CustomHead>
 
         <body
           className="dark:bg-darkgray-50 desktop-transparent bg-subtle antialiased"
