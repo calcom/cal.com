@@ -195,6 +195,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   );
 }
 
+User.isBookingPage = true;
+
 const getEventTypesWithHiddenFromDB = async (userId: number) => {
   return (
     await prisma.eventType.findMany({
