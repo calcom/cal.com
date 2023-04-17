@@ -276,8 +276,13 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
       }
       return { previousValue };
     },
-    onSettled: () => {
+    onSettled: (routingForm) => {
       utils.viewer.appRoutingForms.forms.invalidate();
+      if (routingForm) {
+        utils.viewer.appRoutingForms.formQuery.invalidate({
+          id: routingForm.id,
+        });
+      }
     },
     onError: (err, value, context) => {
       if (context?.previousValue) {
