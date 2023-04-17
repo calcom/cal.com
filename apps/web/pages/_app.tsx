@@ -6,7 +6,7 @@ import Script from "next/script";
 
 import "@calcom/embed-core/src/embed-iframe";
 import { useEmbedUiConfig } from "@calcom/embed-core/src/embed-iframe";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import { trpc } from "@calcom/trpc/react";
 
 import type { AppProps } from "@lib/app-providers";
