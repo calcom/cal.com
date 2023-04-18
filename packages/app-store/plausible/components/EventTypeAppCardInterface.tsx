@@ -27,7 +27,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchChecked={enabled}>
       <TextField
         name="Plausible URL"
-        defaultValue="plausible.io"
+        defaultValue="https://plausible.io/js/script.js"
         value={plausibleUrl}
         onChange={(e) => {
           setAppData("plausibleUrl", e.target.value);
