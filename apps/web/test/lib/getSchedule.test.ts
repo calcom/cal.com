@@ -784,6 +784,24 @@ describe("getSchedule", () => {
           dateString: plus2DateString,
         }
       );
+
+      const scheduleForEventOnADayWithDateOverrideDifferentTimezone = await getSchedule(
+        {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+6:00"],
+        },
+        ctx
+      );
+      // it should return the same as this is the utc time
+      expect(scheduleForEventOnADayWithDateOverrideDifferentTimezone).toHaveTimeSlots(
+        ["08:30:00.000Z", "09:30:00.000Z", "10:30:00.000Z", "11:30:00.000Z"],
+        {
+          dateString: plus2DateString,
+        }
+      );
     });
 
     test("that a user is considered busy when there's a booking they host", async () => {

@@ -14,6 +14,7 @@ import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } fr
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import PageWrapper from "@components/PageWrapper";
 import BookingPage from "@components/booking/pages/BookingPage";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -24,6 +25,7 @@ export default function TeamBookingPage(props: TeamBookingPageProps) {
   return <BookingPage {...props} />;
 }
 TeamBookingPage.isBookingPage = true;
+TeamBookingPage.PageWrapper = PageWrapper;
 
 const querySchema = z.object({
   rescheduleUid: z.string().optional(),

@@ -18,6 +18,8 @@ import {
 } from "@calcom/ui";
 import { Link as LinkIcon, Plus } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
+
 const ApiKeysView = () => {
   const { t } = useLocale();
 
@@ -92,5 +94,6 @@ const ApiKeysView = () => {
 };
 
 ApiKeysView.getLayout = getLayout;
+ApiKeysView.PageWrapper = PageWrapper;
 
 export default ApiKeysView;

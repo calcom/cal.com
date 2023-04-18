@@ -14,6 +14,8 @@ import prisma from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert, Button, EmailField, HeadSeo, PasswordField, TextField } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
+
 import { asStringOrNull } from "../lib/asStringOrNull";
 import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
 import { ssrInit } from "../server/lib/ssr";
@@ -230,3 +232,4 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 };
 
 Signup.isThemeSupported = false;
+Signup.PageWrapper = PageWrapper;
