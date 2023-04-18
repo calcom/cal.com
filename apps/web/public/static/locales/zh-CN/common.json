@@ -1600,7 +1600,7 @@
   "attendee_no_longer_attending_subject": "一名参与者不再参加于 {{date}} 举行的 {{title}} ",
   "attendee_no_longer_attending": "一名参与者不再参加您的活动",
   "attendee_no_longer_attending_subtitle": "{{name}} 已取消。这意味着该时段有一个位置空出来",
-  "create_event_on": "活动创建时间",
+  "create_event_on": "创建活动于",
   "default_app_link_title": "设置默认应用链接",
   "default_app_link_description": "设置默认应用链接可以让所有新创建的活动类型使用您设置的应用链接。",
   "change_default_conferencing_app": "设置为默认",
