@@ -1617,7 +1617,7 @@
   "form_builder_field_already_exists": "Поле з такою назвою вже існує",
   "form_builder_field_add_subtitle": "Налаштуйте запитання, які ставитимуться на сторінці бронювання",
   "get_started_zapier_templates": "Розпочніть роботу із шаблонами Zapier",
-  "team_is_unpublished": "Публікацію такого елемента скасовано: {{team}}",
+  "team_is_unpublished": "Публікацію такої команди скасовано: {{team}}",
   "team_is_unpublished_description": "Посилання на команду зараз недоступне. Зверніться до власника команди або попросіть його опублікувати це посилання.",
   "team_member": "Учасник команди",
   "a_routing_form": "Форма переспрямування",
