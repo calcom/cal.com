@@ -22,29 +22,6 @@ type EventBusyDetailsWithUser = EventBusyDetails & {
   userId: number | null;
 };
 
-// function test() {
-// const scopes = [
-// "https://www.googleapis.com/auth/calendar"
-// ];
-// const auth = new google.auth.GoogleAuth({
-// keyFile: './creds.json',
-// scopes,
-// });
-
-// const calendar = google.calendar({ version: "v3", auth });
-// calendar.freebusy.query(
-// {
-// requestBody: {
-// timeMin: params.startTime,
-// timeMax: params.endTime,
-// items: [{ id: "jakob.pupke@tourlane.com" }]
-// }
-// }
-// ).then((res) => {
-// console.log("RES", JSON.stringify(res.data));
-// });
-// }
-
 type BusyTimesByUserAndDay = Record<number, Record<string, BusyTimes[]>>;
 
 export async function getBusyTimesByUserAndDay(params: {
@@ -99,6 +76,7 @@ export async function getBusyTimesByUserAndDay(params: {
   }, {} as BusyTimesByUserAndDay);
 }
 
+// currently unused. getBusyTimesByUserAndDay is used instead.
 export async function getBufferedBusyTimes(params: {
   credentials: Credential[];
   userId: number;
