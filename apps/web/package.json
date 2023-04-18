@@ -82,7 +82,6 @@
     "libphonenumber-js": "^1.10.12",
     "lodash": "^4.17.21",
     "lottie-react": "^2.3.1",
-    "lru-cache": "^9.0.3",
     "markdown-it": "^13.0.1",
     "md5": "^2.3.0",
     "memory-cache": "^0.2.0",
