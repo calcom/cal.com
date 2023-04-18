@@ -844,6 +844,7 @@ export const bookingsRouter = router({
       organizer: {
         email: user.email,
         name: user.name || "Unnamed",
+        username: user.username || undefined,
         timeZone: user.timeZone,
         language: { translate: tOrganizer, locale: user.locale ?? "en" },
       },
