@@ -12,19 +12,6 @@ import { TRPCError } from "@trpc/server";
 
 import { authedAdminProcedure, authedProcedure, router } from "../../trpc";
 
-interface FilteredApp {
-  name: string;
-  slug: string;
-  logo: string;
-  title?: string;
-  type: string;
-  description: string;
-  dirName: string;
-  keys: Prisma.JsonObject | null;
-  enabled: boolean;
-  isTemplate?: boolean;
-}
-
 export const appsRouter = router({
   listLocal: authedAdminProcedure
     .input(
@@ -34,9 +21,7 @@ export const appsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const category = input.category === "conferencing" ? "video" : input.category;
-      const localApps = getLocalAppMetadata().filter(
-        (app) => app.categories?.some((appCategory) => appCategory === category) || app.category === category
-      );
+      const localApps = getLocalAppMetadata();
 
       const dbApps = await ctx.prisma.app.findMany({
         where: {
@@ -52,15 +37,18 @@ export const appsRouter = router({
         },
       });
 
-      const filteredApps: FilteredApp[] = [];
+      return localApps.flatMap((app) => {
+        // Filter applications that does not belong to the current requested category.
+        if (!(app.category === category || app.categories?.some((appCategory) => appCategory === category))) {
+          return [];
+        }
 
-      for (const app of localApps) {
         // Find app metadata
         const dbData = dbApps.find((dbApp) => dbApp.slug === app.slug);
 
         // If the app already contains keys then return
         if (dbData?.keys) {
-          filteredApps.push({
+          return {
             name: app.name,
             slug: app.slug,
             logo: app.logo,
@@ -68,40 +56,39 @@ export const appsRouter = router({
             type: app.type,
             description: app.description,
             // We know that keys are going to be an object or null. Prisma can not type check against JSON fields
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-ignore
-            keys: dbData.keys,
+            keys: dbData.keys as Prisma.JsonObject | null,
             dirName: app.dirName || app.slug,
             enabled: dbData?.enabled || false,
             isTemplate: app.isTemplate,
-          });
-        } else {
-          const keysSchema = appKeysSchemas[app.dirName as keyof typeof appKeysSchemas];
-
-          const keys: Record<string, string> = {};
-
-          if (typeof keysSchema !== "undefined") {
-            Object.values(keysSchema.keyof()._def.values).reduce((keysObject, key) => {
-              keys[key as string] = "";
-              return keysObject;
-            }, {} as Record<string, string>);
-          }
-
-          filteredApps.push({
-            name: app.name,
-            slug: app.slug,
-            logo: app.logo,
-            type: app.type,
-            title: app.title,
-            description: app.description,
-            enabled: dbData?.enabled || false,
-            dirName: app.dirName || app.slug,
-            keys: Object.keys(keys).length === 0 ? null : keys,
-          });
+          };
         }
-      }
 
-      return filteredApps;
+        const keysSchema = appKeysSchemas[app.dirName as keyof typeof appKeysSchemas];
+
+        const keys: Record<string, string> = {};
+
+        // `typeof val === 'undefined'` is always slower than !== undefined comparison
+        // it is important to avoid string to string comparisons as much as we can
+        if (keysSchema !== undefined) {
+          // TODO: Remove the Object.values and reduce to improve the performance.
+          Object.values(keysSchema.keyof()._def.values).reduce((keysObject, key) => {
+            keys[key as string] = "";
+            return keysObject;
+          }, {} as Record<string, string>);
+        }
+
+        return {
+          name: app.name,
+          slug: app.slug,
+          logo: app.logo,
+          type: app.type,
+          title: app.title,
+          description: app.description,
+          enabled: dbData?.enabled ?? false,
+          dirName: app.dirName ?? app.slug,
+          keys: Object.keys(keys).length === 0 ? null : keys,
+        };
+      });
     }),
   toggle: authedAdminProcedure
     .input(
