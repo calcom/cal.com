@@ -24,7 +24,6 @@ const NavTabs = function ({
   iconClassName,
   ...props
 }: NavTabProps) {
-  console.log("TABS", tabs);
   return (
     <nav
       className={classNames(
