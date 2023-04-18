@@ -11,7 +11,7 @@ import prisma from "@calcom/prisma";
  * Stores the session in memory using the stringified token as the key.
  *
  */
-const CACHE = new LRUCache({ max: 1000 });
+const CACHE = new LRUCache<string, Session>({ max: 1000 });
 
 /**
  * This is a slimmed down version of the `getServerSession` function from
