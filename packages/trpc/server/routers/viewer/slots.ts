@@ -19,6 +19,7 @@ import type prisma from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { WorkingHours } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
 
@@ -75,12 +76,21 @@ const checkIfIsAvailable = ({
   time,
   busy,
   eventLength,
+  dateOverrides = [],
+  workingHours = [],
   currentSeats,
+  organizerTimeZone,
 }: {
   time: Dayjs;
   busy: EventBusyDate[];
   eventLength: number;
+  dateOverrides?: {
+    start: Date;
+    end: Date;
+  }[];
+  workingHours?: WorkingHours[];
   currentSeats?: CurrentSeats;
+  organizerTimeZone?: string;
 }): boolean => {
   if (currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString())) {
     return true;
@@ -88,6 +98,57 @@ const checkIfIsAvailable = ({
 
   const slotEndTime = time.add(eventLength, "minutes").utc();
   const slotStartTime = time.utc();
+
+  //check if date override for slot exists
+  let dateOverrideExist = false;
+
+  if (
+    dateOverrides.find((date) => {
+      const utcOffset = organizerTimeZone ? dayjs.tz(date.start, organizerTimeZone).utcOffset() * -1 : 0;
+
+      if (
+        dayjs(date.start).add(utcOffset, "minutes").format("YYYY MM DD") ===
+        slotStartTime.format("YYYY MM DD")
+      ) {
+        dateOverrideExist = true;
+        if (dayjs(date.start).add(utcOffset, "minutes") === dayjs(date.end).add(utcOffset, "minutes")) {
+          return true;
+        }
+        if (
+          slotEndTime.isBefore(dayjs(date.start).add(utcOffset, "minutes")) ||
+          slotEndTime.isSame(dayjs(date.start).add(utcOffset, "minutes"))
+        ) {
+          return true;
+        }
+        if (slotStartTime.isAfter(dayjs(date.end).add(utcOffset, "minutes"))) {
+          return true;
+        }
+      }
+    })
+  ) {
+    // slot is not within the date override
+    return false;
+  }
+
+  if (dateOverrideExist) {
+    return true;
+  }
+
+  //if no date override for slot exists check if it is within normal work hours
+  if (
+    workingHours.find((workingHour) => {
+      if (workingHour.days.includes(slotStartTime.day())) {
+        const start = slotStartTime.hour() * 60 + slotStartTime.minute();
+        const end = slotStartTime.hour() * 60 + slotStartTime.minute();
+        if (start < workingHour.startTime || end > workingHour.endTime) {
+          return true;
+        }
+      }
+    })
+  ) {
+    // slot is outside of working hours
+    return false;
+  }
 
   return busy.every((busyTime) => {
     const startTime = dayjs.utc(busyTime.start).utc();
@@ -115,7 +176,6 @@ const checkIfIsAvailable = ({
     else if (startTime.isBetween(time, slotEndTime)) {
       return false;
     }
-
     return true;
   });
 };
@@ -348,7 +408,11 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   );
   // flattens availability of multiple users
   const dateOverrides = userAvailability.flatMap((availability) =>
-    availability.dateOverrides.map((override) => ({ userId: availability.user.id, ...override }))
+    availability.dateOverrides.map((override) => ({
+      userId: availability.user.id,
+      timeZone: availability.timeZone,
+      ...override,
+    }))
   );
   const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
   const availabilityCheckProps = {
@@ -372,6 +436,9 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
 
   const timeSlots: ReturnType<typeof getTimeSlots> = [];
 
+  const organizerTimeZone =
+    eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone;
+
   for (
     let currentCheckedTime = startTime;
     currentCheckedTime.isBefore(endTime);
@@ -386,8 +453,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         dateOverrides,
         minimumBookingNotice: eventType.minimumBookingNotice,
         frequency: eventType.slotInterval || input.duration || eventType.length,
-        organizerTimeZone:
-          eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
+        organizerTimeZone,
       })
     );
   }
@@ -423,6 +489,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         time: slot.time,
         ...schedule,
         ...availabilityCheckProps,
+        organizerTimeZone: schedule.timeZone,
       });
       const endCheckForAvailability = performance.now();
       checkForAvailabilityCount++;
@@ -430,6 +497,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       return isAvailable;
     });
   });
+
   // what else are you going to call it?
   const looseHostAvailability = userAvailability.filter(({ user: { isFixed } }) => !isFixed);
   if (looseHostAvailability.length > 0) {
@@ -446,6 +514,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
             time: slot.time,
             ...userSchedule,
             ...availabilityCheckProps,
+            organizerTimeZone: userSchedule.timeZone,
           });
         });
         return slot;
@@ -507,17 +576,19 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
             return false;
           }
 
+          const userSchedule = userAvailability.find(({ user: { id: userId } }) => userId === slotUserId);
+
           return checkIfIsAvailable({
             time: slot.time,
             busy,
             ...availabilityCheckProps,
+            organizerTimeZone: userSchedule?.timeZone,
           });
         });
         return slot;
       })
       .filter((slot) => !!slot.userIds?.length);
   }
-
   availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
 
   const computedAvailableSlots = availableTimeSlots.reduce(
