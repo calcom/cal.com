@@ -99,11 +99,6 @@ const checkIfIsAvailable = ({
   const slotEndTime = time.add(eventLength, "minutes").utc();
   const slotStartTime = time.utc();
 
-  const fixedDateOverrides: {
-    start: Date;
-    end: Date;
-  }[] = [];
-
   //check if date override for slot exists
   let dateOverrideExist = false;
 
@@ -413,7 +408,11 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   );
   // flattens availability of multiple users
   const dateOverrides = userAvailability.flatMap((availability) =>
-    availability.dateOverrides.map((override) => ({ userId: availability.user.id, ...override }))
+    availability.dateOverrides.map((override) => ({
+      userId: availability.user.id,
+      timeZone: availability.timeZone,
+      ...override,
+    }))
   );
   const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
   const availabilityCheckProps = {
@@ -454,7 +453,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         dateOverrides,
         minimumBookingNotice: eventType.minimumBookingNotice,
         frequency: eventType.slotInterval || input.duration || eventType.length,
-        organizerTimeZone: organizerTimeZone,
+        organizerTimeZone,
       })
     );
   }
@@ -490,7 +489,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         time: slot.time,
         ...schedule,
         ...availabilityCheckProps,
-        organizerTimeZone: organizerTimeZone,
+        organizerTimeZone: schedule.timeZone,
       });
       const endCheckForAvailability = performance.now();
       checkForAvailabilityCount++;
@@ -515,7 +514,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
             time: slot.time,
             ...userSchedule,
             ...availabilityCheckProps,
-            organizerTimeZone: organizerTimeZone,
+            organizerTimeZone: userSchedule.timeZone,
           });
         });
         return slot;
@@ -576,11 +575,14 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
           if (!busy?.length && eventType.seatsPerTimeSlot === null) {
             return false;
           }
+
+          const userSchedule = userAvailability.find(({ user: { id: userId } }) => userId === slotUserId);
+
           return checkIfIsAvailable({
             time: slot.time,
             busy,
             ...availabilityCheckProps,
-            organizerTimeZone: organizerTimeZone,
+            organizerTimeZone: userSchedule?.timeZone,
           });
         });
         return slot;

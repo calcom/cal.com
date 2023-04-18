@@ -209,7 +209,7 @@ const getSlots = ({
 
   if (!!activeOverrides.length) {
     const overrides = activeOverrides.flatMap((override) => {
-      const organizerUtcOffset = dayjs(override.start.toString()).tz(organizerTimeZone).utcOffset();
+      const organizerUtcOffset = dayjs(override.start.toString()).tz(override.timeZone).utcOffset();
       const inviteeUtcOffset = dayjs(override.start.toString()).tz(timeZone).utcOffset();
       const offset = inviteeUtcOffset - organizerUtcOffset;
 
