@@ -8,6 +8,11 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import { scheduleEmailReminder } from "./emailReminderManager";
 import { scheduleSMSReminder } from "./smsReminderManager";
 
+type ExtendedCalendarEvent = CalendarEvent & {
+  metadata?: { videoCallUrl: string | undefined };
+  eventType: { slug?: string };
+};
+
 export interface ScheduleWorkflowRemindersArgs {
   workflows: (WorkflowsOnEventTypes & {
     workflow: Workflow & {
@@ -15,11 +20,12 @@ export interface ScheduleWorkflowRemindersArgs {
     };
   })[];
   smsReminderNumber: string | null;
-  calendarEvent: CalendarEvent & { metadata?: { videoCallUrl: string | undefined } };
+  calendarEvent: ExtendedCalendarEvent;
   requiresConfirmation?: boolean;
   isRescheduleEvent?: boolean;
   isFirstRecurringEvent?: boolean;
   emailAttendeeSendToOverride?: string;
+  hideBranding?: boolean;
 }
 
 export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) => {
@@ -31,6 +37,7 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     isRescheduleEvent = false,
     isFirstRecurringEvent = false,
     emailAttendeeSendToOverride = "",
+    hideBranding,
   } = args;
   if (workflows.length > 0 && !requiresConfirmation) {
     for (const workflowReference of workflows) {
@@ -95,7 +102,8 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
               step.reminderBody || "",
               step.id,
               step.template,
-              step.sender || SENDER_NAME
+              step.sender || SENDER_NAME,
+              hideBranding
             );
           }
         }
@@ -111,11 +119,12 @@ export interface SendCancelledRemindersArgs {
     };
   })[];
   smsReminderNumber: string | null;
-  evt: CalendarEvent;
+  evt: ExtendedCalendarEvent;
+  hideBranding?: boolean;
 }
 
 export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
-  const { workflows, smsReminderNumber, evt } = args;
+  const { workflows, smsReminderNumber, evt, hideBranding } = args;
 
   if (workflows.length > 0) {
     for (const workflowRef of workflows) {
@@ -170,7 +179,8 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
               step.reminderBody || "",
               step.id,
               step.template,
-              step.sender || SENDER_NAME
+              step.sender || SENDER_NAME,
+              hideBranding
             );
           }
         }

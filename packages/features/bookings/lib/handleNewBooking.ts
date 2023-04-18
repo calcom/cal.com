@@ -198,6 +198,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       customInputs: true,
       disableGuests: true,
       users: userSelect,
+      slug: true,
       team: {
         select: {
           id: true,
@@ -227,6 +228,11 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       seatsShowAttendees: true,
       bookingLimits: true,
       durationLimits: true,
+      owner: {
+        select: {
+          hideBranding: true,
+        },
+      },
       workflows: {
         include: {
           workflow: {
@@ -800,6 +806,7 @@ async function handler(
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
       email: organizerUser.email || "Email-less",
+      username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
       timeFormat: organizerUser.timeFormat === 24 ? TimeFormat.TWENTY_FOUR_HOUR : TimeFormat.TWELVE_HOUR,
@@ -1441,7 +1448,7 @@ async function handler(
       await scheduleWorkflowReminders({
         workflows: eventType.workflows,
         smsReminderNumber: smsReminderNumber || null,
-        calendarEvent: { ...evt, responses, ...{ metadata } },
+        calendarEvent: { ...evt, ...{ metadata, eventType: { slug: eventType.slug } } },
         requiresConfirmation: evt.requiresConfirmation || false,
         isRescheduleEvent: !!rescheduleUid,
         isFirstRecurringEvent: true,
@@ -2058,10 +2065,14 @@ async function handler(
     await scheduleWorkflowReminders({
       workflows: eventType.workflows,
       smsReminderNumber: smsReminderNumber || null,
-      calendarEvent: { ...evt, responses, ...{ metadata: metadataFromEvent } },
+      calendarEvent: {
+        ...evt,
+        ...{ metadata: metadataFromEvent, eventType: { slug: eventType.slug } },
+      },
       requiresConfirmation: evt.requiresConfirmation || false,
       isRescheduleEvent: !!rescheduleUid,
       isFirstRecurringEvent: true,
+      hideBranding: !!eventType.owner?.hideBranding,
     });
   } catch (error) {
     log.error("Error while scheduling workflow reminders", error);
