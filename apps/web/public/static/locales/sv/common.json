@@ -38,7 +38,6 @@
   "price": "Pris",
   "paid": "Betald",
   "refunded": "Återbetald",
-  "pay_later_instructions": "Du har även fått ett mail med denna länk, om du vill betala senare.",
   "payment": "Betalning",
   "missing_card_fields": "Kortfält saknas",
   "pay_now": "Betala nu",

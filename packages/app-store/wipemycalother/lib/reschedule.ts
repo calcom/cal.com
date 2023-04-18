@@ -1,7 +1,6 @@
 import { Booking, BookingReference, BookingStatus, User } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
-import EventManager from "@calcom/core/EventManager";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";

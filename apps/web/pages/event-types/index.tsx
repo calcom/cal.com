@@ -16,6 +16,8 @@ import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { RouterOutputs, trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
+  Avatar,
+  AvatarGroup,
   Badge,
   Button,
   ButtonGroup,
@@ -31,8 +33,6 @@ import {
   EmptyScreen,
   showToast,
   Switch,
-  Avatar,
-  AvatarGroup,
   Tooltip,
   HorizontalTabs,
 } from "@calcom/ui";

@@ -57,9 +57,7 @@ export default function InstalledAppsLayout({
 
   return (
     <Shell {...rest}>
-      <AppCategoryNavigation
-        baseURL="/apps/installed"
-        containerClassname="w-full xl:mx-5 xl:w-4/5 xl:max-w-2xl xl:pr-5">
+      <AppCategoryNavigation baseURL="/apps/installed" containerClassname="min-w-0 w-full">
         {children}
       </AppCategoryNavigation>
     </Shell>

@@ -7,7 +7,6 @@ import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import { Button, Meta } from "@calcom/ui";
 import { FiExternalLink } from "@calcom/ui/components/icon";
 
@@ -37,7 +36,6 @@ const CtaRow = ({ title, description, className, children }: CtaRowProps) => {
 
 const BillingView = () => {
   const { t } = useLocale();
-  const { data: user } = trpc.viewer.me.useQuery();
   const [, loadChat] = useChat();
   const [showChat, setShowChat] = useState(false);
   const router = useRouter();

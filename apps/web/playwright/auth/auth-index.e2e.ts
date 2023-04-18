@@ -1,7 +1,3 @@
-import { expect } from "@playwright/test";
-
-import { WEBAPP_URL } from "@calcom/lib/constants";
-
 import { test } from "../lib/fixtures";
 import { todo } from "../lib/testUtils";
 

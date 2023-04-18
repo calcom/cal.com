@@ -38,7 +38,6 @@
   "price": "价格",
   "paid": "已付款",
   "refunded": "已退款",
-  "pay_later_instructions": "如果您想稍后付款，请检查您的邮箱，我们向您的邮箱发送了一封包含此链接的邮件。",
   "payment": "支付",
   "missing_card_fields": "卡片信息不全",
   "pay_now": "立即付款",

@@ -51,9 +51,9 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   const watchDayRange = watch(name);
 
   return (
-    <div className="mb-1 flex w-full flex-col px-5 py-1 sm:flex-row sm:px-0">
+    <div className="mb-4 flex w-full flex-col last:mb-0 sm:flex-row sm:px-0">
       {/* Label & switch container */}
-      <div className="flex h-11 items-center justify-between sm:w-32">
+      <div className="flex h-[36px] items-center justify-between sm:w-32">
         <div>
           <label className="flex flex-row items-center space-x-2 rtl:space-x-reverse">
             <div>
@@ -67,9 +67,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
               />
             </div>
             <span className="inline-block min-w-[88px] text-sm capitalize">{weekday}</span>
-            {watchDayRange && !!watchDayRange.length && (
-              <div className="mt-1 mb-1 sm:hidden">{CopyButton}</div>
-            )}
+            {watchDayRange && !!watchDayRange.length && <div className="sm:hidden">{CopyButton}</div>}
           </label>
         </div>
       </div>
@@ -77,7 +75,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
         {watchDayRange ? (
           <div className="flex sm:ml-2">
             <DayRanges control={control} name={name} />
-            {!!watchDayRange.length && <div className="mt-1 hidden sm:block">{CopyButton}</div>}
+            {!!watchDayRange.length && <div className="hidden sm:block">{CopyButton}</div>}
           </div>
         ) : (
           <SkeletonText className="mt-2.5 ml-1 h-6 w-48" />
@@ -142,7 +140,7 @@ const Schedule = <
   const { i18n } = useLocale();
 
   return (
-    <div className="divide-y sm:divide-none">
+    <div className="divide-y p-4 sm:divide-none">
       {/* First iterate for each day */}
       {weekdayNames(i18n.language, weekStart, "long").map((weekday, num) => {
         const weekdayIndex = (num + weekStart) % 7;
@@ -179,7 +177,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
     <div>
       {fields.map((field, index: number) => (
         <Fragment key={field.id}>
-          <div className="mb-2 flex first:mt-1">
+          <div className="mb-2 flex last:mb-0">
             <Controller name={`${name}.${index}`} render={({ field }) => <TimeRangeField {...field} />} />
             {index === 0 && (
               <Button
@@ -230,7 +228,7 @@ const TimeRangeField = ({ className, value, onChange }: { className?: string } &
   return (
     <div className={className}>
       <LazySelect
-        className="inline-block h-9 w-[100px]"
+        className="inline-block w-[100px]"
         value={value.start}
         max={value.end}
         onChange={(option) => {

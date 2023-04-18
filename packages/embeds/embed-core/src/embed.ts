@@ -482,7 +482,7 @@ export class Cal {
       }
     });
 
-    this.actionManager.on("__iframeReady", (e) => {
+    this.actionManager.on("__iframeReady", () => {
       this.iframeReady = true;
       this.doInIframe({ method: "parentKnowsIframeReady", arg: undefined });
       this.iframeDoQueue.forEach(({ method, arg }) => {
@@ -499,7 +499,7 @@ export class Cal {
       }
     });
 
-    this.actionManager.on("linkReady", (e) => {
+    this.actionManager.on("linkReady", () => {
       this.modalBox?.setAttribute("state", "loaded");
       this.inlineEl?.setAttribute("loading", "done");
     });

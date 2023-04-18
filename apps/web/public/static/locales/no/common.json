@@ -38,7 +38,6 @@
   "price": "Pris",
   "paid": "Betalt",
   "refunded": "Tilbakebetalt",
-  "pay_later_instructions": "Du har også mottatt en e-post med denne lenken, dersom du ønsker å betale senere.",
   "payment": "Betaling",
   "missing_card_fields": "Manglende kortfelt",
   "pay_now": "Betal nå",

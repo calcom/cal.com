@@ -91,7 +91,7 @@ const tabs: VerticalTabItemProps[] = [
       //
       { name: "impersonation", href: "/settings/admin/impersonation" },
       { name: "apps", href: "/settings/admin/apps/calendar" },
-      { name: "users", href: "/settings/admin/users" },
+      { name: "users", href: "https://console.cal.com" },
     ],
   },
 ];

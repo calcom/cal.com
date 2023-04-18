@@ -1,4 +1,4 @@
-import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useState } from "react";
 import { TbWebhook } from "react-icons/tb";
 

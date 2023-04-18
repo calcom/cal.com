@@ -10,6 +10,7 @@ import { UserPermissionRole } from ".prisma/client";
 
 export default function AdminLayout({
   children,
+
   ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   const session = useSession();
@@ -22,10 +23,11 @@ export default function AdminLayout({
     }
   }, [session, router]);
 
+  const isAppsPage = router.asPath.startsWith("/settings/admin/apps");
   return (
     <SettingsLayout {...rest}>
       <div className="mx-auto flex max-w-4xl flex-row divide-y divide-gray-200">
-        <div className="flex flex-1 [&>*]:flex-1">
+        <div className={isAppsPage ? "min-w-0" : "flex flex-1 [&>*]:flex-1"}>
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
-    trackedDomain: z.string(),
+    trackingId: z.string(),
   })
 );
 

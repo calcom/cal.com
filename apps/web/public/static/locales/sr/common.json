@@ -38,7 +38,6 @@
   "price": "Cena",
   "paid": "Plaćeno",
   "refunded": "Vraćen novac",
-  "pay_later_instructions": "Takodje ste dobili email sa ovim linkom, ako želite da platite kasnije.",
   "payment": "Uplata",
   "missing_card_fields": "Nedostaju polja kartice",
   "pay_now": "Plati sad",

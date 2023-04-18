@@ -10,8 +10,6 @@ import { z } from "zod";
 import { EventLocationType } from "@calcom/core/location";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
-import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
-import findDurationType from "@calcom/lib/findDurationType";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";

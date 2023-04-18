@@ -29,6 +29,7 @@ import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { HeadSeo } from "@calcom/ui";
 import { FiChevronDown, FiChevronUp, FiCreditCard, FiGlobe, FiRefreshCcw } from "@calcom/ui/components/icon";
@@ -113,7 +114,10 @@ const SlotPicker = ({
   ethSignature,
   rescheduleUid,
 }: {
-  eventType: Pick<EventType, "id" | "schedulingType" | "slug" | "length" | "teamId">;
+  eventType: Pick<
+    EventType & { metadata: z.infer<typeof EventTypeMetaDataSchema> },
+    "id" | "schedulingType" | "slug" | "length" | "metadata" | "teamId"
+  >;
   timeFormat: TimeFormat;
   onTimeFormatChange: (is24Hour: boolean) => void;
   timeZone?: string;
@@ -126,11 +130,15 @@ const SlotPicker = ({
 }) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
-  const { duration } = useRouterQuery("duration");
+  let { duration = eventType.length.toString() } = useRouterQuery("duration");
   const { date, setQuery: setDate } = useRouterQuery("date");
   const { month, setQuery: setMonth } = useRouterQuery("month");
   const { useSlotsProxy } = useRouterQuery("useSlotsProxy");
   const router = useRouter();
+
+  if (!eventType.metadata?.multipleDuration) {
+    duration = eventType.length.toString();
+  }
 
   const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
 

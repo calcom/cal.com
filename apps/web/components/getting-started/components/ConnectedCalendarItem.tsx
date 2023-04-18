@@ -1,5 +1,3 @@
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 import { CalendarSwitch } from "./CalendarSwitch";
 
 interface IConnectedCalendarItem {
@@ -21,7 +19,7 @@ interface IConnectedCalendarItem {
 
 const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
   const { name, logo, externalId, calendars, integrationType } = prop;
-  const { t } = useLocale();
+
   return (
     <>
       <div className="flex flex-row items-center p-4">

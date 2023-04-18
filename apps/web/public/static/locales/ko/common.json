@@ -38,7 +38,6 @@
   "price": "가격",
   "paid": "결제완료",
   "refunded": "환불완료",
-  "pay_later_instructions": "원하신다면 나중에 결제하실 수 있도록 이 링크를 이메일로 보냈습니다.",
   "payment": "결제",
   "missing_card_fields": "카드 항목 누락",
   "pay_now": "지금 결제하십시오.",
