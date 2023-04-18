@@ -2,6 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventType } from "@prisma/client";
 import * as Popover from "@radix-ui/react-popover";
 import { useRouter } from "next/router";
+import type { NextRouter } from "next/router";
 import { useReducer, useEffect, useMemo, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { FormattedNumber, IntlProvider } from "react-intl";
@@ -20,6 +21,7 @@ import {
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
+import decodeProxyParams from "@calcom/lib/decodeProxyParams";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -48,33 +50,45 @@ import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type
 const useSlots = ({
   eventTypeId,
   eventTypeSlug,
+  eventTypeLength,
+  eventTypeTeamId,
   startTime,
   endTime,
   usernameList,
   timeZone,
   duration,
+  useSlotsProxy,
+  rescheduleUid,
+  proxy,
 }: {
   eventTypeId: number;
   eventTypeSlug: string;
+  eventTypeLength: number;
+  eventTypeTeamId?: number | null;
   startTime?: Dayjs;
   endTime?: Dayjs;
   usernameList: string[];
   timeZone?: string;
   duration?: string;
+  useSlotsProxy: boolean;
+  rescheduleUid?: string;
+  proxy?: Record<string, string>;
 }) => {
   const { data, isLoading, isPaused } = trpc.viewer.public.slots.getSchedule.useQuery(
     {
       eventTypeId,
       eventTypeSlug,
+      eventTypeLength,
+      eventTypeTeamId,
       usernameList,
       startTime: startTime?.toISOString() || "",
       endTime: endTime?.toISOString() || "",
       timeZone,
       duration,
+      rescheduleUid,
+      proxy,
     },
-    {
-      enabled: !!startTime && !!endTime,
-    }
+    { enabled: !!startTime && !!endTime, trpc: { context: { slotsProxyUrl: useSlotsProxy } } }
   );
   const [cachedSlots, setCachedSlots] = useState<NonNullable<typeof data>["slots"]>({});
 
@@ -98,10 +112,11 @@ const SlotPicker = ({
   seatsPerTimeSlot,
   weekStart = 0,
   ethSignature,
+  rescheduleUid,
 }: {
   eventType: Pick<
     EventType & { metadata: z.infer<typeof EventTypeMetaDataSchema> },
-    "id" | "schedulingType" | "slug" | "length" | "metadata"
+    "id" | "schedulingType" | "slug" | "length" | "metadata" | "teamId"
   >;
   timeFormat: TimeFormat;
   onTimeFormatChange: (is24Hour: boolean) => void;
@@ -111,12 +126,14 @@ const SlotPicker = ({
   users: string[];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   ethSignature?: string;
+  rescheduleUid?: string;
 }) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
   let { duration = eventType.length.toString() } = useRouterQuery("duration");
   const { date, setQuery: setDate } = useRouterQuery("date");
   const { month, setQuery: setMonth } = useRouterQuery("month");
+  const { useSlotsProxy } = useRouterQuery("useSlotsProxy");
   const router = useRouter();
 
   if (!eventType.metadata?.multipleDuration) {
@@ -146,19 +163,27 @@ const SlotPicker = ({
     }
   }, [router.isReady, month, date, duration, timeZone]);
 
+  const proxy = decodeProxyParams(router.asPath.split("?")[1]);
   const { i18n, isLocaleReady } = useLocale();
   const { slots: _1 } = useSlots({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
+    eventTypeLength: eventType.length,
+    eventTypeTeamId: eventType.teamId,
     usernameList: users,
     startTime: selectedDate?.startOf("day"),
     endTime: selectedDate?.endOf("day"),
     timeZone,
     duration,
+    useSlotsProxy: useSlotsProxy !== "false",
+    rescheduleUid,
+    proxy,
   });
   const { slots: _2, isLoading } = useSlots({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
+    eventTypeLength: eventType.length,
+    eventTypeTeamId: eventType.teamId,
     usernameList: users,
     startTime:
       browsingDate === undefined || browsingDate.get("month") === dayjs.tz(undefined, timeZone).get("month")
@@ -167,6 +192,9 @@ const SlotPicker = ({
     endTime: browsingDate?.endOf("month"),
     timeZone,
     duration,
+    useSlotsProxy: useSlotsProxy !== "false",
+    rescheduleUid,
+    proxy,
   });
 
   const slots = useMemo(() => ({ ..._2, ..._1 }), [_1, _2]);
@@ -257,6 +285,25 @@ const dateQuerySchema = z.object({
 });
 
 export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
+type WeekDayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+function weekDayToNumber(weekDay: string): WeekDayIndex {
+  const index = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+    weekDay
+  );
+  return index === -1 ? 0 : (index as WeekDayIndex);
+}
+
+function getWeekStartFromRouterOrProfile(router: NextRouter, profile: Props["profile"]): WeekDayIndex {
+  if (router.query.weekStart) {
+    return weekDayToNumber(router.query.weekStart as string);
+  }
+
+  /* Allows providing weekStart as number */
+  return typeof profile.weekStart === "string"
+    ? weekDayToNumber(profile.weekStart)
+    : (profile.weekStart as WeekDayIndex);
+}
 
 const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const router = useRouter();
@@ -270,6 +317,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const isBackgroundTransparent = useIsBackgroundTransparent();
+  const weekStart = getWeekStartFromRouterOrProfile(router, profile);
 
   const [timeZone, setTimeZone] = useState<string>();
   const [timeFormat, setTimeFormat] = useState<TimeFormat>(detectBrowserTimeFormat);
@@ -351,7 +399,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
       <div>
         <main
           className={classNames(
-            "flex flex-col md:mx-4",
+            "flex-col md:mx-4 md:flex",
             shouldAlignCentrally ? "items-center" : "items-start",
             !isEmbed && classNames("mx-auto my-0 ease-in-out md:my-24")
           )}>
@@ -430,19 +478,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                   </div>
                 )}
                 <SlotPicker
-                  weekStart={
-                    typeof profile.weekStart === "string"
-                      ? ([
-                          "Sunday",
-                          "Monday",
-                          "Tuesday",
-                          "Wednesday",
-                          "Thursday",
-                          "Friday",
-                          "Saturday",
-                        ].indexOf(profile.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
-                      : profile.weekStart /* Allows providing weekStart as number */
-                  }
+                  weekStart={weekStart}
                   eventType={eventType}
                   timeFormat={timeFormat}
                   onTimeFormatChange={onTimeFormatChange}
@@ -451,6 +487,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                   seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
                   recurringEventCount={recurringEventCount}
                   ethSignature={gateState.rainbowToken}
+                  rescheduleUid={rescheduleUid}
                 />
               </div>
             </div>

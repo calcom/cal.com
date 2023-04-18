@@ -16,7 +16,6 @@ import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getEventName } from "@calcom/core/event";
 import dayjs, { ConfigType } from "@calcom/dayjs";
 import {
-  sdkActionManager,
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,
   useIsEmbed,
@@ -32,7 +31,7 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
-import prisma from "@calcom/prisma";
+import prisma, { baseUserSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Button, EmailInput, HeadSeo } from "@calcom/ui";
@@ -187,11 +186,9 @@ export default function Success(props: SuccessProps) {
   if ((isCancellationMode || changes) && typeof window !== "undefined") {
     window.scrollTo(0, document.body.scrollHeight);
   }
-
   const location: ReturnType<typeof getEventLocationValue> = Array.isArray(props.bookingInfo.location)
-    ? props.bookingInfo.location[0]
-    : // If there is no location set then we default to Cal Video
-      "integrations:daily";
+    ? props.bookingInfo.location[0] || ""
+    : props.bookingInfo.location || "";
 
   if (!location) {
     // Can't use logger.error because it throws error on client. stdout isn't available to it.
@@ -252,22 +249,6 @@ export default function Success(props: SuccessProps) {
   }, [telemetry]);
 
   useEffect(() => {
-    const users = eventType.users;
-    if (!sdkActionManager) return;
-    // TODO: We should probably make it consistent with Webhook payload. Some data is not available here, as and when requirement comes we can add
-    sdkActionManager.fire("bookingSuccessful", {
-      booking: bookingInfo,
-      eventType,
-      date: date.toString(),
-      duration: calculatedDuration,
-      organizer: {
-        name: users[0].name || "Nameless",
-        email: users[0].email || "Email-less",
-        timeZone: users[0].timeZone,
-      },
-      confirmed: !needsConfirmation,
-      // TODO: Add payment details
-    });
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
     setIs24h(!!getIs24hClockFromLocalStorage());
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -325,7 +306,7 @@ export default function Success(props: SuccessProps) {
     }
     return t("emailed_you_and_attendees" + titleSuffix);
   }
-  const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
+  const userIsOwner = !!(session?.user?.id && eventType.users.find((user) => (user.id = session.user.id)));
   useTheme(isSuccessBookingPage ? props.profile.theme : "light");
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
@@ -567,7 +548,7 @@ export default function Success(props: SuccessProps) {
                 {(!needsConfirmation || !userIsOwner) &&
                   !isCancelled &&
                   (!isCancellationMode ? (
-                    <>
+                    <div className="hidden">
                       <hr className="border-bookinglightest dark:border-darkgray-300 mb-8" />
                       <div className="text-center last:pb-0">
                         <span className="text-gray-900 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
@@ -595,7 +576,7 @@ export default function Success(props: SuccessProps) {
                           {t("cancel")}
                         </button>
                       </div>
-                    </>
+                    </div>
                   ) : (
                     <>
                       <hr className="border-bookinglightest dark:border-darkgray-200" />
@@ -849,17 +830,6 @@ export function RecurringBookings({
 }
 
 const getEventTypesFromDB = async (id: number) => {
-  const userSelect = {
-    id: true,
-    name: true,
-    username: true,
-    hideBranding: true,
-    theme: true,
-    brandColor: true,
-    darkBrandColor: true,
-    email: true,
-    timeZone: true,
-  };
   const eventType = await prisma.eventType.findUnique({
     where: {
       id,
@@ -878,17 +848,17 @@ const getEventTypesFromDB = async (id: number) => {
       locations: true,
       price: true,
       currency: true,
-      owner: {
-        select: userSelect,
-      },
       users: {
-        select: userSelect,
-      },
-      hosts: {
         select: {
-          user: {
-            select: userSelect,
-          },
+          id: true,
+          name: true,
+          username: true,
+          hideBranding: true,
+          theme: true,
+          brandColor: true,
+          darkBrandColor: true,
+          email: true,
+          timeZone: true,
         },
       },
       team: {
@@ -1029,18 +999,27 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  eventTypeRaw.users = !!eventTypeRaw.hosts?.length
-    ? eventTypeRaw.hosts.map((host) => host.user)
-    : eventTypeRaw.users;
+  if (!eventTypeRaw.users.length && eventTypeRaw.userId) {
+    // TODO we should add `user User` relation on `EventType` so this extra query isn't needed
+    const user = await prisma.user.findUnique({
+      where: {
+        id: eventTypeRaw.userId,
+      },
+      select: baseUserSelect,
+    });
+    if (user) {
+      eventTypeRaw.users.push({
+        ...user,
+        avatar: "",
+        allowDynamicBooking: true,
+      });
+    }
+  }
 
   if (!eventTypeRaw.users.length) {
-    if (!eventTypeRaw.owner)
-      return {
-        notFound: true,
-      };
-    eventTypeRaw.users.push({
-      ...eventTypeRaw.owner,
-    });
+    return {
+      notFound: true,
+    };
   }
 
   const eventType = {

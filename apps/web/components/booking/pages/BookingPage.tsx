@@ -29,6 +29,7 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -103,6 +104,7 @@ const BookingPage = ({
   recurringEventCount,
   hasHashedBookingLink,
   hashedLink,
+  userToBeBooked,
   ...restProps
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
@@ -147,6 +149,15 @@ const BookingPage = ({
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
+      if (sdkActionManager) {
+        const payload = {
+          date: responseData.startTime.toString(),
+          bookingInfo: responseData,
+          duration,
+          confirmed: !eventType.requiresConfirmation,
+        };
+        sdkActionManager.fire("bookingSuccessful", payload);
+      }
       const { uid, paymentUid } = responseData;
       if (paymentUid) {
         return await router.push(
@@ -267,6 +278,8 @@ const BookingPage = ({
       ),
     };
   };
+
+  const hideEmailField = isEmbed && !!defaultUserValues.email;
 
   const bookingFormSchema = z
     .object({
@@ -439,7 +452,7 @@ const BookingPage = ({
         timeZone: timeZone(),
         language: i18n.language,
         rescheduleUid,
-        user: router.query.user,
+        user: router.query.username,
         location: getEventLocationValue(locations, {
           type: booking.locationType ? booking.locationType : selectedLocationType || "",
           phone: booking.phone,
@@ -468,7 +481,7 @@ const BookingPage = ({
         language: i18n.language,
         rescheduleUid,
         bookingUid: router.query.bookingUid as string,
-        user: router.query.user,
+        user: router.query.username,
         location: getEventLocationValue(locations, {
           type: (booking.locationType ? booking.locationType : selectedLocationType) || "",
           phone: booking.phone,
@@ -556,7 +569,11 @@ const BookingPage = ({
           <div className="sm:flex">
             {showEventTypeDetails && (
               <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
-                <BookingDescription isBookingPage profile={profile} eventType={eventType}>
+                <BookingDescription
+                  isBookingPage
+                  profile={profile}
+                  eventType={eventType}
+                  user={userToBeBooked}>
                   {stripeAppData.price > 0 && (
                     <p className="text-bookinglight -ml-2 px-2 text-sm ">
                       <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
@@ -663,7 +680,7 @@ const BookingPage = ({
                     />
                   </div>
                 </div>
-                <div className="mb-4">
+                <div className={classNames("mb-4", hideEmailField && "hidden")}>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-white">
                     {t("email_address")}
                   </label>
@@ -676,7 +693,7 @@ const BookingPage = ({
                         bookingForm.formState.errors.email && "!focus:ring-red-700 !border-red-700"
                       )}
                       placeholder="you@example.com"
-                      type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
+                      type={hideEmailField ? "hidden" : "search"} // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
                       disabled={disableInput}
                     />
                     {bookingForm.formState.errors.email && (
@@ -688,7 +705,7 @@ const BookingPage = ({
                   </div>
                 </div>
                 <>
-                  {rescheduleUid ? (
+                  {rescheduleUid && booking?.location ? (
                     <div className="mb-4">
                       <span className="block text-sm font-medium text-gray-700 dark:text-white">
                         {t("location")}
@@ -784,15 +801,25 @@ const BookingPage = ({
                   .sort((a, b) => a.id - b.id)
                   .map((input) => (
                     <div className="mb-4" key={input.id}>
-                      {input.type !== EventTypeCustomInputType.BOOL && (
-                        <label
-                          htmlFor={"custom_" + input.id}
-                          className={classNames(
-                            "mb-1 block text-sm font-medium text-gray-700 transition-colors dark:text-white",
-                            bookingForm.formState.errors.customInputs?.[input.id] && "!text-red-700"
-                          )}>
-                          {input.label} {input.required && <span className="text-red-700">*</span>}
-                        </label>
+                      {input.type !== EventTypeCustomInputType.BOOL &&
+                        input.type !== EventTypeCustomInputType.HIDDEN && (
+                          <label
+                            htmlFor={"custom_" + input.id}
+                            className={classNames(
+                              "mb-1 block text-sm font-medium text-gray-700 transition-colors dark:text-white",
+                              bookingForm.formState.errors.customInputs?.[input.id] && "!text-red-700"
+                            )}>
+                            {input.label} {input.required && <span className="text-red-700">*</span>}
+                          </label>
+                        )}
+                      {input.type === EventTypeCustomInputType.HIDDEN && (
+                        <input
+                          type="hidden"
+                          {...bookingForm.register(`customInputs.${input.id}`, {
+                            required: input.required,
+                          })}
+                          id={"custom_" + input.id}
+                        />
                       )}
                       {input.type === EventTypeCustomInputType.TEXTLONG && (
                         <textarea
@@ -925,7 +952,7 @@ const BookingPage = ({
                     )}
                   </div>
                 )}
-                <div className="mb-4">
+                <div className="mb-4 hidden">
                   <label
                     htmlFor="notes"
                     className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">

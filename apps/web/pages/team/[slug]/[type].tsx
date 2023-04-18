@@ -52,23 +52,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
         select: {
           id: true,
+          teamId: true,
           slug: true,
           hidden: true,
-          hosts: {
+          users: {
             select: {
-              isFixed: true,
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  avatar: true,
-                  username: true,
-                  timeZone: true,
-                  hideBranding: true,
-                  brandColor: true,
-                  darkBrandColor: true,
-                },
-              },
+              id: true,
+              name: true,
+              avatar: true,
+              username: true,
+              timeZone: true,
+              hideBranding: true,
+              brandColor: true,
+              darkBrandColor: true,
             },
           },
 
@@ -133,11 +129,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     locations: privacyFilteredLocations(locations),
-    users: eventType.hosts.map(({ user: { name, username, hideBranding, timeZone } }) => ({
-      name,
-      username,
-      hideBranding,
-      timeZone,
+    users: eventType.users.map((user) => ({
+      name: user.name,
+      username: user.username,
+      hideBranding: user.hideBranding,
+      timeZone: user.timeZone,
     })),
   });
 

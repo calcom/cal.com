@@ -12,6 +12,10 @@ import { SkeletonContainer, SkeletonText, ToggleGroup } from "@calcom/ui";
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
 
+function compactObject(obj: Record<string, any>) {
+  return Object.fromEntries(Object.entries(obj).filter(([key, val]) => val !== undefined && val !== null));
+}
+
 type AvailableTimesProps = {
   timeFormat: TimeFormat;
   onTimeFormatChange: (is24Hour: boolean) => void;
@@ -74,35 +78,23 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
       <div className="flex-grow overflow-y-auto sm:block md:h-[364px]">
         {slots.length > 0 &&
           slots.map((slot) => {
-            type BookingURL = {
-              pathname: string;
-              query: Record<string, string | number | string[] | undefined>;
-            };
-            const bookingUrl: BookingURL = {
-              pathname: router.pathname.endsWith("/embed") ? "../book" : "book",
-              query: {
-                ...router.query,
-                date: dayjs.utc(slot.time).tz(timeZone()).format(),
-                type: eventTypeId,
-                slug: eventTypeSlug,
-                /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
-                count: recurringCount && !rescheduleUid ? recurringCount : undefined,
-                ...(ethSignature ? { ethSignature } : {}),
-              },
-            };
-
-            if (rescheduleUid) {
-              bookingUrl.query.rescheduleUid = rescheduleUid as string;
-            }
-
-            // If event already has an attendee add booking id
-            if (slot.bookingUid) {
-              bookingUrl.query.bookingUid = slot.bookingUid;
-            }
+            const bookingParams = compactObject({
+              ...router.query,
+              date: dayjs(slot.time).format(),
+              type: eventTypeId,
+              slug: eventTypeSlug,
+              /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
+              count: recurringCount && !rescheduleUid ? recurringCount : undefined,
+              ethSignature,
+              rescheduleUid,
+              bookingUid: slot.bookingUid,
+              username: slot.users?.[0],
+            });
+            const path = router.pathname.endsWith("/embed") ? "../book" : "book";
+            const bookingUrl = `${path}?${new URLSearchParams(bookingParams).toString()}`;
 
             return (
-              <div data-slot-owner={(slot.userIds || []).join(",")} key={`${dayjs(slot.time).format()}`}>
-                {/* ^ data-slot-owner is helpful in debugging and used to identify the owners of the slot. Owners are the users which have the timeslot in their schedule. It doesn't consider if a user has that timeslot booked */}
+              <div key={dayjs(slot.time).format()}>
                 {/* Current there is no way to disable Next.js Links */}
                 {seatsPerTimeSlot && slot.attendees && slot.attendees >= seatsPerTimeSlot ? (
                   <div

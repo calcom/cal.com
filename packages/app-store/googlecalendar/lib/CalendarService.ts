@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import * as Sentry from "@sentry/nextjs";
 import { calendar_v3, google } from "googleapis";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
@@ -56,6 +57,9 @@ export default class GoogleCalendarService implements Calendar {
         });
         myGoogleAuth.setCredentials(googleCredentials);
       } catch (err) {
+        Sentry.captureMessage(
+          `Failed to refresh access token for Google Calendar: userId: ${credential.userId}`
+        );
         this.log.error("Error refreshing google token", err);
       }
       return myGoogleAuth;

@@ -92,6 +92,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
           length: true,
           locations: true,
           id: true,
+          teamId: true,
           description: true,
           price: true,
           currency: true,
