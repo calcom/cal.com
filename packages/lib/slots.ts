@@ -19,7 +19,7 @@ export type GetSlotsCompact = {
   days: number[];
   minStartTime: Dayjs;
   eventLength: number;
-  busyTimes: { startTime: Dayjs; endTime: Dayjs }[];
+  busyTimes: { start: Dayjs; end: Dayjs }[];
 };
 
 export type TimeFrame = { startTime: number; endTime: number };
@@ -164,13 +164,16 @@ export const getTimeSlotsCompact = ({
   while (slotEndTime.isSameOrBefore(shiftEnd)) {
     if (slotStartTime.isSameOrAfter(minStartTime)) {
       const busyTimeBlockingThisSlot = busyTimes.find((busyTime) => {
-        return slotsOverlap({ startTime: slotStartTime, endTime: slotEndTime }, busyTime);
+        return slotsOverlap(
+          { startTime: slotStartTime, endTime: slotEndTime },
+          { startTime: busyTime.start, endTime: busyTime.end }
+        );
       });
       if (busyTimeBlockingThisSlot) {
         // This slot is busy, skip it.
         // Set the next startTime to the end of this busy slot.
         // The next slot will begin right after it.
-        slotStartTime = busyTimeBlockingThisSlot.endTime;
+        slotStartTime = busyTimeBlockingThisSlot.end;
         slotEndTime = slotStartTime.add(eventLength, "minute");
         continue;
       } else {

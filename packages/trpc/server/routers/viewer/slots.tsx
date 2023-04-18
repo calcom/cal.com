@@ -1,7 +1,7 @@
 import { SchedulingType, EventType, PeriodType } from "@prisma/client";
 import { z } from "zod";
 
-import { getBufferedBusyTimes, BusyTimes } from "@calcom/core/getBusyTimes";
+import { BusyTimes, getBusyTimesByUserAndDay } from "@calcom/core/getBusyTimes";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
@@ -69,12 +69,10 @@ const checkIfIsAvailable = ({
 }): boolean => {
   const slotEndTime = time.add(eventLength, "minutes").utc();
   const slotStartTime = time.utc();
+  const slot = { startTime: slotStartTime, endTime: slotEndTime };
 
-  return busy.every((busyTime) => {
-    return !slotsOverlap(
-      { startTime: slotStartTime, endTime: slotEndTime },
-      { startTime: busyTime.start, endTime: busyTime.end }
-    );
+  return !busy.some((busyTime) => {
+    return slotsOverlap(slot, { startTime: busyTime.start, endTime: busyTime.end });
   });
 };
 
@@ -233,6 +231,8 @@ const getMaximumEndTime = (
   return null;
 };
 
+const timeToDayFormat = (time: Dayjs) => time.format("YYYY-MM-DD");
+
 /** This should be called getAvailableSlots */
 export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx: { prisma: typeof prisma }) {
   if (input.debug === true) {
@@ -292,51 +292,11 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   const users =
     input.rescheduleWithSameUser && originalBooking?.user ? [originalBooking.user] : eventType.users;
 
-  /* We get all users working hours and busy slots */
-  const userAvailability = await Promise.all(
-    users.map(async (currentUser) => {
-      const busy = await getBufferedBusyTimes({
-        credentials: currentUser.credentials,
-        userId: currentUser.id,
-        eventTypeId: input.eventTypeId,
-        startTime: startTime.format(),
-        endTime: endTime.format(),
-        selectedCalendars: currentUser.selectedCalendars,
-        userBufferTime: currentUser.bufferTime,
-        afterEventBuffer: eventType.afterEventBuffer,
-      });
-
-      return {
-        busy,
-        user: currentUser,
-      };
-    })
-  );
-
-  const singleHostMode = input.eventTypeTeamId === null;
-  // Collect all busy times in this record.
-  const userBusyTimesByDay = {} as Record<string, { startTime: Dayjs; endTime: Dayjs }[]>;
-  if (singleHostMode) {
-    // `userBusyTimesByDay` is only used in singleHostMode.
-    userAvailability.forEach(({ busy }) => {
-      busy.forEach(({ start, end }) => {
-        let currentStart = start;
-        while (currentStart.isSameOrBefore(end)) {
-          // busy times can span multiple days, so we need to add them to each day
-          // they cover.
-          const day = currentStart.format("YYYY-MM-DD");
-          if (!userBusyTimesByDay[day]) {
-            userBusyTimesByDay[day] = [];
-          }
-          userBusyTimesByDay[day].push({
-            startTime: start.utc(),
-            endTime: end.utc(),
-          });
-          currentStart = currentStart.add(1, "day");
-        }
-      });
-    });
-  }
+  const busyTimesByUser = await getBusyTimesByUserAndDay({
+    users,
+    startTime: startTime.format(),
+    endTime: endTime.format(),
+  });
 
   // standard working hours for all users. Mo-Sa 8-20 Berlin time.
   const days = [1, 2, 3, 4, 5, 6];
@@ -360,6 +320,11 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   let getSlotsCount = 0;
   let checkForAvailabilityCount = 0;
 
+  const singleHostMode = input.eventTypeTeamId === null;
+  // only used in single host mode
+  const userBusyTimesByDay =
+    busyTimesByUser[users[0]?.id] || ({} as Record<string, { start: Dayjs; end: Dayjs }[]>);
+
   do {
     const startGetSlots = performance.now();
     // get slots retrieves the available times for a given day
@@ -381,7 +346,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
           days,
           eventLength,
           minStartTime: dayjs().add(minimumBookingNotice, "minute"),
-          busyTimes: userBusyTimesByDay[currentCheckedTime.format("YYYY-MM-DD")] || [],
+          busyTimes: userBusyTimesByDay[timeToDayFormat(currentCheckedTime)] || [],
         })
       : getTimeSlots({
           inviteeDate: currentCheckedTime,
@@ -396,22 +361,26 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     getSlotsCount++;
 
     const userIsAvailable = (user: typeof eventType.users[number], time: Dayjs) => {
+      const start = performance.now();
+      checkForAvailabilityCount++;
+
       if (singleHostMode) {
         // If we are in singleHostMode, there is no need to check for conflicts.
         // The slots have been generated respecting the host's busy times.
         // See `getTimeSlotsCompact` above.
         return true;
       }
-      const schedule = userAvailability.find((s) => s.user.id === user.id);
-      if (!schedule) return false;
-      const start = performance.now();
+      const busy = busyTimesByUser[user.id]?.[timeToDayFormat(time)];
+      if (!busy) {
+        return true;
+      }
+
       const available = checkIfIsAvailable({
         time,
-        busy: schedule.busy,
+        busy,
         eventLength,
       });
       checkForAvailabilityTime += performance.now() - start;
-      checkForAvailabilityCount++;
       return available;
     };
 
@@ -437,7 +406,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       return acc;
     }, [] as Slot[]);
 
-    computedAvailableSlots[currentCheckedTime.format("YYYY-MM-DD")] = timeSlotsForDay;
+    computedAvailableSlots[timeToDayFormat(currentCheckedTime)] = timeSlotsForDay;
     currentCheckedTime = currentCheckedTime.add(1, "day");
   } while (currentCheckedTime.isBefore(endTime));
 
