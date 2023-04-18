@@ -1,12 +1,12 @@
-import type { FormValues } from "pages/event-types/[type]";
-import { useState } from "react";
 import { SchedulingType } from "@prisma/client";
-import type { FormValues, EventTypeSetup } from "pages/event-types/[type]";
+import type { EventTypeSetup, FormValues } from "pages/event-types/[type]";
+import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
 
 import dayjs from "@calcom/dayjs";
+import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
@@ -14,6 +14,8 @@ import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Badge, Button, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
 import { ExternalLink, Globe } from "@calcom/ui/components/icon";
+
+import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 
 export type AvailabilityOption = {
   label: string;
@@ -152,16 +154,50 @@ const EventTypeScheduleDetails = ({
 
 const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
+  const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } =
+    useLockedFieldsManager(
+      eventType,
+      t("locked_fields_admin_description"),
+      t("locked_fields_member_description")
+    );
+  const { watch } = useFormContext<FormValues>();
+  const watchSchedule = watch("schedule");
   const formMethods = useFormContext<FormValues>();
   const [options, setOptions] = useState<AvailabilityOption[]>([]);
 
-  const { data, isLoading } = trpc.viewer.availability.list.useQuery(undefined, {
+  const { isLoading } = trpc.viewer.availability.list.useQuery(undefined, {
     onSuccess: ({ schedules }) => {
       const options = schedules.map((schedule) => ({
         value: schedule.id,
         label: schedule.name,
         isDefault: schedule.isDefault,
+        isManaged: false,
       }));
+
+      // We are showing a managed event for a team admin, so adding the option to let members choose their schedule
+      if (isManagedEventType) {
+        options.push({
+          value: 0,
+          label: t("members_default_schedule"),
+          isDefault: false,
+          isManaged: false,
+        });
+      }
+
+      // We are showing a managed event for a member and team owner selected their own schedule, so adding
+      // the managed schedule option
+      if (
+        isChildrenManagedEventType &&
+        watchSchedule &&
+        !schedules.find((schedule) => schedule.id === watchSchedule)
+      ) {
+        options.push({
+          value: watchSchedule,
+          label: eventType.scheduleName ?? t("default_schedule_name"),
+          isDefault: false,
+          isManaged: false,
+        });
+      }
 
       setOptions(options);
 
@@ -209,9 +245,9 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
           />
         )}
       </div>
-      {value?.value !== 0 ? (
+      {availabilityValue?.value !== 0 ? (
         <EventTypeScheduleDetails
-          selectedScheduleValue={value}
+          selectedScheduleValue={availabilityValue}
           isManagedEventType={isManagedEventType || isChildrenManagedEventType}
         />
       ) : (

@@ -88,12 +88,6 @@ function getNavigation(props: {
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
     },
     {
-      name: "availability",
-      href: `/event-types/${eventType.id}?tabName=availability`,
-      icon: FiCalendar,
-      info: availability?.label ?? `default_schedule_name`,
-    },
-    {
       name: "event_limit_tab_title",
       href: `/event-types/${eventType.id}?tabName=limits`,
       icon: Clock,
