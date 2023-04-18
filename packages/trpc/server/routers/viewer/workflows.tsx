@@ -10,13 +10,14 @@ import {
 } from "@prisma/client";
 import { z } from "zod";
 
+import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import {
   SMS_REMINDER_NUMBER_FIELD,
   getSmsReminderNumberField,
   getSmsReminderNumberSource,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
-// import dayjs from "@calcom/dayjs";
+import { isSMSAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import {
   WORKFLOW_TEMPLATES,
   WORKFLOW_TRIGGER_EVENTS,
@@ -24,7 +25,6 @@ import {
   TIME_UNIT,
 } from "@calcom/features/ee/workflows/lib/constants";
 import { getWorkflowActionOptions } from "@calcom/features/ee/workflows/lib/getOptions";
-import { isSMSAction } from "@calcom/features/ee/workflows/lib/isSMSAction";
 import {
   deleteScheduledEmailReminder,
   scheduleEmailReminder,
@@ -359,8 +359,10 @@ export const workflowsRouter = router({
         await ctx.prisma.workflowStep.create({
           data: {
             stepNumber: 1,
-            action: WorkflowActions.EMAIL_HOST,
+            action: WorkflowActions.EMAIL_ATTENDEE,
             template: WorkflowTemplates.REMINDER,
+            reminderBody: emailReminderTemplate(true, WorkflowActions.EMAIL_ATTENDEE).emailBody,
+            emailSubject: emailReminderTemplate(true, WorkflowActions.EMAIL_ATTENDEE).emailSubject,
             workflowId: workflow.id,
             sender: SENDER_NAME,
             numberVerificationPending: false,
@@ -652,6 +654,9 @@ export const workflowsRouter = router({
                   endTime: booking.endTime.toISOString(),
                   title: booking.title,
                   language: { locale: booking?.user?.locale || "" },
+                  eventType: {
+                    slug: booking.eventType?.slug,
+                  },
                 };
                 if (
                   step.action === WorkflowActions.EMAIL_HOST ||
@@ -771,8 +776,8 @@ export const workflowsRouter = router({
                   : null,
               stepNumber: newStep.stepNumber,
               workflowId: newStep.workflowId,
-              reminderBody: newStep.template === WorkflowTemplates.CUSTOM ? newStep.reminderBody : null,
-              emailSubject: newStep.template === WorkflowTemplates.CUSTOM ? newStep.emailSubject : null,
+              reminderBody: newStep.reminderBody,
+              emailSubject: newStep.emailSubject,
               template: newStep.template,
               numberRequired: newStep.numberRequired,
               sender: getSender({
@@ -846,6 +851,9 @@ export const workflowsRouter = router({
                 endTime: booking.endTime.toISOString(),
                 title: booking.title,
                 language: { locale: booking?.user?.locale || "" },
+                eventType: {
+                  slug: booking.eventType?.slug,
+                },
               };
               if (
                 newStep.action === WorkflowActions.EMAIL_HOST ||
@@ -973,6 +981,9 @@ export const workflowsRouter = router({
                   endTime: booking.endTime.toISOString(),
                   title: booking.title,
                   language: { locale: booking?.user?.locale || "" },
+                  eventType: {
+                    slug: booking.eventType?.slug,
+                  },
                 };
 
                 if (
