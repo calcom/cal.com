@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { PeriodType } from "@prisma/client";
-import type { SchedulingType } from "@prisma/client";
+import type { PeriodType, SchedulingType } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { Trans } from "next-i18next";
 import { useEffect, useState } from "react";
@@ -18,10 +17,10 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
-import { useTelemetry, telemetryEventTypes } from "@calcom/lib/telemetry";
+import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { Prisma } from "@calcom/prisma/client";
-import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
@@ -30,9 +29,8 @@ import { ConfirmationDialogContent, Dialog, Form, showToast } from "@calcom/ui";
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import type { AvailabilityOption } from "@components/eventtype/AvailabilityTab";
-import { AvailabilityTab } from "@components/eventtype/AvailabilityTab";
 import PageWrapper from "@components/PageWrapper";
+import type { AvailabilityOption } from "@components/eventtype/AvailabilityTab";
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
 import { EventAdvancedTab } from "@components/eventtype/EventAdvancedTab";
 import { EventAppsTab } from "@components/eventtype/EventAppsTab";
@@ -375,80 +373,88 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   const slug = formMethods.watch("slug") ?? eventType.slug;
 
   return (
-    <EventTypeSingleLayout
-      enabledAppsNumber={numberOfActiveApps}
-      installedAppsNumber={numberOfInstalledApps}
-      enabledWorkflowsNumber={eventType.workflows.length}
-      eventType={eventType}
-      team={team}
-      availability={availability}
-      isUpdateMutationLoading={updateMutation.isLoading}
-      formMethods={formMethods}
-      disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
-      currentUserMembership={currentUserMembership}>
-      <Form
-        form={formMethods}
-        id="event-type-form"
-        handleSubmit={async (values) => {
-          const {
-            periodDates,
-            periodCountCalendarDays,
-            beforeBufferTime,
-            afterBufferTime,
-            seatsPerTimeSlot,
-            seatsShowAttendees,
-            bookingLimits,
-            durationLimits,
-            recurringEvent,
-            locations,
-            metadata,
-            customInputs,
-            // We don't need to send send these values to the backend
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            seatsPerTimeSlotEnabled,
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            minimumBookingNoticeInDurationType,
-            availability,
-            ...input
-          } = values;
+    <>
+      <EventTypeSingleLayout
+        enabledAppsNumber={numberOfActiveApps}
+        installedAppsNumber={numberOfInstalledApps}
+        enabledWorkflowsNumber={eventType.workflows.length}
+        eventType={eventType}
+        team={team}
+        availability={availability}
+        isUpdateMutationLoading={updateMutation.isLoading}
+        formMethods={formMethods}
+        disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
+        currentUserMembership={currentUserMembership}>
+        <Form
+          form={formMethods}
+          id="event-type-form"
+          handleSubmit={async (values) => {
+            const {
+              periodDates,
+              periodCountCalendarDays,
+              beforeBufferTime,
+              afterBufferTime,
+              seatsPerTimeSlot,
+              seatsShowAttendees,
+              bookingLimits,
+              durationLimits,
+              recurringEvent,
+              locations,
+              metadata,
+              customInputs,
+              // We don't need to send send these values to the backend
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              seatsPerTimeSlotEnabled,
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              minimumBookingNoticeInDurationType,
+              availability,
+              ...input
+            } = values;
 
-          if (bookingLimits) {
-            const isValid = validateIntervalLimitOrder(bookingLimits);
-            if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
-          }
+            if (bookingLimits) {
+              const isValid = validateIntervalLimitOrder(bookingLimits);
+              if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
+            }
 
-          if (durationLimits) {
-            const isValid = validateIntervalLimitOrder(durationLimits);
-            if (!isValid) throw new Error(t("event_setup_duration_limits_error"));
-          }
+            if (durationLimits) {
+              const isValid = validateIntervalLimitOrder(durationLimits);
+              if (!isValid) throw new Error(t("event_setup_duration_limits_error"));
+            }
 
-          if (metadata?.multipleDuration !== undefined) {
-            if (metadata?.multipleDuration.length < 1) {
-              throw new Error(t("event_setup_multiple_duration_error"));
-            } else {
-              if (!input.length && !metadata?.multipleDuration?.includes(input.length)) {
-                throw new Error(t("event_setup_multiple_duration_default_error"));
+            if (metadata?.multipleDuration !== undefined) {
+              if (metadata?.multipleDuration.length < 1) {
+                throw new Error(t("event_setup_multiple_duration_error"));
+              } else {
+                if (!input.length && !metadata?.multipleDuration?.includes(input.length)) {
+                  throw new Error(t("event_setup_multiple_duration_default_error"));
+                }
               }
             }
-          }
 
-          updateMutation.mutate({
-            ...input,
-            locations,
-            recurringEvent,
-            periodStartDate: periodDates.startDate,
-            periodEndDate: periodDates.endDate,
-            periodCountCalendarDays: periodCountCalendarDays === "1",
-            id: eventType.id,
-            beforeEventBuffer: beforeBufferTime,
-            afterEventBuffer: afterBufferTime,
-            bookingLimits,
-            durationLimits,
-            seatsPerTimeSlot,
-            seatsShowAttendees,
-            metadata,
-            customInputs,
-          });
+            updateMutation.mutate({
+              ...input,
+              locations,
+              recurringEvent,
+              periodStartDate: periodDates.startDate,
+              periodEndDate: periodDates.endDate,
+              periodCountCalendarDays: periodCountCalendarDays === "1",
+              id: eventType.id,
+              beforeEventBuffer: beforeBufferTime,
+              afterEventBuffer: afterBufferTime,
+              bookingLimits,
+              durationLimits,
+              seatsPerTimeSlot,
+              seatsShowAttendees,
+              metadata,
+              customInputs,
+            });
+          }}
+        />
+      </EventTypeSingleLayout>
+      <Dialog
+        open={slugExistsChildrenDialogOpen.length > 0}
+        onOpenChange={() => {
+          setSlugExistsChildrenDialogOpen([]);
         }}>
         <ConfirmationDialogContent
           isLoading={formMethods.formState.isSubmitting}
