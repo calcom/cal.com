@@ -1,6 +1,5 @@
 import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
-import Script from "next/script";
 import { z } from "zod";
 
 import { getDirFromLang } from "@calcom/lib/i18n";
@@ -42,7 +41,6 @@ class MyDocument extends Document<Props> {
           <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
           <meta name="msapplication-TileColor" content="#ff0000" />
           <meta name="theme-color" content="var(--cal-bg)" />
-          <Script src="/embed-init-iframe.js" strategy="beforeInteractive" />
         </Head>
 
         <body
