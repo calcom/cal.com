@@ -283,7 +283,7 @@ const BookingPage = ({
       ...objectQueryParamKeys,
     ];
 
-    const params = Object.keys(booking)
+    const params: { [key: string]: string } = Object.keys(booking)
       .filter((key) => redirectQueryParamKeys.includes(key))
       .reduce((obj, key) => Object.assign(obj, { [key]: booking[key] }), {});
 
