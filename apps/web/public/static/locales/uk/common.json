@@ -1598,7 +1598,7 @@
   "attendee_no_longer_attending_subject": "Учасник більше не відвідує захід «{{title}}» о {{date}}",
   "attendee_no_longer_attending": "Учасник більше не відвідує ваш захід",
   "attendee_no_longer_attending_subtitle": "{{name}} скасував(-ла) участь. Це означає, що на цей час з’явилося вільне місце.",
-  "create_event_on": "Створити захід",
+  "create_event_on": "Створити захід в календарі",
   "default_app_link_title": "Установити посилання на додаток за замовчуванням",
   "default_app_link_description": "Посилання на додаток за замовчуванням використовуватиметься для всіх новостворених типів подій.",
   "change_default_conferencing_app": "Установити за замовчуванням",
