@@ -1,4 +1,4 @@
-import type { PrismaClient, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
+import type { Prisma, PrismaClient, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@prisma/client";
 
 import { scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
@@ -10,6 +10,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
 const log = logger.getChildLogger({ prefix: ["[handleConfirmation] book:user"] });
@@ -66,11 +67,24 @@ export async function handleConfirmation(args: {
   let updatedBookings: {
     scheduledJobs: string[];
     id: number;
+    description: string | null;
+    location: string | null;
+    attendees: {
+      name: string;
+      email: string;
+    }[];
     startTime: Date;
     endTime: Date;
     uid: string;
     smsReminderNumber: string | null;
+    metadata: Prisma.JsonValue | null;
+    customInputs: Prisma.JsonValue;
     eventType: {
+      bookingFields: Prisma.JsonValue | null;
+      slug: string;
+      owner: {
+        hideBranding?: boolean | null;
+      } | null;
       workflows: (WorkflowsOnEventTypes & {
         workflow: Workflow & {
           steps: WorkflowStep[];
@@ -104,6 +118,13 @@ export async function handleConfirmation(args: {
         select: {
           eventType: {
             select: {
+              slug: true,
+              bookingFields: true,
+              owner: {
+                select: {
+                  hideBranding: true,
+                },
+              },
               workflows: {
                 include: {
                   workflow: {
@@ -115,15 +136,21 @@ export async function handleConfirmation(args: {
               },
             },
           },
+          description: true,
+          attendees: true,
+          location: true,
           uid: true,
           startTime: true,
+          metadata: true,
           endTime: true,
           smsReminderNumber: true,
+          customInputs: true,
           id: true,
           scheduledJobs: true,
         },
       })
     );
+
     const updatedBookingsResult = await Promise.all(updateBookingsPromise);
     updatedBookings = updatedBookings.concat(updatedBookingsResult);
   } else {
@@ -142,6 +169,13 @@ export async function handleConfirmation(args: {
       select: {
         eventType: {
           select: {
+            slug: true,
+            bookingFields: true,
+            owner: {
+              select: {
+                hideBranding: true,
+              },
+            },
             workflows: {
               include: {
                 workflow: {
@@ -155,8 +189,13 @@ export async function handleConfirmation(args: {
         },
         uid: true,
         startTime: true,
+        metadata: true,
         endTime: true,
         smsReminderNumber: true,
+        description: true,
+        attendees: true,
+        location: true,
+        customInputs: true,
         id: true,
         scheduledJobs: true,
       },
@@ -172,14 +211,21 @@ export async function handleConfirmation(args: {
         evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
         evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
         evtOfBooking.uid = updatedBookings[index].uid;
+        const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
 
         const isFirstBooking = index === 0;
+        const videoCallUrl =
+          bookingMetadataSchema.parse(updatedBookings[index].metadata || {})?.videoCallUrl || "";
 
         await scheduleWorkflowReminders({
           workflows: updatedBookings[index]?.eventType?.workflows || [],
           smsReminderNumber: updatedBookings[index].smsReminderNumber,
-          calendarEvent: evtOfBooking,
+          calendarEvent: {
+            ...evtOfBooking,
+            ...{ metadata: { videoCallUrl }, eventType: { slug: eventTypeSlug } },
+          },
           isFirstRecurringEvent: isFirstBooking,
+          hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
         });
       }
     }
