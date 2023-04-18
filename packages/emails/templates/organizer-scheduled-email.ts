@@ -1,6 +1,5 @@
 import type { DateArray } from "ics";
 import { createEvent } from "ics";
-import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
 import { RRule } from "rrule";
 
@@ -69,7 +68,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
   }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
-    const clonedCalEvent = cloneDeep(this.calEvent);
+    const clonedCalEvent = structuredClone(this.calEvent);
 
     const toAddresses = [this.calEvent.organizer.email];
     if (this.calEvent.team) {

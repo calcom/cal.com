@@ -1,6 +1,5 @@
 import type { DateArray, ParticipationStatus, ParticipationRole } from "ics";
 import { createEvent } from "ics";
-import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
 import { RRule } from "rrule";
 
@@ -20,7 +19,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
   constructor(calEvent: CalendarEvent, attendee: Person, showAttendees?: boolean | undefined) {
     super();
     if (!showAttendees && calEvent.seatsPerTimeSlot) {
-      this.calEvent = cloneDeep(calEvent);
+      this.calEvent = structuredClone(calEvent);
       this.calEvent.attendees = [attendee];
     } else {
       this.calEvent = calEvent;
@@ -81,7 +80,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
   }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
-    const clonedCalEvent = cloneDeep(this.calEvent);
+    const clonedCalEvent = structuredClone(this.calEvent);
 
     this.getiCalEventAsString();
 

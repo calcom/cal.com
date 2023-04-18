@@ -1,5 +1,5 @@
 import type { DestinationCalendar, Booking } from "@prisma/client";
-import { cloneDeep, merge } from "lodash";
+import { merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
 
@@ -118,7 +118,7 @@ export default class EventManager {
     }
 
     // Some calendar libraries may edit the original event so let's clone it
-    const clonedCalEvent = cloneDeep(event);
+    const clonedCalEvent = structuredClone(event);
     // Create the calendar event with the proper video call data
     results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
 
@@ -208,7 +208,7 @@ export default class EventManager {
     newBookingId?: number
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
-    const evt = cloneDeep(originalEvt);
+    const evt = structuredClone(originalEvt);
     if (!rescheduleUid) {
       throw new Error("You called eventManager.update without an `rescheduleUid`. This should never happen.");
     }

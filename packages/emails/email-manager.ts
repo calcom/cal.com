@@ -1,4 +1,3 @@
-import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
 
 import type { EventNameObjectType } from "@calcom/core/event";
@@ -99,7 +98,7 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
 };
 
 export const sendRescheduledSeatEmail = async (calEvent: CalendarEvent, attendee: Person) => {
-  const clonedCalEvent = cloneDeep(calEvent);
+  const clonedCalEvent = structuredClone(calEvent);
   const emailsToSend: Promise<unknown>[] = [
     sendEmail(() => new AttendeeRescheduledEmail(clonedCalEvent, attendee)),
     sendEmail(() => new OrganizerRescheduledEmail({ calEvent })),
@@ -130,7 +129,7 @@ export const sendScheduledSeatsEmails = async (
 };
 
 export const sendCancelledSeatEmails = async (calEvent: CalendarEvent, cancelledAttendee: Person) => {
-  const clonedCalEvent = cloneDeep(calEvent);
+  const clonedCalEvent = structuredClone(calEvent);
   await Promise.all([
     sendEmail(() => new AttendeeCancelledSeatEmail(clonedCalEvent, cancelledAttendee)),
     sendEmail(() => new OrganizerAttendeeCancelledSeatEmail({ calEvent })),

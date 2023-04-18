@@ -2,7 +2,6 @@ import type { App, Attendee, Credential, EventTypeCustomInput } from "@prisma/cl
 import { BookingStatus, SchedulingType, WebhookTriggerEvents, WorkflowMethods, Prisma } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
@@ -1101,7 +1100,7 @@ async function handler(
 
           addVideoCallDataToEvt(newBooking.references);
 
-          const copyEvent = cloneDeep(evt);
+          const copyEvent = structuredClone(evt);
 
           const updateManager = await eventManager.reschedule(copyEvent, rescheduleUid, newBooking.id);
 
@@ -1139,7 +1138,7 @@ async function handler(
           }
 
           if (noEmail !== true) {
-            const copyEvent = cloneDeep(evt);
+            const copyEvent = structuredClone(evt);
             await sendRescheduledEmails({
               ...copyEvent,
               additionalNotes, // Resets back to the additionalNote input and not the override value
@@ -1242,7 +1241,7 @@ async function handler(
 
           addVideoCallDataToEvt(updatedNewBooking.references);
 
-          const copyEvent = cloneDeep(evt);
+          const copyEvent = structuredClone(evt);
 
           const updateManager = await eventManager.reschedule(
             copyEvent,
@@ -1340,7 +1339,7 @@ async function handler(
         ]);
       }
 
-      const copyEvent = cloneDeep(evt);
+      const copyEvent = structuredClone(evt);
 
       const updateManager = await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
 
@@ -1428,7 +1427,7 @@ async function handler(
        * so if you modify it in a inner function it will be modified in the outer function
        * deep cloning evt to avoid this
        */
-      const copyEvent = cloneDeep(evt);
+      const copyEvent = structuredClone(evt);
       await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
       const credentials = await refreshCredentials(organizerUser.credentials);
@@ -1837,7 +1836,7 @@ async function handler(
         }
       }
       if (noEmail !== true) {
-        const copyEvent = cloneDeep(evt);
+        const copyEvent = structuredClone(evt);
         await sendRescheduledEmails({
           ...copyEvent,
           additionalInformation: metadata,
