@@ -9,7 +9,17 @@ import type {
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingFieldType } from "@calcom/prisma/zod-utils";
-import { PhoneInput, AddressInput, Button, Label, Group, RadioField, EmailField, Tooltip } from "@calcom/ui";
+import {
+  PhoneInput,
+  AddressInput,
+  Button,
+  Label,
+  Group,
+  RadioField,
+  EmailField,
+  Tooltip,
+  Checkbox,
+} from "@calcom/ui";
 import { UserPlus, X } from "@calcom/ui/components/icon";
 
 import { ComponentForField } from "./FormBuilder";
@@ -364,8 +374,7 @@ export const Components: Record<BookingFieldType, Component> = {
     factory: ({ readOnly, label, value, setValue }) => {
       return (
         <div className="flex">
-          <input
-            type="checkbox"
+          <Checkbox
             onChange={(e) => {
               if (e.target.checked) {
                 setValue(true);
@@ -373,12 +382,11 @@ export const Components: Record<BookingFieldType, Component> = {
                 setValue(false);
               }
             }}
-            className="border-default disabled:bg-emphasis disabled:dark:text-subtle text-emphasis h-4 w-4 rounded focus:ring-black ltr:mr-2 rtl:ml-2"
             placeholder=""
             checked={value}
             disabled={readOnly}
+            description={label ?? ""}
           />
-          <Label className="text-emphasis -mt-px block text-sm font-medium">{label}</Label>
         </div>
       );
     },
