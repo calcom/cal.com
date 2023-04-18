@@ -30,6 +30,7 @@ import { ConfirmationDialogContent, Dialog, Form, showToast } from "@calcom/ui";
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import PageWrapper from "@components/PageWrapper";
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
 import { EventAdvancedTab } from "@components/eventtype/EventAdvancedTab";
 import { EventAppsTab } from "@components/eventtype/EventAppsTab";
@@ -476,5 +477,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   };
 };
+
+EventTypePageWrapper.PageWrapper = PageWrapper;
 
 export default EventTypePageWrapper;

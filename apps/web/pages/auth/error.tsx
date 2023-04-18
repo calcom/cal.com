@@ -7,6 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, SkeletonText } from "@calcom/ui";
 import { X } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
 import { ssgInit } from "@server/lib/ssg";
@@ -48,6 +49,8 @@ export default function Error() {
     </AuthContainer>
   );
 }
+
+Error.PageWrapper = PageWrapper;
 
 export const getStaticProps = async (context: GetStaticPropsContext) => {
   const ssr = await ssgInit(context);
