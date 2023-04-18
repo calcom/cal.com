@@ -23,6 +23,7 @@ import { prismaMock, CalendarManagerMock } from "../../../../tests/config/single
 // TODO: Mock properly
 prismaMock.eventType.findUnique.mockResolvedValue(null);
 prismaMock.user.findMany.mockResolvedValue([]);
+prismaMock.selectedSlots.findMany.mockResolvedValue([]);
 
 jest.mock("@calcom/lib/constants", () => ({
   IS_PRODUCTION: true,
@@ -152,7 +153,7 @@ const TestData = {
 };
 
 const ctx = {
-  prisma,
+  prisma: prismaMock,
 };
 
 type App = {
@@ -778,6 +779,24 @@ describe("getSchedule", () => {
       );
 
       expect(scheduleForEventOnADayWithDateOverride).toHaveTimeSlots(
+        ["08:30:00.000Z", "09:30:00.000Z", "10:30:00.000Z", "11:30:00.000Z"],
+        {
+          dateString: plus2DateString,
+        }
+      );
+
+      const scheduleForEventOnADayWithDateOverrideDifferentTimezone = await getSchedule(
+        {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+6:00"],
+        },
+        ctx
+      );
+      // it should return the same as this is the utc time
+      expect(scheduleForEventOnADayWithDateOverrideDifferentTimezone).toHaveTimeSlots(
         ["08:30:00.000Z", "09:30:00.000Z", "10:30:00.000Z", "11:30:00.000Z"],
         {
           dateString: plus2DateString,

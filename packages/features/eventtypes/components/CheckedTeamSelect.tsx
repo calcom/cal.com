@@ -1,10 +1,10 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Props } from "react-select";
+import type { Props } from "react-select";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar, Select } from "@calcom/ui";
-import { FiX } from "@calcom/ui/components/icon";
+import { X } from "@calcom/ui/components/icon";
 
 export type CheckedSelectOption = {
   avatar: string;
@@ -48,8 +48,8 @@ export const CheckedTeamSelect = ({
         {value.map((option, index) => (
           <li key={option.value} className={`flex py-2 px-3 ${index === value.length - 1 ? "" : "border-b"}`}>
             <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
-            <p className="my-auto ml-3 text-sm text-gray-900">{option.label}</p>
-            <FiX
+            <p className="text-emphasis my-auto ml-3 text-sm">{option.label}</p>
+            <X
               onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
               className="my-auto ml-auto"
             />

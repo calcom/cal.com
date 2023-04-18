@@ -22,7 +22,7 @@ const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
     <>
       <div className="mt-4 block items-center sm:flex">
         <div className="min-w-48 mb-4 sm:mb-0">
-          <label htmlFor="blockchainId" className="flex text-sm font-medium text-gray-700">
+          <label htmlFor="blockchainId" className="text-default flex text-sm font-medium">
             {t("Blockchain")}
           </label>
         </div>
@@ -38,7 +38,7 @@ const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
       </div>
       <div className="block items-center sm:flex">
         <div className="min-w-48 mb-4 sm:mb-0">
-          <label htmlFor="smartContractAddress" className="flex text-sm font-medium text-gray-700">
+          <label htmlFor="smartContractAddress" className="text-default flex text-sm font-medium">
             {t("token_address")}
           </label>
         </div>
@@ -46,7 +46,7 @@ const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
           <div className="relative mt-1 rounded-sm">
             <input
               type="text"
-              className="block w-full rounded-sm border-gray-300 text-sm "
+              className="border-default block w-full rounded-sm text-sm "
               placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
               defaultValue={(smartContractAddress || "") as string}
               onChange={(e) => {

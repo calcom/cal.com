@@ -1,8 +1,10 @@
+import type { DailyEventObjectRecordingStarted } from "@daily-co/daily-js";
 import DailyIframe from "@daily-co/daily-js";
 import MarkdownIt from "markdown-it";
 import type { GetServerSidePropsContext } from "next";
 import Head from "next/head";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import z from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -12,9 +14,17 @@ import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-f
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { FiChevronRight } from "@calcom/ui/components/icon";
+import { ChevronRight } from "@calcom/ui/components/icon";
+
+import PageWrapper from "@components/PageWrapper";
 
 import { ssrInit } from "@server/lib/ssr";
+
+const recordingStartedEventResponse = z
+  .object({
+    recordingId: z.string(),
+  })
+  .passthrough();
 
 export type JoinCallPageProps = inferSSRProps<typeof getServerSideProps>;
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
@@ -22,6 +32,7 @@ const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true }
 export default function JoinCall(props: JoinCallPageProps) {
   const { t } = useLocale();
   const { meetingUrl, meetingPassword, booking } = props;
+  const recordingId = useRef<string | null>(null);
 
   useEffect(() => {
     const callFrame = DailyIframe.createFrame({
@@ -49,10 +60,29 @@ export default function JoinCall(props: JoinCallPageProps) {
       ...(typeof meetingPassword === "string" && { token: meetingPassword }),
     });
     callFrame.join();
+    callFrame.on("recording-started", onRecordingStarted).on("recording-stopped", onRecordingStopped);
     return () => {
       callFrame.destroy();
     };
   }, []);
+
+  const onRecordingStopped = () => {
+    const data = { recordingId: recordingId.current, bookingUID: booking.uid };
+
+    fetch("/api/recorded-daily-video", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }).catch((err) => {
+      console.log(err);
+    });
+
+    recordingId.current = null;
+  };
+
+  const onRecordingStarted = (event?: DailyEventObjectRecordingStarted | undefined) => {
+    const response = recordingStartedEventResponse.parse(event);
+    recordingId.current = response.recordingId;
+  };
 
   const title = `${APP_NAME} Video`;
   return (
@@ -100,13 +130,46 @@ function ProgressBar(props: ProgressBarProps) {
   const isPast = currentTime.isAfter(startingTime);
   const currentDifference = dayjs().diff(startingTime, "minutes");
   const startDuration = dayjs(endTime).diff(startingTime, "minutes");
-  const [duration] = useState(() => {
+  const [duration, setDuration] = useState(() => {
     if (currentDifference >= 0 && isPast) {
       return startDuration - currentDifference;
     } else {
       return startDuration;
     }
   });
+
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const now = dayjs();
+    const remainingMilliseconds = (60 - now.get("seconds")) * 1000 - now.get("milliseconds");
+
+    timeoutRef.current = setTimeout(() => {
+      const past = dayjs().isAfter(startingTime);
+
+      if (past) {
+        setDuration((prev) => prev - 1);
+      }
+
+      intervalRef.current = setInterval(() => {
+        if (dayjs().isAfter(startingTime)) {
+          setDuration((prev) => prev - 1);
+        }
+      }, 60000);
+    }, remainingMilliseconds);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, []);
 
   const prev = startDuration - duration;
   const percentage = prev * (100 / startDuration);
@@ -179,7 +242,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
 
               <div
                 className="prose-sm prose prose-invert"
-                dangerouslySetInnerHTML={{ __html: md.render(booking.description ?? "") }}
+                dangerouslySetInnerHTML={{ __html: booking.description }}
               />
             </>
           )}
@@ -189,7 +252,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
             aria-label={`${open ? "close" : "open"} booking description sidebar`}
             className="h-20 w-6 rounded-r-md border border-l-0 border-gray-300/20 bg-black/60 text-white shadow-sm backdrop-blur-lg"
             onClick={() => setOpen(!open)}>
-            <FiChevronRight
+            <ChevronRight
               aria-hidden
               className={classNames(open && "rotate-180", "w-5 transition-all duration-300 ease-in-out")}
             />
@@ -199,6 +262,8 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
     </>
   );
 }
+
+VideoMeetingInfo.PageWrapper = PageWrapper;
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req, res } = context;
@@ -213,6 +278,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...bookingMinimalSelect,
       uid: true,
       description: true,
+      isRecorded: true,
       user: {
         select: {
           id: true,
@@ -280,7 +346,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...(typeof bookingObj.references[0].meetingPassword === "string" && {
         meetingPassword: bookingObj.references[0].meetingPassword,
       }),
-      booking: bookingObj,
+      booking: {
+        ...bookingObj,
+        ...(bookingObj.description && { description: md.render(bookingObj.description) }),
+      },
       trpcState: ssr.dehydrate(),
     },
   };

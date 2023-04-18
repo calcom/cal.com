@@ -28,14 +28,14 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
           <p className="font-sans text-sm font-bold leading-5">
             {name}
             {/* Temporarily removed till we use it on another place */}
-            {/* <span className="mx-1 rounded-[4px] bg-green-100 py-[2px] px-[6px] font-sans text-xs font-medium text-green-600">
+            {/* <span className="mx-1 rounded-[4px] bg-success py-[2px] px-[6px] font-sans text-xs font-medium text-green-600">
               {t("default")}
             </span> */}
           </p>
           <div className="fle-row flex">
             <span
               title={externalId}
-              className="max-w-44 mt-1 overflow-hidden text-ellipsis whitespace-nowrap font-sans text-sm text-gray-500">
+              className="max-w-44 text-subtle mt-1 overflow-hidden text-ellipsis whitespace-nowrap font-sans text-sm">
               {externalId}{" "}
             </span>
           </div>
@@ -44,11 +44,11 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
         {/* <Button
           color="minimal"
           type="button"
-          className="ml-auto flex rounded-md border border-gray-200 py-[10x] px-4 font-sans text-sm">
+          className="ml-auto flex rounded-md border border-subtle py-[10x] px-4 font-sans text-sm">
           {t("edit")}
         </Button> */}
       </div>
-      <div className="h-[1px] w-full border-b border-gray-200" />
+      <div className="border-subtle h-[1px] w-full border-b" />
       <div>
         <ul className="p-4">
           {calendars?.map((calendar, i) => (

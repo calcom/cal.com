@@ -23,6 +23,7 @@
     "dev": "yarn tailwind && run-p 'tailwind --watch' 'buildWatchAndServer'",
     "dev-real": "vite dev --port 3100",
     "type-check": "tsc --pretty --noEmit",
+    "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint": "eslint --ext .ts,.js src",
     "lint:fix": "eslint --ext .ts,.js src --fix",
     "embed-tests": "yarn playwright test --config=playwright/config/playwright.config.ts",

@@ -5,8 +5,9 @@ import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, SkeletonText } from "@calcom/ui";
-import { FiX } from "@calcom/ui/components/icon";
+import { X } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
 import { ssgInit } from "@server/lib/ssg";
@@ -28,15 +29,15 @@ export default function Error() {
   return (
     <AuthContainer title="" description="">
       <div>
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-          <FiX className="h-6 w-6 text-red-600" />
+        <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
+          <X className="h-6 w-6 text-red-600" />
         </div>
         <div className="mt-3 text-center sm:mt-5">
-          <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+          <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
             {error}
           </h3>
           <div className="mt-2">
-            <p className="text-sm text-gray-500">{errorMsg}</p>
+            <p className="text-subtle text-sm">{errorMsg}</p>
           </div>
         </div>
       </div>
@@ -48,6 +49,8 @@ export default function Error() {
     </AuthContainer>
   );
 }
+
+Error.PageWrapper = PageWrapper;
 
 export const getStaticProps = async (context: GetStaticPropsContext) => {
   const ssr = await ssgInit(context);

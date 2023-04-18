@@ -9,6 +9,7 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "./templates/attendee-cancelled-email";
 import AttendeeCancelledSeatEmail from "./templates/attendee-cancelled-seat-email";
+import AttendeeDailyVideoDownloadRecordingEmail from "./templates/attendee-daily-video-download-recording-email";
 import AttendeeDeclinedEmail from "./templates/attendee-declined-email";
 import AttendeeLocationChangeEmail from "./templates/attendee-location-change-email";
 import AttendeeRequestEmail from "./templates/attendee-request-email";
@@ -21,6 +22,7 @@ import type { Feedback } from "./templates/feedback-email";
 import FeedbackEmail from "./templates/feedback-email";
 import type { PasswordReset } from "./templates/forgot-password-email";
 import ForgotPasswordEmail from "./templates/forgot-password-email";
+import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
 import OrganizerAttendeeCancelledSeatEmail from "./templates/organizer-attendee-cancelled-seat-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
@@ -30,6 +32,7 @@ import OrganizerRequestReminderEmail from "./templates/organizer-request-reminde
 import OrganizerRequestedToRescheduleEmail from "./templates/organizer-requested-to-reschedule-email";
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
+import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
 
@@ -284,4 +287,35 @@ export const sendDisabledAppEmail = async ({
   eventTypeId?: number;
 }) => {
   await sendEmail(() => new DisabledAppEmail(email, appName, appType, t, title, eventTypeId));
+};
+
+export const sendSlugReplacementEmail = async ({
+  email,
+  name,
+  teamName,
+  t,
+  slug,
+}: {
+  email: string;
+  name: string;
+  teamName: string | null;
+  t: TFunction;
+  slug: string;
+}) => {
+  await sendEmail(() => new SlugReplacementEmail(email, name, teamName, slug, t));
+};
+
+export const sendNoShowFeeChargedEmail = async (attendee: Person, evt: CalendarEvent) => {
+  await sendEmail(() => new NoShowFeeChargedEmail(evt, attendee));
+};
+
+export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, downloadLink: string) => {
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const attendee of calEvent.attendees) {
+    emailsToSend.push(
+      sendEmail(() => new AttendeeDailyVideoDownloadRecordingEmail(calEvent, attendee, downloadLink))
+    );
+  }
+  await Promise.all(emailsToSend);
 };

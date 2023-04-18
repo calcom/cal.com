@@ -133,6 +133,7 @@ export default class GoogleCalendarService implements Calendar {
           calendarId: selectedCalendar,
           requestBody: payload,
           conferenceDataVersion: 1,
+          sendUpdates: "none",
         },
         function (error, event) {
           if (error || !event?.data) {
@@ -164,6 +165,7 @@ export default class GoogleCalendarService implements Calendar {
             type: "google_calendar",
             password: "",
             url: "",
+            iCalUID: event.data.iCalUID,
           });
         }
       );
@@ -200,6 +202,9 @@ export default class GoogleCalendarService implements Calendar {
             id: String(event.organizer.id),
             organizer: true,
             responseStatus: "accepted",
+            email: event.destinationCalendar?.externalId
+              ? event.destinationCalendar.externalId
+              : event.organizer.email,
           },
           // eslint-disable-next-line
           ...eventAttendees,
@@ -234,14 +239,13 @@ export default class GoogleCalendarService implements Calendar {
           calendarId: selectedCalendar,
           eventId: uid,
           sendNotifications: true,
-          sendUpdates: "all",
+          sendUpdates: "none",
           requestBody: payload,
           conferenceDataVersion: 1,
         },
         function (err, evt) {
           if (err) {
             console.error("There was an error contacting google calendar service: ", err);
-
             return reject(err);
           }
 
@@ -268,6 +272,7 @@ export default class GoogleCalendarService implements Calendar {
               type: "google_calendar",
               password: "",
               url: "",
+              iCalUID: evt.data.iCalUID,
             });
           }
           return resolve(evt?.data);
@@ -293,7 +298,7 @@ export default class GoogleCalendarService implements Calendar {
           calendarId: calendarId ? calendarId : defaultCalendarId,
           eventId: uid,
           sendNotifications: false,
-          sendUpdates: "all",
+          sendUpdates: "none",
         },
         function (err: GoogleCalError | null, event) {
           if (err) {

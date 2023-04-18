@@ -16,7 +16,14 @@ module.exports = {
     "^[./]",
   ],
   importOrderSeparation: true,
-  plugins: [require("./merged-prettier-plugin")],
+  plugins: [
+    "@trivago/prettier-plugin-sort-imports",
+    /**
+     * **NOTE** tailwind plugin must come last!
+     * @see https://github.com/tailwindlabs/prettier-plugin-tailwindcss#compatibility-with-other-prettier-plugins
+     */
+    "prettier-plugin-tailwindcss",
+  ],
   overrides: [
     {
       files: ["apps/website/lib/utils/wordlist/wordlist.ts"],

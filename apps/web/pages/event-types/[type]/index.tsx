@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { PeriodType } from "@prisma/client";
 import type { SchedulingType } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
+import { Trans } from "next-i18next";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -11,29 +12,31 @@ import { z } from "zod";
 import { validateCustomEventName } from "@calcom/core/event";
 import type { EventLocationType } from "@calcom/core/location";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
-import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
+import { useTelemetry, telemetryEventTypes } from "@calcom/lib/telemetry";
 import type { Prisma } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
-import { Form, showToast } from "@calcom/ui";
+import { ConfirmationDialogContent, Dialog, Form, showToast } from "@calcom/ui";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import type { AvailabilityOption } from "@components/eventtype/AvailabilityTab";
 import { AvailabilityTab } from "@components/eventtype/AvailabilityTab";
+import PageWrapper from "@components/PageWrapper";
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
 import { EventAdvancedTab } from "@components/eventtype/EventAdvancedTab";
 import { EventAppsTab } from "@components/eventtype/EventAppsTab";
+import { EventAvailabilityTab } from "@components/eventtype/EventAvailabilityTab";
 import { EventLimitsTab } from "@components/eventtype/EventLimitsTab";
 import { EventRecurringTab } from "@components/eventtype/EventRecurringTab";
 import { EventSetupTab } from "@components/eventtype/EventSetupTab";
@@ -66,6 +69,7 @@ export type FormValues = {
     hostPhoneNumber?: string;
     displayLocationPublicly?: boolean;
     phone?: string;
+    hostDefault?: string;
   }[];
   customInputs: CustomInputParsed[];
   schedule: number | null;
@@ -89,6 +93,7 @@ export type FormValues = {
   successRedirectUrl: string;
   durationLimits?: IntervalLimit;
   bookingLimits?: IntervalLimit;
+  children: ChildrenEventType[];
   hosts: { userId: number; isFixed: boolean }[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
   availability?: AvailabilityOption;
@@ -114,10 +119,12 @@ const querySchema = z.object({
 });
 
 export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
+export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
 
 const EventTypePage = (props: EventTypeSetupProps) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const telemetry = useTelemetry();
   const {
     data: { tabName },
   } = useTypedQuery(querySchema);
@@ -211,6 +218,18 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     minimumBookingNotice: eventType.minimumBookingNotice,
     metadata,
     hosts: eventType.hosts,
+    children: eventType.children.map((ch) => ({
+      ...ch,
+      created: true,
+      owner: {
+        ...ch.owner,
+        eventTypeSlugs:
+          eventType.team?.members
+            .find((mem) => mem.user.id === ch.owner.id)
+            ?.user.eventTypes.map((evTy) => evTy.slug)
+            .filter((slug) => slug !== eventType.slug) ?? [],
+      },
+    })),
   } as const;
 
   const formMethods = useForm<FormValues>({
@@ -270,8 +289,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         destinationCalendar={destinationCalendar}
       />
     ),
-    availability: <AvailabilityTab isTeamEvent={!!team} />,
-    team: <EventTeamTab teamMembers={teamMembers} team={team} />,
+    availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
+    team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
@@ -284,6 +303,76 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     ),
     webhooks: <EventTeamWebhooksTab eventType={eventType} team={team} />,
   } as const;
+
+  const handleSubmit = async (values: FormValues) => {
+    const {
+      periodDates,
+      periodCountCalendarDays,
+      beforeBufferTime,
+      afterBufferTime,
+      seatsPerTimeSlot,
+      seatsShowAttendees,
+      bookingLimits,
+      durationLimits,
+      recurringEvent,
+      locations,
+      metadata,
+      customInputs,
+      children,
+      // We don't need to send send these values to the backend
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      seatsPerTimeSlotEnabled,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      minimumBookingNoticeInDurationType,
+      ...input
+    } = values;
+
+    if (bookingLimits) {
+      const isValid = validateIntervalLimitOrder(bookingLimits);
+      if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
+    }
+
+    if (durationLimits) {
+      const isValid = validateIntervalLimitOrder(durationLimits);
+      if (!isValid) throw new Error(t("event_setup_duration_limits_error"));
+    }
+
+    if (metadata?.multipleDuration !== undefined) {
+      if (metadata?.multipleDuration.length < 1) {
+        throw new Error(t("event_setup_multiple_duration_error"));
+      } else {
+        if (!input.length && !metadata?.multipleDuration?.includes(input.length)) {
+          throw new Error(t("event_setup_multiple_duration_default_error"));
+        }
+      }
+    }
+
+    if (metadata?.apps?.stripe?.paymentOption === "HOLD" && seatsPerTimeSlot) {
+      throw new Error(t("seats_and_no_show_fee_error"));
+    }
+
+    updateMutation.mutate({
+      ...input,
+      locations,
+      recurringEvent,
+      periodStartDate: periodDates.startDate,
+      periodEndDate: periodDates.endDate,
+      periodCountCalendarDays: periodCountCalendarDays === "1",
+      id: eventType.id,
+      beforeEventBuffer: beforeBufferTime,
+      afterEventBuffer: afterBufferTime,
+      bookingLimits,
+      durationLimits,
+      seatsPerTimeSlot,
+      seatsShowAttendees,
+      metadata,
+      customInputs,
+      children,
+    });
+  };
+
+  const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
+  const slug = formMethods.watch("slug") ?? eventType.slug;
 
   return (
     <EventTypeSingleLayout
@@ -361,18 +450,49 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             customInputs,
           });
         }}>
-        <div ref={animationParentRef} className="space-y-6">
-          {tabMap[tabName]}
-        </div>
-      </Form>
-    </EventTypeSingleLayout>
+        <ConfirmationDialogContent
+          isLoading={formMethods.formState.isSubmitting}
+          variety="warning"
+          title={t("managed_event_dialog_title", {
+            slug,
+            count: slugExistsChildrenDialogOpen.length,
+          })}
+          confirmBtnText={t("managed_event_dialog_confirm_button", {
+            count: slugExistsChildrenDialogOpen.length,
+          })}
+          cancelBtnText={t("go_back")}
+          onConfirm={(e: { preventDefault: () => void }) => {
+            e.preventDefault();
+            handleSubmit(formMethods.getValues());
+            telemetry.event(telemetryEventTypes.slugReplacementAction);
+            setSlugExistsChildrenDialogOpen([]);
+          }}>
+          <p className="mt-5">
+            <Trans
+              i18nKey="managed_event_dialog_information"
+              values={{
+                names: `${slugExistsChildrenDialogOpen
+                  .map((ch) => ch.owner.name)
+                  .slice(0, -1)
+                  .join(", ")} ${
+                  slugExistsChildrenDialogOpen.length > 1 ? t("and") : ""
+                } ${slugExistsChildrenDialogOpen.map((ch) => ch.owner.name).slice(-1)}`,
+                slug,
+              }}
+              count={slugExistsChildrenDialogOpen.length}
+            />
+          </p>{" "}
+          <p className="mt-5">{t("managed_event_dialog_clarification")}</p>
+        </ConfirmationDialogContent>
+      </Dialog>
+    </>
   );
 };
 
 const EventTypePageWrapper = (props: inferSSRProps<typeof getServerSideProps>) => {
-  const { data, isLoading } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
-  if (isLoading || !data) return null;
-  return <EventTypePage {...data} />;
+  const { data } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
+
+  return <EventTypePage {...(data as EventTypeSetupProps)} />;
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
@@ -398,26 +518,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  try {
-    const res = await getEventTypeById({ eventTypeId: typeParam, userId: session.user.id, prisma });
-
-    return {
-      props: {
-        // session,
-        type: typeParam,
-        trpcState: ssr.dehydrate(),
-        initialData: {
-          eventType: res.eventType,
-          locationOptions: res.locationOptions,
-          team: res.team,
-          teamMembers: res.teamMembers,
-          currentUserMembership: res.currentUserMembership,
-        },
-      },
-    };
-  } catch (err) {
-    throw err;
-  }
+  await ssr.viewer.eventTypes.get.prefetch({ id: typeParam });
+  return {
+    props: {
+      type: typeParam,
+      trpcState: ssr.dehydrate(),
+    },
+  };
 };
+
+EventTypePageWrapper.PageWrapper = PageWrapper;
 
 export default EventTypePageWrapper;

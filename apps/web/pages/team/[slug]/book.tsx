@@ -5,15 +5,16 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
-import { markdownAndSanitize } from "@calcom/lib/markdownAndSanitize";
+import type { GetBookingType } from "@calcom/lib/getBooking";
+import getBooking from "@calcom/lib/getBooking";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma from "@calcom/prisma";
 import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
-import type { GetBookingType } from "@lib/getBooking";
-import getBooking from "@lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import PageWrapper from "@components/PageWrapper";
 import BookingPage from "@components/booking/pages/BookingPage";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -23,8 +24,8 @@ export type TeamBookingPageProps = inferSSRProps<typeof getServerSideProps>;
 export default function TeamBookingPage(props: TeamBookingPageProps) {
   return <BookingPage {...props} />;
 }
-
-TeamBookingPage.isThemeSupported = true;
+TeamBookingPage.isBookingPage = true;
+TeamBookingPage.PageWrapper = PageWrapper;
 
 const querySchema = z.object({
   rescheduleUid: z.string().optional(),
@@ -67,6 +68,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       seatsPerTimeSlot: true,
       schedulingType: true,
       bookingFields: true,
+      successRedirectUrl: true,
       workflows: {
         include: {
           workflow: {
@@ -122,14 +124,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         image: u.avatar,
         slug: u.username,
       })),
-      descriptionAsSafeHTML: markdownAndSanitize(eventType.description),
+      descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
     };
   })[0];
 
   let booking: GetBookingType | null = null;
   const { rescheduleUid, bookingUid } = querySchema.parse(context.query);
   if (rescheduleUid || bookingUid) {
-    booking = await getBooking(prisma, rescheduleUid || bookingUid || "", eventTypeObject.bookingFields);
+    booking = await getBooking(prisma, rescheduleUid || bookingUid || "");
   }
 
   // Checking if number of recurring event ocurrances is valid against event type configuration
@@ -154,6 +156,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       eventType: eventTypeObject,
       recurringEventCount,
       booking,
+      currentSlotBooking: null,
       isDynamicGroupBooking: false,
       hasHashedBookingLink: false,
       hashedLink: null,
