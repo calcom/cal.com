@@ -4,8 +4,8 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getLocaleFromHeaders } from "@calcom/lib/i18n";
-import prisma from "@calcom/prisma";
 import type { SelectedCalendar, User as PrismaUser, Credential } from "@calcom/prisma/client";
+import { extendedPrisma as prisma } from "@calcom/prisma/extendedPrisma";
 
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
 
