@@ -781,30 +781,22 @@ export const bookingsRouter = router({
     });
 
     const authorized = async () => {
-      // if the organizer
-      if (booking.userId === user.id) {
-        return true;
-      }
-      const eventType = await prisma.eventType.findUnique({
+      const eventType = await prisma.eventType.findFirst({
         where: {
           id: booking.eventTypeId || undefined,
+          schedulingType: SchedulingType.COLLECTIVE,
         },
         select: {
-          id: true,
-          schedulingType: true,
           users: true,
         },
       });
-      if (
-        eventType?.schedulingType === SchedulingType.COLLECTIVE &&
-        eventType.users.find((user) => user.id === user.id)
-      ) {
-        return true;
-      }
-      return false;
+
+      return eventType && eventType.users.find((user) => booking.userId === user.id);
     };
 
-    if (!(await authorized())) throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
+    if (booking.userId !== user.id && !(await authorized())) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
+    }
 
     const isConfirmed = booking.status === BookingStatus.ACCEPTED;
     if (isConfirmed) throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
