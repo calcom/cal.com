@@ -34,8 +34,6 @@ class MyDocument extends Document<Props> {
     return (
       <Html lang={locale} dir={dir}>
         <Head nonce={nonce}>
-          {/* So that our rewrite logic depending on the `referrer` header is always set: */}
-          <meta name="referrer" content="strict-origin-when-cross-origin" />
           <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
           <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
           <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
