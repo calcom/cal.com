@@ -20,8 +20,7 @@ export default function BookingPageTagManager({
 
         const appData = getEventTypeAppData(eventType, appId as keyof typeof appDataSchemas);
 
-        // We assume that the first variable(which is trackingId) is a required field. Every analytics app would have atleast one variable
-        if (!appData?.variable1) {
+        if (!appData) {
           return null;
         }
 
@@ -30,11 +29,17 @@ export default function BookingPageTagManager({
             return val;
           }
 
-          const regex = /\{([^}]+)\}/g;
+          const regex = /\{([A-Z_]+)\}/g;
           let matches;
           while ((matches = regex.exec(val))) {
             const variableName = matches[1];
-            val = val.replace(new RegExp(`{${variableName}}`, "g"), appData[variableName]) as NonNullable<T>;
+            if (appData[variableName]) {
+              // Replace if value is available. It can possible not be a template variable that just matches the regex.
+              val = val.replace(
+                new RegExp(`{${variableName}}`, "g"),
+                appData[variableName]
+              ) as NonNullable<T>;
+            }
           }
           return val;
         };
