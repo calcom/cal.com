@@ -63,7 +63,7 @@ export function getWorkingHours(
     timeZone?: string;
     utcOffset?: number;
   },
-  availability: { userId?: number | null; days: number[]; startTime: ConfigType; endTime: ConfigType }[]
+  availability: { days: number[]; startTime: ConfigType; endTime: ConfigType }[]
 ) {
   if (!availability.length) {
     return [];
@@ -89,34 +89,28 @@ export function getWorkingHours(
       return currentWorkingHours;
     }
     if (sameDayStartTime !== sameDayEndTime) {
-      const newWorkingHours: WorkingHours = {
+      currentWorkingHours.push({
         days: schedule.days,
         startTime: sameDayStartTime,
         endTime: sameDayEndTime,
-      };
-      if (schedule.userId) newWorkingHours.userId = schedule.userId;
-      currentWorkingHours.push(newWorkingHours);
+      });
     }
     // check for overflow to the previous day
     // overflowing days constraint to 0-6 day range (Sunday-Saturday)
     if (startTime < MINUTES_DAY_START || endTime < MINUTES_DAY_START) {
-      const newWorkingHours: WorkingHours = {
+      currentWorkingHours.push({
         days: schedule.days.map((day) => (day - 1 >= 0 ? day - 1 : 6)),
         startTime: startTime + MINUTES_IN_DAY,
         endTime: Math.min(endTime + MINUTES_IN_DAY, MINUTES_DAY_END),
-      };
-      if (schedule.userId) newWorkingHours.userId = schedule.userId;
-      currentWorkingHours.push(newWorkingHours);
+      });
     }
     // else, check for overflow in the next day
     else if (startTime > MINUTES_DAY_END || endTime > MINUTES_IN_DAY) {
-      const newWorkingHours: WorkingHours = {
+      currentWorkingHours.push({
         days: schedule.days.map((day) => (day + 1) % 7),
         startTime: Math.max(startTime - MINUTES_IN_DAY, MINUTES_DAY_START),
         endTime: endTime - MINUTES_IN_DAY,
-      };
-      if (schedule.userId) newWorkingHours.userId = schedule.userId;
-      currentWorkingHours.push(newWorkingHours);
+      });
     }
 
     return currentWorkingHours;

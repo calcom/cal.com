@@ -297,6 +297,7 @@ export const viewerTeamsRouter = router({
               create: {
                 teamId: input.teamId,
                 role: input.role as MembershipRole,
+                accepted: true,
               },
             },
           },
@@ -329,6 +330,7 @@ export const viewerTeamsRouter = router({
               teamId: input.teamId,
               userId: invitee.id,
               role: input.role as MembershipRole,
+              accepted: true,
             },
           });
         } catch (e) {
@@ -681,7 +683,7 @@ export const viewerTeamsRouter = router({
           },
         },
       });
-      type UserMap = Record<number, (typeof teams)[number]["members"][number]["user"]>;
+      type UserMap = Record<number, typeof teams[number]["members"][number]["user"]>;
       // flattern users to be unique by id
       const users = teams
         .flatMap((t) => t.members)

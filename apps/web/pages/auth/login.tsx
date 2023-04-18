@@ -11,6 +11,7 @@ import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import { ErrorCode, getSession } from "@calcom/lib/auth";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { SIGNUP_DISABLED } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -74,7 +75,7 @@ export default function Login({
 
   callbackUrl = safeCallbackUrl || "";
 
-  const LoginFooter = (
+  const LoginFooter = SIGNUP_DISABLED ? null : (
     <a href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
       {t("dont_have_an_account")}
     </a>
@@ -116,13 +117,7 @@ export default function Login({
         description={t("login")}
         showLogo
         heading={twoFactorRequired ? t("2fa_code") : t("welcome_back")}
-        footerText={
-          twoFactorRequired
-            ? TwoFactorFooter
-            : process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true"
-            ? LoginFooter
-            : null
-        }>
+        footerText={twoFactorRequired ? TwoFactorFooter : LoginFooter}>
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)} data-testid="login-form">
             <div>

@@ -42,6 +42,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
       label: t("radio"),
     },
     { value: EventTypeCustomInputType.PHONE, label: t("phone_number") },
+    { value: EventTypeCustomInputType.HIDDEN, label: t("hidden") },
   ];
 
   const { selectedCustomInput } = props;
