@@ -1122,13 +1122,11 @@
   "current_username": "Nuværende brugernavn",
   "example_1": "Eksempel 1",
   "example_2": "Eksempel 2",
-  "additional_input_label": "Ekstra Input Label",
   "company_size": "Firma størrelse",
   "what_help_needed": "Hvad har du brug for hjælp til?",
   "variable_format": "Variabelt format",
   "webhook_subscriber_url_reserved": "Webhook abonnent url er allerede defineret",
   "custom_input_as_variable_info": "Ignorér alle specialtegn i den ekstra input label (brug kun bogstaver og tal), brug store bogstaver for alle bogstaver og erstat blanke tegn med understregninger.",
-  "using_additional_inputs_as_variables": "Hvordan bruger jeg Ekstra Inputs som variabler?",
   "download_desktop_app": "Download desktop app",
   "set_ping_link": "Angiv Ping link",
   "rate_limit_exceeded": "Satsgrænsen er overskredet",
@@ -1338,7 +1336,6 @@
   "add_limit": "Tilføj Begrænsning",
   "team_name_required": "Teamnavn påkrævet",
   "show_attendees": "Del deltagerinformation mellem gæster",
-  "how_additional_inputs_as_variables": "Sådan bruger du Ekstra Inputs som Variabler",
   "format": "Formatér",
   "uppercase_for_letters": "Brug store bogstaver for alle bogstaver",
   "replace_whitespaces_underscores": "Erstat blanke tegn med understregninger",
@@ -1353,7 +1350,6 @@
   "billing_help_title": "Brug for noget andet?",
   "billing_help_description": "Hvis du har brug for yderligere hjælp til fakturering, er vores supportteam her for at hjælpe.",
   "billing_help_cta": "Kontakt support",
-  "ignore_special_characters": "Ignorér specialtegn i din Ekstra Input Label. Brug kun bogstaver og tal",
   "retry": "Prøv igen",
   "fetching_calendars_error": "Der opstod et problem med at hente dine kalendere. Venligst <1>prøv igen</1> eller kontakt kundeservice.",
   "calendar_connection_fail": "Forbindelse til kalender mislykkedes",
@@ -1619,5 +1615,6 @@
   "no_responses_yet": "Ingen svar endnu",
   "this_will_be_the_placeholder": "Dette vil være pladsholderen",
   "verification_code": "Bekræftelseskode",
-  "verify": "Bekræft"
+  "verify": "Bekræft",
+  "timezone_variable": "Tidszone"
 }

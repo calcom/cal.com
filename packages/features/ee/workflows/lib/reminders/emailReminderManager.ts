@@ -1,10 +1,12 @@
 import type { TimeUnit } from "@prisma/client";
-import { WorkflowTriggerEvents, WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@prisma/client";
+import { WorkflowTemplates } from "@prisma/client";
+import { WorkflowTriggerEvents, WorkflowActions, WorkflowMethods } from "@prisma/client";
 import client from "@sendgrid/client";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
 import sgMail from "@sendgrid/mail";
 
 import dayjs from "@calcom/dayjs";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -15,6 +17,7 @@ import emailReminderTemplate from "./templates/emailReminderTemplate";
 
 let sendgridAPIKey, senderEmail: string;
 
+const log = logger.getChildLogger({ prefix: ["[emailReminderManager]"] });
 if (process.env.SENDGRID_API_KEY) {
   sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
   senderEmail = process.env.SENDGRID_EMAIL as string;
@@ -36,7 +39,8 @@ export const scheduleEmailReminder = async (
   emailBody: string,
   workflowStepId: number,
   template: WorkflowTemplates,
-  sender: string
+  sender: string,
+  hideBranding?: boolean
 ) => {
   if (action === WorkflowActions.EMAIL_ADDRESS) return;
   const { startTime, endTime } = evt;
@@ -51,15 +55,11 @@ export const scheduleEmailReminder = async (
   } else if (triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(endTime).add(timeSpan.time, timeUnit) : null;
   }
+
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
     console.error("Sendgrid credentials are missing from the .env file");
     return;
   }
-
-  const batchIdResponse = await client.request({
-    url: "/v3/mail/batch",
-    method: "POST",
-  });
 
   let name = "";
   let attendeeName = "";
@@ -80,41 +80,53 @@ export const scheduleEmailReminder = async (
 
   let emailContent = {
     emailSubject,
-    emailBody: {
-      text: emailBody,
-      html: `<body style="white-space: pre-wrap;">${emailBody}</body>`,
-    },
+    emailBody: `<body style="white-space: pre-wrap;">${emailBody}</body>`,
   };
+  if (emailBody) {
+    const variables: VariablesType = {
+      eventName: evt.title || "",
+      organizerName: evt.organizer.name,
+      attendeeName: evt.attendees[0].name,
+      attendeeEmail: evt.attendees[0].email,
+      eventDate: dayjs(startTime).tz(timeZone),
+      eventEndTime: dayjs(endTime).tz(timeZone),
+      timeZone: timeZone,
+      location: evt.location,
+      additionalNotes: evt.additionalNotes,
+      responses: evt.responses,
+      meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
+      cancelLink: `/booking/${evt.uid}?cancel=true`,
+      rescheduleLink: `/${evt.organizer.username}/${evt.eventType.slug}?rescheduleUid=${evt.uid}`,
+    };
 
-  switch (template) {
-    case WorkflowTemplates.REMINDER:
-      emailContent = emailReminderTemplate(startTime, endTime, evt.title, timeZone, attendeeName, name);
-      break;
-    case WorkflowTemplates.CUSTOM:
-      const variables: VariablesType = {
-        eventName: evt.title || "",
-        organizerName: evt.organizer.name,
-        attendeeName: evt.attendees[0].name,
-        attendeeEmail: evt.attendees[0].email,
-        eventDate: dayjs(startTime).tz(timeZone),
-        eventTime: dayjs(startTime).tz(timeZone),
-        timeZone: timeZone,
-        location: evt.location,
-        additionalNotes: evt.additionalNotes,
-        responses: evt.responses,
-        meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
-      };
+    const locale =
+      action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
+        ? evt.attendees[0].language?.locale
+        : evt.organizer.language.locale;
 
-      const locale =
-        action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
-          ? evt.attendees[0].language?.locale
-          : evt.organizer.language.locale;
-
-      const emailSubjectTemplate = await customTemplate(emailSubject, variables, locale);
-      emailContent.emailSubject = emailSubjectTemplate.text;
-      emailContent.emailBody = await customTemplate(emailBody, variables, locale);
-      break;
+    const emailSubjectTemplate = customTemplate(emailSubject, variables, locale);
+    emailContent.emailSubject = emailSubjectTemplate.text;
+    emailContent.emailBody = customTemplate(emailBody, variables, locale, hideBranding).html;
+  } else if (template === WorkflowTemplates.REMINDER) {
+    emailContent = emailReminderTemplate(
+      false,
+      action,
+      startTime,
+      endTime,
+      evt.title,
+      timeZone,
+      attendeeName,
+      name
+    );
   }
+
+  // Allows debugging generated email content without waiting for sendgrid to send emails
+  log.debug(`Sending Email for trigger ${triggerEvent}`, JSON.stringify(emailContent));
+
+  const batchIdResponse = await client.request({
+    url: "/v3/mail/batch",
+    method: "POST",
+  });
 
   if (
     triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
@@ -129,8 +141,7 @@ export const scheduleEmailReminder = async (
           name: sender,
         },
         subject: emailContent.emailSubject,
-        text: emailContent.emailBody.text,
-        html: emailContent.emailBody.html,
+        html: emailContent.emailBody,
         batchId: batchIdResponse[1].batch_id,
         replyTo: evt.organizer.email,
       });
@@ -156,8 +167,7 @@ export const scheduleEmailReminder = async (
             name: sender,
           },
           subject: emailContent.emailSubject,
-          text: emailContent.emailBody.text,
-          html: emailContent.emailBody.html,
+          html: emailContent.emailBody,
           batchId: batchIdResponse[1].batch_id,
           sendAt: scheduledDate.unix(),
           replyTo: evt.organizer.email,
