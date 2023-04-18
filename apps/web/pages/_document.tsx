@@ -1,6 +1,8 @@
 import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
-import Script from "next/script";
+import { z } from "zod";
+
+import { getDirFromLang } from "@calcom/lib/i18n";
 
 import { csp } from "@lib/csp";
 
@@ -24,7 +26,11 @@ class MyDocument extends Document<Props> {
   }
 
   render() {
-    //...
+    const { locale } = this.props.__NEXT_DATA__;
+    const { isEmbed } = this.props;
+    const nonceParsed = z.string().safeParse(this.props.nonce);
+    const nonce = nonceParsed.success ? nonceParsed.data : "";
+    const dir = getDirFromLang(locale);
     return (
       <Html lang={locale} dir={dir}>
         <Head nonce={nonce}>
@@ -36,8 +42,7 @@ class MyDocument extends Document<Props> {
           <link rel="manifest" href="/site.webmanifest" />
           <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
           <meta name="msapplication-TileColor" content="#ff0000" />
-          <meta name="theme-color" content="var(--cal-bg)" />{" "}
-          <Script src="/embed-init-iframe.js" strategy="beforeInteractive" />
+          <meta name="theme-color" content="var(--cal-bg)" />
         </Head>
 
         <body
