@@ -5,6 +5,7 @@ import sgMail from "@sendgrid/mail";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -164,51 +165,63 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       let emailContent = {
         emailSubject: reminder.workflowStep.emailSubject || "",
-        emailBody: {
-          text: reminder.workflowStep.reminderBody || "",
-          html: `<body style="white-space: pre-wrap;">${reminder.workflowStep.reminderBody || ""}</body>`,
-        },
+        emailBody: `<body style="white-space: pre-wrap;">${reminder.workflowStep.reminderBody || ""}</body>`,
       };
 
-      switch (reminder.workflowStep.template) {
-        case WorkflowTemplates.REMINDER:
-          emailContent = emailReminderTemplate(
-            reminder.booking.startTime.toISOString() || "",
-            reminder.booking.endTime.toISOString() || "",
-            reminder.booking.eventType?.title || "",
-            timeZone || "",
-            attendeeName || "",
-            name || ""
-          );
-          break;
-        case WorkflowTemplates.CUSTOM:
-          const variables: VariablesType = {
-            eventName: reminder.booking?.eventType?.title || "",
-            organizerName: reminder.booking.user?.name || "",
-            attendeeName: reminder.booking.attendees[0].name,
-            attendeeEmail: reminder.booking.attendees[0].email,
-            eventDate: dayjs(reminder.booking.startTime).tz(timeZone),
-            eventTime: dayjs(reminder.booking.startTime).tz(timeZone),
-            timeZone: timeZone,
-            location: reminder.booking.location || "",
-            additionalNotes: reminder.booking.description,
-            responses: reminder.booking.responses,
-            meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl,
-          };
-          const emailSubject = await customTemplate(
-            reminder.workflowStep.emailSubject || "",
-            variables,
-            locale || ""
-          );
-          emailContent.emailSubject = emailSubject.text;
-          emailContent.emailBody = await customTemplate(
-            reminder.workflowStep.reminderBody || "",
-            variables,
-            locale || ""
-          );
-          break;
+      let emailBodyEmpty = false;
+
+      if (reminder.workflowStep.reminderBody) {
+        const { responses } = getCalEventResponses({
+          bookingFields: reminder.booking.eventType?.bookingFields ?? null,
+          booking: reminder.booking,
+        });
+
+        const variables: VariablesType = {
+          eventName: reminder.booking.eventType?.title || "",
+          organizerName: reminder.booking.user?.name || "",
+          attendeeName: reminder.booking.attendees[0].name,
+          attendeeEmail: reminder.booking.attendees[0].email,
+          eventDate: dayjs(reminder.booking.startTime).tz(timeZone),
+          eventEndTime: dayjs(reminder.booking?.endTime).tz(timeZone),
+          timeZone: timeZone,
+          location: reminder.booking.location || "",
+          additionalNotes: reminder.booking.description,
+          responses: responses,
+          meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl,
+          cancelLink: `/booking/${reminder.booking.uid}?cancel=true`,
+          rescheduleLink: `/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
+        };
+        const emailSubject = customTemplate(
+          reminder.workflowStep.emailSubject || "",
+          variables,
+          locale || "",
+          !!reminder.booking.user?.hideBranding
+        ).text;
+        emailContent.emailSubject = emailSubject;
+        emailContent.emailBody = customTemplate(
+          reminder.workflowStep.reminderBody || "",
+          variables,
+          locale || "",
+          !!reminder.booking.user?.hideBranding
+        ).html;
+
+        emailBodyEmpty =
+          customTemplate(reminder.workflowStep.reminderBody || "", variables, locale || "").text.length === 0;
+      } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
+        emailContent = emailReminderTemplate(
+          false,
+          reminder.workflowStep.action,
+          reminder.booking.startTime.toISOString() || "",
+          reminder.booking.endTime.toISOString() || "",
+          reminder.booking.eventType?.title || "",
+          timeZone || "",
+          attendeeName || "",
+          name || "",
+          !!reminder.booking.user?.hideBranding
+        );
       }
-      if (emailContent.emailSubject.length > 0 && emailContent.emailBody.text.length > 0 && sendTo) {
+
+      if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
         const batchIdResponse = await client.request({
           url: "/v3/mail/batch",
           method: "POST",
@@ -224,8 +237,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               name: reminder.workflowStep.sender || "Cal.com",
             },
             subject: emailContent.emailSubject,
-            text: emailContent.emailBody.text,
-            html: emailContent.emailBody.html,
+            html: emailContent.emailBody,
             batchId: batchId,
             sendAt: dayjs(reminder.scheduledDate).unix(),
             replyTo: reminder.booking.user?.email || senderEmail,

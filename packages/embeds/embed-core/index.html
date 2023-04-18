@@ -175,19 +175,19 @@
             default aligned center
           </div>
           <button
-            onclick="(function () {Cal.ns.second('ui', {styles:{eventTypeListItem:{backgroundColor:'blue'}}})})()">
-            Change <code>eventTypeListItem</code> bg color
-          </button>
-          <button onclick="(function () {Cal.ns.second('ui', {styles:{body:{background:'red'}}})})()">
-            Change <code>body</code> bg color
-          </button>
-          <button
             onclick="(function () {Cal.ns.second('ui', {cssVarsPerTheme:{light:{'cal-border-booker':'green', 'cal-border-booker-width':'20px'},dark:{'cal-border-booker':'red', 'cal-border-booker-width':'5px'}}})})()">
             Change booker border for dark and light themes
           </button>
-          <button onclick="(function () {Cal.ns.second('ui', {styles:{align:'left'}})})()">Align left</button>
+          <button
+            onclick="(function () {Cal.ns.second('ui', {styles:{eventTypeListItem:{backgroundColor:'blue'}}})})()">
+            Change <code>eventTypeListItem</code> bg color[Deprecated]
+          </button>
+          <button onclick="(function () {Cal.ns.second('ui', {styles:{body:{background:'red'}}})})()">
+            Change <code>body</code> bg color[Deprecated]
+          </button>
+          <button onclick="(function () {Cal.ns.second('ui', {styles:{align:'left'}})})()">Align left[Deprecated]</button>
           <button onclick="(function () {Cal.ns.second('ui', {styles:{align:'center'}})})()">
-            Align Center
+            Align Center[Deprecated]
           </button>
           <button
             onclick="(function () {Cal.ns.second('ui', {styles:{enabledDateButton: {
@@ -196,7 +196,7 @@
           disabledDateButton: {
             backgroundColor: generateRandomHexColor(),
           },}})})()">
-            Change 'enabledDateButton` and `disabledDateButton` background Color
+            Change 'enabledDateButton` and `disabledDateButton` background Color[Deprecated]
           </button>
         </div>
       </div>
