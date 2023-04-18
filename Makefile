@@ -1,6 +1,6 @@
 SERVICE = cal
 COMMIT_SHA = $(shell git rev-parse HEAD)
-CURRENT_BRANCH = $(git rev-parse --abbrev-ref HEAD)
+CURRENT_BRANCH = $(shell git rev-parse --abbrev-ref HEAD)
 IMAGE = ${AWS_ECR_URL}/tourlane/${SERVICE}:${CURRENT_BRANCH}-${COMMIT_SHA}
 
 SSM_STAGING = /${SERVICE}/staging
