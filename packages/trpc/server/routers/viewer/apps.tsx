@@ -56,9 +56,7 @@ export const appsRouter = router({
             type: app.type,
             description: app.description,
             // We know that keys are going to be an object or null. Prisma can not type check against JSON fields
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-ignore
-            keys: dbData.keys,
+            keys: dbData.keys as Prisma.JsonObject | null,
             dirName: app.dirName || app.slug,
             enabled: dbData?.enabled || false,
             isTemplate: app.isTemplate,
