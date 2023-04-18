@@ -448,8 +448,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               metadata,
               customInputs,
             });
-          }}
-        />
+          }}>
+          <div ref={animationParentRef}>{tabMap[tabName]}</div>
+        </Form>
       </EventTypeSingleLayout>
       <Dialog
         open={slugExistsChildrenDialogOpen.length > 0}
