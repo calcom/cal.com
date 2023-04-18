@@ -7,6 +7,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SkeletonText } from "@calcom/ui";
 import { ArrowLeft, ArrowRight } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
+
 export default function Apps({ categories }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t, isLocaleReady } = useLocale();
 
@@ -42,6 +44,8 @@ export default function Apps({ categories }: InferGetStaticPropsType<typeof getS
     </Shell>
   );
 }
+
+Apps.PageWrapper = PageWrapper;
 
 export const getStaticProps = async () => {
   const appStore = await getAppRegistry();
