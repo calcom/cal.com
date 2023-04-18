@@ -95,7 +95,17 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-default mx-2 px-4 py-8 shadow sm:rounded-lg sm:px-10">
             <FormProvider {...methods}>
-              <form onSubmit={methods.handleSubmit(signUp)} className="bg-default space-y-6">
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+
+                  if (methods.formState?.errors?.apiError) {
+                    methods.clearErrors("apiError");
+                  }
+                  methods.handleSubmit(signUp)(event);
+                }}
+                className="bg-default space-y-6">
                 {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
                 <div className="space-y-2">
                   <TextField
