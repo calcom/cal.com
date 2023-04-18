@@ -1,16 +1,20 @@
 import { m } from "framer-motion";
+import dynamic from "next/dynamic";
 
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TimezoneSelect } from "@calcom/ui";
 import { Calendar, Globe } from "@calcom/ui/components/icon";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 import { formatEventFromToTime } from "../utils/dates";
 import { useEvent } from "../utils/event";
+
+const TimezoneSelect = dynamic(() => import("@calcom/ui").then((mod) => mod.TimezoneSelect), {
+  ssr: false,
+});
 
 export const EventMeta = () => {
   const { timezone, setTimezone, timeFormat } = useTimePreferences();
