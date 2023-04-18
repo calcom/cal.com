@@ -35,7 +35,7 @@ const cardTypeByVariant = {
   basic: {
     image: "w-10 h-auto",
     card: "p-5",
-    title: "text-base",
+    title: "text-base mt-4",
     description: "text-sm leading-[18px] text-gray-500 font-normal",
   },
   ProfileCard: {
@@ -88,7 +88,7 @@ export function Card({
           title={title}
           className={classNames(
             cardTypeByVariant[variant].title,
-            "line-clamp-1 mt-4 font-bold leading-5 text-gray-900"
+            "line-clamp-1 font-bold leading-5 text-gray-900"
           )}>
           {title}
         </h5>

@@ -21,7 +21,7 @@ const EditableHeading = function EditableHeading({
         <label className="min-w-8 relative inline-block">
           <span className="whitespace-pre text-xl tracking-normal text-transparent">{value}&nbsp;</span>
           {!isEditing && isReady && (
-            <FiEdit2 className="ml-1 inline h-4 w-4 align-top text-gray-700 group-hover:text-gray-500" />
+            <FiEdit2 className=" ml-1 -mt-px inline h-3 w-3  text-gray-500 group-hover:text-gray-500" />
           )}
           <input
             {...passThroughProps}

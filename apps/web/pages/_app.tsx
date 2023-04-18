@@ -29,13 +29,27 @@ function MyApp(props: AppProps) {
   } else if (router.pathname === "/500") {
     pageStatus = "500";
   }
+
+  // On client side don't let nonce creep into DOM
+  // It also avoids hydration warning that says that Client has the nonce value but server has "" because browser removes nonce attributes before DOM is built
+  // See https://github.com/kentcdodds/nonce-hydration-issues
+  // Set "" only if server had it set otherwise keep it undefined because server has to match with client to avoid hydration error
+  const nonce = typeof window !== "undefined" ? (pageProps.nonce ? "" : undefined) : pageProps.nonce;
+  const providerProps = {
+    ...props,
+    pageProps: {
+      ...props.pageProps,
+      nonce,
+    },
+  };
   // Use the layout defined at the page level, if available
   const getLayout = Component.getLayout ?? ((page) => page);
   return (
-    <AppProviders {...props}>
+    <AppProviders {...providerProps}>
       <DefaultSeo {...seoConfig.defaultNextSeo} />
       <I18nLanguageHandler />
       <Script
+        nonce={nonce}
         id="page-status"
         dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
       />

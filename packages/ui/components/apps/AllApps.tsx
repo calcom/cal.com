@@ -76,11 +76,11 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
             })}
       </h2>
       {leftVisible && (
-        <button onClick={handleLeft} className="absolute top-9 flex md:left-1/2 md:-top-1">
-          <div className="flex h-12 w-5 items-center justify-end bg-white">
+        <button onClick={handleLeft} className="absolute bottom-0 flex md:left-1/2 md:-top-1">
+          <div className="flex h-10 w-5 items-center justify-end bg-white">
             <FiChevronLeft className="h-4 w-4 text-gray-500" />
           </div>
-          <div className="flex h-12 w-5 bg-gradient-to-l from-transparent to-white" />
+          <div className="flex h-10 w-5 bg-gradient-to-l from-transparent to-white" />
         </button>
       )}
       <ul
@@ -118,9 +118,9 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
         ))}
       </ul>
       {rightVisible && (
-        <button onClick={handleRight} className="absolute top-9 right-0 flex md:-top-1">
-          <div className="flex h-12 w-5 bg-gradient-to-r from-transparent to-white" />
-          <div className="flex h-12 w-5 items-center justify-end bg-white">
+        <button onClick={handleRight} className="absolute bottom-0 right-0 flex md:-top-1">
+          <div className="flex h-10 w-5 bg-gradient-to-r from-transparent to-white" />
+          <div className="flex h-10 w-5 items-center justify-end bg-white">
             <FiChevronRight className="h-4 w-4 text-gray-500" />
           </div>
         </button>

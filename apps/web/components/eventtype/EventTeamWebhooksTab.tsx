@@ -100,7 +100,7 @@ export const EventTeamWebhooksTab = ({
               <>
                 {webhooks.length ? (
                   <>
-                    <div className="mt-4 mb-8 rounded-md border">
+                    <div className="mb-8 rounded-md border">
                       {webhooks.map((webhook, index) => {
                         return (
                           <WebhookListItem

@@ -65,7 +65,6 @@ export default function AppListCard(props: AppListCardProps) {
     <div className={`p-4 ${highlight ? "bg-yellow-100" : ""}`}>
       <div className="flex  gap-x-3">
         {logo ? <img className="h-10 w-10" src={logo} alt={`${title} logo`} /> : null}
-
         <div className="flex grow flex-col gap-y-1 truncate">
           <div className="flex items-center gap-x-2">
             <h3 className="truncate text-sm font-semibold text-gray-900">{title}</h3>

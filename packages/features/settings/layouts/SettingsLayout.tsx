@@ -190,7 +190,7 @@ const SettingsSidebarContainer = ({
           return tab.name !== "teams" ? (
             <React.Fragment key={tab.href}>
               <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
-                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 text-sm font-medium leading-none text-gray-600 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
+                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-2 text-sm font-medium leading-none text-gray-600 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                   {tab && tab.icon && (
                     <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
                   )}
@@ -222,7 +222,7 @@ const SettingsSidebarContainer = ({
             <React.Fragment key={tab.href}>
               <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
                 <Link href={tab.href}>
-                  <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
+                  <div className="group flex h-9 w-64 flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                     {tab && tab.icon && (
                       <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
                     )}
@@ -327,7 +327,7 @@ const SettingsSidebarContainer = ({
                 <VerticalTabItem
                   name={t("add_a_team")}
                   href={`${WEBAPP_URL}/settings/teams/new`}
-                  textClassNames="px-3 text-gray-900 font-medium text-sm"
+                  textClassNames="px-3 items-center mt-2 text-gray-900 font-medium text-sm"
                   icon={FiPlus}
                   disableChevron
                 />

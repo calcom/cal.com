@@ -91,7 +91,7 @@ const WorkflowListItem = (props: ItemProps) => {
   });
 
   return (
-    <div className="mb-4 flex w-full items-center overflow-hidden rounded-md border border-gray-200 p-6 px-3 md:p-6">
+    <div className="flex w-full items-center overflow-hidden rounded-md border border-gray-200 p-6 px-3 md:p-6">
       <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-xs font-medium">
         {getActionIcon(
           workflow.steps,
@@ -197,7 +197,7 @@ function EventWorkflowsTab(props: Props) {
     <LicenseRequired>
       {!isLoading ? (
         data?.workflows && data?.workflows.length > 0 ? (
-          <div className="mt-4">
+          <div className="space-y-4">
             {sortedWorkflows.map((workflow) => {
               return <WorkflowListItem key={workflow.id} workflow={workflow} eventType={props.eventType} />;
             })}

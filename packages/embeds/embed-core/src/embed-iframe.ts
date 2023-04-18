@@ -19,7 +19,6 @@ declare global {
     resetEmbedStatus: () => void;
     getEmbedNamespace: () => string | null;
     getEmbedTheme: () => "dark" | "light" | null;
-    isPageOptimizedForEmbed: (calLink: string) => boolean;
   }
 }
 
