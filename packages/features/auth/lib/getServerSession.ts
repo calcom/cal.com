@@ -1,3 +1,4 @@
+import { LRUCache } from "lru-cache";
 import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
 import type { AuthOptions, Session } from "next-auth";
 import { getToken } from "next-auth/jwt";
@@ -9,13 +10,8 @@ import prisma from "@calcom/prisma";
 /**
  * Stores the session in memory using the stringified token as the key.
  *
- * This is fine for production as each lambda will be recycled before this
- * becomes large enough to cause issues.
- *
- * If we want to get extra spicy we could store this in edge config or similar
- * so we can TTL things and benefit from faster retrievals than prisma.
  */
-const UNSTABLE_SESSION_CACHE = new Map<string, Session>();
+const CACHE = new LRUCache<string, Session>({ max: 1000 });
 
 /**
  * This is a slimmed down version of the `getServerSession` function from
@@ -44,7 +40,7 @@ export async function getServerSession(options: {
     return null;
   }
 
-  const cachedSession = UNSTABLE_SESSION_CACHE.get(JSON.stringify(token));
+  const cachedSession = CACHE.get(JSON.stringify(token));
 
   if (cachedSession) {
     return cachedSession;
@@ -79,7 +75,7 @@ export async function getServerSession(options: {
     },
   };
 
-  UNSTABLE_SESSION_CACHE.set(JSON.stringify(token), session);
+  CACHE.set(JSON.stringify(token), session);
 
   return session;
 }
