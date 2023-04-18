@@ -264,7 +264,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
             {!!data.connectedCalendars.length || !!installedCalendars.data?.items.length ? (
               <>
                 {heading && (
-                  <div className="flex flex-col gap-6 rounded-md border p-7">
+                  <div className="border-default flex flex-col gap-6 rounded-md border p-7">
                     <ShellSubHeading
                       title={t("calendar")}
                       subtitle={t("installed_app_calendar_description")}
