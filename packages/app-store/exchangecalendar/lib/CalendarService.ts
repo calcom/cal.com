@@ -198,7 +198,7 @@ export default class ExchangeCalendarService implements Calendar {
   }
 
   private getExchangeService(): ExchangeService {
-    const service: ExchangeService = new ExchangeService();
+    const service: ExchangeService = new ExchangeService(this.payload.exchangeVersion);
     service.Credentials = new WebCredentials(this.payload.username, this.payload.password);
     service.Url = new Uri(this.payload.url);
     if (this.payload.authenticationMethod === ExchangeAuthentication.NTLM) {

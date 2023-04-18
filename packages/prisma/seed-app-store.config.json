@@ -220,10 +220,10 @@
     "isTemplate": false
   },
   {
-    "dirName": "google-tag-manager",
+    "dirName": "gtm",
     "categories": ["analytics"],
-    "slug": "google-tag-manager",
-    "type": "google-tag-manager_analytics",
+    "slug": "gtm",
+    "type": "gtm_analytics",
     "isTemplate": false
   },
   {

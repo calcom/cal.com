@@ -19,7 +19,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Input } from "@calcom/ui";
 import { Button, Dialog, DialogContent, DialogFooter, Form, PhoneInput } from "@calcom/ui";
-import { FiMapPin } from "@calcom/ui/components/icon";
+import { MapPin } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -218,7 +218,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
       <DialogContent>
         <div className="flex flex-row space-x-3">
           <div className="bg-subtle mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
-            <FiMapPin className="text-emphasis h-6 w-6" />
+            <MapPin className="text-emphasis h-6 w-6" />
           </div>
           <div className="w-full">
             <div className="mt-3 text-center sm:mt-0 sm:text-left">

@@ -9,7 +9,7 @@ import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Button, Dialog, DialogClose, DialogContent, TextField } from "@calcom/ui";
-import { FiCheck, FiEdit2 } from "@calcom/ui/components/icon";
+import { Check, Edit2 } from "@calcom/ui/components/icon";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
@@ -79,7 +79,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
 
   const ActionButtons = () => {
     return usernameIsAvailable && currentUsername !== inputUsernameValue ? (
-      <div className="rlt:space-x-reverse ms-2 me-2 mt-px flex flex-row space-x-2 rtl:space-x-reverse">
+      <div className="ms-2 me-2 mt-px flex flex-row space-x-2">
         <Button
           type="button"
           onClick={() => setOpenDialogSaveUsername(true)}
@@ -123,7 +123,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             autoCapitalize="none"
             autoCorrect="none"
             className={classNames(
-              "mb-0 mt-0 rounded-md ltr:rounded-l-none rtl:rounded-r-none",
+              "mb-0 mt-0 rounded-md rounded-l-none",
               markAsError
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
                 : ""
@@ -137,7 +137,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           {currentUsername !== inputUsernameValue && (
             <div className="absolute right-[2px] top-6 flex flex-row">
               <span className={classNames("mx-2 py-2")}>
-                {usernameIsAvailable ? <FiCheck className="w-6" /> : <></>}
+                {usernameIsAvailable ? <Check className="w-6" /> : <></>}
               </span>
             </div>
           )}
@@ -154,7 +154,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
         </div>
       )}
       <Dialog open={openDialogSaveUsername}>
-        <DialogContent type="confirmation" Icon={FiEdit2} title={t("confirm_username_change_dialog_title")}>
+        <DialogContent type="confirmation" Icon={Edit2} title={t("confirm_username_change_dialog_title")}>
           <div className="flex flex-row">
             <div className="mb-4 w-full pt-1">
               <div className="bg-subtle flex w-full flex-wrap rounded-sm py-3 text-sm">
