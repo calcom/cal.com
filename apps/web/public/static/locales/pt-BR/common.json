@@ -1591,7 +1591,7 @@
   "book_your_team_members": "Reúna os membros da sua equipe com eventos coletivos, ou selecione a pessoa certa com o round-robin.",
   "event_no_longer_attending_subject": "Não está mais participando de {{title}} à(s) {{date}}",
   "no_longer_attending": "Você não está mais participando deste evento",
-  "attendee_no_longer_attending_subject": "Um partipante não está mais participando de {{title}} em {{date}}",
+  "attendee_no_longer_attending_subject": "Um partipante não está mais participando de {{title}} à(s) {{date}}",
   "attendee_no_longer_attending": "Um partipante não está mais participando do seu evento",
   "attendee_no_longer_attending_subtitle": "{{name}} cancelou. Quer dizer que um assento foi liberado para este espaço de tempo",
   "create_event_on": "Criar evento em",
