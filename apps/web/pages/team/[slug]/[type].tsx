@@ -24,6 +24,8 @@ export default function TeamType(props: AvailabilityTeamPageProps) {
   return <AvailabilityPage {...props} />;
 }
 
+TeamType.isBookingPage = true;
+
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const slugParam = asStringOrNull(context.query.slug);
   const typeParam = asStringOrNull(context.query.type);
