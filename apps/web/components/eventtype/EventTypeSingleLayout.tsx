@@ -51,7 +51,7 @@ import {
 } from "@calcom/ui/components/icon";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
-import type { AvailabilityOption } from "@components/eventtype/AvailabilityTab";
+import type { AvailabilityOption } from "@components/eventtype/EventAvailabilityTab";
 
 type Props = {
   children: React.ReactNode;

@@ -30,10 +30,10 @@ import { asStringOrThrow } from "@lib/asStringOrNull";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
-import type { AvailabilityOption } from "@components/eventtype/AvailabilityTab";
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
 import { EventAdvancedTab } from "@components/eventtype/EventAdvancedTab";
 import { EventAppsTab } from "@components/eventtype/EventAppsTab";
+import type { AvailabilityOption } from "@components/eventtype/EventAvailabilityTab";
 import { EventAvailabilityTab } from "@components/eventtype/EventAvailabilityTab";
 import { EventLimitsTab } from "@components/eventtype/EventLimitsTab";
 import { EventRecurringTab } from "@components/eventtype/EventRecurringTab";
