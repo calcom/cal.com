@@ -29,7 +29,8 @@ export default function BookingPageTagManager({
             return val;
           }
 
-          const regex = /\{([A-Z_]+)\}/g;
+          // Only support UpperCase,_and numbers in template variables. This prevents accidental replacement of other strings.
+          const regex = /\{([A-Z_\d]+)\}/g;
           let matches;
           while ((matches = regex.exec(val))) {
             const variableName = matches[1];
