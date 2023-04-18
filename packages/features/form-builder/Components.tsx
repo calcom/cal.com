@@ -249,7 +249,7 @@ export const Components: Record<BookingFieldType, Component> = {
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
-                <span className="dark:text-inverted ms-2 me-2 text-sm">{option.label ?? ""}</span>
+                <span className="text-emphasis ms-2 me-2 text-sm">{option.label ?? ""}</span>
               </label>
             );
           })}
@@ -259,7 +259,7 @@ export const Components: Record<BookingFieldType, Component> = {
   },
   radio: {
     propsType: "select",
-    factory: ({ setValue, value, options }) => {
+    factory: ({ setValue, name, value, options }) => {
       return (
         <Group
           value={value}
@@ -272,7 +272,7 @@ export const Components: Record<BookingFieldType, Component> = {
                 label={option.label}
                 key={`option.${i}.radio`}
                 value={option.label}
-                id={`option.${i}.radio`}
+                id={`${name}.option.${i}.radio`}
               />
             ))}
           </>
@@ -378,7 +378,7 @@ export const Components: Record<BookingFieldType, Component> = {
             checked={value}
             disabled={readOnly}
           />
-          <Label className="text-default dark:text-inverted -mt-px block text-sm font-medium">{label}</Label>
+          <Label className="text-emphasis -mt-px block text-sm font-medium">{label}</Label>
         </div>
       );
     },

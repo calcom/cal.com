@@ -252,8 +252,6 @@ export default function RoutingForms({
   );
 }
 
-RoutingForms.isThemeSupported = true;
-
 RoutingForms.getLayout = (page: React.ReactElement) => {
   return <Shell withoutMain={true}>{page}</Shell>;
 };

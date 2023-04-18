@@ -27,7 +27,8 @@ const I18nextAdapter = appWithTranslation<NextJsAppProps<SSRConfig> & { children
 export type AppProps = Omit<NextAppProps<WithNonceProps & Record<string, unknown>>, "Component"> & {
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
-    isThemeSupported?: boolean | ((arg: { router: NextRouter }) => boolean);
+    isThemeSupported?: boolean;
+    isBookingPage?: boolean | ((arg: { router: NextRouter }) => boolean);
     getLayout?: (page: React.ReactElement, router: NextRouter) => ReactNode;
   };
 
@@ -61,45 +62,66 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
   return <I18nextAdapter {...passedProps} />;
 };
 
+const enum ThemeSupport {
+  // e.g. Login Page
+  None = "none",
+  // Entire App except Booking Pages
+  App = "systemOnly",
+  // Booking Pages(including Routing Forms)
+  Booking = "userConfigured",
+}
+
 const CalcomThemeProvider = (
   props: PropsWithChildren<
-    WithNonceProps & { isThemeSupported?: boolean | ((arg: { router: NextRouter }) => boolean) }
+    WithNonceProps & {
+      isBookingPage?: boolean | ((arg: { router: NextRouter }) => boolean);
+      isThemeSupported?: boolean;
+    }
   >
 ) => {
   // We now support the inverse of how we handled it in the past. Setting this to false will disable theme.
   // undefined or true means we use system theme
   const router = useRouter();
-  const isThemeSupported = (() => {
-    if (typeof props.isThemeSupported === "function") {
-      return props.isThemeSupported({ router: router });
+  const isBookingPage = (() => {
+    if (typeof props.isBookingPage === "function") {
+      return props.isBookingPage({ router: router });
     }
-    if (typeof props.isThemeSupported === "undefined") {
-      return true;
-    }
-    return props.isThemeSupported;
+
+    return props.isBookingPage;
   })();
 
-  const forcedTheme = !isThemeSupported ? "light" : undefined;
+  const themeSupport = isBookingPage
+    ? ThemeSupport.Booking
+    : // if isThemeSupported is explicitly false, we don't use theme there
+    props.isThemeSupported === false
+    ? ThemeSupport.None
+    : ThemeSupport.App;
+
+  const forcedTheme = themeSupport === ThemeSupport.None ? "light" : undefined;
   // Use namespace of embed to ensure same namespaced embed are displayed with same theme. This allows different embeds on the same website to be themed differently
   // One such example is our Embeds Demo and Testing page at http://localhost:3100
   // Having `getEmbedNamespace` defined on window before react initializes the app, ensures that embedNamespace is available on the first mount and can be used as part of storageKey
   const embedNamespace = typeof window !== "undefined" ? window.getEmbedNamespace() : null;
   const isEmbedMode = typeof embedNamespace === "string";
-  // If embedNamespace is not defined, we use the default storageKey -> The default storage key changs based on if we force light mode or not
-  // This is done to ensure that the default theme is light when we force light mode and as soon as you navigate to a page that is dark we dont need a hard refresh to change
+
   const storageKey = isEmbedMode
     ? `embed-theme-${embedNamespace}`
-    : !isThemeSupported
-    ? "cal-light"
-    : "theme";
+    : themeSupport === ThemeSupport.App
+    ? "app-theme"
+    : themeSupport === ThemeSupport.Booking
+    ? "booking-theme"
+    : undefined;
 
   return (
     <ThemeProvider
       nonce={props.nonce}
       enableColorScheme={false}
-      enableSystem={isThemeSupported}
+      enableSystem={themeSupport !== ThemeSupport.None}
       forcedTheme={forcedTheme}
       storageKey={storageKey}
+      // next-themes doesn't listen to changes on storageKey. So we need to force a re-render when storageKey changes
+      // This is how login to dashboard soft navigation changes theme from light to dark
+      key={storageKey}
       attribute="class">
       {/* Embed Mode can be detected reliably only on client side here as there can be static generated pages as well which can't determine if it's embed mode at backend */}
       {/* color-scheme makes background:transparent not work in iframe which is required by embed. */}
@@ -134,7 +156,8 @@ const AppProviders = (props: AppPropsWithChildren) => {
           <TooltipProvider>
             <CalcomThemeProvider
               nonce={props.pageProps.nonce}
-              isThemeSupported={props.Component.isThemeSupported}>
+              isThemeSupported={props.Component.isThemeSupported}
+              isBookingPage={props.Component.isBookingPage}>
               <FeatureFlagsProvider>
                 <MetaProvider>{props.children}</MetaProvider>
               </FeatureFlagsProvider>
