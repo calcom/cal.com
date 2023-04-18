@@ -28,6 +28,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       <TextField
         name="Plausible URL"
         defaultValue="https://plausible.io/js/script.js"
+        placeholder="https://plausible.io/js/script.js"
         value={plausibleUrl}
         onChange={(e) => {
           setAppData("PLAUSIBLE_URL", e.target.value);
@@ -35,6 +36,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       />
       <TextField
         name="Tracked Domain"
+        placeholder="yourdomain.com"
         value={trackingId}
         onChange={(e) => {
           setAppData("trackingId", e.target.value);
