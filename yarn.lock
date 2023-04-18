@@ -4528,6 +4528,7 @@ __metadata:
   dependencies:
     "@calcom/lib": "*"
     "@prisma/client": ^4.11.0
+    "@prisma/extension-accelerate": ^0.1.1
     npm-run-all: ^4.1.5
     prisma: ^4.11.0
     ts-node: ^10.9.1
@@ -8446,6 +8447,15 @@ __metadata:
   version: 4.11.0
   resolution: "@prisma/engines@npm:4.11.0"
   checksum: 98030cead39e5009b7a91fd2463433ccdb16cbeb6c7345ed7950c25dbe0731a425fc888458a1423b594d659972e081ca3d63d301ef647f05a634209c75769db2
+  languageName: node
+  linkType: hard
+
+"@prisma/extension-accelerate@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "@prisma/extension-accelerate@npm:0.1.1"
+  peerDependencies:
+    "@prisma/client": ">=4.10.0"
+  checksum: 2d1952f6dbcff0861b973f533e13ae98b742255a5988364dd0e8495443c022808df902daa6b6210a55824059731b22ef34486a17e90ad55cf186162224899f2f
   languageName: node
   linkType: hard
 

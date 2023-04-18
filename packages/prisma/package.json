@@ -25,6 +25,7 @@
   "dependencies": {
     "@calcom/lib": "*",
     "@prisma/client": "^4.11.0",
+    "@prisma/extension-accelerate": "^0.1.1",
     "prisma": "^4.11.0",
     "ts-node": "^10.9.1",
     "zod": "^3.20.2",
