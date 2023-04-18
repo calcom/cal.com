@@ -91,7 +91,6 @@ const querySchema = z.object({
   isSuccessBookingPage: stringToBoolean,
   formerTime: z.string().optional(),
   seatReferenceUid: z.string().optional(),
-  tz: z.string().optional(),
 });
 
 export default function Success(props: SuccessProps) {
@@ -105,10 +104,12 @@ export default function Success(props: SuccessProps) {
     formerTime,
     email,
     seatReferenceUid,
-    tz: timeZoneQuery,
   } = querySchema.parse(router.query);
 
-  const tz = timeZoneQuery ? timeZoneQuery : props.tz ? props.tz : timeZone();
+  const attendeeTimeZone = props?.bookingInfo?.attendees.find(
+    (attendee) => attendee.email === email
+  )?.timeZone;
+  const tz = isSuccessBookingPage && attendeeTimeZone ? attendeeTimeZone : props.tz ? props.tz : timeZone();
 
   const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
 
