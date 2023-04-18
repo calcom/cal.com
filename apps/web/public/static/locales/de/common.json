@@ -157,6 +157,7 @@
   "multiline_text": "Mehrzeiliger Text",
   "number": "Nummer",
   "checkbox": "Checkbox",
+  "hidden": "Unsichtbar",
   "is_required": "Erforderlich",
   "required": "Erforderlich",
   "optional": "Optional",

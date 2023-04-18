@@ -1,6 +1,6 @@
 name: Lint
 on:
-  pull_request_target:
+  pull_request:
     branches:
       - main
     paths:
@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   lint:
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo

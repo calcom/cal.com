@@ -24,7 +24,7 @@ import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/l
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
-import dayjs, { ConfigType } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
@@ -41,7 +41,7 @@ import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
-import { checkBookingLimits, getLuckyUser } from "@calcom/lib/server";
+import { checkBookingLimits } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
@@ -53,7 +53,6 @@ import {
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import { WorkingHours } from "@calcom/types/schedule";
 
 import sendPayload, { EventTypeInfo } from "../../webhooks/lib/sendPayload";
 
@@ -91,56 +90,40 @@ async function refreshCredentials(credentials: Array<Credential>): Promise<Array
   return await async.mapLimit(credentials, 5, refreshCredential);
 }
 
-const isWithinAvailableHours = (
-  timeSlot: { start: ConfigType; end: ConfigType },
-  {
-    workingHours,
-  }: {
-    workingHours: WorkingHours[];
-  }
-) => {
-  const timeSlotStart = dayjs(timeSlot.start).utc();
-  const timeSlotEnd = dayjs(timeSlot.end).utc();
-  for (const workingHour of workingHours) {
-    // TODO: Double check & possibly fix timezone conversions.
-    const startTime = timeSlotStart.startOf("day").add(workingHour.startTime, "minute");
-    const endTime = timeSlotEnd.startOf("day").add(workingHour.endTime, "minute");
-    if (
-      workingHour.days.includes(timeSlotStart.day()) &&
-      // UTC mode, should be performant.
-      timeSlotStart.isBetween(startTime, endTime, null, "[)") &&
-      timeSlotEnd.isBetween(startTime, endTime, null, "(]")
-    ) {
-      return true;
-    }
-  }
-  return false;
-};
+function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, length: number): boolean {
+  // Check for conflicts
+  let t = true;
 
-// if true, there are conflicts.
-function checkForConflicts(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, length: number) {
   // Early return
-  if (!Array.isArray(busyTimes) || busyTimes.length < 1) {
-    return false; // guaranteed no conflicts when there is no busy times.
-  }
+  if (!Array.isArray(busyTimes) || busyTimes.length < 1) return t;
 
-  for (const busyTime of busyTimes) {
+  let i = 0;
+  while (t === true && i < busyTimes.length) {
+    const busyTime = busyTimes[i];
+    i++;
     const startTime = dayjs(busyTime.start);
     const endTime = dayjs(busyTime.end);
+
     // Check if time is between start and end times
     if (dayjs(time).isBetween(startTime, endTime, null, "[)")) {
-      return true;
+      t = false;
+      break;
     }
+
     // Check if slot end time is between start and end time
     if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
-      return true;
+      t = false;
+      break;
     }
+
     // Check if startTime is between slot
     if (startTime.isBetween(dayjs(time), dayjs(time).add(length, "minutes"))) {
-      return true;
+      t = false;
+      break;
     }
   }
-  return false;
+
+  return t;
 }
 
 const getEventTypesFromDB = async (eventTypeId: number) => {
@@ -196,12 +179,6 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
           timeZone: true,
         },
       },
-      hosts: {
-        select: {
-          isFixed: true,
-          user: userSelect,
-        },
-      },
       availability: {
         select: {
           date: true,
@@ -222,11 +199,9 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
   };
 };
 
-type IsFixedAwareUser = User & { isFixed: boolean };
-
 async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
-    users: IsFixedAwareUser[];
+    users: User[];
   },
   input: { dateFrom: string; dateTo: string },
   recurringDatesInfo?: {
@@ -234,10 +209,10 @@ async function ensureAvailableUsers(
     currentRecurringIndex: number | undefined;
   }
 ) {
-  const availableUsers: IsFixedAwareUser[] = [];
+  const availableUsers: typeof eventType.users = [];
   /** Let's start checking for availability */
   for (const user of eventType.users) {
-    const { busy: bufferedBusyTimes, workingHours } = await getUserAvailability(
+    const { busy: bufferedBusyTimes } = await getUserAvailability(
       {
         userId: user.id,
         eventTypeId: eventType.id,
@@ -246,22 +221,7 @@ async function ensureAvailableUsers(
       { user, eventType }
     );
 
-    // check if time slot is outside of schedule.
-    if (
-      !isWithinAvailableHours(
-        { start: input.dateFrom, end: input.dateTo },
-        {
-          workingHours,
-        }
-      )
-    ) {
-      // user does not have availability at this time, skip user.
-      continue;
-    }
-
-    console.log("calendarBusyTimes==>>>", bufferedBusyTimes);
-
-    let foundConflict = false;
+    let isAvailableToBeBooked = true;
     try {
       if (
         eventType.recurringEvent &&
@@ -273,19 +233,23 @@ async function ensureAvailableUsers(
         // DONE: Decreased computational complexity from O(2^n) to O(n) by refactoring this loop to stop
         // running at the first unavailable time.
         let i = 0;
-        while (!foundConflict && i < allBookingDates.length) {
-          foundConflict = checkForConflicts(bufferedBusyTimes, allBookingDates[i++], eventType.length);
+        while (isAvailableToBeBooked === true && i < allBookingDates.length) {
+          const aDate = allBookingDates[i];
+          i++;
+          isAvailableToBeBooked = isAvailable(bufferedBusyTimes, aDate, eventType.length);
+          // We bail at the first false, we don't need to keep checking
+          if (!isAvailableToBeBooked) break;
         }
       } else {
-        foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, eventType.length);
+        isAvailableToBeBooked = isAvailable(bufferedBusyTimes, input.dateFrom, eventType.length);
       }
     } catch {
       log.debug({
         message: "Unable set isAvailableToBeBooked. Using true. ",
       });
     }
-    // no conflicts found, add to available users.
-    if (!foundConflict) {
+
+    if (isAvailableToBeBooked) {
       availableUsers.push(user);
     }
   }
@@ -358,8 +322,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     throw new HttpError({ statusCode: 400, message: error.message });
   }
 
-  const loadUsers = async () =>
-    !eventTypeId
+  let users =
+    dynamicUserList.length > 0
       ? await prisma.user.findMany({
           where: {
             username: {
@@ -368,15 +332,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           },
           ...userSelect,
         })
-      : !!eventType.hosts?.length
-      ? eventType.hosts.map(({ user, isFixed }) => ({
-          ...user,
-          isFixed,
-        }))
       : eventType.users;
-  // loadUsers allows type inferring
-  let users: (Awaited<ReturnType<typeof loadUsers>>[number] & { isFixed?: boolean })[] = await loadUsers();
-
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
     throw new HttpError({
@@ -400,14 +356,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
-  users = users.map((user) => ({
-    ...user,
-    isFixed:
-      user.isFixed === false
-        ? false
-        : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
-  }));
-
   if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
     const startAsDate = dayjs(reqBody.start).toDate();
     await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
@@ -417,7 +365,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     const availableUsers = await ensureAvailableUsers(
       {
         ...eventType,
-        users: users as IsFixedAwareUser[],
+        users,
         ...(eventType.recurringEvent && {
           recurringEvent: {
             ...eventType.recurringEvent,
@@ -435,31 +383,19 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       }
     );
 
-    const luckyUsers: typeof users = [];
-    const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
-    // loop through all non-fixed hosts and get the lucky users
-    while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
-      const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
-        // find a lucky user that is not already in the luckyUsers array
-        availableUsers: luckyUserPool.filter(
-          (user) => !luckyUsers.find((existing) => existing.id === user.id)
-        ),
-        eventTypeId: eventType.id,
-      });
-      if (!newLuckyUser) {
-        break; // prevent infinite loop
+    // Add an if conditional if there are no seats on the event type
+    // Assign to only one user when ROUND_ROBIN
+    if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+      // users = [await getLuckyUser("MAXIMIZE_AVAILABILITY", { availableUsers, eventTypeId: eventType.id })];
+      users = availableUsers.length > 0 ? availableUsers : eventType.users;
+    } else {
+      // excluding ROUND_ROBIN, all users have availability required.
+      if (availableUsers.length !== users.length) {
+        throw new Error("Some users are unavailable for booking.");
       }
-      luckyUsers.push(newLuckyUser);
+      users = availableUsers;
     }
-    // ALL fixed users must be available
-    if (
-      availableUsers.filter((user) => user.isFixed).length !== users.filter((user) => user.isFixed).length
-    ) {
-      throw new Error("Some users are unavailable for booking.");
-    }
-    users = [...luckyUsers, ...availableUsers.filter((user) => user.isFixed)];
   }
-
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
 
   // @TODO: use the returned address somewhere in booking creation?
@@ -488,11 +424,10 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   const bookingLocation = getLocationValueForDB(reqBody.location, eventType.locations);
-
   const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
 
   const teamMemberPromises =
-    users.length > 1
+    eventType.schedulingType === SchedulingType.COLLECTIVE
       ? users.slice(1).map(async function (user) {
           return {
             email: user.email || "",
@@ -557,9 +492,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (reqBody.bookingUid) {
-    if (!eventType.seatsPerTimeSlot) {
+    if (!eventType.seatsPerTimeSlot)
       throw new HttpError({ statusCode: 404, message: "Event type does not have seats" });
-    }
 
     const booking = await prisma.booking.findUnique({
       where: {
@@ -575,9 +509,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         user: true,
       },
     });
-    if (!booking) {
-      throw new HttpError({ statusCode: 404, message: "Booking not found" });
-    }
+    if (!booking) throw new HttpError({ statusCode: 404, message: "Booking not found" });
 
     // Need to add translation for attendees to pass type checks. Since these values are never written to the db we can just use the new attendee language
     const bookingAttendees = booking.attendees.map((attendee) => {
@@ -586,13 +518,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
     evt = { ...evt, attendees: [...bookingAttendees, invitee[0]] };
 
-    if (eventType.seatsPerTimeSlot <= booking.attendees.length) {
+    if (eventType.seatsPerTimeSlot <= booking.attendees.length)
       throw new HttpError({ statusCode: 409, message: "Booking seats are full" });
-    }
 
-    if (booking.attendees.find((attendee) => attendee.email === invitee[0].email)) {
+    if (booking.attendees.some((attendee) => attendee.email === invitee[0].email))
       throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
-    }
 
     const videoCallReference = booking.references.find((reference) => reference.type.includes("_video"));
 
@@ -717,8 +647,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   async function createBooking() {
     if (originalRescheduledBooking) {
-      evt.title = originalRescheduledBooking?.title || evt.title;
-      evt.description = originalRescheduledBooking?.description || evt.additionalNotes;
+      evt.title = evt.title;
+      evt.description = evt.additionalNotes;
       evt.location = originalRescheduledBooking?.location;
     }
 
@@ -924,6 +854,16 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           metadata.hangoutLink = updatedEvent.hangoutLink;
           metadata.conferenceData = updatedEvent.conferenceData;
           metadata.entryPoints = updatedEvent.entryPoints;
+        }
+        // A reschedule can create a new event if rescheduled with a different user
+        const createdEvent = results[0].createdEvent;
+        if (createdEvent) {
+          metadata.hangoutLink = createdEvent.hangoutLink;
+          metadata.conferenceData = createdEvent.conferenceData;
+          metadata.entryPoints = createdEvent.entryPoints;
+        }
+
+        if (createdEvent || updatedEvent) {
           handleAppsStatus(results, booking);
           videoCallUrl = metadata.hangoutLink || videoCallUrl;
         }
@@ -1072,10 +1012,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     try {
       // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
       const subscribers = await getWebhooks(subscriberOptions);
-      console.log("evt:", {
-        ...evt,
-        metadata: reqBody.metadata,
-      });
       const bookingId = booking?.id;
 
       const eventTypeInfo: EventTypeInfo = {

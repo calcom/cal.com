@@ -7,6 +7,7 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { Attendee } from "@calcom/prisma/client";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
@@ -25,12 +26,14 @@ import type {
   PartialReference,
 } from "@calcom/types/EventManager";
 
-import { createEvent, updateEvent } from "./CalendarManager";
+import { createEvent, updateEvent, deleteEvent } from "./CalendarManager";
 import { createMeeting, updateMeeting } from "./videoClient";
 
 export const isDedicatedIntegration = (location: string): boolean => {
   return location !== MeetLocationType && location.includes("integrations:");
 };
+
+const log = logger.getChildLogger({ prefix: ["[EventManager]"] });
 
 export const getLocationRequestFromIntegration = (location: string) => {
   const eventLocationType = getEventLocationTypeFromApp(location);
@@ -101,13 +104,6 @@ export default class EventManager {
    */
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
-    // Fallback to cal video if no location is set
-    if (!evt.location) evt["location"] = "integrations:daily";
-
-    // Fallback to Cal Video if Google Meet is selected w/o a Google Cal
-    if (evt.location === MeetLocationType && evt.destinationCalendar?.integration !== "google_calendar") {
-      evt["location"] = "integrations:daily";
-    }
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
     const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
@@ -116,7 +112,7 @@ export default class EventManager {
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
 
-      if (result?.createdEvent) {
+      if (result.createdEvent) {
         evt.videoCallData = result.createdEvent;
         evt.location = result.originalEvent.location;
         result.type = result.createdEvent.type;
@@ -249,7 +245,7 @@ export default class EventManager {
     });
 
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
-    const results: Array<EventResult<Event>> = [];
+    const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
     // If and only if event type is a dedicated meeting, update the dedicated video meeting.
     if (isDedicated) {
       const result = await this.updateVideoEvent(evt, booking);
@@ -302,9 +298,30 @@ export default class EventManager {
     // Wait for all deletions to be applied.
     await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
 
+    // Very similar to what is done in create(). But a reschedule might update an event or create a new one.
+    const referencesToCreate = results.map((result) => {
+      let eventObj: createdEventSchema | null = null;
+      const createdOrUpdatedEvent =
+        result.createdEvent ??
+        (Array.isArray(result.updatedEvent) ? result.updatedEvent[0] : result.updatedEvent);
+      if (typeof createdOrUpdatedEvent === "string") {
+        eventObj = createdEventSchema.parse(JSON.parse(createdOrUpdatedEvent));
+      }
+
+      return {
+        type: result.type,
+        uid: eventObj ? eventObj.id : createdOrUpdatedEvent?.id?.toString() ?? "",
+        meetingId: eventObj ? eventObj.id : createdOrUpdatedEvent?.id?.toString(),
+        meetingPassword: eventObj ? eventObj.password : createdOrUpdatedEvent?.password,
+        meetingUrl: eventObj ? eventObj.onlineMeetingUrl : createdOrUpdatedEvent?.url,
+        externalCalendarId: evt.destinationCalendar?.externalId,
+        credentialId: evt.destinationCalendar?.credentialId,
+      };
+    });
+
     return {
       results,
-      referencesToCreate: [...booking.references],
+      referencesToCreate,
     };
   }
 
@@ -461,7 +478,36 @@ export default class EventManager {
         credential = this.calendarCredentials.filter(
           (credential) => credential.id === calendarReference?.credentialId
         )[0];
-        result.push(updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId));
+
+        if (credential) {
+          // This means the user has not changed. Update the calendar event!
+          result.push(updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId));
+        } else {
+          // This means the user has changed. Delete the old calendar event and create a new one!
+          credential = await prisma.credential.findUnique({
+            where: {
+              id: calendarReference.credentialId,
+            },
+          });
+          if (credential) {
+            try {
+              await deleteEvent(credential, bookingRefUid, event, bookingExternalCalendarId);
+            } catch {
+              log.warn("Could not delete event", { credential, bookingRefUid, bookingExternalCalendarId });
+            }
+          }
+          // Assign the new user credential to `credential`
+          credential = this.calendarCredentials.find((c) => c.type.endsWith("_calendar"));
+          if (credential) {
+            // createEvent expects a CredentialWithAppName
+            credential = getApps([credential])
+              .flatMap((app) => app.credentials.map((creds) => ({ ...creds, appName: app.name })))
+              .find((cred) => cred.type.endsWith("_calendar"));
+            if (credential) {
+              result.push(createEvent(credential, event));
+            }
+          }
+        }
       } else {
         const credentials = this.calendarCredentials.filter(
           (credential) => credential.type === calendarReference?.type

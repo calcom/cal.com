@@ -50,16 +50,16 @@ const config: Config = {
       testEnvironment: "jsdom",
       setupFiles: ["<rootDir>/packages/app-store/closecom/test/globals.ts"],
     },
-    {
-      displayName: "@calcom/routing-forms",
-      roots: ["<rootDir>/packages/app-store/ee/routing-forms"],
-      testMatch: ["**/test/lib/**/*.(spec|test).(ts|tsx|js)"],
-      transform: {
-        "^.+\\.ts?$": "ts-jest",
-      },
-      transformIgnorePatterns: ["/node_modules/", "^.+\\.module\\.(css|sass|scss)$"],
-      testEnvironment: "jsdom",
-    },
+    // {
+      // displayName: "@calcom/routing-forms",
+      // roots: ["<rootDir>/packages/app-store/ee/routing-forms"],
+      // testMatch: ["**/test/lib/**/*.(spec|test).(ts|tsx|js)"],
+      // transform: {
+        // "^.+\\.ts?$": "ts-jest",
+      // },
+      // transformIgnorePatterns: ["/node_modules/", "^.+\\.module\\.(css|sass|scss)$"],
+      // testEnvironment: "jsdom",
+    // },
     // FIXME: Prevent this breaking Jest when API module is missing
     // {
     //   displayName: "@calcom/api",

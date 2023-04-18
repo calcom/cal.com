@@ -2,17 +2,18 @@ import { IdentityProvider } from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
 
 import { hashPassword } from "@calcom/lib/auth";
+import { SIGNUP_DISABLED } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
+  if (SIGNUP_DISABLED) {
+    res.status(422).json({ message: "Signup with username / password is disabled." });
     return;
   }
 
-  if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
-    res.status(403).json({ message: "Signup is disabled" });
+  if (req.method !== "POST") {
     return;
   }
 
