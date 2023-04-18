@@ -1101,13 +1101,11 @@
   "current_username": "Nåværende brukernavn",
   "example_1": "Eksempel 1",
   "example_2": "Eksempel 2",
-  "additional_input_label": "Etikett for tilleggs-input",
   "company_size": "Bedriftsstørrelse",
   "what_help_needed": "Hva trenger du hjelp med?",
   "variable_format": "Variabel format",
   "webhook_subscriber_url_reserved": "Webhook-abonnent-url er allerede definert",
   "custom_input_as_variable_info": "Ignorer alle spesialtegn i tilleggs-input-etiketten (bruk bare bokstaver og tall), bruk store bokstaver for alle bokstaver og erstatt mellomrom med understrek.",
-  "using_additional_inputs_as_variables": "Hvordan bruker jeg Tilleggsinput som variabler?",
   "download_desktop_app": "Last ned skrivebordsappen",
   "set_ping_link": "Sett Ping-lenke",
   "rate_limit_exceeded": "Sats-grensen er overskredet",
@@ -1312,7 +1310,6 @@
   "add_limit": "Legg til Grense",
   "team_name_required": "Team-navn er påkrevd",
   "show_attendees": "Del deltakerinformasjon mellom gjester",
-  "how_additional_inputs_as_variables": "Hvordan bruke Tilleggs-input som Variabler",
   "format": "Format",
   "uppercase_for_letters": "Bruk store bokstaver for alle bokstaver",
   "replace_whitespaces_underscores": "Erstatt mellomrom med understrek",
@@ -1327,7 +1324,6 @@
   "billing_help_title": "Trenger du noe annet?",
   "billing_help_description": "Hvis du trenger ytterligere hjelp med betaling, er supportteamet vårt her for å hjelpe.",
   "billing_help_cta": "Kontakt kundeservice",
-  "ignore_special_characters": "Ignorer spesialtegn i Tilleggsinput-etiketten. Bruk kun bokstaver og tall",
   "retry": "Prøv igjen",
   "fetching_calendars_error": "Det oppsto et problem med å hente kalenderne dine. Vennligst <1>prøv igjen</1> eller ta kontakt med kundeservice.",
   "calendar_connection_fail": "Kalender-tilkobling mislyktes",
@@ -1466,5 +1462,6 @@
   "sso_configuration": "Enkel Pålogging",
   "email_no_user_cta": "Opprett brukeren din",
   "change_default_conferencing_app": "Sett som standard",
-  "booking_confirmation_failed": "Booking-bekreftelse feilet"
+  "booking_confirmation_failed": "Booking-bekreftelse feilet",
+  "timezone_variable": "Tidssone"
 }
