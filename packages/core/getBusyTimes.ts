@@ -45,11 +45,13 @@ type EventBusyDetailsWithUser = EventBusyDetails & {
 // });
 // }
 
-export async function getUsersBusyTimes(params: {
+type BusyTimesByUserAndDay = Record<number, Record<string, BusyTimes[]>>;
+
+export async function getBusyTimesByUserAndDay(params: {
   users: { id: number; credentials: Credential[]; selectedCalendars: SelectedCalendar[] }[];
   startTime: string;
   endTime: string;
-}): Promise<BusyTimesWithUser[]> {
+}): Promise<BusyTimesByUserAndDay> {
   const { startTime, endTime, users } = params;
   const dbBusyTimes = await busyTimesFromDb({
     userIds: users.map((u) => u.id),
@@ -65,13 +67,36 @@ export async function getUsersBusyTimes(params: {
     })
   );
 
-  return dbBusyTimes.concat(calendarBusyTimes.flat()).map((busy) => ({
+  const allBusyTimes = dbBusyTimes.concat(calendarBusyTimes.flat()).map((busy) => ({
     ...busy,
-    start: dayjs(busy.start),
-    end: dayjs(busy.end),
-    title: busy.title,
-    userId: busy.userId,
+    start: dayjs(busy.start).utc(),
+    end: dayjs(busy.end).utc(),
   }));
+
+  // Convert the array of busy times into an efficient data structure that can be indexed by user and day
+  // Example: busyTimes[userId][date] => [busyTime1, busyTime2, ...]
+  return allBusyTimes.reduce((acc, busy) => {
+    if (!busy.userId) {
+      return acc;
+    }
+
+    if (!acc[busy.userId]) {
+      acc[busy.userId] = {};
+    }
+
+    // busy times can span multiple days, so we need to add a busy time for each day.
+    let current = busy.start;
+    while (current.isSameOrBefore(busy.end, "day")) {
+      const key = current.format("YYYY-MM-DD");
+      if (!acc[busy.userId][key]) {
+        acc[busy.userId][key] = [];
+      }
+      acc[busy.userId][key].push(busy);
+      current = current.add(1, "day");
+    }
+
+    return acc;
+  }, {} as BusyTimesByUserAndDay);
 }
 
 export async function getBufferedBusyTimes(params: {

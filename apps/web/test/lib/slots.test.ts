@@ -113,7 +113,7 @@ describe("Tests the compact slot logic", () => {
     const days = [6, 7];
     const minStartTime = dayjs("2022-02-01 10:00");
     const eventLength = 30;
-    const busyTimes = [{ startTime: dayjs("2022-02-01 11:00"), endTime: dayjs("2022-02-01 12:00") }];
+    const busyTimes = [{ start: dayjs("2022-02-01 11:00"), end: dayjs("2022-02-01 12:00") }];
     const result = getTimeSlotsCompact({
       slotDay,
       shiftStart,
@@ -129,8 +129,8 @@ describe("Tests the compact slot logic", () => {
   it.each([
     {
       busyTimes: [
-        { startTime: dayjs("2022-02-01 11:00"), endTime: dayjs("2022-02-01 12:00") },
-        { startTime: dayjs("2022-02-01 14:00"), endTime: dayjs("2022-02-01 15:00") },
+        { start: dayjs("2022-02-01 11:00"), end: dayjs("2022-02-01 12:00") },
+        { start: dayjs("2022-02-01 14:00"), end: dayjs("2022-02-01 15:00") },
       ],
       freeSlots: [
         dayjs("2022-02-01 10:00"),
@@ -147,9 +147,9 @@ describe("Tests the compact slot logic", () => {
     },
     {
       busyTimes: [
-        { startTime: dayjs("2022-02-01 10:00"), endTime: dayjs("2022-02-01 16:00") },
-        { startTime: dayjs("2022-02-01 11:00"), endTime: dayjs("2022-02-01 12:00") },
-        { startTime: dayjs("2022-02-01 14:00"), endTime: dayjs("2022-02-01 15:00") },
+        { start: dayjs("2022-02-01 10:00"), end: dayjs("2022-02-01 16:00") },
+        { start: dayjs("2022-02-01 11:00"), end: dayjs("2022-02-01 12:00") },
+        { start: dayjs("2022-02-01 14:00"), end: dayjs("2022-02-01 15:00") },
       ],
       freeSlots: [dayjs("2022-02-01 16:00"), dayjs("2022-02-01 16:30")],
     },
@@ -179,7 +179,7 @@ describe("Tests the compact slot logic", () => {
     const days = [0, 1, 2, 3, 4, 5, 6];
     const minStartTime = dayjs("2022-02-01 10:00");
     const eventLength = 30;
-    const busyTimes = [{ startTime: dayjs("2022-02-01 10:00"), endTime: dayjs("2022-02-01 17:00") }];
+    const busyTimes = [{ start: dayjs("2022-02-01 10:00"), end: dayjs("2022-02-01 17:00") }];
     const result = getTimeSlotsCompact({
       slotDay,
       shiftStart,
@@ -199,7 +199,7 @@ describe("Tests the compact slot logic", () => {
     const days = [1, 2, 3, 4, 5];
     const minStartTime = dayjs("2022-02-01 17:35");
     const eventLength = 60;
-    const busyTimes = [{ startTime: dayjs("2022-02-01 11:00"), endTime: dayjs("2022-02-01 12:00") }];
+    const busyTimes = [{ start: dayjs("2022-02-01 11:00"), end: dayjs("2022-02-01 12:00") }];
     const result = getTimeSlotsCompact({
       slotDay,
       shiftStart,
