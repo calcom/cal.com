@@ -84,14 +84,6 @@ const EventTypeUpdateInput = _EventTypeModel
       externalId: true,
     }),
     users: z.array(stringOrNumber).optional(),
-    hosts: z
-      .array(
-        z.object({
-          userId: z.number(),
-          isFixed: z.boolean().optional(),
-        })
-      )
-      .optional(),
     schedule: z.number().nullable().optional(),
     hashedLink: z.string(),
   })
