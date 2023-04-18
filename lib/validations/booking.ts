@@ -23,6 +23,8 @@ const schemaBookingEditParams = z
     title: z.string().optional(),
     startTime: iso8601.optional(),
     endTime: iso8601.optional(),
+    // Not supporting responses in edit as that might require re-triggering emails
+    // responses
   })
   .strict();
 
@@ -61,4 +63,5 @@ export const schemaBookingReadPublic = Booking.extend({
   user: true,
   metadata: true,
   status: true,
+  responses: true,
 });

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { _EventTypeModel as EventType, _HostModel } from "@calcom/prisma/zod";
-import { customInputSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
 import { Frequency } from "~/lib/types";
 
@@ -65,6 +65,7 @@ const schemaEventTypeCreateParams = z
     recurringEvent: recurringEventInputSchema.optional(),
     seatsPerTimeSlot: z.number().optional(),
     seatsShowAttendees: z.boolean().optional(),
+    bookingFields: eventTypeBookingFields,
   })
   .strict();
 
@@ -79,6 +80,7 @@ const schemaEventTypeEditParams = z
     length: z.number().int().optional(),
     seatsPerTimeSlot: z.number().optional(),
     seatsShowAttendees: z.boolean().optional(),
+    bookingFields: eventTypeBookingFields,
   })
   .strict();
 
@@ -116,6 +118,7 @@ export const schemaEventTypeReadPublic = EventType.pick({
   metadata: true,
   seatsPerTimeSlot: true,
   seatsShowAttendees: true,
+  bookingFields: true,
 }).merge(
   z.object({
     locations: z
