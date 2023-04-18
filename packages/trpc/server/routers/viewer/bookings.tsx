@@ -780,10 +780,11 @@ export const bookingsRouter = router({
       },
     });
 
-    const authorized = async () => {
+    if (booking.userId !== user.id && booking.eventTypeId) {
+      // Only query database when it is explicitly required.
       const eventType = await prisma.eventType.findFirst({
         where: {
-          id: booking.eventTypeId || undefined,
+          id: booking.eventTypeId,
           schedulingType: SchedulingType.COLLECTIVE,
         },
         select: {
@@ -791,15 +792,16 @@ export const bookingsRouter = router({
         },
       });
 
-      return eventType && eventType.users.find((user) => booking.userId === user.id);
-    };
-
-    if (booking.userId !== user.id && !(await authorized())) {
-      throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
+      if (eventType && !eventType.users.find((user) => booking.userId === user.id)) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
+      }
     }
 
-    const isConfirmed = booking.status === BookingStatus.ACCEPTED;
-    if (isConfirmed) throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
+    // Do not move this before authorization check.
+    // This is done to avoid exposing extra information to the requester.
+    if (booking.status === BookingStatus.ACCEPTED) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
+    }
 
     // If booking requires payment and is not paid, we don't allow confirmation
     if (confirmed && booking.payment.length > 0 && !booking.paid) {
@@ -815,14 +817,22 @@ export const bookingsRouter = router({
       return { message: "Booking confirmed", status: BookingStatus.ACCEPTED };
     }
 
+    // Cache translations to avoid requesting multiple times.
+    const translations = new Map();
     const attendeesListPromises = booking.attendees.map(async (attendee) => {
+      const locale = attendee.locale ?? "en";
+      let translate = translations.get(locale);
+      if (!translate) {
+        translate = await getTranslation(locale, "common");
+        translations.set(locale, translate);
+      }
       return {
         name: attendee.name,
         email: attendee.email,
         timeZone: attendee.timeZone,
         language: {
-          translate: await getTranslation(attendee.locale ?? "en", "common"),
-          locale: attendee.locale ?? "en",
+          translate,
+          locale,
         },
       };
     });
@@ -863,6 +873,9 @@ export const bookingsRouter = router({
           where: {
             recurringEventId,
             id: booking.id,
+          },
+          select: {
+            id: true,
           },
         }))
       ) {

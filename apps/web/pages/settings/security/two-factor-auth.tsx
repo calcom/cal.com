@@ -5,6 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge, Meta, Switch, SkeletonButton, SkeletonContainer, SkeletonText, Alert } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
 import DisableTwoFactorModal from "@components/settings/DisableTwoFactorModal";
 import EnableTwoFactorModal from "@components/settings/EnableTwoFactorModal";
 
@@ -84,5 +85,6 @@ const TwoFactorAuthView = () => {
 };
 
 TwoFactorAuthView.getLayout = getLayout;
+TwoFactorAuthView.PageWrapper = PageWrapper;
 
 export default TwoFactorAuthView;

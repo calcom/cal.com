@@ -20,6 +20,7 @@ import { ArrowRight } from "@calcom/ui/components/icon";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import PageWrapper from "@components/PageWrapper";
 import Team from "@components/team/screens/Team";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -204,5 +205,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 };
 
 TeamPage.isBookingPage = true;
+TeamPage.PageWrapper = PageWrapper;
 
 export default TeamPage;

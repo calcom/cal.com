@@ -22,6 +22,8 @@ import {
   UpgradeTeamsBadge,
 } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
+
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
@@ -230,5 +232,6 @@ const AppearanceView = () => {
 };
 
 AppearanceView.getLayout = getLayout;
+AppearanceView.PageWrapper = PageWrapper;
 
 export default AppearanceView;
