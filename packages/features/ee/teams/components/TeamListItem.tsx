@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
+import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSettingsModal";
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -26,16 +27,16 @@ import {
   Tooltip,
 } from "@calcom/ui";
 import {
-  MoreHorizontal,
   Check,
-  X,
-  Link as LinkIcon,
   Edit2,
   ExternalLink,
-  Trash,
-  LogOut,
   Globe,
+  Link as LinkIcon,
+  LogOut,
+  MoreHorizontal,
   Send,
+  Trash,
+  X,
 } from "@calcom/ui/components/icon";
 
 import { TeamRole } from "./TeamPill";
@@ -53,6 +54,7 @@ export default function TeamListItem(props: Props) {
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
   const team = props.team;
+  const [openInviteLinkSettingsModal, setOpenInviteLinkSettingsModal] = useState(false);
   const [openMemberInvitationModal, setOpenMemberInvitationModal] = useState(false);
   const teamQuery = trpc.viewer.teams.get.useQuery({ teamId: team?.id });
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
@@ -118,6 +120,8 @@ export default function TeamListItem(props: Props) {
     <li className="">
       <MemberInvitationModal
         isOpen={openMemberInvitationModal}
+        teamId={team.id}
+        code={team.invite?.code}
         onExit={() => {
           setOpenMemberInvitationModal(false);
         }}
@@ -130,8 +134,24 @@ export default function TeamListItem(props: Props) {
             sendEmailInvitation: values.sendInviteEmail,
           });
         }}
+        onSettingsOpen={() => {
+          setOpenMemberInvitationModal(false);
+          setOpenInviteLinkSettingsModal(true);
+        }}
         members={teamQuery?.data?.members || []}
       />
+      {team.invite && (
+        <InviteLinkSettingsModal
+          isOpen={openInviteLinkSettingsModal}
+          teamId={team.id}
+          code={team.invite.code}
+          expireInDays={team.invite.expireInDays || undefined}
+          onExit={() => {
+            setOpenInviteLinkSettingsModal(false);
+            setOpenMemberInvitationModal(true);
+          }}
+        />
+      )}
       <div className={classNames("flex items-center  justify-between", !isInvitee && "hover:bg-muted group")}>
         {!isInvitee ? (
           <Link

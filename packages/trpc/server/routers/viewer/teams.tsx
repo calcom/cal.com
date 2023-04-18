@@ -29,6 +29,7 @@ import { TRPCError } from "@trpc/server";
 import { authedProcedure, router } from "../../trpc";
 
 const isEmail = (str: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
+
 export const viewerTeamsRouter = router({
   // Retrieves team by id
   get: authedProcedure
@@ -59,7 +60,11 @@ export const viewerTeamsRouter = router({
         userId: ctx.user.id,
       },
       include: {
-        team: true,
+        team: {
+          include: {
+            invite: true,
+          },
+        },
       },
       orderBy: { role: "desc" },
     });
@@ -663,8 +668,7 @@ export const viewerTeamsRouter = router({
     /** We only need to return teams that don't have a `subscriptionId` on their metadata */
     teams = teams.filter((m) => {
       const metadata = teamMetadataSchema.safeParse(m.team.metadata);
-      if (metadata.success && metadata.data?.subscriptionId) return false;
-      return true;
+      return !(metadata.success && metadata.data?.subscriptionId);
     });
     return teams;
   }),
@@ -704,7 +708,7 @@ export const viewerTeamsRouter = router({
         },
       });
       type UserMap = Record<number, (typeof teams)[number]["members"][number]["user"]>;
-      // flattern users to be unique by id
+      // flatten users to be unique by id
       const users = teams
         .flatMap((t) => t.members)
         .reduce((acc, m) => (m.user.id in acc ? acc : { ...acc, [m.user.id]: m.user }), {} as UserMap);
@@ -735,4 +739,100 @@ export const viewerTeamsRouter = router({
       },
     });
   }),
+  createInvite: authedProcedure
+    .input(
+      z.object({
+        teamId: z.number(),
+      })
+    )
+    .output(z.string())
+    .mutation(async ({ ctx, input }) => {
+      const { teamId } = input;
+      const code = randomBytes(32).toString("hex");
+      await ctx.prisma.invite.create({
+        data: {
+          code,
+          teamId,
+        },
+      });
+      return code;
+    }),
+  setInviteExpiration: authedProcedure
+    .input(
+      z.object({
+        code: z.string(),
+        expireInDays: z.number().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { code, expireInDays } = input;
+
+      const oneDay = 24 * 60 * 60 * 1000;
+      const expiresAt = expireInDays ? new Date(Date.now() + expireInDays * oneDay) : null;
+
+      await ctx.prisma.invite.update({
+        where: { code: code },
+        data: {
+          expiresAt: expiresAt,
+          expireInDays: expireInDays,
+        },
+      });
+    }),
+  deactivateInvite: authedProcedure
+    .input(
+      z.object({
+        code: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { code } = input;
+      await ctx.prisma.invite.delete({ where: { code } });
+    }),
+  addMemberByLink: authedProcedure
+    .input(
+      z.object({
+        code: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { code } = input;
+
+      const invite = await ctx.prisma.invite.findFirst({
+        where: {
+          code,
+          OR: [{ expireInDays: null }, { expiresAt: { gte: new Date() } }],
+        },
+        include: {
+          team: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+      if (!invite) throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
+
+      try {
+        await ctx.prisma.membership.create({
+          data: {
+            teamId: invite.teamId,
+            userId: ctx.user.id,
+            role: MembershipRole.MEMBER,
+            accepted: false,
+          },
+        });
+      } catch (e) {
+        if (e instanceof Prisma.PrismaClientKnownRequestError) {
+          if (e.code === "P2002") {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "This user is a member of this team / has a pending invitation.",
+            });
+          }
+        } else throw e;
+      }
+
+      if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(invite.teamId);
+      return invite.team.name;
+    }),
 });

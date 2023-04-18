@@ -6,6 +6,7 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { WEBAPP_URL } from "../../../constants";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
+
 export async function getTeamWithMembers(id?: number, slug?: string, userId?: number) {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     username: true,
@@ -49,6 +50,13 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
         },
         metadata: true,
         ...baseEventTypeSelect,
+      },
+    },
+    invite: {
+      select: {
+        code: true,
+        expiresAt: true,
+        expireInDays: true,
       },
     },
   });

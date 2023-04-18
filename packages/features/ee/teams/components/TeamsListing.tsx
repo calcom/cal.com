@@ -1,11 +1,11 @@
-import { useState, useMemo } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useMemo, useState } from "react";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, ButtonGroup, Label } from "@calcom/ui";
-import { Users, RefreshCcw, UserPlus, Mail, Video, EyeOff } from "@calcom/ui/components/icon";
+import { Alert, Button, ButtonGroup, Label, showToast } from "@calcom/ui";
+import { EyeOff, Mail, RefreshCcw, UserPlus, Users, Video } from "@calcom/ui/components/icon";
 
 import { UpgradeTip } from "../../../tips";
 import SkeletonLoaderTeamList from "./SkeletonloaderTeamList";
@@ -13,11 +13,29 @@ import TeamList from "./TeamList";
 
 export function TeamsListing() {
   const { t } = useLocale();
+  const trpcContext = trpc.useContext();
+  const router = useRouter();
+
+  const [inviteCodeChecked, setInviteCodeChecked] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const { data, isLoading } = trpc.viewer.teams.list.useQuery(undefined, {
+    enabled: inviteCodeChecked,
     onError: (e) => {
       setErrorMessage(e.message);
+    },
+  });
+
+  const { mutate: addMemberByLink } = trpc.viewer.teams.addMemberByLink.useMutation({
+    onSuccess: (teamName) => {
+      trpcContext.viewer.teams.list.invalidate();
+      showToast(t("team_invite_received", { teamName }), "success");
+    },
+    onError: (e) => {
+      showToast(e.message, "error");
+    },
+    onSettled: () => {
+      setInviteCodeChecked(true);
     },
   });
 
@@ -57,7 +75,13 @@ export function TeamsListing() {
     },
   ];
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!router) return;
+    if (router.query.code) addMemberByLink({ code: router.query.code as string });
+    else setInviteCodeChecked(true);
+  }, [router, addMemberByLink, setInviteCodeChecked]);
+
+  if (isLoading || !inviteCodeChecked) {
     return <SkeletonLoaderTeamList />;
   }
 

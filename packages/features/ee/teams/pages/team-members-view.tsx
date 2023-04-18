@@ -10,6 +10,7 @@ import { Plus } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
+import InviteLinkSettingsModal from "../components/InviteLinkSettingsModal";
 import MemberInvitationModal from "../components/MemberInvitationModal";
 import MemberListItem from "../components/MemberListItem";
 import TeamInviteList from "../components/TeamInviteList";
@@ -20,6 +21,7 @@ const MembersView = () => {
   const session = useSession();
   const utils = trpc.useContext();
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
+  const [showInviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
   const teamId = Number(router.query.id);
 
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
@@ -118,6 +120,8 @@ const MembersView = () => {
             <MemberInvitationModal
               isOpen={showMemberInvitationModal}
               members={team.members}
+              teamId={team.id}
+              code={team.invite?.code}
               onExit={() => setShowMemberInvitationModal(false)}
               onSubmit={(values) => {
                 inviteMemberMutation.mutate({
@@ -127,6 +131,22 @@ const MembersView = () => {
                   usernameOrEmail: values.emailOrUsername,
                   sendEmailInvitation: values.sendInviteEmail,
                 });
+              }}
+              onSettingsOpen={() => {
+                setShowMemberInvitationModal(false);
+                setInviteLinkSettingsModal(true);
+              }}
+            />
+          )}
+          {showInviteLinkSettingsModal && team?.invite && (
+            <InviteLinkSettingsModal
+              isOpen={showInviteLinkSettingsModal}
+              teamId={team.id}
+              code={team.invite.code}
+              expireInDays={team.invite.expireInDays || undefined}
+              onExit={() => {
+                setInviteLinkSettingsModal(false);
+                setShowMemberInvitationModal(true);
               }}
             />
           )}
