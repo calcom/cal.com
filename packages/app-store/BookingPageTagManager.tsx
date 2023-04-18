@@ -17,22 +17,27 @@ export default function BookingPageTagManager({
         if (!tag) {
           return null;
         }
-        const plausibleUrl = getEventTypeAppData(
-          eventType,
-          appId as keyof typeof appDataSchemas
-        )?.plausibleUrl;
-        if (!plausibleUrl) {
+
+        const appData = getEventTypeAppData(eventType, appId as keyof typeof appDataSchemas);
+
+        // We assume that the first variable(which is trackingId) is a required field. Every analytics app would have atleast one variable
+        if (!appData?.variable1) {
           return null;
         }
-        const trackingId = getEventTypeAppData(eventType, appId as keyof typeof appDataSchemas)?.trackingId;
-        if (!trackingId) {
-          return null;
-        }
-        const parseValue = <T extends string | undefined>(val: T): T =>
-          //TODO: Support more template variables.
-          val
-            ? (val.replace(/\{TRACKING_ID\}/g, trackingId).replace(/\{PLAUSIBLE_URL\}/g, plausibleUrl) as T)
-            : val;
+
+        const parseValue = <T extends string | undefined>(val: T): T => {
+          if (!val) {
+            return val;
+          }
+
+          const regex = /\{([^}]+)\}/g;
+          let matches;
+          while ((matches = regex.exec(val))) {
+            const variableName = matches[1];
+            val = val.replace(new RegExp(`{${variableName}}`, "g"), appData[variableName]) as NonNullable<T>;
+          }
+          return val;
+        };
 
         return tag.scripts.map((script, index) => {
           const parsedAttributes: NonNullable<(typeof tag.scripts)[number]["attrs"]> = {};

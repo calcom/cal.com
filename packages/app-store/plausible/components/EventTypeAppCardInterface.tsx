@@ -9,7 +9,7 @@ import type { appDataSchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
-  const plausibleUrl = getAppData("plausibleUrl");
+  const plausibleUrl = getAppData("PLAUSIBLE_URL");
   const trackingId = getAppData("trackingId");
   const [enabled, setEnabled] = useState(getAppData("enabled"));
 
@@ -30,7 +30,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         defaultValue="plausible.io"
         value={plausibleUrl}
         onChange={(e) => {
-          setAppData("plausibleUrl", e.target.value);
+          setAppData("PLAUSIBLE_URL", e.target.value);
         }}
       />
       <TextField
