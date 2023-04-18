@@ -3,11 +3,11 @@ import { z } from "zod";
 
 import { privacyFilteredLocations, LocationObject } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
+import { getWorkingHours } from "@calcom/lib/availability";
 import { availiblityPageEventTypeSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-import { getWorkingHours } from "@lib/availability";
 import { GetBookingType } from "@lib/getBooking";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";

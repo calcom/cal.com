@@ -1239,7 +1239,6 @@
   "welcome_to_cal_header": "¡Bienvenido a {{appName}}!",
   "edit_form_later_subtitle": "Podrá editar esto más tarde.",
   "connect_calendar_later": "Conectaré mi calendario más tarde",
-  "set_my_availability_later": "Indicaré mi disponibilidad más tarde",
   "problem_saving_user_profile": "Se produjo un problema al guardar tus datos. Inténtalo de nuevo o ponte en contacto con el servicio de atención al cliente.",
   "purchase_missing_seats": "Adquirir las plazas que faltan",
   "slot_length": "Duración de la franja",

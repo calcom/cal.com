@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import toast from "react-hot-toast";
 
-import { FiCheck, FiInfo } from "@calcom/ui/components/icon";
+import { FiCheck, FiInfo } from "../icon";
 
 type IToast = {
   message: string;

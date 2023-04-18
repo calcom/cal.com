@@ -6,8 +6,10 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
-import { Button, showToast } from "@calcom/ui";
-import { FiPlus } from "@calcom/ui/components/icon";
+
+import { Button } from "../button";
+import { FiPlus } from "../icon";
+import { showToast } from "../toast";
 
 interface AppCardProps {
   app: App;

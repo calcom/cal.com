@@ -1239,7 +1239,6 @@
   "welcome_to_cal_header": "歡迎使用 {{appName}}！",
   "edit_form_later_subtitle": "您之後可再進行編輯。",
   "connect_calendar_later": "我之後再連接行事曆",
-  "set_my_availability_later": "我之後再設定可預定時間",
   "problem_saving_user_profile": "儲存您的資料時發生問題。請再試一次，或聯絡客服團隊。",
   "purchase_missing_seats": "訂購缺少的座位",
   "slot_length": "時段長度",

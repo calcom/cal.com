@@ -5,7 +5,8 @@ import { ComponentProps, forwardRef } from "react";
 
 import { classNames } from "@calcom/lib";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-import { ButtonColor } from "@calcom/ui";
+
+import { ButtonColor } from "../../button/Button";
 
 export const Dropdown = DropdownMenuPrimitive.Root;
 

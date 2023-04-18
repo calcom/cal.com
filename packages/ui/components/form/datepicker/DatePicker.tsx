@@ -3,7 +3,8 @@ import "react-date-picker/dist/DatePicker.css";
 import PrimitiveDatePicker from "react-date-picker/dist/entry.nostyle";
 
 import classNames from "@calcom/lib/classNames";
-import { FiCalendar } from "@calcom/ui/components/icon";
+
+import { FiCalendar } from "../../icon";
 
 type Props = {
   date: Date;

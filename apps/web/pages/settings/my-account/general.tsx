@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { nameOfDay } from "@calcom/lib/weekday";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -20,7 +21,6 @@ import {
 } from "@calcom/ui";
 
 import { withQuery } from "@lib/QueryCell";
-import { nameOfDay } from "@lib/core/i18n/weekday";
 
 import { ssrInit } from "@server/lib/ssr";
 

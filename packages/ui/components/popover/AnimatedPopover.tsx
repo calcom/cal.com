@@ -2,7 +2,8 @@ import * as Popover from "@radix-ui/react-popover";
 import React from "react";
 
 import { classNames } from "@calcom/lib";
-import { FiChevronDown } from "@calcom/ui/components/icon";
+
+import { FiChevronDown } from "../icon";
 
 export const AnimatedPopover = ({
   text,

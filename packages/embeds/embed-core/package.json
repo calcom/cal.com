@@ -46,8 +46,8 @@
     "eslint": "^8.22.0",
     "npm-run-all": "^4.1.5",
     "postcss": "^8.4.18",
-    "typescript": "^4.7.4",
-    "vite": "^2.9.15",
-    "tailwindcss": "^3.2.1"
+    "tailwindcss": "^3.2.1",
+    "typescript": "^4.9.4",
+    "vite": "^2.9.15"
   }
 }

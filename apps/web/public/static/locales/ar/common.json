@@ -1240,7 +1240,6 @@
   "welcome_to_cal_header": "مرحبًا بك في {{appName}}!",
   "edit_form_later_subtitle": "ستتمكن من تعديل هذا لاحقًا.",
   "connect_calendar_later": "سأقوم بربط التقويم لاحقًا",
-  "set_my_availability_later": "سأحدد متى أكون متاحًا لاحقًا",
   "problem_saving_user_profile": "حدثت مشكلة أثناء حفظ بياناتك. يرجى إعادة المحاولة أو التواصل مع دعم العملاء.",
   "purchase_missing_seats": "شراء المقاعد الخالية",
   "slot_length": "طول الفترة الزمنية",

@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 import { classNames } from "@calcom/lib";
-import { FiArrowDown, FiArrowUp, FiTrash } from "@calcom/ui/components/icon";
 
 import { Badge, BadgeProps } from "../..";
 import { Divider } from "../divider";
+import { FiArrowDown, FiArrowUp, FiTrash } from "../icon";
 
 type Action = { check: () => boolean; fn: () => void };
 export default function FormCard({

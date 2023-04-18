@@ -12,9 +12,9 @@ import {
 } from "react-select";
 
 import { classNames } from "@calcom/lib";
-import { FiCheck } from "@calcom/ui/components/icon";
 
 import { UpgradeTeamsBadge } from "../../badge";
+import { FiCheck } from "../../icon";
 
 export const InputComponent = <
   Option,

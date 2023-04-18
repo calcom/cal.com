@@ -4,9 +4,9 @@ import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn
 import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { FiEye, FiEyeOff, FiX } from "@calcom/ui/components/icon";
 
 import { Alert, showToast, Skeleton, Tooltip, UnstyledSelect } from "../../..";
+import { FiEye, FiEyeOff, FiX } from "../../icon";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
@@ -143,7 +143,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             {...passThrough}
             {...(type == "search" && {
               onChange: (e) => {
-                console.log(e.target.value);
                 setInputValue(e.target.value);
                 props.onChange && props.onChange(e);
               },

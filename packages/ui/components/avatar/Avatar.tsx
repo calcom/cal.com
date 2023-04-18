@@ -4,9 +4,10 @@ import Link from "next/link";
 
 import classNames from "@calcom/lib/classNames";
 import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
-import { FiCheck } from "@calcom/ui/components/icon";
 
 import { Maybe } from "@trpc/server";
+
+import { FiCheck } from "../icon";
 
 export type AvatarProps = {
   className?: string;

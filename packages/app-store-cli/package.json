@@ -25,11 +25,11 @@
     "react": "^18.2.0"
   },
   "devDependencies": {
-    "chokidar": "^3.5.3",
     "@types/react": "^18.0.17",
+    "chokidar": "^3.5.3",
     "eslint-plugin-react": "^7.30.1",
     "eslint-plugin-react-hooks": "^4.6.0",
     "ts-node": "^10.9.1",
-    "typescript": "^4.7.4"
+    "typescript": "^4.9.4"
   }
 }

@@ -1239,7 +1239,6 @@
   "welcome_to_cal_header": "Вітаємо в {{appName}}!",
   "edit_form_later_subtitle": "Це можна буде змінити пізніше.",
   "connect_calendar_later": "Я підключу календар пізніше",
-  "set_my_availability_later": "Я вкажу дані про доступність пізніше",
   "problem_saving_user_profile": "Під час збереження даних виникла проблема. Повторіть спробу або зверніться в службу підтримки.",
   "purchase_missing_seats": "Придбати відсутні місця",
   "slot_length": "Тривалість вікна",

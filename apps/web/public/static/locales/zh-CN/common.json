@@ -1240,7 +1240,6 @@
   "welcome_to_cal_header": "欢迎访问 {{appName}}！",
   "edit_form_later_subtitle": "您稍后可对此进行编辑。",
   "connect_calendar_later": "我将稍后连接我的日历",
-  "set_my_availability_later": "我将稍后设置我的可预约时间",
   "problem_saving_user_profile": "保存您的数据时出现问题。请重试或联系客户支持。",
   "purchase_missing_seats": "购买缺少的位置",
   "slot_length": "时间段长度",

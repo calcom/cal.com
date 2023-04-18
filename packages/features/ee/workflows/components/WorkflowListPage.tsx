@@ -94,12 +94,14 @@ export default function WorkflowListPage({ workflows }: Props) {
                         )}>
                         {workflow.name
                           ? workflow.name
-                          : "Untitled (" +
+                          : workflow.steps[0]
+                          ? "Untitled (" +
                             `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`
                               .charAt(0)
                               .toUpperCase() +
                             `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1) +
-                            ")"}
+                            ")"
+                          : "Untitled"}
                       </div>
                       <ul className="mt-2 flex flex-wrap space-x-1 sm:flex-nowrap ">
                         <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">

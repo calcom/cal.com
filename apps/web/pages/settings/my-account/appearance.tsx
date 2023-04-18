@@ -4,7 +4,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME } from "@calcom/lib/constants";
-import { useHasTeamPlan } from "@calcom/lib/hooks/useHasTeamPlan";
+import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -51,7 +51,7 @@ const AppearanceView = () => {
   const utils = trpc.useContext();
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
 
-  const { isLoading: isTeamPlanStatusLoading, hasTeamPlan } = useHasTeamPlan();
+  const { isLoading: isTeamPlanStatusLoading, hasPaidPlan } = useHasPaidPlan();
 
   const formMethods = useForm({
     defaultValues: {
@@ -191,11 +191,11 @@ const AppearanceView = () => {
               <div className="flex-none">
                 <Switch
                   id="hideBranding"
-                  disabled={!hasTeamPlan}
+                  disabled={!hasPaidPlan}
                   onCheckedChange={(checked) =>
                     formMethods.setValue("hideBranding", checked, { shouldDirty: true })
                   }
-                  checked={hasTeamPlan ? value : false}
+                  checked={hasPaidPlan ? value : false}
                 />
               </div>
             </div>

@@ -7,13 +7,14 @@ import jackson, {
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import { samlDatabaseUrl, samlAudience, samlPath } from "./saml";
+import { samlDatabaseUrl, samlAudience, samlPath, oidcPath } from "./saml";
 
 // Set the required options. Refer to https://github.com/boxyhq/jackson#configuration for the full list
 const opts: JacksonOption = {
   externalUrl: WEBAPP_URL,
   samlPath,
   samlAudience,
+  oidcPath,
   db: {
     engine: "sql",
     type: "postgres",

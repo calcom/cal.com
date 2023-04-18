@@ -1,7 +1,7 @@
 import classNames from "classnames";
 
 import { APP_NAME, LOGO } from "@calcom/lib/constants";
-import { Credits, HeadSeo } from "@calcom/ui";
+import { HeadSeo } from "@calcom/ui";
 
 import Loader from "@components/Loader";
 
@@ -35,10 +35,7 @@ export default function AuthContainer(props: React.PropsWithChildren<Props>) {
         <div className="mx-2 rounded-md border border-gray-200 bg-white px-4 py-10 sm:px-10">
           {props.children}
         </div>
-        <div className="mt-8 text-center text-sm text-gray-600">
-          {props.footerText}
-          <Credits />
-        </div>
+        <div className="mt-8 text-center text-sm text-gray-600">{props.footerText}</div>
       </div>
     </div>
   );

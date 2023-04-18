@@ -12,5 +12,14 @@
   "publisher": "Cal.com",
   "email": "help@cal.com",
   "description": "Whereby makes it super simple for collaborating teams to jump on a video call.",
-  "__createdUsingCli": true
+  "__createdUsingCli": true,
+  "appData": {
+    "location": {
+      "linkType": "static",
+      "type": "integrations:whereby_video",
+      "label": "Whereby Video",
+      "organizerInputPlaceholder": "https://www.whereby.com/cal",
+      "urlRegExp": "^http(s)?:\\/\\/(www\\.)?(team.)?whereby.com\\/[a-zA-Z0-9]*"
+    }
+  }
 }

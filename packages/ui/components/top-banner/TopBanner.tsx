@@ -3,7 +3,7 @@ import classNames from "classnames";
 import noop from "lodash/noop";
 import { ReactNode } from "react";
 
-import { FiAlertTriangle, FiInfo } from "@calcom/ui/components/icon";
+import { FiAlertTriangle, FiInfo } from "../icon";
 
 export type TopBannerProps = {
   text: string;

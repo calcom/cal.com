@@ -1,5 +1,6 @@
 import merge from "lodash/merge";
 import { NextSeo, NextSeoProps } from "next-seo";
+import { useRouter } from "next/router";
 
 import {
   AppImageProps,
@@ -72,13 +73,23 @@ const buildSeoMeta = (pageProps: {
 };
 
 export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
-  const defaultUrl = getBrowserInfo()?.url;
+  // The below code sets the defaultUrl for our canonical tags
+
+  // Get the current URL from the window object
+  const url = getBrowserInfo()?.url;
+  // Check if the URL is from cal.com
+  const isCalcom = url && new URL(url).hostname.endsWith("cal.com");
+  // Get the router's path
+  const path = useRouter().asPath;
+  // Build the canonical URL using the router's path, without query parameters. Note: on homepage it omits the trailing slash
+  const calcomCanonical = `https://cal.com${path === "/" ? "" : path}`.split("?")[0];
+  // Set the default URL to either the current URL (if self-hosted) or https://cal.com canonical URL
+  const defaultUrl = isCalcom ? calcomCanonical : url;
 
   const { title, description, siteName, canonical = defaultUrl, nextSeoProps = {}, app, meeting } = props;
 
   const image = getSeoImage("ogImage") + constructGenericImage({ title, description });
   const truncatedDescription = truncateOnWord(description, 158);
-
   const pageTitle = title + " | " + APP_NAME;
   let seoObject = buildSeoMeta({
     title: pageTitle,

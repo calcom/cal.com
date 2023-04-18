@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import type { ReactNode } from "react";
 
 import { classNames } from "@calcom/lib";
-import { useHasTeamPlan } from "@calcom/lib/hooks/useHasTeamPlan";
+import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import isCalcom from "@calcom/lib/isCalcom";
 import { EmptyScreen } from "@calcom/ui";
@@ -29,9 +29,9 @@ export function UpgradeTip({
   isParentLoading?: ReactNode;
 }) {
   const { t } = useLocale();
-  const { isLoading, hasTeamPlan } = useHasTeamPlan();
+  const { isLoading, hasPaidPlan } = useHasPaidPlan();
 
-  if (hasTeamPlan) return children;
+  if (hasPaidPlan) return children;
 
   if (isParentLoading || isLoading) return <>{isParentLoading}</>;
 

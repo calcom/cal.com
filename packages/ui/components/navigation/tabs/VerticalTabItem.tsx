@@ -5,8 +5,8 @@ import { ComponentProps, Fragment } from "react";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-import { FiChevronRight, FiExternalLink } from "@calcom/ui/components/icon";
 
+import { FiChevronRight, FiExternalLink } from "../../icon";
 import { Skeleton } from "../../skeleton";
 
 export type VerticalTabItemProps = {

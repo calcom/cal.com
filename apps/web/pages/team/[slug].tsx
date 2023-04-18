@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import MarkdownIt from "markdown-it";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -20,6 +21,10 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Team from "@components/team/screens/Team";
 
+import { ssrInit } from "@server/lib/ssr";
+
+const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
+
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({ team }: TeamPageProps) {
   useTheme();
@@ -37,12 +42,12 @@ function TeamPage({ team }: TeamPageProps) {
   }, [telemetry, router.asPath]);
 
   const EventTypes = () => (
-    <ul className="rounded-md border border-gray-200 dark:border-gray-700">
+    <ul className="dark:border-darkgray-300 rounded-md border border-gray-200">
       {team.eventTypes.map((type, index) => (
         <li
           key={index}
           className={classNames(
-            "dark:bg-darkgray-100 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600",
+            "dark:bg-darkgray-100 dark:border-darkgray-300 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50",
             !isEmbed && "bg-white"
           )}>
           <Link
@@ -75,6 +80,8 @@ function TeamPage({ team }: TeamPageProps) {
 
   const teamName = team.name || "Nameless Team";
 
+  const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
+
   return (
     <div>
       <HeadSeo
@@ -91,7 +98,14 @@ function TeamPage({ team }: TeamPageProps) {
           <p className="font-cal dark:text-darkgray-900 mb-2 text-2xl tracking-wider text-gray-900">
             {teamName}
           </p>
-          <p className="dark:text-darkgray-500 mt-2 text-sm font-normal text-gray-500">{team.bio}</p>
+          {!isBioEmpty && (
+            <>
+              <div
+                className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
+              />
+            </>
+          )}
         </div>
         {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
         {!showMembers.isOn && team.eventTypes.length > 0 && (
@@ -131,6 +145,7 @@ function TeamPage({ team }: TeamPageProps) {
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
 
   const team = await getTeamWithMembers(undefined, slug);
@@ -148,6 +163,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       team,
+      trpcState: ssr.dehydrate(),
     },
   };
 };

@@ -22,14 +22,6 @@ export default class AttendeeScheduledEmail extends BaseEmail {
     this.attendee = attendee;
     this.showAttendees = showAttendees;
     this.t = attendee.language.translate;
-
-    if (!this.showAttendees) {
-      this.calEvent.attendees = [
-        {
-          ...this.attendee,
-        },
-      ];
-    }
   }
 
   protected getiCalEventAsString(): string | undefined {
@@ -73,7 +65,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: [...this.calEvent.attendees.map(({ email }) => email), this.calEvent.organizer.email],
-      subject: `${this.calEvent.title}`,
+      subject: decodeURIComponent(`${this.calEvent.title}`),
       html: renderEmail("AttendeeScheduledEmail", {
         calEvent: this.calEvent,
         attendee: this.attendee,

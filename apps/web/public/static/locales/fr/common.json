@@ -1255,7 +1255,6 @@
   "welcome_to_cal_header": "Bienvenue sur {{appName}} !",
   "edit_form_later_subtitle": "Vous pourrez modifier cela plus tard.",
   "connect_calendar_later": "Je connecterai mon calendrier plus tard",
-  "set_my_availability_later": "Je définirai ma disponibilité plus tard",
   "problem_saving_user_profile": "Un problème est survenu lors de l'enregistrement de vos données. Veuillez réessayer ou contacter le service client.",
   "purchase_missing_seats": "Acheter des places manquantes",
   "slot_length": "Durée du créneau",

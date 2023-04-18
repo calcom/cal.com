@@ -12,5 +12,14 @@
   "publisher": "Cal.com",
   "email": "help@cal.com",
   "description": "Discover radically unique video calls designed to help hybrid-remote teams create, collaborate and celebrate together.",
-  "__createdUsingCli": true
+  "__createdUsingCli": true,
+  "appData": {
+    "location": {
+      "linkType": "static",
+      "type": "integrations:around_video",
+      "label": "Around Video",
+      "urlRegExp": "^http(s)?:\\/\\/(www\\.)?around.co\\/[a-zA-Z0-9]*",
+      "organizerInputPlaceholder": "https://www.around.co/rick"
+    }
+  }
 }

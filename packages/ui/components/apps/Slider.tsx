@@ -4,8 +4,8 @@ import "@glidejs/glide/dist/css/glide.theme.min.css";
 import { ComponentProps, FC, useEffect, useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { FiArrowLeft, FiArrowRight } from "@calcom/ui/components/icon";
 
+import { FiArrowLeft, FiArrowRight } from "../icon";
 import { SkeletonText } from "../skeleton";
 
 const SliderButton: FC<ComponentProps<"button">> = (props) => {

@@ -1239,7 +1239,6 @@
   "welcome_to_cal_header": "{{appName}} へようこそ！",
   "edit_form_later_subtitle": "これは後で編集することができます。",
   "connect_calendar_later": "後でカレンダーを接続する",
-  "set_my_availability_later": "状態を後で設定する",
   "problem_saving_user_profile": "データの保存中に問題が発生しました。もう一度試すか、カスタマーサポートにご連絡ください。",
   "purchase_missing_seats": "不足分の座席を購入",
   "slot_length": "時間の長さ",

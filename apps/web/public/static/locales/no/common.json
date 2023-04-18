@@ -1251,7 +1251,6 @@
   "welcome_to_cal_header": "Velkommen til {{appName}}!",
   "edit_form_later_subtitle": "Du kan redigere dette senere.",
   "connect_calendar_later": "Jeg kobler til kalenderen min senere",
-  "set_my_availability_later": "Jeg setter opp min tilgjengelighet senere",
   "problem_saving_user_profile": "Det oppsto et problem med å lagre dataene dine. Prøv igjen eller ta kontakt med kundestøtte.",
   "purchase_missing_seats": "Kjøp manglende seter",
   "slot_length": "Tidsluke lengde",
