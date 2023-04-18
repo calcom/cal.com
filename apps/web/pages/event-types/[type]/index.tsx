@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { PeriodType } from "@prisma/client";
-import type { SchedulingType } from "@prisma/client";
+import type { PeriodType, SchedulingType } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { Trans } from "next-i18next";
 import { useEffect, useState } from "react";
@@ -18,10 +17,10 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
-import { useTelemetry, telemetryEventTypes } from "@calcom/lib/telemetry";
+import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { Prisma } from "@calcom/prisma/client";
-import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
@@ -34,6 +33,7 @@ import PageWrapper from "@components/PageWrapper";
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
 import { EventAdvancedTab } from "@components/eventtype/EventAdvancedTab";
 import { EventAppsTab } from "@components/eventtype/EventAppsTab";
+import type { AvailabilityOption } from "@components/eventtype/EventAvailabilityTab";
 import { EventAvailabilityTab } from "@components/eventtype/EventAvailabilityTab";
 import { EventLimitsTab } from "@components/eventtype/EventLimitsTab";
 import { EventRecurringTab } from "@components/eventtype/EventRecurringTab";
@@ -94,6 +94,7 @@ export type FormValues = {
   children: ChildrenEventType[];
   hosts: { userId: number; isFixed: boolean }[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
+  availability?: AvailabilityOption;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -262,6 +263,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   }, [defaultValues]);
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
+  const availability = formMethods.watch("availability");
   const numberOfInstalledApps = eventTypeApps?.filter((app) => app.isInstalled).length || 0;
   let numberOfActiveApps = 0;
 
@@ -378,6 +380,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         enabledWorkflowsNumber={eventType.workflows.length}
         eventType={eventType}
         team={team}
+        availability={availability}
         isUpdateMutationLoading={updateMutation.isLoading}
         formMethods={formMethods}
         disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
@@ -385,13 +388,66 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         <Form
           form={formMethods}
           id="event-type-form"
-          handleSubmit={async (values: FormValues) => {
-            if (!values.children.length) return handleSubmit(values);
-            const existingSlugEventTypes = values.children.filter((ch) =>
-              ch.owner.eventTypeSlugs.includes(slug)
-            );
-            if (!existingSlugEventTypes.length) return handleSubmit(values);
-            setSlugExistsChildrenDialogOpen(existingSlugEventTypes);
+          handleSubmit={async (values) => {
+            const {
+              periodDates,
+              periodCountCalendarDays,
+              beforeBufferTime,
+              afterBufferTime,
+              seatsPerTimeSlot,
+              seatsShowAttendees,
+              bookingLimits,
+              durationLimits,
+              recurringEvent,
+              locations,
+              metadata,
+              customInputs,
+              // We don't need to send send these values to the backend
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              seatsPerTimeSlotEnabled,
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              minimumBookingNoticeInDurationType,
+              availability,
+              ...input
+            } = values;
+
+            if (bookingLimits) {
+              const isValid = validateIntervalLimitOrder(bookingLimits);
+              if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
+            }
+
+            if (durationLimits) {
+              const isValid = validateIntervalLimitOrder(durationLimits);
+              if (!isValid) throw new Error(t("event_setup_duration_limits_error"));
+            }
+
+            if (metadata?.multipleDuration !== undefined) {
+              if (metadata?.multipleDuration.length < 1) {
+                throw new Error(t("event_setup_multiple_duration_error"));
+              } else {
+                if (!input.length && !metadata?.multipleDuration?.includes(input.length)) {
+                  throw new Error(t("event_setup_multiple_duration_default_error"));
+                }
+              }
+            }
+
+            updateMutation.mutate({
+              ...input,
+              locations,
+              recurringEvent,
+              periodStartDate: periodDates.startDate,
+              periodEndDate: periodDates.endDate,
+              periodCountCalendarDays: periodCountCalendarDays === "1",
+              id: eventType.id,
+              beforeEventBuffer: beforeBufferTime,
+              afterEventBuffer: afterBufferTime,
+              bookingLimits,
+              durationLimits,
+              seatsPerTimeSlot,
+              seatsShowAttendees,
+              metadata,
+              customInputs,
+            });
           }}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>
         </Form>
