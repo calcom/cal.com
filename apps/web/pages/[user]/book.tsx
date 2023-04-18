@@ -69,6 +69,8 @@ export default function Book(props: BookPageProps) {
   );
 }
 
+Book.isBookingPage = true;
+
 const querySchema = z.object({
   bookingUid: z.string().optional(),
   count: z.coerce.number().optional(),

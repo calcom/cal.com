@@ -268,7 +268,9 @@ export default function Success(props: SuccessProps) {
     return t("emailed_you_and_attendees" + titleSuffix);
   }
 
-  useTheme(isSuccessBookingPage ? props.profile.theme : "light");
+  // This is a weird case where the same route can be opened in booking flow as a success page or as a booking detail page from the app
+  // As Booking Page it has to support configured theme, but as booking detail page it should not do any change. Let Shell.tsx handle it.
+  useTheme(isSuccessBookingPage ? props.profile.theme : undefined);
   useBrandColors({
     brandColor: props.profile.brandColor,
     darkBrandColor: props.profile.darkBrandColor,
@@ -704,6 +706,8 @@ export default function Success(props: SuccessProps) {
     </div>
   );
 }
+
+Success.isBookingPage = true;
 
 type RecurringBookingsProps = {
   eventType: SuccessProps["eventType"];

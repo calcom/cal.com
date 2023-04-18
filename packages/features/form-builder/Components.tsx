@@ -378,7 +378,7 @@ export const Components: Record<BookingFieldType, Component> = {
             checked={value}
             disabled={readOnly}
           />
-          <Label className="text-default dark:text-inverted -mt-px block text-sm font-medium">{label}</Label>
+          <Label className="text-emphasis -mt-px block text-sm font-medium">{label}</Label>
         </div>
       );
     },
