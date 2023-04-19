@@ -54,6 +54,7 @@ import { X, ExternalLink, ChevronLeft, Check, Calendar } from "@calcom/ui/compon
 import { timeZone } from "@lib/clock";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import PageWrapper from "@components/PageWrapper";
 import CancelBooking from "@components/booking/CancelBooking";
 import EventReservationSchema from "@components/schemas/EventReservationSchema";
 
@@ -709,6 +710,7 @@ export default function Success(props: SuccessProps) {
 }
 
 Success.isBookingPage = true;
+Success.PageWrapper = PageWrapper;
 
 type RecurringBookingsProps = {
   eventType: SuccessProps["eventType"];

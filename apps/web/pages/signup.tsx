@@ -5,7 +5,7 @@ import type { CSSProperties } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 
-import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,6 +13,8 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import prisma from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert, Button, EmailField, HeadSeo, PasswordField, TextField } from "@calcom/ui";
+
+import PageWrapper from "@components/PageWrapper";
 
 import { asStringOrNull } from "../lib/asStringOrNull";
 import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
@@ -230,3 +232,4 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 };
 
 Signup.isThemeSupported = false;
+Signup.PageWrapper = PageWrapper;
