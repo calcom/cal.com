@@ -1,3 +1,4 @@
+import type { NextPageContext } from "next";
 import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
 import { z } from "zod";
@@ -7,15 +8,22 @@ import { getDirFromLang } from "@calcom/lib/i18n";
 import { csp } from "@lib/csp";
 
 type Props = Record<string, unknown> & DocumentProps;
-
+function setHeader(ctx: NextPageContext, name: string, value: string) {
+  try {
+    ctx.res?.setHeader(name, value);
+  } catch (e) {
+    // Getting "Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client" when revalidate calendar chache
+    console.log(`Error setting header ${name}=${value} for ${ctx.asPath || "unknown asPath"}`, e);
+  }
+}
 class MyDocument extends Document<Props> {
   static async getInitialProps(ctx: DocumentContext) {
     const { nonce } = csp(ctx.req || null, ctx.res || null);
     if (!process.env.CSP_POLICY) {
-      ctx.res?.setHeader("x-csp", "not-opted-in");
+      setHeader(ctx, "x-csp", "not-opted-in");
     } else if (!ctx.res?.getHeader("x-csp")) {
       // If x-csp not set by gSSP, then it's initialPropsOnly
-      ctx.res?.setHeader("x-csp", "initialPropsOnly");
+      setHeader(ctx, "x-csp", "initialPropsOnly");
     }
     const asPath = ctx.asPath || "";
     // Use a dummy URL as default so that URL parsing works for relative URLs as well. We care about searchParams and pathname only

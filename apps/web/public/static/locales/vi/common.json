@@ -111,7 +111,7 @@
   "hidden_team_owner_message": "Bạn cần tài khoản Pro để sử dụng nhóm, bạn sẽ bị ẩn cho đến khi bạn thanh toán.",
   "link_expires": "p.s. Link hết hạn trong vòng {{expiresIn}} tiếng.",
   "upgrade_to_per_seat": "Nâng cấp từng tài khoản",
-  "seat_options_doesnt_support_confirmation": "Tuỳ chọn chỗ ngồi không hỗ trợ yêu cầu xác nhận",
+  "seat_options_doesnt_support_confirmation": "Tuỳ chọn chỗ ngồi không thể chọn cho yêu cầu xác nhận đặt lịch",
   "team_upgrade_seats_details": "Trong tổng {{memberCount}} thành viên của nhóm bạn, {{unpaidCount}} thành viên chưa được thanh toán. Với {{seatPrice}}$/tháng mỗi thành viên, tổng chi phí cho nhóm bạn là {{totalCost}}$/tháng.",
   "team_upgrade_banner_description": "Cám ơn bạn đã dùng thử gói kế hoạch mới dành cho nhóm. Chúng tôi để ý thấy nhóm \"{{teamName}}\" của bạn cần được nâng cấp.",
   "team_upgrade_banner_action": "Nâng cấp tại đây",
