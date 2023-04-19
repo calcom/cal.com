@@ -130,6 +130,11 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       rescheduleUid,
       rescheduleBooking,
     });
+    // Unset selected timeslot if user is rescheduling. This could happen
+    // if the user reschedules a booking right after the confirmation page.
+    // In that case the time would still be store in the store, this way we
+    // force clear this.
+    if (rescheduleBooking) set({ selectedTimeslot: null });
     if (month) set({ month });
   },
   selectedDuration: Number(getQueryParam("duration")) || null,
