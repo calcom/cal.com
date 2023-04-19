@@ -19,13 +19,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
-import { FiArrowLeft } from "@calcom/ui/components/icon";
+import { ArrowLeft } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { WithNonceProps } from "@lib/withNonce";
 import withNonce from "@lib/withNonce";
 
 import AddToHomescreen from "@components/AddToHomescreen";
+import PageWrapper from "@components/PageWrapper";
 import TwoFactor from "@components/auth/TwoFactor";
 import AuthContainer from "@components/ui/AuthContainer";
 
@@ -91,7 +92,7 @@ export default function Login({
         setTwoFactorRequired(false);
         methods.setValue("totpCode", "");
       }}
-      StartIcon={FiArrowLeft}
+      StartIcon={ArrowLeft}
       color="minimal">
       {t("go_back")}
     </Button>
@@ -302,5 +303,6 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
 };
 
 Login.isThemeSupported = false;
+Login.PageWrapper = PageWrapper;
 
 export const getServerSideProps = withNonce(_getServerSideProps);

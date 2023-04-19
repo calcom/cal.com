@@ -29,7 +29,7 @@ import {
   TextField,
   SettingsToggle,
 } from "@calcom/ui";
-import { FiMoreHorizontal } from "@calcom/ui/components/icon";
+import { MoreHorizontal } from "@calcom/ui/components/icon";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 
@@ -162,7 +162,7 @@ export const FormActionsDropdown = ({ form, children }: { form: RoutingForm; chi
             variant="icon"
             color="secondary"
             className={classNames("radix-state-open:rounded-r-md", disabled && "opacity-30")}
-            StartIcon={FiMoreHorizontal}
+            StartIcon={MoreHorizontal}
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent>{children}</DropdownMenuContent>
@@ -276,8 +276,13 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
       }
       return { previousValue };
     },
-    onSettled: () => {
+    onSettled: (routingForm) => {
       utils.viewer.appRoutingForms.forms.invalidate();
+      if (routingForm) {
+        utils.viewer.appRoutingForms.formQuery.invalidate({
+          id: routingForm.id,
+        });
+      }
     },
     onError: (err, value, context) => {
       if (context?.previousValue) {

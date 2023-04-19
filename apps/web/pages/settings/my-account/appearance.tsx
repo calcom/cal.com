@@ -22,6 +22,8 @@ import {
   UpgradeTeamsBadge,
 } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
+
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
@@ -181,7 +183,7 @@ const AppearanceView = () => {
       {/* TODO future PR to preview brandColors */}
       {/* <Button
         color="secondary"
-        EndIcon={FiExternalLink}
+        EndIcon={ExternalLink}
         className="mt-6"
         onClick={() => window.open(`${WEBAPP_URL}/${user.username}/${user.eventTypes[0].title}`, "_blank")}>
         Preview
@@ -230,5 +232,6 @@ const AppearanceView = () => {
 };
 
 AppearanceView.getLayout = getLayout;
+AppearanceView.PageWrapper = PageWrapper;
 
 export default AppearanceView;

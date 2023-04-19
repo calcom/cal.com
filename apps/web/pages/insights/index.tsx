@@ -15,7 +15,9 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, ButtonGroup } from "@calcom/ui";
-import { FiRefreshCcw, FiUserPlus, FiUsers } from "@calcom/ui/components/icon";
+import { RefreshCcw, UserPlus, Users } from "@calcom/ui/components/icon";
+
+import PageWrapper from "@components/PageWrapper";
 
 const Heading = () => {
   const { t } = useLocale();
@@ -35,17 +37,17 @@ export default function InsightsPage() {
   const { data: user } = trpc.viewer.me.useQuery();
   const features = [
     {
-      icon: <FiUsers className="h-5 w-5" />,
+      icon: <Users className="h-5 w-5" />,
       title: t("view_bookings_across"),
       description: t("view_bookings_across_description"),
     },
     {
-      icon: <FiRefreshCcw className="h-5 w-5" />,
+      icon: <RefreshCcw className="h-5 w-5" />,
       title: t("identify_booking_trends"),
       description: t("identify_booking_trends_description"),
     },
     {
-      icon: <FiUserPlus className="h-5 w-5" />,
+      icon: <UserPlus className="h-5 w-5" />,
       title: t("spot_popular_event_types"),
       description: t("spot_popular_event_types_description"),
     },
@@ -110,6 +112,8 @@ export default function InsightsPage() {
     </div>
   );
 }
+
+InsightsPage.PageWrapper = PageWrapper;
 
 // If feature flag is disabled, return not found on getServerSideProps
 export const getServerSideProps = async () => {

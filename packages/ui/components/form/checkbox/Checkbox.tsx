@@ -10,6 +10,7 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
   informationIconText?: string;
   error?: boolean;
   className?: string;
+  descriptionClassName?: string;
 };
 
 const CheckboxField = forwardRef<HTMLInputElement, Props>(
@@ -34,7 +35,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
           </div>
         )}
         <div className="w-full">
-          <div className="relative flex items-start">
+          <div className="relative flex items-center">
             {React.createElement(
               descriptionAsLabel ? "label" : "div",
               {
@@ -45,14 +46,14 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                 ),
               },
               <>
-                <div className="flex h-5 items-center">
+                <div className="flex h-5 items-end">
                   <input
                     {...rest}
                     ref={ref}
                     type="checkbox"
                     disabled={disabled}
                     className={classNames(
-                      "text-primary-600 focus:ring-primary-500 border-default h-4 w-4 rounded ltr:mr-2 rtl:ml-2 ",
+                      "text-primary-600 focus:ring-primary-500 border-default bg-default h-4 w-4 rounded ltr:mr-2 rtl:ml-2",
                       !error && disabled
                         ? "bg-gray-300 checked:bg-gray-300"
                         : "hover:bg-subtle checked:bg-gray-800",
@@ -61,7 +62,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     )}
                   />
                 </div>
-                <span className="text-sm">{description}</span>
+                <span className={classNames("text-sm", rest.descriptionClassName)}>{description}</span>
               </>
             )}
             {/* {informationIconText && <InfoBadge content={informationIconText}></InfoBadge>} */}

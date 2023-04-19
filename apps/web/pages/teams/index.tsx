@@ -1,9 +1,13 @@
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+
 import { TeamsListing } from "@calcom/features/ee/teams/components";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
-import { FiPlus } from "@calcom/ui/components/icon";
+import { Plus } from "@calcom/ui/components/icon";
+
+import PageWrapper from "@components/PageWrapper";
 
 function Teams() {
   const { t } = useLocale();
@@ -14,7 +18,7 @@ function Teams() {
       CTA={
         <Button
           variant="fab"
-          StartIcon={FiPlus}
+          StartIcon={Plus}
           type="button"
           href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
           {t("new")}
@@ -25,6 +29,15 @@ function Teams() {
   );
 }
 
+export const getStaticProps = async () => {
+  return {
+    props: {
+      ...(await serverSideTranslations("en", ["common"])),
+    },
+  };
+};
+
 Teams.requiresLicense = false;
+Teams.PageWrapper = PageWrapper;
 
 export default Teams;
