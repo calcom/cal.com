@@ -25,6 +25,7 @@ export const AverageEventDurationChart = () => {
       userId: selectedUserId ?? undefined,
     },
     {
+      staleTime: 30000,
       trpc: {
         context: { skipBatch: true },
       },

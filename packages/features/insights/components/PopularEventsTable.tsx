@@ -23,6 +23,7 @@ export const PopularEventsTable = () => {
       memberUserId: selectedMemberUserId ?? undefined,
     },
     {
+      staleTime: 30000,
       trpc: {
         context: { skipBatch: true },
       },

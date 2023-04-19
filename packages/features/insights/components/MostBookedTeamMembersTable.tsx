@@ -23,6 +23,7 @@ export const MostBookedTeamMembersTable = () => {
       eventTypeId: selectedEventTypeId ?? undefined,
     },
     {
+      staleTime: 30000,
       trpc: {
         context: { skipBatch: true },
       },
