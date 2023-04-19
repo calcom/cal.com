@@ -1,7 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+/**
+* Add css variables here as well for light mode in addition to tailwind.config to avoid FOUC
+*/
 :root {
   /* background */
 
@@ -21,6 +23,7 @@
   --cal-border-emphasis: #9ca3af;
   --cal-border: #d1d5db;
   --cal-border-subtle: #e5e7eb;
+  --cal-border-booker: #e5e7eb;
   --cal-border-muted: #f3f4f6;
 
   /* Content/Text */
@@ -44,8 +47,6 @@
   --cal-brand-text: white;
 }
 .dark {
-  color-scheme: dark;
-
   /* background */
 
   --cal-bg-emphasis: #2b2b2b;
@@ -64,6 +65,7 @@
   --cal-border-emphasis: #575757;
   --cal-border: #444444;
   --cal-border-subtle: #2b2b2b;
+  --cal-border-booker: #2b2b2b;
   --cal-border-muted: #1c1c1c;
 
   /* Content/Text */
@@ -87,8 +89,14 @@
   --cal-brand-text: black;
 }
 
-dark::selection {
-  background: var(--cal-bg-subtle);
+::-moz-selection {
+  color: var(--cal-brand-text);
+  background: var(--cal-brand);
+}
+
+::selection {
+  color: var(--cal-brand-text);
+   background: var(--cal-brand);
 }
 
 body  {
@@ -158,14 +166,20 @@ html.todesktop aside {
   margin: 0px -6px;
 }
 
-/* TODO: add "native" MacOS colors
-   requires darkmode for MacOS first
-
 html.todesktop .desktop-transparent{
   background: transparent !important;
   border: none !important;
 }
 
+html.todesktop.dark main.bg-default{
+  background: rgba(0,0,0,0.6) !important
+}
+
+html.todesktop.light main.bg-default{
+  background: rgba(255,255,255,0.8) !important
+}
+
+/* 
 html.todesktop aside a {
   height: 28px;
   padding: 0px 8px;
@@ -183,8 +197,7 @@ html.todesktop nav a[aria-current="page"]{
 
 html.todesktop nav a svg{
   color: #0272F7 !important
-}
-*/
+} */
 
 /*
   Adds Utility to hide scrollbar to tailwind
@@ -192,7 +205,7 @@ html.todesktop nav a svg{
     https://github.com/tailwindlabs/tailwindcss/pull/5732
 */
 @layer utilities {
-  @variants responsive {
+  @layer responsive {
     /* Chrome, Safari and Opera */
     .no-scrollbar::-webkit-scrollbar {
       display: none;
@@ -229,10 +242,7 @@ select:focus {
   --tw-ring-color: var(--brand-color);
   border-color: var(--brand-color);
 }
-/*  https://stackoverflow.com/a/69308190 */
-input[type="text"]:focus {
-  box-shadow: none;
-}
+
 
 @layer components {
   .scroll-bar {
@@ -273,17 +283,6 @@ input[type="text"]:focus {
   .slider .slider-thumb:focus {
     box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.2);
   }
-}
-
-/* !important to style multi-email input */
-::-moz-selection {
-  color: white;
-  background: black;
-}
-
-::selection {
-  color: white;
-  background: black;
 }
 
 /* hide chat bubble on mobile */

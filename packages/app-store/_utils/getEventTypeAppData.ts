@@ -15,7 +15,13 @@ export const getEventTypeAppData = <T extends EventTypeAppsList>(
   const appMetadata = metadata?.apps && metadata.apps[appId];
   if (appMetadata) {
     const allowDataGet = forcedGet ? true : appMetadata.enabled;
-    return allowDataGet ? appMetadata : null;
+    return allowDataGet
+      ? {
+          ...appMetadata,
+          // trackingId is legacy way to store value for TRACKING_ID. So, we need to support both.
+          TRACKING_ID: appMetadata.TRACKING_ID || appMetadata.trackingId,
+        }
+      : null;
   }
 
   // Backward compatibility for existing event types.
@@ -28,6 +34,7 @@ export const getEventTypeAppData = <T extends EventTypeAppsList>(
       price: eventType.price,
       // Currency default is "usd" in DB.So, it would also be available always
       currency: eventType.currency,
+      paymentOption: "ON_BOOKING",
     },
     rainbow: {
       enabled: !!(eventType.metadata?.smartContractAddress && eventType.metadata?.blockchainId),

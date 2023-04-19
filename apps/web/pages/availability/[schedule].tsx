@@ -27,10 +27,11 @@ import {
   ConfirmationDialogContent,
   VerticalDivider,
 } from "@calcom/ui";
-import { FiInfo, FiPlus, FiTrash } from "@calcom/ui/components/icon";
+import { Info, Plus, Trash } from "@calcom/ui/components/icon";
 
 import { HttpError } from "@lib/core/http/error";
 
+import PageWrapper from "@components/PageWrapper";
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import EditableHeading from "@components/ui/EditableHeading";
 
@@ -57,7 +58,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
           <span className="inline-block">
-            <FiInfo />
+            <Info className="h-4 w-4" />
           </span>
         </Tooltip>
       </h3>
@@ -75,7 +76,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
           excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
           onChange={(ranges) => append({ ranges })}
           Trigger={
-            <Button color="secondary" StartIcon={FiPlus} data-testid="add-override">
+            <Button color="secondary" StartIcon={Plus} data-testid="add-override">
               Add an override
             </Button>
           }
@@ -202,7 +203,7 @@ export default function Availability() {
           <Dialog>
             <DialogTrigger asChild>
               <Button
-                StartIcon={FiTrash}
+                StartIcon={Trash}
                 variant="icon"
                 color="destructive"
                 aria-label={t("delete")}
@@ -301,3 +302,5 @@ export default function Availability() {
     </Shell>
   );
 }
+
+Availability.PageWrapper = PageWrapper;

@@ -8,7 +8,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Alert, showToast, Skeleton, Tooltip, UnstyledSelect } from "../../..";
-import { FiEye, FiEyeOff, FiX } from "../../icon";
+import { Eye, EyeOff, X } from "../../icon";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
@@ -23,7 +23,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       {...props}
       ref={ref}
       className={classNames(
-        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default mb-2 block h-9 rounded-md border py-2 px-3 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
+        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default min-h-9 disabled:bg-subtle mb-2 block rounded-md border py-2 px-3 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
         isFullWidth && "w-full",
         props.className
       )}
@@ -41,6 +41,7 @@ export function InputLeading(props: JSX.IntrinsicElements["div"]) {
 
 type InputFieldProps = {
   label?: ReactNode;
+  LockedIcon?: React.ReactNode;
   hint?: ReactNode;
   hintErrors?: string[];
   addOnLeading?: ReactNode;
@@ -67,16 +68,16 @@ type AddonProps = {
 const Addon = ({ isFilled, children, className, error }: AddonProps) => (
   <div
     className={classNames(
-      "addon-wrapper border-default h-9 border px-3",
+      "addon-wrapper border-default min-h-9 border px-3",
       isFilled && "bg-subtle",
       className
     )}>
     <div
       className={classNames(
-        "flex h-full flex-col justify-center text-sm",
+        "min-h-9 flex flex-col justify-center text-sm",
         error ? "text-error" : "text-default"
       )}>
-      <span className="whitespace-nowrap py-2.5">{children}</span>
+      <span className="flex whitespace-nowrap">{children}</span>
     </div>
   </div>
 );
@@ -90,6 +91,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     label = t(name),
     labelProps,
     labelClassName,
+    disabled,
+    LockedIcon,
     placeholder = isLocaleReady && i18n.exists(name + "_placeholder") ? t(name + "_placeholder") : "",
     className,
     addOnLeading,
@@ -120,17 +123,15 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           {...labelProps}
           className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-error")}>
           {label}
+          {LockedIcon}
         </Skeleton>
       )}
       {addOnLeading || addOnSuffix ? (
-        <div className="group relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
+        <div
+          dir="ltr"
+          className="group relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
           {addOnLeading && (
-            <Addon
-              isFilled={addOnFilled}
-              className={classNames(
-                "ltr:rounded-l-md ltr:border-r-0 rtl:rounded-r-md rtl:border-l-0",
-                addOnClassname
-              )}>
+            <Addon isFilled={addOnFilled} className={classNames("rounded-l-md border-r-0", addOnClassname)}>
               {addOnLeading}
             </Addon>
           )}
@@ -141,8 +142,9 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             isFullWidth={inputIsFullWidth}
             className={classNames(
               className,
-              addOnLeading && "ltr:rounded-l-none rtl:rounded-r-none",
-              addOnSuffix && "ltr:rounded-r-none rtl:rounded-l-none",
+              "disabled:bg-muted disabled:hover:border-subtle disabled:cursor-not-allowed",
+              addOnLeading && "rounded-l-none",
+              addOnSuffix && "rounded-r-none",
               type === "search" && "pr-8",
               "!my-0 !ring-0"
             )}
@@ -154,7 +156,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               },
               value: inputValue,
             })}
-            readOnly={readOnly}
+            disabled={readOnly || disabled}
             ref={ref}
           />
           {addOnSuffix && (
@@ -168,7 +170,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             </Addon>
           )}
           {type === "search" && inputValue?.toString().length > 0 && (
-            <FiX
+            <X
               className="text-subtle absolute top-2.5 h-4 w-4 cursor-pointer ltr:right-2 rtl:left-2"
               onClick={(e) => {
                 setInputValue("");
@@ -182,11 +184,15 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           id={id}
           type={type}
           placeholder={placeholder}
-          className={className}
+          className={classNames(
+            className,
+            "disabled:bg-muted disabled:hover:border-subtle disabled:cursor-not-allowed"
+          )}
           {...passThrough}
           readOnly={readOnly}
           ref={ref}
           isFullWidth={inputIsFullWidth}
+          disabled={readOnly || disabled}
         />
       )}
       <HintsOrErrors hintErrors={hintErrors} fieldName={name} t={t} />
@@ -227,9 +233,9 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
               type="button"
               onClick={() => toggleIsPasswordVisible()}>
               {isPasswordVisible ? (
-                <FiEyeOff className="h-4 stroke-[2.5px]" />
+                <EyeOff className="h-4 stroke-[2.5px]" />
               ) : (
-                <FiEye className="h-4 stroke-[2.5px]" />
+                <Eye className="h-4 stroke-[2.5px]" />
               )}
               <span className="sr-only">{textLabel}</span>
             </button>
@@ -276,7 +282,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "hover:border-emphasis border-default text-default focus:border-emphasis placeholder:text-subtle focus:ring-emphasis bg-default block w-full rounded-md border py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-offset-1",
+        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default mb-2 block w-full rounded-md border py-2 px-3 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
         props.className
       )}
     />
@@ -394,6 +400,20 @@ export const InputFieldWithSelect = forwardRef<
       inputIsFullWidth={false}
       addOnClassname="!px-0"
       addOnSuffix={<UnstyledSelect {...props.selectProps} />}
+    />
+  );
+});
+
+export const NumberInput = forwardRef<HTMLInputElement, InputFieldProps>(function NumberInput(props, ref) {
+  return (
+    <Input
+      ref={ref}
+      type="number"
+      autoCapitalize="none"
+      autoComplete="numeric"
+      autoCorrect="off"
+      inputMode="numeric"
+      {...props}
     />
   );
 });

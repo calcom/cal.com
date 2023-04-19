@@ -7,8 +7,8 @@ import type {
   ProviderProps,
 } from "react-awesome-query-builder";
 
-import { Button as CalButton, SelectWithValidation as Select, TextField } from "@calcom/ui";
-import { FiTrash, FiPlus } from "@calcom/ui/components/icon";
+import { Button as CalButton, SelectWithValidation as Select, TextField, TextArea } from "@calcom/ui";
+import { Trash, Plus } from "@calcom/ui/components/icon";
 
 export type CommonProps<
   TVal extends
@@ -23,6 +23,7 @@ export type CommonProps<
   placeholder?: string;
   readOnly?: boolean;
   className?: string;
+  name?: string;
   label?: string;
   value: TVal;
   setValue: (value: TVal) => void;
@@ -79,13 +80,12 @@ const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
 
   const textValue = value || "";
   return (
-    <textarea
+    <TextArea
       value={textValue}
       placeholder={placeholder}
       disabled={readOnly}
       onChange={onChange}
       maxLength={maxLength}
-      className=" border-default bg-default dark:bg-muted text-default disabled:bg-emphasis disabled:dark:text-subtle placeholder:text-subtle block w-full rounded-md text-sm focus:ring-black disabled:hover:cursor-not-allowed "
       {...customProps}
       {...remainingProps}
     />
@@ -112,7 +112,6 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
     <TextField
       containerClassName="w-full"
       type={type}
-      className="focus:border-brand-default bg-default dark:bg-muted  border-default disabled:bg-emphasis focus:ring-brand block w-full rounded-md text-sm disabled:hover:cursor-not-allowed"
       value={textValue}
       labelSrOnly={noLabel}
       placeholder={placeholder}
@@ -208,7 +207,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   if (type === "delRule" || type == "delGroup") {
     return (
       <button className="ml-5">
-        <FiTrash className="text-subtle m-0 h-4 w-4" onClick={onClick} />
+        <Trash className="text-subtle m-0 h-4 w-4" onClick={onClick} />
       </button>
     );
   }
@@ -222,7 +221,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   }
   return (
     <CalButton
-      StartIcon={FiPlus}
+      StartIcon={Plus}
       data-testid={dataTestId}
       type="button"
       color="secondary"

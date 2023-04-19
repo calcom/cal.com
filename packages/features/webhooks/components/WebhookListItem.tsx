@@ -16,7 +16,7 @@ import {
   Switch,
   Tooltip,
 } from "@calcom/ui";
-import { FiAlertCircle, FiEdit, FiMoreHorizontal, FiTrash } from "@calcom/ui/components/icon";
+import { AlertCircle, Edit, MoreHorizontal, Trash } from "@calcom/ui/components/icon";
 
 type WebhookProps = {
   id: string;
@@ -30,6 +30,7 @@ type WebhookProps = {
 
 export default function WebhookListItem(props: {
   webhook: WebhookProps;
+  canEditWebhook?: boolean;
   onEditWebhook: () => void;
   lastItem: boolean;
 }) {
@@ -57,7 +58,11 @@ export default function WebhookListItem(props: {
   };
 
   return (
-    <div className={classNames("flex w-full justify-between p-4", props.lastItem ? "" : "border-b")}>
+    <div
+      className={classNames(
+        "flex w-full justify-between p-4",
+        props.lastItem ? "" : "border-subtle border-b"
+      )}>
       <div className="w-full truncate">
         <p className="text-emphasis truncate text-sm font-medium">{webhook.subscriberUrl}</p>
         <Tooltip content={t("triggers_when")}>
@@ -67,7 +72,7 @@ export default function WebhookListItem(props: {
                 key={trigger}
                 className="mt-2.5 basis-1/5 ltr:mr-2 rtl:ml-2"
                 variant="gray"
-                startIcon={FiAlertCircle}>
+                startIcon={AlertCircle}>
                 {t(`${trigger.toLowerCase()}`)}
               </Badge>
             ))}
@@ -77,6 +82,7 @@ export default function WebhookListItem(props: {
       <div className="ml-2 flex items-center space-x-4">
         <Switch
           defaultChecked={webhook.active}
+          disabled={!props.canEditWebhook}
           onCheckedChange={() =>
             toggleWebhook.mutate({
               id: webhook.id,
@@ -92,24 +98,24 @@ export default function WebhookListItem(props: {
         <Button
           className="hidden lg:flex"
           color="destructive"
-          StartIcon={FiTrash}
+          StartIcon={Trash}
           variant="icon"
           onClick={onDeleteWebhook}
         />
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button className="lg:hidden" StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
+            <Button className="lg:hidden" StartIcon={MoreHorizontal} variant="icon" color="secondary" />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem>
-              <DropdownItem StartIcon={FiEdit} color="secondary" onClick={props.onEditWebhook}>
+              <DropdownItem StartIcon={Edit} color="secondary" onClick={props.onEditWebhook}>
                 {t("edit")}
               </DropdownItem>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
 
             <DropdownMenuItem>
-              <DropdownItem StartIcon={FiTrash} color="destructive" onClick={onDeleteWebhook}>
+              <DropdownItem StartIcon={Trash} color="destructive" onClick={onDeleteWebhook}>
                 {t("delete")}
               </DropdownItem>
             </DropdownMenuItem>
