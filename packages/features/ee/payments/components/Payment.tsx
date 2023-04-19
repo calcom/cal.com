@@ -13,17 +13,13 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Checkbox } from "@calcom/ui";
 
-import type { EventType } from ".prisma/client";
-
 type Props = {
   payment: Omit<Payment, "id" | "fee" | "success" | "refunded" | "externalId" | "data"> & {
     data: StripePaymentData | StripeSetupIntentData;
   };
-  eventType: { id: number; successRedirectUrl: EventType["successRedirectUrl"] };
+  eventType: any;
   user: { username: string | null };
-  location?: string | null;
-  bookingId: number;
-  bookingUid: string;
+  booking: any;
 };
 
 type States =
@@ -53,7 +49,7 @@ const PaymentForm = (props: Props) => {
 
     let payload;
     const params: { [k: string]: any } = {
-      uid: props.bookingUid,
+      uid: props.booking.uid,
       email: router.query.email,
     };
     if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
@@ -61,7 +57,7 @@ const PaymentForm = (props: Props) => {
       payload = await stripe.confirmSetup({
         elements,
         confirmParams: {
-          return_url: `${CAL_URL}/booking/${props.bookingUid}`,
+          return_url: `${CAL_URL}/booking/${props.booking.uid}`,
         },
       });
     } else if (paymentOption === "ON_BOOKING") {
@@ -69,7 +65,7 @@ const PaymentForm = (props: Props) => {
       payload = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${CAL_URL}/booking/${props.bookingUid}`,
+          return_url: `${CAL_URL}/booking/${props.booking.uid}`,
         },
       });
     }
@@ -79,11 +75,11 @@ const PaymentForm = (props: Props) => {
         error: new Error(`Payment failed: ${payload.error.message}`),
       });
     } else {
-      if (props.location) {
-        if (props.location.includes("integration")) {
+      if (props.booking.location) {
+        if (props.booking.location.includes("integration")) {
           params.location = t("web_conferencing_details_to_follow");
         } else {
-          params.location = props.location;
+          params.location = props.booking.location;
         }
       }
 
@@ -91,7 +87,8 @@ const PaymentForm = (props: Props) => {
         router,
         successRedirectUrl: props.eventType.successRedirectUrl,
         query: params,
-        bookingUid: props.bookingUid,
+        booking: props.booking,
+        passExtraQueryParams: props.eventType.metadata?.passExtraParamsToRedirectUrl ?? false,
       });
     }
   };

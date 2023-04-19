@@ -49,7 +49,8 @@ import { timeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
-import { parseRecurringDates, parseDate } from "@lib/parseDate";
+import { parseDate, parseRecurringDates } from "@lib/parseDate";
+import type { BookingResponse } from "@lib/types/booking";
 
 import type { Gate, GateState } from "@components/Gates";
 import Gates from "@components/Gates";
@@ -268,36 +269,8 @@ const BookingPage = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const getBookingRedirectExtraParams = (booking: any) => {
-    if (!eventType.metadata?.passExtraParamsToRedirectUrl) {
-      return {};
-    }
-
-    const objectQueryParamKeys = ["customInputs", "responses", "metadata", "user", "attendees"];
-    const redirectQueryParamKeys = [
-      "title",
-      "description",
-      "startTime",
-      "endTime",
-      "location",
-      ...objectQueryParamKeys,
-    ];
-
-    const params: { [key: string]: string } = Object.keys(booking)
-      .filter((key) => redirectQueryParamKeys.includes(key))
-      .reduce((obj, key) => Object.assign(obj, { [key]: booking[key] }), {});
-
-    objectQueryParamKeys.forEach((param) => {
-      params[param] = JSON.stringify(params[param]);
-    });
-
-    return params;
-  };
-
   const mutation = useMutation(createBooking, {
-    onSuccess: async (responseData) => {
-      const { uid } = responseData;
-
+    onSuccess: async (responseData: BookingResponse) => {
       if ("paymentUid" in responseData && !!responseData.paymentUid) {
         return await router.push(
           createPaymentLink({
@@ -316,33 +289,34 @@ const BookingPage = ({
         eventTypeSlug: eventType.slug,
         seatReferenceUid: "seatReferenceUid" in responseData ? responseData.seatReferenceUid : null,
         ...(rescheduleUid && booking?.startTime && { formerTime: booking.startTime.toString() }),
-        ...getBookingRedirectExtraParams(responseData),
       };
 
       return bookingSuccessRedirect({
         router,
         successRedirectUrl: eventType.successRedirectUrl,
         query,
-        bookingUid: uid,
+        booking: responseData,
+        passExtraQueryParams: eventType.metadata?.passExtraParamsToRedirectUrl ?? false,
       });
     },
   });
 
   const recurringMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData = []) => {
-      const { uid } = responseData[0] || {};
+      const booking = responseData[0] || {};
       const query = {
         isSuccessBookingPage: true,
         allRemainingBookings: true,
         email: bookingForm.getValues("responses.email"),
         eventTypeSlug: eventType.slug,
-        formerTime: booking?.startTime.toString(),
+        formerTime: booking?.startTime?.toString(),
       };
       return bookingSuccessRedirect({
         router,
         successRedirectUrl: eventType.successRedirectUrl,
         query,
-        bookingUid: uid,
+        booking,
+        passExtraQueryParams: eventType.metadata?.passExtraParamsToRedirectUrl ?? false,
       });
     },
   });

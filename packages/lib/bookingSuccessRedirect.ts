@@ -1,21 +1,42 @@
 import type { NextRouter } from "next/router";
 
-import type { Booking, EventType } from ".prisma/client";
+import type { BookingResponse } from "@calcom/web/lib/types/booking";
+
+import type { EventType } from ".prisma/client";
+
+const getBookingRedirectExtraParams = (booking: BookingResponse) => {
+  type BookingResponseKey = keyof BookingResponse;
+  const redirectQueryParamKeys: BookingResponseKey[] = [
+    "title",
+    "description",
+    "startTime",
+    "endTime",
+    "location",
+  ];
+
+  return (Object.keys(booking) as BookingResponseKey[])
+    .filter((key) => redirectQueryParamKeys.includes(key))
+    .reduce((obj, key) => Object.assign(obj, { [key]: booking[key] }), {});
+};
 
 export const bookingSuccessRedirect = async ({
   successRedirectUrl,
-  bookingUid,
+  booking,
   query,
   router,
+  passExtraQueryParams,
 }: {
   successRedirectUrl: EventType["successRedirectUrl"];
-  bookingUid: Booking["uid"] | undefined;
+  booking: BookingResponse;
   query: Record<string, string | null | undefined | boolean>;
   router: NextRouter;
+  passExtraQueryParams: boolean;
 }) => {
   if (successRedirectUrl) {
     const url = new URL(successRedirectUrl);
-    Object.entries(query).forEach(([key, value]) => {
+    const extraParams = passExtraQueryParams ? getBookingRedirectExtraParams(booking) : {};
+    const queryWithExtraParams = { ...query, ...extraParams };
+    Object.entries(queryWithExtraParams).forEach(([key, value]) => {
       if (value === null || value === undefined) {
         return;
       }
@@ -26,7 +47,7 @@ export const bookingSuccessRedirect = async ({
     window.parent.location.href = url.toString();
   }
   return router.push({
-    pathname: `/booking/${bookingUid}`,
+    pathname: `/booking/${booking.uid}`,
     query,
   });
 };
