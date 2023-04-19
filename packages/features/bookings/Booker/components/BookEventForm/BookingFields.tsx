@@ -1,7 +1,7 @@
 import { useFormContext } from "react-hook-form";
 
 import type { LocationObject } from "@calcom/app-store/locations";
-import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
+import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import { FormBuilderField } from "@calcom/features/form-builder";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -78,24 +78,13 @@ export const BookingFields = ({
           }
           const optionsInputs = field.optionsInputs;
 
-          const options = locations.map((location) => {
-            const eventLocation = getEventLocationType(location.type);
-            const locationString = locationKeyToString(location);
-
-            if (typeof locationString !== "string" || !eventLocation) {
-              // It's possible that location app got uninstalled
-              return null;
-            }
-            const type = eventLocation.type;
-            const optionInput = optionsInputs[type as keyof typeof optionsInputs];
+          // TODO: Instead of `getLocationOptionsForSelect` options should be retrieved from dataStore[field.getOptionsAt]. It would make it agnostic of the `name` of the field.
+          const options = getLocationOptionsForSelect(locations, t);
+          options.forEach((option) => {
+            const optionInput = optionsInputs[option.value as keyof typeof optionsInputs];
             if (optionInput) {
-              optionInput.placeholder = t(eventLocation?.attendeeInputPlaceholder || "");
+              optionInput.placeholder = option.inputPlaceholder;
             }
-
-            return {
-              label: t(locationString),
-              value: type,
-            };
           });
 
           field.options = options.filter(
