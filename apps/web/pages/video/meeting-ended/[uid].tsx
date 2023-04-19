@@ -9,6 +9,8 @@ import { ArrowRight, Calendar, X } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import PageWrapper from "@components/PageWrapper";
+
 export default function MeetingUnavailable(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
 
@@ -61,6 +63,8 @@ export default function MeetingUnavailable(props: inferSSRProps<typeof getServer
     </div>
   );
 }
+
+MeetingUnavailable.PageWrapper = PageWrapper;
 
 export async function getServerSideProps(context: NextPageContext) {
   const booking = await prisma.booking.findUnique({

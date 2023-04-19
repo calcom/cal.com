@@ -7,6 +7,8 @@ import { SkeletonText } from "@calcom/ui";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
+import PageWrapper from "@components/PageWrapper";
+
 type User = RouterOutputs["viewer"]["me"];
 
 export interface IBusySlot {
@@ -126,6 +128,7 @@ export default function Troubleshoot() {
     </div>
   );
 }
+Troubleshoot.PageWrapper = PageWrapper;
 
 function convertMinsToHrsMins(mins: number) {
   const h = Math.floor(mins / 60);

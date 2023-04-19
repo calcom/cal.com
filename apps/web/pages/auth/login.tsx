@@ -26,6 +26,7 @@ import type { WithNonceProps } from "@lib/withNonce";
 import withNonce from "@lib/withNonce";
 
 import AddToHomescreen from "@components/AddToHomescreen";
+import PageWrapper from "@components/PageWrapper";
 import TwoFactor from "@components/auth/TwoFactor";
 import AuthContainer from "@components/ui/AuthContainer";
 
@@ -302,5 +303,6 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
 };
 
 Login.isThemeSupported = false;
+Login.PageWrapper = PageWrapper;
 
 export const getServerSideProps = withNonce(_getServerSideProps);
