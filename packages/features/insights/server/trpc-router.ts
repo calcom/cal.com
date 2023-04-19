@@ -126,6 +126,7 @@ export const insightsRouter = router({
               userId: {
                 in: userIdsFromTeam,
               },
+              teamId: null,
             },
           ],
         };
@@ -262,6 +263,7 @@ export const insightsRouter = router({
               userId: {
                 in: userIdsFromTeams,
               },
+              teamId: null,
             },
           ],
         };
@@ -372,7 +374,7 @@ export const insightsRouter = router({
         return [];
       }
 
-      let bookingWhere: Prisma.BookingWhereInput = {
+      let bookingWhere: Prisma.BookingTimeStatusWhereInput = {
         createdAt: {
           gte: dayjs(startDate).startOf("day").toDate(),
           lte: dayjs(endDate).endOf("day").toDate(),
@@ -393,14 +395,13 @@ export const insightsRouter = router({
           ...bookingWhere,
           OR: [
             {
-              eventType: {
-                teamId,
-              },
+              teamId,
             },
             {
               userId: {
                 in: userIdsFromTeams,
               },
+              teamId: null,
             },
           ],
         };
@@ -409,16 +410,14 @@ export const insightsRouter = router({
       if (userId) {
         bookingWhere.userId = userId;
         // Don't take bookings from any team
-        bookingWhere.eventType = {
-          teamId: null,
-        };
+        bookingWhere.teamId = null;
       }
 
       if (memberUserId) {
         bookingWhere.userId = memberUserId;
       }
 
-      const bookingsFromSelected = await ctx.prisma.booking.groupBy({
+      const bookingsFromSelected = await ctx.prisma.bookingTimeStatus.groupBy({
         by: ["eventTypeId"],
         where: bookingWhere,
         _count: {
@@ -567,6 +566,7 @@ export const insightsRouter = router({
               userId: {
                 in: userIdsFromTeams,
               },
+              teamId: null,
             },
           ],
         };
@@ -673,6 +673,7 @@ export const insightsRouter = router({
             userId: {
               in: userIdsFromTeams,
             },
+            teamId: null,
           },
         ];
       }
@@ -763,6 +764,7 @@ export const insightsRouter = router({
             userId: {
               in: userIdsFromTeams,
             },
+            teamId: null,
           },
         ];
       }
