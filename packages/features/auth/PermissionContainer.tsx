@@ -19,7 +19,8 @@ export const PermissionContainer: FC<AdminRequiredProps> = ({
   const session = useSession();
 
   // Admin can do everything
-  if (session.data?.user.role !== roleRequired || !UserPermissionRole.ADMIN) return null;
+  if (session.data?.user.role !== roleRequired && session.data?.user.role != UserPermissionRole.ADMIN)
+    return null;
   const Component = as ?? Fragment;
   return <Component {...rest}>{children}</Component>;
 };

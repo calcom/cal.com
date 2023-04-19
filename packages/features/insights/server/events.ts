@@ -11,10 +11,13 @@ interface ITimeRange {
 type TimeViewType = "week" | "month" | "year" | "day";
 
 class EventsInsights {
-  static getBookingsInTimeRange = async (timeRange: ITimeRange, where: Prisma.BookingWhereInput) => {
+  static getBookingsInTimeRange = async (
+    timeRange: ITimeRange,
+    where: Prisma.BookingTimeStatusWhereInput
+  ) => {
     const { start, end } = timeRange;
 
-    const events = await prisma.booking.count({
+    const events = await prisma.bookingTimeStatus.count({
       where: {
         ...where,
         createdAt: {
@@ -27,48 +30,56 @@ class EventsInsights {
     return events;
   };
 
-  static getCreatedEventsInTimeRange = async (timeRange: ITimeRange, where: Prisma.BookingWhereInput) => {
+  static getCreatedEventsInTimeRange = async (
+    timeRange: ITimeRange,
+    where: Prisma.BookingTimeStatusWhereInput
+  ) => {
     const result = await this.getBookingsInTimeRange(timeRange, where);
 
     return result;
   };
 
-  static getCancelledEventsInTimeRange = async (timeRange: ITimeRange, where: Prisma.BookingWhereInput) => {
+  static getCancelledEventsInTimeRange = async (
+    timeRange: ITimeRange,
+    where: Prisma.BookingTimeStatusWhereInput
+  ) => {
     const result = await this.getBookingsInTimeRange(timeRange, {
       ...where,
-      status: "CANCELLED",
+      timeStatus: "cancelled",
     });
 
     return result;
   };
 
-  static getCompletedEventsInTimeRange = async (timeRange: ITimeRange, where: Prisma.BookingWhereInput) => {
+  static getCompletedEventsInTimeRange = async (
+    timeRange: ITimeRange,
+    where: Prisma.BookingTimeStatusWhereInput
+  ) => {
     const result = await this.getBookingsInTimeRange(timeRange, {
       ...where,
-      status: "ACCEPTED",
-      endTime: {
-        lte: dayjs().toISOString(),
-      },
+      timeStatus: "completed",
     });
 
     return result;
   };
 
-  static getRescheduledEventsInTimeRange = async (timeRange: ITimeRange, where: Prisma.BookingWhereInput) => {
+  static getRescheduledEventsInTimeRange = async (
+    timeRange: ITimeRange,
+    where: Prisma.BookingTimeStatusWhereInput
+  ) => {
     const result = await this.getBookingsInTimeRange(timeRange, {
       ...where,
-      rescheduled: true,
+      timeStatus: "rescheduled",
     });
 
     return result;
   };
 
-  static getBaseBookingForEventStatus = async (where: Prisma.BookingWhereInput) => {
-    const baseBookings = await prisma.booking.findMany({
+  static getBaseBookingForEventStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
+    const baseBookings = await prisma.bookingTimeStatus.findMany({
       where,
       select: {
         id: true,
-        eventType: true,
       },
     });
 
@@ -76,23 +87,23 @@ class EventsInsights {
   };
 
   static getTotalRescheduledEvents = async (bookingIds: number[]) => {
-    return await prisma.booking.count({
+    return await prisma.bookingTimeStatus.count({
       where: {
         id: {
           in: bookingIds,
         },
-        rescheduled: true,
+        timeStatus: "rescheduled",
       },
     });
   };
 
   static getTotalCancelledEvents = async (bookingIds: number[]) => {
-    return await prisma.booking.count({
+    return await prisma.bookingTimeStatus.count({
       where: {
         id: {
           in: bookingIds,
         },
-        status: "CANCELLED",
+        timeStatus: "cancelled",
       },
     });
   };

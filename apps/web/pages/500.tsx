@@ -6,6 +6,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, showToast } from "@calcom/ui";
 import { Copy } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
+
 export default function Error500() {
   const { t } = useLocale();
   const router = useRouter();
@@ -52,3 +54,5 @@ export default function Error500() {
     </div>
   );
 }
+
+Error500.PageWrapper = PageWrapper;

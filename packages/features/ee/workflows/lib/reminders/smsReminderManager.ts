@@ -2,9 +2,11 @@ import type { TimeUnit } from "@prisma/client";
 import { WorkflowTriggerEvents, WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { CalEventResponses } from "@calcom/types/Calendar";
 
 import { getSenderId } from "../alphanumericSenderIdSupport";
 import * as twilio from "./smsProviders/twilioProvider";
@@ -17,6 +19,7 @@ export enum timeUnitLowerCase {
   MINUTE = "minute",
   YEAR = "year",
 }
+const log = logger.getChildLogger({ prefix: ["[smsReminderManager]"] });
 
 export type BookingInfo = {
   uid?: string | null;
@@ -26,13 +29,17 @@ export type BookingInfo = {
     name: string;
     email: string;
     timeZone: string;
+    username?: string;
+  };
+  eventType: {
+    slug?: string;
   };
   startTime: string;
   endTime: string;
   title: string;
   location?: string | null;
   additionalNotes?: string | null;
-  responses?: Prisma.JsonValue;
+  responses?: CalEventResponses | null;
   metadata?: Prisma.JsonValue;
 };
 
@@ -92,28 +99,31 @@ export const scheduleSMSReminder = async (
       ? evt.attendees[0].language?.locale
       : evt.organizer.language.locale;
 
-  switch (template) {
-    case WorkflowTemplates.REMINDER:
-      message = smsReminderTemplate(evt.startTime, evt.title, timeZone, attendeeName, name) || message;
-      break;
-    case WorkflowTemplates.CUSTOM:
-      const variables: VariablesType = {
-        eventName: evt.title,
-        organizerName: evt.organizer.name,
-        attendeeName: evt.attendees[0].name,
-        attendeeEmail: evt.attendees[0].email,
-        eventDate: dayjs(evt.startTime).tz(timeZone),
-        eventTime: dayjs(evt.startTime).tz(timeZone),
-        timeZone: timeZone,
-        location: evt.location,
-        additionalNotes: evt.additionalNotes,
-        responses: evt.responses,
-        meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
-      };
-      const customMessage = await customTemplate(message, variables, locale);
-      message = customMessage.text;
-      break;
+  if (message) {
+    const variables: VariablesType = {
+      eventName: evt.title,
+      organizerName: evt.organizer.name,
+      attendeeName: evt.attendees[0].name,
+      attendeeEmail: evt.attendees[0].email,
+      eventDate: dayjs(evt.startTime).tz(timeZone),
+      eventEndTime: dayjs(evt.endTime).tz(timeZone),
+      timeZone: timeZone,
+      location: evt.location,
+      additionalNotes: evt.additionalNotes,
+      responses: evt.responses,
+      meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
+      cancelLink: `/booking/${evt.uid}?cancel=true`,
+      rescheduleLink: `/${evt.organizer.username}/${evt.eventType.slug}?rescheduleUid=${evt.uid}`,
+    };
+    const customMessage = customTemplate(message, variables, locale);
+    message = customMessage.text;
+  } else if (template === WorkflowTemplates.REMINDER) {
+    message =
+      smsReminderTemplate(false, action, evt.startTime, evt.title, timeZone, attendeeName, name) || message;
   }
+
+  // Allows debugging generated email content without waiting for sendgrid to send emails
+  log.debug(`Sending sms for trigger ${triggerEvent}`, message);
 
   if (message.length > 0 && reminderPhone && isNumberVerified) {
     //send SMS when event is booked/cancelled/rescheduled
