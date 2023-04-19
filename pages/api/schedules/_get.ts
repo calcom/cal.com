@@ -30,11 +30,51 @@ export const schemaUserIds = z
  *     responses:
  *       200:
  *         description: OK
+ *         content:
+ *           application/json:
+ *             examples:
+ *               schedules:
+ *                 value:
+ *                   {
+ *                     "schedules": [
+ *                       {
+ *                         "id": 1234,
+ *                         "userId": 5678,
+ *                         "name": "Sample Schedule 1",
+ *                         "timeZone": "America/Chicago",
+ *                         "availability": [
+ *                           {
+ *                             "id": 987,
+ *                             "eventTypeId": null,
+ *                             "days": [1, 2, 3, 4, 5],
+ *                             "startTime": "09:00:00",
+ *                             "endTime": "23:00:00"
+ *                           }
+ *                         ]
+ *                       },
+ *                       {
+ *                         "id": 2345,
+ *                         "userId": 6789,
+ *                         "name": "Sample Schedule 2",
+ *                         "timeZone": "Europe/Amsterdam",
+ *                         "availability": [
+ *                           {
+ *                             "id": 876,
+ *                             "eventTypeId": null,
+ *                             "days": [1, 2, 3, 4, 5],
+ *                             "startTime": "09:00:00",
+ *                             "endTime": "17:00:00"
+ *                           }
+ *                         ]
+ *                       }
+ *                     ]
+ *                   }
  *       401:
  *        description: Authorization information is missing or invalid.
  *       404:
  *         description: No schedules were found
  */
+
 async function handler(req: NextApiRequest) {
   const { prisma, userId, isAdmin } = req;
   const args: Prisma.ScheduleFindManyArgs = isAdmin ? {} : { where: { userId } };

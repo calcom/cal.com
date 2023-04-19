@@ -29,24 +29,55 @@ import { schemaCreateScheduleBodyParams, schemaSchedulePublic } from "~/lib/vali
  *             type: object
  *             required:
  *               - name
- *               - timezone
+ *               - timeZone
  *             properties:
  *               name:
  *                 type: string
  *                 description: Name of the schedule
- *               timezone:
+ *               timeZone:
  *                 type: string
- *                 description: The timezone for this schedule
+ *                 description: The timeZone for this schedule
+ *           examples:
+ *             schedule:
+ *               value:
+ *                 {
+ *                   "name": "Sample Schedule",
+ *                   "timeZone": "Asia/Calcutta"
+ *                 }
  *     tags:
  *     - schedules
  *     responses:
- *       201:
+ *       200:
  *         description: OK, schedule created
+ *         content:
+ *           application/json:
+ *             examples:
+ *               schedule:
+ *                 value:
+ *                   {
+ *                     "schedule": {
+ *                       "id": 79471,
+ *                       "userId": 182,
+ *                       "name": "Total Testing",
+ *                       "timeZone": "Asia/Calcutta",
+ *                       "availability": [
+ *                         {
+ *                           "id": 337917,
+ *                           "eventTypeId": null,
+ *                           "days": [1, 2, 3, 4, 5],
+ *                           "startTime": "09:00:00",
+ *                           "endTime": "17:00:00"
+ *                         }
+ *                       ]
+ *                     },
+ *                     "message": "Schedule created successfully"
+ *                   }
  *       400:
  *        description: Bad request. Schedule body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  */
+
 async function postHandler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;
   const body = schemaCreateScheduleBodyParams.parse(req.body);

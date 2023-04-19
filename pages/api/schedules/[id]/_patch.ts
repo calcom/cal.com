@@ -27,7 +27,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *        required: true
  *        description: Your API Key
  *     requestBody:
- *       description: Create a new schedule
+ *       description: Edit an existing schedule
  *       required: true
  *       content:
  *         application/json:
@@ -37,19 +37,49 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *               name:
  *                 type: string
  *                 description: Name of the schedule
- *               timezone:
+ *               timeZone:
  *                 type: string
  *                 description: The timezone for this schedule
+ *           examples:
+ *             schedule:
+ *               value:
+ *                 {
+ *                   "name": "Updated Schedule",
+ *                   "timeZone": "Asia/Calcutta"
+ *                 }
  *     tags:
  *     - schedules
  *     responses:
- *       201:
+ *       200:
  *         description: OK, schedule edited successfully
+ *         content:
+ *           application/json:
+ *             examples:
+ *               schedule:
+ *                 value:
+ *                   {
+ *                     "schedule": {
+ *                       "id": 12345,
+ *                       "userId": 1,
+ *                       "name": "Total Testing Part 2",
+ *                       "timeZone": "Asia/Calcutta",
+ *                       "availability": [
+ *                         {
+ *                           "id": 4567,
+ *                           "eventTypeId": null,
+ *                           "days": [1, 2, 3, 4, 5],
+ *                           "startTime": "09:00:00",
+ *                           "endTime": "17:00:00"
+ *                         }
+ *                       ]
+ *                     }
+ *                   }
  *       400:
  *        description: Bad request. Schedule body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  */
+
 export async function patchHandler(req: NextApiRequest) {
   const { prisma, query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);

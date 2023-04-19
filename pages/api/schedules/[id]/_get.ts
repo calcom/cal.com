@@ -29,11 +29,48 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *     responses:
  *       200:
  *         description: OK
+ *         content:
+ *           application/json:
+ *             examples:
+ *               schedule:
+ *                 value:
+ *                   {
+ *                     "schedule": {
+ *                       "id": 12345,
+ *                       "userId": 182,
+ *                       "name": "Sample Schedule",
+ *                       "timeZone": "Asia/Calcutta",
+ *                       "availability": [
+ *                         {
+ *                           "id": 111,
+ *                           "eventTypeId": null,
+ *                           "days": [0, 1, 2, 3, 4, 6],
+ *                           "startTime": "00:00:00",
+ *                           "endTime": "23:45:00"
+ *                         },
+ *                         {
+ *                           "id": 112,
+ *                           "eventTypeId": null,
+ *                           "days": [5],
+ *                           "startTime": "00:00:00",
+ *                           "endTime": "12:00:00"
+ *                         },
+ *                         {
+ *                           "id": 113,
+ *                           "eventTypeId": null,
+ *                           "days": [5],
+ *                           "startTime": "15:00:00",
+ *                           "endTime": "23:45:00"
+ *                         }
+ *                       ]
+ *                     }
+ *                   }
  *       401:
  *        description: Authorization information is missing or invalid.
  *       404:
  *         description: Schedule was not found
  */
+
 export async function getHandler(req: NextApiRequest) {
   const { prisma, query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
