@@ -39,8 +39,8 @@ const BillingView = () => {
   const returnTo = router.asPath;
   const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
 
-  const onContactSupportClick = () => {
-    open();
+  const onContactSupportClick = async () => {
+    await open();
   };
 
   return (

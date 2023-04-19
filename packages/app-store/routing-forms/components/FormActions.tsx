@@ -352,13 +352,21 @@ type FormActionProps<T> = {
   action: FormActionType;
   children?: React.ReactNode;
   render?: (props: { routingForm: RoutingForm | null; className?: string; label?: string }) => JSX.Element;
+  extraClassNames?: string;
 } & ButtonProps;
 
 export const FormAction = forwardRef(function FormAction<T extends typeof Button>(
   props: FormActionProps<T>,
   forwardedRef: React.ForwardedRef<HTMLAnchorElement | HTMLButtonElement>
 ) {
-  const { action: actionName, routingForm, children, as: asFromElement, ...additionalProps } = props;
+  const {
+    action: actionName,
+    routingForm,
+    children,
+    as: asFromElement,
+    extraClassNames,
+    ...additionalProps
+  } = props;
   const { appUrl, _delete, toggle } = useContext(actionsCtx);
   const dropdownCtxValue = useContext(dropdownCtx);
   const dropdown = dropdownCtxValue?.dropdown;
@@ -419,11 +427,17 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
           return <></>;
         }
         return (
-          <div {...restProps} className="hover:bg-emphasis self-center rounded-md p-2">
+          <div
+            {...restProps}
+            className={classNames(
+              "sm:hover:bg-subtle self-center rounded-md p-2 hover:bg-gray-200",
+              extraClassNames
+            )}>
             <Switch
               checked={!routingForm.disabled}
               label={label}
               onCheckedChange={(checked) => toggle.onAction({ routingForm, checked })}
+              labelOnLeading
             />
           </div>
         );
