@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { UseMutationResult } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/router";
+import { useMemo } from "react";
 import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import type { TFunction } from "react-i18next";
@@ -26,6 +27,7 @@ import { Calendar } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";
 import { useEvent } from "../../utils/event";
+import { getQueryParam } from "../../utils/query-param";
 import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
 
@@ -70,44 +72,61 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const event = useEvent();
   const eventType = event.data;
 
-  const defaultValues = () => {
+  const defaultValues = useMemo(() => {
+    if (!eventType?.bookingFields) {
+      return {};
+    }
+
+    const defaultUserValues = {
+      email: rescheduleUid ? rescheduleBooking?.attendees[0].email : getQueryParam("email") || "",
+      name: rescheduleUid ? rescheduleBooking?.attendees[0].name : getQueryParam("name") || "",
+    };
+
+    if (!isRescheduling) {
+      const defaults = {
+        responses: {} as Partial<z.infer<typeof bookingFormSchema>["responses"]>,
+      };
+
+      const responses = eventType.bookingFields.reduce((responses, field) => {
+        return {
+          ...responses,
+          [field.name]: getQueryParam(field.name) || undefined,
+        };
+      }, {});
+      defaults.responses = {
+        ...responses,
+        name: defaultUserValues.name,
+        email: defaultUserValues.email,
+      };
+
+      return defaults;
+    }
+
+    if (!rescheduleBooking || !rescheduleBooking.attendees.length) {
+      return {};
+    }
+    const primaryAttendee = rescheduleBooking.attendees[0];
+    if (!primaryAttendee) {
+      return {};
+    }
+
     const defaults = {
       responses: {} as Partial<z.infer<typeof bookingFormSchema>["responses"]>,
     };
 
-    if (!isRescheduling) {
-      defaults.responses = {
-        ...(event.data?.bookingFields || {}),
-        name: "",
-        email: "",
-      };
-      return defaults;
-    }
-
-    if (!rescheduleBooking || !rescheduleBooking.attendees.length) return {};
-
-    const primaryAttendee = rescheduleBooking.attendees[0];
-    if (!primaryAttendee) return {};
-
-    const responses = eventType?.bookingFields.reduce((responses, field) => {
+    const responses = eventType.bookingFields.reduce((responses, field) => {
       return {
         ...responses,
         [field.name]: rescheduleBooking.responses[field.name],
       };
     }, {});
-
-    const defaultUserValues = {
-      email: isRescheduling ? rescheduleBooking?.attendees[0].email : "",
-      name: isRescheduling ? rescheduleBooking?.attendees[0].name : "",
-    };
-
     defaults.responses = {
       ...responses,
-      name: defaultUserValues.name || "",
-      email: defaultUserValues.email || "",
+      name: defaultUserValues.name,
+      email: defaultUserValues.email,
     };
     return defaults;
-  };
+  }, [eventType?.bookingFields, isRescheduling, rescheduleBooking, rescheduleUid]);
 
   const bookingFormSchema = z
     .object({
@@ -130,7 +149,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   };
 
   const bookingForm = useForm<BookingFormValues>({
-    defaultValues: defaultValues(),
+    defaultValues,
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
 
