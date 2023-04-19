@@ -90,27 +90,82 @@ import { defaultResponder } from "@calcom/lib/server";
  *               smsReminderNumber:
  *                 type: number
  *                 description: 'SMS reminder number'
- *            examples:
- *              New Booking example:
- *                value:
- *                  {
- *                     "eventTypeId": 1,
- *                     "start": "2023-05-01T14:00:00Z",
- *                     "end": "2023-05-01T15:00:00Z",
- *                     "name": "John Doe",
- *                     "email": "john.doe@example.com",
- *                     "timeZone": "America/New_York",
- *                     "language": "en-US",
- *                     "metadata": {},
- *                     "customInputs": [],
- *                     "location": "Conference Room A"
- *                  }
+ *           examples:
+ *             New Booking example:
+ *               value:
+ *                 {
+ *                   "eventTypeId": 2323232,
+ *                   "start": "2023-05-24T13:00:00.000Z",
+ *                   "end": "2023-05-24T13:30:00.000Z",
+ *                   "name": "Hello Hello",
+ *                   "email": "hello@gmail.com",
+ *                   "timeZone": "Europe/London",
+ *                   "language": "en",
+ *                   "metadata": {},
+ *                   "customInputs": [],
+ *                   "location": "Calcom HQ",
+ *                   "title": "Debugging between Syed Ali Shahbaz and Hello Hello",
+ *                   "description": null,
+ *                   "status": "PENDING",
+ *                   "smsReminderNumber": null
+ *                 }
  *
  *     tags:
  *       - bookings
  *     responses:
- *       201:
+ *       200:
  *         description: Booking(s) created successfully.
+ *         content:
+ *           application/json:
+ *             examples:
+ *               bookings:
+ *                 value:
+ *                   {
+ *                     "id": 11223344,
+ *                     "uid": "5yUjmAYTDF6MXo98re8SkX",
+ *                     "userId": 123,
+ *                     "eventTypeId": 2323232,
+ *                     "title": "Debugging between Syed Ali Shahbaz and Hello Hello",
+ *                     "description": null,
+ *                     "customInputs": {},
+ *                     "responses": null,
+ *                     "startTime": "2023-05-24T13:00:00.000Z",
+ *                     "endTime": "2023-05-24T13:30:00.000Z",
+ *                     "location": "Calcom HQ",
+ *                     "createdAt": "2023-04-19T10:17:58.580Z",
+ *                     "updatedAt": null,
+ *                     "status": "PENDING",
+ *                     "paid": false,
+ *                     "destinationCalendarId": 2180,
+ *                     "cancellationReason": null,
+ *                     "rejectionReason": null,
+ *                     "dynamicEventSlugRef": null,
+ *                     "dynamicGroupSlugRef": null,
+ *                     "rescheduled": null,
+ *                     "fromReschedule": null,
+ *                     "recurringEventId": null,
+ *                     "smsReminderNumber": null,
+ *                     "scheduledJobs": [],
+ *                     "metadata": {},
+ *                     "isRecorded": false,
+ *                     "user": {
+ *                       "email": "test@cal.com",
+ *                       "name": "Syed Ali Shahbaz",
+ *                       "timeZone": "Asia/Calcutta"
+ *                     },
+ *                     "attendees": [
+ *                       {
+ *                         "id": 12345,
+ *                         "email": "hello@gmail.com",
+ *                         "name": "Hello Hello",
+ *                         "timeZone": "Europe/London",
+ *                         "locale": "en",
+ *                         "bookingId": 11223344
+ *                       }
+ *                     ],
+ *                     "payment": [],
+ *                     "references": []
+ *                   }
  *       400:
  *         description: |
  *           Bad request

@@ -35,6 +35,15 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *               status:
  *                 type: string
  *                 description: 'Acceptable values one of ["ACCEPTED", "PENDING", "CANCELLED", "REJECTED"]'
+ *           examples:
+ *             editBooking:
+ *               value:
+ *                 {
+ *                   "title": "Debugging between Syed Ali Shahbaz and Hello Hello",
+ *                   "start": "2023-05-24T13:00:00.000Z",
+ *                   "end": "2023-05-24T13:30:00.000Z",
+ *                   "status": "CANCELLED"
+ *                 }
  *
  *     parameters:
  *      - in: query
@@ -52,8 +61,27 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *     tags:
  *     - bookings
  *     responses:
- *       201:
+ *       200:
  *         description: OK, booking edited successfully
+ *         content:
+ *           application/json:
+ *             examples:
+ *               bookings:
+ *                 value:
+ *                   {
+ *                     "booking": {
+ *                       "id": 11223344,
+ *                       "userId": 182,
+ *                       "description": null,
+ *                       "eventTypeId": 2323232,
+ *                       "uid": "stoSJtnh83PEL4rZmqdHe2",
+ *                       "title": "Debugging between Syed Ali Shahbaz and Hello Hello",
+ *                       "startTime": "2023-05-24T13:00:00.000Z",
+ *                       "endTime": "2023-05-24T13:30:00.000Z",
+ *                       "metadata": {},
+ *                       "status": "CANCELLED"
+ *                     }
+ *                   }
  *       400:
  *        description: Bad request. Booking body is invalid.
  *       401:
