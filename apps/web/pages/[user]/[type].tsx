@@ -12,6 +12,7 @@ import { isBrandingHidden } from "@lib/isBrandingHidden";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
+import PageWrapper from "@components/PageWrapper";
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
 export type AvailabilityPageProps = inferSSRProps<typeof getStaticProps> & EmbedProps;
@@ -53,6 +54,9 @@ export default function Type(props: AvailabilityPageProps) {
     <AvailabilityPage {...props} />
   );
 }
+
+Type.isBookingPage = true;
+Type.PageWrapper = PageWrapper;
 
 const paramsSchema = z.object({ type: z.string(), user: z.string() });
 async function getUserPageProps(context: GetStaticPropsContext) {

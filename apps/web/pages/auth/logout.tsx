@@ -10,6 +10,7 @@ import { Check } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -51,7 +52,7 @@ export function Logout(props: Props) {
 }
 
 Logout.isThemeSupported = false;
-
+Logout.PageWrapper = PageWrapper;
 export default Logout;
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {

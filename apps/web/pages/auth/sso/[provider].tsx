@@ -19,6 +19,8 @@ import prisma from "@calcom/prisma";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import PageWrapper from "@components/PageWrapper";
+
 import { ssrInit } from "@server/lib/ssr";
 
 export type SSOProviderPageProps = inferSSRProps<typeof getServerSideProps>;
@@ -48,6 +50,8 @@ export default function Provider(props: SSOProviderPageProps) {
   }, []);
   return null;
 }
+
+Provider.PageWrapper = PageWrapper;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   // get query params and typecast them to string
