@@ -8,20 +8,14 @@ export const metadata = {
   installed: true,
   type: "zoho_calendar",
   title: "Zoho Calendar",
-  imageSrc: "/api/app-store/zohocalendar/icon.svg",
   variant: "calendar",
   category: "calendar",
   categories: ["calendar"],
-  logo: "/api/app-store/zohocalendar/icon.svg",
+  logo: "icon.svg",
   publisher: "Cal.com",
-  rating: 5,
-  reviews: 69,
   slug: "zoho-calendar",
-  trending: false,
   url: "https://cal.com/",
-  verified: true,
   email: "help@cal.com",
-  dirName: "zohocalendar",
 } as AppMeta;
 
 export default metadata;
