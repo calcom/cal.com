@@ -18,7 +18,6 @@ CREATE OR REPLACE VIEW public."BookingTimeStatus"
     "Booking".rescheduled,
     "Booking"."userId",
     "et"."teamId",
-	"mb"."userId" as "userTeamId",
 	"et"."length" as "eventLength",
         CASE
             WHEN "Booking".rescheduled IS TRUE THEN 'rescheduled'::text
