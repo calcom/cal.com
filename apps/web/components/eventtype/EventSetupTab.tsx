@@ -12,6 +12,7 @@ import { z } from "zod";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import cx from "@calcom/lib/classNames";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -277,7 +278,13 @@ export const EventSetupTab = (
                     <div className="flex items-center">
                       <img
                         src={eventLocationType.iconUrl}
-                        className="h-4 w-4"
+                        className={cx(
+                          "h-4 w-4",
+                          // invert all the icons except app icons
+                          eventLocationType.iconUrl &&
+                            !eventLocationType.iconUrl.startsWith("/api") &&
+                            "dark:invert"
+                        )}
                         alt={`${eventLocationType.label} logo`}
                       />
                       <span className="line-clamp-1 ms-1 text-sm">{eventLabel}</span>
