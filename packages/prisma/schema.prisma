@@ -236,6 +236,7 @@ model Team {
   slug                String?          @unique
   logo                String?
   appLogo             String?
+  appIconLogo         String?
   bio                 String?
   hideBranding        Boolean          @default(false)
   hideBookATeamMember Boolean          @default(false)
