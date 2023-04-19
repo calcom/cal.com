@@ -56,7 +56,11 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
   const linkSettingsFormMethods = useForm<LinkSettingsForm>();
 
   const handleSubmit = (values: LinkSettingsForm) => {
-    setInviteExpirationMutation.mutate({ code: props.code, expireInDays: values.expireInDays });
+    setInviteExpirationMutation.mutate({
+      teamId: props.teamId,
+      code: props.code,
+      expireInDays: values.expireInDays,
+    });
   };
 
   return (
@@ -89,7 +93,7 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
             <Button
               type="button"
               color="secondary"
-              onClick={() => deactivateInviteMutation.mutate({ code: props.code })}
+              onClick={() => deactivateInviteMutation.mutate({ teamId: props.teamId, code: props.code })}
               className="mr-auto"
               data-testid="copy-invite-link-button">
               {t("deactivate")}

@@ -26,7 +26,7 @@ export function TeamsListing() {
     },
   });
 
-  const { mutate: addMemberByLink } = trpc.viewer.teams.addMemberByLink.useMutation({
+  const { mutate: inviteMemberByCode } = trpc.viewer.teams.inviteMemberByCode.useMutation({
     onSuccess: (teamName) => {
       trpcContext.viewer.teams.list.invalidate();
       showToast(t("team_invite_received", { teamName }), "success");
@@ -77,9 +77,9 @@ export function TeamsListing() {
 
   useEffect(() => {
     if (!router) return;
-    if (router.query.code) addMemberByLink({ code: router.query.code as string });
+    if (router.query.code) inviteMemberByCode({ code: router.query.code as string });
     else setInviteCodeChecked(true);
-  }, [router, addMemberByLink, setInviteCodeChecked]);
+  }, [router, inviteMemberByCode, setInviteCodeChecked]);
 
   if (isLoading || !inviteCodeChecked) {
     return <SkeletonLoaderTeamList />;

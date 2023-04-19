@@ -748,6 +748,9 @@ export const viewerTeamsRouter = router({
     .output(z.string())
     .mutation(async ({ ctx, input }) => {
       const { teamId } = input;
+
+      if (!(await isTeamAdmin(ctx.user.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+
       const code = randomBytes(32).toString("hex");
       await ctx.prisma.invite.create({
         data: {
@@ -760,12 +763,15 @@ export const viewerTeamsRouter = router({
   setInviteExpiration: authedProcedure
     .input(
       z.object({
+        teamId: z.number(),
         code: z.string(),
         expireInDays: z.number().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { code, expireInDays } = input;
+      const { teamId, code, expireInDays } = input;
+
+      if (!(await isTeamAdmin(ctx.user.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
       const oneDay = 24 * 60 * 60 * 1000;
       const expiresAt = expireInDays ? new Date(Date.now() + expireInDays * oneDay) : null;
@@ -781,14 +787,18 @@ export const viewerTeamsRouter = router({
   deactivateInvite: authedProcedure
     .input(
       z.object({
+        teamId: z.number(),
         code: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { code } = input;
+      const { teamId, code } = input;
+
+      if (!(await isTeamAdmin(ctx.user.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+
       await ctx.prisma.invite.delete({ where: { code } });
     }),
-  addMemberByLink: authedProcedure
+  inviteMemberByCode: authedProcedure
     .input(
       z.object({
         code: z.string(),
