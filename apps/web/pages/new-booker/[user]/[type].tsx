@@ -4,9 +4,8 @@ import { z } from "zod";
 import { Booker } from "@calcom/atoms";
 import getBooking from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
-import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
-import prisma, { bookEventTypeSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -51,7 +50,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBookingDetails(`${rescheduleUid}`, slug);
+    booking = await getBookingDetails(`${rescheduleUid}`);
   }
 
   return {
@@ -87,7 +86,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBookingDetails(`${rescheduleUid}`, slug);
+    booking = await getBookingDetails(`${rescheduleUid}`);
   }
 
   return {
@@ -112,28 +111,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return isDynamicGroup ? await getDynamicGroupPageProps(context) : await getUserPageProps(context);
 };
 
-const getBookingDetails = async (uid: string, slug: string) => {
-  const booking = await prisma.booking.findFirst({
-    where: {
-      uid,
-    },
-    select: {
-      eventTypeId: true,
-    },
-  });
-
-  const eventTypeRaw = !booking?.eventTypeId
-    ? getDefaultEvent(slug || "")
-    : await prisma.eventType.findUnique({
-        where: {
-          id: booking.eventTypeId,
-        },
-        select: {
-          ...bookEventTypeSelect,
-        },
-      });
-
-  if (!booking || !eventTypeRaw) return null;
-
+const getBookingDetails = async (uid: string) => {
   return await getBooking(prisma, uid);
 };
