@@ -119,8 +119,9 @@ export async function getUserAvailability(
   const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer, beforeEventBuffer, duration } =
     availabilitySchema.parse(query);
 
-  if (!dateFrom.isValid() || !dateTo.isValid())
+  if (!dateFrom.isValid() || !dateTo.isValid()) {
     throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
+  }
 
   const where: Prisma.UserWhereUniqueInput = {};
   if (username) where.username = username;
@@ -148,6 +149,7 @@ export async function getUserAvailability(
     username: `${user.username}`,
     beforeEventBuffer,
     afterEventBuffer,
+    selectedCalendars: user.selectedCalendars,
   });
 
   let bufferedBusyTimes: EventBusyDetails[] = busyTimes.map((a) => ({
@@ -196,7 +198,7 @@ export async function getUserAvailability(
 
   const startGetWorkingHours = performance.now();
 
-  const timeZone = schedule.timeZone || eventType?.timeZone || user.timeZone;
+  const timeZone = schedule?.timeZone || eventType?.timeZone || user.timeZone;
 
   const availability = (
     schedule.availability || (eventType?.availability.length ? eventType.availability : user.availability)

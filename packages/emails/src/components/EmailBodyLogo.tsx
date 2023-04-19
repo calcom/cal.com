@@ -1,4 +1,4 @@
-import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import RawHtml from "./RawHtml";
 import Row from "./Row";
@@ -6,9 +6,7 @@ import Row from "./Row";
 const CommentIE = ({ html = "" }) => <RawHtml html={`<!--[if mso | IE]>${html}<![endif]-->`} />;
 
 const EmailBodyLogo = () => {
-  const image = IS_PRODUCTION
-    ? WEBAPP_URL + "/emails/CalLogo@2x.png"
-    : "https://app.cal.com/emails/CalLogo@2x.png";
+  const image = WEBAPP_URL + "/emails/logo.png";
 
   return (
     <>

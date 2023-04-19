@@ -1,10 +1,13 @@
+import { SchedulingType } from "@prisma/client";
 import { Webhook as TbWebhook } from "lucide-react";
 import type { TFunction } from "next-i18next";
+import { Trans } from "next-i18next";
 import { useRouter } from "next/router";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
+import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -48,6 +51,7 @@ import {
 } from "@calcom/ui/components/icon";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
+import type { AvailabilityOption } from "@components/eventtype/EventAvailabilityTab";
 
 type Props = {
   children: React.ReactNode;
@@ -60,6 +64,7 @@ type Props = {
   enabledWorkflowsNumber: number;
   formMethods: UseFormReturn<FormValues>;
   isUpdateMutationLoading?: boolean;
+  availability?: AvailabilityOption;
 };
 
 function getNavigation(props: {
@@ -68,8 +73,10 @@ function getNavigation(props: {
   enabledAppsNumber: number;
   enabledWorkflowsNumber: number;
   installedAppsNumber: number;
+  availability: AvailabilityOption | undefined;
 }) {
-  const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber } = props;
+  const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber, availability } =
+    props;
   const duration =
     eventType.metadata?.multipleDuration?.map((duration) => ` ${duration}`) || eventType.length;
 
@@ -79,12 +86,6 @@ function getNavigation(props: {
       href: `/event-types/${eventType.id}?tabName=setup`,
       icon: LinkIcon,
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
-    },
-    {
-      name: "availability",
-      href: `/event-types/${eventType.id}?tabName=availability`,
-      icon: Calendar,
-      info: `default_schedule_name`, // TODO: Get this from props
     },
     {
       name: "event_limit_tab_title",
@@ -131,13 +132,17 @@ function EventTypeSingleLayout({
   enabledWorkflowsNumber,
   isUpdateMutationLoading,
   formMethods,
+  availability,
 }: Props) {
   const utils = trpc.useContext();
   const { t } = useLocale();
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const hasPermsToDelete = currentUserMembership?.role !== "MEMBER" || !currentUserMembership;
+  const hasPermsToDelete =
+    currentUserMembership?.role !== "MEMBER" ||
+    !currentUserMembership ||
+    eventType.schedulingType === SchedulingType.MANAGED;
 
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
     onSuccess: async () => {
@@ -157,14 +162,38 @@ function EventTypeSingleLayout({
     },
   });
 
+  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
+    eventType,
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
+  );
+
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
-    const navigation = getNavigation({
+    let navigation = getNavigation({
       t,
       eventType,
       enabledAppsNumber,
       installedAppsNumber,
       enabledWorkflowsNumber,
+      availability,
+    });
+    navigation.splice(1, 0, {
+      name: "availability",
+      href: `/event-types/${eventType.id}?tabName=availability`,
+      icon: Calendar,
+      info:
+        isManagedEventType || isChildrenManagedEventType
+          ? eventType.schedule === null
+            ? "Member's default schedule"
+            : isChildrenManagedEventType
+            ? `${
+                eventType.scheduleName
+                  ? `${eventType.scheduleName} - ${t("managed")}`
+                  : `default_schedule_name`
+              }`
+            : eventType.scheduleName ?? `default_schedule_name`
+          : `default_schedule_name`,
     });
     // If there is a team put this navigation item within the tabs
     if (team) {
@@ -172,8 +201,17 @@ function EventTypeSingleLayout({
         name: "assignment",
         href: `/event-types/${eventType.id}?tabName=team`,
         icon: Users,
-        info: eventType.schedulingType === "COLLECTIVE" ? "collective" : "round_robin",
+        info: `${t(eventType.schedulingType?.toLowerCase() ?? "")}${
+          isManagedEventType
+            ? ` - ${t("count_members", { count: formMethods.watch("children").length || 0 })}`
+            : ""
+        }`,
       });
+    }
+    if (isManagedEventType || isChildrenManagedEventType) {
+      // Removing apps and workflows for manageg event types by admins v1
+      navigation = navigation.slice(0, -2);
+    } else {
       navigation.push({
         name: "webhooks",
         href: `/event-types/${eventType.id}?tabName=webhooks`,
@@ -182,13 +220,14 @@ function EventTypeSingleLayout({
       });
     }
     return navigation;
-  }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team]);
+  }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team, availability]);
 
   const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
     eventType.slug
   }`;
 
   const embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
+  const isManagedEvent = eventType.schedulingType === SchedulingType.MANAGED ? "_managed" : "";
 
   return (
     <Shell
@@ -197,63 +236,73 @@ function EventTypeSingleLayout({
       heading={eventType.title}
       CTA={
         <div className="flex items-center justify-end">
-          <div className="sm:hover:bg-subtle hidden items-center rounded-md px-2 lg:flex">
-            <Skeleton
-              as={Label}
-              htmlFor="hiddenSwitch"
-              className="mt-2 hidden cursor-pointer self-center whitespace-nowrap pr-2 sm:inline">
-              {t("hide_from_profile")}
-            </Skeleton>
-            <Switch
-              id="hiddenSwitch"
-              checked={formMethods.watch("hidden")}
-              onCheckedChange={(e) => {
-                formMethods.setValue("hidden", e);
-              }}
-            />
-          </div>
-          <VerticalDivider className="hidden lg:block" />
+          {!eventType.metadata.managedEventConfig && (
+            <>
+              <div className="sm:hover:bg-subtle hidden items-center rounded-md px-2 lg:flex">
+                <Skeleton
+                  as={Label}
+                  htmlFor="hiddenSwitch"
+                  className="mt-2 hidden cursor-pointer self-center whitespace-nowrap pr-2 sm:inline">
+                  {t("hide_from_profile")}
+                </Skeleton>
+                <Switch
+                  id="hiddenSwitch"
+                  checked={formMethods.watch("hidden")}
+                  onCheckedChange={(e) => {
+                    formMethods.setValue("hidden", e);
+                  }}
+                />
+              </div>
+              <VerticalDivider className="hidden lg:block" />
+            </>
+          )}
 
           {/* TODO: Figure out why combined isnt working - works in storybook */}
           <ButtonGroup combined containerProps={{ className: "border-default hidden lg:flex" }}>
-            {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
-            <Tooltip content={t("preview")}>
-              <Button
-                color="secondary"
-                data-testid="preview-button"
-                target="_blank"
-                variant="icon"
-                href={permalink}
-                rel="noreferrer"
-                StartIcon={ExternalLink}
-              />
-            </Tooltip>
+            {!isManagedEventType && (
+              <>
+                {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
+                <Tooltip content={t("preview")}>
+                  <Button
+                    color="secondary"
+                    data-testid="preview-button"
+                    target="_blank"
+                    variant="icon"
+                    href={permalink}
+                    rel="noreferrer"
+                    StartIcon={ExternalLink}
+                  />
+                </Tooltip>
 
-            <Button
-              color="secondary"
-              variant="icon"
-              StartIcon={LinkIcon}
-              tooltip={t("copy_link")}
-              onClick={() => {
-                navigator.clipboard.writeText(permalink);
-                showToast("Link copied!", "success");
-              }}
-            />
-            <EmbedButton
-              embedUrl={encodeURIComponent(embedLink)}
-              StartIcon={Code}
-              color="secondary"
-              variant="icon"
-              tooltip={t("embed")}
-            />
-            <Button
-              color="destructive"
-              variant="icon"
-              StartIcon={Trash}
-              tooltip={t("delete")}
-              disabled={!hasPermsToDelete}
-              onClick={() => setDeleteDialogOpen(true)}
-            />
+                <Button
+                  color="secondary"
+                  variant="icon"
+                  StartIcon={LinkIcon}
+                  tooltip={t("copy_link")}
+                  onClick={() => {
+                    navigator.clipboard.writeText(permalink);
+                    showToast("Link copied!", "success");
+                  }}
+                />
+                <EmbedButton
+                  embedUrl={encodeURIComponent(embedLink)}
+                  StartIcon={Code}
+                  color="secondary"
+                  variant="icon"
+                  tooltip={t("embed")}
+                />
+              </>
+            )}
+            {!isChildrenManagedEventType && (
+              <Button
+                color="destructive"
+                variant="icon"
+                StartIcon={Trash}
+                tooltip={t("delete")}
+                disabled={!hasPermsToDelete}
+                onClick={() => setDeleteDialogOpen(true)}
+              />
+            )}
           </ButtonGroup>
 
           <VerticalDivider className="hidden lg:block" />
@@ -331,6 +380,8 @@ function EventTypeSingleLayout({
               tabs={EventTypeTabs}
               sticky
               linkProps={{ shallow: true }}
+              itemClassname="items-start"
+              iconClassName="md:mt-px"
             />
           </div>
           <div className="p-2 md:mx-0 md:p-0 xl:hidden">
@@ -351,14 +402,25 @@ function EventTypeSingleLayout({
         <ConfirmationDialogContent
           isLoading={deleteMutation.isLoading}
           variety="danger"
-          title={t("delete_event_type")}
-          confirmBtnText={t("confirm_delete_event_type")}
-          loadingText={t("confirm_delete_event_type")}
+          title={t(`delete${isManagedEvent}_event_type`)}
+          confirmBtnText={t(`confirm_delete_event_type`)}
+          loadingText={t(`confirm_delete_event_type`)}
           onConfirm={(e) => {
             e.preventDefault();
             deleteMutation.mutate({ id: eventType.id });
           }}>
-          {t("delete_event_type_description")}
+          <p className="mt-5">
+            <Trans
+              i18nKey={`delete${isManagedEvent}_event_type_description`}
+              components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
+              <ul>
+                <li>Members assigned to this event type will also have their event types deleted.</li>
+                <li>
+                  Anyone who they&apos;ve shared their link with will no longer be able to book using it.
+                </li>
+              </ul>
+            </Trans>
+          </p>
         </ConfirmationDialogContent>
       </Dialog>
       <EmbedDialog />
