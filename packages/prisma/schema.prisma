@@ -248,10 +248,10 @@ model Team {
   brandColor          String           @default("#292929")
   darkBrandColor      String           @default("#fafafa")
   verifiedNumbers     VerifiedNumber[]
-  invite              Invite?
+  invite              TeamInvite?
 }
 
-model Invite {
+model TeamInvite {
   code         String    @id @default(uuid())
   expiresAt    DateTime?
   expireInDays Int?
