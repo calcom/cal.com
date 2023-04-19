@@ -19,13 +19,14 @@ const Switch = (
     fitToHeight?: boolean;
     disabled?: boolean;
     tooltip?: string;
+    labelOnLeading?: boolean;
     classNames?: {
       container?: string;
       thumb?: string;
     };
   }
 ) => {
-  const { label, fitToHeight, classNames, ...primitiveProps } = props;
+  const { label, fitToHeight, classNames, labelOnLeading, ...primitiveProps } = props;
   const id = useId();
   const isChecked = props.checked || props.defaultChecked;
   return (
@@ -34,6 +35,7 @@ const Switch = (
         className={cx(
           "flex h-auto w-auto flex-row items-center",
           fitToHeight && "h-fit",
+          labelOnLeading && "flex-row-reverse",
           classNames?.container
         )}>
         <PrimitiveSwitch.Root
@@ -58,7 +60,8 @@ const Switch = (
             htmlFor={id}
             className={cx(
               "text-emphasis ms-2 align-text-top text-sm font-medium",
-              primitiveProps.disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer "
+              primitiveProps.disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer",
+              labelOnLeading && "flex-1"
             )}>
             {label}
           </Label.Root>
