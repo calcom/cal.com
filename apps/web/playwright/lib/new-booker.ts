@@ -1,5 +1,7 @@
 import { test } from "./fixtures";
 
+export type BookerVariants = "new-booker" | "old-booker";
+
 const bookerVariants = ["new-booker", "old-booker"];
 
 /**
@@ -14,7 +16,7 @@ const bookerVariants = ["new-booker", "old-booker"];
  * See apps/web/playwright/booking-pages.e2e.ts for an example.
  */
 export const testBothBookers = {
-  describe: (testName: string, testFn: (bookerVariant: string) => void) => {
+  describe: (testName: string, testFn: (bookerVariant: BookerVariants) => void) => {
     bookerVariants.forEach((bookerVariant) => {
       test.describe(`${testName} -- ${bookerVariant}`, () => {
         if (bookerVariant === "new-booker") {
@@ -22,7 +24,7 @@ export const testBothBookers = {
             context.addCookies([{ name: "new-booker-enabled", value: "true", url: "http://localhost:3000" }]);
           });
         }
-        testFn(bookerVariant);
+        testFn(bookerVariant as BookerVariants);
       });
     });
   },
