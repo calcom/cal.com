@@ -4063,6 +4063,7 @@ __metadata:
     eslint-plugin-playwright: ^0.12.0
     eslint-plugin-prettier: ^4.2.1
     eslint-plugin-unused-imports: ^2.0.0
+    eslint-plugin-you-dont-need-lodash-underscore: ^6.12.0
     prettier: ^2.8.6
     prettier-plugin-tailwindcss: ^0.2.5
     tailwind-scrollbar: ^2.0.1
@@ -20566,6 +20567,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eslint-plugin-you-dont-need-lodash-underscore@npm:^6.12.0":
+  version: 6.12.0
+  resolution: "eslint-plugin-you-dont-need-lodash-underscore@npm:6.12.0"
+  dependencies:
+    kebab-case: ^1.0.0
+  checksum: 9371cfa3c524f9b7c27de0ea3f8232ea60812e80a1f9ec99be3e7caaec22db44ce69f26db067e7ea1f2ca60f2b29f371c773e8f9913caae878fa3f45b4ada0e8
+  languageName: node
+  linkType: hard
+
 "eslint-rule-composer@npm:^0.3.0":
   version: 0.3.0
   resolution: "eslint-rule-composer@npm:0.3.0"
@@ -26580,6 +26590,13 @@ __metadata:
     react: ^16.0.0 || ^17.0.0 || ^18.0.0
     react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0
   checksum: 62534a24789bec899432503debf88056b8f66e742c9dab0ecb6a0615f89acfdd14a14a4da5c5d6db77ed81d84d6634dbe82aa948470b166f6819aac551ed63c4
+  languageName: node
+  linkType: hard
+
+"kebab-case@npm:^1.0.0":
+  version: 1.0.2
+  resolution: "kebab-case@npm:1.0.2"
+  checksum: bf01164e11c544ee9b3aa1a91c2e7d6aa6b3356b834a5e885d43f36db14aae5d347cd4a298a566133321b82fde6bac6b597f148ac19bfd3d3fc81e1034a79729
   languageName: node
   linkType: hard
 
