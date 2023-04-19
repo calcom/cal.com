@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
-import getBooking from "@calcom/features/bookings/lib/get-booking";
+import { getBookingByUidOrRescheduleUid } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import prisma from "@calcom/prisma";
@@ -50,7 +50,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBookingDetails(`${rescheduleUid}`);
+    booking = await getBookingByUidOrRescheduleUid(`${rescheduleUid}`);
   }
 
   return {
@@ -86,7 +86,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBookingDetails(`${rescheduleUid}`);
+    booking = await getBookingByUidOrRescheduleUid(`${rescheduleUid}`);
   }
 
   return {
@@ -109,8 +109,4 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const isDynamicGroup = user.includes("+");
 
   return isDynamicGroup ? await getDynamicGroupPageProps(context) : await getUserPageProps(context);
-};
-
-const getBookingDetails = async (uid: string) => {
-  return await getBooking(prisma, uid);
 };

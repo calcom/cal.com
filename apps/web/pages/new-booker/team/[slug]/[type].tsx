@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
-import getBooking from "@calcom/features/bookings/lib/get-booking";
+import { getBookingByUidOrRescheduleUid } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import prisma from "@calcom/prisma";
 
@@ -50,7 +50,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBookingDetails(`${rescheduleUid}`);
+    booking = await getBookingByUidOrRescheduleUid(`${rescheduleUid}`);
   }
 
   return {
@@ -62,8 +62,4 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       trpcState: ssg.dehydrate(),
     },
   };
-};
-
-const getBookingDetails = async (uid: string) => {
-  return await getBooking(prisma, uid);
 };
