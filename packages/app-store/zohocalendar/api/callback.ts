@@ -5,6 +5,7 @@ import { z } from "zod";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
@@ -19,7 +20,7 @@ const zohoKeysSchema = z.object({
   client_secret: z.string(),
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
   const state = decodeOAuthState(req);
 
@@ -27,6 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(400).json({ message: "`code` must be a string" });
     return;
   }
+
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
@@ -78,3 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "calendar", slug: "zoho-calendar" })
   );
 }
+
+export default defaultHandler({
+  GET: Promise.resolve({ default: defaultResponder(getHandler) }),
+});
