@@ -13,6 +13,7 @@ for (const [key, value] of Object.entries(rawAppStoreMetadata)) {
   appStoreMetadata[key as keyof typeof appStoreMetadata] = {
     appData: null,
     __template: "",
+    dirName: "dirName" in value ? value.dirName : value.slug,
     ...value,
   } as AppStoreMetaData[keyof AppStoreMetaData];
 }
