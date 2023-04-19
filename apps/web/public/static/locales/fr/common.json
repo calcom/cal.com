@@ -1784,5 +1784,6 @@
   "seats_and_no_show_fee_error": "Il n'est pas possible d'activer les places et de facturer des frais d'absence pour le moment",
   "complete_your_booking": "Terminer votre réservation",
   "complete_your_booking_subject": "Terminer votre réservation : {{title}} le {{date}}",
-  "email_invite_team": "{{email}} a été invité"
+  "email_invite_team": "{{email}} a été invité",
+  "image_size_limit_exceed": "L'image téléchargée ne doit pas dépasser 5 Mo"
 }
