@@ -2,8 +2,9 @@ import fs from "fs";
 import mime from "mime-types";
 import type { NextApiRequest, NextApiResponse } from "next";
 import path from "path";
+import { z } from "zod";
 
-import { LOGO } from "@calcom/lib/constants";
+import { LOGO, LOGO_ICON } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 
 const log = logger.getChildLogger({ prefix: [`[api/logo]`] });
@@ -28,8 +29,20 @@ function extractSubdomainAndDomain(url: string): [string, string] | null {
   }
 }
 
+const logoApiSchema = z.object({
+  icon: z.coerce.boolean().optional(),
+});
+
 function handleDefaultLogo(req: NextApiRequest, res: NextApiResponse) {
-  const fileNameParts = LOGO.split(".");
+  const { query } = req;
+
+  const parsedQuery = logoApiSchema.safeParse(query);
+  let fileNameParts = LOGO.split(".");
+
+  if (parsedQuery.success && parsedQuery.data.icon) {
+    fileNameParts = LOGO_ICON.split(".");
+  }
+
   const { [fileNameParts.length - 1]: fileExtension } = fileNameParts;
   const STATIC_PATH = path.join(process.cwd(), "public" + LOGO);
   const imageBuffer = fs.readFileSync(STATIC_PATH);
@@ -40,14 +53,7 @@ function handleDefaultLogo(req: NextApiRequest, res: NextApiResponse) {
 }
 
 /**
- * This endpoint should allow us to access to the private files in the static
- * folder of each individual app in the App Store.
- * @example
- * ```text
- * Requesting: `/api/app-store/zoomvideo/icon.svg` from a public URL should
- * serve us the file located at: `/packages/app-store/zoomvideo/static/icon.svg`
- * ```
- * This will allow us to keep all app-specific static assets in the same directory.
+ * This API endpoint is used to serve the logo associated with a team if no logo is found we serve our default logo
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -57,11 +63,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!domains) throw new Error("No domains");
     const [subdomain, domain] = domains;
     // Only supported on cal.com and cal.dev
-    if (!["cal.com", "cal.dev"].includes(domain)) throw new Error("Not supported");
+    if (!["cal.com", "cal.dev"].includes(domain)) return handleDefaultLogo(req, res);
     // Skip if no subdomain
     if (!subdomain) throw new Error("No subdomain");
     // Omit system subdomains
-    if (["console", "app", "www"].includes(subdomain)) throw new Error("System subdomain");
+    if (["console", "app", "www"].includes(subdomain)) return handleDefaultLogo(req, res);
 
     const { default: prisma } = await import("@calcom/prisma");
     const team = await prisma.team.findUnique({
@@ -82,7 +88,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader("Cache-Control", "s-maxage=86400");
     res.send(buffer);
   } catch (e) {
-    console.error(e);
     if (e instanceof Error) log.debug(e.message);
     handleDefaultLogo(req, res);
   }
