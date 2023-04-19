@@ -9,6 +9,8 @@ import prisma, { bookEventTypeSelect } from "@calcom/prisma";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import PageWrapper from "@components/PageWrapper";
+
 type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type({ slug, user, booking, away }: PageProps) {
@@ -19,7 +21,7 @@ export default function Type({ slug, user, booking, away }: PageProps) {
   );
 }
 
-Type.isThemeSupported = true;
+Type.PageWrapper = PageWrapper;
 
 const paramsSchema = z.object({ type: z.string(), slug: z.string() });
 
