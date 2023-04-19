@@ -235,6 +235,8 @@ model Team {
   /// @zod.min(1)
   slug                String?          @unique
   logo                String?
+  appLogo             String?
+  appIconLogo         String?
   bio                 String?
   hideBranding        Boolean          @default(false)
   hideBookATeamMember Boolean          @default(false)
