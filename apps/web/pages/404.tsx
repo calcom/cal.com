@@ -8,6 +8,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HeadSeo } from "@calcom/ui";
 import { BookOpen, Check, ChevronRight, FileText } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
+
 import { ssgInit } from "@server/lib/ssg";
 
 export default function Custom404() {
@@ -365,6 +367,8 @@ export default function Custom404() {
     </>
   );
 }
+
+Custom404.PageWrapper = PageWrapper;
 
 export const getStaticProps = async (context: GetStaticPropsContext) => {
   const ssr = await ssgInit(context);

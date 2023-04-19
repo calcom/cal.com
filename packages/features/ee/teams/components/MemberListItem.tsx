@@ -29,8 +29,8 @@ import {
 import { ExternalLink, MoreHorizontal, Edit2, Lock, Trash } from "@calcom/ui/components/icon";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
+import TeamAvailabilityModal from "./TeamAvailabilityModal";
 import TeamPill, { TeamRole } from "./TeamPill";
-import TeamAvailabilityModal from "./v2/TeamAvailabilityModal";
 
 interface Props {
   team: RouterOutputs["viewer"]["teams"]["get"];
