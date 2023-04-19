@@ -81,6 +81,7 @@ const DescriptionEditor = (props: DescriptionEditorProps) => {
   const [mounted, setIsMounted] = useState(false);
   const { t } = useLocale();
   const { description } = props;
+  const [firstRender, setFirstRender] = useState(true);
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -92,6 +93,8 @@ const DescriptionEditor = (props: DescriptionEditorProps) => {
       excludedToolbarItems={["blockType"]}
       placeholder={t("quick_video_meeting")}
       editable={props.editable}
+      firstRender={firstRender}
+      setFirstRender={setFirstRender}
     />
   ) : (
     <SkeletonContainer>
