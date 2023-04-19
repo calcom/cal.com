@@ -41,7 +41,7 @@ const Component = ({
   isTemplate,
   dependencies,
 }: Parameters<typeof App>[0]) => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
   const router = useRouter();
 
@@ -247,7 +247,7 @@ const Component = ({
             t("free_to_use_apps")
           ) : (
             <>
-              {Intl.NumberFormat("en-US", {
+              {Intl.NumberFormat(i18n.language, {
                 style: "currency",
                 currency: "USD",
                 useGrouping: false,

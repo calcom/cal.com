@@ -1,7 +1,6 @@
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
-import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
@@ -75,7 +74,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
   });
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
   //TODO: Plan to remove shouldAlignCentrallyInEmbed config
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
@@ -124,16 +123,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
     [timeZone]
   );
   const paymentAppData = getPaymentAppData(eventType);
-  const paymentAmount = () => {
-    return;
-    <IntlProvider locale="en">
-      <FormattedNumber
-        value={paymentAppData.price / 100.0}
-        style="currency"
-        currency={paymentAppData.currency?.toUpperCase()}
-      />
-    </IntlProvider>;
-  };
+
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
@@ -257,13 +247,12 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                               })}
                             </>
                           ) : (
-                            <IntlProvider locale="en">
-                              <FormattedNumber
-                                value={paymentAppData.price / 100.0}
-                                style="currency"
-                                currency={paymentAppData.currency?.toUpperCase()}
-                              />
-                            </IntlProvider>
+                            <>
+                              {new Intl.NumberFormat(i18n.language, {
+                                style: "currency",
+                                currency: paymentAppData.currency,
+                              }).format(paymentAppData.price / 100)}
+                            </>
                           )}
                         </p>
                       )}
