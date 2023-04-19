@@ -61,6 +61,7 @@ import {
 import { withQuery } from "@lib/QueryCell";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
+import PageWrapper from "@components/PageWrapper";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
@@ -816,5 +817,7 @@ const EventTypesPage = () => {
     </div>
   );
 };
+
+EventTypesPage.PageWrapper = PageWrapper;
 
 export default EventTypesPage;

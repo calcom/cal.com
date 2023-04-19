@@ -30,6 +30,7 @@ export type AppProps = Omit<NextAppProps<WithNonceProps & Record<string, unknown
     isThemeSupported?: boolean;
     isBookingPage?: boolean | ((arg: { router: NextRouter }) => boolean);
     getLayout?: (page: React.ReactElement, router: NextRouter) => ReactNode;
+    PageWrapper?: (props: AppProps) => JSX.Element;
   };
 
   /** Will be defined only is there was an error */

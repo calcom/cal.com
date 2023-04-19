@@ -12,6 +12,7 @@ import type { HorizontalTabItemProps } from "@calcom/ui";
 import { AllApps, AppStoreCategories, HorizontalTabs, TextField, PopularAppsSlider } from "@calcom/ui";
 import { Search } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
 import AppsLayout from "@components/apps/layouts/AppsLayout";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -84,6 +85,8 @@ export default function Apps({ categories, appStore }: inferSSRProps<typeof getS
     </AppsLayout>
   );
 }
+
+Apps.PageWrapper = PageWrapper;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, res } = context;

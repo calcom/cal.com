@@ -9,6 +9,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { AppCard, SkeletonText } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
+
 export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t, isLocaleReady } = useLocale();
   const router = useRouter();
@@ -46,6 +48,8 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
     </>
   );
 }
+
+Apps.PageWrapper = PageWrapper;
 
 export const getStaticPaths = async () => {
   const paths = Object.keys(AppCategories);

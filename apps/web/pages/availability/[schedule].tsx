@@ -30,6 +30,7 @@ import {
 } from "@calcom/ui";
 import { Info, Plus, Trash } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import EditableHeading from "@components/ui/EditableHeading";
 
@@ -300,3 +301,5 @@ export default function Availability() {
     </Shell>
   );
 }
+
+Availability.PageWrapper = PageWrapper;
