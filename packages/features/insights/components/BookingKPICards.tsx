@@ -16,14 +16,21 @@ export const BookingKPICards = () => {
 
   const { selectedTeamId: teamId } = filter;
 
-  const { data, isSuccess, isLoading } = trpc.viewer.insights.eventsByStatus.useQuery({
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-    teamId,
-    eventTypeId: selectedEventTypeId ?? undefined,
-    memberUserId: selectedMemberUserId ?? undefined,
-    userId: selectedUserId ?? undefined,
-  });
+  const { data, isSuccess, isLoading } = trpc.viewer.insights.eventsByStatus.useQuery(
+    {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      teamId,
+      eventTypeId: selectedEventTypeId ?? undefined,
+      memberUserId: selectedMemberUserId ?? undefined,
+      userId: selectedUserId ?? undefined,
+    },
+    {
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 
   const categories: {
     title: string;

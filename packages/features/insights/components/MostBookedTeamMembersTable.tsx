@@ -15,12 +15,19 @@ export const MostBookedTeamMembersTable = () => {
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
-  const { data, isSuccess, isLoading } = trpc.viewer.insights.membersWithMostBookings.useQuery({
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-    teamId,
-    eventTypeId: selectedEventTypeId ?? undefined,
-  });
+  const { data, isSuccess, isLoading } = trpc.viewer.insights.membersWithMostBookings.useQuery(
+    {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      teamId,
+      eventTypeId: selectedEventTypeId ?? undefined,
+    },
+    {
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 
   if (isLoading) return <LoadingInsight />;
 

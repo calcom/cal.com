@@ -27,14 +27,21 @@ export const BookingStatusLineChart = () => {
     data: eventsTimeLine,
     isSuccess,
     isLoading,
-  } = trpc.viewer.insights.eventsTimeline.useQuery({
-    timeView: selectedTimeView,
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-    teamId: selectedTeamId ?? undefined,
-    eventTypeId: selectedEventTypeId ?? undefined,
-    userId: selectedUserId ?? undefined,
-  });
+  } = trpc.viewer.insights.eventsTimeline.useQuery(
+    {
+      timeView: selectedTimeView,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      teamId: selectedTeamId ?? undefined,
+      eventTypeId: selectedEventTypeId ?? undefined,
+      userId: selectedUserId ?? undefined,
+    },
+    {
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 
   if (isLoading) return <LoadingInsight />;
 

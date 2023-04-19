@@ -14,13 +14,20 @@ export const PopularEventsTable = () => {
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
-  const { data, isSuccess, isLoading } = trpc.viewer.insights.popularEventTypes.useQuery({
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-    teamId: teamId ?? undefined,
-    userId: selectedUserId ?? undefined,
-    memberUserId: selectedMemberUserId ?? undefined,
-  });
+  const { data, isSuccess, isLoading } = trpc.viewer.insights.popularEventTypes.useQuery(
+    {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      teamId: teamId ?? undefined,
+      userId: selectedUserId ?? undefined,
+      memberUserId: selectedMemberUserId ?? undefined,
+    },
+    {
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 
   if (isLoading) return <LoadingInsight />;
 
