@@ -71,7 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!domains) throw new Error("No domains");
     const [subdomain, domain] = domains;
     // Only supported on cal.com and cal.dev
-    if (!["cal.com", "cal.dev"].includes(domain)) return handleDefaultLogo(req, res, parsedQuery);
+    if (["cal.com", "cal.dev"].includes(domain)) return handleDefaultLogo(req, res, parsedQuery);
     // Skip if no subdomain
     if (!subdomain) throw new Error("No subdomain");
     // Omit system subdomains
