@@ -38,6 +38,8 @@ model Host {
   isFixed     Boolean   @default(false)
 
   @@id([userId, eventTypeId])
+  @@index([userId])
+  @@index([eventTypeId])
 }
 
 model EventType {
@@ -108,6 +110,8 @@ model EventType {
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
+  @@index([userId])
+  @@index([teamId])
 }
 
 model Credential {
@@ -122,6 +126,9 @@ model Credential {
   appId                String?
   destinationCalendars DestinationCalendar[]
   invalid              Boolean?              @default(false)
+
+  @@index([userId])
+  @@index([appId])
 }
 
 enum IdentityProvider {
@@ -141,6 +148,10 @@ model DestinationCalendar {
   eventTypeId  Int?        @unique
   credentialId Int?
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([eventTypeId])
+  @@index([credentialId])
 }
 
 enum UserPermissionRole {
@@ -210,6 +221,10 @@ model User {
   verifiedNumbers      VerifiedNumber[]
   hosts                Host[]
 
+  @@index([email])
+  @@index([emailVerified])
+  @@index([identityProvider])
+  @@index([identityProviderId])
   @@map(name: "users")
 }
 
@@ -251,6 +266,8 @@ model Membership {
   disableImpersonation Boolean        @default(false)
 
   @@id([userId, teamId])
+  @@index([teamId])
+  @@index([userId])
 }
 
 model VerificationToken {
@@ -262,6 +279,7 @@ model VerificationToken {
   updatedAt  DateTime @updatedAt
 
   @@unique([identifier, token])
+  @@index([token])
 }
 
 model BookingReference {
@@ -278,6 +296,11 @@ model BookingReference {
   externalCalendarId String?
   deleted            Boolean?
   credentialId       Int?
+
+  @@index([bookingId])
+  @@index([credentialId])
+  @@index([type])
+  @@index([uid])
 }
 
 model Attendee {
@@ -289,6 +312,9 @@ model Attendee {
   booking     Booking?     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingId   Int?
   bookingSeat BookingSeat?
+
+  @@index([email])
+  @@index([bookingId])
 }
 
 enum BookingStatus {
@@ -336,6 +362,13 @@ model Booking {
   /// @zod.custom(imports.bookingMetadataSchema)
   metadata              Json?
   isRecorded            Boolean              @default(false)
+
+  @@index([eventTypeId])
+  @@index([userId])
+  @@index([destinationCalendarId])
+  @@index([recurringEventId])
+  @@index([uid])
+  @@index([status])
 }
 
 model Schedule {
@@ -363,6 +396,7 @@ model Availability {
   Schedule    Schedule?  @relation(fields: [scheduleId], references: [id])
   scheduleId  Int?
 
+  @@index([userId])
   @@index([eventTypeId])
   @@index([scheduleId])
 }
@@ -374,6 +408,9 @@ model SelectedCalendar {
   externalId  String
 
   @@id([userId, integration, externalId])
+  @@index([userId])
+  @@index([integration])
+  @@index([externalId])
 }
 
 enum EventTypeCustomInputType {
@@ -395,6 +432,8 @@ model EventTypeCustomInput {
   options     Json?
   required    Boolean
   placeholder String                   @default("")
+
+  @@index([eventTypeId])
 }
 
 model ResetPasswordRequest {
@@ -415,6 +454,9 @@ model ReminderMail {
   reminderType   ReminderType
   elapsedMinutes Int
   createdAt      DateTime     @default(now())
+
+  @@index([referenceId])
+  @@index([reminderType])
 }
 
 model Payment {
@@ -432,6 +474,9 @@ model Payment {
   data          Json
   externalId    String         @unique
   paymentOption PaymentOption? @default(ON_BOOKING)
+
+  @@index([bookingId])
+  @@index([externalId])
 }
 
 enum PaymentOption {
@@ -486,6 +531,8 @@ model ApiKey {
   user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   app        App?      @relation(fields: [appId], references: [slug], onDelete: Cascade)
   appId      String?
+
+  @@index([userId])
 }
 
 model HashedLink {
@@ -512,6 +559,8 @@ model Account {
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@index([type])
 }
 
 model Session {
@@ -520,6 +569,8 @@ model Session {
   userId       Int
   expires      DateTime
   user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 enum AppCategories {
@@ -549,6 +600,8 @@ model App {
   Webhook     Webhook[]
   ApiKey      ApiKey[]
   enabled     Boolean         @default(false)
+
+  @@index([enabled])
 }
 
 model App_RoutingForms_Form {
@@ -565,6 +618,9 @@ model App_RoutingForms_Form {
   disabled    Boolean                         @default(false)
   /// @zod.custom(imports.RoutingFormSettings)
   settings    Json?
+
+  @@index([userId])
+  @@index([disabled])
 }
 
 model App_RoutingForms_FormResponse {
@@ -576,6 +632,8 @@ model App_RoutingForms_FormResponse {
   createdAt    DateTime              @default(now())
 
   @@unique([formFillerId, formId])
+  @@index([formFillerId])
+  @@index([formId])
 }
 
 model Feedback {
@@ -585,6 +643,9 @@ model Feedback {
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   rating  String
   comment String?
+
+  @@index([userId])
+  @@index([rating])
 }
 
 enum WorkflowTriggerEvents {
@@ -617,6 +678,8 @@ model WorkflowStep {
   numberRequired            Boolean?
   sender                    String?
   numberVerificationPending Boolean            @default(true)
+
+  @@index([workflowId])
 }
 
 model Workflow {
@@ -631,6 +694,9 @@ model Workflow {
   time     Int?
   timeUnit TimeUnit?
   steps    WorkflowStep[]
+
+  @@index([userId])
+  @@index([teamId])
 }
 
 model WorkflowsOnEventTypes {
@@ -639,6 +705,9 @@ model WorkflowsOnEventTypes {
   workflowId  Int
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId Int
+
+  @@index([workflowId])
+  @@index([eventTypeId])
 }
 
 model Deployment {
@@ -668,6 +737,9 @@ model WorkflowReminder {
   workflowStepId Int?
   workflowStep   WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
   cancelled      Boolean?
+
+  @@index([bookingUid])
+  @@index([workflowStepId])
 }
 
 enum WorkflowTemplates {
@@ -688,6 +760,9 @@ model BookingSeat {
   attendeeId   Int      @unique
   attendee     Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
   data         Json?
+
+  @@index([bookingId])
+  @@index([attendeeId])
 }
 
 model VerifiedNumber {
@@ -697,6 +772,9 @@ model VerifiedNumber {
   teamId      Int?
   team        Team?  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   phoneNumber String
+
+  @@index([userId])
+  @@index([teamId])
 }
 
 model Feature {
@@ -714,6 +792,9 @@ model Feature {
   createdAt   DateTime?    @default(now())
   updatedAt   DateTime?    @default(now()) @updatedAt
   updatedBy   Int?
+
+  @@index([enabled])
+  @@index([stale])
 }
 
 enum FeatureType {
