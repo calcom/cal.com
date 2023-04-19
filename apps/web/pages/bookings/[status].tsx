@@ -16,6 +16,7 @@ import { Calendar } from "@calcom/ui/components/icon";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
+import PageWrapper from "@components/PageWrapper";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
@@ -193,6 +194,8 @@ export default function Bookings() {
     </BookingLayout>
   );
 }
+
+Bookings.PageWrapper = PageWrapper;
 
 export const getStaticProps: GetStaticProps = async (ctx) => {
   const params = querySchema.safeParse(ctx.params);
