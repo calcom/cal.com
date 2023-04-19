@@ -40,6 +40,7 @@ import {
 } from "@calcom/ui";
 import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
@@ -394,5 +395,6 @@ const ProfileForm = ({
 };
 
 ProfileView.getLayout = getLayout;
+ProfileView.PageWrapper = PageWrapper;
 
 export default ProfileView;

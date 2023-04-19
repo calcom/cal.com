@@ -1,6 +1,8 @@
 import Shell, { MobileNavigationMoreItems } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
+import PageWrapper from "@components/PageWrapper";
+
 export default function MorePage() {
   const { t } = useLocale();
   return (
@@ -12,3 +14,4 @@ export default function MorePage() {
     </Shell>
   );
 }
+MorePage.PageWrapper = PageWrapper;

@@ -26,6 +26,7 @@ import {
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import PageWrapper from "@components/PageWrapper";
 import BookingPage from "@components/booking/pages/BookingPage";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -70,6 +71,7 @@ export default function Book(props: BookPageProps) {
 }
 
 Book.isBookingPage = true;
+Book.PageWrapper = PageWrapper;
 
 const querySchema = z.object({
   bookingUid: z.string().optional(),

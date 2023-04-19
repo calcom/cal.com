@@ -27,6 +27,7 @@ import {
 import { AlertCircle, MoreHorizontal, Trash, Video } from "@calcom/ui/components/icon";
 
 import AppListCard from "@components/AppListCard";
+import PageWrapper from "@components/PageWrapper";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -188,5 +189,6 @@ const ConferencingLayout = () => {
 };
 
 ConferencingLayout.getLayout = getLayout;
+ConferencingLayout.PageWrapper = PageWrapper;
 
 export default ConferencingLayout;
