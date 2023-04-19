@@ -23,6 +23,7 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import {
   SystemField,
   getBookingFieldsWithSystemFields,
@@ -53,6 +54,7 @@ import { X, ExternalLink, ChevronLeft, Check, Calendar } from "@calcom/ui/compon
 import { timeZone } from "@lib/clock";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import PageWrapper from "@components/PageWrapper";
 import CancelBooking from "@components/booking/CancelBooking";
 import EventReservationSchema from "@components/schemas/EventReservationSchema";
 
@@ -105,10 +107,10 @@ export default function Success(props: SuccessProps) {
     seatReferenceUid,
   } = querySchema.parse(router.query);
 
-  const tz =
-    (isSuccessBookingPage
-      ? props.bookingInfo.attendees.find((attendee) => attendee.email === email)?.timeZone
-      : props.bookingInfo.eventType?.timeZone || props.bookingInfo.user?.timeZone) || timeZone();
+  const attendeeTimeZone = props?.bookingInfo?.attendees.find(
+    (attendee) => attendee.email === email
+  )?.timeZone;
+  const tz = isSuccessBookingPage && attendeeTimeZone ? attendeeTimeZone : props.tz ? props.tz : timeZone();
 
   const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
 
@@ -268,7 +270,9 @@ export default function Success(props: SuccessProps) {
     return t("emailed_you_and_attendees" + titleSuffix);
   }
 
-  useTheme(isSuccessBookingPage ? props.profile.theme : "light");
+  // This is a weird case where the same route can be opened in booking flow as a success page or as a booking detail page from the app
+  // As Booking Page it has to support configured theme, but as booking detail page it should not do any change. Let Shell.tsx handle it.
+  useTheme(isSuccessBookingPage ? props.profile.theme : undefined);
   useBrandColors({
     brandColor: props.profile.brandColor,
     darkBrandColor: props.profile.darkBrandColor,
@@ -705,6 +709,9 @@ export default function Success(props: SuccessProps) {
   );
 }
 
+Success.isBookingPage = true;
+Success.PageWrapper = PageWrapper;
+
 type RecurringBookingsProps = {
   eventType: SuccessProps["eventType"];
   recurringBookings: SuccessProps["recurringBookings"];
@@ -913,7 +920,16 @@ const handleSeatsEventTypeOnBooking = (
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
+  const session = await getServerSession(context);
+  let tz: string | null = null;
+
+  if (session) {
+    const user = await ssr.viewer.me.fetch();
+    tz = user.timeZone;
+  }
+
   const parsedQuery = querySchema.safeParse(context.query);
+
   if (!parsedQuery.success) return { notFound: true };
   const { uid, email, eventTypeSlug, cancel, isSuccessBookingPage } = parsedQuery.data;
 
@@ -1045,6 +1061,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
       paymentStatus: payment,
+      ...(tz && { tz }),
     },
   };
 }
