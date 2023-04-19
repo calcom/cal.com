@@ -165,7 +165,7 @@ export default function Login({
                   {...register("email")}
                 />
                 <div className="relative">
-                  <div className="absolute -top-[6px]  z-10 ltr:right-0 rtl:left-0">
+                  <div className="z-5 absolute -top-1.5 ltr:right-0 rtl:left-0">
                     <Link
                       href="/auth/forgot-password"
                       tabIndex={-1}

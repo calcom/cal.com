@@ -208,22 +208,11 @@ const getSlots = ({
   });
 
   if (!!activeOverrides.length) {
-    const overrides = activeOverrides.flatMap((override) => {
-      const organizerUtcOffset = dayjs(override.start.toString()).tz(override.timeZone).utcOffset();
-      const inviteeUtcOffset = dayjs(override.start.toString()).tz(timeZone).utcOffset();
-      const offset = inviteeUtcOffset - organizerUtcOffset;
-
-      return {
-        userIds: override.userId ? [override.userId] : [],
-        startTime:
-          dayjs(override.start).utc().add(offset, "minute").hour() * 60 +
-          dayjs(override.start).utc().add(offset, "minute").minute(),
-        endTime:
-          dayjs(override.end).utc().add(offset, "minute").hour() * 60 +
-          dayjs(override.end).utc().add(offset, "minute").minute(),
-      };
-    });
-
+    const overrides = activeOverrides.flatMap((override) => ({
+      userIds: override.userId ? [override.userId] : [],
+      startTime: override.start.getUTCHours() * 60 + override.start.getUTCMinutes(),
+      endTime: override.end.getUTCHours() * 60 + override.end.getUTCMinutes(),
+    }));
     // unset all working hours that relate to this user availability override
     overrides.forEach((override) => {
       let i = -1;
