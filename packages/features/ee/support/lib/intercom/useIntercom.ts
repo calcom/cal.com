@@ -28,12 +28,10 @@ export const useIntercom = () => {
   const open = async () => {
     let userHash;
 
-    if (data && data.id) {
-      const req = await fetch(`/api/intercom-hash?id=${data.id}`);
-      const res = await req.json();
-      if (res?.hash) {
-        userHash = res.hash;
-      }
+    const req = await fetch(`/api/intercom-hash`);
+    const res = await req.json();
+    if (res?.hash) {
+      userHash = res.hash;
     }
 
     hookData.boot({
