@@ -3897,8 +3897,6 @@ __metadata:
     "@calcom/core": "*"
     "@calcom/dayjs": "*"
     "@calcom/emails": "*"
-    "@calcom/embed-core": "workspace:*"
-    "@calcom/embed-snippet": "workspace:*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
     "@calcom/prisma": "*"
@@ -5034,6 +5032,7 @@ __metadata:
     "@types/react-gtm-module": ^2.0.1
     "@vercel/analytics": ^0.1.6
     "@vercel/edge-functions-ui": ^0.2.1
+    "@vercel/og": ^0.5.0
     autoprefixer: ^10.4.12
     bcryptjs: ^2.4.3
     cobe: ^0.4.1
@@ -5116,6 +5115,15 @@ __metadata:
     "@calcom/types": "*"
     "@types/node-schedule": ^2.1.0
     node-schedule: 2.1.0
+  languageName: unknown
+  linkType: soft
+
+"@calcom/zohocalendar@workspace:packages/app-store/zohocalendar":
+  version: 0.0.0-use.local
+  resolution: "@calcom/zohocalendar@workspace:packages/app-store/zohocalendar"
+  dependencies:
+    "@calcom/prisma": "*"
+    "@calcom/types": "*"
   languageName: unknown
   linkType: soft
 
