@@ -1,11 +1,9 @@
 import type { Prisma } from "@prisma/client";
 import { SchedulingType } from "@prisma/client";
 import { useMemo } from "react";
-import { FormattedNumber, IntlProvider } from "react-intl";
 import type { z } from "zod";
 
 import { classNames, parseRecurringEvent } from "@calcom/lib";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { baseEventTypeSelect } from "@calcom/prisma";
 import type { EventTypeModel } from "@calcom/prisma/zod";
@@ -32,14 +30,12 @@ export const EventTypeDescription = ({
   shortenDescription,
   isPublic,
 }: EventTypeDescriptionProps) => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
 
   const recurringEvent = useMemo(
     () => parseRecurringEvent(eventType.recurringEvent),
     [eventType.recurringEvent]
   );
-
-  const stripeAppData = getPaymentAppData(eventType);
 
   return (
     <>
@@ -55,7 +51,7 @@ export const EventTypeDescription = ({
             }}
           />
         )}
-        <ul className="mt-2 flex flex-wrap space-x-2 rtl:space-x-reverse">
+        <ul className="mt-2 flex flex-wrap gap-x-2 gap-y-1">
           {eventType.metadata?.multipleDuration ? (
             eventType.metadata.multipleDuration.map((dur, idx) => (
               <li key={idx}>
@@ -93,16 +89,13 @@ export const EventTypeDescription = ({
               </Badge>
             </li>
           )}
-          {stripeAppData.price > 0 && (
+          {eventType.price > 0 && (
             <li>
               <Badge variant="gray" startIcon={CreditCard}>
-                <IntlProvider locale="en">
-                  <FormattedNumber
-                    value={stripeAppData.price / 100.0}
-                    style="currency"
-                    currency={stripeAppData?.currency?.toUpperCase()}
-                  />
-                </IntlProvider>
+                {new Intl.NumberFormat(i18n.language, {
+                  style: "currency",
+                  currency: eventType.currency,
+                }).format(eventType.price / 100)}
               </Badge>
             </li>
           )}
