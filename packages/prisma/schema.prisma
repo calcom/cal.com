@@ -8,7 +8,7 @@ datasource db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = []
+  previewFeatures = ["views"]
 }
 
 generator zod {
@@ -816,4 +816,23 @@ model SelectedSlots {
   isSeat           Boolean  @default(false)
 
   @@unique(fields: [userId, slotUtcStartDate, slotUtcEndDate, uid], name: "selectedSlotUnique")
+}
+
+view BookingTimeStatus {
+  id          Int            @unique
+  uid         String?
+  eventTypeId Int?
+  title       String?
+  description String?
+  startTime   DateTime?
+  endTime     DateTime?
+  createdAt   DateTime?
+  location    String?
+  paid        Boolean?
+  status      BookingStatus?
+  rescheduled Boolean?
+  userId      Int?
+  teamId      Int?
+  eventLength Int?
+  timeStatus  String?
 }
