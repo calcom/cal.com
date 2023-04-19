@@ -43,8 +43,8 @@ export const EventMeta = () => {
                 <br />
                 <span className="line-through" data-testid="former_time_p">
                   {formatEventFromToTime(
-                    rescheduleBooking.startTime,
-                    undefined,
+                    rescheduleBooking.startTime.toString(),
+                    null,
                     timeFormat,
                     timezone,
                     i18n.language

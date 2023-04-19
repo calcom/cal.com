@@ -1,7 +1,6 @@
 import type { Frame, PlaywrightTestConfig } from "@playwright/test";
 import { devices, expect } from "@playwright/test";
 import dotEnv from "dotenv";
-import * as os from "os";
 import * as path from "path";
 
 dotEnv.config({ path: ".env" });
@@ -53,7 +52,7 @@ if (IS_EMBED_REACT_TEST) {
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: os.cpus().length,
+  workers: 1,
   timeout: DEFAULT_TEST_TIMEOUT,
   maxFailures: headless ? 10 : undefined,
   fullyParallel: true,
