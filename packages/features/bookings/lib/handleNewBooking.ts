@@ -53,7 +53,7 @@ import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/Syn
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { userSelect } from "@calcom/prisma";
 import type { BookingReference } from "@calcom/prisma/client";
-import type { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod-utils";
+import { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod-utils";
 import {
   bookingCreateBodySchemaForApi,
   customInputSchema,
@@ -394,21 +394,81 @@ function getBookingData({
   isNotAnApiCall: boolean;
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>;
 }) {
+  const responsesSchema = getBookingResponsesSchema({
+    eventType: {
+      bookingFields: eventType.bookingFields,
+    },
+    view: req.body.rescheduleUid ? "reschedule" : "booking",
+  });
   const bookingDataSchema = isNotAnApiCall
     ? extendedBookingCreateBody.merge(
         z.object({
-          responses: getBookingResponsesSchema({
-            eventType: {
-              bookingFields: eventType.bookingFields,
-            },
-            view: req.body.rescheduleUid ? "reschedule" : "booking",
-          }),
+          responses: responsesSchema,
         })
       )
-    : bookingCreateBodySchemaForApi;
+    : bookingCreateBodySchemaForApi
+        .merge(
+          z.object({
+            responses: responsesSchema.optional(),
+          })
+        )
+        .superRefine((val, ctx) => {
+          if (val.responses && val.customInputs) {
+            ctx.addIssue({
+              code: "custom",
+              message:
+                "Don't use both customInputs and responses. `customInputs` is only there for legacy support.",
+            });
+            return;
+          }
+          const legacyProps = Object.keys(bookingCreateSchemaLegacyPropsForApi.shape);
+
+          if (val.responses) {
+            const unwantedProps: string[] = [];
+            legacyProps.forEach((legacyProp) => {
+              if (val[legacyProp as keyof typeof val]) {
+                unwantedProps.push(legacyProp);
+              }
+            });
+            if (unwantedProps.length) {
+              ctx.addIssue({
+                code: "custom",
+                message: `Legacy Props: ${unwantedProps.join(",")}. They can't be used with \`responses\``,
+              });
+              return;
+            }
+          } else if (val.customInputs) {
+            const { success } = bookingCreateSchemaLegacyPropsForApi.safeParse(val);
+            if (!success) {
+              ctx.addIssue({
+                code: "custom",
+                message: `With \`customInputs\` you must specify legacy props ${legacyProps.join(",")}`,
+              });
+            }
+          }
+        });
 
   const reqBody = bookingDataSchema.parse(req.body);
-  if ("responses" in reqBody) {
+  if ("customInputs" in reqBody) {
+    if (reqBody.customInputs) {
+      // Check if required custom inputs exist
+      handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], reqBody.customInputs);
+    }
+    const reqBodyWithLegacyProps = bookingCreateSchemaLegacyPropsForApi.parse(reqBody);
+    return {
+      ...reqBody,
+      name: reqBodyWithLegacyProps.name,
+      email: reqBodyWithLegacyProps.email,
+      guests: reqBodyWithLegacyProps.guests,
+      location: reqBodyWithLegacyProps.location || "",
+      smsReminderNumber: reqBodyWithLegacyProps.smsReminderNumber,
+      notes: reqBodyWithLegacyProps.notes,
+      rescheduleReason: reqBodyWithLegacyProps.rescheduleReason,
+    };
+  } else {
+    if (!reqBody.responses) {
+      throw new Error("`responses` must not be nullish");
+    }
     const responses = reqBody.responses;
     const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
       getCalEventResponses({
@@ -426,20 +486,6 @@ function getBookingData({
       calEventUserFieldsResponses,
       rescheduleReason: responses.rescheduleReason,
       calEventResponses,
-    };
-  } else {
-    // Check if required custom inputs exist
-    handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], reqBody.customInputs);
-
-    return {
-      ...reqBody,
-      name: reqBody.name,
-      email: reqBody.email,
-      guests: reqBody.guests,
-      location: reqBody.location || "",
-      smsReminderNumber: reqBody.smsReminderNumber,
-      notes: reqBody.notes,
-      rescheduleReason: reqBody.rescheduleReason,
     };
   }
 }
