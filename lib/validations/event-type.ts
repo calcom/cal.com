@@ -65,7 +65,7 @@ const schemaEventTypeCreateParams = z
     recurringEvent: recurringEventInputSchema.optional(),
     seatsPerTimeSlot: z.number().optional(),
     seatsShowAttendees: z.boolean().optional(),
-    bookingFields: eventTypeBookingFields,
+    bookingFields: eventTypeBookingFields.optional(),
   })
   .strict();
 
@@ -80,7 +80,7 @@ const schemaEventTypeEditParams = z
     length: z.number().int().optional(),
     seatsPerTimeSlot: z.number().optional(),
     seatsShowAttendees: z.boolean().optional(),
-    bookingFields: eventTypeBookingFields,
+    bookingFields: eventTypeBookingFields.optional(),
   })
   .strict();
 
@@ -134,5 +134,6 @@ export const schemaEventTypeReadPublic = EventType.pick({
     metadata: jsonSchema.nullable(),
     customInputs: customInputSchema.array().optional(),
     link: z.string().optional(),
+    bookingFields: eventTypeBookingFields.optional().nullable(),
   })
 );
