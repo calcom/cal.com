@@ -89,7 +89,7 @@ export function TeamsListing() {
             </ButtonGroup>
           </div>
         }>
-        {teams.length > 0 && <TeamList teams={teams} />}
+        {teams.length > 0 ? <TeamList teams={teams} /> : <></>}
       </UpgradeTip>
     </>
   );
