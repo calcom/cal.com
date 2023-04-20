@@ -39,7 +39,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { trpc } from "@calcom/trpc";
 import { Button, Form, Tooltip, useCalcomTheme } from "@calcom/ui";
@@ -252,13 +252,13 @@ const BookingPage = ({
   }
 
   useEffect(() => {
-    if (top !== window) {
+    /* if (top !== window) {
       //page_view will be collected automatically by _middleware.ts
       telemetry.event(
         telemetryEventTypes.embedView,
         collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
       );
-    }
+    } */
     reserveSlot();
     const interval = setInterval(reserveSlot, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
     return () => {
@@ -547,14 +547,14 @@ const BookingPage = ({
         <div
           className={classNames(
             "main",
-            isBackgroundTransparent ? "" : "bg-default",
+            isBackgroundTransparent ? "" : "bg-default dark:bg-muted",
             "border-booker sm:border-booker-width rounded-md"
           )}>
           <div className="sm:flex">
             {showEventTypeDetails && (
               <div className="sm:border-subtle  text-default flex flex-col px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
-                  <BookingDescriptionPayment eventType={eventType} t={t} />
+                  <BookingDescriptionPayment eventType={eventType} t={t} i18n={i18n} />
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
                     <div className="dark:text-inverted text-default items-start text-sm font-medium">
                       <RefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />

@@ -7,11 +7,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 import { Plus } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
+
 function Teams() {
   const { t } = useLocale();
   return (
     <Shell
       heading={t("teams")}
+      hideHeadingOnMobile
       subtitle={t("create_manage_teams_collaborative")}
       CTA={
         <Button
@@ -36,5 +39,6 @@ export const getStaticProps = async () => {
 };
 
 Teams.requiresLicense = false;
+Teams.PageWrapper = PageWrapper;
 
 export default Teams;

@@ -44,6 +44,7 @@ import {
 import { QueryCell } from "@lib/QueryCell";
 
 import AppListCard from "@components/AppListCard";
+import PageWrapper from "@components/PageWrapper";
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
 
@@ -372,3 +373,5 @@ export async function getServerSideProps(ctx: AppGetServerSidePropsContext) {
     },
   };
 }
+
+InstalledApps.PageWrapper = PageWrapper;

@@ -35,11 +35,13 @@ import {
   AddVariablesDropdown,
   Input,
 } from "@calcom/ui";
-import { ArrowDown, MoreHorizontal, Trash2, HelpCircle } from "@calcom/ui/components/icon";
+import { ArrowDown, MoreHorizontal, Trash2, HelpCircle, Info } from "@calcom/ui/components/icon";
 
+import { isAttendeeAction, isSMSAction } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
-import { isSMSAction } from "../lib/isSMSAction";
+import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
+import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
 import type { FormValues } from "../pages/workflow";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
@@ -69,12 +71,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
   );
 
+  const [updateTemplate, setUpdateTemplate] = useState(false);
+  const [firstRender, setFirstRender] = useState(true);
+
   const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER || step?.action === WorkflowActions.SMS_ATTENDEE
       ? true
       : false
   );
-
   useEffect(() => {
     setNumberVerified(
       !!step &&
@@ -84,10 +88,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(
     step?.action === WorkflowActions.EMAIL_ADDRESS ? true : false
-  );
-
-  const [isCustomReminderBodyNeeded, setIsCustomReminderBodyNeeded] = useState(
-    step?.template === WorkflowTemplates.CUSTOM ? true : false
   );
 
   const [isEmailSubjectNeeded, setIsEmailSubjectNeeded] = useState(
@@ -109,6 +109,28 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t);
+
+  if (step && form.getValues(`steps.${step.stepNumber - 1}.template`) === WorkflowTemplates.REMINDER) {
+    if (!form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
+      if (isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`))) {
+        const smsBody = smsReminderTemplate(true, form.getValues(`steps.${step.stepNumber - 1}.action`));
+        form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, smsBody);
+      } else {
+        const reminderBodyTemplate = emailReminderTemplate(
+          true,
+          form.getValues(`steps.${step.stepNumber - 1}.action`)
+        ).emailBody;
+        form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, reminderBodyTemplate);
+      }
+    }
+    if (!form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
+      const subjectTemplate = emailReminderTemplate(
+        true,
+        form.getValues(`steps.${step.stepNumber - 1}.action`)
+      ).emailSubject;
+      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
+    }
+  }
 
   const { ref: emailSubjectFormRef, ...restEmailSubjectForm } = step
     ? form.register(`steps.${step.stepNumber - 1}.emailSubject`)
@@ -259,6 +281,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               <div className="mt-5">
                 <Label>{showTimeSectionAfter ? t("how_long_after") : t("how_long_before")}</Label>
                 <TimeTimeUnitInput form={form} />
+                <div className="mt-1 flex text-gray-500">
+                  <Info className="mr-1 mt-0.5 h-4 w-4" />
+                  <p className="text-sm">{t("testing_workflow_info_message")}</p>
+                </div>
               </div>
             )}
           </div>
@@ -352,33 +378,71 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsEmailAddressNeeded(false);
                               setIsPhoneNumberNeeded(val.value === WorkflowActions.SMS_NUMBER);
                               setNumberVerified(false);
+
+                              // email action changes to sms action
                               if (!isSMSAction(oldValue)) {
                                 form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
                                 form.setValue(`steps.${step.stepNumber - 1}.sender`, SENDER_ID);
                               }
+
+                              setIsEmailSubjectNeeded(false);
                             } else {
                               setIsPhoneNumberNeeded(false);
                               setIsSenderIdNeeded(false);
                               setIsEmailAddressNeeded(val.value === WorkflowActions.EMAIL_ADDRESS);
+                              setIsEmailSubjectNeeded(true);
+                            }
 
-                              if (isSMSAction(oldValue)) {
-                                form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
-                                form.setValue(`steps.${step.stepNumber - 1}.senderName`, SENDER_NAME);
+                            if (
+                              form.getValues(`steps.${step.stepNumber - 1}.template`) ===
+                              WorkflowTemplates.REMINDER
+                            ) {
+                              if (isSMSAction(val.value) === isSMSAction(oldValue)) {
+                                if (isAttendeeAction(oldValue) !== isAttendeeAction(val.value)) {
+                                  const currentReminderBody =
+                                    form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
+                                  const newReminderBody = currentReminderBody
+                                    .replaceAll("{ORGANIZER}", "{PLACEHOLDER}")
+                                    .replaceAll("{ATTENDEE}", "{ORGANIZER}")
+                                    .replaceAll("{PLACEHOLDER}", "{ATTENDEE}");
+                                  form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, newReminderBody);
+
+                                  if (!isSMSAction(val.value)) {
+                                    const currentEmailSubject =
+                                      form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) || "";
+                                    const newEmailSubject = isAttendeeAction(val.value)
+                                      ? currentEmailSubject.replace("{ORGANIZER}", "{ATTENDEE}")
+                                      : currentEmailSubject.replace("{ATTENDEE}", "{ORGANIZER}");
+
+                                    form.setValue(
+                                      `steps.${step.stepNumber - 1}.emailSubject`,
+                                      newEmailSubject || ""
+                                    );
+                                  }
+                                }
+                              } else {
+                                if (isSMSAction(val.value)) {
+                                  form.setValue(
+                                    `steps.${step.stepNumber - 1}.reminderBody`,
+                                    smsReminderTemplate(true, val.value)
+                                  );
+                                } else {
+                                  const emailReminderBody = emailReminderTemplate(true, val.value);
+                                  form.setValue(
+                                    `steps.${step.stepNumber - 1}.reminderBody`,
+                                    emailReminderBody.emailBody
+                                  );
+                                  form.setValue(
+                                    `steps.${step.stepNumber - 1}.emailSubject`,
+                                    emailReminderBody.emailSubject
+                                  );
+                                }
                               }
                             }
-
                             form.unregister(`steps.${step.stepNumber - 1}.sendTo`);
                             form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
-                            if (
-                              val.value === WorkflowActions.EMAIL_ATTENDEE ||
-                              val.value === WorkflowActions.EMAIL_HOST ||
-                              val.value === WorkflowActions.EMAIL_ADDRESS
-                            ) {
-                              setIsEmailSubjectNeeded(true);
-                            } else {
-                              setIsEmailSubjectNeeded(false);
-                            }
                             form.setValue(`steps.${step.stepNumber - 1}.action`, val.value);
+                            setUpdateTemplate(!updateTemplate);
                           }
                         }}
                         defaultValue={selectedAction}
@@ -478,7 +542,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   )}
                 </div>
               )}
-              <div className="bg-muted-4 mt-2 rounded-md pt-0">
+              <div className="bg-muted mt-2 rounded-md p-4 pt-0">
                 {isSenderIdNeeded ? (
                   <>
                     <div className="pt-4">
@@ -528,7 +592,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
               )}
               {isEmailAddressNeeded && (
-                <div className="bg-muted-4 mt-5 rounded-md">
+                <div className="bg-muted mt-5 rounded-md p-4">
                   <EmailField
                     required
                     label={t("email_address")}
@@ -548,9 +612,37 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         className="text-sm"
                         onChange={(val) => {
                           if (val) {
+                            if (val.value === WorkflowTemplates.REMINDER) {
+                              if (isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`))) {
+                                form.setValue(
+                                  `steps.${step.stepNumber - 1}.reminderBody`,
+                                  smsReminderTemplate(
+                                    true,
+                                    form.getValues(`steps.${step.stepNumber - 1}.action`)
+                                  )
+                                );
+                              } else {
+                                form.setValue(
+                                  `steps.${step.stepNumber - 1}.reminderBody`,
+                                  emailReminderTemplate(
+                                    true,
+                                    form.getValues(`steps.${step.stepNumber - 1}.action`)
+                                  ).emailBody
+                                );
+                                form.setValue(
+                                  `steps.${step.stepNumber - 1}.emailSubject`,
+                                  emailReminderTemplate(
+                                    true,
+                                    form.getValues(`steps.${step.stepNumber - 1}.action`)
+                                  ).emailSubject
+                                );
+                              }
+                            } else {
+                              form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
+                              form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, "");
+                            }
                             form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
-                            const isCustomTemplate = val.value === WorkflowTemplates.CUSTOM;
-                            setIsCustomReminderBodyNeeded(isCustomTemplate);
+                            setUpdateTemplate(!updateTemplate);
                           }
                         }}
                         defaultValue={selectedTemplate}
@@ -560,98 +652,100 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   }}
                 />
               </div>
-              {isCustomReminderBodyNeeded && (
-                <div className="bg-muted-4 mt-2 rounded-md pt-2 md:p-6 md:pt-4">
-                  {isEmailSubjectNeeded && (
-                    <div className="mb-6">
-                      <div className="flex items-center">
-                        <Label className="mb-0 flex-none">{t("subject")}</Label>
-                        <div className="flex-grow text-right">
-                          <AddVariablesDropdown
-                            addVariable={addVariableEmailSubject}
-                            variables={DYNAMIC_TEXT_VARIABLES}
-                          />
-                        </div>
+              <div className="bg-muted mt-2 rounded-md pt-2 md:p-6 md:pt-4">
+                {isEmailSubjectNeeded && (
+                  <div className="mb-6">
+                    <div className="flex items-center">
+                      <Label className="mb-0 flex-none">{t("subject")}</Label>
+                      <div className="flex-grow text-right">
+                        <AddVariablesDropdown
+                          addVariable={addVariableEmailSubject}
+                          variables={DYNAMIC_TEXT_VARIABLES}
+                        />
                       </div>
-                      <TextArea
-                        ref={(e) => {
-                          emailSubjectFormRef?.(e);
-                          refEmailSubject.current = e;
-                        }}
-                        rows={1}
-                        className="my-0 focus:ring-transparent"
-                        required
-                        {...restEmailSubjectForm}
-                      />
-                      {form.formState.errors.steps &&
-                        form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject && (
-                          <p className="mt-1 text-xs text-red-500">
-                            {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}
-                          </p>
-                        )}
                     </div>
-                  )}
-
-                  {step.action !== WorkflowActions.SMS_ATTENDEE &&
-                  step.action !== WorkflowActions.SMS_NUMBER ? (
-                    <>
-                      <div className="mb-2 flex items-center pb-[1.5px]">
-                        <Label className="mb-0 flex-none ">
-                          {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                        </Label>
-                      </div>
-                      <Editor
-                        getText={() => {
-                          return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
-                        }}
-                        setText={(text: string) => {
-                          props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
-                          props.form.clearErrors();
-                        }}
-                        variables={DYNAMIC_TEXT_VARIABLES}
-                        height="200px"
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex items-center">
-                        <Label className="mb-0 flex-none">
-                          {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                        </Label>
-                        <div className="flex-grow text-right">
-                          <AddVariablesDropdown
-                            addVariable={addVariableBody}
-                            variables={DYNAMIC_TEXT_VARIABLES}
-                          />
-                        </div>
-                      </div>
-                      <TextArea
-                        ref={(e) => {
-                          reminderBodyFormRef?.(e);
-                          refReminderBody.current = e;
-                        }}
-                        className="my-0 h-24"
-                        required
-                        {...restReminderBodyForm}
-                      />
-                    </>
-                  )}
-                  {form.formState.errors.steps &&
-                    form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
-                      <p className="mt-1 text-sm text-red-500">
-                        {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
-                      </p>
-                    )}
-                  <div className="mt-3 ">
-                    <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
-                      <div className="text-default mt-2 flex text-sm">
-                        <HelpCircle className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                        <p className="text-left">{t("using_additional_inputs_as_variables")}</p>
-                      </div>
-                    </button>
+                    <TextArea
+                      ref={(e) => {
+                        emailSubjectFormRef?.(e);
+                        refEmailSubject.current = e;
+                      }}
+                      rows={1}
+                      className="my-0 focus:ring-transparent"
+                      required
+                      {...restEmailSubjectForm}
+                    />
+                    {form.formState.errors.steps &&
+                      form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}
+                        </p>
+                      )}
                   </div>
+                )}
+
+                {step.action !== WorkflowActions.SMS_ATTENDEE &&
+                step.action !== WorkflowActions.SMS_NUMBER ? (
+                  <>
+                    <div className="mb-2 flex items-center pb-[1.5px]">
+                      <Label className="mb-0 flex-none ">
+                        {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+                      </Label>
+                    </div>
+                    <Editor
+                      getText={() => {
+                        return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
+                      }}
+                      setText={(text: string) => {
+                        props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
+                        props.form.clearErrors();
+                      }}
+                      variables={DYNAMIC_TEXT_VARIABLES}
+                      height="200px"
+                      updateTemplate={updateTemplate}
+                      firstRender={firstRender}
+                      setFirstRender={setFirstRender}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center">
+                      <Label className="mb-0 flex-none">
+                        {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+                      </Label>
+                      <div className="flex-grow text-right">
+                        <AddVariablesDropdown
+                          addVariable={addVariableBody}
+                          variables={DYNAMIC_TEXT_VARIABLES}
+                        />
+                      </div>
+                    </div>
+                    <TextArea
+                      ref={(e) => {
+                        reminderBodyFormRef?.(e);
+                        refReminderBody.current = e;
+                      }}
+                      className="my-0 h-24"
+                      required
+                      {...restReminderBodyForm}
+                    />
+                  </>
+                )}
+                {form.formState.errors.steps &&
+                  form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
+                    </p>
+                  )}
+                <div className="mt-3 ">
+                  <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
+                    <div className="text-default mt-2 flex text-sm">
+                      <HelpCircle className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                      <p className="text-left">{t("using_booking_questions_as_variables")}</p>
+                    </div>
+                  </button>
                 </div>
-              )}
+              </div>
+
               {/* {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
                 <Button
                   type="button"
@@ -754,19 +848,19 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
           <DialogContent type="creation" className="sm:max-w-[610px] md:h-[570px]">
             <div className="-m-3 h-[430px] overflow-x-hidden overflow-y-scroll sm:m-0">
-              <h1 className="w-full text-xl font-semibold ">{t("how_additional_inputs_as_variables")}</h1>
+              <h1 className="w-full text-xl font-semibold ">{t("how_booking_questions_as_variables")}</h1>
               <div className="bg-muted-3 mb-7 mt-7 rounded-md sm:p-4">
                 <p className="test-sm font-medium">{t("format")}</p>
                 <ul className="text-emphasis mt-2 ml-5 list-disc">
                   <li>{t("uppercase_for_letters")}</li>
                   <li>{t("replace_whitespaces_underscores")}</li>
-                  <li>{t("ignore_special_characters")}</li>
+                  <li>{t("ignore_special_characters_booking_questions")}</li>
                 </ul>
                 <div className="mt-6">
                   <p className="test-sm w-full font-medium">{t("example_1")}</p>
                   <div className="mt-2 grid grid-cols-12">
                     <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
-                      {t("additional_input_label")}
+                      {t("booking_question_identifier")}
                     </div>
                     <div className="test-sm text-emphasis col-span-7">{t("company_size")}</div>
                     <div className="test-sm text-default col-span-5 w-full">{t("variable")}</div>
@@ -785,7 +879,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <p className="test-sm w-full font-medium">{t("example_2")}</p>
                   <div className="mt-2 grid grid-cols-12">
                     <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
-                      {t("additional_input_label")}
+                      {t("booking_question_identifier")}
                     </div>
                     <div className="test-sm text-emphasis col-span-7">{t("what_help_needed")}</div>
                     <div className="test-sm text-default col-span-5">{t("variable")}</div>

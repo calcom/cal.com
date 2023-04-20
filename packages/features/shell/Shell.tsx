@@ -22,7 +22,6 @@ import classNames from "@calcom/lib/classNames";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -197,6 +196,7 @@ type LayoutProps = {
   // Gives the ability to include actions to the right of the heading
   actions?: JSX.Element;
   smallHeading?: boolean;
+  hideHeadingOnMobile?: boolean;
 };
 
 const useBrandColors = () => {
@@ -231,7 +231,8 @@ export default function Shell(props: LayoutProps) {
   // if a page is unauthed and isPublic is true, the redirect does not happen.
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
-  useTheme();
+  // System Theme is automatically supported using ThemeProvider. If we intend to use user theme throughout the app we need to uncomment this.
+  // useTheme(profile.theme);
   useBrandColors();
 
   return !props.isPublic ? (
@@ -796,8 +797,9 @@ export function ShellMain(props: LayoutProps) {
     <>
       <div
         className={classNames(
-          "flex items-center md:mt-0 md:mb-6",
-          props.smallHeading ? "lg:mb-7" : "lg:mb-8"
+          "flex items-center md:mb-6 md:mt-0",
+          props.smallHeading ? "lg:mb-7" : "lg:mb-8",
+          props.hideHeadingOnMobile ? "mb-0" : "mb-6"
         )}>
         {!!props.backPath && (
           <Button
@@ -813,14 +815,16 @@ export function ShellMain(props: LayoutProps) {
           />
         )}
         {props.heading && (
-          <header className={classNames(props.large && "py-8", "flex w-full max-w-full items-center")}>
+          <header
+            className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className={classNames("w-full ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
+            <div className={classNames("w-full truncate ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
               {props.heading && (
                 <h3
                   className={classNames(
-                    "font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis hidden truncate text-xl font-semibold tracking-wide md:block xl:max-w-full",
-                    props.smallHeading ? "text-base" : "text-xl"
+                    "font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
+                    props.smallHeading ? "text-base" : "text-xl",
+                    props.hideHeadingOnMobile && "hidden"
                   )}>
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h3>
