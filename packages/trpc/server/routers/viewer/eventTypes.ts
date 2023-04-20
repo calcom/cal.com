@@ -27,7 +27,7 @@ import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 
 import { TRPCError } from "@trpc/server";
 
-import { authedProcedure, router } from "../../trpc";
+import { authedProcedure, publicProcedure, router } from "../../trpc";
 import { viewerRouter } from "../viewer";
 
 function isPeriodType(keyInput: string): keyInput is PeriodType {
@@ -401,24 +401,42 @@ export const eventTypesRouter = router({
       })),
     };
   }),
-  list: authedProcedure.query(async ({ ctx }) => {
-    return await ctx.prisma.eventType.findMany({
-      where: {
-        userId: ctx.user.id,
-        team: null,
-      },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        length: true,
-        schedulingType: true,
-        slug: true,
-        hidden: true,
-        metadata: true,
-      },
-    });
-  }),
+  list: publicProcedure
+    .input(
+      z.object({
+        username: z.string(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const user = await ctx.prisma.user.findUnique({
+        where: {
+          username: input.username,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!user) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+
+      return await ctx.prisma.eventType.findMany({
+        where: {
+          userId: user.id,
+          team: null,
+          hidden: false,
+        },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          length: true,
+          slug: true,
+          userId: true,
+        },
+      });
+    }),
   listWithTeam: authedProcedure.query(async ({ ctx }) => {
     return await ctx.prisma.eventType.findMany({
       where: {

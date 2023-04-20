@@ -14,10 +14,7 @@ import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { DailyLocationType } from "@calcom/core/location";
-import {
-  getDownloadLinkOfCalVideoByRecordingId,
-  getRecordingsOfCalVideoByRoomName,
-} from "@calcom/core/videoClient";
+import { getDownloadLinkOfCalVideoByRecordingId, getRecordingsOfCalVideoByRoomName } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
@@ -38,10 +35,7 @@ import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
-import {
-  deleteWebUser as syncServicesDeleteWebUser,
-  updateWebUser as syncServicesUpdateWebUser,
-} from "@calcom/lib/sync/SyncServiceManager";
+import { deleteWebUser as syncServicesDeleteWebUser, updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
@@ -160,6 +154,7 @@ const publicViewerRouter = router({
       }
     }),
   slots: slotsRouter,
+  eventTypes: eventTypesRouter,
   cityTimezones: publicProcedure.query(async () => {
     /**
      * Lazy loads third party dependency to avoid loading 1.5Mb for ALL tRPC procedures.
