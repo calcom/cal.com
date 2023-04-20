@@ -373,7 +373,7 @@ export const appsRouter = router({
           metadata: true,
         },
       });
-      console.log("🚀 ~ file: apps.tsx:375 ~ .query ~ eventType:", eventTypeMetadataQuery);
+      // console.log("🚀 ~ file: apps.tsx:375 ~ .query ~ eventType:", eventTypeMetadataQuery);
 
       if (!eventTypeMetadataQuery) {
         throw new TRPCError({
@@ -383,25 +383,25 @@ export const appsRouter = router({
       }
 
       const eventTypeAppsMetadataObject = eventTypeMetadataQuery as { metadata: any };
-      console.log(
-        "🚀 ~ file: apps.tsx:386 ~ .query ~ eventTypeAppsMetadataObject:",
-        eventTypeAppsMetadataObject
-      );
+      // console.log(
+      //   "🚀 ~ file: apps.tsx:386 ~ .query ~ eventTypeAppsMetadataObject:",
+      //   eventTypeAppsMetadataObject
+      // );
 
       let eventTypeAppsMetadata = {};
       if ("apps" in eventTypeAppsMetadataObject.metadata) {
         eventTypeAppsMetadata = eventTypeAppsMetadataObject.metadata.apps as object;
-        console.log("🚀 ~ file: apps.tsx:390 ~ .query ~ eventTypeAppsMetadata:", eventTypeAppsMetadata);
+        // console.log("🚀 ~ file: apps.tsx:390 ~ .query ~ eventTypeAppsMetadata:", eventTypeAppsMetadata);
       }
 
       const installedApps = [],
         notInstalledApps = [];
 
       for (const [key, value] of Object.entries(eventTypeAppsMetadata)) {
-        console.log("🚀 ~ file: apps.tsx:401 ~ .query ~ key, value:", key, value);
+        // console.log("🚀 ~ file: apps.tsx:401 ~ .query ~ key, value:", key, value);
         const app = eventTypeApps.find((app) => app.slug === key);
         if (!app) {
-          console.log("🚀 ~ file: apps.tsx:401 ~ .query ~ key:", key);
+          // console.log("🚀 ~ file: apps.tsx:401 ~ .query ~ key:", key);
         }
         if (app?.credentials.length || value.enabled) {
           installedApps.push({ ...app, isInstalled: true });
@@ -410,8 +410,8 @@ export const appsRouter = router({
         }
       }
 
-      console.log("🚀 ~ file: apps.tsx:393 ~ .query ~ installedApps:", installedApps);
-      console.log("🚀 ~ file: apps.tsx:395 ~ .query ~ notInstalledApps:", notInstalledApps);
+      // console.log("🚀 ~ file: apps.tsx:393 ~ .query ~ installedApps:", installedApps);
+      // console.log("🚀 ~ file: apps.tsx:395 ~ .query ~ notInstalledApps:", notInstalledApps);
 
       return { installedApps, notInstalledApps };
     }),

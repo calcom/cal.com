@@ -14,6 +14,7 @@ export default function AppCard({
   description,
   switchOnClick,
   switchChecked,
+  disableSwitch,
   children,
   setAppData,
   returnTo,
@@ -22,6 +23,7 @@ export default function AppCard({
   description?: React.ReactNode;
   switchChecked?: boolean;
   switchOnClick?: (e: boolean) => void;
+  disableSwitch?: boolean;
   children?: React.ReactNode;
   setAppData: SetAppDataGeneric<typeof eventTypeAppCardZod>;
   returnTo?: string;
@@ -49,7 +51,7 @@ export default function AppCard({
           {app?.isInstalled ? (
             <div className="ml-auto flex items-center">
               <Switch
-                disabled={!app.enabled}
+                disabled={!app.enabled || disableSwitch}
                 onCheckedChange={(enabled) => {
                   if (switchOnClick) {
                     switchOnClick(enabled);

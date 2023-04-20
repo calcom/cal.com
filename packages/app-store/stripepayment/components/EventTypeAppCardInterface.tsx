@@ -28,7 +28,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
   const seatsEnabled = !!eventType.seatsPerTimeSlot;
   const teamOwner = eventType.team.members.find((member) => member.role === "OWNER");
-  const teamOwnerEditing = teamOwner.user.id === session.data?.user?.id;
+  const teamOwnerEditing = eventType.team && teamOwner.user.id === session.data?.user?.id;
 
   const getCurrencySymbol = (locale: string, currency: string) =>
     (0)
@@ -46,6 +46,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       setAppData={setAppData}
       app={app}
       switchChecked={requirePayment}
+      disableSwitch={!teamOwnerEditing}
       switchOnClick={(enabled) => {
         setRequirePayment(enabled);
       }}
@@ -96,10 +97,13 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     if (input) setAppData("paymentOption", input.value);
                   }}
                   className="mb-1 h-[38px] w-full"
-                  isDisabled={seatsEnabled}
+                  isDisabled={seatsEnabled || !teamOwnerEditing}
                 />
               </div>
               {seatsEnabled && paymentOption === "HOLD" && (
+                <Alert className="mt-2" severity="warning" title={t("seats_and_no_show_fee_error")} />
+              )}
+              {eventType.team && !teamOwnerEditing && (
                 <Alert className="mt-2" severity="warning" title={t("seats_and_no_show_fee_error")} />
               )}
             </>
