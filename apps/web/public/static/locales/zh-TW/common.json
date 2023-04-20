@@ -1,4 +1,5 @@
 {
+  "identity_provider": "身分提供者",
   "trial_days_left": "試用 PRO 方案還有 $t(day, {\"count\": {{days}} })",
   "day_one": "{{count}} 天",
   "day_other": "{{count}} 天",
@@ -69,6 +70,8 @@
   "event_awaiting_approval_subject": "等待核准：{{date}} 與 {{title}}",
   "event_still_awaiting_approval": "活動還在等待核准",
   "booking_submitted_subject": "已提出預約：{{date}} 與 {{title}}",
+  "download_recording_subject": "下載錄製內容：{{date}} 的 {{title}}",
+  "download_your_recording": "下載您的錄製內容",
   "your_meeting_has_been_booked": "會議已經預定",
   "event_type_has_been_rescheduled_on_time_date": "您的 {{title}} 已改期至 {{date}}。",
   "event_has_been_rescheduled": "已更新 - 已經重新預定活動時間",
