@@ -1041,7 +1041,6 @@ const loggedInViewerRouter = router({
                   user: {
                     select: {
                       id: true,
-                      credentials: true,
                       email: true,
                       timeZone: true,
                       name: true,
