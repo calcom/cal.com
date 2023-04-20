@@ -96,3 +96,4 @@ apps/auth
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+apps/web/newrelic_agent.log
