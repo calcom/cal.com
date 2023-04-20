@@ -590,6 +590,8 @@
   "minutes": "分鐘",
   "round_robin": "循環制",
   "round_robin_description": "與多位團隊成員進行週期會議。",
+  "managed_event": "受管理活動",
+  "username_placeholder": "使用者名稱",
   "url": "網址",
   "hidden": "隱藏",
   "readonly": "唯讀",
