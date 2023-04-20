@@ -25,7 +25,7 @@ type UsernameSlugLinkProps = {
   slug: string;
 };
 
-const user: User = {
+const user: User & { credentials: Credential[] } = {
   metadata: null,
   theme: null,
   credentials: [],
