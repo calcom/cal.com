@@ -71,17 +71,6 @@ const getDuration = (start: string, end: string): DurationObject => ({
   minutes: dayjs(end).diff(dayjs(start), "minute"),
 });
 
-const buildUtcOffset = (minutes: number): string => {
-  const h =
-    minutes > 0
-      ? "+" + (Math.floor(minutes / 60) < 10 ? "0" + Math.floor(minutes / 60) : Math.floor(minutes / 60))
-      : "-" +
-        (Math.ceil(minutes / 60) > -10 ? "0" + Math.ceil(minutes / 60) * -1 : Math.ceil(minutes / 60) * -1);
-  const m = Math.abs(minutes % 60);
-  const offset = `${h}:${m}`;
-  return offset;
-};
-
 const getAttendees = (attendees: Person[]): Attendee[] =>
   attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
 
@@ -321,7 +310,6 @@ export default abstract class BaseCalendarService implements Calendar {
         console.error("Error parsing calendar object: ", e);
         return;
       }
-      // const vevent = vcalendar.getFirstSubcomponent("vevent");
       const vevents = vcalendar.getAllSubcomponents("vevent");
       vevents.forEach((vevent) => {
         // if event status is free or transparent, return
@@ -335,14 +323,12 @@ export default abstract class BaseCalendarService implements Calendar {
         const tzid: string | undefined = vevent?.getFirstPropertyValue("tzid") || isUTC ? "UTC" : timezone;
         // In case of icalendar, when only tzid is available without vtimezone, we need to add vtimezone explicitly to take care of timezone diff
         if (!vcalendar.getFirstSubcomponent("vtimezone") && tzid) {
-          // this.registerTimezone(tzid);
-
           const timezoneComp = new ICAL.Component("vtimezone");
           timezoneComp.addPropertyWithValue("tzid", tzid);
           const standard = new ICAL.Component("standard");
           // get timezone offset
-          const tzoffsetfrom = buildUtcOffset(dayjs(event.startDate.toJSDate()).tz(tzid, true).utcOffset());
-          const tzoffsetto = buildUtcOffset(dayjs(event.endDate.toJSDate()).tz(tzid, true).utcOffset());
+          const tzoffsetfrom = dayjs(event.startDate.toJSDate()).tz(tzid).format("Z");
+          const tzoffsetto = dayjs(event.endDate.toJSDate()).tz(tzid).format("Z");
 
           // set timezone offset
           standard.addPropertyWithValue("tzoffsetfrom", tzoffsetfrom);
@@ -420,6 +406,7 @@ export default abstract class BaseCalendarService implements Calendar {
           event.startDate = event.startDate.convertToZone(zone);
           event.endDate = event.endDate.convertToZone(zone);
         }
+
         return events.push({
           start: dayjs(event.startDate.toJSDate()).toISOString(),
           end: dayjs(event.endDate.toJSDate()).toISOString(),
