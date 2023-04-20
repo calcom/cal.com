@@ -29,7 +29,9 @@ const UserProfile = (props: IUserProfileProps) => {
     defaultValues: { bio: user?.bio || "" },
   });
 
-  const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
+  const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery({
+    username: user?.username || "",
+  });
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
   const utils = trpc.useContext();
   const router = useRouter();
