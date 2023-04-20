@@ -2,7 +2,8 @@ import { z } from "zod";
 
 import prisma from "@calcom/prisma";
 
-import { router, authedAdminProcedure } from "../../trpc";
+import { authedAdminProcedure } from "../../procedures/authedProcedure";
+import { router } from "../../trpc";
 
 export const deploymentSetupRouter = router({
   update: authedAdminProcedure

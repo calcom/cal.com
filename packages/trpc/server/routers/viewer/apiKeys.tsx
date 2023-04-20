@@ -3,7 +3,8 @@ import { z } from "zod";
 
 import { generateUniqueAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 
-import { router, authedProcedure } from "../../trpc";
+import authedProcedure from "../../procedures/authedProcedure";
+import { router } from "../../trpc";
 
 export const apiKeysRouter = router({
   list: authedProcedure.query(async ({ ctx }) => {

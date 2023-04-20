@@ -16,7 +16,8 @@ import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
 
-import { authedProcedure, router } from "../../trpc";
+import authedProcedure from "../../procedures/authedProcedure";
+import { router } from "../../trpc";
 
 export const availabilityRouter = router({
   list: authedProcedure.query(async ({ ctx }) => {

@@ -57,7 +57,7 @@ const GeneralQueryView = () => {
   }
   return (
     <WithQuery
-      success={({ data }) => <GeneralView user={user} localeProp={data.locale} />}
+      success={({ data }) => <GeneralView user={user} localeProp={`${data.locale}`} />}
       customLoader={<SkeletonLoader title={t("general")} description={t("general_description")} />}
     />
   );

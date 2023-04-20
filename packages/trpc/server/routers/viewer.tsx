@@ -47,7 +47,11 @@ import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils"
 
 import { TRPCError } from "@trpc/server";
 
-import { authedProcedure, getLocale, mergeRouters, publicProcedure, router } from "../trpc";
+import localeMiddleware from "../midlewares/localeMiddleware";
+import sessionMiddleware from "../midlewares/sessionMiddleware";
+import authedProcedure from "../procedures/authedProcedure";
+import publicProcedure from "../procedures/publicProcedure";
+import { mergeRouters, router } from "../trpc";
 import { apiKeysRouter } from "./viewer/apiKeys";
 import { appsRouter } from "./viewer/apps";
 import { authRouter } from "./viewer/auth";
@@ -64,11 +68,11 @@ import { workflowsRouter } from "./viewer/workflows";
 
 // things that unauthenticated users can query about themselves
 const publicViewerRouter = router({
-  session: publicProcedure.query(({ ctx }) => {
+  session: publicProcedure.use(sessionMiddleware).query(({ ctx }) => {
     return ctx.session;
   }),
-  i18n: publicProcedure.query(async ({ ctx }) => {
-    const { locale, i18n } = await getLocale(ctx);
+  i18n: publicProcedure.use(localeMiddleware).query(async ({ ctx }) => {
+    const { locale, i18n } = ctx;
 
     return {
       i18n,
@@ -240,7 +244,7 @@ const loggedInViewerRouter = router({
       // Check if input.password is correct
       const user = await prisma.user.findUnique({
         where: {
-          email: ctx.user.email.toLowerCase(),
+          email: ctx.user.email?.toLowerCase(),
         },
       });
       if (!user) {
@@ -1249,7 +1253,7 @@ const loggedInViewerRouter = router({
       const { recordingId } = input;
       const { session } = ctx;
 
-      const isDownloadAllowed = IS_SELF_HOSTED || session.user.belongsToActiveTeam;
+      const isDownloadAllowed = IS_SELF_HOSTED || session.user?.belongsToActiveTeam;
 
       if (!isDownloadAllowed) {
         throw new TRPCError({

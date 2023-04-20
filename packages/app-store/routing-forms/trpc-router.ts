@@ -7,7 +7,9 @@ import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPay
 import logger from "@calcom/lib/logger";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
-import { authedProcedure, publicProcedure, router } from "@calcom/trpc/server/trpc";
+import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
+import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
+import { router } from "@calcom/trpc/server/trpc";
 import type { Ensure } from "@calcom/types/utils";
 
 import ResponseEmail from "./emails/templates/response-email";

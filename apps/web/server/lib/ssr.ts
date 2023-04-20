@@ -1,7 +1,8 @@
 import type { GetServerSidePropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getLocaleFromHeaders } from "@calcom/lib/i18n";
 import { createProxySSGHelpers } from "@calcom/trpc/react/ssg";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
@@ -13,16 +14,14 @@ import { appRouter } from "@calcom/trpc/server/routers/_app";
  * Make sure to `return { props: { trpcState: ssr.dehydrate() } }` at the end.
  */
 export async function ssrInit(context: GetServerSidePropsContext) {
-  const { req, res } = context;
-
-  const sessionGetter = () => getServerSession({ req, res });
-
-  const ctx = await createContext(context, sessionGetter);
+  const ctx = await createContext(context);
+  const locale = getLocaleFromHeaders(context.req);
+  const i18n = await serverSideTranslations(getLocaleFromHeaders(context.req), ["common", "vital"]);
 
   const ssr = createProxySSGHelpers({
     router: appRouter,
     transformer: superjson,
-    ctx,
+    ctx: { ...ctx, locale, i18n },
   });
 
   // always preload "viewer.public.i18n"

@@ -26,7 +26,8 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import { authedProcedure, router } from "../../trpc";
+import authedProcedure from "../../procedures/authedProcedure";
+import { router } from "../../trpc";
 
 const isEmail = (str: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 export const viewerTeamsRouter = router({

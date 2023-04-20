@@ -10,7 +10,8 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { TRPCError } from "@trpc/server";
 
-import { authedAdminProcedure, authedProcedure, router } from "../../trpc";
+import authedProcedure, { authedAdminProcedure } from "../../procedures/authedProcedure";
+import { router } from "../../trpc";
 
 export const appsRouter = router({
   listLocal: authedAdminProcedure

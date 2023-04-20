@@ -23,7 +23,8 @@ import type { WorkingHours } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
 
-import { publicProcedure, router } from "../../trpc";
+import publicProcedure from "../../procedures/publicProcedure";
+import { router } from "../../trpc";
 
 const getScheduleSchema = z
   .object({

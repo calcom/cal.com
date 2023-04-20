@@ -48,7 +48,8 @@ import type { WorkflowStep } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
-import { router, authedProcedure } from "../../trpc";
+import authedProcedure from "../../procedures/authedProcedure";
+import { router } from "../../trpc";
 import { viewerTeamsRouter } from "./teams";
 
 function getSender(
@@ -1424,6 +1425,7 @@ action === WorkflowActions.EMAIL_ADDRESS*/
 
     let isTeamsPlan = false;
     if (!isCurrentUsernamePremium) {
+      // @ts-expect-error TODO: find out why this router expects the context with the default user
       const { hasTeamPlan } = await viewerTeamsRouter.createCaller(ctx).hasTeamPlan();
       isTeamsPlan = !!hasTeamPlan;
     }

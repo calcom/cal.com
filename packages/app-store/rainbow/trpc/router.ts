@@ -2,7 +2,8 @@ import { ethers } from "ethers";
 import { configureChains, createClient } from "wagmi";
 import { z } from "zod";
 
-import { router, publicProcedure } from "@calcom/trpc/server/trpc";
+import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
+import { router } from "@calcom/trpc/server/trpc";
 
 import abi from "../utils/abi.json";
 import { checkBalance, getProviders, SUPPORTED_CHAINS } from "../utils/ethereum";

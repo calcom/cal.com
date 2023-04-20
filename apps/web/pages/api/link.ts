@@ -1,4 +1,3 @@
-import { UserPermissionRole } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
@@ -27,22 +26,9 @@ const decryptedSchema = z.object({
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
   const { action, token, reason } = querySchema.parse(req.query);
-  const { bookingUid, userId } = decryptedSchema.parse(
+  const { bookingUid } = decryptedSchema.parse(
     JSON.parse(symmetricDecrypt(decodeURIComponent(token), process.env.CALENDSO_ENCRYPTION_KEY || ""))
   );
-
-  /** We shape the session as required by tRPC router */
-  async function sessionGetter() {
-    return {
-      user: {
-        id: userId,
-        username: "" /* Not used in this context */,
-        role: UserPermissionRole.USER,
-      },
-      hasValidLicense: true,
-      expires: "" /* Not used in this context */,
-    };
-  }
 
   const booking = await prisma.booking.findUniqueOrThrow({
     where: { uid: bookingUid },
@@ -50,7 +36,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
 
   try {
     /** @see https://trpc.io/docs/server-side-calls */
-    const ctx = await createContext({ req, res }, sessionGetter);
+    const ctx = await createContext({ req, res });
     const caller = viewerRouter.createCaller(ctx);
     await caller.bookings.confirm({
       bookingId: booking.id,

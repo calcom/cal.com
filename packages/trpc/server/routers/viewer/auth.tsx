@@ -8,7 +8,8 @@ import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import { router, authedProcedure } from "../../trpc";
+import authedProcedure from "../../procedures/authedProcedure";
+import { router } from "../../trpc";
 
 export const authRouter = router({
   changePassword: authedProcedure

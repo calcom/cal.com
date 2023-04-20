@@ -7,61 +7,8 @@ import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
 
-import { TRPCError } from "@trpc/server";
-
-import { router, authedProcedure } from "../../trpc";
-
-// Common data for all endpoints under webhook
-const webhookIdAndEventTypeIdSchema = z.object({
-  // Webhook ID
-  id: z.string().optional(),
-  // Event type ID
-  eventTypeId: z.number().optional(),
-});
-
-const webhookProcedure = authedProcedure
-  .input(webhookIdAndEventTypeIdSchema.optional())
-  .use(async ({ ctx, input, next }) => {
-    // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
-    if (!input) return next();
-    const { eventTypeId, id } = input;
-
-    // A webhook is either linked to Event Type or to a user.
-    if (eventTypeId) {
-      const team = await ctx.prisma.team.findFirst({
-        where: {
-          eventTypes: {
-            some: {
-              id: eventTypeId,
-            },
-          },
-        },
-        include: {
-          members: true,
-        },
-      });
-
-      // Team should be available and the user should be a member of the team
-      if (!team?.members.some((membership) => membership.userId === ctx.user.id)) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
-      }
-    } else if (id) {
-      const authorizedHook = await ctx.prisma.webhook.findFirst({
-        where: {
-          id: id,
-          userId: ctx.user.id,
-        },
-      });
-      if (!authorizedHook) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
-      }
-    }
-    return next();
-  });
+import webhookProcedure from "../../procedures/webhookProcedure";
+import { router } from "../../trpc";
 
 export const webhookRouter = router({
   list: webhookProcedure
