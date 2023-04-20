@@ -8,6 +8,9 @@ describe("Booker: formatEventFromToTime", () => {
   beforeAll(() => {
     MockDate.set("2023-03-23");
   });
+  afterAll(() => {
+    MockDate.reset();
+  });
   it("Should show the correct date format based on locale", () => {
     expect(
       formatEventFromToTime(
