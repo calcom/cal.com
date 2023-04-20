@@ -22,10 +22,8 @@ export default function useTheme(themeToSet?: Maybe<string>) {
 
     if (!finalThemeToSet || finalThemeToSet === activeTheme) return;
 
-    console.log("Setting theme", { resolvedTheme, finalThemeToSet, activeTheme, forcedTheme });
     setTheme(finalThemeToSet);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- we do not want activeTheme to re-render this effect
-  }, [themeToSet, setTheme]);
+  }, [themeToSet, setTheme, embedTheme, activeTheme]);
 
   return {
     resolvedTheme,
