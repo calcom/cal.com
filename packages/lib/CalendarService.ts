@@ -302,7 +302,6 @@ export default abstract class BaseCalendarService implements Calendar {
     const events: { start: string; end: string }[] = [];
     objects.forEach((object) => {
       if (object.data == null || JSON.stringify(object.data) == "{}") return;
-      console.log("object==>", JSON.stringify(sanitizeCalendarObject(object)));
       let vcalendar: ICAL.Component;
       try {
         const jcalData = ICAL.parse(sanitizeCalendarObject(object));
@@ -324,8 +323,6 @@ export default abstract class BaseCalendarService implements Calendar {
         const tzid: string | undefined = vevent?.getFirstPropertyValue("tzid") || isUTC ? "UTC" : timezone;
         // In case of icalendar, when only tzid is available without vtimezone, we need to add vtimezone explicitly to take care of timezone diff
         if (!vcalendar.getFirstSubcomponent("vtimezone") && tzid) {
-          // this.registerTimezone(tzid);
-
           const timezoneComp = new ICAL.Component("vtimezone");
           timezoneComp.addPropertyWithValue("tzid", tzid);
           const standard = new ICAL.Component("standard");
@@ -404,25 +401,11 @@ export default abstract class BaseCalendarService implements Calendar {
           return;
         }
 
-        console.log(
-          "before=>",
-          dayjs(event.startDate.toJSDate()).toISOString(),
-          " | ",
-          dayjs(event.endDate.toJSDate()).toISOString()
-        );
-
         if (vtimezone) {
           const zone = new ICAL.Timezone(vtimezone);
           event.startDate = event.startDate.convertToZone(zone);
           event.endDate = event.endDate.convertToZone(zone);
         }
-
-        console.log(
-          "after=>",
-          dayjs(event.startDate.toJSDate()).toISOString(),
-          " | ",
-          dayjs(event.endDate.toJSDate()).toISOString()
-        );
 
         return events.push({
           start: dayjs(event.startDate.toJSDate()).toISOString(),
