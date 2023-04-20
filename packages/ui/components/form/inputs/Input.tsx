@@ -9,6 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Alert, showToast, Skeleton, Tooltip, UnstyledSelect } from "../../..";
 import { Eye, EyeOff, X } from "../../icon";
+import type { ToolTipProps } from "../../tooltip";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
@@ -205,11 +206,12 @@ export const TextField = forwardRef<HTMLInputElement, InputFieldProps>(function 
   return <InputField ref={ref} {...props} />;
 });
 
-export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
-  props,
-  ref
-) {
+export const PasswordField = forwardRef<
+  HTMLInputElement,
+  InputFieldProps & { tooltipProps?: Partial<ToolTipProps> }
+>(function PasswordField(props, ref) {
   const { t } = useLocale();
+  const { tooltipProps, ...rest } = props;
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const toggleIsPasswordVisible = useCallback(
     () => setIsPasswordVisible(!isPasswordVisible),
@@ -223,14 +225,14 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
         type={isPasswordVisible ? "text" : "password"}
         placeholder={props.placeholder || "•••••••••••••"}
         ref={ref}
-        {...props}
+        {...rest}
         className={classNames(
           "addon-wrapper mb-0 ltr:border-r-0 ltr:pr-10 rtl:border-l-0 rtl:pl-10",
           props.className
         )}
         addOnFilled={false}
         addOnSuffix={
-          <Tooltip content={textLabel}>
+          <Tooltip content={textLabel} {...(tooltipProps && tooltipProps)}>
             <button
               className="text-emphasis absolute bottom-0 h-9 ltr:right-3 rtl:left-3"
               type="button"
