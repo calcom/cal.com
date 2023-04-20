@@ -12,7 +12,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button, EmptyScreen, showToast, Switch, Tooltip, Alert } from "@calcom/ui";
 import { ExternalLink, Zap, Lock } from "@calcom/ui/components/icon";
 
-import LicenseRequired from "../../common/components/v2/LicenseRequired";
+import LicenseRequired from "../../common/components/LicenseRequired";
 import { getActionIcon } from "../lib/getActionIcon";
 import SkeletonLoader from "./SkeletonLoaderEventWorkflowsTab";
 import type { WorkflowType } from "./WorkflowListPage";

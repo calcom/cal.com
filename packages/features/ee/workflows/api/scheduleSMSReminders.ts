@@ -3,6 +3,7 @@ import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@prisma/cli
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -87,38 +88,46 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           : reminder.booking?.user?.locale;
 
       let message: string | null = reminder.workflowStep.reminderBody;
-      switch (reminder.workflowStep.template) {
-        case WorkflowTemplates.REMINDER:
-          message = smsReminderTemplate(
-            reminder.booking?.startTime.toISOString() || "",
-            reminder.booking?.eventType?.title || "",
-            timeZone || "",
-            attendeeName || "",
-            userName
-          );
-          break;
-        case WorkflowTemplates.CUSTOM:
-          const variables: VariablesType = {
-            eventName: reminder.booking?.eventType?.title,
-            organizerName: reminder.booking?.user?.name || "",
-            attendeeName: reminder.booking?.attendees[0].name,
-            attendeeEmail: reminder.booking?.attendees[0].email,
-            eventDate: dayjs(reminder.booking?.startTime).tz(timeZone),
-            eventTime: dayjs(reminder.booking?.startTime).tz(timeZone),
-            timeZone: timeZone,
-            location: reminder.booking?.location || "",
-            additionalNotes: reminder.booking?.description,
-            responses: reminder.booking?.responses,
-            meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl,
-          };
-          const customMessage = await customTemplate(
-            reminder.workflowStep.reminderBody || "",
-            variables,
-            locale || ""
-          );
-          message = customMessage.text;
-          break;
+
+      if (reminder.workflowStep.reminderBody) {
+        const { responses } = getCalEventResponses({
+          bookingFields: reminder.booking.eventType?.bookingFields ?? null,
+          booking: reminder.booking,
+        });
+
+        const variables: VariablesType = {
+          eventName: reminder.booking?.eventType?.title,
+          organizerName: reminder.booking?.user?.name || "",
+          attendeeName: reminder.booking?.attendees[0].name,
+          attendeeEmail: reminder.booking?.attendees[0].email,
+          eventDate: dayjs(reminder.booking?.startTime).tz(timeZone),
+          eventEndTime: dayjs(reminder.booking?.endTime).tz(timeZone),
+          timeZone: timeZone,
+          location: reminder.booking?.location || "",
+          additionalNotes: reminder.booking?.description,
+          responses: responses,
+          meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl,
+          cancelLink: `/booking/${reminder.booking.uid}?cancel=true`,
+          rescheduleLink: `/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
+        };
+        const customMessage = customTemplate(
+          reminder.workflowStep.reminderBody || "",
+          variables,
+          locale || ""
+        );
+        message = customMessage.text;
+      } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
+        message = smsReminderTemplate(
+          false,
+          reminder.workflowStep.action,
+          reminder.booking?.startTime.toISOString() || "",
+          reminder.booking?.eventType?.title || "",
+          timeZone || "",
+          attendeeName || "",
+          userName
+        );
       }
+
       if (message?.length && message?.length > 0 && sendTo) {
         const scheduledSMS = await twilio.scheduleSMS(sendTo, message, reminder.scheduledDate, senderID);
 
