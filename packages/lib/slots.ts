@@ -208,11 +208,26 @@ const getSlots = ({
   });
 
   if (!!activeOverrides.length) {
-    const overrides = activeOverrides.flatMap((override) => ({
-      userIds: override.userId ? [override.userId] : [],
-      startTime: override.start.getUTCHours() * 60 + override.start.getUTCMinutes(),
-      endTime: override.end.getUTCHours() * 60 + override.end.getUTCMinutes(),
-    }));
+    const overrides = activeOverrides.flatMap((override) => {
+      const inviteeUtcOffset = dayjs(override.start.toString()).tz(timeZone).utcOffset();
+
+      const endTime = dayjs.utc(override.end).add(inviteeUtcOffset, "minute");
+
+      // iff start and end are the same it's a full day, otherwise 0 is always the end of the day which should be 23:59 no 0:00
+      const endTimeWithCorrectMidnight =
+        !dayjs(override.end).isSame(dayjs(override.start)) && endTime.hour() === 0 && endTime.minute() === 0
+          ? endTime.subtract(1, "minute")
+          : endTime;
+
+      return {
+        userIds: override.userId ? [override.userId] : [],
+        startTime:
+          dayjs.utc(override.start).add(inviteeUtcOffset, "minute").hour() * 60 +
+          dayjs.utc(override.start).utc().add(inviteeUtcOffset, "minute").minute(),
+        endTime: endTimeWithCorrectMidnight.hour() * 60 + endTimeWithCorrectMidnight.minute(),
+      };
+    });
+
     // unset all working hours that relate to this user availability override
     overrides.forEach((override) => {
       let i = -1;

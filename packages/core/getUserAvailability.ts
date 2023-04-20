@@ -212,14 +212,28 @@ export async function getUserAvailability(
   const endGetWorkingHours = performance.now();
   logger.debug(`getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`);
 
+  const utcOffset = dayjs().tz(timeZone).utcOffset();
+
   const dateOverrides = availability
     .filter((availability) => !!availability.date)
     .map((override) => {
-      const startTime = dayjs.utc(override.startTime);
-      const endTime = dayjs.utc(override.endTime);
+      const organizerStartTime = dayjs.utc(override.startTime);
+      const organizerEndTime = dayjs.utc(override.endTime);
+
+      const organizerStartDate = dayjs
+        .utc(override.date)
+        .hour(organizerStartTime.hour())
+        .minute(organizerStartTime.minute());
+      const organizerEndDate = dayjs
+        .utc(override.date)
+        .hour(organizerEndTime.hour())
+        .minute(organizerEndTime.minute());
+
+      const utcStartDate = organizerStartDate.subtract(utcOffset, "minute");
+      const utcEndDate = organizerEndDate.subtract(utcOffset, "minute");
       return {
-        start: dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute()).toDate(),
-        end: dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute()).toDate(),
+        start: utcStartDate.toDate(),
+        end: utcEndDate.toDate(),
       };
     });
 
