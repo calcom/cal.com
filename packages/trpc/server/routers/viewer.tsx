@@ -1,6 +1,5 @@
 import type { DestinationCalendar, Prisma } from "@prisma/client";
 import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
-import { cityMapping } from "city-timezones";
 import { reverse } from "lodash";
 import type { NextApiResponse } from "next";
 import { authenticator } from "otplib";
@@ -23,7 +22,9 @@ import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
+import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
@@ -54,6 +55,7 @@ import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
 import { deploymentSetupRouter } from "./viewer/deploymentSetup";
 import { eventTypesRouter } from "./viewer/eventTypes";
+import { paymentsRouter } from "./viewer/payments";
 import { slotsRouter } from "./viewer/slots";
 import { ssoRouter } from "./viewer/sso";
 import { viewerTeamsRouter } from "./viewer/teams";
@@ -157,9 +159,36 @@ const publicViewerRouter = router({
         };
       }
     }),
-  // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
-  cityTimezones: publicProcedure.query(() => cityMapping),
+  cityTimezones: publicProcedure.query(async () => {
+    /**
+     * Lazy loads third party dependency to avoid loading 1.5Mb for ALL tRPC procedures.
+     * Thanks @roae for the tip 🙏
+     **/
+    const allCities = await import("city-timezones").then((mod) => mod.cityMapping);
+    /**
+     * Filter out all cities that have the same "city" key and only use the one with the highest population.
+     * This way we return a new array of cities without running the risk of having more than one city
+     * with the same name on the dropdown and prevent users from mistaking the time zone of the desired city.
+     */
+    const topPopulatedCities: { [key: string]: { city: string; timezone: string; pop: number } } = {};
+    allCities.forEach((city) => {
+      const cityPopulationCount = city.pop;
+      if (
+        topPopulatedCities[city.city]?.pop === undefined ||
+        cityPopulationCount > topPopulatedCities[city.city].pop
+      ) {
+        topPopulatedCities[city.city] = { city: city.city, timezone: city.timezone, pop: city.pop };
+      }
+    });
+    const uniqueCities = Object.values(topPopulatedCities);
+    /** Add specific overries in here */
+    uniqueCities.forEach((city) => {
+      if (city.city === "London") city.timezone = "Europe/London";
+      if (city.city === "Londonderry") city.city = "London";
+    });
+    return uniqueCities;
+  }),
 });
 
 // routes only available to authenticated users
@@ -1008,6 +1037,7 @@ const loggedInViewerRouter = router({
                   ...bookingMinimalSelect,
                   recurringEventId: true,
                   userId: true,
+                  responses: true,
                   user: {
                     select: {
                       id: true,
@@ -1033,6 +1063,7 @@ const loggedInViewerRouter = router({
                     select: {
                       recurringEvent: true,
                       title: true,
+                      bookingFields: true,
                       seatsPerTimeSlot: true,
                       seatsShowAttendees: true,
                     },
@@ -1093,12 +1124,15 @@ const loggedInViewerRouter = router({
 
                 const attendeesList = await Promise.all(attendeesListPromises);
                 const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
-
                 await sendCancelledEmails({
                   type: booking?.eventType?.title as string,
                   title: booking.title,
                   description: booking.description,
                   customInputs: isPrismaObjOrUndefined(booking.customInputs),
+                  ...getCalEventResponses({
+                    bookingFields: booking.eventType?.bookingFields ?? null,
+                    booking,
+                  }),
                   startTime: booking.startTime.toISOString(),
                   endTime: booking.endTime.toISOString(),
                   organizer: {
@@ -1296,7 +1330,6 @@ export const viewerRouter = mergeRouters(
     teams: viewerTeamsRouter,
     webhook: webhookRouter,
     apiKeys: apiKeysRouter,
-    slots: slotsRouter,
     workflows: workflowsRouter,
     saml: ssoRouter,
     insights: insightsRouter,
@@ -1305,6 +1338,8 @@ export const viewerRouter = mergeRouters(
     appRoutingForms: app_RoutingForms,
     eth: ethRouter,
     features: featureFlagRouter,
+    payments: paymentsRouter,
     appsRouter,
+    users: userAdminRouter,
   })
 );

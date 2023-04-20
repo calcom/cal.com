@@ -11,13 +11,14 @@ import prisma from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Meta, WizardForm } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
 import { AdminUserContainer as AdminUser } from "@components/setup/AdminUser";
 import ChooseLicense from "@components/setup/ChooseLicense";
 import EnterpriseLicense from "@components/setup/EnterpriseLicense";
 
 import { ssrInit } from "@server/lib/ssr";
 
-export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
+export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
   const [value, setValue] = useState(props.isFreeLicense ? "FREE" : "EE");
@@ -103,7 +104,7 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
           id={`wizard-step-${currentStep}`}
           name={`wizard-step-${currentStep}`}
           classNames={{
-            form: "mb-4 rounded-md bg-white px-0 pt-0 md:max-w-full",
+            form: "mb-4 rounded-md bg-default px-0 pt-0 md:max-w-full",
             appCategoryNavigationContainer: "max-h-[400px] overflow-y-auto md:p-4",
             verticalTabsItem: "!w-48 md:p-4",
           }}
@@ -121,7 +122,7 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   return (
     <>
       <Meta title={t("setup")} description={t("setup_description")} />
-      <main className="flex items-center bg-gray-100 print:h-full md:h-screen">
+      <main className="bg-subtle flex items-center print:h-full md:h-screen">
         <WizardForm
           href="/auth/setup"
           steps={steps}
@@ -134,6 +135,10 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
     </>
   );
 }
+
+Setup.isThemeSupported = false;
+Setup.PageWrapper = PageWrapper;
+export default Setup;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, res } = context;

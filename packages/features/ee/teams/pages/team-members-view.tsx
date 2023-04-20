@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Meta, showToast } from "@calcom/ui";
-import { FiPlus } from "@calcom/ui/components/icon";
+import { Plus } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
@@ -64,7 +64,7 @@ const MembersView = () => {
             <Button
               type="button"
               color="primary"
-              StartIcon={FiPlus}
+              StartIcon={Plus}
               className="ml-auto"
               onClick={() => setShowMemberInvitationModal(true)}
               data-testid="new-member-button">
@@ -97,13 +97,13 @@ const MembersView = () => {
               </>
             )}
             <div>
-              <ul className="divide-y divide-gray-200 rounded-md border ">
+              <ul className="divide-subtle border-subtle divide-y rounded-md border ">
                 {team?.members.map((member) => {
                   return <MemberListItem key={member.id} team={team} member={member} />;
                 })}
               </ul>
             </div>
-            <hr className="my-8 border-gray-200" />
+            <hr className="border-subtle my-8" />
 
             {team && session.data && (
               <DisableTeamImpersonation
@@ -112,7 +112,7 @@ const MembersView = () => {
                 disabled={isInviteOpen}
               />
             )}
-            <hr className="my-8 border-gray-200" />
+            <hr className="border-subtle my-8" />
           </div>
           {showMemberInvitationModal && team && (
             <MemberInvitationModal

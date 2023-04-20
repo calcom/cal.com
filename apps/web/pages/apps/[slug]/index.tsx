@@ -10,6 +10,7 @@ import prisma from "@calcom/prisma";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import PageWrapper from "@components/PageWrapper";
 import App from "@components/apps/App";
 
 const md = new MarkdownIt("default", { html: true, breaks: true });
@@ -121,5 +122,7 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
     },
   };
 };
+
+SingleAppPage.PageWrapper = PageWrapper;
 
 export default SingleAppPage;

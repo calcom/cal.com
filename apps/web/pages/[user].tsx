@@ -3,7 +3,6 @@ import classNames from "classnames";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
 import {
@@ -14,7 +13,6 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
-import CustomBranding from "@calcom/lib/CustomBranding";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import defaultEvents, {
   getDynamicEventDescription,
@@ -25,15 +23,16 @@ import defaultEvents, {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, AvatarGroup, HeadSeo } from "@calcom/ui";
-import { FiArrowRight } from "@calcom/ui/components/icon";
+import { ArrowRight } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
+
+import PageWrapper from "@components/PageWrapper";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -48,9 +47,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
 
   const groupEventTypes = props.users.some((user) => !user.allowDynamicBooking) ? (
     <div className="space-y-6" data-testid="event-types">
-      <div className="overflow-hidden rounded-sm border dark:border-gray-900">
-        <div className="p-8 text-center text-gray-400 dark:text-white">
-          <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">{" " + t("unavailable")}</h2>
+      <div className="overflow-hidden rounded-sm border ">
+        <div className="text-muted p-8 text-center">
+          <h2 className="font-cal text-default  mb-2 text-3xl">{" " + t("unavailable")}</h2>
           <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled") as string}</p>
         </div>
       </div>
@@ -60,14 +59,14 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
       {eventTypes.map((type, index) => (
         <li
           key={index}
-          className="dark:bg-darkgray-100 dark:border-darkgray-300 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50">
-          <FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+          className=" border-subtle bg-default hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
+          <ArrowRight className="text-emphasis absolute right-3 top-3 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
           <Link
             href={getUsernameSlugLink({ users: props.users, slug: type.slug })}
             className="flex justify-between px-6 py-4"
             data-testid="event-type-link">
             <div className="flex-shrink">
-              <p className="dark:text-darkgray-700 text-sm font-semibold text-gray-900">{type.title}</p>
+              <p className=" text-emphasis text-sm font-semibold">{type.title}</p>
               <EventTypeDescription className="text-sm" eventType={type} />
             </div>
             <div className="mt-1 self-center">
@@ -94,14 +93,15 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   const query = { ...router.query };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
   const nameOrUsername = user.name || user.username || "";
-  const telemetry = useTelemetry();
 
-  useEffect(() => {
+  /* 
+   const telemetry = useTelemetry();
+   useEffect(() => {
     if (top !== window) {
       //page_view will be collected automatically by _middleware.ts
       telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/[user]"));
     }
-  }, [telemetry, router.asPath]);
+  }, [telemetry, router.asPath]); */
   const isEventListEmpty = eventTypes.length === 0;
   return (
     <>
@@ -118,53 +118,39 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
             : [{ username: `${user.username}`, name: `${user.name}` }],
         }}
       />
-      <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
 
-      <div
-        className={classNames(
-          shouldAlignCentrally ? "mx-auto" : "",
-          isEmbed ? "max-w-3xl" : "",
-          "dark:bg-darkgray-50"
-        )}>
+      <div className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "max-w-3xl" : "")}>
         <main
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
-            isEmbed
-              ? " border-bookinglightest  dark:bg-darkgray-50 rounded-md border bg-white sm:dark:border-gray-600"
-              : "",
+            isEmbed ? " border-booker border-booker-width  bg-default rounded-md border" : "",
             "max-w-3xl py-24 px-4"
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
               <Avatar imageSrc={user.avatar} size="xl" alt={nameOrUsername} />
-              <h1 className="font-cal mb-1 text-3xl text-gray-900 dark:text-white">
+              <h1 className="font-cal text-emphasis mb-1 text-3xl">
                 {nameOrUsername}
-                {user.verified && (
-                  <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
-                )}
+                {user.verified && <BadgeCheckIcon className=" mx-1 -mt-1 inline h-6 w-6 text-blue-500" />}
               </h1>
               {!isBioEmpty && (
                 <>
                   <div
-                    className=" dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                    className="  text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                     dangerouslySetInnerHTML={{ __html: props.safeBio }}
                   />
                 </>
               )}
             </div>
           )}
+
           <div
-            className={classNames(
-              "rounded-md ",
-              !isEventListEmpty && "dark:border-darkgray-300 border border-gray-200"
-            )}
+            className={classNames("rounded-md ", !isEventListEmpty && "border-subtle border")}
             data-testid="event-types">
             {user.away ? (
-              <div className="overflow-hidden rounded-sm border dark:border-gray-900">
-                <div className="p-8 text-center text-gray-400 dark:text-white">
-                  <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">
-                    😴{" " + t("user_away")}
-                  </h2>
+              <div className="overflow-hidden rounded-sm border ">
+                <div className="text-muted  p-8 text-center">
+                  <h2 className="font-cal text-default mb-2 text-3xl">😴{" " + t("user_away")}</h2>
                   <p className="mx-auto max-w-md">{t("user_away_description") as string}</p>
                 </div>
               </div>
@@ -175,8 +161,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                 <div
                   key={type.id}
                   style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                  className="dark:bg-darkgray-100 dark:hover:bg-darkgray-200 dark:border-darkgray-300 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50">
-                  <FiArrowRight className="absolute right-4 top-4 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+                  className=" border-subtle bg-default hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
+                  <ArrowRight className="text-emphasis  absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
                   {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <div className="block w-full p-5">
                     <Link
@@ -193,17 +179,16 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                       }}
                       data-testid="event-type-link">
                       <div className="flex flex-wrap items-center">
-                        <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-gray-700">
-                          {type.title}
-                        </h2>
+                        <h2 className=" text-default pr-2 text-sm font-semibold">{type.title}</h2>
                       </div>
-                      <EventTypeDescription eventType={type} />
+                      <EventTypeDescription eventType={type} isPublic={true} />
                     </Link>
                   </div>
                 </div>
               ))
             )}
           </div>
+
           {isEventListEmpty && <EmptyPage name={user.name ?? "User"} />}
         </main>
         <Toaster position="bottom-right" />
@@ -211,7 +196,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
     </>
   );
 }
-User.isThemeSupported = true;
+
+User.isBookingPage = true;
+User.PageWrapper = PageWrapper;
 
 const getEventTypesWithHiddenFromDB = async (userId: number) => {
   return (

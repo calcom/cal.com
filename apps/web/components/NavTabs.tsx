@@ -1,4 +1,3 @@
-import { AdminRequired } from "components/ui/AdminRequired";
 import { noop } from "lodash";
 import type { LinkProps } from "next/link";
 import Link from "next/link";
@@ -6,6 +5,7 @@ import { useRouter } from "next/router";
 import type { FC, MouseEventHandler } from "react";
 import { Fragment } from "react";
 
+import { PermissionContainer } from "@calcom/features/auth/PermissionContainer";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import classNames from "@lib/classNames";
@@ -60,7 +60,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
               }
             : noop;
 
-          const Component = tab.adminRequired ? AdminRequired : Fragment;
+          const Component = tab.adminRequired ? PermissionContainer : Fragment;
           const className = tab.className || "";
           return (
             <Component key={tab.name}>
@@ -69,8 +69,8 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
                   onClick={onClick}
                   className={classNames(
                     isCurrent
-                      ? "border-gray-900 text-gray-900"
-                      : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
+                      ? "text-emphasis border-gray-900"
+                      : "hover:border-default hover:text-default text-subtle border-transparent",
                     "group inline-flex items-center border-b-2 py-4 px-1 text-sm font-medium",
                     className
                   )}
@@ -78,7 +78,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
                   {tab.icon && (
                     <tab.icon
                       className={classNames(
-                        isCurrent ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
+                        isCurrent ? "text-emphasis" : "group-hover:text-subtle text-muted",
                         "-ml-0.5 hidden h-4 w-4 ltr:mr-2 rtl:ml-2 sm:inline-block"
                       )}
                       aria-hidden="true"
@@ -91,7 +91,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
           );
         })}
       </nav>
-      <hr />
+      <hr className="border-subtle" />
     </>
   );
 };

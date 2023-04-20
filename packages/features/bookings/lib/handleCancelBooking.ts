@@ -1,4 +1,4 @@
-import type { WebhookTriggerEvents, WorkflowReminder, Prisma } from "@prisma/client";
+import type { Prisma, WebhookTriggerEvents, WorkflowReminder } from "@prisma/client";
 import { BookingStatus, MembershipRole, WorkflowMethods } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
@@ -10,6 +10,7 @@ import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler"
 import { deleteMeeting, updateMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendCancelledSeatEmails } from "@calcom/emails";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
@@ -57,6 +58,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       paid: true,
       eventType: {
         select: {
+          slug: true,
           owner: true,
           teamId: true,
           recurringEvent: true,
@@ -67,6 +69,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           currency: true,
           length: true,
           seatsPerTimeSlot: true,
+          bookingFields: true,
           seatsShowAttendees: true,
           hosts: {
             select: {
@@ -91,6 +94,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       workflowReminders: true,
       scheduledJobs: true,
       seatsReferences: true,
+      responses: true,
     },
   });
 }
@@ -173,6 +177,10 @@ async function handler(req: CustomRequest) {
     type: (bookingToDelete?.eventType?.title as string) || bookingToDelete?.title,
     description: bookingToDelete?.description || "",
     customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
+    ...getCalEventResponses({
+      bookingFields: bookingToDelete.eventType?.bookingFields ?? null,
+      booking: bookingToDelete,
+    }),
     startTime: bookingToDelete?.startTime ? dayjs(bookingToDelete.startTime).format() : "",
     endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",
     organizer: {
@@ -241,7 +249,7 @@ async function handler(req: CustomRequest) {
               }
             }
             if (reference.type.includes("_calendar")) {
-              const calendar = getCalendar(credential);
+              const calendar = await getCalendar(credential);
               if (calendar) {
                 integrationsToDelete.push(
                   calendar?.deleteEvent(reference.uid, evt, reference.externalCalendarId)
@@ -263,7 +271,7 @@ async function handler(req: CustomRequest) {
               );
             }
             if (reference.type.includes("_calendar")) {
-              const calendar = getCalendar(credential);
+              const calendar = await getCalendar(credential);
               if (calendar) {
                 integrationsToDelete.push(
                   calendar?.updateEvent(reference.uid, updatedEvt, reference.externalCalendarId)
@@ -332,11 +340,15 @@ async function handler(req: CustomRequest) {
 
   //Workflows - schedule reminders
   if (bookingToDelete.eventType?.workflows) {
-    await sendCancelledReminders(
-      bookingToDelete.eventType?.workflows,
-      bookingToDelete.smsReminderNumber,
-      evt
-    );
+    await sendCancelledReminders({
+      workflows: bookingToDelete.eventType?.workflows,
+      smsReminderNumber: bookingToDelete.smsReminderNumber,
+      evt: {
+        ...evt,
+        ...{ eventType: { slug: bookingToDelete.eventType.slug } },
+      },
+      hideBranding: !!bookingToDelete.eventType.owner?.hideBranding,
+    });
   }
 
   let updatedBookings: {
@@ -450,7 +462,7 @@ async function handler(req: CustomRequest) {
         (credential) => credential.id === credentialId
       );
       if (calendarCredential) {
-        const calendar = getCalendar(calendarCredential);
+        const calendar = await getCalendar(calendarCredential);
         if (
           bookingToDelete.eventType?.recurringEvent &&
           bookingToDelete.recurringEventId &&
@@ -459,7 +471,7 @@ async function handler(req: CustomRequest) {
           bookingToDelete.user.credentials
             .filter((credential) => credential.type.endsWith("_calendar"))
             .forEach(async (credential) => {
-              const calendar = getCalendar(credential);
+              const calendar = await getCalendar(credential);
               for (const updBooking of updatedBookings) {
                 const bookingRef = updBooking.references.find((ref) => ref.type.includes("_calendar"));
                 if (bookingRef) {
@@ -475,12 +487,13 @@ async function handler(req: CustomRequest) {
       }
     } else {
       // For bookings made before the refactor we go through the old behaviour of running through each calendar credential
-      bookingToDelete.user.credentials
-        .filter((credential) => credential.type.endsWith("_calendar"))
-        .forEach((credential) => {
-          const calendar = getCalendar(credential);
-          apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
-        });
+      const calendarCredentials = bookingToDelete.user.credentials.filter((credential) =>
+        credential.type.endsWith("_calendar")
+      );
+      for (const credential of calendarCredentials) {
+        const calendar = await getCalendar(credential);
+        apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
+      }
     }
   }
 
@@ -515,6 +528,10 @@ async function handler(req: CustomRequest) {
       title: bookingToDelete.title,
       description: bookingToDelete.description ?? "",
       customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
+      ...getCalEventResponses({
+        booking: bookingToDelete,
+        bookingFields: bookingToDelete.eventType?.bookingFields ?? null,
+      }),
       startTime: bookingToDelete.startTime.toISOString(),
       endTime: bookingToDelete.endTime.toISOString(),
       organizer: {
@@ -580,7 +597,7 @@ async function handler(req: CustomRequest) {
     }
 
     // Posible to refactor TODO:
-    const paymentApp = appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore];
+    const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore];
     if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
       console.warn(`payment App service of type ${paymentApp} is not implemented`);
       return null;

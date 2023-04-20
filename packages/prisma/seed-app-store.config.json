@@ -225,5 +225,26 @@
     "slug": "cron",
     "type": "cron_other",
     "isTemplate": false
+  },
+  {
+    "dirName": "gtm",
+    "categories": ["analytics"],
+    "slug": "gtm",
+    "type": "gtm_analytics",
+    "isTemplate": false
+  },
+  {
+    "dirName": "discord",
+    "categories": ["video"],
+    "slug": "discord",
+    "type": "discord_video",
+    "isTemplate": false
+  },
+  {
+    "dirName": "sylapsvideo",
+    "categories": ["video"],
+    "slug": "sylapsvideo",
+    "type": "sylaps_video",
+    "isTemplate": false
   }
 ]

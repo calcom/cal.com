@@ -25,12 +25,21 @@ export const useIntercom = () => {
   const { hasPaidPlan } = useHasPaidPlan();
   const { hasTeamPlan } = useHasTeamPlan();
 
-  const open = () => {
+  const open = async () => {
+    let userHash;
+
+    const req = await fetch(`/api/intercom-hash`);
+    const res = await req.json();
+    if (res?.hash) {
+      userHash = res.hash;
+    }
+
     hookData.boot({
       name: data?.name ?? "",
       email: data?.email,
       userId: String(data?.id),
       createdAt: String(dayjs(data?.createdDate).unix()),
+      ...(userHash && { userHash }),
       customAttributes: {
         //keys should be snake cased
         user_name: data?.username,

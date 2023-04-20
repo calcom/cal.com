@@ -1,0 +1,86 @@
+
+:root {
+  /* background */
+
+  --cal-bg-emphasis: #E5E7EB;
+  --cal-bg: white;
+  --cal-bg-subtle: #F3F4F6;
+  --cal-bg-muted: #F9FAFB;
+  --cal-bg-inverted: #111827;
+
+  /* background -> components*/
+  --cal-bg-info: #DEE9FC;
+  --cal-bg-success: #E2FBE8;
+  --cal-bg-attention: #FCEED8;
+  --cal-bg-error: #F9E3E2;
+
+
+  /* Borders */
+  --cal-border-emphasis:#9CA3AF;
+  --cal-border: #D1D5DB:
+  --cal-border-subtle:#E5E7EB;
+  --cal-border-muted:#F3F4F6;
+
+  /* Content/Text */
+  --cal-text-emphasis: #111827;
+  --cal-text:#374151;
+  --cal-text-subtle:#6B7280;
+  --cal-text-muted:#9CA3AF;
+  --cal-text-inverted:white;
+
+  /* Content/Text -> components */
+  --cal-text-info:#253985;
+  --cal-text-success:#285231;
+  --cal-text-attention:#73321B;
+  --cal-text-error:#752522;
+
+  /* Brand shenanigans
+    -> These will be computed for the users theme at runtime.
+  */
+  --cal-brand:#111827;
+  --cal-brand-emphasis:#101010;
+}
+
+/* Darkmode Colors  -- TODO: WIP*/
+.dark {
+  /* background */
+
+  --cal-bg-emphasis: #2b2b2b;
+  --cal-bg: #111111;
+  --cal-bg-subtle: #1c1c1c;
+  --cal-bg-muted: #101010;
+  --cal-bg-inverted: #f3f4f6;
+
+  /* background -> components*/
+  --cal-bg-info: #DEE9FC;
+  --cal-bg-success: #E2FBE8;
+  --cal-bg-attention: #FCEED8;
+  --cal-bg-error: #F9E3E2;
+
+
+  /* Borders */
+  --cal-border-emphasis:#575757;
+  --cal-border: #444444;
+  --cal-border-subtle:#2b2b2b;
+  --cal-border-muted:#1c1c1c;
+
+  /* Content/Text */
+  --cal-text-emphasis: #f3f4f6;
+  --cal-text:#d6d6d6;
+  --cal-text-subtle:#767676;
+  --cal-text-muted:#575757;
+  --cal-text-inverted:white;
+
+  /* Content/Text -> components */
+  --cal-text-info:#253985;
+  --cal-text-success:#285231;
+  --cal-text-attention:#73321B;
+  --cal-text-error:#752522;
+
+  /* Brand shenanigans
+    -> These will be computed for the users theme at runtime.
+  */
+  --cal-brand:#111827;
+  --cal-brand-emphasis:#101010;
+}
+
