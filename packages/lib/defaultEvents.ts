@@ -92,6 +92,7 @@ const commons = {
   workflows: [],
   users: [user],
   hosts: [],
+  parentId: null,
   metadata: EventTypeMetaDataSchema.parse({}),
   bookingFields: getBookingFieldsWithSystemFields({
     bookingFields: [],

@@ -228,6 +228,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       seatsShowAttendees: true,
       bookingLimits: true,
       durationLimits: true,
+      parentId: true,
       owner: {
         select: {
           hideBranding: true,
@@ -1677,19 +1678,19 @@ async function handler(
       );
 
       /* Validate if there is any payment app credential for this event type */
-      const paymentCred = await prisma.credential.findFirst({
-        where: {
-          appId: paymentAppData.appId,
-          userId: eventType.owner?.id || organizerUser.id,
-        },
-        select: {
-          id: true,
-        },
-      });
-      console.log("🚀 ~ file: handleNewBooking.ts:1680 ~ createBooking ~ paymentCred:", paymentCred);
-      if (!paymentCred) {
-        throw new Error();
-      }
+      // const paymentCred = await prisma.credential.findFirst({
+      //   where: {
+      //     appId: paymentAppData.appId,
+      //     userId: eventType.owner?.id || organizerUser.id,
+      //   },
+      //   select: {
+      //     id: true,
+      //   },
+      // });
+      // console.log("🚀 ~ file: handleNewBooking.ts:1680 ~ createBooking ~ paymentCred:", paymentCred);
+      // if (!paymentCred) {
+      //   throw new Error();
+      // }
     }
 
     return prisma.booking.create(createBookingObj);
@@ -1955,10 +1956,37 @@ async function handler(
   }
 
   if (bookingRequiresPayment) {
+    // If team event get team owner's payment credential
+    let paymentCredentialUserId = organizerUser.id;
+
+    if (isTeamEventType || eventType.parentId) {
+      const teamMembers = await prisma.team.findFirst({
+        where: {
+          eventTypes: {
+            some: {
+              id: eventType.parentId || eventType.id,
+            },
+          },
+        },
+        select: {
+          members: true,
+        },
+      });
+      const teamOwner = teamMembers.members.find((member) => member.role === "OWNER");
+
+      if (teamOwner) {
+        paymentCredentialUserId = teamOwner.userId;
+      } else {
+        throw new HttpError({
+          statusCode: 400,
+          message: "Missing team owner user id for payment credential",
+        });
+      }
+    }
     // Load credentials.app.categories
     const credentialPaymentAppCategories = await prisma.credential.findMany({
       where: {
-        userId: organizerUser.id,
+        userId: paymentCredentialUserId,
         app: {
           categories: {
             hasSome: ["payment"],
