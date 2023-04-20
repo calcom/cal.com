@@ -28,6 +28,7 @@ import { Plus, Calendar } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
+import PageWrapper from "@components/PageWrapper";
 import { CalendarSwitch } from "@components/settings/CalendarSwitch";
 
 const SkeletonLoader = () => {
@@ -228,5 +229,6 @@ const CalendarsView = () => {
 };
 
 CalendarsView.getLayout = getLayout;
+CalendarsView.PageWrapper = PageWrapper;
 
 export default CalendarsView;

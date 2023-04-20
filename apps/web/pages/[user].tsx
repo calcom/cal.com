@@ -32,6 +32,8 @@ import { ArrowRight } from "@calcom/ui/components/icon";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
+import PageWrapper from "@components/PageWrapper";
+
 import { ssrInit } from "@server/lib/ssr";
 
 export default function User(props: inferSSRProps<typeof getServerSideProps> & EmbedProps) {
@@ -196,6 +198,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
 }
 
 User.isBookingPage = true;
+User.PageWrapper = PageWrapper;
 
 const getEventTypesWithHiddenFromDB = async (userId: number) => {
   return (
