@@ -683,8 +683,7 @@ async function handler(
       return aIndex - bIndex;
     });
     const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata);
-    const app = getAppFromSlug(firstUsersMetadata?.defaultConferencingApp?.appSlug);
-    locationBodyString = app?.appData?.location?.type || locationBodyString;
+    locationBodyString = firstUsersMetadata?.defaultConferencingApp?.appLink || locationBodyString;
     defaultLocationUrl = firstUsersMetadata?.defaultConferencingApp?.appLink;
   }
 
@@ -755,15 +754,6 @@ async function handler(
 
   const [organizerUser] = users;
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
-  if (dynamicUserList.length > 1) {
-    users.sort((a, b) => {
-      const aIndex = (a.username && dynamicUserList.indexOf(a.username)) || 0;
-      const bIndex = (b.username && dynamicUserList.indexOf(b.username)) || 0;
-      return aIndex - bIndex;
-    });
-    const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata);
-    locationBodyString = firstUsersMetadata?.defaultConferencingApp?.appLink || locationBodyString;
-  }
   // use host default
   if (isTeamEventType && locationBodyString === "conferencing") {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
