@@ -255,8 +255,12 @@ const SettingsSidebarContainer = ({
                                   }),
                                 ])
                               }>
-                              <div className="ltr:mr-3 rtl:ml-3">
-                                {teamMenuState[index].teamMenuOpen ? <ChevronDown /> : <ChevronRight />}
+                              <div className="me-3">
+                                {teamMenuState[index].teamMenuOpen ? (
+                                  <ChevronDown className="h-4 w-4" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4" />
+                                )}
                               </div>
                               <img
                                 src={getPlaceholderAvatar(team.logo, team?.name as string)}
