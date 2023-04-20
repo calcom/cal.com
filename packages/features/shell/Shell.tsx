@@ -412,6 +412,13 @@ function UserDropdown({ small }: { small?: boolean }) {
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
+
+                <DropdownMenuItem>
+                  <DropdownItem type="button" href="/settings/my-account/profile" StartIcon={Settings}>
+                    {t("settings")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
@@ -537,11 +544,6 @@ const navigation: NavigationItemType[] = [
     name: "insights",
     href: "/insights",
     icon: BarChart,
-  },
-  {
-    name: "settings",
-    href: "/settings/my-account/profile",
-    icon: Settings,
   },
 ];
 
