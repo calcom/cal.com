@@ -10,10 +10,10 @@ function removePort(url: string) {
 function extractSubdomainAndDomain(url: string) {
   const hostParts = removePort(url).split(".");
 
-  const subdomain = hostParts.slice(0, hostParts.length - 2).join(".");
+  const subdomainParts = hostParts.slice(0, hostParts.length - 2);
   const domain = hostParts.slice(hostParts.length - 2).join(".");
 
-  return [subdomain, domain];
+  return [subdomainParts[0], domain];
 }
 
 const logoApiSchema = z.object({
