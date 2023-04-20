@@ -61,6 +61,7 @@ import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
+import PageWrapper from "@components/PageWrapper";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
@@ -767,6 +768,7 @@ const EventTypesPage = () => {
       <Shell
         withoutSeo
         heading={t("event_types_page_title")}
+        hideHeadingOnMobile
         subtitle={t("event_types_page_subtitle")}
         CTA={<CTA />}>
         <WithQuery
@@ -816,5 +818,7 @@ const EventTypesPage = () => {
     </div>
   );
 };
+
+EventTypesPage.PageWrapper = PageWrapper;
 
 export default EventTypesPage;

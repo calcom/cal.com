@@ -11,6 +11,7 @@ import prisma from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Meta, WizardForm } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
 import { AdminUserContainer as AdminUser } from "@components/setup/AdminUser";
 import ChooseLicense from "@components/setup/ChooseLicense";
 import EnterpriseLicense from "@components/setup/EnterpriseLicense";
@@ -136,7 +137,7 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
 }
 
 Setup.isThemeSupported = false;
-
+Setup.PageWrapper = PageWrapper;
 export default Setup;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {

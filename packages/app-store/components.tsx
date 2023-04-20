@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef } from "react";
 
+import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -20,10 +21,21 @@ export const InstallAppButtonWithoutPlanCheck = (
     type: App["type"];
   } & InstallAppButtonProps
 ) => {
+  const mutation = useAddAppMutation(null);
   const key = deriveAppDictKeyFromType(props.type, InstallAppButtonMap);
   const InstallAppButtonComponent = InstallAppButtonMap[key as keyof typeof InstallAppButtonMap];
   if (!InstallAppButtonComponent)
-    return <>{props.render({ useDefaultComponent: true, disabled: props.disableInstall })}</>;
+    return (
+      <>
+        {props.render({
+          useDefaultComponent: true,
+          disabled: props.disableInstall,
+          onClick: () => {
+            mutation.mutate({ type: props.type });
+          },
+        })}
+      </>
+    );
 
   return (
     <InstallAppButtonComponent

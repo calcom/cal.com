@@ -258,7 +258,12 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const title = booking.title;
-  const showRecordingsButtons = booking.isRecorded && isPast && isConfirmed;
+  // To be used after we run query on legacy bookings
+  // const showRecordingsButtons = booking.isRecorded && isPast && isConfirmed;
+
+  const showRecordingsButtons =
+    (booking.location === "integrations:daily" || booking?.location?.trim() === "") && isPast && isConfirmed;
+
   return (
     <>
       <RescheduleDialog

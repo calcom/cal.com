@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import type { ComponentProps } from "react";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
@@ -13,13 +13,14 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { VerticalTabItemProps } from "@calcom/ui";
-import { Badge, Button, ErrorBoundary, VerticalTabItem, Skeleton, useMeta } from "@calcom/ui";
+import { Badge, Button, ErrorBoundary, Skeleton, useMeta, VerticalTabItem } from "@calcom/ui";
 import {
   User,
   Key,
   CreditCard,
   Terminal,
   Users,
+  Loader,
   Lock,
   ArrowLeft,
   ChevronDown,
@@ -87,7 +88,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "license", href: "/auth/setup?step=1" },
       { name: "impersonation", href: "/settings/admin/impersonation" },
       { name: "apps", href: "/settings/admin/apps/calendar" },
-      { name: "users", href: "https://console.cal.com" },
+      { name: "users", href: "/settings/admin/users" },
     ],
   },
 ];
@@ -342,7 +343,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
   return (
     <>
-      <nav className="bg-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b sm:relative lg:hidden">
+      <nav className="bg-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b py-2 sm:relative lg:hidden">
         <div className="flex items-center space-x-3 ">
           <Button StartIcon={Menu} color="minimal" variant="icon" onClick={props.onSideContainerOpen}>
             <span className="sr-only">{t("show_navigation")}</span>
@@ -392,6 +393,7 @@ export default function SettingsLayout({
     <Shell
       withoutSeo={true}
       flexChildrenContainer
+      hideHeadingOnMobile
       {...rest}
       SidebarContainer={
         <>
@@ -414,7 +416,9 @@ export default function SettingsLayout({
       <div className="flex flex-1 [&>*]:flex-1">
         <div className="mx-auto max-w-full justify-center md:max-w-3xl">
           <ShellHeader />
-          <ErrorBoundary>{children}</ErrorBoundary>
+          <ErrorBoundary>
+            <Suspense fallback={<Loader />}>{children}</Suspense>
+          </ErrorBoundary>
         </div>
       </div>
     </Shell>

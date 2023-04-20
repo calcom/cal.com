@@ -34,7 +34,7 @@ export default function BookingLayout({
   ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   return (
-    <Shell {...rest}>
+    <Shell {...rest} hideHeadingOnMobile>
       <div className="flex max-w-6xl flex-col">
         <div className="flex flex-col lg:flex-row">
           <HorizontalTabs tabs={tabs} />

@@ -7,6 +7,8 @@ import { SkeletonText } from "@calcom/ui";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
+import PageWrapper from "@components/PageWrapper";
+
 type User = RouterOutputs["viewer"]["me"];
 
 export interface IBusySlot {
@@ -120,12 +122,13 @@ export default function Troubleshoot() {
   const { t } = useLocale();
   return (
     <div>
-      <Shell heading={t("troubleshoot")} subtitle={t("troubleshoot_description")}>
+      <Shell heading={t("troubleshoot")} hideHeadingOnMobile subtitle={t("troubleshoot_description")}>
         {!isLoading && data && <AvailabilityView user={data} />}
       </Shell>
     </div>
   );
 }
+Troubleshoot.PageWrapper = PageWrapper;
 
 function convertMinsToHrsMins(mins: number) {
   const h = Math.floor(mins / 60);

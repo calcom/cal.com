@@ -35,6 +35,7 @@ const UserProfile = (props: IUserProfileProps) => {
   const router = useRouter();
   const createEventType = trpc.viewer.eventTypes.create.useMutation();
   const telemetry = useTelemetry();
+  const [firstRender, setFirstRender] = useState(true);
 
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (_data, context) => {
@@ -147,6 +148,8 @@ const UserProfile = (props: IUserProfileProps) => {
           getText={() => md.render(getValues("bio") || user?.bio || "")}
           setText={(value: string) => setValue("bio", turndown(value))}
           excludedToolbarItems={["blockType"]}
+          firstRender={firstRender}
+          setFirstRender={setFirstRender}
         />
         <p className="dark:text-inverted text-default mt-2 font-sans text-sm font-normal">
           {t("few_sentences_about_yourself")}

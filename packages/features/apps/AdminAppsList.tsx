@@ -104,7 +104,7 @@ const IntegrationContainer = ({
                 } else if (app.keys) {
                   showKeyModal(true);
                 } else {
-                  enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
+                  enableAppMutation.mutate({ slug: app.slug, enabled: !app.enabled });
                 }
               }}
             />
@@ -117,7 +117,7 @@ const IntegrationContainer = ({
           title={t("disable_app")}
           variety="danger"
           onConfirm={() => {
-            enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
+            enableAppMutation.mutate({ slug: app.slug, enabled: !app.enabled });
           }}>
           {t("disable_app_description")}
         </ConfirmationDialogContent>

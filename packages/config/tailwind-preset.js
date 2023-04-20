@@ -26,9 +26,10 @@ module.exports = {
         error: "var(--cal-bg-error)",
         black: "#111111",
         brand: {
-          default: "var(--cal-brand,'#111827')",
-          emphasis: "var(--cal-brand-emphasis,'#101010')",
-          subtle: "var(--cal-brand-subtle,'#9CA3AF')",
+          default: "var(--cal-brand,#111827)",
+          emphasis: "var(--cal-brand-emphasis,#101010)",
+          subtle: "var(--cal-brand-subtle,#9CA3AF)",
+          accent: "var(--cal-brand-accent,white)",
         },
         gray: {
           50: "#F9FAFB",
@@ -149,7 +150,6 @@ module.exports = {
   plugins: [
     require("@tailwindcss/forms"),
     require("@tailwindcss/typography"),
-    require("@tailwindcss/line-clamp"),
     require("tailwind-scrollbar"),
     require("tailwindcss-radix")(),
     plugin(({ addVariant }) => {
