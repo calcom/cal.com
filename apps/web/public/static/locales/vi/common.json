@@ -1,4 +1,5 @@
 {
+  "identity_provider": "Nhà cung cấp danh tính",
   "trial_days_left": "Bạn có $t(day, {\"count\": {{days}} }) còn lại trên bản thử nghiệm PRO",
   "day_one": "{{count}} ngày",
   "day_other": "{{count}} ngày",
@@ -69,6 +70,7 @@
   "event_awaiting_approval_subject": "Đang chờ phê duyệt: {{title}} lúc {{date}}",
   "event_still_awaiting_approval": "Một sự kiện vẫn đang chờ bạn phê duyệt",
   "booking_submitted_subject": "Lịch hẹn đã được gửi: {{title}} lúc {{date}}",
+  "download_recording_subject": "Tải xuống bản ghi âm: {{title}} vào ngày {{date}}",
   "your_meeting_has_been_booked": "Cuộc họp của bạn đã được đặt",
   "event_type_has_been_rescheduled_on_time_date": "{{title}} của bạn đã được chuyển sang ngày {{date}}.",
   "event_has_been_rescheduled": "Đã cập nhật - Sự kiện của bạn đã được đổi",
