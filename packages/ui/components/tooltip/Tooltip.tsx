@@ -3,6 +3,15 @@ import React from "react";
 
 import { classNames } from "@calcom/lib";
 
+export interface ToolTipProps {
+  children: React.ReactNode;
+  content: React.ReactNode;
+  open?: boolean;
+  defaultOpen?: boolean;
+  side?: "top" | "right" | "bottom" | "left";
+  onOpenChange?: (open: boolean) => void;
+}
+
 export function Tooltip({
   children,
   content,
@@ -11,14 +20,7 @@ export function Tooltip({
   onOpenChange,
   side = "top",
   ...props
-}: {
-  children: React.ReactNode;
-  content: React.ReactNode;
-  open?: boolean;
-  defaultOpen?: boolean;
-  side?: "top" | "right" | "bottom" | "left";
-  onOpenChange?: (open: boolean) => void;
-}) {
+}: ToolTipProps) {
   return (
     <TooltipPrimitive.Root
       delayDuration={50}
