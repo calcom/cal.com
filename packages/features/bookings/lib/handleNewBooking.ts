@@ -803,11 +803,7 @@ async function handler(
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
-  let bookingLocation = getLocationValueForDB(locationBodyString, eventType.locations);
-
-  if (dynamicUserList.length > 1 && defaultLocationUrl) {
-    bookingLocation = defaultLocationUrl;
-  }
+  const bookingLocation = getLocationValueForDB(locationBodyString, eventType.locations);
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const teamMemberPromises =
