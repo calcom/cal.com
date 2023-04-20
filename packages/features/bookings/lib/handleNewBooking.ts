@@ -683,8 +683,7 @@ async function handler(
       return aIndex - bIndex;
     });
     const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata);
-    const app = getAppFromSlug(firstUsersMetadata?.defaultConferencingApp?.appSlug);
-    locationBodyString = app?.appData?.location?.type || locationBodyString;
+    locationBodyString = firstUsersMetadata?.defaultConferencingApp?.appLink || locationBodyString;
     defaultLocationUrl = firstUsersMetadata?.defaultConferencingApp?.appLink;
   }
 
@@ -840,6 +839,7 @@ async function handler(
 
   const calEventUserFieldsResponses =
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
+
   let evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
