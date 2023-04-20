@@ -1659,7 +1659,7 @@
   "event_end_time_variable": "Час завершення заходу",
   "event_end_time_info": "Час завершення заходу",
   "invalid_event_name_variables": "Назва вашого заходу містить неприпустиму змінну",
-  "select_all": "Вибрати всі",
+  "select_all": "Вибрати все",
   "default_conferencing_bulk_title": "Масове оновлення наявних типів заходів",
   "default_conferencing_bulk_description": "Оновіть розташування для вибраних типів заходів",
   "locked_for_members": "Заблоковано для учасників",
