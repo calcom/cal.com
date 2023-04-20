@@ -22,7 +22,7 @@ const logoApiSchema = z.object({
 
 const SYSTEM_SUBDOMAINS = ["console", "app", "www"];
 
-async function getAppLogos(subdomain: string) {
+async function getTeamLogos(subdomain: string) {
   if (
     // if not cal.com
     IS_SELF_HOSTED ||
@@ -67,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!domains) throw new Error("No domains");
 
   const [subdomain] = domains;
-  const { appLogo, appIconLogo } = await getAppLogos(subdomain);
+  const { appLogo, appIconLogo } = await getTeamLogos(subdomain);
 
   const filteredLogo = parsedQuery?.icon ? appIconLogo : appLogo;
 
