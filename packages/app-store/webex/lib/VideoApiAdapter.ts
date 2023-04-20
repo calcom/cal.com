@@ -173,7 +173,6 @@ const webexRefreshedTokenSchema = z.object({
   expires_in: z.number().optional(),
   refresh_token: z.string(),
   refresh_token_expires_in: z.number(),
-  expiry_date: z.number(),
 });
 
 const webexAuth = (credential: CredentialPayload) => {
@@ -382,10 +381,8 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
 };
 
 const handleWebexResponse = async (response: Response, credentialId: Credential["id"]) => {
-  console.log("response headers inside handleWebexResponse", response.headers);
   let _response = response.clone();
   const responseClone = response.clone();
-  console.log("responseClone inside handleWebexResponse", responseClone);
   if (_response.headers.get("content-encoding") === "gzip") {
     const responseString = await response.text();
     _response = JSON.parse(responseString);
