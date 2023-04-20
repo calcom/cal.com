@@ -7,8 +7,8 @@ function removePort(url: string) {
   return url.replace(/:\d+$/, "");
 }
 
-function extractSubdomainAndDomain(url: string) {
-  const hostParts = removePort(url).split(".");
+function extractSubdomainAndDomain(hostname: string) {
+  const hostParts = removePort(hostname).split(".");
 
   const subdomainParts = hostParts.slice(0, hostParts.length - 2);
   const domain = hostParts.slice(hostParts.length - 2).join(".");
