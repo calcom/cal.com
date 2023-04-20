@@ -42,10 +42,7 @@ export const getStaticProps: GetStaticProps<
           userWithCredentials?.selectedCalendars
         )
       : [];
-    if (userWithCredentials?.credentials) {
-      // Don't leak credentials to the client
-      userWithCredentials.credentials = [];
-    }
+
     return {
       props: { results, date: new Date().toISOString() },
       revalidate: 1,
