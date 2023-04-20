@@ -218,12 +218,16 @@ async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeo
         select: {
           isFixed: true,
           user: {
-            select: availabilityUserSelect,
+            select: {
+              credentials: true, // Don't leak credentials to the client
+              ...availabilityUserSelect,
+            },
           },
         },
       },
       users: {
         select: {
+          credentials: true, // Don't leak credentials to the client
           ...availabilityUserSelect,
         },
       },
@@ -250,6 +254,7 @@ async function getDynamicEventType(ctx: { prisma: typeof prisma }, input: z.infe
     },
     select: {
       allowDynamicBooking: true,
+      credentials: true, // Don't leak credentials to the client
       ...availabilityUserSelect,
     },
   });
@@ -305,17 +310,17 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   }
   let currentSeats: CurrentSeats | undefined;
 
-  let users = eventType.users.map((user) => ({
+  let usersWithCredentials = eventType.users.map((user) => ({
     isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
     ...user,
   }));
   // overwrite if it is a team event & hosts is set, otherwise keep using users.
   if (eventType.schedulingType && !!eventType.hosts?.length) {
-    users = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+    usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
   }
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
-    users.map(async (currentUser) => {
+    usersWithCredentials.map(async (currentUser) => {
       const {
         busy,
         workingHours,
@@ -398,7 +403,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     /* FIXME: For some reason this returns undefined while testing in Jest */
     (await ctx.prisma.selectedSlots.findMany({
       where: {
-        userId: { in: users.map((user) => user.id) },
+        userId: { in: usersWithCredentials.map((user) => user.id) },
         releaseAt: { gt: dayjs.utc().format() },
       },
       select: {
@@ -527,13 +532,19 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     ) => {
       // TODO: Adds unit tests to prevent regressions in getSchedule (try multiple timezones)
       const time = _time.tz(input.timeZone);
+
       r[time.format("YYYY-MM-DD")] = r[time.format("YYYY-MM-DD")] || [];
       r[time.format("YYYY-MM-DD")].push({
         ...passThroughProps,
         time: time.toISOString(),
-        users: (eventType.hosts ? eventType.hosts.map((host) => host.user) : eventType.users).map(
-          (user) => user.username || ""
-        ),
+        users: (eventType.hosts
+          ? eventType.hosts.map((hostUserWithCredentials) => {
+              const { user } = hostUserWithCredentials;
+              const { credentials: _credentials, ...hostUser } = user;
+              return hostUser;
+            })
+          : eventType.users
+        ).map((user) => user.username || ""),
         // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
         ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
           attendees:
