@@ -686,7 +686,6 @@ async function handler(
     const app = getAppFromSlug(firstUsersMetadata?.defaultConferencingApp?.appSlug);
     locationBodyString = app?.appData?.location?.type || locationBodyString;
     defaultLocationUrl = firstUsersMetadata?.defaultConferencingApp?.appLink;
-    console.log({ dynamicUserList, locationBodyString, defaultLocationUrl });
   }
 
   if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
