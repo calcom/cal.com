@@ -520,6 +520,7 @@ export const viewerTeamsRouter = router({
         include: {
           user: {
             select: {
+              credentials: true, // needed for getUserAvailability
               ...availabilityUserSelect,
             },
           },
