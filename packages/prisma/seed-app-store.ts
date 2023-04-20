@@ -157,16 +157,62 @@ async function createApp(
   keys?: Prisma.AppCreateInput["keys"],
   isTemplate?: boolean
 ) {
-  await prisma.app.upsert({
-    where: { slug },
-    create: { slug, dirName, categories, keys, enabled: true },
-    update: { dirName, categories, keys },
-  });
-  await prisma.credential.updateMany({
-    where: { type },
-    data: { appId: slug },
-  });
-  console.log(`📲 Upserted ${isTemplate ? "template" : "app"}: '${slug}'`);
+  try {
+    const foundApp = await prisma.app.findFirst({
+      /**
+       * slug and dirName both are unique and any of them can be used to find the app uniquely
+       * Using both here allows us to rename(after the app has been seeded already) `slug` or `dirName` while still finding the app to apply the change on.
+       * Note: dirName is legacy and it is same as slug for all apps created through App-Store Cli.
+       * - Take the case there was an app with slug `myvideo` and dirName `dirName-1` and that got seeded. Now, someone wants to rename the slug to `my-video`(more readable) for the app keeping dirName same.
+       *    This would make this fn to be called with slug `my-video` and dirName `dirName-1`.
+       *    Now, we can find the app because dirName would still match.
+       * - Similar, if someone changes dirName keeping slug same, we can find the app because slug would still match.
+       * - If both dirName and slug are changed, it will be added as a new entry in the DB.
+       */
+      where: {
+        OR: [
+          {
+            slug,
+          },
+          {
+            dirName,
+          },
+        ],
+      },
+    });
+
+    // We need to enable seeded apps as they are used in tests.
+    const data = { slug, dirName, categories, keys, enabled: true };
+
+    if (!foundApp) {
+      await prisma.app.create({
+        data,
+      });
+      console.log(`📲 Created ${isTemplate ? "template" : "app"}: '${slug}'`);
+    } else {
+      // We know that the app exists, so either it would have the same slug or dirName
+      // Because update query can't have both slug and dirName, try to find the app to update by slug and dirName one by one
+      // if there would have been a unique App.uuid, that never changes, we could have used that in update query.
+      await prisma.app.update({
+        where: { slug: foundApp.slug },
+        data,
+      });
+      await prisma.app.update({
+        where: { dirName: foundApp.dirName },
+        data,
+      });
+      console.log(`📲 Updated ${isTemplate ? "template" : "app"}: '${slug}'`);
+    }
+
+    await prisma.credential.updateMany({
+      // Credential should stop using type and instead use an App.uuid to refer to app deterministically. That uuid would never change even if slug/dirName changes.
+      // This would allow credentials to be not orphaned when slug(appId) changes.
+      where: { type },
+      data: { appId: slug },
+    });
+  } catch (e) {
+    console.log(`Could not upsert app: ${slug}. Error:`, e);
+  }
 }
 
 export default async function main() {
