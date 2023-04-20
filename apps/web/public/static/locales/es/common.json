@@ -799,7 +799,7 @@
   "trending_apps": "Aplicaciones populares",
   "most_popular": "Más popular",
   "explore_apps": "Aplicaciones {{category}}",
-  "installed_apps": "Apps instaladas",
+  "installed_apps": "Aplicaciones instaladas",
   "free_to_use_apps": "Gratis",
   "no_category_apps": "No hay aplicaciones de {{category}}",
   "no_category_apps_description_calendar": "Añade una aplicación de calendario para comprobar si hay conflictos y evitar reservas duplicadas",
