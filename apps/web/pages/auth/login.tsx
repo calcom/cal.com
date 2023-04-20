@@ -165,14 +165,6 @@ export default function Login({
                   {...register("email")}
                 />
                 <div className="relative">
-                  <div className="z-5 absolute -top-1.5 ltr:right-0 rtl:left-0">
-                    <Link
-                      href="/auth/forgot-password"
-                      tabIndex={-1}
-                      className="text-default text-sm font-medium">
-                      {t("forgot")}
-                    </Link>
-                  </div>
                   <PasswordField
                     id="password"
                     autoComplete="off"
@@ -180,6 +172,14 @@ export default function Login({
                     className="mb-0"
                     {...register("password")}
                   />
+                  <div className="absolute -top-1.5 ltr:right-0 rtl:left-0">
+                    <Link
+                      href="/auth/forgot-password"
+                      tabIndex={-1}
+                      className="text-default text-sm font-medium">
+                      {t("forgot")}
+                    </Link>
+                  </div>
                 </div>
               </div>
 
