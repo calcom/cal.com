@@ -768,6 +768,7 @@ const EventTypesPage = () => {
       <Shell
         withoutSeo
         heading={t("event_types_page_title")}
+        hideHeadingOnMobile
         subtitle={t("event_types_page_subtitle")}
         CTA={<CTA />}>
         <WithQuery

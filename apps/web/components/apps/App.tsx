@@ -41,7 +41,7 @@ const Component = ({
   isTemplate,
   dependencies,
 }: Parameters<typeof App>[0]) => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
   const router = useRouter();
 
@@ -247,7 +247,7 @@ const Component = ({
             t("free_to_use_apps")
           ) : (
             <>
-              {Intl.NumberFormat("en-US", {
+              {Intl.NumberFormat(i18n.language, {
                 style: "currency",
                 currency: "USD",
                 useGrouping: false,
@@ -366,7 +366,7 @@ export default function App(props: {
   dependencies?: string[];
 }) {
   return (
-    <Shell smallHeading isPublic heading={<ShellHeading />} backPath="/apps" withoutSeo>
+    <Shell smallHeading isPublic hideHeadingOnMobile heading={<ShellHeading />} backPath="/apps" withoutSeo>
       <HeadSeo
         title={props.name}
         description={props.description}

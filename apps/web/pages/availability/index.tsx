@@ -111,7 +111,11 @@ export default function AvailabilityPage() {
   const { t } = useLocale();
   return (
     <div>
-      <Shell heading={t("availability")} subtitle={t("configure_availability")} CTA={<NewScheduleButton />}>
+      <Shell
+        heading={t("availability")}
+        hideHeadingOnMobile
+        subtitle={t("configure_availability")}
+        CTA={<NewScheduleButton />}>
         <WithQuery success={({ data }) => <AvailabilityList {...data} />} customLoader={<SkeletonLoader />} />
       </Shell>
     </div>
