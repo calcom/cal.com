@@ -5,7 +5,6 @@ import z from "zod";
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { getLocalAppMetadata, getAppFromSlug } from "@calcom/app-store/utils";
 import { sendDisabledAppEmail } from "@calcom/emails";
-import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { TRPCError } from "@trpc/server";
@@ -64,7 +63,6 @@ export const appsRouter = router({
         }
 
         const keysSchema = appKeysSchemas[app.dirName as keyof typeof appKeysSchemas];
-
         const keys: Record<string, string> = {};
 
         // `typeof val === 'undefined'` is always slower than !== undefined comparison
@@ -255,7 +253,7 @@ export const appsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const keysSchema = appKeysSchemas[input.slug as keyof typeof appKeysSchemas];
+      const keysSchema = appKeysSchemas[input.dirName as keyof typeof appKeysSchemas];
       const keys = keysSchema.parse(input.keys);
 
       // Get app name from metadata

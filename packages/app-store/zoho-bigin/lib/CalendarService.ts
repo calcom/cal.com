@@ -2,7 +2,6 @@ import axios from "axios";
 import qs from "qs";
 
 import { getLocation } from "@calcom/lib/CalEventParser";
-import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type {
@@ -16,6 +15,7 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import { appKeysSchema } from "../zod";
 
 export type BiginToken = {
   scope: string;
@@ -75,11 +75,8 @@ export default class BiginCalendarService implements Calendar {
     const accountsUrl = `${credentialKey.accountServer}/oauth/v2/token`;
 
     const appKeys = await getAppKeysFromSlug(this.integrationName);
-    const clientId = typeof appKeys.client_id === "string" ? appKeys.client_id : "";
-    const clientSecret = typeof appKeys.client_secret === "string" ? appKeys.client_secret : "";
 
-    if (!clientId) throw new HttpError({ statusCode: 400, message: "Zoho Bigin client_id missing." });
-    if (!clientSecret) throw new HttpError({ statusCode: 400, message: "Zoho Bigin client_secret missing." });
+    const { client_id: clientId, client_secret: clientSecret } = appKeysSchema.parse(appKeys);
 
     const formData = {
       grant_type: grantType,
