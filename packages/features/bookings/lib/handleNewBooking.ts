@@ -1429,6 +1429,7 @@ async function handler(
        * deep cloning evt to avoid this
        */
       const copyEvent = cloneDeep(evt);
+      copyEvent.uid = booking.uid;
       await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
       const credentials = await refreshCredentials(organizerUser.credentials);

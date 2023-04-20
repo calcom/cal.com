@@ -313,5 +313,57 @@ test.describe("Booking with Seats", () => {
       // Validate that the number of seats its 10
       expect(await page.locator("text=9 / 10 Seats available").count()).toEqual(0);
     });
+
+    // Should cancel with seats but event should be still accesible and with one less attendee/seat
+    test("Should cancel with seats but event should be still accesible and with one less attendee/seat", async ({
+      page,
+      users,
+      bookings,
+    }) => {
+      const { user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+        { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+        { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+      ]);
+      await user.login();
+
+      const bookingAttendees = await prisma.attendee.findMany({
+        where: { bookingId: booking.id },
+        select: {
+          id: true,
+        },
+      });
+
+      const bookingSeats = [
+        { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUid: uuidv4() },
+        { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUid: uuidv4() },
+      ];
+
+      await prisma.bookingSeat.createMany({
+        data: bookingSeats,
+      });
+
+      // Now we cancel the booking as the first attendee
+      // booking/${bookingUid}?cancel=true&allRemainingBookings=false&seatReferenceUid={bookingSeat.referenceUid}
+      await page.goto(
+        `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[0].referenceUid}`
+      );
+
+      await page.locator('[data-testid="cancel"]').click();
+
+      await page.waitForLoadState("networkidle");
+
+      await expect(page).toHaveURL(/.*booking/);
+
+      await page.goto(
+        `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[1].referenceUid}`
+      );
+
+      // Page should not be 404
+      await page.locator('[data-testid="cancel"]').click();
+
+      await page.waitForLoadState("networkidle");
+
+      await expect(page).toHaveURL(/.*booking/);
+    });
   });
 });
