@@ -197,7 +197,12 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       id: true,
       customInputs: true,
       disableGuests: true,
-      users: userSelect,
+      users: {
+        select: {
+          credentials: true,
+          ...userSelect.select,
+        },
+      },
       slug: true,
       team: {
         select: {
@@ -253,7 +258,12 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       hosts: {
         select: {
           isFixed: true,
-          user: userSelect,
+          user: {
+            select: {
+              credentials: true,
+              ...userSelect.select,
+            },
+          },
         },
       },
       availability: {
@@ -277,7 +287,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
   };
 };
 
-type IsFixedAwareUser = User & { isFixed: boolean };
+type IsFixedAwareUser = User & { isFixed: boolean; credentials: Credential[] };
 
 async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
@@ -623,6 +633,7 @@ async function handler(
           },
           select: {
             ...userSelect.select,
+            credentials: true, // Don't leak to client
             metadata: true,
           },
         })
@@ -654,7 +665,10 @@ async function handler(
       where: {
         id: eventType.userId,
       },
-      ...userSelect,
+      select: {
+        credentials: true, // Don't leak to client
+        ...userSelect.select,
+      },
     });
     if (!eventTypeUser) {
       log.warn({ message: "NewBooking: eventTypeUser.notFound" });
