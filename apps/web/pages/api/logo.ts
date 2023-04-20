@@ -8,23 +8,13 @@ function removePort(url: string) {
 }
 
 function extractSubdomainAndDomain(url: string) {
-  try {
-    const parsedUrl = new URL(url);
-    const hostParts = parsedUrl.href.split(".");
-    if (hostParts.length > 2) {
-      const subdomain = hostParts.slice(0, hostParts.length - 2).join(".");
-      const domain = hostParts.slice(hostParts.length - 2).join(".");
-      return [subdomain, removePort(domain)];
-    } else if (hostParts.length === 2) {
-      const subdomain = "";
-      const domain = hostParts.join(".");
-      return [subdomain, removePort(domain)];
-    } else {
-      return null;
-    }
-  } catch (error) {
-    return null;
-  }
+  const parsedUrl = new URL(url);
+  const hostParts = removePort(parsedUrl.href).split(".");
+
+  const subdomain = hostParts.slice(0, hostParts.length - 2).join(".");
+  const domain = hostParts.slice(hostParts.length - 2).join(".");
+
+  return [subdomain, domain];
 }
 
 const logoApiSchema = z.object({
