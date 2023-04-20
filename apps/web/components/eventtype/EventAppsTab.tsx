@@ -16,13 +16,31 @@ export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
 
 export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   const { t } = useLocale();
-  const { data: eventTypeApps, isLoading } = trpc.viewer.apps.useQuery({
-    extendsFeature: "EventType",
-  });
   const methods = useFormContext<FormValues>();
-  const installedApps = eventTypeApps?.filter((app) => app.credentials.length);
-  const notInstalledApps = eventTypeApps?.filter((app) => !app.credentials.length);
+
+  // const installedApps = [];
   const allAppsData = methods.watch("metadata")?.apps || {};
+
+  const { data: eventTypeApps, isLoading } = trpc.viewer.appsRouter.getEventTypeApps.useQuery(
+    { eventTypeId: eventType.id },
+    {
+      onSuccess: (data) => {
+        console.log("🚀 ~ file: EventAppsTab.tsx:25 ~ EventAppsTab ~ query:", data);
+      },
+    }
+  );
+
+  // const { data: eventTypeApps, isLoading } = trpc.viewer.apps.useQuery({
+  //   extendsFeature: "EventType",
+  // });
+  // console.log("🚀 ~ file: EventAppsTab.tsx:22 ~ EventAppsTab ~ eventTypeApps:", eventTypeApps);
+  // const installedApps = eventTypeApps?.filter((app) => app.credentials.length);
+  // console.log("🚀 ~ file: EventAppsTab.tsx:38 ~ EventAppsTab ~ installedApps:", installedApps);
+  // const notInstalledApps = eventTypeApps?.filter((app) => !app.credentials.length);
+  // console.log("🚀 ~ file: EventAppsTab.tsx:40 ~ EventAppsTab ~ notInstalledApps:", notInstalledApps);
+  // console.log("🚀 ~ file: EventAppsTab.tsx:27 ~ EventAppsTab ~ allAppsData:", allAppsData);
+
+  // console.log("🚀 ~ file: EventAppsTab.tsx:24 ~ EventAppsTab ~ installedApps:", installedApps);
 
   const setAllAppsData = (_allAppsData: typeof allAppsData) => {
     methods.setValue("metadata", {
@@ -45,7 +63,9 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     return function (key, value) {
       // Always get latest data available in Form because consequent calls to setData would update the Form but not allAppsData(it would update during next render)
       const allAppsDataFromForm = methods.getValues("metadata")?.apps || {};
+      console.log("🚀 ~ file: EventAppsTab.tsx:50 ~ allAppsDataFromForm:", allAppsDataFromForm);
       const appData = allAppsDataFromForm[appId];
+      console.log("🚀 ~ file: EventAppsTab.tsx:52 ~ appData:", appData);
       setAllAppsData({
         ...allAppsDataFromForm,
         [appId]: {
@@ -62,11 +82,13 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     t("locked_fields_member_description")
   );
 
+  if (isLoading) return <p>Loading</p>;
+
   return (
     <>
       <div>
         <div className="before:border-0">
-          {!installedApps?.length && isManagedEventType && (
+          {!eventTypeApps.installedApps?.length && isManagedEventType && (
             <Alert
               severity="neutral"
               className="mb-2"
@@ -74,7 +96,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               message={t("locked_apps_description")}
             />
           )}
-          {!isLoading && !installedApps?.length ? (
+          {!isLoading && !eventTypeApps.installedApps?.length ? (
             <EmptyScreen
               Icon={Grid}
               headline={t("empty_installed_apps_headline")}
@@ -92,7 +114,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               }
             />
           ) : null}
-          {installedApps?.map((app) => (
+          {eventTypeApps.installedApps?.map((app) => (
             <EventTypeAppCard
               getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
               setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
@@ -105,11 +127,11 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
       </div>
       {!shouldLockDisableProps("apps").disabled && (
         <div>
-          {!isLoading && notInstalledApps?.length ? (
+          {!isLoading && eventTypeApps.notInstalledApps?.length ? (
             <h2 className="text-emphasis mt-0 mb-2 text-lg font-semibold">{t("available_apps")}</h2>
           ) : null}
           <div className="before:border-0">
-            {notInstalledApps?.map((app) => (
+            {eventTypeApps.notInstalledApps?.map((app) => (
               <EventTypeAppCard
                 getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
                 setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}

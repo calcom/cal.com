@@ -5,6 +5,7 @@ import z from "zod";
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { getLocalAppMetadata, getAppFromSlug } from "@calcom/app-store/utils";
 import { sendDisabledAppEmail } from "@calcom/emails";
+import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { getTranslation } from "@calcom/lib/server/i18n";
 
@@ -356,4 +357,62 @@ export const appsRouter = router({
 
     return dependencyData;
   }),
+  getEventTypeApps: authedProcedure
+    .input(z.object({ eventTypeId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const { user, prisma } = ctx;
+      const apps = await getEnabledApps(user.credentials);
+      const eventTypeApps = apps.filter((app) => app.extendsFeature?.includes("EventType"));
+      // console.log("🚀 ~ file: apps.tsx:366 ~ .query ~ eventTypeApps:", eventTypeApps);
+
+      const eventTypeMetadataQuery = await prisma.eventType.findFirst({
+        where: {
+          id: input.eventTypeId,
+        },
+        select: {
+          metadata: true,
+        },
+      });
+      console.log("🚀 ~ file: apps.tsx:375 ~ .query ~ eventType:", eventTypeMetadataQuery);
+
+      if (!eventTypeMetadataQuery) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Could not find event type ${input.eventTypeId}`,
+        });
+      }
+
+      const eventTypeAppsMetadataObject = eventTypeMetadataQuery as { metadata: any };
+      console.log(
+        "🚀 ~ file: apps.tsx:386 ~ .query ~ eventTypeAppsMetadataObject:",
+        eventTypeAppsMetadataObject
+      );
+
+      let eventTypeAppsMetadata = {};
+      if ("apps" in eventTypeAppsMetadataObject.metadata) {
+        eventTypeAppsMetadata = eventTypeAppsMetadataObject.metadata.apps as object;
+        console.log("🚀 ~ file: apps.tsx:390 ~ .query ~ eventTypeAppsMetadata:", eventTypeAppsMetadata);
+      }
+
+      const installedApps = [],
+        notInstalledApps = [];
+
+      for (const [key, value] of Object.entries(eventTypeAppsMetadata)) {
+        console.log("🚀 ~ file: apps.tsx:401 ~ .query ~ key, value:", key, value);
+        const app = eventTypeApps.find((app) => app.slug === key);
+        if (!app) {
+          console.log("🚀 ~ file: apps.tsx:401 ~ .query ~ key:", key);
+        }
+        if (app?.credentials.length || value.enabled) {
+          installedApps.push({ ...app, isInstalled: true });
+        } else if (app) {
+          notInstalledApps.push(app);
+        }
+      }
+
+      console.log("🚀 ~ file: apps.tsx:393 ~ .query ~ installedApps:", installedApps);
+      console.log("🚀 ~ file: apps.tsx:395 ~ .query ~ notInstalledApps:", notInstalledApps);
+
+      return { installedApps, notInstalledApps };
+    }),
 });

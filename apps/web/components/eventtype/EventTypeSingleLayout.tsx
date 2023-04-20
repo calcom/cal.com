@@ -210,7 +210,7 @@ function EventTypeSingleLayout({
     }
     if (isManagedEventType || isChildrenManagedEventType) {
       // Removing apps and workflows for manageg event types by admins v1
-      navigation = navigation.slice(0, -2);
+      navigation = navigation.slice(0, -1);
     } else {
       navigation.push({
         name: "webhooks",

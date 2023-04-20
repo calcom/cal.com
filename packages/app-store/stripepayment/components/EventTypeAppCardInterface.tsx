@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
@@ -16,6 +17,7 @@ type Option = { value: string; label: string };
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const { asPath } = useRouter();
+  const session = useSession();
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
   const currency = getAppData("currency");
@@ -25,6 +27,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
   const seatsEnabled = !!eventType.seatsPerTimeSlot;
+  const teamOwner = eventType.team.members.find((member) => member.role === "OWNER");
+  const teamOwnerEditing = teamOwner.user.id === session.data?.user?.id;
+
   const getCurrencySymbol = (locale: string, currency: string) =>
     (0)
       .toLocaleString(locale, {
@@ -72,6 +77,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   type="number"
                   required
                   placeholder="Price"
+                  disabled={!teamOwnerEditing}
                   onChange={(e) => {
                     setAppData("price", Number(e.target.value) * 100);
                   }}

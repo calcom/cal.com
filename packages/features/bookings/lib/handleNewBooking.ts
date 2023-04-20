@@ -1440,7 +1440,8 @@ async function handler(
       if (!Number.isNaN(paymentAppData.price) && paymentAppData.price > 0 && !!booking) {
         const credentialPaymentAppCategories = await prisma.credential.findMany({
           where: {
-            userId: organizerUser.id,
+            // Every event type should have an owner
+            userId: eventType.owner?.id || organizerUser.id,
             app: {
               categories: {
                 hasSome: ["payment"],
@@ -1458,6 +1459,10 @@ async function handler(
             },
           },
         });
+        console.log(
+          "🚀 ~ file: handleNewBooking.ts:1463 ~ handleSeats ~ credentialPaymentAppCategories:",
+          credentialPaymentAppCategories
+        );
 
         const eventTypePaymentAppCredential = credentialPaymentAppCategories.find((credential) => {
           return credential.appId === paymentAppData.appId;
@@ -1661,16 +1666,30 @@ async function handler(
     }
 
     if (typeof paymentAppData.price === "number" && paymentAppData.price > 0) {
-      /* Validate if there is any payment app credential for this user */
-      await prisma.credential.findFirstOrThrow({
+      console.log("This statement triggers");
+      console.log(
+        "🚀 ~ file: handleNewBooking.ts:1677 ~ createBooking ~ paymentAppData.appId:",
+        paymentAppData.appId
+      );
+      console.log(
+        "🚀 ~ file: handleNewBooking.ts:1679 ~ createBooking ~ eventType.owner?.id:",
+        eventType.owner?.id
+      );
+
+      /* Validate if there is any payment app credential for this event type */
+      const paymentCred = await prisma.credential.findFirst({
         where: {
           appId: paymentAppData.appId,
-          userId: organizerUser.id,
+          userId: eventType.owner?.id || organizerUser.id,
         },
         select: {
           id: true,
         },
       });
+      console.log("🚀 ~ file: handleNewBooking.ts:1680 ~ createBooking ~ paymentCred:", paymentCred);
+      if (!paymentCred) {
+        throw new Error();
+      }
     }
 
     return prisma.booking.create(createBookingObj);

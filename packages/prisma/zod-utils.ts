@@ -44,6 +44,7 @@ export const EventTypeMetaDataSchema = z
     managedEventConfig: z
       .object({
         unlockedFields: z.custom<{ [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true }>().optional(),
+        parentEventTypeId: z.number().optional(),
       })
       .optional(),
     requiresConfirmationThreshold: z
