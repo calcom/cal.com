@@ -803,7 +803,11 @@ async function handler(
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
-  const bookingLocation = getLocationValueForDB(locationBodyString, eventType.locations);
+  let bookingLocation = getLocationValueForDB(locationBodyString, eventType.locations);
+
+  if (dynamicUserList.length > 1 && defaultLocationUrl) {
+    bookingLocation = defaultLocationUrl;
+  }
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const teamMemberPromises =
@@ -849,6 +853,7 @@ async function handler(
 
   const calEventUserFieldsResponses =
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
+
   let evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
