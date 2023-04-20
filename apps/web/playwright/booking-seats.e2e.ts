@@ -314,7 +314,6 @@ test.describe("Booking with Seats", () => {
       expect(await page.locator("text=9 / 10 Seats available").count()).toEqual(0);
     });
 
-    // Should cancel with seats but event should be still accesible and with one less attendee/seat
     test("Should cancel with seats but event should be still accesible and with one less attendee/seat", async ({
       page,
       users,
@@ -364,6 +363,86 @@ test.describe("Booking with Seats", () => {
       await page.waitForLoadState("networkidle");
 
       await expect(page).toHaveURL(/.*booking/);
+    });
+
+    test("Should book with seats and hide attendees info from showAttendees true", async ({
+      page,
+      users,
+      bookings,
+    }) => {
+      const { user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+        { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+        { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+      ]);
+      await user.login();
+      const bookingWithEventType = await prisma.booking.findFirst({
+        where: { uid: booking.uid },
+        select: {
+          id: true,
+          eventTypeId: true,
+        },
+      });
+
+      await prisma.eventType.update({
+        data: {
+          seatsShowAttendees: false,
+        },
+        where: {
+          id: bookingWithEventType?.eventTypeId || -1,
+        },
+      });
+
+      const bookingAttendees = await prisma.attendee.findMany({
+        where: { bookingId: booking.id },
+        select: {
+          id: true,
+        },
+      });
+
+      const bookingSeats = [
+        { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUid: uuidv4() },
+        { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUid: uuidv4() },
+      ];
+
+      await prisma.bookingSeat.createMany({
+        data: bookingSeats,
+      });
+
+      // Now we cancel the booking as the first attendee
+      // booking/${bookingUid}?cancel=true&allRemainingBookings=false&seatReferenceUid={bookingSeat.referenceUid}
+      await page.goto(
+        `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[0].referenceUid}`
+      );
+
+      // No attendees should be displayed only the one that it's cancelling
+      const notFoundSecondAttendee = await page.locator('p[data-testid="attendee-second+seats@cal.com"]');
+      console.log({ notFoundSecondAttendee });
+
+      await expect(notFoundSecondAttendee).toHaveCount(0);
+      const foundFirstAttendee = await page.locator('p[data-testid="attendee-first+seats@cal.com"]');
+      await expect(foundFirstAttendee).toHaveCount(1);
+
+      await prisma.eventType.update({
+        data: {
+          seatsShowAttendees: true,
+        },
+        where: {
+          id: bookingWithEventType?.eventTypeId || -1,
+        },
+      });
+
+      await page.goto(
+        `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[1].referenceUid}`
+      );
+
+      // Now attendees should be displayed
+      const foundSecondAttendee = await page.locator('p[data-testid="attendee-second+seats@cal.com"]');
+
+      await expect(foundSecondAttendee).toHaveCount(1);
+      const foundFirstAttendeeAgain = await page
+        .locator('p[data-testid="attendee-first+seats@cal.com"]')
+        .first();
+      await expect(foundFirstAttendeeAgain).toHaveCount(1);
     });
   });
 });
