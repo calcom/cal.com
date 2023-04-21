@@ -98,6 +98,12 @@ const nextConfig = {
       transform: "lucide-react/dist/esm/icons/{{ kebabCase member }}",
       preventFullImport: true,
     },
+    "@heroicons/react/solid": {
+      transform: "@heroicons/react/solid/esm/{{ member }}",
+    },
+    "@heroicons/react/outline": {
+      transform: "@heroicons/react/outline/esm/{{ member }}",
+    },
     "@calcom/features/insights/components": {
       transform: "@calcom/features/insights/components/{{member}}",
       skipDefaultConversion: true,
