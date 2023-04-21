@@ -131,18 +131,21 @@ const WorkflowListItem = (props: ItemProps) => {
           })}
         </div>
       </div>
-      <div className="flex-none">
-        <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
-          <Button type="button" color="minimal" className="mr-4">
-            <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
-            <ExternalLink className="text-default -mt-[2px] h-4 w-4 stroke-2" />
-          </Button>
-        </Link>
-      </div>
+      {!workflow.readOnly && (
+        <div className="flex-none">
+          <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
+            <Button type="button" color="minimal" className="mr-4">
+              <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
+              <ExternalLink className="text-default -mt-[2px] h-4 w-4 stroke-2" />
+            </Button>
+          </Link>
+        </div>
+      )}
       <Tooltip content={t("turn_off") as string}>
         <div className="ltr:mr-2 rtl:ml-2">
           <Switch
             checked={isActive}
+            disabled={workflow.readOnly}
             onCheckedChange={() => {
               activateEventTypeMutation.mutate({ workflowId: workflow.id, eventTypeId: eventType.id });
             }}
@@ -178,7 +181,11 @@ function EventWorkflowsTab(props: Props) {
   useEffect(() => {
     if (data?.workflows) {
       const activeWorkflows = workflows.map((workflowOnEventType) => {
-        return workflowOnEventType;
+        const dataWf = data.workflows.find((wf) => wf.id === workflowOnEventType.id);
+        return {
+          ...workflowOnEventType,
+          readOnly: dataWf?.readOnly,
+        } as WorkflowType;
       });
       const disabledWorkflows = data.workflows.filter(
         (workflow) =>
