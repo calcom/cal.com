@@ -367,6 +367,8 @@ export const bookingsRouter = router({
           eventType: {
             ...booking.eventType,
             recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
+            price: booking.eventType?.price || 0,
+            currency: booking.eventType?.currency || "usd",
             metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
           },
           startTime: booking.startTime.toISOString(),
