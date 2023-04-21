@@ -67,8 +67,8 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
 }
 
 export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
-  const appStore = await prisma.app.findMany({ select: { slug: true } });
-  const paths = appStore.map(({ slug }) => ({ params: { slug } }));
+  // const appStore = await prisma.app.findMany({ select: { slug: true } });
+  const paths [];// = appStore.map(({ slug }) => ({ params: { slug } }));
 
   return {
     paths,
@@ -79,9 +79,10 @@ export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
 export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   if (typeof ctx.params?.slug !== "string") return { notFound: true };
 
-  const app = await prisma.app.findUnique({
-    where: { slug: ctx.params.slug.toLowerCase() },
-  });
+  const app = null;
+  // await prisma.app.findUnique({
+  //   where: { slug: ctx.params.slug.toLowerCase() },
+  // });
 
   if (!app) return { notFound: true };
 
