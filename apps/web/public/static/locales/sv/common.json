@@ -438,7 +438,7 @@
   "password_hint_min": "Minst 7 tecken",
   "password_hint_admin_min": "Minst 15 tecken",
   "password_hint_num": "Innehåller minst 1 siffra",
-  "max_limit_allowed_hint": "Måste vara {{limit}} eller färre tecken långt",
+  "max_limit_allowed_hint": "Måste innehålla {{limit}} eller färre tecken",
   "invalid_password_hint": "Lösenordet måste innehålla minst {{passwordLength}} tecken och har minst en siffra samt en blandning av versaler och gemener",
   "incorrect_password": "Lösenordet är felaktigt.",
   "incorrect_username_password": "Felaktigt användarnamn eller lösenord.",
