@@ -81,10 +81,6 @@ const middleware: NextMiddleware = async (req) => {
     });
   }
 
-  if (url.pathname === "/support") {
-    return NextResponse.redirect(new URL("/event-types?openIntercom=true", req.url));
-  }
-
   return NextResponse.next();
 };
 
@@ -96,7 +92,6 @@ export const config = {
     "/:path*/embed",
     "/api/trpc/:path*",
     "/auth/login",
-    "/support",
   ],
 };
 
