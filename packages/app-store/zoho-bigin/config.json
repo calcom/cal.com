@@ -3,7 +3,6 @@
   "name": "Zoho Bigin",
   "slug": "zoho-bigin",
   "type": "zoho-bigin_other_calendar",
-  "imageSrc": "icon.svg",
   "logo": "zohobigin.svg",
   "url": "https://cal.com/apps/zoho-bigin",
   "variant": "other",
