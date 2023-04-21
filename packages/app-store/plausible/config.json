@@ -15,7 +15,7 @@
     "tag": {
       "scripts": [
         {
-          "src": "https://plausible.io/js/script.js",
+          "src": "{PLAUSIBLE_URL}",
           "attrs": {
             "data-domain": "{TRACKING_ID}"
           }

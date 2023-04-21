@@ -356,7 +356,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
           <button
             className="hover:bg-emphasis flex items-center space-x-2 rounded-md px-3 py-1 rtl:space-x-reverse"
             onClick={() => router.back()}>
-            <ArrowLeft className="text-default" />
+            <ArrowLeft className="text-default h-4 w-4" />
             <p className="text-emphasis font-semibold">{t("settings")}</p>
           </button>
         </div>
@@ -397,6 +397,7 @@ export default function SettingsLayout({
     <Shell
       withoutSeo={true}
       flexChildrenContainer
+      hideHeadingOnMobile
       {...rest}
       SidebarContainer={
         <>

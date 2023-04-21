@@ -220,7 +220,7 @@ export const bookingCreateSchemaLegacyPropsForApi = z.object({
 
 // This is the schema that is used for the API. It has all the legacy props that are part of `responses` now.
 export const bookingCreateBodySchemaForApi = extendedBookingCreateBody.merge(
-  bookingCreateSchemaLegacyPropsForApi
+  bookingCreateSchemaLegacyPropsForApi.partial()
 );
 
 export const schemaBookingCancelParams = z.object({

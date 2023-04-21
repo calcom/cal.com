@@ -1,3 +1,6 @@
+import cx from "@calcom/lib/classNames";
+
+import { Input } from "../components/form";
 import { MapPin } from "../components/icon";
 
 export type AddressInputProps = {
@@ -9,18 +12,17 @@ export type AddressInputProps = {
   className?: string;
 };
 
-function AddressInput({ className = "", value, onChange, ...rest }: AddressInputProps) {
+function AddressInput({ value, onChange, ...rest }: AddressInputProps) {
   return (
-    <div className="relative ">
-      <MapPin color="#D2D2D2" className="absolute top-1/2 left-0.5 ml-3 h-6 -translate-y-1/2" />
-      <input
+    <div className="relative flex items-center">
+      <MapPin className="text-muted absolute left-0.5 ml-3 h-4 w-4 -translate-y-1/2" style={{ top: "44%" }} />
+      <Input
         {...rest}
         value={value}
         onChange={(e) => {
           onChange(e.target.value);
         }}
-        color="#D2D2D2"
-        className={`${className} focus-within:border-brand-default dark:bg-darkgray-100 border-subtle border-default disabled:text-subtle disabled:dark:text-subtle dark:text-inverted block  h-10 w-full rounded-md border border py-px pl-10 text-sm outline-none ring-black focus-within:ring-1 disabled:opacity-50 dark:placeholder-gray-500 dark:selection:bg-green-500`}
+        className={cx("pl-10", rest?.className)}
       />
     </div>
   );

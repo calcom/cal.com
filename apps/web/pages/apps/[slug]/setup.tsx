@@ -5,6 +5,8 @@ import { useRouter } from "next/router";
 import { AppSetupPage } from "@calcom/app-store/_pages/setup";
 import { getStaticProps } from "@calcom/app-store/_pages/setup/_getStaticProps";
 
+import PageWrapper from "@components/PageWrapper";
+
 export default function SetupInformation(props: InferGetStaticPropsType<typeof getStaticProps>) {
   const router = useRouter();
   const slug = router.query.slug as string;
@@ -25,6 +27,8 @@ export default function SetupInformation(props: InferGetStaticPropsType<typeof g
 
   return <AppSetupPage slug={slug} {...props} />;
 }
+
+SetupInformation.PageWrapper = PageWrapper;
 
 export const getStaticPaths: GetStaticPaths = async () => {
   return {

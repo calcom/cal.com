@@ -1,21 +1,23 @@
 import { SchedulingType } from "@prisma/client";
-import type { FormValues, EventTypeSetup } from "pages/event-types/[type]";
+import type { EventTypeSetup, FormValues } from "pages/event-types/[type]";
+import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
 
 import dayjs from "@calcom/dayjs";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import { NewScheduleButton } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Badge, Button, Select, SettingsToggle, SkeletonText, EmptyScreen } from "@calcom/ui";
-import { ExternalLink, Globe, Clock } from "@calcom/ui/components/icon";
+import { Badge, Button, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
+import { ExternalLink, Globe } from "@calcom/ui/components/icon";
 
-type AvailabilityOption = {
+import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
+
+export type AvailabilityOption = {
   label: string;
   value: number;
   isDefault: boolean;
@@ -62,40 +64,12 @@ const SingleValue = ({ ...props }: SingleValueProps<AvailabilityOption>) => {
   );
 };
 
-const AvailabilitySelect = ({
-  className = "",
-  options,
-  value,
-  ...props
-}: {
-  className?: string;
-  name: string;
-  value: AvailabilityOption | undefined;
-  options: AvailabilityOption[];
-  isDisabled?: boolean;
-  onBlur: () => void;
-  onChange: (value: AvailabilityOption | null) => void;
-}) => {
-  const { t } = useLocale();
-  return (
-    <Select
-      placeholder={t("select")}
-      options={options}
-      isDisabled={props.isDisabled}
-      isSearchable={false}
-      onChange={props.onChange}
-      className={classNames("block w-full min-w-0 flex-1 rounded-sm text-sm", className)}
-      defaultValue={value}
-      components={{ Option, SingleValue }}
-      isMulti={false}
-    />
-  );
-};
-
 const format = (date: Date, hour12: boolean) =>
-  Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "numeric", hour12 }).format(
-    new Date(dayjs.utc(date).format("YYYY-MM-DDTHH:mm:ss"))
-  );
+  Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "numeric",
+    hourCycle: hour12 ? "h12" : "h24",
+  }).format(new Date(dayjs.utc(date).format("YYYY-MM-DDTHH:mm:ss")));
 
 const EventTypeScheduleDetails = ({
   isManagedEventType,
@@ -188,61 +162,57 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
     );
   const { watch } = useFormContext<FormValues>();
   const watchSchedule = watch("schedule");
+  const formMethods = useFormContext<FormValues>();
+  const [options, setOptions] = useState<AvailabilityOption[]>([]);
 
-  const { data, isLoading } = trpc.viewer.availability.list.useQuery();
+  const { isLoading } = trpc.viewer.availability.list.useQuery(undefined, {
+    onSuccess: ({ schedules }) => {
+      const options = schedules.map((schedule) => ({
+        value: schedule.id,
+        label: schedule.name,
+        isDefault: schedule.isDefault,
+        isManaged: false,
+      }));
 
-  if (!data?.schedules.length && !isLoading)
-    return (
-      <EmptyScreen
-        Icon={Clock}
-        headline={t("new_schedule_heading")}
-        description={t("new_schedule_description")}
-        buttonRaw={<NewScheduleButton fromEventType />}
-        border={false}
-      />
-    );
+      // We are showing a managed event for a team admin, so adding the option to let members choose their schedule
+      if (isManagedEventType) {
+        options.push({
+          value: 0,
+          label: t("members_default_schedule"),
+          isDefault: false,
+          isManaged: false,
+        });
+      }
 
-  const schedules = data?.schedules || [];
+      // We are showing a managed event for a member and team owner selected their own schedule, so adding
+      // the managed schedule option
+      if (
+        isChildrenManagedEventType &&
+        watchSchedule &&
+        !schedules.find((schedule) => schedule.id === watchSchedule)
+      ) {
+        options.push({
+          value: watchSchedule,
+          label: eventType.scheduleName ?? t("default_schedule_name"),
+          isDefault: false,
+          isManaged: false,
+        });
+      }
 
-  const options = schedules.map((schedule) => ({
-    value: schedule.id,
-    label: schedule.name,
-    isDefault: schedule.isDefault,
-    isManaged: false,
-  }));
+      setOptions(options);
 
-  // We are showing a managed event for a team admin, so adding the option to let members choose their schedule
-  if (isManagedEventType) {
-    options.push({
-      value: 0,
-      label: t("members_default_schedule"),
-      isDefault: false,
-      isManaged: false,
-    });
-  }
+      const scheduleId = formMethods.getValues("schedule");
+      const value = options.find((option) =>
+        scheduleId
+          ? option.value === scheduleId
+          : option.value === schedules.find((schedule) => schedule.isDefault)?.id
+      );
 
-  // We are showing a managed event for a member and team owner selected their own schedule, so adding
-  // the managed schedule option
-  if (
-    isChildrenManagedEventType &&
-    watchSchedule &&
-    !schedules.find((schedule) => schedule.id === watchSchedule)
-  ) {
-    options.push({
-      value: watchSchedule,
-      label: eventType.scheduleName ?? t("default_schedule_name"),
-      isDefault: false,
-      isManaged: false,
-    });
-  }
+      formMethods.setValue("availability", value);
+    },
+  });
 
-  const value = options.find((option) =>
-    watchSchedule
-      ? option.value === watchSchedule
-      : isManagedEventType
-      ? option.value === 0
-      : option.value === schedules.find((schedule) => schedule.isDefault)?.id
-  );
+  const availabilityValue = formMethods.watch("availability");
 
   return (
     <div className="space-y-4">
@@ -251,27 +221,33 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
           {t("availability")}
           {shouldLockIndicator("availability")}
         </label>
-        <Controller
-          name="schedule"
-          render={({ field }) => (
-            <>
-              <AvailabilitySelect
-                value={value}
-                options={options}
-                onBlur={field.onBlur}
-                isDisabled={shouldLockDisableProps("schedule").disabled}
-                name={field.name}
-                onChange={(selected) => {
-                  field.onChange(selected?.value || null);
-                }}
-              />
-            </>
-          )}
-        />
+        {isLoading && <SelectSkeletonLoader />}
+        {!isLoading && (
+          <Controller
+            name="schedule"
+            render={({ field }) => {
+              return (
+                <Select
+                  placeholder={t("select")}
+                  options={options}
+                  isSearchable={false}
+                  onChange={(selected) => {
+                    field.onChange(selected?.value || null);
+                    if (selected?.value) formMethods.setValue("availability", selected);
+                  }}
+                  className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+                  value={availabilityValue}
+                  components={{ Option, SingleValue }}
+                  isMulti={false}
+                />
+              );
+            }}
+          />
+        )}
       </div>
-      {value?.value !== 0 ? (
+      {availabilityValue?.value !== 0 ? (
         <EventTypeScheduleDetails
-          selectedScheduleValue={value}
+          selectedScheduleValue={availabilityValue}
           isManagedEventType={isManagedEventType || isChildrenManagedEventType}
         />
       ) : (

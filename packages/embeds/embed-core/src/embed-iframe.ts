@@ -2,6 +2,8 @@ import { useRouter } from "next/router";
 import type { CSSProperties } from "react";
 import { useState, useEffect } from "react";
 
+import embedInit from "@calcom/embed-core/embed-iframe-init";
+
 import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
 
@@ -40,9 +42,10 @@ declare global {
     CalEmbed: {
       __logQueue?: unknown[];
       embedStore: typeof embedStore;
+      applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
     };
     CalComPageStatus: string;
-    isEmbed: () => boolean;
+    isEmbed?: () => boolean;
     resetEmbedStatus: () => void;
     getEmbedNamespace: () => string | null;
     getEmbedTheme: () => "dark" | "light" | null;
@@ -303,6 +306,11 @@ const methods = {
 
     // Set the value here so that if setUiConfig state isn't available and later it's defined,it uses this value
     embedStore.uiConfig = uiConfig;
+
+    if (uiConfig.cssVarsPerTheme) {
+      window.CalEmbed.applyCssVars(uiConfig.cssVarsPerTheme);
+    }
+
     if (embedStore.setUiConfig) {
       embedStore.setUiConfig(uiConfig);
     }
@@ -423,6 +431,8 @@ function keepParentInformedAboutDimensionChanges() {
 
 if (isBrowser) {
   log("Embed SDK loaded", { isEmbed: window?.isEmbed?.() || false });
+  // Exposes certain global variables/fns that are used by the app to get interface with the embed.
+  embedInit();
   const url = new URL(document.URL);
   embedStore.theme = (window?.getEmbedTheme?.() || "auto") as UiConfig["theme"];
   if (url.searchParams.get("prerender") !== "true" && window?.isEmbed?.()) {
