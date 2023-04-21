@@ -32,7 +32,7 @@ const LegalNotice = () => {
           href={PRIVACY_URL}
           className="text-emphasis opacity-50 hover:opacity-100"
           rel="noreferrer">
-          {t("Privacy")}
+          {t("privacy")}
         </a>
       ) : null}
     </div>
