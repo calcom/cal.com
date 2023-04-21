@@ -251,12 +251,6 @@ export default async function main() {
       client_secret: process.env.ZOHOCRM_CLIENT_SECRET,
     });
   }
-  if (process.env.ZOHO_BIGIN_CLIENT_ID && process.env.ZOHO_BIGIN_CLIENT_SECRET) {
-    await createApp("zoho-bigin", "zoho-bigin", ["other"], "zoho-bigin_other_calendar", {
-      client_id: process.env.ZOHO_BIGIN_CLIENT_ID,
-      client_secret: process.env.ZOHO_BIGIN_CLIENT_SECRET,
-    });
-  }
   await createApp("wipe-my-cal", "wipemycalother", ["other"], "wipemycal_other");
   if (process.env.GIPHY_API_KEY) {
     await createApp("giphy", "giphy", ["other"], "giphy_other", {
