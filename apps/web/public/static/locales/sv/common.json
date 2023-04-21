@@ -1653,7 +1653,7 @@
   "under_maintenance_description": "{{appName}}-teamet genomför planerat underhåll. Om du har några frågor kan du kontakta supporten.",
   "event_type_seats": "{{numberOfSeats}} platser",
   "booking_questions_title": "Bokningsfrågor",
-  "booking_questions_description": "Anpassa de frågor som ställs på bokningssidan",
+  "booking_questions_description": "Anpassa frågorna som ställs på bokningssidan",
   "add_a_booking_question": "Lägg till en fråga",
   "duplicate_email": "E-postadressen är duplicerad",
   "booking_with_payment_cancelled": "Det går inte längre att betala för den här händelsen",
