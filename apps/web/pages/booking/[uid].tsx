@@ -891,16 +891,31 @@ const getEventTypesFromDB = async (id: number) => {
   };
 };
 
-const handleSeatsEventTypeOnBooking = (
+const handleSeatsEventTypeOnBooking = async (
   eventType: {
     seatsPerTimeSlot?: number | null;
     seatsShowAttendees: boolean | null;
     [x: string | number | symbol]: unknown;
   },
   bookingInfo: Partial<
-    Prisma.BookingGetPayload<{ include: { attendees: { select: { name: true; email: true } } } }>
+    Prisma.BookingGetPayload<{
+      include: {
+        attendees: { select: { name: true; email: true } };
+        seatsReferences: { select: { referenceUid: true } };
+        user: {
+          select: {
+            id: true;
+            name: true;
+            email: true;
+            username: true;
+            timeZone: true;
+          };
+        };
+      };
+    }>
   >,
-  email: string
+  seatReferenceUid?: string,
+  userId?: number
 ) => {
   if (eventType?.seatsPerTimeSlot !== null) {
     // @TODO: right now bookings with seats doesn't save every description that its entered by every user
@@ -908,12 +923,34 @@ const handleSeatsEventTypeOnBooking = (
   } else {
     return;
   }
+  // @TODO: If handling teams, we need to do more check ups for this.
+  if (bookingInfo?.user?.id === userId) {
+    return;
+  }
+
   if (!eventType.seatsShowAttendees) {
-    const attendee = bookingInfo?.attendees?.find((a) => {
-      return a.email === email;
+    const seatAttendee = await prisma.bookingSeat.findFirst({
+      where: {
+        referenceUid: seatReferenceUid,
+      },
+      include: {
+        attendee: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
     });
 
-    bookingInfo["attendees"] = attendee ? [attendee] : [];
+    if (seatAttendee) {
+      const attendee = bookingInfo?.attendees?.find((a) => {
+        return a.email === seatAttendee.attendee?.email;
+      });
+      bookingInfo["attendees"] = attendee ? [attendee] : [];
+    } else {
+      bookingInfo["attendees"] = [];
+    }
   }
   return bookingInfo;
 };
@@ -931,7 +968,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const parsedQuery = querySchema.safeParse(context.query);
 
   if (!parsedQuery.success) return { notFound: true };
-  const { uid, email, eventTypeSlug, cancel, isSuccessBookingPage } = parsedQuery.data;
+  const { uid, eventTypeSlug, seatReferenceUid } = parsedQuery.data;
 
   const bookingInfoRaw = await prisma.booking.findFirst({
     where: {
@@ -1037,8 +1074,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
 
-  if (bookingInfo !== null && email && eventType.seatsPerTimeSlot) {
-    handleSeatsEventTypeOnBooking(eventType, bookingInfo, email);
+  if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
+    await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, session?.user.id);
   }
 
   const payment = await prisma.payment.findFirst({
