@@ -12,6 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { Button, TextField } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
 type Props = {
@@ -174,7 +175,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
 }
 
 Page.isThemeSupported = false;
-
+Page.PageWrapper = PageWrapper;
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const id = context.params?.id as string;
 

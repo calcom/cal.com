@@ -16,6 +16,8 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { ChevronRight } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
+
 import { ssrInit } from "@server/lib/ssr";
 
 const recordingStartedEventResponse = z
@@ -261,6 +263,8 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
   );
 }
 
+VideoMeetingInfo.PageWrapper = PageWrapper;
+
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req, res } = context;
 
@@ -278,7 +282,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       user: {
         select: {
           id: true,
-          credentials: true,
           timeZone: true,
           name: true,
           email: true,

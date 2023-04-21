@@ -17,13 +17,33 @@ export default function BookingPageTagManager({
         if (!tag) {
           return null;
         }
-        const trackingId = getEventTypeAppData(eventType, appId as keyof typeof appDataSchemas)?.trackingId;
-        if (!trackingId) {
+
+        const appData = getEventTypeAppData(eventType, appId as keyof typeof appDataSchemas);
+
+        if (!appData) {
           return null;
         }
-        const parseValue = <T extends string | undefined>(val: T): T =>
-          //TODO: Support more template variables.
-          val ? (val.replace(/\{TRACKING_ID\}/g, trackingId) as T) : val;
+
+        const parseValue = <T extends string | undefined>(val: T): T => {
+          if (!val) {
+            return val;
+          }
+
+          // Only support UpperCase,_and numbers in template variables. This prevents accidental replacement of other strings.
+          const regex = /\{([A-Z_\d]+)\}/g;
+          let matches;
+          while ((matches = regex.exec(val))) {
+            const variableName = matches[1];
+            if (appData[variableName]) {
+              // Replace if value is available. It can possible not be a template variable that just matches the regex.
+              val = val.replace(
+                new RegExp(`{${variableName}}`, "g"),
+                appData[variableName]
+              ) as NonNullable<T>;
+            }
+          }
+          return val;
+        };
 
         return tag.scripts.map((script, index) => {
           const parsedAttributes: NonNullable<(typeof tag.scripts)[number]["attrs"]> = {};

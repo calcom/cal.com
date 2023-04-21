@@ -5,25 +5,11 @@ import z from "zod";
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { getLocalAppMetadata, getAppFromSlug } from "@calcom/app-store/utils";
 import { sendDisabledAppEmail } from "@calcom/emails";
-import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { TRPCError } from "@trpc/server";
 
 import { authedAdminProcedure, authedProcedure, router } from "../../trpc";
-
-interface FilteredApp {
-  name: string;
-  slug: string;
-  logo: string;
-  title?: string;
-  type: string;
-  description: string;
-  dirName: string;
-  keys: Prisma.JsonObject | null;
-  enabled: boolean;
-  isTemplate?: boolean;
-}
 
 export const appsRouter = router({
   listLocal: authedAdminProcedure
@@ -34,9 +20,7 @@ export const appsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const category = input.category === "conferencing" ? "video" : input.category;
-      const localApps = getLocalAppMetadata().filter(
-        (app) => app.categories?.some((appCategory) => appCategory === category) || app.category === category
-      );
+      const localApps = getLocalAppMetadata();
 
       const dbApps = await ctx.prisma.app.findMany({
         where: {
@@ -52,15 +36,18 @@ export const appsRouter = router({
         },
       });
 
-      const filteredApps: FilteredApp[] = [];
+      return localApps.flatMap((app) => {
+        // Filter applications that does not belong to the current requested category.
+        if (!(app.category === category || app.categories?.some((appCategory) => appCategory === category))) {
+          return [];
+        }
 
-      for (const app of localApps) {
         // Find app metadata
         const dbData = dbApps.find((dbApp) => dbApp.slug === app.slug);
 
         // If the app already contains keys then return
         if (dbData?.keys) {
-          filteredApps.push({
+          return {
             name: app.name,
             slug: app.slug,
             logo: app.logo,
@@ -68,40 +55,39 @@ export const appsRouter = router({
             type: app.type,
             description: app.description,
             // We know that keys are going to be an object or null. Prisma can not type check against JSON fields
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-ignore
-            keys: dbData.keys,
+            keys: dbData.keys as Prisma.JsonObject | null,
             dirName: app.dirName || app.slug,
             enabled: dbData?.enabled || false,
             isTemplate: app.isTemplate,
-          });
-        } else {
-          const keysSchema = appKeysSchemas[app.dirName as keyof typeof appKeysSchemas];
-
-          const keys: Record<string, string> = {};
-
-          if (typeof keysSchema !== "undefined") {
-            Object.values(keysSchema.keyof()._def.values).reduce((keysObject, key) => {
-              keys[key as string] = "";
-              return keysObject;
-            }, {} as Record<string, string>);
-          }
-
-          filteredApps.push({
-            name: app.name,
-            slug: app.slug,
-            logo: app.logo,
-            type: app.type,
-            title: app.title,
-            description: app.description,
-            enabled: dbData?.enabled || false,
-            dirName: app.dirName || app.slug,
-            keys: Object.keys(keys).length === 0 ? null : keys,
-          });
+          };
         }
-      }
 
-      return filteredApps;
+        const keysSchema = appKeysSchemas[app.dirName as keyof typeof appKeysSchemas];
+
+        const keys: Record<string, string> = {};
+
+        // `typeof val === 'undefined'` is always slower than !== undefined comparison
+        // it is important to avoid string to string comparisons as much as we can
+        if (keysSchema !== undefined) {
+          // TODO: Remove the Object.values and reduce to improve the performance.
+          Object.values(keysSchema.keyof()._def.values).reduce((keysObject, key) => {
+            keys[key as string] = "";
+            return keysObject;
+          }, {} as Record<string, string>);
+        }
+
+        return {
+          name: app.name,
+          slug: app.slug,
+          logo: app.logo,
+          type: app.type,
+          title: app.title,
+          description: app.description,
+          enabled: dbData?.enabled ?? false,
+          dirName: app.dirName ?? app.slug,
+          keys: Object.keys(keys).length === 0 ? null : keys,
+        };
+      });
     }),
   toggle: authedAdminProcedure
     .input(
@@ -112,6 +98,7 @@ export const appsRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { prisma } = ctx;
+      const { enabled } = input;
 
       // Get app name from metadata
       const localApps = getLocalAppMetadata();
@@ -125,7 +112,7 @@ export const appsRouter = router({
           slug: input.slug,
         },
         update: {
-          enabled: !input.enabled,
+          enabled,
           dirName: appMetadata?.dirName || appMetadata?.slug || "",
         },
         create: {
@@ -136,12 +123,14 @@ export const appsRouter = router({
             ([appMetadata?.category] as AppCategories[]) ||
             undefined,
           keys: undefined,
-          enabled: !input.enabled,
+          enabled,
         },
       });
 
       // If disabling an app then we need to alert users based on the app type
-      if (input.enabled) {
+      if (!enabled) {
+        const translations = new Map();
+
         if (app.categories.some((category) => ["calendar", "video"].includes(category))) {
           // Find all users with the app credentials
           const appCredentials = await prisma.credential.findMany({
@@ -158,18 +147,26 @@ export const appsRouter = router({
             },
           });
 
+          // TODO: This should be done async probably using a queue.
           Promise.all(
             appCredentials.map(async (credential) => {
-              const t = await getTranslation(credential.user?.locale || "en", "common");
+              // No need to continue if credential does not have a user
+              if (!credential.user || !credential.user.email) return;
 
-              if (credential.user?.email) {
-                await sendDisabledAppEmail({
-                  email: credential.user.email,
-                  appName: appMetadata?.name || app.slug,
-                  appType: app.categories,
-                  t,
-                });
+              const locale = credential.user.locale ?? "en";
+              let t = translations.get(locale);
+
+              if (!t) {
+                t = await getTranslation(locale, "common");
+                translations.set(locale, t);
               }
+
+              await sendDisabledAppEmail({
+                email: credential.user.email,
+                appName: appMetadata?.name || app.slug,
+                appType: app.categories,
+                t,
+              });
             })
           );
         } else {
@@ -193,8 +190,11 @@ export const appsRouter = router({
             },
           });
 
+          // TODO: This should be done async probably using a queue.
           Promise.all(
             eventTypesWithApp.map(async (eventType) => {
+              // TODO: This update query can be removed by merging it with
+              // the previous `findMany` query, if that query returns certain values.
               await prisma.eventType.update({
                 where: {
                   id: eventType.id,
@@ -215,18 +215,26 @@ export const appsRouter = router({
                 },
               });
 
-              eventType.users.map(async (user) => {
-                const t = await getTranslation(user.locale || "en", "common");
+              return Promise.all(
+                eventType.users.map(async (user) => {
+                  const locale = user.locale ?? "en";
+                  let t = translations.get(locale);
 
-                await sendDisabledAppEmail({
-                  email: user.email,
-                  appName: appMetadata?.name || app.slug,
-                  appType: app.categories,
-                  t,
-                  title: eventType.title,
-                  eventTypeId: eventType.id,
-                });
-              });
+                  if (!t) {
+                    t = await getTranslation(locale, "common");
+                    translations.set(locale, t);
+                  }
+
+                  await sendDisabledAppEmail({
+                    email: user.email,
+                    appName: appMetadata?.name || app.slug,
+                    appType: app.categories,
+                    t,
+                    title: eventType.title,
+                    eventTypeId: eventType.id,
+                  });
+                })
+              );
             })
           );
         }
@@ -246,9 +254,7 @@ export const appsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      let appKey = deriveAppDictKeyFromType(input.type, appKeysSchemas);
-      if (!appKey) appKey = deriveAppDictKeyFromType(input.slug, appKeysSchemas);
-      const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
+      const keysSchema = appKeysSchemas[input.dirName as keyof typeof appKeysSchemas];
       const keys = keysSchema.parse(input.keys);
 
       // Get app name from metadata

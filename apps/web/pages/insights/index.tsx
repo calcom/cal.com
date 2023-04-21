@@ -17,6 +17,8 @@ import { trpc } from "@calcom/trpc";
 import { Button, ButtonGroup } from "@calcom/ui";
 import { RefreshCcw, UserPlus, Users } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
+
 const Heading = () => {
   const { t } = useLocale();
 
@@ -53,7 +55,7 @@ export default function InsightsPage() {
 
   return (
     <div>
-      <Shell>
+      <Shell hideHeadingOnMobile>
         <UpgradeTip
           title={t("make_informed_decisions")}
           description={t("make_informed_decisions_description")}
@@ -110,6 +112,8 @@ export default function InsightsPage() {
     </div>
   );
 }
+
+InsightsPage.PageWrapper = PageWrapper;
 
 // If feature flag is disabled, return not found on getServerSideProps
 export const getServerSideProps = async () => {

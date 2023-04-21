@@ -234,6 +234,13 @@
     "isTemplate": false
   },
   {
+    "dirName": "sylapsvideo",
+    "categories": ["video"],
+    "slug": "sylapsvideo",
+    "type": "sylaps_video",
+    "isTemplate": false
+  },
+  {
     "dirName": "mercado_pago",
     "categories": ["payment"],
     "slug": "mercado_pago",
