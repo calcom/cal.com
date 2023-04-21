@@ -902,10 +902,20 @@ const handleSeatsEventTypeOnBooking = async (
       include: {
         attendees: { select: { name: true; email: true } };
         seatsReferences: { select: { referenceUid: true } };
+        user: {
+          select: {
+            id: true;
+            name: true;
+            email: true;
+            username: true;
+            timeZone: true;
+          };
+        };
       };
     }>
   >,
-  seatReferenceUid?: string
+  seatReferenceUid?: string,
+  userId?: number
 ) => {
   if (eventType?.seatsPerTimeSlot !== null) {
     // @TODO: right now bookings with seats doesn't save every description that its entered by every user
@@ -913,6 +923,11 @@ const handleSeatsEventTypeOnBooking = async (
   } else {
     return;
   }
+  // @TODO: If handling teams, we need to do more check ups for this.
+  if (bookingInfo?.user?.id === userId) {
+    return;
+  }
+
   if (!eventType.seatsShowAttendees) {
     const seatAttendee = await prisma.bookingSeat.findFirst({
       where: {
@@ -1060,7 +1075,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   };
 
   if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
-    await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid);
+    await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, session?.user.id);
   }
 
   const payment = await prisma.payment.findFirst({

@@ -408,6 +408,16 @@ test.describe("Booking with Seats", () => {
         data: bookingSeats,
       });
 
+      // Go to cancel page and see that attendees are listed and myself as I'm owner of the booking
+      await page.goto(`/booking/${booking.uid}?cancel=true&allRemainingBookings=false`);
+
+      const foundFirstAttendeeAsOwner = await page.locator('p[data-testid="attendee-first+seats@cal.com"]');
+      await expect(foundFirstAttendeeAsOwner).toHaveCount(1);
+      const foundSecondAttendeeAsOwner = await page.locator('p[data-testid="attendee-second+seats@cal.com"]');
+      await expect(foundSecondAttendeeAsOwner).toHaveCount(1);
+      await page.pause();
+      await page.goto("auth/logout");
+
       // Now we cancel the booking as the first attendee
       // booking/${bookingUid}?cancel=true&allRemainingBookings=false&seatReferenceUid={bookingSeat.referenceUid}
       await page.goto(
@@ -416,7 +426,6 @@ test.describe("Booking with Seats", () => {
 
       // No attendees should be displayed only the one that it's cancelling
       const notFoundSecondAttendee = await page.locator('p[data-testid="attendee-second+seats@cal.com"]');
-      console.log({ notFoundSecondAttendee });
 
       await expect(notFoundSecondAttendee).toHaveCount(0);
       const foundFirstAttendee = await page.locator('p[data-testid="attendee-first+seats@cal.com"]');
