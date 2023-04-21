@@ -5,7 +5,6 @@ import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalEventResponses } from "@calcom/types/Calendar";
 
 import { getSenderId } from "../alphanumericSenderIdSupport";
@@ -111,7 +110,7 @@ export const scheduleSMSReminder = async (
       location: evt.location,
       additionalNotes: evt.additionalNotes,
       responses: evt.responses,
-      meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
+      meetingUrl: evt.metadata.videoCallUrl || "",
       cancelLink: `/booking/${evt.uid}?cancel=true`,
       rescheduleLink: `/${evt.organizer.username}/${evt.eventType.slug}?rescheduleUid=${evt.uid}`,
     };
