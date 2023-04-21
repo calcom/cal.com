@@ -68,7 +68,7 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
 
 export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
   // const appStore = await prisma.app.findMany({ select: { slug: true } });
-  const paths [];// = appStore.map(({ slug }) => ({ params: { slug } }));
+  const paths = [];// = appStore.map(({ slug }) => ({ params: { slug } }));
 
   return {
     paths,
