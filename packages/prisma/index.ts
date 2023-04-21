@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 
 import { bookingReferenceMiddleware } from "./middleware";
 
@@ -12,10 +12,9 @@ const prismaOptions: Prisma.PrismaClientOptions = {};
 
 if (!!process.env.NEXT_PUBLIC_DEBUG) prismaOptions.log = ["query", "error", "warn"];
 
-export const prisma = globalThis.prisma || new PrismaClient(prismaOptions);
+export const prisma = globalThis.prisma || ({} as unknown as PrismaClient);
 
-export const customPrisma = (options: Prisma.PrismaClientOptions) =>
-  new PrismaClient({ ...prismaOptions, ...options });
+export const customPrisma = (options: Prisma.PrismaClientOptions) => ({} as unknown as PrismaClient);
 
 if (process.env.NODE_ENV !== "production") {
   globalThis.prisma = prisma;
