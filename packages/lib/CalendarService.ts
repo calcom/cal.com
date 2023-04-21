@@ -323,20 +323,25 @@ export default abstract class BaseCalendarService implements Calendar {
         const tzid: string | undefined = vevent?.getFirstPropertyValue("tzid") || isUTC ? "UTC" : timezone;
         // In case of icalendar, when only tzid is available without vtimezone, we need to add vtimezone explicitly to take care of timezone diff
         if (!vcalendar.getFirstSubcomponent("vtimezone") && tzid) {
-          const timezoneComp = new ICAL.Component("vtimezone");
-          timezoneComp.addPropertyWithValue("tzid", tzid);
-          const standard = new ICAL.Component("standard");
-          // get timezone offset
-          const tzoffsetfrom = dayjs(event.startDate.toJSDate()).tz(tzid).format("Z");
-          const tzoffsetto = dayjs(event.endDate.toJSDate()).tz(tzid).format("Z");
+          try {
+            const timezoneComp = new ICAL.Component("vtimezone");
+            timezoneComp.addPropertyWithValue("tzid", tzid);
+            const standard = new ICAL.Component("standard");
 
-          // set timezone offset
-          standard.addPropertyWithValue("tzoffsetfrom", tzoffsetfrom);
-          standard.addPropertyWithValue("tzoffsetto", tzoffsetto);
-          // provide a standard dtstart
-          standard.addPropertyWithValue("dtstart", "1601-01-01T00:00:00");
-          timezoneComp.addSubcomponent(standard);
-          vcalendar.addSubcomponent(timezoneComp);
+            // get timezone offset
+            const tzoffsetfrom = dayjs(event.startDate.toJSDate()).tz(tzid).format("Z");
+            const tzoffsetto = dayjs(event.endDate.toJSDate()).tz(tzid).format("Z");
+
+            // set timezone offset
+            standard.addPropertyWithValue("tzoffsetfrom", tzoffsetfrom);
+            standard.addPropertyWithValue("tzoffsetto", tzoffsetto);
+            // provide a standard dtstart
+            standard.addPropertyWithValue("dtstart", "1601-01-01T00:00:00");
+            timezoneComp.addSubcomponent(standard);
+            vcalendar.addSubcomponent(timezoneComp);
+          } catch (e) {
+            console.log("error in adding vtimezone", e);
+          }
         }
         const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
 
