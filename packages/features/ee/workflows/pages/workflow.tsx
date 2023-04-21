@@ -257,11 +257,11 @@ function WorkflowPage() {
         backPath="/workflows"
         title={workflow && workflow.name ? workflow.name : "Untitled"}
         CTA={
-          <div>
-            <Button type="submit" disabled={readOnly}>
-              {t("save")}
-            </Button>
-          </div>
+          !readOnly && (
+            <div>
+              <Button type="submit">{t("save")}</Button>
+            </div>
+          )
         }
         hideHeadingOnMobile
         heading={
@@ -274,6 +274,11 @@ function WorkflowPage() {
               {workflow && workflow.team && (
                 <Badge className="mt-1 ml-4" variant="gray">
                   {workflow.team.slug}
+                </Badge>
+              )}
+              {readOnly && (
+                <Badge className="mt-1 ml-4" variant="gray">
+                  {t("readonly")}
                 </Badge>
               )}
             </div>
@@ -291,6 +296,7 @@ function WorkflowPage() {
                     setSelectedEventTypes={setSelectedEventTypes}
                     teamId={workflow ? workflow.teamId || undefined : undefined}
                     isMixedEventType={isMixedEventType}
+                    readOnly={readOnly}
                   />
                 </>
               ) : (

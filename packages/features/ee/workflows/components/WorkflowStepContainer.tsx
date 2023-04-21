@@ -51,6 +51,7 @@ type WorkflowStepProps = {
   reload?: boolean;
   setReload?: Dispatch<SetStateAction<boolean>>;
   teamId?: number;
+  readOnly: boolean;
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
@@ -248,6 +249,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <Select
                     isSearchable={false}
                     className="text-sm"
+                    isDisabled={props.readOnly}
                     onChange={(val) => {
                       if (val) {
                         form.setValue("trigger", val.value);
@@ -280,11 +282,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             {showTimeSection && (
               <div className="mt-5">
                 <Label>{showTimeSectionAfter ? t("how_long_after") : t("how_long_before")}</Label>
-                <TimeTimeUnitInput form={form} />
-                <div className="mt-1 flex text-gray-500">
-                  <Info className="mr-1 mt-0.5 h-4 w-4" />
-                  <p className="text-sm">{t("testing_workflow_info_message")}</p>
-                </div>
+                <TimeTimeUnitInput form={form} disabled={props.readOnly} />
+                {!props.readOnly && (
+                  <div className="mt-1 flex text-gray-500">
+                    <Info className="mr-1 mt-0.5 h-4 w-4" />
+                    <p className="text-sm">{t("testing_workflow_info_message")}</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -324,39 +328,41 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     </div>
                   </div>
                 </div>
-                <div>
-                  <Dropdown>
-                    <DropdownMenuTrigger asChild>
-                      <Button type="button" color="minimal" variant="icon" StartIcon={MoreHorizontal} />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem>
-                        <DropdownItem
-                          type="button"
-                          StartIcon={Trash2}
-                          color="destructive"
-                          onClick={() => {
-                            const steps = form.getValues("steps");
-                            const updatedSteps = steps
-                              ?.filter((currStep) => currStep.id !== step.id)
-                              .map((s) => {
-                                const updatedStep = s;
-                                if (step.stepNumber < updatedStep.stepNumber) {
-                                  updatedStep.stepNumber = updatedStep.stepNumber - 1;
-                                }
-                                return updatedStep;
-                              });
-                            form.setValue("steps", updatedSteps);
-                            if (setReload) {
-                              setReload(!reload);
-                            }
-                          }}>
-                          {t("delete")}
-                        </DropdownItem>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </Dropdown>
-                </div>
+                {!props.readOnly && (
+                  <div>
+                    <Dropdown>
+                      <DropdownMenuTrigger asChild>
+                        <Button type="button" color="minimal" variant="icon" StartIcon={MoreHorizontal} />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem>
+                          <DropdownItem
+                            type="button"
+                            StartIcon={Trash2}
+                            color="destructive"
+                            onClick={() => {
+                              const steps = form.getValues("steps");
+                              const updatedSteps = steps
+                                ?.filter((currStep) => currStep.id !== step.id)
+                                .map((s) => {
+                                  const updatedStep = s;
+                                  if (step.stepNumber < updatedStep.stepNumber) {
+                                    updatedStep.stepNumber = updatedStep.stepNumber - 1;
+                                  }
+                                  return updatedStep;
+                                });
+                              form.setValue("steps", updatedSteps);
+                              if (setReload) {
+                                setReload(!reload);
+                              }
+                            }}>
+                            {t("delete")}
+                          </DropdownItem>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </Dropdown>
+                  </div>
+                )}
               </div>
               <div className="border-subtle my-7 border-t" />
               <div>
@@ -369,6 +375,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <Select
                         isSearchable={false}
                         className="text-sm"
+                        isDisabled={props.readOnly}
                         onChange={(val) => {
                           if (val) {
                             const oldValue = form.getValues(`steps.${step.stepNumber - 1}.action`);
@@ -467,8 +474,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <PhoneInput
                           placeholder={t("phone_number")}
                           id={`steps.${step.stepNumber - 1}.sendTo`}
-                          className="min-w-fit sm:rounded-tl-md sm:rounded-bl-md sm:border-r-transparent"
+                          className="min-w-fit sm:rounded-r-none sm:rounded-tl-md sm:rounded-bl-md"
                           required
+                          disabled={props.readOnly}
                           value={value}
                           onChange={(val) => {
                             const isAlreadyVerified = !!verifiedNumbers
@@ -482,9 +490,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     />
                     <Button
                       color="secondary"
-                      disabled={numberVerified || false}
+                      disabled={numberVerified || props.readOnly || false}
                       className={classNames(
-                        "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-tl-none sm:rounded-bl-none ",
+                        "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-tl-none sm:rounded-bl-none",
                         numberVerified ? "hidden" : "mt-3 sm:mt-0"
                       )}
                       onClick={() =>
@@ -507,38 +515,41 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <Badge variant="green">{t("number_verified")}</Badge>
                     </div>
                   ) : (
-                    <>
-                      <div className="mt-3 flex">
-                        <TextField
-                          className=" border-r-transparent"
-                          placeholder="Verification code"
-                          value={verificationCode}
-                          onChange={(e) => {
-                            setVerificationCode(e.target.value);
-                          }}
-                          required
-                        />
-                        <Button
-                          color="secondary"
-                          className="-ml-[3px] rounded-tl-none rounded-bl-none "
-                          disabled={verifyPhoneNumberMutation.isLoading}
-                          onClick={() => {
-                            verifyPhoneNumberMutation.mutate({
-                              phoneNumber: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
-                              code: verificationCode,
-                              teamId,
-                            });
-                          }}>
-                          {t("verify")}
-                        </Button>
-                      </div>
-                      {form.formState.errors.steps &&
-                        form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
-                          <p className="mt-1 text-xs text-red-500">
-                            {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
-                          </p>
-                        )}
-                    </>
+                    !props.readOnly && (
+                      <>
+                        <div className="mt-3 flex">
+                          <TextField
+                            className="rounded-r-none border-r-transparent"
+                            placeholder="Verification code"
+                            disabled={props.readOnly}
+                            value={verificationCode}
+                            onChange={(e) => {
+                              setVerificationCode(e.target.value);
+                            }}
+                            required
+                          />
+                          <Button
+                            color="secondary"
+                            className="-ml-[3px] h-[38px] min-w-fit sm:block sm:rounded-tl-none sm:rounded-bl-none "
+                            disabled={verifyPhoneNumberMutation.isLoading || props.readOnly}
+                            onClick={() => {
+                              verifyPhoneNumberMutation.mutate({
+                                phoneNumber: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
+                                code: verificationCode,
+                                teamId,
+                              });
+                            }}>
+                            {t("verify")}
+                          </Button>
+                        </div>
+                        {form.formState.errors.steps &&
+                          form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
+                            <p className="mt-1 text-xs text-red-500">
+                              {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
+                            </p>
+                          )}
+                      </>
+                    )
                   )}
                 </div>
               )}
@@ -550,6 +561,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <Input
                         type="text"
                         placeholder={SENDER_ID}
+                        disabled={props.readOnly}
                         maxLength={11}
                         {...form.register(`steps.${step.stepNumber - 1}.sender`)}
                       />
@@ -565,6 +577,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <Label>{t("sender_name")}</Label>
                       <Input
                         type="text"
+                        disabled={props.readOnly}
                         placeholder={SENDER_NAME}
                         {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
                       />
@@ -579,6 +592,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     control={form.control}
                     render={() => (
                       <Checkbox
+                        disabled={props.readOnly}
                         defaultChecked={
                           form.getValues(`steps.${step.stepNumber - 1}.numberRequired`) || false
                         }
@@ -595,6 +609,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div className="bg-muted mt-5 rounded-md p-4">
                   <EmailField
                     required
+                    disabled={props.readOnly}
                     label={t("email_address")}
                     {...form.register(`steps.${step.stepNumber - 1}.sendTo`)}
                   />
@@ -610,6 +625,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <Select
                         isSearchable={false}
                         className="text-sm"
+                        isDisabled={props.readOnly}
                         onChange={(val) => {
                           if (val) {
                             if (val.value === WorkflowTemplates.REMINDER) {
@@ -656,13 +672,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 {isEmailSubjectNeeded && (
                   <div className="mb-6">
                     <div className="flex items-center">
-                      <Label className="mb-0 flex-none">{t("subject")}</Label>
-                      <div className="flex-grow text-right">
-                        <AddVariablesDropdown
-                          addVariable={addVariableEmailSubject}
-                          variables={DYNAMIC_TEXT_VARIABLES}
-                        />
-                      </div>
+                      <Label className={classNames("flex-none", props.readOnly ? "mb-2" : "mb-0")}>
+                        {t("subject")}
+                      </Label>
+                      {!props.readOnly && (
+                        <div className="flex-grow text-right">
+                          <AddVariablesDropdown
+                            addVariable={addVariableEmailSubject}
+                            variables={DYNAMIC_TEXT_VARIABLES}
+                          />
+                        </div>
+                      )}
                     </div>
                     <TextArea
                       ref={(e) => {
@@ -670,6 +690,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         refEmailSubject.current = e;
                       }}
                       rows={1}
+                      disabled={props.readOnly}
                       className="my-0 focus:ring-transparent"
                       required
                       {...restEmailSubjectForm}
@@ -701,6 +722,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       }}
                       variables={DYNAMIC_TEXT_VARIABLES}
                       height="200px"
+                      editable={!props.readOnly}
                       updateTemplate={updateTemplate}
                       firstRender={firstRender}
                       setFirstRender={setFirstRender}
@@ -709,15 +731,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 ) : (
                   <>
                     <div className="flex items-center">
-                      <Label className="mb-0 flex-none">
+                      <Label className={classNames("flex-none", props.readOnly ? "mb-2" : "mb-0")}>
                         {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                       </Label>
-                      <div className="flex-grow text-right">
-                        <AddVariablesDropdown
-                          addVariable={addVariableBody}
-                          variables={DYNAMIC_TEXT_VARIABLES}
-                        />
-                      </div>
+                      {!props.readOnly && (
+                        <div className="flex-grow text-right">
+                          <AddVariablesDropdown
+                            addVariable={addVariableBody}
+                            variables={DYNAMIC_TEXT_VARIABLES}
+                          />
+                        </div>
+                      )}
                     </div>
                     <TextArea
                       ref={(e) => {
@@ -725,6 +749,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         refReminderBody.current = e;
                       }}
                       className="my-0 h-24"
+                      disabled={props.readOnly}
                       required
                       {...restReminderBodyForm}
                     />
@@ -736,14 +761,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
                     </p>
                   )}
-                <div className="mt-3 ">
-                  <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
-                    <div className="text-default mt-2 flex text-sm">
-                      <HelpCircle className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                      <p className="text-left">{t("using_booking_questions_as_variables")}</p>
-                    </div>
-                  </button>
-                </div>
+                {!props.readOnly && (
+                  <div className="mt-3 ">
+                    <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
+                      <div className="text-default mt-2 flex text-sm">
+                        <HelpCircle className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                        <p className="text-left">{t("using_booking_questions_as_variables")}</p>
+                      </div>
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (

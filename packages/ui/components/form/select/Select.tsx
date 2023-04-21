@@ -59,7 +59,7 @@ export const Select = <
                 ? "p-1"
                 : "px-3 py-2"
               : "py-2 px-3",
-            props.isDisabled && "bg-gray-100",
+            props.isDisabled && "bg-subtle",
             props.classNames?.control
           ),
         singleValue: () => cx("text-emphasis placeholder:text-muted", props.classNames?.singleValue),
