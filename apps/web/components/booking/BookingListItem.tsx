@@ -88,7 +88,6 @@ function BookingListItem(booking: BookingItemProps) {
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
 
   const paymentAppData = getPaymentAppData(booking.eventType);
-  console.log("🚀 ~ file: BookingListItem.tsx:91 ~ BookingListItem ~ paymentAppData:", paymentAppData);
 
   const bookingConfirm = async (confirm: boolean) => {
     let body = {
