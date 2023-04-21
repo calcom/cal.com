@@ -99,11 +99,9 @@ export type UserFromSession = Awaited<ReturnType<typeof getUserFromSession>>;
 
 const getUserSession = async (ctx: ContextInner) => {
   const { req, res } = ctx;
-  if (!req || !res) {
-    throw Error("tRCP context must have req(Request) and res(Response) attributes");
-  }
-  const session = await getServerSession({ req, res });
-  const user = await getUserFromSession(ctx, session);
+
+  const session = req ? await getServerSession({ req, res }) : null;
+  const user = session ? await getUserFromSession(ctx, session) : null;
 
   return { user, session };
 };
