@@ -21,7 +21,7 @@ const LegalNotice = () => {
           {t("Imprint")}
         </a>
       ) : null}
-      {IMPRINT_URL && PRIVACY_URL ? <span className="opacity-50 dark:text-white">{" | "}</span> : null}
+      {IMPRINT_URL && PRIVACY_URL ? <span className="text-emphasis opacity-50">{" | "}</span> : null}
       {PRIVACY_URL ? (
         <a
           target="_blank"
