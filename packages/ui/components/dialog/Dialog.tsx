@@ -99,7 +99,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
           {type === "confirmation" && (
             <div className="flex">
               {Icon && (
-                <div className="mr-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-300">
+                <div className="bg-emphasis mr-4 inline-flex h-10 w-10 items-center justify-center rounded-full">
                   <Icon className="text-emphasis h-4 w-4" />
                 </div>
               )}

@@ -1,4 +1,5 @@
 import { useRouter } from "next/router";
+import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -24,10 +25,15 @@ import {
   Tooltip,
   Dialog,
   DialogTrigger,
+  DropdownMenuSeparator,
+  Dropdown,
+  DropdownMenuContent,
+  DropdownItem,
+  DropdownMenuTrigger,
   ConfirmationDialogContent,
   VerticalDivider,
 } from "@calcom/ui";
-import { Info, Plus, Trash } from "@calcom/ui/components/icon";
+import { Info, Plus, Trash, MoreHorizontal } from "@calcom/ui/components/icon";
 
 import { HttpError } from "@lib/core/http/error";
 
@@ -97,6 +103,7 @@ export default function Availability() {
 
   const { fromEventType } = router.query;
   const { timeFormat } = me.data || { timeFormat: null };
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { data: schedule, isLoading } = trpc.viewer.availability.schedule.get.useQuery(
     { scheduleId },
     {
@@ -182,11 +189,8 @@ export default function Availability() {
       }
       CTA={
         <div className="flex items-center justify-end">
-          <div className="sm:hover:bg-subtle flex items-center rounded-md px-2">
-            <Skeleton
-              as={Label}
-              htmlFor="hiddenSwitch"
-              className="mt-2 hidden cursor-pointer self-center pr-2 sm:inline">
+          <div className="hidden items-center rounded-md px-2 sm:flex sm:hover:bg-gray-100">
+            <Skeleton as={Label} htmlFor="hiddenSwitch" className="mt-2 cursor-pointer self-center pr-2 ">
               {t("set_to_default")}
             </Skeleton>
             <Switch
@@ -199,7 +203,7 @@ export default function Availability() {
             />
           </div>
 
-          <VerticalDivider />
+          <VerticalDivider className="hidden sm:inline" />
           <Dialog>
             <DialogTrigger asChild>
               <Button
@@ -207,6 +211,7 @@ export default function Availability() {
                 variant="icon"
                 color="destructive"
                 aria-label={t("delete")}
+                className="hidden sm:inline"
                 disabled={schedule?.isLastSchedule}
                 tooltip={t("requires_at_least_one_schedule")}
               />
@@ -223,8 +228,51 @@ export default function Availability() {
               {t("delete_schedule_description")}
             </ConfirmationDialogContent>
           </Dialog>
-
-          <VerticalDivider />
+          <VerticalDivider className="hidden sm:inline" />
+          <Dropdown>
+            <DropdownMenuTrigger asChild>
+              <Button className="sm:hidden" StartIcon={MoreHorizontal} variant="icon" color="secondary" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent style={{ minWidth: "200px" }}>
+              <DropdownItem
+                type="button"
+                color="destructive"
+                StartIcon={Trash}
+                onClick={() => setDeleteDialogOpen(true)}>
+                {t("delete")}
+              </DropdownItem>
+              <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <ConfirmationDialogContent
+                  isLoading={deleteMutation.isLoading}
+                  variety="danger"
+                  title={t("delete_schedule")}
+                  confirmBtnText={t("delete")}
+                  loadingText={t("delete")}
+                  onConfirm={() => {
+                    schedule !== undefined && deleteMutation.mutate({ scheduleId: schedule.id });
+                  }}>
+                  {t("delete_schedule_description")}
+                </ConfirmationDialogContent>
+              </Dialog>
+              <DropdownMenuSeparator />
+              <div className="flex h-9 flex-row items-center justify-between py-2 px-4 hover:bg-gray-100">
+                <Skeleton
+                  as={Label}
+                  htmlFor="hiddenSwitch"
+                  className="mt-2 cursor-pointer self-center pr-2 sm:inline">
+                  {t("set_to_default")}
+                </Skeleton>
+                <Switch
+                  id="hiddenSwitch"
+                  disabled={isLoading || schedule?.isDefault}
+                  checked={form.watch("isDefault")}
+                  onCheckedChange={(e) => {
+                    form.setValue("isDefault", e);
+                  }}
+                />
+              </div>
+            </DropdownMenuContent>
+          </Dropdown>
 
           <div className="border-default border-l-2" />
           <Button className="ml-4 lg:ml-0" type="submit" form="availability-form">

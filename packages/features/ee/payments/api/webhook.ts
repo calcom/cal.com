@@ -55,7 +55,6 @@ async function getBooking(bookingId: number) {
         select: {
           id: true,
           username: true,
-          credentials: true,
           timeZone: true,
           email: true,
           name: true,
@@ -176,9 +175,11 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     eventTypeRaw = await getEventType(booking.eventTypeId);
   }
 
-  const { user } = booking;
+  const { user: userWithCredentials } = booking;
 
-  if (!user) throw new HttpCode({ statusCode: 204, message: "No user found" });
+  if (!userWithCredentials) throw new HttpCode({ statusCode: 204, message: "No user found" });
+
+  const { credentials, ...user } = userWithCredentials;
 
   const t = await getTranslation(user.locale ?? "en", "common");
   const attendeesListPromises = booking.attendees.map(async (attendee) => {
@@ -227,7 +228,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   if (isConfirmed) {
-    const eventManager = new EventManager(user);
+    const eventManager = new EventManager(userWithCredentials);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
   }
@@ -255,7 +256,14 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
 
   if (!isConfirmed && !eventTypeRaw?.requiresConfirmation) {
-    await handleConfirmation({ user, evt, prisma, bookingId: booking.id, booking, paid: true });
+    await handleConfirmation({
+      user: userWithCredentials,
+      evt,
+      prisma,
+      bookingId: booking.id,
+      booking,
+      paid: true,
+    });
   } else {
     await sendScheduledEmails({ ...evt });
   }
@@ -276,14 +284,32 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
 
   if (!payment?.data || !payment?.id) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
-  const { booking, user, evt, eventTypeRaw } = await getBooking(payment.bookingId);
+  const { user, evt, eventTypeRaw } = await getBooking(payment.bookingId);
 
   const bookingData: Prisma.BookingUpdateInput = {
     paid: true,
   };
 
+  const userWithCredentials = await prisma.user.findUnique({
+    where: {
+      id: user.id,
+    },
+    select: {
+      id: true,
+      username: true,
+      timeZone: true,
+      email: true,
+      name: true,
+      locale: true,
+      destinationCalendar: true,
+      credentials: true,
+    },
+  });
+
+  if (!userWithCredentials) throw new HttpCode({ statusCode: 204, message: "No user found" });
+
   if (!eventTypeRaw?.requiresConfirmation) {
-    const eventManager = new EventManager(user);
+    const eventManager = new EventManager(userWithCredentials);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
     bookingData.status = BookingStatus.ACCEPTED;
