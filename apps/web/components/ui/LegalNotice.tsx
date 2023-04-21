@@ -22,7 +22,7 @@ const LegalNotice = () => {
           href={IMPRINT_URL}
           className="text-emphasis opacity-50 hover:opacity-100"
           rel="noreferrer">
-          {t("Imprint")}
+          {t("imprint")}
         </a>
       ) : null}
       {IMPRINT_URL && PRIVACY_URL ? <span className="text-emphasis opacity-50">{" | "}</span> : null}
