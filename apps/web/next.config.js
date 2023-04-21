@@ -297,6 +297,11 @@ const nextConfig = {
         destination: "/api/link?action=:action&email=:email&bookingUid=:bookingUid&oldToken=:oldToken",
         permanent: true,
       },
+      {
+        source: "/support",
+        destination: "/event-types?openIntercom=true",
+        permanent: true,
+      },
     ];
 
     if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {
