@@ -163,9 +163,14 @@ type Props = {
 function EventWorkflowsTab(props: Props) {
   const { workflows, eventType } = props;
   const { t } = useLocale();
+  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
+    eventType,
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
+  );
   const { data, isLoading } = trpc.viewer.workflows.list.useQuery({
-    teamId: eventType.team?.id,
-    userId: eventType.userId || undefined,
+    teamId: !isChildrenManagedEventType ? eventType.team?.id : eventType.parent?.teamId || undefined,
+    userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
   });
   const router = useRouter();
   const [sortedWorkflows, setSortedWorkflows] = useState<Array<WorkflowType>>([]);
@@ -204,12 +209,6 @@ function EventWorkflowsTab(props: Props) {
     },
   });
 
-  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
-    eventType,
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
-
   return (
     <LicenseRequired>
       {!isLoading ? (
@@ -217,6 +216,7 @@ function EventWorkflowsTab(props: Props) {
           {isManagedEventType && (
             <Alert
               severity="neutral"
+              className="mb-2"
               title={t("locked_for_members")}
               message={t("locked_workflows_description")}
             />

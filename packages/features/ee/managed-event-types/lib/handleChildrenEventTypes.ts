@@ -190,13 +190,11 @@ export default async function handleChildrenEventTypes({
             },
             parentId,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
-            // Reserved for v2
-            /*
             workflows: eventType.workflows && {
-              createMany: {
-                data: eventType.workflows?.map((wf) => ({ ...wf, eventTypeId: undefined })),
-              },
+              connect: eventType.workflows.map((wf) => ({ id: wf.id })),
             },
+            // Reserved for future releases
+            /*
             webhooks: eventType.webhooks && {
               createMany: {
                 data: eventType.webhooks?.map((wh) => ({ ...wh, eventTypeId: undefined })),
