@@ -16,7 +16,7 @@ const LegalNotice = () => {
         <a
           target="_blank"
           href={IMPRINT_URL}
-          className="opacity-50 hover:opacity-100 dark:text-white"
+          className="text-emphasis opacity-50 hover:opacity-100"
           rel="noreferrer">
           {t("Imprint")}
         </a>
@@ -26,7 +26,7 @@ const LegalNotice = () => {
         <a
           target="_blank"
           href={PRIVACY_URL}
-          className="opacity-50 hover:opacity-100 dark:text-white"
+          className="text-emphasis opacity-50 hover:opacity-100"
           rel="noreferrer">
           {t("Privacy")}
         </a>
