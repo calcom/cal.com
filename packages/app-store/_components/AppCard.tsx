@@ -18,6 +18,7 @@ export default function AppCard({
   children,
   setAppData,
   returnTo,
+  eventTypeId,
 }: {
   app: RouterOutputs["viewer"]["apps"][number];
   description?: React.ReactNode;
@@ -27,6 +28,7 @@ export default function AppCard({
   children?: React.ReactNode;
   setAppData: SetAppDataGeneric<typeof eventTypeAppCardZod>;
   returnTo?: string;
+  eventTypeId?: number;
 }) {
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -66,6 +68,7 @@ export default function AppCard({
               className="ml-auto flex items-center"
               appId={app.slug}
               returnTo={returnTo}
+              eventTypeId={eventTypeId}
             />
           )}
         </div>

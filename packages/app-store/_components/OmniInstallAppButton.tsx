@@ -16,11 +16,14 @@ export default function OmniInstallAppButton({
   appId,
   className,
   returnTo,
+  eventTypeId,
 }: {
   appId: string;
   className: string;
   returnTo?: string;
+  eventTypeId?: number;
 }) {
+  console.log("🚀 ~ file: OmniInstallAppButton.tsx:26 ~ eventTypeId:", eventTypeId, appId);
   const { t } = useLocale();
   const { data: app } = useApp(appId);
   const utils = trpc.useContext();
@@ -31,6 +34,7 @@ export default function OmniInstallAppButton({
       //TODO: viewer.appById might be replaced with viewer.apps so that a single query needs to be invalidated.
       utils.viewer.appById.invalidate({ appId });
       utils.viewer.apps.invalidate({ extendsFeature: "EventType" });
+      if (eventTypeId) utils.viewer.appsRouter.getEventTypeApps.invalidate({ eventTypeId });
       if (data?.setupPending) return;
       showToast(t("app_successfully_installed"), "success");
     },

@@ -30,18 +30,6 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     }
   );
 
-  // const { data: eventTypeApps, isLoading } = trpc.viewer.apps.useQuery({
-  //   extendsFeature: "EventType",
-  // });
-  // console.log("🚀 ~ file: EventAppsTab.tsx:22 ~ EventAppsTab ~ eventTypeApps:", eventTypeApps);
-  // const installedApps = eventTypeApps?.filter((app) => app.credentials.length);
-  // console.log("🚀 ~ file: EventAppsTab.tsx:38 ~ EventAppsTab ~ installedApps:", installedApps);
-  // const notInstalledApps = eventTypeApps?.filter((app) => !app.credentials.length);
-  // console.log("🚀 ~ file: EventAppsTab.tsx:40 ~ EventAppsTab ~ notInstalledApps:", notInstalledApps);
-  // console.log("🚀 ~ file: EventAppsTab.tsx:27 ~ EventAppsTab ~ allAppsData:", allAppsData);
-
-  // console.log("🚀 ~ file: EventAppsTab.tsx:24 ~ EventAppsTab ~ installedApps:", installedApps);
-
   const setAllAppsData = (_allAppsData: typeof allAppsData) => {
     methods.setValue("metadata", {
       ...methods.getValues("metadata"),
@@ -63,9 +51,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     return function (key, value) {
       // Always get latest data available in Form because consequent calls to setData would update the Form but not allAppsData(it would update during next render)
       const allAppsDataFromForm = methods.getValues("metadata")?.apps || {};
-      console.log("🚀 ~ file: EventAppsTab.tsx:50 ~ allAppsDataFromForm:", allAppsDataFromForm);
       const appData = allAppsDataFromForm[appId];
-      console.log("🚀 ~ file: EventAppsTab.tsx:52 ~ appData:", appData);
       setAllAppsData({
         ...allAppsDataFromForm,
         [appId]: {

@@ -1784,5 +1784,6 @@
   "seats_and_no_show_fee_error": "Currently cannot enable seats and charge a no-show fee",
   "complete_your_booking": "Complete your booking",
   "complete_your_booking_subject": "Complete your booking: {{title}} on {{date}}",
+  "team_owner_handle_stripe": "Only the team owner () can make edits to Stripe for team event types",
   "email_invite_team": "{{email}} has been invited"
 }

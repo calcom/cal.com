@@ -394,24 +394,29 @@ export const appsRouter = router({
         // console.log("🚀 ~ file: apps.tsx:390 ~ .query ~ eventTypeAppsMetadata:", eventTypeAppsMetadata);
       }
 
+      const currentEventTypeSlugs = Object.keys(eventTypeAppsMetadata);
+
       const installedApps = [],
         notInstalledApps = [];
 
-      for (const [key, value] of Object.entries(eventTypeAppsMetadata)) {
-        // console.log("🚀 ~ file: apps.tsx:401 ~ .query ~ key, value:", key, value);
-        const app = eventTypeApps.find((app) => app.slug === key);
-        if (!app) {
-          // console.log("🚀 ~ file: apps.tsx:401 ~ .query ~ key:", key);
-        }
-        if (app?.credentials.length || value.enabled) {
+      for (const app of eventTypeApps) {
+        // If the user has credentials then display the app
+        if (app.credentials.length) {
           installedApps.push({ ...app, isInstalled: true });
-        } else if (app) {
+          continue;
+        }
+        // Check if another team member has enabled the app for the event type
+        if (currentEventTypeSlugs.includes(app.slug)) {
+          const currentEventTypeApp = eventTypeAppsMetadata[app.slug];
+          if (currentEventTypeApp.enabled) {
+            installedApps.push({ ...app, isInstalled: true });
+          } else {
+            notInstalledApps.push(app);
+          }
+        } else {
           notInstalledApps.push(app);
         }
       }
-
-      // console.log("🚀 ~ file: apps.tsx:393 ~ .query ~ installedApps:", installedApps);
-      // console.log("🚀 ~ file: apps.tsx:395 ~ .query ~ notInstalledApps:", notInstalledApps);
 
       return { installedApps, notInstalledApps };
     }),

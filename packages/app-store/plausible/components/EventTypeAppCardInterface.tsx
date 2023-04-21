@@ -7,7 +7,7 @@ import { TextField } from "@calcom/ui";
 
 import type { appDataSchema } from "../zod";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
   const plausibleUrl = getAppData("PLAUSIBLE_URL");
   const trackingId = getAppData("trackingId");
@@ -24,7 +24,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           setEnabled(true);
         }
       }}
-      switchChecked={enabled}>
+      switchChecked={enabled}
+      eventTypeId={eventType.id}>
       <TextField
         name="Plausible URL"
         defaultValue="https://plausible.io/js/script.js"

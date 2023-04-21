@@ -47,6 +47,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       app={app}
       switchChecked={requirePayment}
       disableSwitch={!teamOwnerEditing}
+      eventTypeId={eventType.id}
       switchOnClick={(enabled) => {
         setRequirePayment(enabled);
       }}
@@ -104,7 +105,11 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 <Alert className="mt-2" severity="warning" title={t("seats_and_no_show_fee_error")} />
               )}
               {eventType.team && !teamOwnerEditing && (
-                <Alert className="mt-2" severity="warning" title={t("seats_and_no_show_fee_error")} />
+                <Alert
+                  className="mt-2"
+                  severity="warning"
+                  title={t("team_owner_handle_stripe", { ownerName: teamOwner.name })}
+                />
               )}
             </>
           )
