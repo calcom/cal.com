@@ -22,11 +22,13 @@ import {
 
 import { withQuery } from "@lib/QueryCell";
 
+import PageWrapper from "@components/PageWrapper";
+
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="mt-6 mb-8 space-y-6 divide-y">
+      <div className="mt-6 mb-8 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -142,7 +144,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         name="locale"
         render={({ field: { value, onChange } }) => (
           <>
-            <Label className="text-gray-900">
+            <Label className="text-emphasis">
               <>{t("language")}</>
             </Label>
             <Select<{ label: string; value: string }>
@@ -159,7 +161,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         control={formMethods.control}
         render={({ field: { value } }) => (
           <>
-            <Label className="mt-8 text-gray-900">
+            <Label className="text-emphasis mt-8">
               <>{t("timezone")}</>
             </Label>
             <TimezoneSelect
@@ -177,7 +179,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         control={formMethods.control}
         render={({ field: { value } }) => (
           <>
-            <Label className="mt-8 text-gray-900">
+            <Label className="text-emphasis mt-8">
               <>{t("time_format")}</>
             </Label>
             <Select
@@ -190,7 +192,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           </>
         )}
       />
-      <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
+      <div className="text-gray text-default mt-2 flex items-center text-sm">
         {t("timeformat_profile_hint")}
       </div>
       <Controller
@@ -198,7 +200,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         control={formMethods.control}
         render={({ field: { value } }) => (
           <>
-            <Label className="mt-8 text-gray-900">
+            <Label className="text-emphasis mt-8">
               <>{t("start_of_week")}</>
             </Label>
             <Select
@@ -219,5 +221,6 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
 };
 
 GeneralQueryView.getLayout = getLayout;
+GeneralQueryView.PageWrapper = PageWrapper;
 
 export default GeneralQueryView;

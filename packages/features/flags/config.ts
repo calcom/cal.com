@@ -4,8 +4,10 @@
  **/
 export type AppFlags = {
   emails: boolean;
+  insights: boolean;
   teams: boolean;
   webhooks: boolean;
   workflows: boolean;
-  "booking-page-v2": boolean;
+  "v2-booking-page": boolean;
+  "managed-event-types": boolean;
 };

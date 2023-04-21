@@ -4,7 +4,7 @@ import { components as reactSelectComponents } from "react-select";
 import { classNames } from "@calcom/lib";
 
 import { UpgradeTeamsBadge } from "../../badge";
-import { FiCheck } from "../../icon";
+import { Check } from "../../icon";
 
 export const InputComponent = <
   Option,
@@ -18,7 +18,7 @@ export const InputComponent = <
     <reactSelectComponents.Input
       // disables our default form focus hightlight on the react-select input element
       inputClassName={classNames(
-        "focus:ring-0 focus:ring-offset-0 dark:!text-darkgray-900 !text-black",
+        "focus:ring-0 focus:ring-offset-0 dark:!text-darkgray-900 !text-emphasis",
         inputClassName
       )}
       {...props}
@@ -43,9 +43,11 @@ export const OptionComponent = <
     // This gets styled in the select classNames prop now - handles overrides with styles vs className here doesnt
     <reactSelectComponents.Option {...props}>
       <div className="flex">
-        <span className="mr-auto">{props.label}</span>
+        <span className="mr-auto" data-testid={`select-option-${props.label}`}>
+          {props.label}
+        </span>
         {(props.data as unknown as ExtendedOption).needsUpgrade && <UpgradeTeamsBadge />}
-        {props.isSelected && <FiCheck className="ml-2 h-4 w-4" />}
+        {props.isSelected && <Check className="ml-2 h-4 w-4" />}
       </div>
     </reactSelectComponents.Option>
   );

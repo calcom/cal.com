@@ -22,5 +22,6 @@
       "type": "integrations:office365_video",
       "label": "MS Teams"
     }
-  }
+  },
+  "dirName": "office365video"
 }

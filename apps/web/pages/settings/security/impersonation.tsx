@@ -6,6 +6,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Form, Label, Meta, showToast, Skeleton, Switch } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
+
 import { ssrInit } from "@server/lib/ssr";
 
 const ProfileImpersonationView = () => {
@@ -68,10 +70,10 @@ const ProfileImpersonationView = () => {
             fitToHeight={true}
           />
           <div className="flex flex-col">
-            <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
+            <Skeleton as={Label} className="text-emphasis text-sm font-semibold leading-none">
               {t("user_impersonation_heading")}
             </Skeleton>
-            <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
+            <Skeleton as="p" className="text-default -mt-2 text-sm leading-normal">
               {t("user_impersonation_description")}
             </Skeleton>
           </div>
@@ -85,6 +87,7 @@ const ProfileImpersonationView = () => {
 };
 
 ProfileImpersonationView.getLayout = getLayout;
+ProfileImpersonationView.PageWrapper = PageWrapper;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);

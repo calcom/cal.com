@@ -38,8 +38,9 @@ import {
   TextField,
   Editor,
 } from "@calcom/ui";
-import { FiAlertTriangle, FiTrash2 } from "@calcom/ui/components/icon";
+import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
@@ -47,7 +48,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="mt-6 mb-8 space-y-6 divide-y">
+      <div className="mt-6 mb-8 space-y-6">
         <div className="flex items-center">
           <SkeletonAvatar className="h-12 w-12 px-4" />
           <SkeletonButton className="h-6 w-32 rounded-md p-5" />
@@ -226,13 +227,13 @@ const ProfileView = () => {
         }
       />
 
-      <hr className="my-6 border-gray-200" />
+      <hr className="border-subtle my-6" />
 
       <Label>{t("danger_zone")}</Label>
       {/* Delete account Dialog */}
       <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
         <DialogTrigger asChild>
-          <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon={FiTrash2}>
+          <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon={Trash2}>
             {t("delete_account")}
           </Button>
         </DialogTrigger>
@@ -240,9 +241,11 @@ const ProfileView = () => {
           title={t("delete_account_modal_title")}
           description={t("confirm_delete_account_modal", { appName: APP_NAME })}
           type="creation"
-          Icon={FiAlertTriangle}>
+          Icon={AlertTriangle}>
           <>
-            <p className="mb-7">{t("delete_account_confirmation_message", { appName: APP_NAME })}</p>
+            <p className="text-default mb-7">
+              {t("delete_account_confirmation_message", { appName: APP_NAME })}
+            </p>
             {isCALIdentityProviver && (
               <PasswordField
                 data-testid="password"
@@ -281,7 +284,7 @@ const ProfileView = () => {
           title={t("confirm_password")}
           description={t("confirm_password_change_email")}
           type="creation"
-          Icon={FiAlertTriangle}>
+          Icon={AlertTriangle}>
           <>
             <PasswordField
               data-testid="password"
@@ -317,6 +320,7 @@ const ProfileForm = ({
   extraField?: React.ReactNode;
 }) => {
   const { t } = useLocale();
+  const [firstRender, setFirstRender] = useState(true);
 
   const profileFormSchema = z.object({
     username: z.string(),
@@ -351,7 +355,7 @@ const ProfileForm = ({
           render={({ field: { value } }) => (
             <>
               <Avatar alt="" imageSrc={value} gravatarFallbackMd5="fallback" size="lg" />
-              <div className="ltr:ml-4 rtl:mr-4">
+              <div className="ms-4">
                 <ImageUploader
                   target="avatar"
                   id="avatar-upload"
@@ -382,6 +386,8 @@ const ProfileForm = ({
           }}
           excludedToolbarItems={["blockType"]}
           disableLists
+          firstRender={firstRender}
+          setFirstRender={setFirstRender}
         />
       </div>
       <Button disabled={isDisabled} color="primary" className="mt-8" type="submit">
@@ -392,5 +398,6 @@ const ProfileForm = ({
 };
 
 ProfileView.getLayout = getLayout;
+ProfileView.PageWrapper = PageWrapper;
 
 export default ProfileView;

@@ -13,10 +13,10 @@ export function SkeletonLoader({
 }) {
   return (
     <>
-      <ShellSubHeading title={<div className="h-6 w-32 bg-gray-100" />} {...{ className }} />
+      <ShellSubHeading title={<div className="bg-subtle h-6 w-32" />} {...{ className }} />
       {title && description && <Meta title={title} description={description} />}
 
-      <ul className="-mx-4 animate-pulse divide-y divide-neutral-200 rounded-md border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
+      <ul className="bg-default border-subtle divide-subtle -mx-4 animate-pulse divide-y rounded-md border sm:mx-0 sm:overflow-hidden">
         <SkeletonItem />
         <SkeletonItem />
         <SkeletonItem />
@@ -31,9 +31,13 @@ function SkeletonItem() {
       <div className="flex-grow truncate text-sm">
         <div className="flex justify-start space-x-2 rtl:space-x-reverse">
           <SkeletonText className="h-10 w-10" />
-          <div className="space-y-2">
-            <SkeletonText className="h-4 w-32" />
-            <SkeletonText className="h-4 w-16" />
+          <div className="space-y-1">
+            <div>
+              <SkeletonText className="h-4 w-16" />
+            </div>
+            <div>
+              <SkeletonText className="h-4 w-32" />
+            </div>
           </div>
         </div>
       </div>

@@ -3,7 +3,8 @@ import Head from "next/head";
 import { CreateANewTeamForm } from "@calcom/features/ee/teams/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { getLayout } from "@components/layouts/WizardLayout";
+import PageWrapper from "@components/PageWrapper";
+import WizardLayout from "@components/layouts/WizardLayout";
 
 const CreateNewTeamPage = () => {
   const { t } = useLocale();
@@ -17,7 +18,15 @@ const CreateNewTeamPage = () => {
     </>
   );
 };
+const LayoutWrapper = (page: React.ReactElement) => {
+  return (
+    <WizardLayout currentStep={1} maxSteps={2}>
+      {page}
+    </WizardLayout>
+  );
+};
 
-CreateNewTeamPage.getLayout = getLayout;
+CreateNewTeamPage.getLayout = LayoutWrapper;
+CreateNewTeamPage.PageWrapper = PageWrapper;
 
 export default CreateNewTeamPage;

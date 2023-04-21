@@ -1,5 +1,5 @@
-import type { BookingReference, EventType, User, WebhookTriggerEvents } from "@prisma/client";
 import { BookingStatus, MembershipRole, Prisma, SchedulingType, WorkflowMethods } from "@prisma/client";
+import type { BookingReference, EventType, User, WebhookTriggerEvents } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 import { z } from "zod";
 
@@ -15,8 +15,6 @@ import dayjs from "@calcom/dayjs";
 import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import { sendDeclinedEmails, sendLocationChangeEmails, sendRequestRescheduleEmail } from "@calcom/emails";
-import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
-import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -117,7 +115,7 @@ export const bookingsRouter = router({
           OR: [
             {
               recurringEventId: { not: null },
-              status: { notIn: [BookingStatus.PENDING, BookingStatus.CANCELLED, BookingStatus.REJECTED] },
+              status: { equals: BookingStatus.ACCEPTED },
             },
             {
               recurringEventId: { equals: null },
@@ -147,15 +145,7 @@ export const bookingsRouter = router({
         },
         unconfirmed: {
           endTime: { gte: new Date() },
-          OR: [
-            {
-              recurringEventId: { not: null },
-              status: { equals: BookingStatus.PENDING },
-            },
-            {
-              status: { equals: BookingStatus.PENDING },
-            },
-          ],
+          status: { equals: BookingStatus.PENDING },
         },
       };
       const bookingListingOrderby: Record<
@@ -210,124 +200,133 @@ export const bookingsRouter = router({
       const passedBookingsStatusFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
 
-      const bookingsQuery = await prisma.booking.findMany({
-        where: {
-          OR: [
-            {
-              userId: user.id,
-            },
-            {
-              attendees: {
-                some: {
-                  email: user.email,
+      const [bookingsQuery, recurringInfoBasic, recurringInfoExtended] = await Promise.all([
+        prisma.booking.findMany({
+          where: {
+            OR: [
+              {
+                userId: user.id,
+              },
+              {
+                attendees: {
+                  some: {
+                    email: user.email,
+                  },
                 },
               },
-            },
-            {
-              eventType: {
-                team: {
-                  members: {
-                    some: {
-                      userId: user.id,
-                      role: {
-                        in: ["ADMIN", "OWNER"],
+              {
+                eventType: {
+                  team: {
+                    members: {
+                      some: {
+                        userId: user.id,
+                        role: {
+                          in: ["ADMIN", "OWNER"],
+                        },
                       },
                     },
                   },
                 },
               },
-            },
-            {
-              seatsReferences: {
-                some: {
-                  attendee: {
-                    email: user.email,
+              {
+                seatsReferences: {
+                  some: {
+                    attendee: {
+                      email: user.email,
+                    },
+                  },
+                },
+              },
+            ],
+            AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
+          },
+          select: {
+            ...bookingMinimalSelect,
+            uid: true,
+            recurringEventId: true,
+            location: true,
+            eventType: {
+              select: {
+                slug: true,
+                id: true,
+                eventName: true,
+                price: true,
+                recurringEvent: true,
+                team: {
+                  select: {
+                    name: true,
                   },
                 },
               },
             },
-          ],
-          AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
-        },
-        select: {
-          ...bookingMinimalSelect,
-          uid: true,
-          recurringEventId: true,
-          location: true,
-          eventType: {
-            select: {
-              slug: true,
-              id: true,
-              eventName: true,
-              price: true,
-              recurringEvent: true,
-              team: {
-                select: {
-                  name: true,
+            status: true,
+            paid: true,
+            payment: {
+              select: {
+                paymentOption: true,
+                amount: true,
+                currency: true,
+                success: true,
+              },
+            },
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            rescheduled: true,
+            references: true,
+            isRecorded: true,
+            seatsReferences: {
+              where: {
+                attendee: {
+                  email: user.email,
+                },
+              },
+              select: {
+                referenceUid: true,
+                attendee: {
+                  select: {
+                    email: true,
+                  },
                 },
               },
             },
           },
-          status: true,
-          paid: true,
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
+          orderBy,
+          take: take + 1,
+          skip,
+        }),
+        prisma.booking.groupBy({
+          by: ["recurringEventId"],
+          _min: {
+            startTime: true,
+          },
+          _count: {
+            recurringEventId: true,
+          },
+          where: {
+            recurringEventId: {
+              not: { equals: null },
             },
+            userId: user.id,
           },
-          rescheduled: true,
-          references: true,
-          seatsReferences: {
-            where: {
-              attendee: {
-                email: user.email,
-              },
+        }),
+        prisma.booking.groupBy({
+          by: ["recurringEventId", "status", "startTime"],
+          _min: {
+            startTime: true,
+          },
+          where: {
+            recurringEventId: {
+              not: { equals: null },
             },
-            select: {
-              referenceUid: true,
-              attendee: {
-                select: {
-                  email: true,
-                },
-              },
-            },
+            userId: user.id,
           },
-        },
-        orderBy,
-        take: take + 1,
-        skip,
-      });
-
-      const recurringInfoBasic = await prisma.booking.groupBy({
-        by: ["recurringEventId"],
-        _min: {
-          startTime: true,
-        },
-        _count: {
-          recurringEventId: true,
-        },
-        where: {
-          recurringEventId: {
-            not: { equals: null },
-          },
-          userId: user.id,
-        },
-      });
-
-      const recurringInfoExtended = await prisma.booking.groupBy({
-        by: ["recurringEventId", "status", "startTime"],
-        _min: {
-          startTime: true,
-        },
-        where: {
-          recurringEventId: {
-            not: { equals: null },
-          },
-          userId: user.id,
-        },
-      });
+        }),
+      ]);
 
       const recurringInfo = recurringInfoBasic.map(
         (
@@ -340,17 +339,17 @@ export const bookingsRouter = router({
             [key: string]: Date[];
           };
         } => {
-          const bookings = recurringInfoExtended
-            .filter((ext) => ext.recurringEventId === info.recurringEventId)
-            .reduce(
-              (prev, curr) => {
+          const bookings = recurringInfoExtended.reduce(
+            (prev, curr) => {
+              if (curr.recurringEventId === info.recurringEventId) {
                 prev[curr.status].push(curr.startTime);
-                return prev;
-              },
-              { ACCEPTED: [], CANCELLED: [], REJECTED: [], PENDING: [] } as {
-                [key in BookingStatus]: Date[];
               }
-            );
+              return prev;
+            },
+            { ACCEPTED: [], CANCELLED: [], REJECTED: [], PENDING: [] } as {
+              [key in BookingStatus]: Date[];
+            }
+          );
           return {
             recurringEventId: info.recurringEventId,
             count: info._count.recurringEventId,
@@ -418,6 +417,7 @@ export const bookingsRouter = router({
           smsReminderNumber: true,
           scheduledJobs: true,
           workflowReminders: true,
+          responses: true,
         },
         where: {
           uid: bookingId,
@@ -548,13 +548,13 @@ export const bookingsRouter = router({
         user.credentials.forEach((credential) => {
           credentialsMap.set(credential.type, credential);
         });
-        const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter(
-          (ref) => !!credentialsMap.get(ref.type)
+        const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter((ref) =>
+          credentialsMap.has(ref.type)
         );
-        bookingRefsFiltered.forEach((bookingRef) => {
+        bookingRefsFiltered.forEach(async (bookingRef) => {
           if (bookingRef.uid) {
             if (bookingRef.type.endsWith("_calendar")) {
-              const calendar = getCalendar(credentialsMap.get(bookingRef.type));
+              const calendar = await getCalendar(credentialsMap.get(bookingRef.type));
 
               return calendar?.deleteEvent(
                 bookingRef.uid,
@@ -577,6 +577,10 @@ export const bookingsRouter = router({
           type: event && event.title ? event.title : bookingToReschedule.title,
           description: bookingToReschedule?.description || "",
           customInputs: isPrismaObjOrUndefined(bookingToReschedule.customInputs),
+          ...getCalEventResponses({
+            booking: bookingToReschedule,
+            bookingFields: bookingToReschedule.eventType?.bookingFields ?? null,
+          }),
           startTime: bookingToReschedule?.startTime ? dayjs(bookingToReschedule.startTime).format() : "",
           endTime: bookingToReschedule?.endTime ? dayjs(bookingToReschedule.endTime).format() : "",
           organizer: userAsPeopleType,
@@ -672,6 +676,8 @@ export const bookingsRouter = router({
           recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
           location,
           destinationCalendar: booking?.destinationCalendar || booking?.user?.destinationCalendar,
+          seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+          seatsShowAttendees: booking.eventType?.seatsShowAttendees,
         };
 
         const eventManager = new EventManager(ctx.user);
@@ -720,7 +726,7 @@ export const bookingsRouter = router({
 
     const tOrganizer = await getTranslation(user.locale ?? "en", "common");
 
-    const bookingRaw = await prisma.booking.findUniqueOrThrow({
+    const booking = await prisma.booking.findUniqueOrThrow({
       where: {
         id: bookingId,
       },
@@ -774,49 +780,28 @@ export const bookingsRouter = router({
       },
     });
 
-    const bookingFields = bookingRaw.eventType
-      ? getBookingFieldsWithSystemFields(bookingRaw.eventType)
-      : null;
-
-    const booking = {
-      ...bookingRaw,
-      responses: bookingResponsesDbSchema.parse(bookingRaw.responses),
-      eventType: bookingRaw.eventType
-        ? {
-            ...bookingRaw.eventType,
-            bookingFields,
-          }
-        : null,
-    };
-
-    const authorized = async () => {
-      // if the organizer
-      if (booking.userId === user.id) {
-        return true;
-      }
-      const eventType = await prisma.eventType.findUnique({
+    if (booking.userId !== user.id && booking.eventTypeId) {
+      // Only query database when it is explicitly required.
+      const eventType = await prisma.eventType.findFirst({
         where: {
-          id: booking.eventTypeId || undefined,
+          id: booking.eventTypeId,
+          schedulingType: SchedulingType.COLLECTIVE,
         },
         select: {
-          id: true,
-          schedulingType: true,
           users: true,
         },
       });
-      if (
-        eventType?.schedulingType === SchedulingType.COLLECTIVE &&
-        eventType.users.find((user) => user.id === user.id)
-      ) {
-        return true;
+
+      if (eventType && !eventType.users.find((user) => booking.userId === user.id)) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
       }
-      return false;
-    };
+    }
 
-    if (!(await authorized())) throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
-
-    const isConfirmed = booking.status === BookingStatus.ACCEPTED;
-    if (isConfirmed) throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
+    // Do not move this before authorization check.
+    // This is done to avoid exposing extra information to the requester.
+    if (booking.status === BookingStatus.ACCEPTED) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
+    }
 
     // If booking requires payment and is not paid, we don't allow confirmation
     if (confirmed && booking.payment.length > 0 && !booking.paid) {
@@ -832,38 +817,44 @@ export const bookingsRouter = router({
       return { message: "Booking confirmed", status: BookingStatus.ACCEPTED };
     }
 
+    // Cache translations to avoid requesting multiple times.
+    const translations = new Map();
     const attendeesListPromises = booking.attendees.map(async (attendee) => {
+      const locale = attendee.locale ?? "en";
+      let translate = translations.get(locale);
+      if (!translate) {
+        translate = await getTranslation(locale, "common");
+        translations.set(locale, translate);
+      }
       return {
         name: attendee.name,
         email: attendee.email,
         timeZone: attendee.timeZone,
         language: {
-          translate: await getTranslation(attendee.locale ?? "en", "common"),
-          locale: attendee.locale ?? "en",
+          translate,
+          locale,
         },
       };
     });
 
     const attendeesList = await Promise.all(attendeesListPromises);
 
-    // TODO: Remove the usage of `bookingFields` in computing responses. We can do that by storing `label` with the response. Also, this would allow us to correctly show the label for a field even after the Event Type has been deleted.
-    const { calEventUserFieldsResponses, calEventResponses } = getCalEventResponses({
-      bookingFields: booking.eventType?.bookingFields ?? null,
-      responses: booking.responses,
-    });
-
     const evt: CalendarEvent = {
       type: booking.eventType?.title || booking.title,
       title: booking.title,
       description: booking.description,
-      responses: calEventResponses,
-      userFieldsResponses: calEventUserFieldsResponses,
+      // TODO: Remove the usage of `bookingFields` in computing responses. We can do that by storing `label` with the response. Also, this would allow us to correctly show the label for a field even after the Event Type has been deleted.
+      ...getCalEventResponses({
+        bookingFields: booking.eventType?.bookingFields ?? null,
+        booking,
+      }),
       customInputs: isPrismaObjOrUndefined(booking.customInputs),
       startTime: booking.startTime.toISOString(),
       endTime: booking.endTime.toISOString(),
       organizer: {
         email: user.email,
         name: user.name || "Unnamed",
+        username: user.username || undefined,
         timeZone: user.timeZone,
         language: { translate: tOrganizer, locale: user.locale ?? "en" },
       },
@@ -882,6 +873,9 @@ export const bookingsRouter = router({
           where: {
             recurringEventId,
             id: booking.id,
+          },
+          select: {
+            id: true,
           },
         }))
       ) {
@@ -977,7 +971,7 @@ export const bookingsRouter = router({
             }
 
             // Posible to refactor TODO:
-            const paymentApp = appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore];
+            const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore];
             if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
               console.warn(`payment App service of type ${paymentApp} is not implemented`);
               return null;

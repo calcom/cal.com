@@ -5,13 +5,15 @@ import { useRouter } from "next/router";
 import { AppSetupPage } from "@calcom/app-store/_pages/setup";
 import { getStaticProps } from "@calcom/app-store/_pages/setup/_getStaticProps";
 
+import PageWrapper from "@components/PageWrapper";
+
 export default function SetupInformation(props: InferGetStaticPropsType<typeof getStaticProps>) {
   const router = useRouter();
   const slug = router.query.slug as string;
   const { status } = useSession();
 
   if (status === "loading") {
-    return <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200" />;
+    return <div className="bg-emphasis absolute z-50 flex h-screen w-full items-center" />;
   }
 
   if (status === "unauthenticated") {
@@ -25,6 +27,8 @@ export default function SetupInformation(props: InferGetStaticPropsType<typeof g
 
   return <AppSetupPage slug={slug} {...props} />;
 }
+
+SetupInformation.PageWrapper = PageWrapper;
 
 export const getStaticPaths: GetStaticPaths = async () => {
   return {

@@ -24,10 +24,10 @@ import { trpc } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
 import { Alert, Button, Form, showToast, Badge } from "@calcom/ui";
 
-import LicenseRequired from "../../common/components/v2/LicenseRequired";
+import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
-import { isSMSAction } from "../lib/isSMSAction";
+import { isSMSAction } from "../lib/actionHelperFunctions";
 import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
 export type FormValues = {
@@ -204,10 +204,7 @@ function WorkflowPage() {
         values.steps.forEach((step) => {
           const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
 
-          const isBodyEmpty =
-            step.template === WorkflowTemplates.CUSTOM &&
-            !isSMSAction(step.action) &&
-            strippedHtml.length <= 1;
+          const isBodyEmpty = !isSMSAction(step.action) && strippedHtml.length <= 1;
 
           if (isBodyEmpty) {
             form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
@@ -266,11 +263,12 @@ function WorkflowPage() {
             </Button>
           </div>
         }
+        hideHeadingOnMobile
         heading={
           session.data?.hasValidLicense &&
           isAllDataLoaded && (
             <div className="flex">
-              <div className={classNames(workflow && !workflow.name ? "text-gray-400" : "")}>
+              <div className={classNames(workflow && !workflow.name ? "text-muted" : "")}>
                 {workflow && workflow.name ? workflow.name : "untitled"}
               </div>
               {workflow && workflow.team && (

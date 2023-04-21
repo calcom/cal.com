@@ -7,9 +7,10 @@ import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberIn
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Avatar, Badge, Button, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
-import { FiPlus, FiArrowRight, FiTrash2 } from "@calcom/ui/components/icon";
+import { Plus, ArrowRight, Trash2 } from "@calcom/ui/components/icon";
 
 const querySchema = z.object({
   id: z.string().transform((val) => parseInt(val)),
@@ -43,9 +44,17 @@ export const AddNewTeamMembersForm = ({
   const utils = trpc.useContext();
   const router = useRouter();
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
-    async onSuccess() {
+    async onSuccess(data) {
       await utils.viewer.teams.get.invalidate();
       setMemberInviteModal(false);
+      if (data.sendEmailInvitation) {
+        showToast(
+          t("email_invite_team", {
+            email: data.usernameOrEmail,
+          }),
+          "success"
+        );
+      }
     },
     onError: (error) => {
       showToast(error.message, "error");
@@ -63,7 +72,7 @@ export const AddNewTeamMembersForm = ({
   return (
     <>
       <div>
-        <ul className="rounded-md border" data-testid="pending-member-list">
+        <ul className="border-subtle rounded-md border" data-testid="pending-member-list">
           {defaultValues.members.map((member, index) => (
             <PendingMemberItem key={member.email} member={member} index={index} teamId={teamId} />
           ))}
@@ -71,7 +80,7 @@ export const AddNewTeamMembersForm = ({
         <Button
           color="secondary"
           data-testid="new-member-button"
-          StartIcon={FiPlus}
+          StartIcon={Plus}
           onClick={() => setMemberInviteModal(true)}
           className="mt-6 w-full justify-center">
           {t("add_team_member")}
@@ -91,9 +100,10 @@ export const AddNewTeamMembersForm = ({
         }}
         members={defaultValues.members}
       />
-      <hr className="my-6 border-neutral-200" />
+      <hr className="border-subtle my-6" />
       <Button
-        EndIcon={FiArrowRight}
+        EndIcon={ArrowRight}
+        color="primary"
         className="mt-6 w-full justify-center"
         disabled={publishTeamMutation.isLoading}
         onClick={() => {
@@ -109,10 +119,10 @@ export default AddNewTeamMembers;
 
 const AddNewTeamMemberSkeleton = () => {
   return (
-    <SkeletonContainer className="rounded-md border">
+    <SkeletonContainer className="border-subtle rounded-md border">
       <div className="flex w-full justify-between p-4">
         <div>
-          <p className="text-sm font-medium text-gray-900">
+          <p className="text-emphasis text-sm font-medium">
             <SkeletonText className="h-4 w-56" />
           </p>
           <div className="mt-2.5 w-max">
@@ -132,6 +142,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
+      await utils.viewer.eventTypes.invalidate();
       showToast("Member removed", "success");
     },
     async onError(err) {
@@ -161,16 +172,16 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
             {member.role === "ADMIN" && <Badge variant="default">{t("admin")}</Badge>}
           </div>
           {member.username ? (
-            <p className="text-gray-600">{`${WEBAPP_URL}/${member.username}`}</p>
+            <p className="text-default">{`${WEBAPP_URL}/${member.username}`}</p>
           ) : (
-            <p className="text-gray-600">{t("not_on_cal", { appName: APP_NAME })}</p>
+            <p className="text-default">{t("not_on_cal", { appName: APP_NAME })}</p>
           )}
         </div>
       </div>
       {member.role !== "OWNER" && (
         <Button
           data-testid="remove-member-button"
-          StartIcon={FiTrash2}
+          StartIcon={Trash2}
           variant="icon"
           color="secondary"
           className="h-[36px] w-[36px]"

@@ -18,6 +18,9 @@ type PaymentInfo = {
   link?: string | null;
   reason?: string | null;
   id?: string | null;
+  paymentOption?: string | null;
+  amount?: number;
+  currency?: string;
 };
 
 export type Person = {
@@ -61,6 +64,7 @@ export type NewCalendarEventType = {
   password: string;
   url: string;
   additionalInfo: AdditionalInfo;
+  iCalUID?: string | null;
 };
 
 export type CalendarEventType = {
@@ -131,7 +135,7 @@ export type AppsStatus = {
   warnings?: string[];
 };
 
-type CalEventResponses = Record<
+export type CalEventResponses = Record<
   string,
   {
     label: string;
@@ -172,6 +176,7 @@ export interface CalendarEvent {
   seatsShowAttendees?: boolean | null;
   attendeeSeatId?: string;
   seatsPerTimeSlot?: number | null;
+  iCalUID?: string | null;
 
   // It has responses to all the fields(system + user)
   responses?: CalEventResponses | null;

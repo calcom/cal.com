@@ -8,7 +8,7 @@ function UserV2OptInBanner() {
 
   if (hasV2OptInCookie)
     return (
-      <p className="text-xs text-gray-400">
+      <p className="text-muted text-xs">
         You&apos;re using the new version of {APP_NAME}.{" "}
         <a href="/api/v2-opt-in" className="text-blue-400 underline">
           Go back
@@ -18,7 +18,7 @@ function UserV2OptInBanner() {
     );
 
   return (
-    <p className="text-xs text-gray-400">
+    <p className="text-muted text-xs">
       Want to try the new version of {APP_NAME}?{" "}
       <a href="/api/v2-opt-in" className="text-blue-400 underline">
         Opt-in to our v2.0 beta
