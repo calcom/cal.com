@@ -340,6 +340,7 @@ export default abstract class BaseCalendarService implements Calendar {
             timezoneComp.addSubcomponent(standard);
             vcalendar.addSubcomponent(timezoneComp);
           } catch (e) {
+            // Adds try-catch to ensure the code proceeds when Apple Calendar provides non-standard TZIDs 
             console.log("error in adding vtimezone", e);
           }
         }
