@@ -19,6 +19,7 @@ export const customPrisma = (options: Prisma.PrismaClientOptions) => ({} as unkn
 if (process.env.NODE_ENV !== "production") {
   globalThis.prisma = prisma;
 }
+
 // If any changed on middleware server restart is required
 bookingReferenceMiddleware(prisma);
 
