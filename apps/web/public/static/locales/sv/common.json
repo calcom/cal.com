@@ -1697,7 +1697,7 @@
   "spot_popular_event_types_description": "Se vilka av dina händelsetyper som får flest klick och bokningar",
   "no_responses_yet": "Inga svar ännu",
   "this_will_be_the_placeholder": "Det här blir platshållaren",
-  "this_meeting_has_not_started_yet": "Det här mötet har inte startat ännu",
+  "this_meeting_has_not_started_yet": "Mötet har inte startat än",
   "this_app_requires_connected_account": "{{appName}} kräver ett anslutet {{dependencyName}}-konto",
   "connect_app": "Anslut {{dependencyName}}",
   "app_is_connected": "{{dependencyName}} är ansluten",
