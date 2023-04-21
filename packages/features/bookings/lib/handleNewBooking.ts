@@ -1503,7 +1503,7 @@ async function handler(
     // Here we should handle every after action that needs to be done after booking creation
 
     // Obtain event metadata that includes videoCallUrl
-    const metadata = evt.videoCallData?.url ? { videoCallUrl: evt.videoCallData?.url } : undefined;
+    const metadata = evt.videoCallData?.url ? { videoCallUrl: evt.videoCallData.url } : undefined;
     try {
       await scheduleWorkflowReminders({
         workflows: eventType.workflows,
