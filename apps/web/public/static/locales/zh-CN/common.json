@@ -884,7 +884,7 @@
   "add_new_calendar": "添加新日历",
   "set_calendar": "设置当您被预约后添加新活动的位置。",
   "delete_schedule": "删除时间表",
-  "delete_schedule_description": "删除时间表会将其从所有活动类型中删除。此操作无法撤消。",
+  "delete_schedule_description": "删除日程安排会将其从所有活动类型中删除。此操作无法撤消。",
   "schedule_created_successfully": "{{scheduleName}} 时间表已成功创建",
   "availability_updated_successfully": "{{scheduleName}} 日程更新成功",
   "schedule_deleted_successfully": "已成功删除时间表",
