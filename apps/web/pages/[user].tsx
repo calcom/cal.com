@@ -33,6 +33,7 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import PageWrapper from "@components/PageWrapper";
+import LegalNotice from "@components/ui/LegalNotice";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -94,7 +95,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   delete query.user; // So it doesn't display in the Link (and make tests fail)
   const nameOrUsername = user.name || user.username || "";
 
-  /* 
+  /*
    const telemetry = useTelemetry();
    useEffect(() => {
     if (top !== window) {
@@ -190,6 +191,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
           </div>
 
           {isEventListEmpty && <EmptyPage name={user.name ?? "User"} />}
+          <LegalNotice />
         </main>
         <Toaster position="bottom-right" />
       </div>

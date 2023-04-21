@@ -31,6 +31,7 @@ import type { Gate, GateState } from "@components/Gates";
 import Gates from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
 import { SlotPicker } from "@components/booking/SlotPicker";
+import LegalNotice from "@components/ui/LegalNotice";
 
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
@@ -300,8 +301,11 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                 />
               </div>
             </div>
-            {/* FIXME: We don't show branding in Embed yet because we need to place branding on top of the main content. Keeping it outside the main content would have visibility issues because outside main content background is transparent */}
-            {!restProps.isBrandingHidden && !isEmbed && <PoweredByCal />}
+            <div className="flex items-baseline justify-end">
+              <LegalNotice />
+              {/* FIXME: We don't show branding in Embed yet because we need to place branding on top of the main content. Keeping it outside the main content would have visibility issues because outside main content background is transparent */}
+              {!restProps.isBrandingHidden && !isEmbed && <PoweredByCal />}
+            </div>
           </div>
         </main>
       </div>

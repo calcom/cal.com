@@ -54,6 +54,7 @@ import { parseRecurringDates, parseDate } from "@lib/parseDate";
 import type { Gate, GateState } from "@components/Gates";
 import Gates from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
+import LegalNotice from "@components/ui/LegalNotice";
 
 import type { BookPageProps } from "../../../pages/[user]/book";
 import type { HashLinkPageProps } from "../../../pages/d/[link]/book";
@@ -674,6 +675,7 @@ const BookingPage = ({
             </div>
           </div>
         </div>
+        <LegalNotice />
       </main>
       <Toaster position="bottom-right" />
     </Gates>

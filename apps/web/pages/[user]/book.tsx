@@ -28,6 +28,7 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
 import BookingPage from "@components/booking/pages/BookingPage";
+import LegalNotice from "@components/ui/LegalNotice";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -47,6 +48,7 @@ export default function Book(props: BookPageProps) {
               <p className="mx-auto max-w-md">{t("user_away_description")}</p>
             </div>
           </div>
+          <LegalNotice />
         </div>
       </main>
     </div>
@@ -62,6 +64,7 @@ export default function Book(props: BookPageProps) {
               <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled")}</p>
             </div>
           </div>
+          <LegalNotice />
         </div>
       </main>
     </div>
