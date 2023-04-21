@@ -13,6 +13,3 @@ export function getLocaleFromHeaders(req: IncomingMessage): string {
   }
   return preferredLocale ?? i18n.defaultLocale;
 }
-
-export const getDirFromLang = (locale: string | undefined) =>
-  locale === "ar" || locale === "he" ? "rtl" : "ltr";

@@ -59,7 +59,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
       {eventTypes.map((type, index) => (
         <li
           key={index}
-          className=" border-subtle bg-default hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
+          className=" border-subtle bg-default dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
           <ArrowRight className="text-emphasis absolute right-3 top-3 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
           <Link
             href={getUsernameSlugLink({ users: props.users, slug: type.slug })}
@@ -123,7 +123,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
         <main
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
-            isEmbed ? " border-booker border-booker-width  bg-default rounded-md border" : "",
+            isEmbed ? "border-booker border-booker-width  bg-default rounded-md border" : "",
             "max-w-3xl py-24 px-4"
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
@@ -161,7 +161,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                 <div
                   key={type.id}
                   style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                  className=" border-subtle bg-default hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
+                  className="border-subtle dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
                   <ArrowRight className="text-emphasis  absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
                   {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <div className="block w-full p-5">
