@@ -8,6 +8,7 @@ import sgMail from "@sendgrid/mail";
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
@@ -93,7 +94,7 @@ export const scheduleEmailReminder = async (
       location: evt.location,
       additionalNotes: evt.additionalNotes,
       responses: evt.responses,
-      meetingUrl: evt.metadata.videoCallUrl || "",
+      meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
       cancelLink: `/booking/${evt.uid}?cancel=true`,
       rescheduleLink: `/${evt.organizer.username}/${evt.eventType.slug}?rescheduleUid=${evt.uid}`,
     };

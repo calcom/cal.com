@@ -8,6 +8,7 @@ import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
@@ -186,7 +187,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           location: reminder.booking.location || "",
           additionalNotes: reminder.booking.description,
           responses: responses,
-          meetingUrl: reminder.booking.metadata.videoCallUrl || "",
+          meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl,
           cancelLink: `/booking/${reminder.booking.uid}?cancel=true`,
           rescheduleLink: `/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
         };
