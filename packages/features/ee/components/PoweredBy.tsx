@@ -29,7 +29,7 @@ const PoweredByCal = () => {
             />
           </>
         ) : (
-          <span className="font-semibold">{APP_NAME}</span>
+          <span className="text-emphasis font-semibold">{APP_NAME}</span>
         )}
       </Link>
     </div>
