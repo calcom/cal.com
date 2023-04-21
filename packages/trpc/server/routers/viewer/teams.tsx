@@ -697,7 +697,7 @@ export const viewerTeamsRouter = router({
                 select: {
                   id: true,
                   name: true,
-                  avatar: true,
+                  username: true,
                 },
               },
             },

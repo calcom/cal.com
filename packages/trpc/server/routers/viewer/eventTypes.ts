@@ -525,32 +525,12 @@ export const eventTypesRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const user = await ctx.prisma.user.findUnique({
-        where: {
-          id: ctx.user.id,
-        },
-        select: {
-          id: true,
-          username: true,
-          name: true,
-          startTime: true,
-          endTime: true,
-          bufferTime: true,
-          avatar: true,
-        },
-      });
-      if (!user) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      }
-
-      const res = await getEventTypeById({
+      return await getEventTypeById({
         eventTypeId: input.id,
         userId: ctx.user.id,
         prisma: ctx.prisma,
         isTrpcCall: true,
       });
-
-      return res;
     }),
   update: eventOwnerProcedure.input(EventTypeUpdateInput.strict()).mutation(async ({ ctx, input }) => {
     const {
