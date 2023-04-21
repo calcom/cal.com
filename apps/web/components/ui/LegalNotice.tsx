@@ -10,6 +10,10 @@ const LegalNotice = () => {
     return null;
   }
 
+  if (!(IMPRINT_URL && PRIVACY_URL)) {
+    return null;
+  }
+
   return (
     <div className="p-2 text-center text-xs sm:text-right">
       {IMPRINT_URL ? (
