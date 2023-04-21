@@ -33,7 +33,7 @@ export function BulkEditDefaultConferencingModal(props: { open: boolean; setOpen
   if (isFetching || !open || !data?.eventTypes) return null;
 
   return (
-    <Dialog name="Bulk Default Location Update" open={true} onOpenChange={props.setOpen}>
+    <Dialog name="Bulk Default Location Update" open={props.open} onOpenChange={props.setOpen}>
       <DialogContent
         type="creation"
         title={t("default_conferencing_bulk_title")}
