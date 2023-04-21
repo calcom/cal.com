@@ -161,14 +161,12 @@ ${WEBAPP_URL + "/booking/" + getUid(calEvent) + "?changes=true"}
 };
 
 export const getCancelLink = (calEvent: CalendarEvent): string => {
-  return (
-    WEBAPP_URL +
-    `/booking/${getUid(
-      calEvent
-    )}?cancel=true&allRemainingBookings=${!!calEvent.recurringEvent}&seatReferenceUid=${getSeatReferenceId(
-      calEvent
-    )}`
-  );
+  const cancelLink = new URL(WEBAPP_URL + `/booking/${getUid(calEvent)}`);
+  cancelLink.searchParams.append("cancel", "true");
+  cancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
+  const seatReferenceUid = getSeatReferenceId(calEvent);
+  if (seatReferenceUid) cancelLink.searchParams.append("seatReferenceUid", seatReferenceUid);
+  return cancelLink.toString();
 };
 
 export const getRescheduleLink = (calEvent: CalendarEvent): string => {
