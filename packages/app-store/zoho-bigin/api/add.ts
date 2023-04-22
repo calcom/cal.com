@@ -4,11 +4,12 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import config from "../config.json";
 
 const SCOPE = "ZohoBigin.modules.events.ALL,ZohoBigin.modules.contacts.ALL";
 const RESPONSE_TYPE = "code";
 const ACCESS_TYPE = "offline";
-const SLUG = "zoho-bigin";
+const SLUG = config.slug;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {

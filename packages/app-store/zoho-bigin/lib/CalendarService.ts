@@ -15,6 +15,7 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import config from "../config.json";
 import { appKeysSchema } from "../zod";
 
 export type BiginToken = {
@@ -33,7 +34,7 @@ export type BiginContact = {
 };
 
 export default class BiginCalendarService implements Calendar {
-  private readonly integrationName = "zoho-bigin";
+  private readonly integrationName = config.slug;
   private readonly auth: { getToken: () => Promise<void> };
   private log: typeof logger;
   private accessToken = "";
@@ -52,9 +53,10 @@ export default class BiginCalendarService implements Calendar {
     const credentialKey = credential.key as unknown as BiginToken;
     const credentialId = credential.id;
     const isTokenValid = (token: BiginToken) => {
-      const isValid = token && token.access_token && token.expiryDate && token.expiryDate < Date.now();
+      const isValid = token && token.access_token && token.expiryDate && token.expiryDate > Date.now();
       if (isValid) {
         this.accessToken = token.access_token;
+        this.log.debug(`Current Token is valid`);
       }
       return isValid;
     };
@@ -71,6 +73,7 @@ export default class BiginCalendarService implements Calendar {
    * Fetches a new access token if stored token is expired.
    */
   private async refreshAccessToken(credentialId: number, credentialKey: BiginToken) {
+    this.log.debug("Refreshing token as it's invalid");
     const grantType = "refresh_token";
     const accountsUrl = `${credentialKey.accountServer}/oauth/v2/token`;
 
@@ -109,12 +112,12 @@ export default class BiginCalendarService implements Calendar {
           },
         });
         this.accessToken = tokenInfo.data.access_token;
-        this.log.debug("Fetched token", this.accessToken);
+        this.log.debug("Refreshing token successfull", this.accessToken);
       } else {
-        this.log.error(tokenInfo.data);
+        this.log.error("Refreshing token failed", tokenInfo.data);
       }
     } catch (e: unknown) {
-      this.log.error(e);
+      this.log.error("Unknown Error in refreshAccessToken", JSON.stringify(e));
     }
   }
 
@@ -133,6 +136,7 @@ export default class BiginCalendarService implements Calendar {
         Email: attendee.email,
       };
     });
+
     return axios({
       method: "post",
       url: this.contactsUrl,
@@ -159,7 +163,7 @@ export default class BiginCalendarService implements Calendar {
       },
     })
       .then((data) => data.data)
-      .catch((e) => this.log.error(e, e.response?.data));
+      .catch((e) => this.log.error("Error searching contact:", JSON.stringify(e), e.response?.data));
   }
 
   /***
@@ -184,7 +188,7 @@ export default class BiginCalendarService implements Calendar {
       data: JSON.stringify({ data: [biginEvent] }),
     })
       .then((data) => data.data)
-      .catch((e) => this.log.error(e, e.response?.data));
+      .catch((e) => this.log.error("Error creating bigin event", JSON.stringify(e), e.response?.data));
   }
 
   /***
@@ -194,7 +198,6 @@ export default class BiginCalendarService implements Calendar {
     const meetingEvent = await this.createBiginEvent(event);
     if (meetingEvent.data && meetingEvent.data.length && meetingEvent.data[0].status === "success") {
       this.log.debug("event:creation:ok", { meetingEvent });
-      fetch(`https://calll.free.beeceptor.com/${meetingEvent.data[0].details.id}`);
       return Promise.resolve({
         uid: meetingEvent.data[0].details.id,
         id: meetingEvent.data[0].details.id,
@@ -213,27 +216,31 @@ export default class BiginCalendarService implements Calendar {
    * Initially creates all new attendees as contacts, then creates the event.
    */
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
-    const auth = await this.auth;
-    await auth.getToken();
-    const contacts = (await this.contactSearch(event))?.data || [];
+    try {
+      const auth = this.auth;
+      await auth.getToken();
+      const contacts = (await this.contactSearch(event))?.data || [];
 
-    const existingContacts = contacts.map((contact: BiginContact) => contact.Email);
-    const newContacts: Person[] = event.attendees.filter(
-      (attendee) => !existingContacts.includes(attendee.email)
-    );
+      const existingContacts = contacts.map((contact: BiginContact) => contact.Email);
+      const newContacts: Person[] = event.attendees.filter(
+        (attendee) => !existingContacts.includes(attendee.email)
+      );
 
-    if (newContacts.length === 0) {
-      return await this.handleEventCreation(event, event.attendees);
+      if (newContacts.length === 0) {
+        return await this.handleEventCreation(event, event.attendees);
+      }
+
+      const createContacts = await this.createContacts(newContacts);
+      if (createContacts.data?.data[0].status === "success") {
+        return await this.handleEventCreation(event, event.attendees);
+      }
+
+      return Promise.reject({
+        calError: "Something went wrong when creating non-existing attendees in Zoho Bigin",
+      });
+    } catch (e) {
+      this.log.error(`createEvent failed using ${this.accessToken}`, JSON.stringify(e));
     }
-
-    const createContacts = await this.createContacts(newContacts);
-    if (createContacts.data?.data[0].status === "success") {
-      return await this.handleEventCreation(event, event.attendees);
-    }
-
-    return Promise.reject({
-      calError: "Something went wrong when creating non-existing attendees in Zoho Bigin",
-    });
   }
 
   /***
@@ -261,7 +268,7 @@ export default class BiginCalendarService implements Calendar {
       })
       .then((data) => data.data)
       .catch((e) => {
-        this.log.error(e, e.response?.data);
+        this.log.error("Error in updating bigin event", JSON.stringify(e), e.response?.data);
       });
   }
 
@@ -277,7 +284,7 @@ export default class BiginCalendarService implements Calendar {
         },
       })
       .then((data) => data.data)
-      .catch((e) => this.log.error(e, e.response?.data));
+      .catch((e) => this.log.error("Error deleting bigin event", JSON.stringify(e), e.response?.data));
   }
 
   async getAvailability(
