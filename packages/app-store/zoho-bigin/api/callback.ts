@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  tokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);
+  tokenInfo.data.expiryDate = Math.round(Date.now() + tokenInfo.data.expires_in);
   tokenInfo.data.accountServer = accountsServer;
 
   await prisma.credential.create({
