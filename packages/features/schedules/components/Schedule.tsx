@@ -29,7 +29,7 @@ import {
   SkeletonText,
   Switch,
 } from "@calcom/ui";
-import { FiCopy, FiPlus, FiTrash } from "@calcom/ui/components/icon";
+import { Copy, Plus, Trash } from "@calcom/ui/components/icon";
 
 export type { TimeRange };
 
@@ -109,7 +109,7 @@ const CopyButton = ({
           tooltip={t("copy_times_to_tooltip")}
           color="minimal"
           variant="icon"
-          StartIcon={FiCopy}
+          StartIcon={Copy}
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -188,7 +188,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 type="button"
                 color="minimal"
                 variant="icon"
-                StartIcon={FiPlus}
+                StartIcon={Plus}
                 onClick={() => {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const nextRange: any = getNextRange(fields[fields.length - 1]);
@@ -218,7 +218,7 @@ const RemoveTimeButton = ({
       type="button"
       variant="icon"
       color="minimal"
-      StartIcon={FiTrash}
+      StartIcon={Trash}
       onClick={() => remove(index)}
       className={className}
     />

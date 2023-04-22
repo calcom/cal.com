@@ -1,6 +1,5 @@
 require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-const { withSentryConfig } = require("@sentry/nextjs");
 const os = require("os");
 
 const { withAxiom } = require("next-axiom");
@@ -92,12 +91,18 @@ const nextConfig = {
     "@calcom/prisma",
     "@calcom/trpc",
     "@calcom/ui",
+    "lucide-react",
   ],
   modularizeImports: {
     "@calcom/ui/components/icon": {
-      transform: "@react-icons/all-files/fi/{{member}}",
-      skipDefaultConversion: true,
+      transform: "lucide-react/dist/esm/icons/{{ kebabCase member }}",
       preventFullImport: true,
+    },
+    "@heroicons/react/solid": {
+      transform: "@heroicons/react/solid/esm/{{ member }}",
+    },
+    "@heroicons/react/outline": {
+      transform: "@heroicons/react/outline/esm/{{ member }}",
     },
     "@calcom/features/insights/components": {
       transform: "@calcom/features/insights/components/{{member}}",
@@ -292,6 +297,11 @@ const nextConfig = {
         destination: "/api/link?action=:action&email=:email&bookingUid=:bookingUid&oldToken=:oldToken",
         permanent: true,
       },
+      {
+        source: "/support",
+        destination: "/event-types?openIntercom=true",
+        permanent: true,
+      },
     ];
 
     if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {
@@ -318,21 +328,4 @@ const nextConfig = {
   },
 };
 
-const sentryWebpackPluginOptions = {
-  silent: true, // Suppresses all logs
-};
-
-const moduleExports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
-
-if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  nextConfig.sentry = {
-    hideSourceMaps: true,
-    // Prevents Sentry from running on this Edge function, where Sentry doesn't work yet (build whould crash the api route).
-    excludeServerRoutes: [/\/api\/social\/og\/image\/?/],
-  };
-}
-
-// Sentry should be the last thing to export to catch everything right
-module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
-  ? withSentryConfig(moduleExports, sentryWebpackPluginOptions)
-  : moduleExports;
+module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);

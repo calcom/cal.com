@@ -1,7 +1,7 @@
 import { useState, Suspense } from "react";
 
 import dayjs from "@calcom/dayjs";
-import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import useHasPaidPlan from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RecordingItemSchema } from "@calcom/prisma/zod-utils";
@@ -17,7 +17,7 @@ import {
   UpgradeTeamsBadge,
 } from "@calcom/ui";
 import { Button } from "@calcom/ui";
-import { FiDownload } from "@calcom/ui/components/icon";
+import { Download } from "@calcom/ui/components/icon";
 
 import RecordingListSkeleton from "./components/RecordingListSkeleton";
 
@@ -131,7 +131,7 @@ const ViewRecordingsList = ({ roomName, hasPaidPlan }: { roomName: string; hasPa
                 </div>
                 {hasPaidPlan ? (
                   <Button
-                    StartIcon={FiDownload}
+                    StartIcon={Download}
                     className="ml-4 lg:ml-0"
                     loading={isFetching && recordingId === recording.id}
                     onClick={() => handleDownloadClick(recording.id)}>

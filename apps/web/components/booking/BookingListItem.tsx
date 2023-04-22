@@ -10,6 +10,7 @@ import "@calcom/dayjs/locales";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
@@ -28,16 +29,7 @@ import {
   TableActions,
   TextAreaField,
 } from "@calcom/ui";
-import {
-  FiCheck,
-  FiClock,
-  FiMapPin,
-  FiRefreshCcw,
-  FiSend,
-  FiSlash,
-  FiX,
-  FiCreditCard,
-} from "@calcom/ui/components/icon";
+import { Check, Clock, MapPin, RefreshCcw, Send, Slash, X, CreditCard } from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -95,6 +87,8 @@ function BookingListItem(booking: BookingItemProps) {
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
 
+  const paymentAppData = getPaymentAppData(booking.eventType);
+
   const bookingConfirm = async (confirm: boolean) => {
     let body = {
       bookingId: booking.id,
@@ -125,7 +119,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setRejectionDialogIsOpen(true);
       },
-      icon: FiSlash,
+      icon: Slash,
       disabled: mutation.isLoading,
     },
     // For bookings with payment, only confirm if the booking is paid for
@@ -137,7 +131,7 @@ function BookingListItem(booking: BookingItemProps) {
             onClick: () => {
               bookingConfirm(true);
             },
-            icon: FiCheck,
+            icon: Check,
             disabled: mutation.isLoading,
           },
         ]
@@ -165,7 +159,7 @@ function BookingListItem(booking: BookingItemProps) {
         isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
       }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
       `,
-      icon: FiX,
+      icon: X,
     },
     {
       id: "edit_booking",
@@ -173,7 +167,7 @@ function BookingListItem(booking: BookingItemProps) {
       actions: [
         {
           id: "reschedule",
-          icon: FiClock,
+          icon: Clock,
           label: t("reschedule_booking"),
           href: `/reschedule/${booking.uid}${
             booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
@@ -181,7 +175,7 @@ function BookingListItem(booking: BookingItemProps) {
         },
         {
           id: "reschedule_request",
-          icon: FiSend,
+          icon: Send,
           iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
           label: t("send_reschedule_request"),
           onClick: () => {
@@ -194,7 +188,7 @@ function BookingListItem(booking: BookingItemProps) {
           onClick: () => {
             setIsOpenLocationDialog(true);
           },
-          icon: FiMapPin,
+          icon: MapPin,
         },
       ],
     },
@@ -208,7 +202,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setChargeCardDialogIsOpen(true);
       },
-      icon: FiCreditCard,
+      icon: CreditCard,
     },
   ];
 
@@ -222,7 +216,7 @@ function BookingListItem(booking: BookingItemProps) {
 
   const RequestSentMessage = () => {
     return (
-      <Badge startIcon={FiSend} size="md" variant="gray" data-testid="request_reschedule_sent">
+      <Badge startIcon={Send} size="md" variant="gray" data-testid="request_reschedule_sent">
         {t("reschedule_request_sent")}
       </Badge>
     );
@@ -265,10 +259,14 @@ function BookingListItem(booking: BookingItemProps) {
       },
     });
   };
+
+  const title = booking.title;
+  // To be used after we run query on legacy bookings
+  // const showRecordingsButtons = booking.isRecorded && isPast && isConfirmed;
+
   const showRecordingsButtons =
     (booking.location === "integrations:daily" || booking?.location?.trim() === "") && isPast && isConfirmed;
 
-  const title = booking.title;
   return (
     <>
       <RescheduleDialog
@@ -418,7 +416,7 @@ function BookingListItem(booking: BookingItemProps) {
               {title}
               <span> </span>
 
-              {!!booking?.eventType?.price && !booking.paid && (
+              {paymentAppData.enabled && !booking.paid && booking.payment.length && (
                 <Badge className="ms-2 me-2 hidden sm:inline-flex" variant="orange">
                   {t("pending_payment")}
                 </Badge>
@@ -518,7 +516,7 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                 );
               })}>
               <div className="text-default">
-                <FiRefreshCcw
+                <RefreshCcw
                   strokeWidth="3"
                   className="text-muted float-left mr-1 mt-1.5 inline-block h-3 w-3"
                 />

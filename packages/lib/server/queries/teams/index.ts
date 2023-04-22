@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, SchedulingType } from "@prisma/client";
 
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -39,6 +39,9 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
     eventTypes: {
       where: {
         hidden: false,
+        schedulingType: {
+          not: SchedulingType.MANAGED,
+        },
       },
       select: {
         users: {
