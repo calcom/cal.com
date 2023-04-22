@@ -1,4 +1,4 @@
-import { BookingStatus } from "@prisma/client";
+import { BookingStatus, WorkflowActions } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
@@ -287,6 +287,11 @@ export default function Success(props: SuccessProps) {
     bookingInfo.status
   );
 
+  const hasSMSAttendeeAction =
+    eventType.workflows.find((workflowEventType) =>
+      workflowEventType.workflow.steps.find((step) => step.action === WorkflowActions.SMS_ATTENDEE)
+    ) !== undefined;
+
   const providerName = guessEventLocationType(location)?.label;
 
   return (
@@ -474,6 +479,14 @@ export default function Success(props: SuccessProps) {
                         <div className="mt-9 font-medium">{t("additional_notes")}</div>
                         <div className="col-span-2 mb-2 mt-9">
                           <p className="break-words">{bookingInfo.description}</p>
+                        </div>
+                      </>
+                    )}
+                    {bookingInfo?.smsReminderNumber && hasSMSAttendeeAction && (
+                      <>
+                        <div className="mt-9 font-medium">{t("number_sms_notifications")}</div>
+                        <div className="col-span-2 mb-2 mt-9">
+                          <p>{bookingInfo.smsReminderNumber}</p>
                         </div>
                       </>
                     )}
