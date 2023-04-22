@@ -552,7 +552,7 @@ const BookingPage = ({
           )}>
           <div className="sm:flex">
             {showEventTypeDetails && (
-              <div className="sm:border-subtle  text-default flex flex-col px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6">
+              <div className="sm:border-subtle text-default flex flex-col px-6 pt-6 pb-0 dark:bg-gradient-to-tr dark:from-[#1c1c1c] dark:to-[#2a2a2a] sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
                   <BookingDescriptionPayment eventType={eventType} t={t} i18n={i18n} />
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
