@@ -253,7 +253,11 @@ export default function RoutingForms({
 }
 
 RoutingForms.getLayout = (page: React.ReactElement) => {
-  return <Shell withoutMain={true}>{page}</Shell>;
+  return (
+    <Shell withoutMain={true} hideHeadingOnMobile>
+      {page}
+    </Shell>
+  );
 };
 
 export const getServerSideProps = async function getServerSideProps(

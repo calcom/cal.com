@@ -1796,4 +1796,10 @@
   "thirty_days": "30 days",
   "never_expire": "Never expires",
   "team_invite_received": "You have been invited to join {{teamName}}"
+  "currency_string": "{{amount, currency}}",
+  "charge_card_dialog_body": "You are about to charge the attendee {{amount, currency}}. Are you sure you want to continue?",
+  "charge_attendee": "Charge attendee {{amount, currency}}",
+  "payment_app_commission": "Require payment ({{paymentFeePercentage}}% + {{fee, currency}} commission per transaction)",
+  "email_invite_team": "{{email}} has been invited",
+  "image_size_limit_exceed": "Uploaded image shouldn't exceed 5mb size limit"
 }

@@ -89,6 +89,13 @@ export function TeamsListing() {
     <>
       {!!errorMessage && <Alert severity="error" title={errorMessage} />}
 
+      {invites.length > 0 && (
+        <div className="bg-subtle mb-6 rounded-md p-5">
+          <Label className=" text-emphasis pb-2 font-semibold">{t("pending_invites")}</Label>
+          <TeamList teams={invites} pending />
+        </div>
+      )}
+
       <UpgradeTip
         title="calcom_is_better_with_team"
         description="add_your_team_members"
@@ -106,15 +113,7 @@ export function TeamsListing() {
             </ButtonGroup>
           </div>
         }>
-        <>
-          {invites.length > 0 && (
-            <div className="bg-subtle mb-6 rounded-md p-5">
-              <Label className=" text-emphasis pb-2 font-semibold">{t("pending_invites")}</Label>
-              <TeamList teams={invites} pending />
-            </div>
-          )}
-          {teams.length > 0 && <TeamList teams={teams} />}
-        </>
+        {teams.length > 0 ? <TeamList teams={teams} /> : <></>}
       </UpgradeTip>
     </>
   );
