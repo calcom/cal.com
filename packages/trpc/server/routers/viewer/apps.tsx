@@ -360,7 +360,6 @@ export const appsRouter = router({
       const { user, prisma } = ctx;
       const apps = await getEnabledApps(user.credentials);
       const eventTypeApps = apps.filter((app) => app.extendsFeature?.includes("EventType"));
-      // console.log("🚀 ~ file: apps.tsx:366 ~ .query ~ eventTypeApps:", eventTypeApps);
 
       const eventTypeMetadataQuery = await prisma.eventType.findFirst({
         where: {
@@ -370,7 +369,6 @@ export const appsRouter = router({
           metadata: true,
         },
       });
-      // console.log("🚀 ~ file: apps.tsx:375 ~ .query ~ eventType:", eventTypeMetadataQuery);
 
       if (!eventTypeMetadataQuery) {
         throw new TRPCError({
@@ -380,15 +378,10 @@ export const appsRouter = router({
       }
 
       const eventTypeAppsMetadataObject = eventTypeMetadataQuery as { metadata: any };
-      // console.log(
-      //   "🚀 ~ file: apps.tsx:386 ~ .query ~ eventTypeAppsMetadataObject:",
-      //   eventTypeAppsMetadataObject
-      // );
 
-      let eventTypeAppsMetadata = {};
+      let eventTypeAppsMetadata: any = {};
       if ("apps" in eventTypeAppsMetadataObject.metadata) {
         eventTypeAppsMetadata = eventTypeAppsMetadataObject.metadata.apps as object;
-        // console.log("🚀 ~ file: apps.tsx:390 ~ .query ~ eventTypeAppsMetadata:", eventTypeAppsMetadata);
       }
 
       const currentEventTypeSlugs = Object.keys(eventTypeAppsMetadata);
@@ -408,10 +401,10 @@ export const appsRouter = router({
           if (currentEventTypeApp.enabled) {
             installedApps.push({ ...app, isInstalled: true });
           } else {
-            notInstalledApps.push(app);
+            notInstalledApps.push({ ...app, isInstalled: false });
           }
         } else {
-          notInstalledApps.push(app);
+          notInstalledApps.push({ ...app, isInstalled: false });
         }
       }
 

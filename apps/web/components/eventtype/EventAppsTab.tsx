@@ -74,7 +74,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     <>
       <div>
         <div className="before:border-0">
-          {!eventTypeApps.installedApps?.length && isManagedEventType && (
+          {!eventTypeApps?.installedApps?.length && isManagedEventType && (
             <Alert
               severity="neutral"
               className="mb-2"
@@ -82,7 +82,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               message={t("locked_apps_description")}
             />
           )}
-          {!isLoading && !eventTypeApps.installedApps?.length ? (
+          {!isLoading && !eventTypeApps?.installedApps?.length ? (
             <EmptyScreen
               Icon={Grid}
               headline={t("empty_installed_apps_headline")}
@@ -100,7 +100,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               }
             />
           ) : null}
-          {eventTypeApps.installedApps?.map((app) => (
+          {eventTypeApps?.installedApps?.map((app) => (
             <EventTypeAppCard
               getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
               setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
@@ -113,11 +113,11 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
       </div>
       {!shouldLockDisableProps("apps").disabled && (
         <div>
-          {!isLoading && eventTypeApps.notInstalledApps?.length ? (
+          {!isLoading && eventTypeApps?.notInstalledApps?.length ? (
             <h2 className="text-emphasis my-2 text-lg font-semibold">{t("available_apps")}</h2>
           ) : null}
           <div className="before:border-0">
-            {eventTypeApps.notInstalledApps?.map((app) => (
+            {eventTypeApps?.notInstalledApps?.map((app) => (
               <EventTypeAppCard
                 getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
                 setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
