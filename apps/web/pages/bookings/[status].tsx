@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { GetStaticProps } from "next";
+import type { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 import { z } from "zod";
@@ -12,10 +12,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen } from "@calcom/ui";
-import { FiCalendar } from "@calcom/ui/components/icon";
+import { Calendar } from "@calcom/ui/components/icon";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
+import PageWrapper from "@components/PageWrapper";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
@@ -180,7 +181,7 @@ export default function Bookings() {
         {query.status === "success" && isEmpty && (
           <div className="flex items-center justify-center pt-2 xl:pt-0">
             <EmptyScreen
-              Icon={FiCalendar}
+              Icon={Calendar}
               headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
               description={t("no_status_bookings_yet_description", {
                 status: t(status).toLowerCase(),
@@ -194,7 +195,9 @@ export default function Bookings() {
   );
 }
 
-export const getServerSideProps: GetStaticProps = async (ctx) => {
+Bookings.PageWrapper = PageWrapper;
+
+export const getStaticProps: GetStaticProps = async (ctx) => {
   const params = querySchema.safeParse(ctx.params);
   const ssg = await ssgInit(ctx);
 
@@ -208,12 +211,12 @@ export const getServerSideProps: GetStaticProps = async (ctx) => {
   };
 };
 
-// export const getStaticPaths: GetStaticPaths = () => {
-//   return {
-//     paths: validStatuses.map((status) => ({
-//       params: { status },
-//       locale: "en",
-//     })),
-//     fallback: "blocking",
-//   };
-// };
+export const getStaticPaths: GetStaticPaths = () => {
+  return {
+    paths: validStatuses.map((status) => ({
+      params: { status },
+      locale: "en",
+    })),
+    fallback: "blocking",
+  };
+};
