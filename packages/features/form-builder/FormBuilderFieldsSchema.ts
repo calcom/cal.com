@@ -49,6 +49,7 @@ const fieldSchema = z.object({
               type: fieldTypeEnum,
               label: z.string().optional(),
               defaultLabel: z.string().optional(),
+              placeholder: z.string().optional(),
               defaultPlaceholder: z.string().optional(),
               required: z.boolean().optional(),
             })

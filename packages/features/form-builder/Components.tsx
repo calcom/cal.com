@@ -117,6 +117,7 @@ export const Components: Record<BookingFieldType, Component> = {
               <InputField
                 key={variantField.name}
                 name={variantField.name}
+                placeholder={variantField.placeholder}
                 label={variantField.label}
                 containerClassName="w-full"
                 value={value[variantField.name]}

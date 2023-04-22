@@ -490,11 +490,71 @@ export const FormBuilder = function FormBuilder({
                 const variantsConfig = fieldForm.getValues("variantsConfig");
                 const appUiVariantsConfig = fieldForm.getValues("appUiConfig")?.variantsConfig;
                 const variantToggleLabel = t(appUiVariantsConfig?.toggleLabel || "");
-
-                if (!variantsConfig || !variantToggleLabel) {
-                  return null;
+                if (typeof window !== "undefined") {
+                  window.fieldForm = fieldForm;
                 }
-
+                if (!variantsConfig || !variantToggleLabel) {
+                  return (
+                    <>
+                      <InputField
+                        required
+                        {...fieldForm.register("name")}
+                        containerClassName="mt-6"
+                        disabled={
+                          fieldForm.getValues("editable") === "system" ||
+                          fieldForm.getValues("editable") === "system-but-optional"
+                        }
+                        label="Identifier"
+                      />
+                      <InputField
+                        {...fieldForm.register("label")}
+                        // System fields have a defaultLabel, so there a label is not required
+                        required={
+                          !["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")
+                        }
+                        placeholder={t(fieldForm.getValues("defaultLabel") || "")}
+                        containerClassName="mt-6"
+                        label={t("label")}
+                      />
+                      {fieldType?.isTextType ? (
+                        <InputField
+                          {...fieldForm.register("placeholder")}
+                          containerClassName="mt-6"
+                          label={t("placeholder")}
+                          placeholder={t(fieldForm.getValues("defaultPlaceholder") || "")}
+                        />
+                      ) : null}
+                      {fieldType?.needsOptions && !fieldForm.getValues("getOptionsAt") ? (
+                        <Controller
+                          name="options"
+                          render={({ field: { value, onChange } }) => {
+                            return <OptionsField onChange={onChange} value={value} className="mt-6" />;
+                          }}
+                        />
+                      ) : null}
+                      <Controller
+                        name="required"
+                        control={fieldForm.control}
+                        render={({ field: { value, onChange } }) => {
+                          return (
+                            <BooleanToggleGroupField
+                              data-testid="field-required"
+                              disabled={fieldForm.getValues("editable") === "system"}
+                              value={value}
+                              onValueChange={(val) => {
+                                onChange(val);
+                              }}
+                              label={t("required")}
+                            />
+                          );
+                        }}
+                      />
+                    </>
+                  );
+                }
+                if (!fieldType?.isTextType) {
+                  throw new Error("Variants are currently supported only with text type");
+                }
                 const defaultVariant = variantsConfig.defaultVariant;
                 if (!defaultVariant) {
                   throw new Error("Field has variantsConfig but no defaultVariant");
@@ -506,83 +566,88 @@ export const FormBuilder = function FormBuilder({
                   throw new Error("More than one other variant. Remove toggleLabel ");
                 }
                 const otherVariant = otherVariants[0];
-                const variant = fieldForm.watch("variant");
+                const variantName = fieldForm.watch("variant") || defaultVariant;
+                const variantFields =
+                  variantsConfig.variants[variantName as keyof typeof variantsConfig]?.fields;
+                const isDefaultVariant = variantName !== defaultVariant;
                 return (
-                  <Switch
-                    checked={variant !== defaultVariant}
-                    label={variantToggleLabel}
-                    onCheckedChange={(checked) => {
-                      fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
-                    }}
-                    classNames={{ container: "p-2 hover:bg-gray-100 rounded" }}
-                    tooltip={t("show_on_booking_page")}
-                  />
+                  <>
+                    <Switch
+                      checked={isDefaultVariant}
+                      label={variantToggleLabel}
+                      onCheckedChange={(checked) => {
+                        fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
+                      }}
+                      classNames={{ container: "p-2 hover:bg-gray-100 rounded" }}
+                      tooltip={t("Toggle Variant")}
+                    />
+
+                    <InputField
+                      required
+                      {...fieldForm.register("name")}
+                      containerClassName="mt-6"
+                      disabled={
+                        fieldForm.getValues("editable") === "system" ||
+                        fieldForm.getValues("editable") === "system-but-optional"
+                      }
+                      label="Identifier"
+                    />
+
+                    {variantFields && (
+                      <ul
+                        className={classNames(
+                          isDefaultVariant
+                            ? "border-default divide-subtle mt-2 divide-y rounded-md border"
+                            : ""
+                        )}>
+                        {variantFields.map((f, index) => {
+                          const rhfFieldPrefix =
+                            `variantsConfig.variants.${variantName}.fields.${index}` as const;
+                          return (
+                            <li className={classNames(isDefaultVariant ? "p-2" : "")} key={f.name}>
+                              {isDefaultVariant && <Label>{`Field ${index + 1}`}</Label>}
+                              <InputField
+                                {...fieldForm.register(`${rhfFieldPrefix}.label`)}
+                                placeholder={t(fieldForm.getValues(`${rhfFieldPrefix}.defaultLabel`) || "")}
+                                containerClassName="mt-6"
+                                label={t("label")}
+                              />
+                              <InputField
+                                {...fieldForm.register(`${rhfFieldPrefix}.placeholder`)}
+                                key={f.name}
+                                containerClassName="mt-6"
+                                label={t("placeholder")}
+                                placeholder={t(
+                                  fieldForm.getValues(`${rhfFieldPrefix}.defaultPlaceholder`) || ""
+                                )}
+                              />
+
+                              <Controller
+                                name={`${rhfFieldPrefix}.required`}
+                                control={fieldForm.control}
+                                render={({ field: { value, onChange } }) => {
+                                  return (
+                                    <BooleanToggleGroupField
+                                      data-testid="field-required"
+                                      disabled={fieldForm.getValues("editable") === "system"}
+                                      value={value}
+                                      onValueChange={(val) => {
+                                        onChange(val);
+                                      }}
+                                      label={t("required")}
+                                    />
+                                  );
+                                }}
+                              />
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </>
                 );
               })()}
 
-              <InputField
-                required
-                {...fieldForm.register("name")}
-                containerClassName="mt-6"
-                disabled={
-                  fieldForm.getValues("editable") === "system" ||
-                  fieldForm.getValues("editable") === "system-but-optional"
-                }
-                label="Identifier"
-              />
-              {!fieldForm.getValues("variantsConfig") && (
-                <InputField
-                  {...fieldForm.register("label")}
-                  // System fields have a defaultLabel, so there a label is not required
-                  required={
-                    !["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")
-                  }
-                  placeholder={t(fieldForm.getValues("defaultLabel") || "")}
-                  containerClassName="mt-6"
-                  label={t("label")}
-                />
-              )}
-              {fieldType?.isTextType && !fieldForm.getValues("variantsConfig") ? (
-                <InputField
-                  {...fieldForm.register("placeholder")}
-                  containerClassName="mt-6"
-                  label={t("placeholder")}
-                  placeholder={t(fieldForm.getValues("defaultPlaceholder") || "")}
-                />
-              ) : null}
-              {fieldType?.needsOptions && !fieldForm.getValues("getOptionsAt") ? (
-                <Controller
-                  name="options"
-                  render={({ field: { value, onChange } }) => {
-                    return <OptionsField onChange={onChange} value={value} className="mt-6" />;
-                  }}
-                />
-              ) : null}
-              {/* TODO: Maybe we should show location options in readOnly mode in Booking Questions. Right now options are not shown in Manage Booking Questions UI for location Booking Question */}
-              {/* {fieldForm.getValues("getOptionsAt") ? (
-                <OptionsField
-                  readOnly={true}
-                  value={dataStore.options[fieldForm.getValues("getOptionsAt") as keyof typeof dataStore]}
-                  className="mt-6"
-                />
-              ) : null} */}
-              <Controller
-                name="required"
-                control={fieldForm.control}
-                render={({ field: { value, onChange } }) => {
-                  return (
-                    <BooleanToggleGroupField
-                      data-testid="field-required"
-                      disabled={fieldForm.getValues("editable") === "system"}
-                      value={value}
-                      onValueChange={(val) => {
-                        onChange(val);
-                      }}
-                      label={t("required")}
-                    />
-                  );
-                }}
-              />
               <DialogFooter>
                 <DialogClose color="secondary">{t("cancel")}</DialogClose>
                 <Button data-testid="field-add-save" type="submit">
