@@ -1,8 +1,8 @@
 import { WorkflowActions } from "@prisma/client";
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 
+import { isSMSAction } from "./actionHelperFunctions";
 import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_EVENTS } from "./constants";
-import { isSMSAction } from "./isSMSAction";
 
 export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean) {
   return WORKFLOW_ACTIONS.filter((action) => action !== WorkflowActions.EMAIL_ADDRESS) //removing EMAIL_ADDRESS for now due to abuse episode

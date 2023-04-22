@@ -6,6 +6,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Form, Label, Meta, showToast, Skeleton, Switch } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
+
 import { ssrInit } from "@server/lib/ssr";
 
 const ProfileImpersonationView = () => {
@@ -85,6 +87,7 @@ const ProfileImpersonationView = () => {
 };
 
 ProfileImpersonationView.getLayout = getLayout;
+ProfileImpersonationView.PageWrapper = PageWrapper;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);

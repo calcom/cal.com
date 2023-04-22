@@ -13,6 +13,7 @@ import { Button, StepCard, Steps } from "@calcom/ui";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import PageWrapper from "@components/PageWrapper";
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
 import UserProfile from "@components/getting-started/steps-views/UserProfile";
@@ -203,5 +204,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 };
 
 OnboardingPage.isThemeSupported = false;
+OnboardingPage.PageWrapper = PageWrapper;
 
 export default OnboardingPage;

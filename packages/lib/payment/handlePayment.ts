@@ -21,7 +21,8 @@ const handlePayment = async (
     id: number;
     startTime: { toISOString: () => string };
     uid: string;
-  }
+  },
+  bookerEmail: string
 ) => {
   const paymentApp = await appStore[paymentAppCredentials?.app?.dirName as keyof typeof appStore];
   if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
@@ -30,13 +31,32 @@ const handlePayment = async (
   }
   const PaymentService = paymentApp.lib.PaymentService;
   const paymentInstance = new PaymentService(paymentAppCredentials);
-  const paymentData = await paymentInstance.create(
-    {
-      amount: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].price,
-      currency: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].currency,
-    },
-    booking.id
-  );
+
+  const paymentOption =
+    selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].paymentOption || "ON_BOOKING";
+
+  let paymentData;
+  if (paymentOption === "HOLD") {
+    paymentData = await paymentInstance.collectCard(
+      {
+        amount: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].price,
+        currency: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].currency,
+      },
+      booking.id,
+      bookerEmail,
+      paymentOption
+    );
+  } else {
+    paymentData = await paymentInstance.create(
+      {
+        amount: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].price,
+        currency: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].currency,
+      },
+      booking.id,
+      bookerEmail,
+      paymentOption
+    );
+  }
 
   if (!paymentData) {
     console.error("Payment data is null");

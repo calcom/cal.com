@@ -75,6 +75,7 @@ export async function getEventType(input: TGetScheduleInputSchema) {
     },
     select: {
       id: true,
+      slug: true,
       minimumBookingNotice: true,
       length: true,
       seatsPerTimeSlot: true,
@@ -109,12 +110,16 @@ export async function getEventType(input: TGetScheduleInputSchema) {
         select: {
           isFixed: true,
           user: {
-            select: availabilityUserSelect,
+            select: {
+              credentials: true, // Don't leak credentials to the client
+              ...availabilityUserSelect,
+            },
           },
         },
       },
       users: {
         select: {
+          credentials: true, // Don't leak credentials to the client
           ...availabilityUserSelect,
         },
       },
@@ -141,6 +146,7 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
     },
     select: {
       allowDynamicBooking: true,
+      credentials: true, // Don't leak credentials to the client
       ...availabilityUserSelect,
     },
   });
@@ -191,19 +197,19 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   if (!startTime.isValid() || !endTime.isValid()) {
     throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
   }
-  let currentSeats: CurrentSeats | undefined = undefined;
+  let currentSeats: CurrentSeats | undefined;
 
-  let users = eventType.users.map((user) => ({
+  let usersWithCredentials = eventType.users.map((user) => ({
     isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
     ...user,
   }));
   // overwrite if it is a team event & hosts is set, otherwise keep using users.
   if (eventType.schedulingType && !!eventType.hosts?.length) {
-    users = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+    usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
   }
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
-    users.map(async (currentUser) => {
+    usersWithCredentials.map(async (currentUser) => {
       const {
         busy,
         workingHours,
@@ -281,10 +287,32 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   }
 
   let availableTimeSlots: typeof timeSlots = [];
+  // Load cached busy slots
+  const selectedSlots =
+    /* FIXME: For some reason this returns undefined while testing in Jest */
+    (await ctx.prisma.selectedSlots.findMany({
+      where: {
+        userId: { in: usersWithCredentials.map((user) => user.id) },
+        releaseAt: { gt: dayjs.utc().format() },
+      },
+      select: {
+        id: true,
+        slotUtcStartDate: true,
+        slotUtcEndDate: true,
+        userId: true,
+        isSeat: true,
+        eventTypeId: true,
+      },
+    })) || [];
+  await ctx.prisma.selectedSlots.deleteMany({
+    where: { eventTypeId: { equals: eventType.id }, id: { notIn: selectedSlots.map((item) => item.id) } },
+  });
+
   availableTimeSlots = timeSlots.filter((slot) => {
     const fixedHosts = userAvailability.filter((availability) => availability.user.isFixed);
     return fixedHosts.every((schedule) => {
       const startCheckForAvailability = performance.now();
+
       const isAvailable = checkIfIsAvailable({
         time: slot.time,
         ...schedule,
@@ -319,6 +347,71 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
       .filter((slot) => !!slot.userIds?.length);
   }
 
+  if (selectedSlots?.length > 0) {
+    let occupiedSeats: typeof selectedSlots = selectedSlots.filter(
+      (item) => item.isSeat && item.eventTypeId === eventType.id
+    );
+    if (occupiedSeats?.length) {
+      const addedToCurrentSeats: string[] = [];
+      if (typeof availabilityCheckProps.currentSeats !== undefined) {
+        availabilityCheckProps.currentSeats = (availabilityCheckProps.currentSeats as CurrentSeats).map(
+          (item) => {
+            const attendees =
+              occupiedSeats.filter(
+                (seat) => seat.slotUtcStartDate.toISOString() === item.startTime.toISOString()
+              )?.length || 0;
+            if (attendees) addedToCurrentSeats.push(item.startTime.toISOString());
+            return {
+              ...item,
+              _count: {
+                attendees: item._count.attendees + attendees,
+              },
+            };
+          }
+        ) as CurrentSeats;
+        occupiedSeats = occupiedSeats.filter(
+          (item) => !addedToCurrentSeats.includes(item.slotUtcStartDate.toISOString())
+        );
+      }
+
+      if (occupiedSeats?.length && typeof availabilityCheckProps.currentSeats === undefined)
+        availabilityCheckProps.currentSeats = [];
+      const occupiedSeatsCount = countBy(occupiedSeats, (item) => item.slotUtcStartDate.toISOString());
+      Object.keys(occupiedSeatsCount).forEach((date) => {
+        (availabilityCheckProps.currentSeats as CurrentSeats).push({
+          uid: uuid(),
+          startTime: dayjs(date).toDate(),
+          _count: { attendees: occupiedSeatsCount[date] },
+        });
+      });
+      currentSeats = availabilityCheckProps.currentSeats;
+    }
+
+    availableTimeSlots = availableTimeSlots
+      .map((slot) => {
+        slot.userIds = slot.userIds?.filter((slotUserId) => {
+          const busy = selectedSlots.reduce<EventBusyDate[]>((r, c) => {
+            if (c.userId === slotUserId && !c.isSeat) {
+              r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
+            }
+            return r;
+          }, []);
+
+          if (!busy?.length && eventType.seatsPerTimeSlot === null) {
+            return false;
+          }
+
+          return checkIfIsAvailable({
+            time: slot.time,
+            busy,
+            ...availabilityCheckProps,
+          });
+        });
+        return slot;
+      })
+      .filter((slot) => !!slot.userIds?.length);
+  }
+
   availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
 
   const computedAvailableSlots = availableTimeSlots.reduce(
@@ -328,13 +421,19 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     ) => {
       // TODO: Adds unit tests to prevent regressions in getSchedule (try multiple timezones)
       const time = _time.tz(input.timeZone);
+
       r[time.format("YYYY-MM-DD")] = r[time.format("YYYY-MM-DD")] || [];
       r[time.format("YYYY-MM-DD")].push({
         ...passThroughProps,
         time: time.toISOString(),
-        users: (eventType.hosts ? eventType.hosts.map((host) => host.user) : eventType.users).map(
-          (user) => user.username || ""
-        ),
+        users: (eventType.hosts
+          ? eventType.hosts.map((hostUserWithCredentials) => {
+              const { user } = hostUserWithCredentials;
+              const { credentials: _credentials, ...hostUser } = user;
+              return hostUser;
+            })
+          : eventType.users
+        ).map((user) => user.username || ""),
         // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
         ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
           attendees:

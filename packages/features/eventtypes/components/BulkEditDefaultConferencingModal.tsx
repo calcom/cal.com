@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogContent, Form, DialogFooter, DialogClose, Button } from "@calcom/ui";
+import { Dialog, DialogContent, Form, DialogFooter, DialogClose, Button, Checkbox } from "@calcom/ui";
 
 export const BulkUpdateEventSchema = z.object({
   eventTypeIds: z.array(z.number()),
@@ -47,41 +47,31 @@ export function BulkEditDefaultConferencingModal(props: { open: boolean; setOpen
           <div className="flex flex-col space-y-2">
             {data.eventTypes.length > 0 && (
               <div className="flex items-center space-x-2 rounded-md py-2.5 px-3">
-                <label className="text-emphasis w-full text-sm font-medium leading-none">
-                  <input
-                    type="checkbox"
-                    className="text-primary-600 focus:ring-primary-500 border-default hover:bg-subtle h-4 w-4 rounded checked:bg-gray-800 ltr:mr-2 rtl:ml-2"
-                    onChange={(e) => {
-                      form.setValue("eventTypeIds", e.target.checked ? data.eventTypes.map((e) => e.id) : []);
-                    }}
-                    checked={eventTypesSelected.length === data.eventTypes.length}
-                  />
-                  {t("select_all")}
-                </label>
+                <Checkbox
+                  description={t("select_all")}
+                  descriptionAsLabel
+                  onChange={(e) => {
+                    form.setValue("eventTypeIds", e.target.checked ? data.eventTypes.map((e) => e.id) : []);
+                  }}
+                  checked={eventTypesSelected.length === data.eventTypes.length}
+                />
               </div>
             )}
             {data.eventTypes.map((eventType) => (
               <div key={eventType.id} className="bg-muted flex items-center space-x-2 rounded-md py-2.5 px-3">
-                <label className="text-emphasis w-full text-sm font-medium leading-none">
-                  <input
-                    type="checkbox"
-                    checked={eventTypesSelected.includes(eventType.id)}
-                    className="text-primary-600 focus:ring-primary-500 border-default hover:bg-subtle h-4 w-4 rounded checked:bg-gray-800 ltr:mr-2 rtl:ml-2"
-                    onChange={(e) => {
-                      form.setValue(
-                        "eventTypeIds",
-                        e.target.checked
-                          ? [...eventTypesSelected, eventType.id]
-                          : eventTypesSelected.filter((id) => id !== eventType.id)
-                      );
-                    }}
-                  />
-                  {eventType.title}
-                </label>
-
-                <div className="ml-auto flex h-4 w-4 items-center">
-                  <img src={eventType.logo} alt="#" />
-                </div>
+                <Checkbox
+                  description={eventType.title}
+                  descriptionAsLabel
+                  checked={eventTypesSelected.includes(eventType.id)}
+                  onChange={(e) => {
+                    form.setValue(
+                      "eventTypeIds",
+                      e.target.checked
+                        ? [...eventTypesSelected, eventType.id]
+                        : eventTypesSelected.filter((id) => id !== eventType.id)
+                    );
+                  }}
+                />
               </div>
             ))}
           </div>

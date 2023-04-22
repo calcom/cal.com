@@ -197,7 +197,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
   await test.step("Do a reschedule and notice that we can't book without giving a value for rescheduleReason", async () => {
     const page = previewTabPage;
     await rescheduleFromTheLinkOnPage({ page });
-    await page.pause();
+    // await page.pause();
     await expectErrorToBeThereFor({ page, name: "rescheduleReason" });
   });
 }

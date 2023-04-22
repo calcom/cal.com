@@ -44,30 +44,28 @@ export default function FormInputFields(props: Props) {
                 {field.label}
               </label>
             </div>
-            <div className="flex rounded-sm">
-              <Component
-                value={response[field.id]?.value}
-                placeholder={field.placeholder ?? ""}
-                // required property isn't accepted by query-builder types
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                /* @ts-ignore */
-                required={!!field.required}
-                listValues={options}
-                data-testid="form-field"
-                setValue={(value) => {
-                  setResponse((response) => {
-                    response = response || {};
-                    return {
-                      ...response,
-                      [field.id]: {
-                        label: field.label,
-                        value,
-                      },
-                    };
-                  });
-                }}
-              />
-            </div>
+            <Component
+              value={response[field.id]?.value}
+              placeholder={field.placeholder ?? ""}
+              // required property isn't accepted by query-builder types
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              /* @ts-ignore */
+              required={!!field.required}
+              listValues={options}
+              data-testid="form-field"
+              setValue={(value) => {
+                setResponse((response) => {
+                  response = response || {};
+                  return {
+                    ...response,
+                    [field.id]: {
+                      label: field.label,
+                      value,
+                    },
+                  };
+                });
+              }}
+            />
           </div>
         );
       })}
