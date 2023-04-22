@@ -2,6 +2,7 @@ name: Cron - mark stale for inactive issues
 
 permissions:
   issues: write
+  pull-requests: write
 
 on:
   # "Scheduled workflows run on the latest commit on the default or base branch."

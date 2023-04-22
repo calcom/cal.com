@@ -6,7 +6,6 @@ import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { getLocalAppMetadata, getAppFromSlug } from "@calcom/app-store/utils";
 import { sendDisabledAppEmail } from "@calcom/emails";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
-import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { TRPCError } from "@trpc/server";
@@ -256,9 +255,7 @@ export const appsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      let appKey = deriveAppDictKeyFromType(input.type, appKeysSchemas);
-      if (!appKey) appKey = deriveAppDictKeyFromType(input.slug, appKeysSchemas);
-      const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
+      const keysSchema = appKeysSchemas[input.dirName as keyof typeof appKeysSchemas];
       const keys = keysSchema.parse(input.keys);
 
       // Get app name from metadata

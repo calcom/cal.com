@@ -8,6 +8,7 @@ import type { FC } from "react";
 import { useEffect, useState, memo } from "react";
 import { z } from "zod";
 
+import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
@@ -756,8 +757,15 @@ const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
 const EventTypesPage = () => {
   const { t } = useLocale();
   const router = useRouter();
-
+  const { open } = useIntercom();
+  const { query } = router;
   const isMobile = useMediaQuery("(max-width: 768px)");
+
+  useEffect(() => {
+    if (query?.openIntercom && query?.openIntercom === "true") {
+      open();
+    }
+  }, []);
 
   return (
     <div>
@@ -768,6 +776,7 @@ const EventTypesPage = () => {
       <Shell
         withoutSeo
         heading={t("event_types_page_title")}
+        hideHeadingOnMobile
         subtitle={t("event_types_page_subtitle")}
         CTA={<CTA />}>
         <WithQuery

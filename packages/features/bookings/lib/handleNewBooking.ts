@@ -197,7 +197,12 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       id: true,
       customInputs: true,
       disableGuests: true,
-      users: userSelect,
+      users: {
+        select: {
+          credentials: true,
+          ...userSelect.select,
+        },
+      },
       slug: true,
       team: {
         select: {
@@ -254,7 +259,12 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       hosts: {
         select: {
           isFixed: true,
-          user: userSelect,
+          user: {
+            select: {
+              credentials: true,
+              ...userSelect.select,
+            },
+          },
         },
       },
       availability: {
@@ -278,7 +288,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
   };
 };
 
-type IsFixedAwareUser = User & { isFixed: boolean };
+type IsFixedAwareUser = User & { isFixed: boolean; credentials: Credential[] };
 
 async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
@@ -624,6 +634,7 @@ async function handler(
           },
           select: {
             ...userSelect.select,
+            credentials: true, // Don't leak to client
             metadata: true,
           },
         })
@@ -655,7 +666,10 @@ async function handler(
       where: {
         id: eventType.userId,
       },
-      ...userSelect,
+      select: {
+        credentials: true, // Don't leak to client
+        ...userSelect.select,
+      },
     });
     if (!eventTypeUser) {
       log.warn({ message: "NewBooking: eventTypeUser.notFound" });
@@ -684,8 +698,7 @@ async function handler(
       return aIndex - bIndex;
     });
     const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata);
-    const app = getAppFromSlug(firstUsersMetadata?.defaultConferencingApp?.appSlug);
-    locationBodyString = app?.appData?.location?.type || locationBodyString;
+    locationBodyString = firstUsersMetadata?.defaultConferencingApp?.appLink || locationBodyString;
     defaultLocationUrl = firstUsersMetadata?.defaultConferencingApp?.appLink;
   }
 
@@ -841,6 +854,7 @@ async function handler(
 
   const calEventUserFieldsResponses =
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
+
   let evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
@@ -1430,6 +1444,7 @@ async function handler(
        * deep cloning evt to avoid this
        */
       const copyEvent = cloneDeep(evt);
+      copyEvent.uid = booking.uid;
       await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
       const credentials = await refreshCredentials(organizerUser.credentials);
@@ -1495,7 +1510,7 @@ async function handler(
     // Here we should handle every after action that needs to be done after booking creation
 
     // Obtain event metadata that includes videoCallUrl
-    const metadata = { videoCallUrl: evt.videoCallData?.url };
+    const metadata = evt.videoCallData?.url ? { videoCallUrl: evt.videoCallData.url } : undefined;
     try {
       await scheduleWorkflowReminders({
         workflows: eventType.workflows,
@@ -2152,7 +2167,7 @@ async function handler(
     log.error("Error while creating booking references", error);
   }
 
-  const metadataFromEvent = { videoCallUrl };
+  const metadataFromEvent = videoCallUrl ? { videoCallUrl } : undefined;
 
   try {
     await scheduleWorkflowReminders({

@@ -114,7 +114,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
       {!shouldLockDisableProps("apps").disabled && (
         <div>
           {!isLoading && eventTypeApps.notInstalledApps?.length ? (
-            <h2 className="text-emphasis mt-0 mb-2 text-lg font-semibold">{t("available_apps")}</h2>
+            <h2 className="text-emphasis my-2 text-lg font-semibold">{t("available_apps")}</h2>
           ) : null}
           <div className="before:border-0">
             {eventTypeApps.notInstalledApps?.map((app) => (

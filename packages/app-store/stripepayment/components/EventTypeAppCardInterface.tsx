@@ -1,7 +1,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
@@ -54,11 +53,11 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       description={
         <>
           <div className="">
-            {t("require_payment")} (0.5% +{" "}
-            <IntlProvider locale="en">
-              <FormattedNumber value={0.1} style="currency" currency={currency} />
-            </IntlProvider>{" "}
-            {t("commission_per_transaction")})
+            {t("payment_app_commission", {
+              paymentFeePercentage: 0.5,
+              fee: 0.1,
+              formatParams: { fee: { currency } },
+            })}
           </div>
         </>
       }>

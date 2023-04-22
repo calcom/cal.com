@@ -23,7 +23,7 @@ import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { bookingMinimalSelect } from "@calcom/prisma";
-import { bookingConfirmPatchBodySchema } from "@calcom/prisma/zod-utils";
+import { bookingConfirmPatchBodySchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -252,6 +252,8 @@ export const bookingsRouter = router({
                 eventName: true,
                 price: true,
                 recurringEvent: true,
+                currency: true,
+                metadata: true,
                 team: {
                   select: {
                     name: true,
@@ -365,6 +367,9 @@ export const bookingsRouter = router({
           eventType: {
             ...booking.eventType,
             recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
+            price: booking.eventType?.price || 0,
+            currency: booking.eventType?.currency || "usd",
+            metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
           },
           startTime: booking.startTime.toISOString(),
           endTime: booking.endTime.toISOString(),

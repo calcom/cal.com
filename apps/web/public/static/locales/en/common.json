@@ -1785,5 +1785,10 @@
   "complete_your_booking": "Complete your booking",
   "complete_your_booking_subject": "Complete your booking: {{title}} on {{date}}",
   "team_owner_handle_stripe": "Only the team owner () can make edits to Stripe for team event types",
-  "email_invite_team": "{{email}} has been invited"
+  "currency_string": "{{amount, currency}}",
+  "charge_card_dialog_body": "You are about to charge the attendee {{amount, currency}}. Are you sure you want to continue?",
+  "charge_attendee": "Charge attendee {{amount, currency}}",
+  "payment_app_commission": "Require payment ({{paymentFeePercentage}}% + {{fee, currency}} commission per transaction)",
+  "email_invite_team": "{{email}} has been invited",
+  "image_size_limit_exceed": "Uploaded image shouldn't exceed 5mb size limit"
 }
