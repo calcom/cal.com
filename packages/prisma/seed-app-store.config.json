@@ -232,5 +232,12 @@
     "slug": "discord",
     "type": "discord_video",
     "isTemplate": false
+  },
+  {
+    "dirName": "sylapsvideo",
+    "categories": ["video"],
+    "slug": "sylapsvideo",
+    "type": "sylaps_video",
+    "isTemplate": false
   }
 ]

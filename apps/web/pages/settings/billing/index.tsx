@@ -8,6 +8,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Meta } from "@calcom/ui";
 import { ExternalLink } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
+
 interface CtaRowProps {
   title: string;
   description: string;
@@ -37,8 +39,8 @@ const BillingView = () => {
   const returnTo = router.asPath;
   const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
 
-  const onContactSupportClick = () => {
-    open();
+  const onContactSupportClick = async () => {
+    await open();
   };
 
   return (
@@ -64,5 +66,6 @@ const BillingView = () => {
 };
 
 BillingView.getLayout = getLayout;
+BillingView.PageWrapper = PageWrapper;
 
 export default BillingView;

@@ -24,7 +24,9 @@ import { appKeysSchema as event_type_app_card_zod_ts } from "./templates/event-t
 import { appKeysSchema as vital_zod_ts } from "./vital/zod";
 import { appKeysSchema as wordpress_zod_ts } from "./wordpress/zod";
 import { appKeysSchema as zapier_zod_ts } from "./zapier/zod";
+import { appKeysSchema as zohocrm_zod_ts } from "./zohocrm/zod";
 import { appKeysSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
+
 export const appKeysSchemas = {
   dailyvideo: dailyvideo_zod_ts,
   fathom: fathom_zod_ts,
@@ -48,5 +50,6 @@ export const appKeysSchemas = {
   vital: vital_zod_ts,
   wordpress: wordpress_zod_ts,
   zapier: zapier_zod_ts,
+  zohocrm: zohocrm_zod_ts,
   zoomvideo: zoomvideo_zod_ts,
 };

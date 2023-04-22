@@ -691,9 +691,9 @@ export const ComponentForField = ({
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
           placeholder={field.placeholder}
+          name={field.name}
           label={field.label}
           readOnly={readOnly}
-          name={field.name}
           value={value as string}
           setValue={setValue as (arg: typeof value) => void}
         />
@@ -705,6 +705,7 @@ export const ComponentForField = ({
     return (
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
+          name={field.name}
           label={field.label}
           readOnly={readOnly}
           value={value as boolean}
@@ -720,6 +721,7 @@ export const ComponentForField = ({
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
           placeholder={field.placeholder}
+          name={field.name}
           label={field.label}
           readOnly={readOnly}
           value={value as string[]}
@@ -739,6 +741,7 @@ export const ComponentForField = ({
         <componentConfig.factory
           readOnly={readOnly}
           value={value as string}
+          name={field.name}
           placeholder={field.placeholder}
           setValue={setValue as (arg: typeof value) => void}
           options={field.options.map((o) => ({ ...o, title: o.label }))}
@@ -755,6 +758,7 @@ export const ComponentForField = ({
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
           placeholder={field.placeholder}
+          name={field.name}
           readOnly={readOnly}
           value={value as string[]}
           setValue={setValue as (arg: typeof value) => void}

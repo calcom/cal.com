@@ -6,6 +6,7 @@ import Cropper from "react-easy-crop";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Button, Dialog, DialogClose, DialogContent, DialogTrigger } from "../..";
+import { showToast } from "../toast";
 
 type ReadAsMethod = "readAsText" | "readAsDataURL" | "readAsArrayBuffer" | "readAsBinaryString";
 
@@ -134,7 +135,15 @@ export default function ImageUploader({
     if (!e.target.files?.length) {
       return;
     }
-    setFile(e.target.files[0]);
+
+    const limit = 5 * 1000000; // max limit 5mb
+    const file = e.target.files[0];
+
+    if (file.size > limit) {
+      showToast(t("image_size_limit_exceed"), "error");
+    } else {
+      setFile(file);
+    }
   };
 
   const showCroppedImage = useCallback(

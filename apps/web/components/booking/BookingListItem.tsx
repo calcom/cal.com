@@ -10,6 +10,7 @@ import "@calcom/dayjs/locales";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
@@ -85,6 +86,8 @@ function BookingListItem(booking: BookingItemProps) {
   const isRecurring = booking.recurringEventId !== null;
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
+
+  const paymentAppData = getPaymentAppData(booking.eventType);
 
   const bookingConfirm = async (confirm: boolean) => {
     let body = {
@@ -258,7 +261,12 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const title = booking.title;
-  const showRecordingsButtons = booking.isRecorded && isPast && isConfirmed;
+  // To be used after we run query on legacy bookings
+  // const showRecordingsButtons = booking.isRecorded && isPast && isConfirmed;
+
+  const showRecordingsButtons =
+    (booking.location === "integrations:daily" || booking?.location?.trim() === "") && isPast && isConfirmed;
+
   return (
     <>
       <RescheduleDialog
@@ -408,7 +416,7 @@ function BookingListItem(booking: BookingItemProps) {
               {title}
               <span> </span>
 
-              {!!booking?.eventType?.price && !booking.paid && (
+              {paymentAppData.enabled && !booking.paid && booking.payment.length && (
                 <Badge className="ms-2 me-2 hidden sm:inline-flex" variant="orange">
                   {t("pending_payment")}
                 </Badge>

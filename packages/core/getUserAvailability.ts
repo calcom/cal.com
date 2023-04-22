@@ -70,7 +70,10 @@ type EventType = Awaited<ReturnType<typeof getEventType>>;
 const getUser = (where: Prisma.UserWhereUniqueInput) =>
   prisma.user.findUnique({
     where,
-    select: availabilityUserSelect,
+    select: {
+      ...availabilityUserSelect,
+      credentials: true,
+    },
   });
 
 type User = Awaited<ReturnType<typeof getUser>>;
@@ -149,6 +152,7 @@ export async function getUserAvailability(
     username: `${user.username}`,
     beforeEventBuffer,
     afterEventBuffer,
+    selectedCalendars: user.selectedCalendars,
   });
 
   let bufferedBusyTimes: EventBusyDetails[] = busyTimes.map((a) => ({

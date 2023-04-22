@@ -130,14 +130,11 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
         </Skeleton>
       )}
       {addOnLeading || addOnSuffix ? (
-        <div className="group relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
+        <div
+          dir="ltr"
+          className="group relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
           {addOnLeading && (
-            <Addon
-              isFilled={addOnFilled}
-              className={classNames(
-                "ltr:rounded-l-md ltr:border-r-0 rtl:rounded-r-md rtl:border-l-0",
-                addOnClassname
-              )}>
+            <Addon isFilled={addOnFilled} className={classNames("rounded-l-md border-r-0", addOnClassname)}>
               {addOnLeading}
             </Addon>
           )}
@@ -149,8 +146,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             className={classNames(
               className,
               "disabled:bg-muted disabled:hover:border-subtle disabled:cursor-not-allowed",
-              addOnLeading && "ltr:rounded-l-none rtl:rounded-r-none",
-              addOnSuffix && "ltr:rounded-r-none rtl:rounded-l-none",
+              addOnLeading && "rounded-l-none",
+              addOnSuffix && "rounded-r-none",
               type === "search" && "pr-8",
               "!my-0 !ring-0"
             )}
@@ -230,7 +227,10 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
         placeholder={props.placeholder || "•••••••••••••"}
         ref={ref}
         {...props}
-        className={classNames("mb-0 ltr:border-r-0 ltr:pr-10 rtl:border-l-0 rtl:pl-10", props.className)}
+        className={classNames(
+          "addon-wrapper mb-0 ltr:border-r-0 ltr:pr-10 rtl:border-l-0 rtl:pl-10",
+          props.className
+        )}
         addOnFilled={false}
         addOnSuffix={
           <Tooltip content={textLabel}>
