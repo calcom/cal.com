@@ -217,5 +217,6 @@
   "additional_notes_variable": "Egyéb jegyzetek",
   "organizer_name_info": "Neved",
   "theme_light": "Világos",
-  "theme_dark": "Sötét"
+  "theme_dark": "Sötét",
+  "timezone_variable": "Időzóna"
 }

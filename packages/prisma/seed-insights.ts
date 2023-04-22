@@ -268,7 +268,7 @@ async function main() {
 
     await prisma.booking.createMany({
       data: [
-        ...new Array(100)
+        ...new Array(10000)
           .fill(0)
           .map(() => shuffle({ ...baseBookingSingle }, dayjs().get("y") - 1, singleEvents)),
       ],
@@ -276,7 +276,7 @@ async function main() {
 
     await prisma.booking.createMany({
       data: [
-        ...new Array(100)
+        ...new Array(10000)
           .fill(0)
           .map(() => shuffle({ ...baseBookingSingle }, dayjs().get("y") - 0, singleEvents)),
       ],
@@ -332,7 +332,7 @@ async function main() {
   // Create past bookings -2y, -1y, -0y
   await prisma.booking.createMany({
     data: [
-      ...new Array(100)
+      ...new Array(10000)
         .fill(0)
         .map(() =>
           shuffle({ ...baseBooking }, dayjs().get("y") - 2, teamEvents, [
@@ -345,7 +345,7 @@ async function main() {
 
   await prisma.booking.createMany({
     data: [
-      ...new Array(100)
+      ...new Array(10000)
         .fill(0)
         .map(() =>
           shuffle({ ...baseBooking }, dayjs().get("y") - 1, teamEvents, [
@@ -358,7 +358,7 @@ async function main() {
 
   await prisma.booking.createMany({
     data: [
-      ...new Array(100)
+      ...new Array(10000)
         .fill(0)
         .map(() =>
           shuffle({ ...baseBooking }, dayjs().get("y"), teamEvents, [
@@ -389,6 +389,152 @@ main()
       },
     });
 
+    await prisma.$disconnect();
+    process.exit(1);
+  });
+
+/**
+ * This will create many users in insights teams with bookings 1y in the past
+ * Should be run after the main function is executed once
+ */
+async function createPerformanceData() {
+  const createExtraMembers = false; // Turn ON to be executed
+  let extraMembersIds;
+  const insightsTeam = await prisma.team.findFirst({
+    where: {
+      slug: "insights-team",
+    },
+  });
+
+  if (createExtraMembers) {
+    const insightsRandomUsers: Prisma.UserCreateManyArgs["data"] = [];
+    const numInsightsUsers = 50; // Change this value to adjust the number of insights users to create
+    for (let i = 0; i < numInsightsUsers; i++) {
+      const timestamp = Date.now();
+      const email = `insightsuser${timestamp}@example.com`;
+      const insightsUser = {
+        email,
+        password: await hashPassword("insightsuser"),
+        name: `Insights User ${timestamp}`,
+        username: `insights-user-${timestamp}`,
+        completedOnboarding: true,
+      };
+      insightsRandomUsers.push(insightsUser);
+    }
+
+    await prisma.user.createMany({
+      data: insightsRandomUsers,
+    });
+    // Lets find the ids of the users we just created
+    extraMembersIds = await prisma.user.findMany({
+      where: {
+        email: {
+          in: insightsRandomUsers.map((user) => user.email),
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+
+  if (createExtraMembers) {
+    if (insightsTeam === null) {
+      console.log("This should not happen");
+      throw new Error("Insights team id is undefined or null");
+    }
+
+    await prisma.membership.createMany({
+      data: extraMembersIds.map((memberId) => ({
+        teamId: insightsTeam?.id ?? 1,
+        userId: memberId.id,
+        role: "MEMBER",
+        accepted: true,
+      })),
+    });
+
+    const updateMemberPromises = extraMembersIds.map((memberId) =>
+      prisma.team.update({
+        where: {
+          id: insightsTeam?.id,
+        },
+        data: {
+          members: {
+            connect: {
+              userId_teamId: {
+                userId: memberId.id,
+                teamId: insightsTeam?.id ?? 1,
+              },
+            },
+          },
+        },
+      })
+    );
+
+    await Promise.all(updateMemberPromises);
+
+    // Create events for every Member id
+    const createEvents = extraMembersIds.map((memberId) => ({
+      title: `Single Event User - ${memberId.id}`,
+      slug: `single-event-user-${memberId.id}`,
+      description: `Single Event User - ${memberId.id}`,
+      length: 30,
+      userId: memberId.id,
+      users: {
+        connect: {
+          id: memberId.id,
+        },
+      },
+    }));
+    const createEventPromises = createEvents.map((data) =>
+      prisma.eventType.create({
+        data,
+      })
+    );
+    await Promise.all(createEventPromises);
+
+    // load the events we just created
+    const singleEventsCreated = await prisma.eventType.findMany({
+      where: {
+        userId: {
+          in: extraMembersIds.map((memberId) => memberId.id),
+        },
+      },
+    });
+
+    // Create bookings for every single event
+    const baseBooking = {
+      uid: "demo performance data  booking",
+      title: "Single Event Booking Perf",
+      description: "Single Event Booking Perf",
+      startTime: dayjs().toISOString(),
+      endTime: dayjs().toISOString(),
+      eventTypeId: singleEventsCreated[0].id,
+    };
+
+    await prisma.booking.createMany({
+      data: [
+        ...new Array(10000)
+          .fill(0)
+          .map(() => shuffle({ ...baseBooking }, dayjs().get("y"), singleEventsCreated)),
+      ],
+    });
+  }
+}
+
+createPerformanceData()
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.user.deleteMany({
+      where: {
+        username: {
+          contains: "insights-user-",
+        },
+      },
+    });
     await prisma.$disconnect();
     process.exit(1);
   });

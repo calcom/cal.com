@@ -4,6 +4,7 @@ import { MembershipRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -52,6 +53,7 @@ const ProfileView = () => {
   const router = useRouter();
   const utils = trpc.useContext();
   const session = useSession();
+  const [firstRender, setFirstRender] = useState(true);
 
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
@@ -225,6 +227,8 @@ const ProfileView = () => {
                   setText={(value: string) => form.setValue("bio", turndown(value))}
                   excludedToolbarItems={["blockType"]}
                   disableLists
+                  firstRender={firstRender}
+                  setFirstRender={setFirstRender}
                 />
               </div>
               <p className="text-default mt-2 text-sm">{t("team_description")}</p>

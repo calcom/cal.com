@@ -255,8 +255,12 @@ const SettingsSidebarContainer = ({
                                   }),
                                 ])
                               }>
-                              <div className="ltr:mr-3 rtl:ml-3">
-                                {teamMenuState[index].teamMenuOpen ? <ChevronDown /> : <ChevronRight />}
+                              <div className="me-3">
+                                {teamMenuState[index].teamMenuOpen ? (
+                                  <ChevronDown className="h-4 w-4" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4" />
+                                )}
                               </div>
                               <img
                                 src={getPlaceholderAvatar(team.logo, team?.name as string)}
@@ -352,7 +356,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
           <button
             className="hover:bg-emphasis flex items-center space-x-2 rounded-md px-3 py-1 rtl:space-x-reverse"
             onClick={() => router.back()}>
-            <ArrowLeft className="text-default" />
+            <ArrowLeft className="text-default h-4 w-4" />
             <p className="text-emphasis font-semibold">{t("settings")}</p>
           </button>
         </div>
@@ -393,6 +397,7 @@ export default function SettingsLayout({
     <Shell
       withoutSeo={true}
       flexChildrenContainer
+      hideHeadingOnMobile
       {...rest}
       SidebarContainer={
         <>

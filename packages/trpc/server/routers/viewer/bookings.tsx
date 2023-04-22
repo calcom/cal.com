@@ -23,7 +23,7 @@ import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { bookingMinimalSelect } from "@calcom/prisma";
-import { bookingConfirmPatchBodySchema } from "@calcom/prisma/zod-utils";
+import { bookingConfirmPatchBodySchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -115,7 +115,7 @@ export const bookingsRouter = router({
           OR: [
             {
               recurringEventId: { not: null },
-              status: { notIn: [BookingStatus.PENDING, BookingStatus.CANCELLED, BookingStatus.REJECTED] },
+              status: { equals: BookingStatus.ACCEPTED },
             },
             {
               recurringEventId: { equals: null },
@@ -252,6 +252,8 @@ export const bookingsRouter = router({
                 eventName: true,
                 price: true,
                 recurringEvent: true,
+                currency: true,
+                metadata: true,
                 team: {
                   select: {
                     name: true,
@@ -365,6 +367,9 @@ export const bookingsRouter = router({
           eventType: {
             ...booking.eventType,
             recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
+            price: booking.eventType?.price || 0,
+            currency: booking.eventType?.currency || "usd",
+            metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
           },
           startTime: booking.startTime.toISOString(),
           endTime: booking.endTime.toISOString(),
@@ -780,34 +785,28 @@ export const bookingsRouter = router({
       },
     });
 
-    const authorized = async () => {
-      // if the organizer
-      if (booking.userId === user.id) {
-        return true;
-      }
-      const eventType = await prisma.eventType.findUnique({
+    if (booking.userId !== user.id && booking.eventTypeId) {
+      // Only query database when it is explicitly required.
+      const eventType = await prisma.eventType.findFirst({
         where: {
-          id: booking.eventTypeId || undefined,
+          id: booking.eventTypeId,
+          schedulingType: SchedulingType.COLLECTIVE,
         },
         select: {
-          id: true,
-          schedulingType: true,
           users: true,
         },
       });
-      if (
-        eventType?.schedulingType === SchedulingType.COLLECTIVE &&
-        eventType.users.find((user) => user.id === user.id)
-      ) {
-        return true;
+
+      if (eventType && !eventType.users.find((user) => booking.userId === user.id)) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
       }
-      return false;
-    };
+    }
 
-    if (!(await authorized())) throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
-
-    const isConfirmed = booking.status === BookingStatus.ACCEPTED;
-    if (isConfirmed) throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
+    // Do not move this before authorization check.
+    // This is done to avoid exposing extra information to the requester.
+    if (booking.status === BookingStatus.ACCEPTED) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
+    }
 
     // If booking requires payment and is not paid, we don't allow confirmation
     if (confirmed && booking.payment.length > 0 && !booking.paid) {
@@ -823,14 +822,22 @@ export const bookingsRouter = router({
       return { message: "Booking confirmed", status: BookingStatus.ACCEPTED };
     }
 
+    // Cache translations to avoid requesting multiple times.
+    const translations = new Map();
     const attendeesListPromises = booking.attendees.map(async (attendee) => {
+      const locale = attendee.locale ?? "en";
+      let translate = translations.get(locale);
+      if (!translate) {
+        translate = await getTranslation(locale, "common");
+        translations.set(locale, translate);
+      }
       return {
         name: attendee.name,
         email: attendee.email,
         timeZone: attendee.timeZone,
         language: {
-          translate: await getTranslation(attendee.locale ?? "en", "common"),
-          locale: attendee.locale ?? "en",
+          translate,
+          locale,
         },
       };
     });
@@ -852,6 +859,7 @@ export const bookingsRouter = router({
       organizer: {
         email: user.email,
         name: user.name || "Unnamed",
+        username: user.username || undefined,
         timeZone: user.timeZone,
         language: { translate: tOrganizer, locale: user.locale ?? "en" },
       },
@@ -870,6 +878,9 @@ export const bookingsRouter = router({
           where: {
             recurringEventId,
             id: booking.id,
+          },
+          select: {
+            id: true,
           },
         }))
       ) {
