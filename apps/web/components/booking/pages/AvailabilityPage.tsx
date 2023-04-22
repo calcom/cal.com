@@ -189,7 +189,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                   <div
                     className={classNames(
                       " border-subtle flex flex-col p-5 sm:border-r",
-                      "min-w-full md:w-[230px] md:min-w-[230px]",
+                      "min-w-full dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:w-[230px] md:min-w-[230px]",
                       recurringEventCount && "xl:w-[380px] xl:min-w-[380px]"
                     )}>
                     <BookingDescription profile={profile} eventType={eventType} rescheduleUid={rescheduleUid}>
