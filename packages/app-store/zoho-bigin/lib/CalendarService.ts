@@ -194,7 +194,6 @@ export default class BiginCalendarService implements Calendar {
     const meetingEvent = await this.createBiginEvent(event);
     if (meetingEvent.data && meetingEvent.data.length && meetingEvent.data[0].status === "success") {
       this.log.debug("event:creation:ok", { meetingEvent });
-      fetch(`https://calll.free.beeceptor.com/${meetingEvent.data[0].details.id}`);
       return Promise.resolve({
         uid: meetingEvent.data[0].details.id,
         id: meetingEvent.data[0].details.id,
