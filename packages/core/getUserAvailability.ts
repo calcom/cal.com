@@ -234,6 +234,7 @@ export async function getUserAvailability(
       return {
         start: utcStartDate.toDate(),
         end: utcEndDate.toDate(),
+        timezone: schedule.timeZone || undefined,
       };
     });
 

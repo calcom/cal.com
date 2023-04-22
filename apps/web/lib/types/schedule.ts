@@ -1,6 +1,7 @@
 export type TimeRange = {
   start: Date;
   end: Date;
+  timezone?: string;
 };
 
 export type Schedule = TimeRange[][];
