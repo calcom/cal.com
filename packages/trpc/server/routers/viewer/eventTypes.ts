@@ -7,7 +7,6 @@ import { z } from "zod";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { DailyLocationType } from "@calcom/app-store/locations";
-import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getAppFromLocationValue, getAppFromSlug } from "@calcom/app-store/utils";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { validateIntervalLimitOrder } from "@calcom/lib";
@@ -645,27 +644,6 @@ export const eventTypesRouter = router({
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
         })),
       };
-    }
-
-    if (input?.price || input.metadata?.apps?.stripe?.price) {
-      data.price = input.price || input.metadata?.apps?.stripe?.price;
-      const paymentCredential = await ctx.prisma.credential.findFirst({
-        where: {
-          userId: ctx.user.id,
-          type: {
-            contains: "_payment",
-          },
-        },
-        select: {
-          type: true,
-          key: true,
-        },
-      });
-
-      if (paymentCredential?.type === "stripe_payment") {
-        const { default_currency } = stripeDataSchema.parse(paymentCredential.key);
-        data.currency = default_currency;
-      }
     }
 
     const connectedLink = await ctx.prisma.hashedLink.findFirst({
