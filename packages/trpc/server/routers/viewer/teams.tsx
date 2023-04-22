@@ -782,7 +782,8 @@ export const viewerTeamsRouter = router({
         },
       });
 
-      if (!(await isTeamAdmin(ctx.user.id, verificationToken.teamId)))
+      if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND" });
+      if (!verificationToken.teamId || !(await isTeamAdmin(ctx.user.id, verificationToken.teamId)))
         throw new TRPCError({ code: "UNAUTHORIZED" });
 
       const oneDay = 24 * 60 * 60 * 1000;
@@ -815,7 +816,8 @@ export const viewerTeamsRouter = router({
         },
       });
 
-      if (!(await isTeamAdmin(ctx.user.id, verificationToken.teamId)))
+      if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND" });
+      if (!verificationToken.teamId || !(await isTeamAdmin(ctx.user.id, verificationToken.teamId)))
         throw new TRPCError({ code: "UNAUTHORIZED" });
 
       await ctx.prisma.verificationToken.delete({ where: { id: verificationToken.id } });
@@ -842,6 +844,7 @@ export const viewerTeamsRouter = router({
           },
         },
       });
+
       if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
       if (!verificationToken.teamId || !verificationToken.team)
         throw new TRPCError({
