@@ -15,11 +15,12 @@ import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { Avatar, AvatarGroup, Button, EmptyScreen, HeadSeo } from "@calcom/ui";
-import { FiArrowRight } from "@calcom/ui/components/icon";
+import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import PageWrapper from "@components/PageWrapper";
 import Team from "@components/team/screens/Team";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -137,7 +138,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
                 <aside className="dark:text-inverted mt-8 flex justify-center text-center">
                   <Button
                     color="minimal"
-                    EndIcon={FiArrowRight}
+                    EndIcon={ArrowRight}
                     className="dark:hover:bg-darkgray-200"
                     href={`/team/${team.slug}?members=1`}
                     shallow={true}>
@@ -202,5 +203,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   } as const;
 };
+
+TeamPage.isBookingPage = true;
+TeamPage.PageWrapper = PageWrapper;
 
 export default TeamPage;

@@ -14,6 +14,7 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
+import PageWrapper from "@components/PageWrapper";
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
 import { ssgInit } from "@server/lib/ssg";
@@ -23,6 +24,9 @@ export type AvailabilityTeamPageProps = inferSSRProps<typeof getServerSideProps>
 export default function TeamType(props: AvailabilityTeamPageProps) {
   return <AvailabilityPage {...props} />;
 }
+
+TeamType.isBookingPage = true;
+TeamType.PageWrapper = PageWrapper;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const slugParam = asStringOrNull(context.query.slug);

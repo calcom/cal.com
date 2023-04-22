@@ -2,6 +2,8 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
+import PageWrapper from "@components/PageWrapper";
+
 // To handle the IdP initiated login flow callback
 export default function Page() {
   const router = useRouter();
@@ -21,3 +23,4 @@ export default function Page() {
 
   return null;
 }
+Page.PageWrapper = PageWrapper;
