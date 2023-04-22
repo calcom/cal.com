@@ -282,7 +282,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       user: {
         select: {
           id: true,
-          credentials: true,
           timeZone: true,
           name: true,
           email: true,

@@ -255,9 +255,7 @@ export const appsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      let appKey = deriveAppDictKeyFromType(input.type, appKeysSchemas);
-      if (!appKey) appKey = deriveAppDictKeyFromType(input.slug, appKeysSchemas);
-      const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
+      const keysSchema = appKeysSchemas[input.dirName as keyof typeof appKeysSchemas];
       const keys = keysSchema.parse(input.keys);
 
       // Get app name from metadata
