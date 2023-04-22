@@ -62,7 +62,7 @@ export const viewerTeamsRouter = router({
       include: {
         team: {
           include: {
-            invite: true,
+            inviteToken: true,
           },
         },
       },
@@ -751,66 +751,87 @@ export const viewerTeamsRouter = router({
 
       if (!(await isTeamAdmin(ctx.user.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-      const code = randomBytes(32).toString("hex");
-      await ctx.prisma.invite.create({
+      const token = randomBytes(32).toString("hex");
+      await ctx.prisma.verificationToken.create({
         data: {
-          code,
+          identifier: "",
+          token,
+          expires: new Date(),
           teamId,
         },
       });
-      return code;
+      return token;
     }),
   setInviteExpiration: authedProcedure
     .input(
       z.object({
-        teamId: z.number(),
-        code: z.string(),
-        expireInDays: z.number().optional(),
+        token: z.string(),
+        expiresInDays: z.number().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { teamId, code, expireInDays } = input;
+      const { token, expiresInDays } = input;
 
-      if (!(await isTeamAdmin(ctx.user.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+      const verificationToken = await ctx.prisma.verificationToken.findFirst({
+        where: {
+          token: token,
+        },
+        select: {
+          teamId: true,
+        },
+      });
+
+      if (!(await isTeamAdmin(ctx.user.id, verificationToken.teamId)))
+        throw new TRPCError({ code: "UNAUTHORIZED" });
 
       const oneDay = 24 * 60 * 60 * 1000;
-      const expiresAt = expireInDays ? new Date(Date.now() + expireInDays * oneDay) : null;
+      const expires = expiresInDays ? new Date(Date.now() + expiresInDays * oneDay) : new Date();
 
-      await ctx.prisma.invite.update({
-        where: { code: code },
+      await ctx.prisma.verificationToken.update({
+        where: { token },
         data: {
-          expiresAt: expiresAt,
-          expireInDays: expireInDays,
+          expires,
+          expiresInDays,
         },
       });
     }),
-  deactivateInvite: authedProcedure
+  deleteInvite: authedProcedure
     .input(
       z.object({
-        teamId: z.number(),
-        code: z.string(),
+        token: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { teamId, code } = input;
+      const { token } = input;
 
-      if (!(await isTeamAdmin(ctx.user.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-
-      await ctx.prisma.invite.delete({ where: { code } });
-    }),
-  inviteMemberByCode: authedProcedure
-    .input(
-      z.object({
-        code: z.string(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { code } = input;
-
-      const invite = await ctx.prisma.invite.findFirst({
+      const verificationToken = await ctx.prisma.verificationToken.findFirst({
         where: {
-          code,
-          OR: [{ expireInDays: null }, { expiresAt: { gte: new Date() } }],
+          token: token,
+        },
+        select: {
+          teamId: true,
+          id: true,
+        },
+      });
+
+      if (!(await isTeamAdmin(ctx.user.id, verificationToken.teamId)))
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+
+      await ctx.prisma.verificationToken.delete({ where: { id: verificationToken.id } });
+    }),
+  inviteMemberByToken: authedProcedure
+    .input(
+      z.object({
+        token: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { token } = input;
+
+      const verificationToken = await ctx.prisma.verificationToken.findFirst({
+        where: {
+          token,
+          OR: [{ expiresInDays: null }, { expires: { gte: new Date() } }],
         },
         include: {
           team: {
@@ -820,12 +841,17 @@ export const viewerTeamsRouter = router({
           },
         },
       });
-      if (!invite) throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
+      if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
+      if (!verificationToken.teamId || !verificationToken.team)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Invite token is not associated with any team",
+        });
 
       try {
         await ctx.prisma.membership.create({
           data: {
-            teamId: invite.teamId,
+            teamId: verificationToken.teamId,
             userId: ctx.user.id,
             role: MembershipRole.MEMBER,
             accepted: false,
@@ -842,7 +868,7 @@ export const viewerTeamsRouter = router({
         } else throw e;
       }
 
-      if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(invite.teamId);
-      return invite.team.name;
+      if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(verificationToken.teamId);
+      return verificationToken.team.name;
     }),
 });

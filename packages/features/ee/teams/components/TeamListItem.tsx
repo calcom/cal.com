@@ -121,7 +121,7 @@ export default function TeamListItem(props: Props) {
       <MemberInvitationModal
         isOpen={openMemberInvitationModal}
         teamId={team.id}
-        code={team.invite?.code}
+        token={team.inviteToken?.token}
         onExit={() => {
           setOpenMemberInvitationModal(false);
         }}
@@ -140,12 +140,12 @@ export default function TeamListItem(props: Props) {
         }}
         members={teamQuery?.data?.members || []}
       />
-      {team.invite && (
+      {team.inviteToken && (
         <InviteLinkSettingsModal
           isOpen={openInviteLinkSettingsModal}
           teamId={team.id}
-          code={team.invite.code}
-          expireInDays={team.invite.expireInDays || undefined}
+          token={team.inviteToken?.token}
+          expiresInDays={team.inviteToken?.expiresInDays || undefined}
           onExit={() => {
             setOpenInviteLinkSettingsModal(false);
             setOpenMemberInvitationModal(true);

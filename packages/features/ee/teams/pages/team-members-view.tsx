@@ -121,7 +121,7 @@ const MembersView = () => {
               isOpen={showMemberInvitationModal}
               members={team.members}
               teamId={team.id}
-              code={team.invite?.code}
+              token={team.inviteToken?.token}
               onExit={() => setShowMemberInvitationModal(false)}
               onSubmit={(values) => {
                 inviteMemberMutation.mutate({
@@ -138,12 +138,12 @@ const MembersView = () => {
               }}
             />
           )}
-          {showInviteLinkSettingsModal && team?.invite && (
+          {showInviteLinkSettingsModal && team?.inviteToken && (
             <InviteLinkSettingsModal
               isOpen={showInviteLinkSettingsModal}
               teamId={team.id}
-              code={team.invite.code}
-              expireInDays={team.invite.expireInDays || undefined}
+              token={team.inviteToken.token}
+              expiresInDays={team.inviteToken.expiresInDays || undefined}
               onExit={() => {
                 setInviteLinkSettingsModal(false);
                 setShowMemberInvitationModal(true);

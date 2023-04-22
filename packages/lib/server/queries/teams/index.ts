@@ -52,11 +52,11 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
         ...baseEventTypeSelect,
       },
     },
-    invite: {
+    inviteToken: {
       select: {
-        code: true,
-        expiresAt: true,
-        expireInDays: true,
+        token: true,
+        expires: true,
+        expiresInDays: true,
       },
     },
   });
@@ -89,6 +89,7 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
   }));
   return { ...team, eventTypes, members };
 }
+
 // also returns team
 export async function isTeamAdmin(userId: number, teamId: number) {
   return (
@@ -101,6 +102,7 @@ export async function isTeamAdmin(userId: number, teamId: number) {
     })) || false
   );
 }
+
 export async function isTeamOwner(userId: number, teamId: number) {
   return !!(await prisma.membership.findFirst({
     where: {

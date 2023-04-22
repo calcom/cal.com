@@ -30,7 +30,7 @@ type MemberInvitationModalProps = {
   onSettingsOpen: () => void;
   teamId: number;
   members: PendingMember[];
-  code?: string;
+  token?: string;
 };
 
 type MembershipRoleOption = {
@@ -49,8 +49,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const trpcContext = trpc.useContext();
 
   const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
-    onSuccess(code) {
-      copyInviteLinkToClipboard(code);
+    onSuccess(token) {
+      copyInviteLinkToClipboard(token);
       trpcContext.viewer.teams.get.invalidate();
       trpcContext.viewer.teams.list.invalidate();
     },
@@ -59,8 +59,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     },
   });
 
-  const copyInviteLinkToClipboard = async (code: string) => {
-    const inviteLink = `${WEBAPP_URL}/teams?code=${code}`;
+  const copyInviteLinkToClipboard = async (token: string) => {
+    const inviteLink = `${WEBAPP_URL}/teams?token=${token}`;
     await navigator.clipboard.writeText(inviteLink);
     showToast(t("invite_link_copied"), "success");
   };
@@ -170,16 +170,16 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 color="minimal"
                 variant="icon"
                 onClick={() =>
-                  props.code
-                    ? copyInviteLinkToClipboard(props.code)
+                  props.token
+                    ? copyInviteLinkToClipboard(props.token)
                     : createInviteMutation.mutate({ teamId: props.teamId })
                 }
-                className={classNames("gap-2", props.code && "opacity-50")}
+                className={classNames("gap-2", props.token && "opacity-50")}
                 data-testid="copy-invite-link-button">
                 <Link className="text-default h-4 w-4" aria-hidden="true" />
                 {t("copy_invite_link")}
               </Button>
-              {props.code && (
+              {props.token && (
                 <Button
                   type="button"
                   color="minimal"

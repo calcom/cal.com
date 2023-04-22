@@ -8,22 +8,22 @@ import { Button, Dialog, DialogContent, DialogFooter, Form, Label, Select, showT
 type InvitationLinkSettingsModalProps = {
   isOpen: boolean;
   teamId: number;
-  code: string;
-  expireInDays?: number;
+  token: string;
+  expiresInDays?: number;
   onExit: () => void;
 };
 
 export interface LinkSettingsForm {
-  expireInDays: number | undefined;
+  expiresInDays: number | undefined;
 }
 
 export default function InviteLinkSettingsModal(props: InvitationLinkSettingsModalProps) {
   const { t } = useLocale();
   const trpcContext = trpc.useContext();
 
-  const deactivateInviteMutation = trpc.viewer.teams.deactivateInvite.useMutation({
+  const deleteInviteMutation = trpc.viewer.teams.deleteInvite.useMutation({
     onSuccess: () => {
-      showToast(t("invite_link_deactivated"), "success");
+      showToast(t("invite_link_deleted"), "success");
       trpcContext.viewer.teams.get.invalidate();
       trpcContext.viewer.teams.list.invalidate();
       props.onExit();
@@ -44,7 +44,7 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
     },
   });
 
-  const expireInDaysOption = useMemo(() => {
+  const expiresInDaysOption = useMemo(() => {
     return [
       { value: 1, label: t("one_day") },
       { value: 7, label: t("seven_days") },
@@ -57,9 +57,8 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
 
   const handleSubmit = (values: LinkSettingsForm) => {
     setInviteExpirationMutation.mutate({
-      teamId: props.teamId,
-      code: props.code,
-      expireInDays: values.expireInDays,
+      token: props.token,
+      expiresInDays: values.expiresInDays,
     });
   };
 
@@ -73,16 +72,16 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
       <DialogContent type="creation" title="Invite link settings">
         <Form form={linkSettingsFormMethods} handleSubmit={handleSubmit}>
           <Controller
-            name="expireInDays"
+            name="expiresInDays"
             control={linkSettingsFormMethods.control}
             render={({ field: { onChange } }) => (
               <div>
-                <Label className="text-emphasis font-medium" htmlFor="expireInDays">
+                <Label className="text-emphasis font-medium" htmlFor="expiresInDays">
                   {t("link_expires_after")}
                 </Label>
                 <Select
-                  options={expireInDaysOption}
-                  defaultValue={expireInDaysOption.find((option) => option.value === props.expireInDays)}
+                  options={expiresInDaysOption}
+                  defaultValue={expiresInDaysOption.find((option) => option.value === props.expiresInDays)}
                   className="w-full"
                   onChange={(val) => onChange(val?.value)}
                 />
@@ -93,10 +92,10 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
             <Button
               type="button"
               color="secondary"
-              onClick={() => deactivateInviteMutation.mutate({ teamId: props.teamId, code: props.code })}
+              onClick={() => deleteInviteMutation.mutate({ token: props.token })}
               className="mr-auto"
               data-testid="copy-invite-link-button">
-              {t("deactivate")}
+              {t("delete")}
             </Button>
             <Button type="button" color="minimal" onClick={props.onExit}>
               {t("back")}

@@ -16,17 +16,17 @@ export function TeamsListing() {
   const trpcContext = trpc.useContext();
   const router = useRouter();
 
-  const [inviteCodeChecked, setInviteCodeChecked] = useState(false);
+  const [inviteTokenChecked, setInviteTokenChecked] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const { data, isLoading } = trpc.viewer.teams.list.useQuery(undefined, {
-    enabled: inviteCodeChecked,
+    enabled: inviteTokenChecked,
     onError: (e) => {
       setErrorMessage(e.message);
     },
   });
 
-  const { mutate: inviteMemberByCode } = trpc.viewer.teams.inviteMemberByCode.useMutation({
+  const { mutate: inviteMemberByToken } = trpc.viewer.teams.inviteMemberByToken.useMutation({
     onSuccess: (teamName) => {
       trpcContext.viewer.teams.list.invalidate();
       showToast(t("team_invite_received", { teamName }), "success");
@@ -35,7 +35,7 @@ export function TeamsListing() {
       showToast(e.message, "error");
     },
     onSettled: () => {
-      setInviteCodeChecked(true);
+      setInviteTokenChecked(true);
     },
   });
 
@@ -77,11 +77,11 @@ export function TeamsListing() {
 
   useEffect(() => {
     if (!router) return;
-    if (router.query.code) inviteMemberByCode({ code: router.query.code as string });
-    else setInviteCodeChecked(true);
-  }, [router, inviteMemberByCode, setInviteCodeChecked]);
+    if (router.query.token) inviteMemberByToken({ token: router.query.token as string });
+    else setInviteTokenChecked(true);
+  }, [router, inviteMemberByToken, setInviteTokenChecked]);
 
-  if (isLoading || !inviteCodeChecked) {
+  if (isLoading || !inviteTokenChecked) {
     return <SkeletonLoaderTeamList />;
   }
 

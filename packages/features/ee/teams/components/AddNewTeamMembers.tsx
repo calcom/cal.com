@@ -107,7 +107,7 @@ export const AddNewTeamMembersForm = ({
           <MemberInvitationModal
             isOpen={memberInviteModal}
             teamId={teamId}
-            code={team?.invite?.code}
+            token={team?.inviteToken?.token}
             onExit={() => setMemberInviteModal(false)}
             onSubmit={(values) => {
               inviteMemberMutation.mutate({
@@ -124,12 +124,12 @@ export const AddNewTeamMembersForm = ({
             }}
             members={defaultValues.members}
           />
-          {team?.invite && (
+          {team?.inviteToken && (
             <InviteLinkSettingsModal
               isOpen={inviteLinkSettingsModal}
               teamId={team.id}
-              code={team.invite.code}
-              expireInDays={team.invite.expireInDays || undefined}
+              token={team.inviteToken?.token}
+              expiresInDays={team.inviteToken?.expiresInDays || undefined}
               onExit={() => {
                 setInviteLinkSettingsModal(false);
                 setMemberInviteModal(true);
