@@ -66,14 +66,11 @@ export const createContext = async (
   sessionGetter: GetSessionFn = DEFAULT_SESSION_GETTER
 ) => {
   // for API-response caching see https://trpc.io/docs/caching
-
   const session = await sessionGetter({ req, res });
 
   const locale = getLocaleFromHeaders(req);
-  const i18n = await serverSideTranslations(locale, ["common", "vital"]);
-
+  const i18n = await serverSideTranslations(getLocaleFromHeaders(req), ["common", "vital"]);
   const contextInner = await createContextInner({ session, i18n, locale });
-
   return {
     ...contextInner,
     req,
