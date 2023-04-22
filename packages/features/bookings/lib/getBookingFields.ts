@@ -159,30 +159,28 @@ export const ensureBookingInputsHaveSystemFields = ({
   // These fields should be added before other user fields
   const systemBeforeFields: typeof bookingFields = [
     {
-      //TODO: Ensure that if type name is chosen, it asks for variants, firstAndLastName, fullName
+      // This is the name of the main field
       type: "name",
       name: "name",
       editable: "system",
       required: true,
       variantsConfig: {
+        // TODO: Ensure that this is the key of variants
         defaultVariant: "fullName",
         // Makes sense only when there are 2 variants
         variants: {
           firstAndLastName: {
-            // This label isn't shown to user, it's just for us to show the variant name in UI
             fields: [
               {
-                // Do we really need to configure the name here?
+                // This name won't be configurable by user. User can always configure the main field name
                 name: "firstName",
                 type: "text",
-                defaultLabel: "first_name",
                 label: "First Name",
                 required: true,
               },
               {
                 name: "lastName",
                 type: "text",
-                defaultLabel: "last_name",
                 label: "Last Name",
                 required: false,
               },
@@ -194,8 +192,6 @@ export const ensureBookingInputsHaveSystemFields = ({
                 // Can it be same as the name of the parent field?
                 name: "fullName",
                 type: "text",
-                defaultLabel: "your_name",
-                defaultPlaceholder: "example_name",
                 label: "Your Name",
                 required: true,
               },
@@ -203,16 +199,36 @@ export const ensureBookingInputsHaveSystemFields = ({
           },
         },
       },
-      // This won't be stored in DB
+      // This won't be stored in DB. It allows UI to be configured from the codebase for all existing booking fields stored in DB as well
+      // Candidates for this are:
+      // - Anything that you want to show in App UI only.
+      // - Default values that are shown in UI that are supposed to be changed for existing bookingFields as well if user is using default values
       appUiConfig: {
         variantsConfig: {
           toggleLabel: 'Split "Full name" into "First name" and "Last name"',
           variants: {
             firstAndLastName: {
               label: "First Name, Last Name",
+              fieldsMap: {
+                firstName: {
+                  defaultLabel: "first_name",
+                  canChangeRequirability: false,
+                },
+                lastName: {
+                  defaultLabel: "last_name",
+                  canChangeRequirability: true,
+                },
+              },
             },
             fullName: {
               label: "your_name",
+              fieldsMap: {
+                fullName: {
+                  defaultLabel: "your_name",
+                  defaultPlaceholder: "example_name",
+                  canChangeRequirability: false,
+                },
+              },
             },
           },
         },

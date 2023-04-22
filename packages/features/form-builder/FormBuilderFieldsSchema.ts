@@ -30,17 +30,14 @@ const fieldSchema = z.object({
   label: z.string().optional(),
   placeholder: z.string().optional(),
   variant: z.string().optional(),
-
   /**
    * Supports translation
    */
   defaultLabel: z.string().optional(),
   defaultPlaceholder: z.string().optional(),
-  //TODO: This is never supposed to be allowed to edit. Can we avoid it from being saved in DB?
   variantsConfig: z
     .object({
-      // TODO: Make it key of variantsConfig
-      defaultVariant: z.string().optional(),
+      defaultVariant: z.string(),
       variants: z.record(
         z.object({
           fields: z
@@ -57,6 +54,12 @@ const fieldSchema = z.object({
         })
       ),
     })
+    .refine((data) => {
+      if (!data.variants[data.defaultVariant]) {
+        throw new Error(`defaultVariant: ${data.defaultVariant} is not in variants`);
+      }
+      return true;
+    })
     .optional(),
   // It has the config that is always read from the Code(even if it's stored in DB. Though we shouldn't store it there)
   // This allows making changes to the UI without having to make changes to the existing stored configs
@@ -68,7 +71,24 @@ const fieldSchema = z.object({
           toggleLabel: z.string().optional(),
           variants: z.record(
             z.object({
+              /**
+               * That's how the variant would be labelled in App UI. This label represents the field in booking questions' list
+               * Supports translation
+               */
               label: z.string(),
+              fieldsMap: z.record(
+                z.object({
+                  /**
+                   * Supports translation
+                   */
+                  defaultLabel: z.string().optional(),
+                  /**
+                   * Supports translation
+                   */
+                  defaultPlaceholder: z.string().optional(),
+                  canChangeRequirability: z.boolean().default(true).optional(),
+                })
+              ),
             })
           ),
         })
@@ -133,5 +153,17 @@ const fieldSchema = z.object({
     )
     .optional(),
 });
+// Using superRefine makes .shape undefined, so avoid using it for now
+// .superRefine((data, ctx) => {
+//   if (data.appUiConfig?.variantsConfig) {
+//     const { variantsConfig } = data.appUiConfig;
+//     for (const [variantName, variant] of Object.entries(variantsConfig.variants)) {
+//       // TODO: Validate that appUiConfig.variantsConfig.variants[variantName].fieldsMap has all the fields that are present in variantsConfig.variants[variantName].fields
+//       // ctx.addIssue({
+//       //   code: z.ZodIssueCode.custom,
+//       // });
+//     }
+//   }
+// });
 
 export const fieldsSchema = z.array(fieldSchema);

@@ -490,10 +490,7 @@ export const FormBuilder = function FormBuilder({
                 const variantsConfig = fieldForm.getValues("variantsConfig");
                 const appUiVariantsConfig = fieldForm.getValues("appUiConfig")?.variantsConfig;
                 const variantToggleLabel = t(appUiVariantsConfig?.toggleLabel || "");
-                if (typeof window !== "undefined") {
-                  window.fieldForm = fieldForm;
-                }
-                if (!variantsConfig || !variantToggleLabel) {
+                if (!variantsConfig) {
                   return (
                     <>
                       <InputField
@@ -552,12 +549,17 @@ export const FormBuilder = function FormBuilder({
                     </>
                   );
                 }
+
                 if (!fieldType?.isTextType) {
                   throw new Error("Variants are currently supported only with text type");
                 }
                 const defaultVariant = variantsConfig.defaultVariant;
                 if (!defaultVariant) {
                   throw new Error("Field has variantsConfig but no defaultVariant");
+                }
+
+                if (!appUiVariantsConfig) {
+                  throw new Error("Field has variantsConfig but no appUiConfig");
                 }
 
                 const variants = Object.keys(variantsConfig.variants);
@@ -569,11 +571,12 @@ export const FormBuilder = function FormBuilder({
                 const variantName = fieldForm.watch("variant") || defaultVariant;
                 const variantFields =
                   variantsConfig.variants[variantName as keyof typeof variantsConfig]?.fields;
-                const isDefaultVariant = variantName !== defaultVariant;
+                const isSimpleVariant = variantFields.length === 1;
+                const isDefaultVariant = variantName === defaultVariant;
                 return (
                   <>
                     <Switch
-                      checked={isDefaultVariant}
+                      checked={!isDefaultVariant}
                       label={variantToggleLabel}
                       onCheckedChange={(checked) => {
                         fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
@@ -596,19 +599,34 @@ export const FormBuilder = function FormBuilder({
                     {variantFields && (
                       <ul
                         className={classNames(
-                          isDefaultVariant
+                          !isSimpleVariant
                             ? "border-default divide-subtle mt-2 divide-y rounded-md border"
                             : ""
                         )}>
                         {variantFields.map((f, index) => {
                           const rhfFieldPrefix =
                             `variantsConfig.variants.${variantName}.fields.${index}` as const;
+                          const appUiConfigVariants =
+                            appUiVariantsConfig.variants[
+                              variantName as keyof typeof appUiVariantsConfig.variants
+                            ];
+                          const appUiFieldConfig =
+                            appUiConfigVariants.fieldsMap[
+                              f.name as keyof typeof appUiConfigVariants.fieldsMap
+                            ];
                           return (
-                            <li className={classNames(isDefaultVariant ? "p-2" : "")} key={f.name}>
-                              {isDefaultVariant && <Label>{`Field ${index + 1}`}</Label>}
+                            <li className={classNames(!isSimpleVariant ? "p-4" : "")} key={f.name}>
+                              {!isSimpleVariant && (
+                                <Label className="flex justify-between">
+                                  <span>{`Field ${index + 1}`}</span>
+                                  <span className="text-muted">{`${fieldForm.getValues("name")}.${
+                                    f.name
+                                  }`}</span>
+                                </Label>
+                              )}
                               <InputField
                                 {...fieldForm.register(`${rhfFieldPrefix}.label`)}
-                                placeholder={t(fieldForm.getValues(`${rhfFieldPrefix}.defaultLabel`) || "")}
+                                placeholder={t(appUiFieldConfig.defaultLabel || "")}
                                 containerClassName="mt-6"
                                 label={t("label")}
                               />
@@ -617,9 +635,7 @@ export const FormBuilder = function FormBuilder({
                                 key={f.name}
                                 containerClassName="mt-6"
                                 label={t("placeholder")}
-                                placeholder={t(
-                                  fieldForm.getValues(`${rhfFieldPrefix}.defaultPlaceholder`) || ""
-                                )}
+                                placeholder={t(appUiFieldConfig.defaultPlaceholder || "")}
                               />
 
                               <Controller
@@ -629,7 +645,7 @@ export const FormBuilder = function FormBuilder({
                                   return (
                                     <BooleanToggleGroupField
                                       data-testid="field-required"
-                                      disabled={fieldForm.getValues("editable") === "system"}
+                                      disabled={!appUiFieldConfig.canChangeRequirability}
                                       value={value}
                                       onValueChange={(val) => {
                                         onChange(val);
