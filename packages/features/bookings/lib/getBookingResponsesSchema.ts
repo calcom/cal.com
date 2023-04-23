@@ -100,6 +100,21 @@ function preprocess<T extends z.ZodType>({
             parsedValue = JSON.parse(value);
           } catch (e) {}
           newResponses[field.name] = parsedValue;
+        } else if (field.type === "name") {
+          let newValue;
+          if (typeof value === "string") {
+            try {
+              newValue = JSON.parse(value);
+            } catch (e) {
+              // If the value is not a valid JSON, then we will just use the value as is as it can be the full name directly
+              newValue = {
+                fullName: value,
+              };
+            }
+          } else {
+            newValue = value;
+          }
+          newResponses[field.name] = newValue;
         } else {
           newResponses[field.name] = value;
         }

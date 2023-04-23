@@ -341,16 +341,18 @@ export const FormBuilder = function FormBuilder({
                   <div className="flex flex-col lg:flex-row lg:items-center">
                     <div className="text-default text-sm font-semibold ltr:mr-2 rtl:ml-2">
                       {(() => {
-                        const appUiConfigVariants = field.appUiConfig?.variantsConfig?.variants;
+                        const fieldTypeConfigVariants = field.fieldTypeConfig?.variantsConfig?.variants;
                         const variantsConfig = field.variantsConfig;
-                        if (!appUiConfigVariants || !variantsConfig) {
+                        if (!fieldTypeConfigVariants || !variantsConfig) {
                           return field.label || t(field.defaultLabel || "");
                         }
                         const variant = field.variant || variantsConfig.defaultVariant;
                         if (!variant) {
                           throw new Error("Field has variantsConfig but no defaultVariant");
                         }
-                        return t(appUiConfigVariants[variant as keyof typeof appUiConfigVariants].label);
+                        return t(
+                          fieldTypeConfigVariants[variant as keyof typeof fieldTypeConfigVariants].label
+                        );
                       })()}
                     </div>
                     <div className="flex items-center space-x-2">
@@ -488,7 +490,7 @@ export const FormBuilder = function FormBuilder({
               />
               {(() => {
                 const variantsConfig = fieldForm.getValues("variantsConfig");
-                const appUiVariantsConfig = fieldForm.getValues("appUiConfig")?.variantsConfig;
+                const appUiVariantsConfig = fieldForm.getValues("fieldTypeConfig")?.variantsConfig;
                 const variantToggleLabel = t(appUiVariantsConfig?.toggleLabel || "");
                 if (!variantsConfig) {
                   return (
@@ -559,7 +561,7 @@ export const FormBuilder = function FormBuilder({
                 }
 
                 if (!appUiVariantsConfig) {
-                  throw new Error("Field has variantsConfig but no appUiConfig");
+                  throw new Error("Field has variantsConfig but no fieldTypeConfig");
                 }
 
                 const variants = Object.keys(variantsConfig.variants);
@@ -606,13 +608,13 @@ export const FormBuilder = function FormBuilder({
                         {variantFields.map((f, index) => {
                           const rhfFieldPrefix =
                             `variantsConfig.variants.${variantName}.fields.${index}` as const;
-                          const appUiConfigVariants =
+                          const fieldTypeConfigVariants =
                             appUiVariantsConfig.variants[
                               variantName as keyof typeof appUiVariantsConfig.variants
                             ];
                           const appUiFieldConfig =
-                            appUiConfigVariants.fieldsMap[
-                              f.name as keyof typeof appUiConfigVariants.fieldsMap
+                            fieldTypeConfigVariants.fieldsMap[
+                              f.name as keyof typeof fieldTypeConfigVariants.fieldsMap
                             ];
                           return (
                             <li className={classNames(!isSimpleVariant ? "p-4" : "")} key={f.name}>

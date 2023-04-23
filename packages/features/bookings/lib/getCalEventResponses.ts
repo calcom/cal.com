@@ -43,6 +43,7 @@ export const getCalEventResponses = ({
     parsedBookingFields.forEach((field) => {
       const label = field.label || field.defaultLabel;
       if (!label) {
+        //TODO: This error must be thrown while saving event-type as well so that such an event-type can't be saved
         throw new Error('Missing label for booking field "' + field.name + '"');
       }
       if (field.editable === "user" || field.editable === "user-readonly") {

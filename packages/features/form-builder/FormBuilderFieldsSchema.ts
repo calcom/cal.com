@@ -24,6 +24,40 @@ export const EditableSchema = z.enum([
   "user-readonly", // All fields are readOnly.
 ]);
 export type ALL_VIEWS = "ALL_VIEWS";
+// It has the config that is always read from the Code(even if it's stored in DB. Though we shouldn't store it there)
+// This allows making changes to the UI without having to make changes to the existing stored configs
+export const FieldTypeConfig = z
+  .object({
+    variantsConfig: z
+      .object({
+        // Used only when there are 2 variants, so that UI can be simplified by showing a switch
+        toggleLabel: z.string().optional(),
+        variants: z.record(
+          z.object({
+            /**
+             * That's how the variant would be labelled in App UI. This label represents the field in booking questions' list
+             * Supports translation
+             */
+            label: z.string(),
+            fieldsMap: z.record(
+              z.object({
+                /**
+                 * Supports translation
+                 */
+                defaultLabel: z.string().optional(),
+                /**
+                 * Supports translation
+                 */
+                defaultPlaceholder: z.string().optional(),
+                canChangeRequirability: z.boolean().default(true).optional(),
+              })
+            ),
+          })
+        ),
+      })
+      .optional(),
+  })
+  .optional();
 const fieldSchema = z.object({
   name: z.string(),
   // TODO: We should make at least one of `defaultPlaceholder` and `placeholder` required. Do the same for label.
@@ -61,40 +95,7 @@ const fieldSchema = z.object({
       return true;
     })
     .optional(),
-  // It has the config that is always read from the Code(even if it's stored in DB. Though we shouldn't store it there)
-  // This allows making changes to the UI without having to make changes to the existing stored configs
-  appUiConfig: z
-    .object({
-      variantsConfig: z
-        .object({
-          // Used only when there are 2 variants, so that UI can be simplified by showing a switch
-          toggleLabel: z.string().optional(),
-          variants: z.record(
-            z.object({
-              /**
-               * That's how the variant would be labelled in App UI. This label represents the field in booking questions' list
-               * Supports translation
-               */
-              label: z.string(),
-              fieldsMap: z.record(
-                z.object({
-                  /**
-                   * Supports translation
-                   */
-                  defaultLabel: z.string().optional(),
-                  /**
-                   * Supports translation
-                   */
-                  defaultPlaceholder: z.string().optional(),
-                  canChangeRequirability: z.boolean().default(true).optional(),
-                })
-              ),
-            })
-          ),
-        })
-        .optional(),
-    })
-    .optional(),
+
   views: z
     .object({
       label: z.string(),
@@ -152,6 +153,7 @@ const fieldSchema = z.object({
       })
     )
     .optional(),
+  fieldTypeConfig: FieldTypeConfig,
 });
 // Using superRefine makes .shape undefined, so avoid using it for now
 // .superRefine((data, ctx) => {

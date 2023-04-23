@@ -590,7 +590,7 @@ async function handler(
     typeof bookerName === "string"
       ? bookerName
       : "firstName" in bookerName
-      ? bookerName.firstName /* + " " + bookerName.lastName */
+      ? bookerName.firstName + " " + bookerName.lastName
       : bookerName.fullName;
 
   const tAttendees = await getTranslation(language ?? "en", "common");

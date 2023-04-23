@@ -16,6 +16,7 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { eventTypeLocations as eventTypeLocationsSchema } from "@calcom/prisma/zod-utils";
 import {
   customInputSchema,
@@ -114,6 +115,11 @@ const EventTypeUpdateInput = _EventTypeModel
   .partial()
   .extend({
     metadata: EventTypeMetaDataSchema.optional(),
+    bookingFields: eventTypeBookingFields.element
+      .omit({
+        fieldTypeConfig: true,
+      })
+      .array(),
   })
   .merge(
     _EventTypeModel

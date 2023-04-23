@@ -1,6 +1,7 @@
 import type { EventTypeCustomInput, EventType, Prisma, Workflow } from "@prisma/client";
 import { z } from "zod";
 
+import type { FieldTypeConfig } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
 import slugify from "@calcom/lib/slugify";
 import {
   BookingFieldType,
@@ -9,8 +10,46 @@ import {
   EventTypeMetaDataSchema,
 } from "@calcom/prisma/zod-utils";
 
+type Fields = z.infer<typeof eventTypeBookingFields>;
+
 export const SMS_REMINDER_NUMBER_FIELD = "smsReminderNumber";
 
+const FieldTypeConfigMap: Partial<Record<Fields[0]["type"], z.infer<typeof FieldTypeConfig>>> = {
+  // This won't be stored in DB. It allows UI to be configured from the codebase for all existing booking fields stored in DB as well
+  // Candidates for this are:
+  // - Anything that you want to show in App UI only.
+  // - Default values that are shown in UI that are supposed to be changed for existing bookingFields as well if user is using default values
+  name: {
+    variantsConfig: {
+      toggleLabel: 'Split "Full name" into "First name" and "Last name"',
+      variants: {
+        firstAndLastName: {
+          label: "First Name, Last Name",
+          fieldsMap: {
+            firstName: {
+              defaultLabel: "first_name",
+              canChangeRequirability: false,
+            },
+            lastName: {
+              defaultLabel: "last_name",
+              canChangeRequirability: true,
+            },
+          },
+        },
+        fullName: {
+          label: "your_name",
+          fieldsMap: {
+            fullName: {
+              defaultLabel: "your_name",
+              defaultPlaceholder: "example_name",
+              canChangeRequirability: false,
+            },
+          },
+        },
+      },
+    },
+  },
+};
 /**
  * PHONE -> Phone
  */
@@ -40,8 +79,6 @@ export const getSmsReminderNumberSource = ({
   fieldRequired: isSmsReminderNumberRequired,
   editUrl: `/workflows/${workflowId}`,
 });
-
-type Fields = z.infer<typeof eventTypeBookingFields>;
 
 const EventTypeCustomInputType = {
   TEXT: "TEXT",
@@ -163,11 +200,12 @@ export const ensureBookingInputsHaveSystemFields = ({
       type: "name",
       name: "name",
       editable: "system",
+      // Label is currently required by Email Sending logic
+      // Need to write a toText() fn to convert a field to text that can output multiple label and value pairs
+      defaultLabel: "your_name",
       required: true,
       variantsConfig: {
-        // TODO: Ensure that this is the key of variants
         defaultVariant: "fullName",
-        // Makes sense only when there are 2 variants
         variants: {
           firstAndLastName: {
             fields: [
@@ -189,47 +227,12 @@ export const ensureBookingInputsHaveSystemFields = ({
           fullName: {
             fields: [
               {
-                // Can it be same as the name of the parent field?
                 name: "fullName",
                 type: "text",
                 label: "Your Name",
                 required: true,
               },
             ],
-          },
-        },
-      },
-      // This won't be stored in DB. It allows UI to be configured from the codebase for all existing booking fields stored in DB as well
-      // Candidates for this are:
-      // - Anything that you want to show in App UI only.
-      // - Default values that are shown in UI that are supposed to be changed for existing bookingFields as well if user is using default values
-      appUiConfig: {
-        variantsConfig: {
-          toggleLabel: 'Split "Full name" into "First name" and "Last name"',
-          variants: {
-            firstAndLastName: {
-              label: "First Name, Last Name",
-              fieldsMap: {
-                firstName: {
-                  defaultLabel: "first_name",
-                  canChangeRequirability: false,
-                },
-                lastName: {
-                  defaultLabel: "last_name",
-                  canChangeRequirability: true,
-                },
-              },
-            },
-            fullName: {
-              label: "your_name",
-              fieldsMap: {
-                fullName: {
-                  defaultLabel: "your_name",
-                  defaultPlaceholder: "example_name",
-                  canChangeRequirability: false,
-                },
-              },
-            },
           },
         },
       },
@@ -340,11 +343,6 @@ export const ensureBookingInputsHaveSystemFields = ({
     },
   ];
 
-  const systemFieldsByName = systemBeforeFields.concat(systemAfterFields).reduce((acc, field) => {
-    acc[field.name] = field;
-    return acc;
-  }, {} as Record<string, (typeof bookingFields)[number]>);
-
   const missingSystemBeforeFields = [];
   for (const field of systemBeforeFields) {
     const existingBookingFieldIndex = bookingFields.findIndex((f) => f.name === field.name);
@@ -416,12 +414,13 @@ export const ensureBookingInputsHaveSystemFields = ({
   }
 
   bookingFields = bookingFields.concat(missingSystemAfterFields).map((field) => {
-    if (!systemFieldsByName[field.name]) {
+    const fieldTypeConfig = FieldTypeConfigMap[field.type];
+    if (!fieldTypeConfig) {
       return field;
     }
     return {
       ...field,
-      appUiConfig: systemFieldsByName[field.name].appUiConfig || {},
+      fieldTypeConfig: fieldTypeConfig,
     };
   });
 
