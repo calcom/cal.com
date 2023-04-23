@@ -103,15 +103,12 @@ async function handler(req: NextApiRequest) {
   const availabilities = members.map(async (user) => {
     return {
       userId: user.id,
-      availability: await getUserAvailability(
-        {
-          userId: user.id,
-          dateFrom,
-          dateTo,
-          eventTypeId,
-        },
-        { user }
-      ),
+      availability: await getUserAvailability({
+        userId: user.id,
+        dateFrom,
+        dateTo,
+        eventTypeId,
+      }),
     };
   });
   const settled = await Promise.all(availabilities);
