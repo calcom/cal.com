@@ -8,7 +8,7 @@ import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, Alert } from "@calcom/ui";
+import { Button, EmptyScreen, Alert, SkeletonContainer, SkeletonText } from "@calcom/ui";
 import { Grid, Lock } from "@calcom/ui/components/icon";
 
 export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
@@ -68,7 +68,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     t("locked_fields_member_description")
   );
 
-  if (isLoading) return <p>Loading</p>;
+  if (isLoading) return <SkeletonLoader />;
 
   return (
     <>
@@ -130,5 +130,18 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
         </div>
       )}
     </>
+  );
+};
+
+const SkeletonLoader = () => {
+  return (
+    <SkeletonContainer>
+      <div className="mt-6 mb-8 space-y-6">
+        <SkeletonText className="h-20 w-full" />
+        <SkeletonText className="h-20 w-full" />
+        <SkeletonText className="h-20 w-full" />
+        <SkeletonText className="h-20 w-full" />
+      </div>
+    </SkeletonContainer>
   );
 };
