@@ -94,6 +94,11 @@ export async function patchHandler(req: NextApiRequest) {
   if (!isAdmin && query.userId !== req.userId) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 
   const body = await schemaUserEditBodyParams.parseAsync(req.body);
+  // disable role changes unless admin.
+  if (!isAdmin && body.role) {
+    body.role = undefined;
+  }
+
   const userSchedules = await prisma.schedule.findMany({
     where: { userId: query.userId },
   });
