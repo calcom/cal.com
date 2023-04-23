@@ -1,9 +1,9 @@
 import { WorkflowActions } from "@prisma/client";
 
 export function isSMSAction(action: WorkflowActions) {
-  return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER;
+  return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER || action === WorkflowActions.WHATSAPP_NUMBER || action === WorkflowActions.WHATSAPP_ATTENDEE;
 }
 
 export function isAttendeeAction(action: WorkflowActions) {
-  return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.EMAIL_ATTENDEE;
+  return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE;
 }

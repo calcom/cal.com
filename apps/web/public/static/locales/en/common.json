@@ -1042,6 +1042,8 @@
   "email_attendee_action": "send email to attendee",
   "sms_attendee_action": "send SMS to attendee",
   "sms_number_action": "send SMS to a specific number",
+  "whatsapp_number_action": "send Whatsapp to a specific number",
+  "whatsapp_attendee_action": "send Whatsapp to attendee",
   "workflows": "Workflows",
   "new_workflow_btn": "New Workflow",
   "add_new_workflow": "Add a new workflow",

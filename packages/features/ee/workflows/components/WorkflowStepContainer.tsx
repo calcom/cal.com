@@ -67,9 +67,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const [verificationCode, setVerificationCode] = useState("");
 
-  const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
-    step?.action === WorkflowActions.SMS_NUMBER ? true : false
-  );
+  const action = step?.action
+  const requirePhoneNumber = WorkflowActions.SMS_NUMBER === action || WorkflowActions.WHATSAPP_NUMBER === action;
+  const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(requirePhoneNumber);
 
   const [updateTemplate, setUpdateTemplate] = useState(false);
   const [firstRender, setFirstRender] = useState(true);
@@ -376,7 +376,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             if (isSMSAction(val.value)) {
                               setIsSenderIdNeeded(true);
                               setIsEmailAddressNeeded(false);
-                              setIsPhoneNumberNeeded(val.value === WorkflowActions.SMS_NUMBER);
+                              setIsPhoneNumberNeeded(val.value === WorkflowActions.SMS_NUMBER || val.value === WorkflowActions.WHATSAPP_NUMBER);
                               setNumberVerified(false);
 
                               // email action changes to sms action

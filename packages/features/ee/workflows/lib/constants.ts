@@ -14,6 +14,8 @@ export const WORKFLOW_ACTIONS = [
   WorkflowActions.EMAIL_ADDRESS,
   WorkflowActions.SMS_ATTENDEE,
   WorkflowActions.SMS_NUMBER,
+  WorkflowActions.WHATSAPP_ATTENDEE,
+  WorkflowActions.WHATSAPP_NUMBER,
 ] as const;
 
 export const TIME_UNIT = [TimeUnit.DAY, TimeUnit.HOUR, TimeUnit.MINUTE] as const;
