@@ -3,8 +3,6 @@ import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
 import { z } from "zod";
 
-import { getDirFromLang } from "@calcom/lib/i18n";
-
 import { csp } from "@lib/csp";
 
 type Props = Record<string, unknown> & DocumentProps;
@@ -38,9 +36,8 @@ class MyDocument extends Document<Props> {
     const { isEmbed } = this.props;
     const nonceParsed = z.string().safeParse(this.props.nonce);
     const nonce = nonceParsed.success ? nonceParsed.data : "";
-    const dir = getDirFromLang(locale);
     return (
-      <Html lang={locale} dir={dir}>
+      <Html lang={locale}>
         <Head nonce={nonce}>
           <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
           <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />

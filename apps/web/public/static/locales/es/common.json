@@ -69,6 +69,7 @@
   "event_awaiting_approval_subject": "Esperando aprobación: {{title}} en {{date}}",
   "event_still_awaiting_approval": "Un evento aún está esperando su aprobación",
   "booking_submitted_subject": "Reserva enviada:{{title}} el {{date}}",
+  "download_recording_subject": "Descargar grabación: {{title}} el {{date}}",
   "your_meeting_has_been_booked": "Su reunión ha sido reservada",
   "event_type_has_been_rescheduled_on_time_date": "Tu {{title}} ha sido reprogramado para el {{date}}.",
   "event_has_been_rescheduled": "Tu evento ha sido reprogramado.",

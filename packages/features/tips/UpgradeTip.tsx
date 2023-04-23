@@ -44,7 +44,7 @@ export function UpgradeTip({
             alt={title}
           />
         </picture>
-        <div className="relative mt-4 px-8 sm:px-14">
+        <div className="relative my-4 px-8 sm:px-14">
           <h1 className={classNames("font-cal text-3xl", dark && "text-inverted")}>{t(title)}</h1>
           <p className={classNames("mt-4 mb-8 max-w-sm", dark ? "text-inverted" : "text-default")}>
             {t(description)}

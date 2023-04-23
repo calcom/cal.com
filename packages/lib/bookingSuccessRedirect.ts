@@ -24,6 +24,7 @@ export const bookingSuccessRedirect = async ({
 
     // Using parent ensures, Embed iframe would redirect outside of the iframe.
     window.parent.location.href = url.toString();
+    return;
   }
   return router.push({
     pathname: `/booking/${bookingUid}`,

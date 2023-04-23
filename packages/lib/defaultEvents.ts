@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma, Credential } from "@prisma/client";
 import { PeriodType, SchedulingType } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
@@ -25,7 +25,7 @@ type UsernameSlugLinkProps = {
   slug: string;
 };
 
-const user: User = {
+const user: User & { credentials: Credential[] } = {
   metadata: null,
   theme: null,
   credentials: [],

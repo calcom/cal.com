@@ -94,7 +94,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
           }}
           className={classNames(
             selectedCategory === null ? "bg-emphasis text-default" : "bg-muted text-emphasis",
-            "hover:bg-emphasis rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer hover:text-gray-50"
+            "hover:bg-emphasis min-w-max rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer hover:text-gray-50"
           )}>
           {t("all_apps")}
         </li>
@@ -168,7 +168,7 @@ export function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
       <CategoryTab selectedCategory={selectedCategory} searchText={searchText} categories={categories} />
       {filteredApps.length ? (
         <div
-          className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:730px)]:grid-cols-2 [@media(max-width:500px)]:grid-cols-1"
+          className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:730px)]:grid-cols-1 [@media(max-width:500px)]:grid-cols-1"
           ref={appsContainerRef}>
           {filteredApps.map((app) => (
             <AppCard key={app.name} app={app} searchText={searchText} credentials={app.credentials} />
