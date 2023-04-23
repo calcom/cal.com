@@ -9,6 +9,7 @@ import { validateIntervalLimitOrder } from "@calcom/lib";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
+import { setDestinationCalendarHandler } from "../../loggedInViewer/setDestinationCalendar.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import { ensureUniqueBookingFields, handleCustomInputs, handlePeriodType } from "./util";
 
@@ -72,11 +73,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (destinationCalendar) {
     /** We connect or create a destination calendar to the event type instead of the user */
-    // !: Come back to this
-    // await viewerRouter.createCaller(ctx).setDestinationCalendar({
-    //   ...destinationCalendar,
-    //   eventTypeId: id,
-    // });
+    await setDestinationCalendarHandler({
+      ctx,
+      input: {
+        ...destinationCalendar,
+        eventTypeId: id,
+      },
+    });
   }
 
   if (customInputs) {
