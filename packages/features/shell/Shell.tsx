@@ -545,6 +545,11 @@ const navigation: NavigationItemType[] = [
     href: "/insights",
     icon: BarChart,
   },
+  {
+    name: "settings",
+    href: "/settings/my-account/profile",
+    icon: Settings,
+  },
 ];
 
 const moreSeparatorIndex = navigation.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
