@@ -6,11 +6,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { EmptyScreen, showToast } from "@calcom/ui";
-import { FiClock } from "@calcom/ui/components/icon";
+import { Clock } from "@calcom/ui/components/icon";
 
 import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
+import PageWrapper from "@components/PageWrapper";
 import SkeletonLoader from "@components/availability/SkeletonLoader";
 
 export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
@@ -75,7 +76,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
       {schedules.length === 0 ? (
         <div className="flex justify-center">
           <EmptyScreen
-            Icon={FiClock}
+            Icon={Clock}
             headline={t("new_schedule_heading")}
             description={t("new_schedule_description")}
             buttonRaw={<NewScheduleButton />}
@@ -110,9 +111,15 @@ export default function AvailabilityPage() {
   const { t } = useLocale();
   return (
     <div>
-      <Shell heading={t("availability")} subtitle={t("configure_availability")} CTA={<NewScheduleButton />}>
+      <Shell
+        heading={t("availability")}
+        hideHeadingOnMobile
+        subtitle={t("configure_availability")}
+        CTA={<NewScheduleButton />}>
         <WithQuery success={({ data }) => <AvailabilityList {...data} />} customLoader={<SkeletonLoader />} />
       </Shell>
     </div>
   );
 }
+
+AvailabilityPage.PageWrapper = PageWrapper;

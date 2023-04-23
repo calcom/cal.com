@@ -4,7 +4,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import { Button, DialogTrigger, Tooltip } from "@calcom/ui";
-import { FiEdit2, FiTrash2 } from "@calcom/ui/components/icon";
+import { Edit2, Trash2 } from "@calcom/ui/components/icon";
 
 import DateOverrideInputDialog from "./DateOverrideInputDialog";
 
@@ -53,9 +53,9 @@ const DateOverrideList = ({
   };
 
   return (
-    <ul className="rounded border border-subtle" data-testid="date-overrides-list">
+    <ul className="border-subtle rounded border" data-testid="date-overrides-list">
       {items.sort(sortByDate).map((item, index) => (
-        <li key={item.id} className="flex justify-between border-b px-5 py-4 last:border-b-0">
+        <li key={item.id} className="border-subtle flex justify-between border-b px-5 py-4 last:border-b-0">
           <div>
             <h3 className="text-emphasis text-sm">
               {new Intl.DateTimeFormat("en-GB", {
@@ -91,7 +91,7 @@ const DateOverrideList = ({
                     className="text-default"
                     color="minimal"
                     variant="icon"
-                    StartIcon={FiEdit2}
+                    StartIcon={Edit2}
                   />
                 </DialogTrigger>
               }
@@ -101,7 +101,7 @@ const DateOverrideList = ({
                 className="text-default"
                 color="destructive"
                 variant="icon"
-                StartIcon={FiTrash2}
+                StartIcon={Trash2}
                 onClick={() => remove(index)}
               />
             </Tooltip>

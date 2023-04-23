@@ -33,7 +33,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       OR: [
         {
           recurringEventId: { not: null },
-          status: { notIn: [BookingStatus.PENDING, BookingStatus.CANCELLED, BookingStatus.REJECTED] },
+          status: { equals: BookingStatus.ACCEPTED },
         },
         {
           recurringEventId: { equals: null },
@@ -60,15 +60,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     },
     unconfirmed: {
       endTime: { gte: new Date() },
-      OR: [
-        {
-          recurringEventId: { not: null },
-          status: { equals: BookingStatus.PENDING },
-        },
-        {
-          status: { equals: BookingStatus.PENDING },
-        },
-      ],
+      status: { equals: BookingStatus.PENDING },
     },
   };
 
@@ -254,17 +246,18 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
         [key: string]: Date[];
       };
     } => {
-      const bookings = recurringInfoExtended
-        .filter((ext) => ext.recurringEventId === info.recurringEventId)
-        .reduce(
-          (prev, curr) => {
+      const bookings = recurringInfoExtended.reduce(
+        (prev, curr) => {
+          if (curr.recurringEventId === info.recurringEventId) {
             prev[curr.status].push(curr.startTime);
-            return prev;
-          },
-          { ACCEPTED: [], CANCELLED: [], REJECTED: [], PENDING: [] } as {
-            [key in BookingStatus]: Date[];
           }
-        );
+
+          return prev;
+        },
+        { ACCEPTED: [], CANCELLED: [], REJECTED: [], PENDING: [] } as {
+          [key in BookingStatus]: Date[];
+        }
+      );
       return {
         recurringEventId: info.recurringEventId,
         count: info._count.recurringEventId,

@@ -1,10 +1,11 @@
 import type { Prisma } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
-import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma/client";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -15,14 +16,15 @@ import type { TCreateInputSchema } from "./create.schema";
 type CreateOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    prisma: PrismaClient;
   };
   input: TCreateInputSchema;
 };
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
-  const { schedulingType, teamId, ...rest } = input;
-
+  const { schedulingType, teamId, metadata, ...rest } = input;
   const userId = ctx.user.id;
+  const isManagedEventType = schedulingType === SchedulingType.MANAGED;
   // Get Users default conferncing app
 
   const defaultConferencingData = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
@@ -49,16 +51,14 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const data: Prisma.EventTypeCreateInput = {
     ...rest,
     owner: teamId ? undefined : { connect: { id: userId } },
-    users: {
-      connect: {
-        id: userId,
-      },
-    },
+    metadata: (metadata as Prisma.InputJsonObject) ?? undefined,
+    // Only connecting the current user for non-managed event type
+    users: isManagedEventType ? undefined : { connect: { id: userId } },
     locations,
   };
 
   if (teamId && schedulingType) {
-    const hasMembership = await prisma.membership.findFirst({
+    const hasMembership = await ctx.prisma.membership.findFirst({
       where: {
         userId,
         teamId: teamId,
@@ -80,7 +80,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   }
 
   try {
-    const eventType = await prisma.eventType.create({ data });
+    const eventType = await ctx.prisma.eventType.create({ data });
     return { eventType };
   } catch (e) {
     if (e instanceof PrismaClientKnownRequestError) {

@@ -12,6 +12,19 @@ export const EventTypeUpdateInput = _EventTypeModel
       externalId: true,
     }),
     users: z.array(stringOrNumber).optional(),
+    children: z
+      .array(
+        z.object({
+          owner: z.object({
+            id: z.number(),
+            name: z.string(),
+            email: z.string(),
+            eventTypeSlugs: z.array(z.string()),
+          }),
+          hidden: z.boolean(),
+        })
+      )
+      .optional(),
     hosts: z
       .array(
         z.object({

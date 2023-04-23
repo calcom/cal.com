@@ -1,7 +1,8 @@
+import type { PrismaClient } from "@prisma/client";
+
 import { getLocalAppMetadata } from "@calcom/app-store/utils";
 import { sendDisabledAppEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server";
-import prisma from "@calcom/prisma";
 import type { AppCategories } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
@@ -12,14 +13,18 @@ import type { TToggleInputSchema } from "./toggle.schema";
 type ToggleOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    prisma: PrismaClient;
   };
   input: TToggleInputSchema;
 };
 
-export const toggleHandler = async ({ ctx: _ctx, input }: ToggleOptions) => {
+export const toggleHandler = async ({ input, ctx }: ToggleOptions) => {
+  const { prisma } = ctx;
+  const { enabled, slug } = input;
+
   // Get app name from metadata
   const localApps = getLocalAppMetadata();
-  const appMetadata = localApps.find((localApp) => localApp.slug === input.slug);
+  const appMetadata = localApps.find((localApp) => localApp.slug === slug);
 
   if (!appMetadata) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "App metadata could not be found" });
@@ -27,24 +32,27 @@ export const toggleHandler = async ({ ctx: _ctx, input }: ToggleOptions) => {
 
   const app = await prisma.app.upsert({
     where: {
-      slug: input.slug,
+      slug,
     },
     update: {
-      enabled: !input.enabled,
+      enabled,
+      dirName: appMetadata?.dirName || appMetadata?.slug || "",
     },
     create: {
-      slug: input.slug,
-      dirName: appMetadata?.dirName || "",
+      slug,
+      dirName: appMetadata?.dirName || appMetadata?.slug || "",
       categories:
         (appMetadata?.categories as AppCategories[]) ||
         ([appMetadata?.category] as AppCategories[]) ||
         undefined,
       keys: undefined,
+      enabled,
     },
   });
 
   // If disabling an app then we need to alert users basesd on the app type
-  if (input.enabled) {
+  if (!enabled) {
+    const translations = new Map();
     if (app.categories.some((category) => ["calendar", "video"].includes(category))) {
       // Find all users with the app credentials
       const appCredentials = await prisma.credential.findMany({
@@ -61,18 +69,26 @@ export const toggleHandler = async ({ ctx: _ctx, input }: ToggleOptions) => {
         },
       });
 
+      // TODO: This should be done async probably using a queue.
       Promise.all(
         appCredentials.map(async (credential) => {
-          const t = await getTranslation(credential.user?.locale || "en", "common");
+          // No need to continue if credential does not have a user
+          if (!credential.user || !credential.user.email) return;
 
-          if (credential.user?.email) {
-            await sendDisabledAppEmail({
-              email: credential.user.email,
-              appName: appMetadata?.name || app.slug,
-              appType: app.categories,
-              t,
-            });
+          const locale = credential.user.locale ?? "en";
+          let t = translations.get(locale);
+
+          if (!t) {
+            t = await getTranslation(locale, "common");
+            translations.set(locale, t);
           }
+
+          await sendDisabledAppEmail({
+            email: credential.user.email,
+            appName: appMetadata?.name || app.slug,
+            appType: app.categories,
+            t,
+          });
         })
       );
     } else {
@@ -96,8 +112,11 @@ export const toggleHandler = async ({ ctx: _ctx, input }: ToggleOptions) => {
         },
       });
 
+      // TODO: This should be done async probably using a queue.
       Promise.all(
         eventTypesWithApp.map(async (eventType) => {
+          // TODO: This update query can be removed by merging it with
+          // the previous `findMany` query, if that query returns certain values.
           await prisma.eventType.update({
             where: {
               id: eventType.id,
@@ -118,18 +137,26 @@ export const toggleHandler = async ({ ctx: _ctx, input }: ToggleOptions) => {
             },
           });
 
-          eventType.users.map(async (user) => {
-            const t = await getTranslation(user.locale || "en", "common");
+          return Promise.all(
+            eventType.users.map(async (user) => {
+              const locale = user.locale ?? "en";
+              let t = translations.get(locale);
 
-            await sendDisabledAppEmail({
-              email: user.email,
-              appName: appMetadata?.name || app.slug,
-              appType: app.categories,
-              t,
-              title: eventType.title,
-              eventTypeId: eventType.id,
-            });
-          });
+              if (!t) {
+                t = await getTranslation(locale, "common");
+                translations.set(locale, t);
+              }
+
+              await sendDisabledAppEmail({
+                email: user.email,
+                appName: appMetadata?.name || app.slug,
+                appType: app.categories,
+                t,
+                title: eventType.title,
+                eventTypeId: eventType.id,
+              });
+            })
+          );
         })
       );
     }

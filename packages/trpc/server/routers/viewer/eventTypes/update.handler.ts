@@ -1,9 +1,10 @@
+import type { PrismaClient } from "@prisma/client";
 import { Prisma, SchedulingType } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
+import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { validateIntervalLimitOrder } from "@calcom/lib";
-import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -15,6 +16,7 @@ type UpdateOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
     res?: NextApiResponse | GetServerSidePropsContext["res"];
+    prisma: PrismaClient;
   };
   input: TUpdateInputSchema;
 };
@@ -29,7 +31,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     destinationCalendar,
     customInputs,
     recurringEvent,
-    users = [],
+    users,
+    children,
     hosts,
     id,
     hashedLink,
@@ -47,7 +50,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     bookingFields,
-    metadata: rest.metadata === null ? Prisma.DbNull : rest.metadata,
+    metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
   };
   data.locations = locations ?? undefined;
   if (periodType) {
@@ -96,7 +99,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (schedule) {
     // Check that the schedule belongs to the user
-    const userScheduleQuery = await prisma.schedule.findFirst({
+    const userScheduleQuery = await ctx.prisma.schedule.findFirst({
       where: {
         userId: ctx.user.id,
         id: schedule,
@@ -117,7 +120,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
   }
 
-  if (users.length) {
+  if (users?.length) {
     data.users = {
       set: [],
       connect: users.map((userId: number) => ({ id: userId })),
@@ -136,7 +139,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (input?.price || input.metadata?.apps?.stripe?.price) {
     data.price = input.price || input.metadata?.apps?.stripe?.price;
-    const paymentCredential = await prisma.credential.findFirst({
+    const paymentCredential = await ctx.prisma.credential.findFirst({
       where: {
         userId: ctx.user.id,
         type: {
@@ -155,7 +158,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  const connectedLink = await prisma.hashedLink.findFirst({
+  const connectedLink = await ctx.prisma.hashedLink.findFirst({
     where: {
       eventTypeId: input.id,
     },
@@ -168,7 +171,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     // check if hashed connection existed. If it did, do nothing. If it didn't, add a new connection
     if (!connectedLink) {
       // create a hashed link
-      await prisma.hashedLink.upsert({
+      await ctx.prisma.hashedLink.upsert({
         where: {
           eventTypeId: input.id,
         },
@@ -186,23 +189,49 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   } else {
     // check if hashed connection exists. If it does, disconnect
     if (connectedLink) {
-      await prisma.hashedLink.delete({
+      await ctx.prisma.hashedLink.delete({
         where: {
           eventTypeId: input.id,
         },
       });
     }
   }
+  const [oldEventType, eventType] = await ctx.prisma.$transaction([
+    ctx.prisma.eventType.findFirst({
+      where: { id },
+      select: {
+        children: {
+          select: {
+            userId: true,
+          },
+        },
+        team: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    }),
+    ctx.prisma.eventType.update({
+      where: { id },
+      data,
+    }),
+  ]);
 
-  const eventType = await prisma.eventType.update({
-    where: { id },
-    data,
+  // Handling updates to children event types (managed events types)
+  await updateChildrenEventTypes({
+    eventTypeId: id,
+    currentUserId: ctx.user.id,
+    oldEventType,
+    hashedLink,
+    connectedLink,
+    updatedEventType: eventType,
+    children,
+    prisma: ctx.prisma,
   });
   const res = ctx.res as NextApiResponse;
-
   if (typeof res?.revalidate !== "undefined") {
     await res?.revalidate(`/${ctx.user.username}/${eventType.slug}`);
   }
-
   return { eventType };
 };

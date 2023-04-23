@@ -18,7 +18,7 @@ export const getStaticProps: GetStaticProps<
   { user: string }
 > = async (context) => {
   const { user: username, month } = paramsSchema.parse(context.params);
-  const user = await prisma.user.findUnique({
+  const userWithCredentials = await prisma.user.findUnique({
     where: {
       username,
     },
@@ -34,20 +34,21 @@ export const getStaticProps: GetStaticProps<
   ).startOf("day");
   const endDate = startDate.endOf("month");
   try {
-    const results = user?.credentials
+    const results = userWithCredentials?.credentials
       ? await getCachedResults(
-          user?.credentials,
+          userWithCredentials?.credentials,
           startDate.format(),
           endDate.format(),
-          user?.selectedCalendars
+          userWithCredentials?.selectedCalendars
         )
       : [];
+
     return {
       props: { results, date: new Date().toISOString() },
       revalidate: 1,
     };
   } catch (error) {
-    let message = "Unknown error while fetching calendarƒ";
+    let message = "Unknown error while fetching calendar";
     if (error instanceof Error) message = error.message;
     console.error(error, message);
     return {

@@ -15,7 +15,7 @@ import {
   InputField,
   showToast,
 } from "@calcom/ui";
-import { FiPlus } from "@calcom/ui/components/icon";
+import { Plus } from "@calcom/ui/components/icon";
 
 export function NewScheduleButton({
   name = "new-schedule",
@@ -65,7 +65,7 @@ export function NewScheduleButton({
   return (
     <Dialog name={name} clearQueryParamsOnClose={["copy-schedule-id"]}>
       <DialogTrigger asChild>
-        <Button variant="fab" data-testid={name} StartIcon={FiPlus}>
+        <Button variant="fab" data-testid={name} StartIcon={Plus}>
           {t("new")}
         </Button>
       </DialogTrigger>

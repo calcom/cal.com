@@ -6,6 +6,7 @@ export const ZSaveKeysInputSchema = z.object({
   type: z.string(),
   // Validate w/ app specific schema
   keys: z.unknown(),
+  fromEnabled: z.boolean().optional(),
 });
 
 export type TSaveKeysInputSchema = z.infer<typeof ZSaveKeysInputSchema>;

@@ -1,3 +1,5 @@
+import type { PrismaClient } from "@prisma/client";
+
 import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
@@ -12,6 +14,7 @@ import type { TRemoveMemberInputSchema } from "./removeMember.schema";
 type RemoveMemberOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    prisma: PrismaClient;
   };
   input: TRemoveMemberInputSchema;
 };
@@ -35,6 +38,11 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
     include: {
       user: true,
     },
+  });
+
+  // Deleted managed event types from this team from this member
+  await ctx.prisma.eventType.deleteMany({
+    where: { parent: { teamId: input.teamId }, userId: membership.userId },
   });
 
   // Sync Services

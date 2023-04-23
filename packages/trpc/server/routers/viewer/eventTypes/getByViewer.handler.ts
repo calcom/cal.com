@@ -1,10 +1,10 @@
-import { MembershipRole, Prisma } from "@prisma/client";
+import { MembershipRole, Prisma, SchedulingType } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 import { orderBy } from "lodash";
 
 import { CAL_URL } from "@calcom/lib/constants";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
-import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -13,16 +13,19 @@ import type { TrpcSessionUser } from "../../../trpc";
 type GetByViewerOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    prisma: PrismaClient;
   };
 };
 
 export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
+  const { prisma } = ctx;
   const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
     // Position is required by lodash to sort on it. Don't remove it, TS won't complain but it would silently break reordering
     position: true,
     hashedLink: true,
     locations: true,
     destinationCalendar: true,
+    userId: true,
     team: {
       select: {
         id: true,
@@ -36,6 +39,11 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     metadata: true,
     users: {
       select: baseUserSelect,
+    },
+    children: {
+      include: {
+        users: true,
+      },
     },
     hosts: {
       select: {
@@ -116,8 +124,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     ...eventType,
     safeDescription: markdownToSafeHTML(eventType.description),
     users: !!eventType.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users,
-    // @FIXME: cc @hariombalhara This is failing with production data
-    // metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+    metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
   });
 
   const userEventTypes = user.eventTypes.map(mapEventType);
@@ -141,6 +148,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
 
   type EventTypeGroup = {
     teamId?: number | null;
+    membershipRole?: MembershipRole | null;
     profile: {
       slug: (typeof user)["username"];
       name: (typeof user)["name"];
@@ -159,9 +167,12 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     hashMap[newItem.id] = { ...oldItem, ...newItem };
     return hashMap;
   }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
-  const mergedEventTypes = Object.values(eventTypesHashMap).map((eventType) => eventType);
+  const mergedEventTypes = Object.values(eventTypesHashMap)
+    .map((eventType) => eventType)
+    .filter((evType) => evType.schedulingType !== SchedulingType.MANAGED);
   eventTypeGroups.push({
     teamId: null,
+    membershipRole: null,
     profile: {
       slug: user.username,
       name: user.name,
@@ -178,6 +189,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     eventTypeGroups,
     user.teams.map((membership) => ({
       teamId: membership.team.id,
+      membershipRole: membership.role,
       profile: {
         name: membership.team.name,
         image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
@@ -187,7 +199,12 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
         membershipCount: membership.team.members.length,
         readOnly: membership.role === MembershipRole.MEMBER,
       },
-      eventTypes: membership.team.eventTypes.map(mapEventType),
+      eventTypes: membership.team.eventTypes
+        .map(mapEventType)
+        .filter((evType) => evType.userId === null || evType.userId === ctx.user.id)
+        .filter((evType) =>
+          membership.role === MembershipRole.MEMBER ? evType.schedulingType !== SchedulingType.MANAGED : true
+        ),
     }))
   );
   return {
@@ -196,6 +213,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     // so we can show a dropdown when the user has teams
     profiles: eventTypeGroups.map((group) => ({
       teamId: group.teamId,
+      membershipRole: group.membershipRole,
       ...group.profile,
       ...group.metadata,
     })),

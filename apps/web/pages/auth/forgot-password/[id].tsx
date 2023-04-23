@@ -4,6 +4,7 @@ import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import React, { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -11,6 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { Button, TextField } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
 type Props = {
@@ -109,6 +111,14 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
         <>
           <form
             className="space-y-6"
+            style={
+              {
+                "--cal-brand": "#111827",
+                "--cal-brand-emphasis": "#101010",
+                "--cal-brand-text": "white",
+                "--cal-brand-subtle": "#9CA3AF",
+              } as CSSProperties
+            }
             onSubmit={async (e) => {
               e.preventDefault();
 
@@ -164,6 +174,8 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
   );
 }
 
+Page.isThemeSupported = false;
+Page.PageWrapper = PageWrapper;
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const id = context.params?.id as string;
 

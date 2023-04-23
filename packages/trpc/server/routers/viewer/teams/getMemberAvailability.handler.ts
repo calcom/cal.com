@@ -25,6 +25,7 @@ export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvai
     include: {
       user: {
         select: {
+          credentials: true, // needed for getUserAvailability
           ...availabilityUserSelect,
         },
       },

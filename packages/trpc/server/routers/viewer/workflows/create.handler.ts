@@ -7,8 +7,10 @@ import {
   WorkflowTriggerEvents,
 } from "@prisma/client";
 
+import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -18,6 +20,7 @@ import type { TCreateInputSchema } from "./create.schema";
 type CreateOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    prisma: PrismaClient;
   };
   input: TCreateInputSchema;
 };
@@ -62,11 +65,13 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     });
 
-    await prisma.workflowStep.create({
+    await ctx.prisma.workflowStep.create({
       data: {
         stepNumber: 1,
-        action: WorkflowActions.EMAIL_HOST,
+        action: WorkflowActions.EMAIL_ATTENDEE,
         template: WorkflowTemplates.REMINDER,
+        reminderBody: emailReminderTemplate(true, WorkflowActions.EMAIL_ATTENDEE).emailBody,
+        emailSubject: emailReminderTemplate(true, WorkflowActions.EMAIL_ATTENDEE).emailSubject,
         workflowId: workflow.id,
         sender: SENDER_NAME,
         numberVerificationPending: false,

@@ -188,8 +188,8 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     user.credentials.forEach((credential) => {
       credentialsMap.set(credential.type, credential);
     });
-    const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter(
-      (ref) => !!credentialsMap.get(ref.type)
+    const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter((ref) =>
+      credentialsMap.has(ref.type)
     );
     bookingRefsFiltered.forEach(async (bookingRef) => {
       if (bookingRef.uid) {

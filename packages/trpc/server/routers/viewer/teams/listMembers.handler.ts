@@ -1,16 +1,18 @@
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TListMembersInputSchema } from "./listMembers.schema";
+import type { PrismaClient } from ".prisma/client";
 
 type ListMembersOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    prisma: PrismaClient;
   };
   input: TListMembersInputSchema;
 };
 
 export const listMembersHandler = async ({ ctx, input }: ListMembersOptions) => {
+  const { prisma } = ctx;
   const teams = await prisma.team.findMany({
     where: {
       id: {
@@ -32,7 +34,7 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersOptions) => 
             select: {
               id: true,
               name: true,
-              avatar: true,
+              username: true,
             },
           },
         },

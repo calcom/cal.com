@@ -1,13 +1,7 @@
 import type { Prisma } from "@prisma/client";
-import {
-  BookingStatus,
-  WorkflowActions,
-  WorkflowMethods,
-  WorkflowTemplates,
-  WorkflowTriggerEvents,
-} from "@prisma/client";
+import { BookingStatus, WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@prisma/client";
 
-import { isSMSAction } from "@calcom/features/ee/workflows/lib/isSMSAction";
+import { isSMSAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import {
   deleteScheduledEmailReminder,
   scheduleEmailReminder,
@@ -17,7 +11,7 @@ import {
   scheduleSMSReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
-import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -33,6 +27,7 @@ import {
 type UpdateOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    prisma: PrismaClient;
   };
   input: TUpdateInputSchema;
 };
@@ -41,7 +36,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const { user } = ctx;
   const { id, name, activeOn, steps, trigger, time, timeUnit } = input;
 
-  const userWorkflow = await prisma.workflow.findUnique({
+  const userWorkflow = await ctx.prisma.workflow.findUnique({
     where: {
       id,
     },
@@ -59,7 +54,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     },
   });
 
-  const isUserAuthorized = await isAuthorized(userWorkflow, prisma, ctx.user.id, true);
+  const isUserAuthorized = await isAuthorized(userWorkflow, ctx.prisma, ctx.user.id, true);
 
   if (!isUserAuthorized || !userWorkflow) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -69,7 +64,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  const oldActiveOnEventTypes = await prisma.workflowsOnEventTypes.findMany({
+  const oldActiveOnEventTypes = await ctx.prisma.workflowsOnEventTypes.findMany({
     where: {
       workflowId: id,
     },
@@ -93,7 +88,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   //check if new event types belong to user or team
   for (const newEventTypeId of newActiveEventTypes) {
-    const newEventType = await prisma.eventType.findFirst({
+    const newEventType = await ctx.prisma.eventType.findFirst({
       where: {
         id: newEventTypeId,
       },
@@ -144,7 +139,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   >[] = [];
 
   removedEventTypes.forEach((eventTypeId) => {
-    const reminderToDelete = prisma.workflowReminder.findMany({
+    const reminderToDelete = ctx.prisma.workflowReminder.findMany({
       where: {
         booking: {
           eventTypeId: eventTypeId,
@@ -179,7 +174,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   });
 
   //update active on & reminders for new eventTypes
-  await prisma.workflowsOnEventTypes.deleteMany({
+  await ctx.prisma.workflowsOnEventTypes.deleteMany({
     where: {
       workflowId: id,
     },
@@ -192,7 +187,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
     if (newEventTypes.length > 0) {
       //create reminders for all bookings with newEventTypes
-      const bookingsForReminders = await prisma.booking.findMany({
+      const bookingsForReminders = await ctx.prisma.booking.findMany({
         where: {
           eventTypeId: { in: newEventTypes },
           status: BookingStatus.ACCEPTED,
@@ -233,11 +228,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               endTime: booking.endTime.toISOString(),
               title: booking.title,
               language: { locale: booking?.user?.locale || "" },
+              eventType: {
+                slug: booking.eventType?.slug,
+              },
             };
             if (
               step.action === WorkflowActions.EMAIL_HOST ||
               step.action === WorkflowActions.EMAIL_ATTENDEE /*||
-              step.action === WorkflowActions.EMAIL_ADDRESS*/
+                  step.action === WorkflowActions.EMAIL_ADDRESS*/
             ) {
               let sendTo = "";
 
@@ -249,7 +247,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                   sendTo = bookingInfo.attendees[0].email;
                   break;
                 /*case WorkflowActions.EMAIL_ADDRESS:
-                  sendTo = step.sendTo || "";*/
+                      sendTo = step.sendTo || "";*/
               }
 
               await scheduleEmailReminder(
@@ -291,7 +289,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
     //create all workflow - eventtypes relationships
     activeOn.forEach(async (eventTypeId) => {
-      await prisma.workflowsOnEventTypes.createMany({
+      await ctx.prisma.workflowsOnEventTypes.createMany({
         data: {
           workflowId: id,
           eventTypeId,
@@ -302,7 +300,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   userWorkflow.steps.map(async (oldStep) => {
     const newStep = steps.filter((s) => s.id === oldStep.id)[0];
-    const remindersFromStep = await prisma.workflowReminder.findMany({
+    const remindersFromStep = await ctx.prisma.workflowReminder.findMany({
       where: {
         workflowStepId: oldStep.id,
       },
@@ -323,7 +321,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           }
         });
       }
-      await prisma.workflowStep.delete({
+      await ctx.prisma.workflowStep.delete({
         where: {
           id: oldStep.id,
         },
@@ -339,7 +337,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       ) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
-      await prisma.workflowStep.update({
+      await ctx.prisma.workflowStep.update({
         where: {
           id: oldStep.id,
         },
@@ -347,13 +345,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           action: newStep.action,
           sendTo:
             newStep.action === WorkflowActions.SMS_NUMBER /*||
-            newStep.action === WorkflowActions.EMAIL_ADDRESS*/
+                newStep.action === WorkflowActions.EMAIL_ADDRESS*/
               ? newStep.sendTo
               : null,
           stepNumber: newStep.stepNumber,
           workflowId: newStep.workflowId,
-          reminderBody: newStep.template === WorkflowTemplates.CUSTOM ? newStep.reminderBody : null,
-          emailSubject: newStep.template === WorkflowTemplates.CUSTOM ? newStep.emailSubject : null,
+          reminderBody: newStep.reminderBody,
+          emailSubject: newStep.emailSubject,
           template: newStep.template,
           numberRequired: newStep.numberRequired,
           sender: getSender({
@@ -388,7 +386,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         eventTypesToUpdateReminders &&
         (trigger === WorkflowTriggerEvents.BEFORE_EVENT || trigger === WorkflowTriggerEvents.AFTER_EVENT)
       ) {
-        const bookingsOfEventTypes = await prisma.booking.findMany({
+        const bookingsOfEventTypes = await ctx.prisma.booking.findMany({
           where: {
             eventTypeId: {
               in: eventTypesToUpdateReminders,
@@ -427,11 +425,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             endTime: booking.endTime.toISOString(),
             title: booking.title,
             language: { locale: booking?.user?.locale || "" },
+            eventType: {
+              slug: booking.eventType?.slug,
+            },
           };
           if (
             newStep.action === WorkflowActions.EMAIL_HOST ||
             newStep.action === WorkflowActions.EMAIL_ATTENDEE /*||
-            newStep.action === WorkflowActions.EMAIL_ADDRESS*/
+                newStep.action === WorkflowActions.EMAIL_ADDRESS*/
           ) {
             let sendTo = "";
 
@@ -443,7 +444,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 sendTo = bookingInfo.attendees[0].email;
                 break;
               /*case WorkflowActions.EMAIL_ADDRESS:
-                sendTo = newStep.sendTo || "";*/
+                    sendTo = newStep.sendTo || "";*/
             }
 
             await scheduleEmailReminder(
@@ -508,7 +509,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           sender: newStep.sender || null,
           senderName: senderName,
         });
-        const createdStep = await prisma.workflowStep.create({
+        const createdStep = await ctx.prisma.workflowStep.create({
           data: { ...newStep, numberVerificationPending: false },
         });
         if (
@@ -516,7 +517,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           eventTypesToCreateReminders &&
           step.action !== WorkflowActions.SMS_ATTENDEE
         ) {
-          const bookingsForReminders = await prisma.booking.findMany({
+          const bookingsForReminders = await ctx.prisma.booking.findMany({
             where: {
               eventTypeId: { in: eventTypesToCreateReminders as number[] },
               status: BookingStatus.ACCEPTED,
@@ -553,12 +554,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               endTime: booking.endTime.toISOString(),
               title: booking.title,
               language: { locale: booking?.user?.locale || "" },
+              eventType: {
+                slug: booking.eventType?.slug,
+              },
             };
 
             if (
               step.action === WorkflowActions.EMAIL_ATTENDEE ||
               step.action === WorkflowActions.EMAIL_HOST /*||
-              step.action === WorkflowActions.EMAIL_ADDRESS*/
+                  step.action === WorkflowActions.EMAIL_ADDRESS*/
             ) {
               let sendTo = "";
 
@@ -570,7 +574,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                   sendTo = bookingInfo.attendees[0].email;
                   break;
                 /*case WorkflowActions.EMAIL_ADDRESS:
-                  sendTo = step.sendTo || "";*/
+                      sendTo = step.sendTo || "";*/
               }
 
               await scheduleEmailReminder(
@@ -613,7 +617,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   //update trigger, name, time, timeUnit
-  await prisma.workflow.update({
+  await ctx.prisma.workflow.update({
     where: {
       id,
     },
@@ -625,7 +629,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     },
   });
 
-  const workflow = await prisma.workflow.findFirst({
+  const workflow = await ctx.prisma.workflow.findFirst({
     where: {
       id,
     },
