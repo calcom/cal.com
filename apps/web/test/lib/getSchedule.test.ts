@@ -23,7 +23,6 @@ import { prismaMock, CalendarManagerMock } from "../../../../tests/config/single
 // TODO: Mock properly
 prismaMock.eventType.findUnique.mockResolvedValue(null);
 prismaMock.user.findMany.mockResolvedValue([]);
-prismaMock.selectedSlots.findMany.mockResolvedValue([]);
 
 jest.mock("@calcom/lib/constants", () => ({
   IS_PRODUCTION: true,

@@ -26,6 +26,19 @@ export const getScheduleSchema = z
     "Either usernameList or eventTypeId should be filled in."
   );
 
+export const reserveSlotSchema = z
+  .object({
+    eventTypeId: z.number().int(),
+    // startTime ISOString
+    slotUtcStartDate: z.string(),
+    // endTime ISOString
+    slotUtcEndDate: z.string(),
+  })
+  .refine(
+    (data) => !!data.eventTypeId || !!data.slotUtcStartDate || !!data.slotUtcEndDate,
+    "Either slotUtcStartDate, slotUtcEndDate or eventTypeId should be filled in."
+  );
+
 export type Slot = {
   time: string;
   userIds?: number[];

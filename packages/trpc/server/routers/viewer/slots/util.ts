@@ -292,7 +292,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   // Load cached busy slots
   const selectedSlots =
     /* FIXME: For some reason this returns undefined while testing in Jest */
-    (await ctx.prisma.selectedSlots.findMany({
+    (await prisma.selectedSlots.findMany({
       where: {
         userId: { in: usersWithCredentials.map((user) => user.id) },
         releaseAt: { gt: dayjs.utc().format() },
@@ -306,7 +306,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
         eventTypeId: true,
       },
     })) || [];
-  await ctx.prisma.selectedSlots.deleteMany({
+  await prisma.selectedSlots.deleteMany({
     where: { eventTypeId: { equals: eventType.id }, id: { notIn: selectedSlots.map((item) => item.id) } },
   });
 

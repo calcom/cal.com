@@ -51,7 +51,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
   try {
     /** @see https://trpc.io/docs/server-side-calls */
     const ctx = await createContext({ req, res }, sessionGetter);
-    const caller = viewerRouter.createCaller(ctx);
+    const caller = viewerRouter.createCaller({ ...ctx, req, res });
 
     await caller.bookings.confirm({
       bookingId: booking.id,
