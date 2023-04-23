@@ -47,9 +47,7 @@ module.exports = {
           "error",
           {
             prefer: "type-imports",
-            // TODO: enable this once prettier supports it
-            // fixStyle: "inline-type-imports",
-            fixStyle: "separate-type-imports",
+            fixStyle: "inline-type-imports",
             disallowTypeAnnotations: false,
           },
         ],

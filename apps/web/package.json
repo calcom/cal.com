@@ -72,6 +72,7 @@
     "dotenv-cli": "^6.0.0",
     "entities": "^4.4.0",
     "eslint-config-next": "^13.2.1",
+    "eslint-nibble": "^8.1.0",
     "googleapis": "^84.0.0",
     "gray-matter": "^4.0.3",
     "handlebars": "^4.7.7",
