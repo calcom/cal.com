@@ -15,7 +15,6 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import config from "../config.json";
 import { appKeysSchema } from "../zod";
 
 export type BiginToken = {
@@ -217,21 +216,18 @@ export default class BiginCalendarService implements Calendar {
       (attendee) => !existingContacts.includes(attendee.email)
     );
 
-      if (newContacts.length === 0) {
-        return await this.handleEventCreation(event, event.attendees);
-      }
-
-      const createContacts = await this.createContacts(newContacts);
-      if (createContacts.data?.data[0].status === "success") {
-        return await this.handleEventCreation(event, event.attendees);
-      }
-
-      return Promise.reject({
-        calError: "Something went wrong when creating non-existing attendees in Zoho Bigin",
-      });
-    } catch (e) {
-      this.log.error(`createEvent failed using ${this.accessToken}`, JSON.stringify(e));
+    if (newContacts.length === 0) {
+      return await this.handleEventCreation(event, event.attendees);
     }
+
+    const createContacts = await this.createContacts(newContacts);
+    if (createContacts.data?.data[0].status === "success") {
+      return await this.handleEventCreation(event, event.attendees);
+    }
+
+    return Promise.reject({
+      calError: "Something went wrong when creating non-existing attendees in Zoho Bigin",
+    });
   }
 
   /***
