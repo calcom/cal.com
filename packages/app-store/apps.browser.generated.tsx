@@ -24,6 +24,7 @@ export const EventTypeAddonMap = {
   ga4: dynamic(() => import("./ga4/components/EventTypeAppCardInterface")),
   giphy: dynamic(() => import("./giphy/components/EventTypeAppCardInterface")),
   gtm: dynamic(() => import("./gtm/components/EventTypeAppCardInterface")),
+  metapixel: dynamic(() => import("./metapixel/components/EventTypeAppCardInterface")),
   plausible: dynamic(() => import("./plausible/components/EventTypeAppCardInterface")),
   qr_code: dynamic(() => import("./qr_code/components/EventTypeAppCardInterface")),
   rainbow: dynamic(() => import("./rainbow/components/EventTypeAppCardInterface")),
