@@ -1,18 +1,10 @@
-import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
+import * as fetch from "@calcom/lib/fetch-wrapper";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
-import * as fetch from "@lib/core/http/fetch-wrapper";
-import type { BookingResponse } from "@lib/types/booking";
+import type { RecurringBookingCreateBody, BookingResponse } from "../types";
 
-type ExtendedBookingCreateBody = BookingCreateBody & {
-  noEmail?: boolean;
-  recurringCount?: number;
-  appsStatus?: AppsStatus[] | undefined;
-  allRecurringDates?: string[];
-  currentRecurringIndex?: number;
-};
-
-const createRecurringBooking = async (data: ExtendedBookingCreateBody[]) => {
+// @TODO: Didn't look at the contents of this function in order to not break old booking page.
+export const createRecurringBooking = async (data: RecurringBookingCreateBody[]) => {
   const createdBookings: BookingResponse[] = [];
   const allRecurringDates: string[] = data.map((booking) => booking.start);
   let appsStatus: AppsStatus[] | undefined = undefined;
@@ -35,7 +27,7 @@ const createRecurringBooking = async (data: ExtendedBookingCreateBody[]) => {
       appsStatus = Object.values(calcAppsStatus);
     }
 
-    const response = await fetch.post<ExtendedBookingCreateBody, BookingResponse>("/api/book/event", {
+    const response = await fetch.post<RecurringBookingCreateBody, BookingResponse>("/api/book/event", {
       ...booking,
       appsStatus,
       allRecurringDates,
@@ -46,5 +38,3 @@ const createRecurringBooking = async (data: ExtendedBookingCreateBody[]) => {
   }
   return createdBookings;
 };
-
-export default createRecurringBooking;
