@@ -9,10 +9,7 @@ import prisma from "@calcom/prisma";
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-
-const GRANT_TYPE = "authorization_code";
-const TYPE = "zoho-bigin_other_calendar";
-const SLUG = "zoho-bigin";
+import appConfig from "../config.json";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, "accounts-server": accountsServer } = req.query;
@@ -27,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const appKeys = await getAppKeysFromSlug(SLUG);
+  const appKeys = await getAppKeysFromSlug(appConfig.slug);
 
   const clientId = typeof appKeys.client_id === "string" ? appKeys.client_id : "";
   const clientSecret = typeof appKeys.client_secret === "string" ? appKeys.client_secret : "";
@@ -36,14 +33,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!clientSecret) return res.status(400).json({ message: "Zoho Bigin client_secret missing." });
 
   const accountsUrl = `${accountsServer}/oauth/v2/token`;
-  const redirectUri = WEBAPP_URL + `/api/integrations/${SLUG}/callback`;
+  const redirectUri = WEBAPP_URL + `/api/integrations/${appConfig.slug}/callback`;
 
   const formData = {
     client_id: clientId,
     client_secret: clientSecret,
     code: code,
     redirect_uri: redirectUri,
-    grant_type: GRANT_TYPE,
+    grant_type: "authorization_code",
   };
 
   const tokenInfo = await axios.post(accountsUrl, qs.stringify(formData), {
@@ -52,18 +49,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  tokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);
+  tokenInfo.data.expiryDate = Math.round(Date.now() + tokenInfo.data.expires_in);
   tokenInfo.data.accountServer = accountsServer;
 
   await prisma.credential.create({
     data: {
-      type: TYPE,
+      type: appConfig.type,
       key: tokenInfo.data,
       userId: req.session.user.id,
-      appId: SLUG,
+      appId: appConfig.slug,
     },
   });
 
   const state = decodeOAuthState(req);
-  res.redirect(getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "other", slug: SLUG }));
+  res.redirect(
+    getSafeRedirectUrl(state?.returnTo) ??
+      getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug })
+  );
 }

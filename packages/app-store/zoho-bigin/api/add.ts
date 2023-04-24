@@ -4,29 +4,24 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import config from "../config.json";
-
-const SCOPE = "ZohoBigin.modules.events.ALL,ZohoBigin.modules.contacts.ALL";
-const RESPONSE_TYPE = "code";
-const ACCESS_TYPE = "offline";
-const SLUG = config.slug;
+import appConfig from "../config.json";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
-    const appKeys = await getAppKeysFromSlug(SLUG);
+    const appKeys = await getAppKeysFromSlug(appConfig.slug);
 
     const clientId = typeof appKeys.client_id === "string" ? appKeys.client_id : "";
     if (!clientId) return res.status(400).json({ message: "Zoho Bigin client_id missing." });
 
-    const redirectUri = WEBAPP_URL + `/api/integrations/${SLUG}/callback`;
+    const redirectUri = WEBAPP_URL + `/api/integrations/${appConfig.slug}/callback`;
     const authUrl = axios.getUri({
       url: "https://accounts.zoho.com/oauth/v2/auth",
       params: {
-        scope: SCOPE,
+        scope: appConfig.scope,
         client_id: clientId,
-        response_type: RESPONSE_TYPE,
+        response_type: "code",
         redirect_uri: redirectUri,
-        access_type: ACCESS_TYPE,
+        access_type: "offline",
       },
     });
 
