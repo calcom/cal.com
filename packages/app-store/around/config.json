@@ -4,7 +4,7 @@
   "title": "Around",
   "slug": "around",
   "type": "around_video",
-  "logo": "/api/app-store/around/icon.svg",
+  "logo": "icon.svg",
   "url": "https://cal.com/apps/around",
   "variant": "conferencing",
   "categories": ["video"],

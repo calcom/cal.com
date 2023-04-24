@@ -8,11 +8,10 @@ export const metadata = {
   installed: true,
   type: "caldav_calendar",
   title: "CalDav (Beta)",
-  imageSrc: "/api/app-store/caldavcalendar/icon.svg",
   variant: "calendar",
   category: "calendar",
   categories: ["calendar"],
-  logo: "/api/app-store/caldavcalendar/icon.svg",
+  logo: "icon.svg",
   publisher: "Cal.com",
   rating: 5,
   reviews: 69,
@@ -21,6 +20,7 @@ export const metadata = {
   url: "https://cal.com/",
   verified: true,
   email: "ali@cal.com",
+  dirName: "caldavcalendar",
 } as AppMeta;
 
 export default metadata;

@@ -12,7 +12,7 @@ export const metadata = {
   variant: "calendar",
   category: "calendar",
   categories: ["calendar"],
-  logo: "/api/app-store/googlecalendar/icon.svg",
+  logo: "icon.svg",
   publisher: "Cal.com",
   rating: 5,
   reviews: 69,

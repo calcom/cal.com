@@ -1,6 +1,7 @@
 import type { AppMeta } from "@calcom/types/App";
 
 import { appStoreMetadata as rawAppStoreMetadata } from "./apps.metadata.generated";
+import { getAppAssetFullPath } from "./getAppAssetFullPath";
 
 type RawAppStoreMetaData = typeof rawAppStoreMetadata;
 type AppStoreMetaData = {
@@ -9,14 +10,18 @@ type AppStoreMetaData = {
 
 export const appStoreMetadata = {} as AppStoreMetaData;
 for (const [key, value] of Object.entries(rawAppStoreMetadata)) {
+  const dirName = "dirName" in value ? value.dirName : value.slug;
+  if (!dirName) {
+    throw new Error(`Couldn't derive dirName for app ${key}`);
+  }
   const metadata = (appStoreMetadata[key as keyof typeof appStoreMetadata] = {
     appData: null,
-    dirName: "dirName" in value ? value.dirName : value.slug,
+    dirName,
     __template: "",
     ...value,
   } as AppStoreMetaData[keyof AppStoreMetaData]);
-  if (metadata.logo && !metadata.logo.includes("/")) {
-    const appDirName = `${metadata.isTemplate ? "templates/" : ""}${metadata.dirName}`;
-    metadata.logo = `/api/app-store/${appDirName}/${metadata.logo}`;
-  }
+  metadata.logo = getAppAssetFullPath(metadata.logo, {
+    dirName,
+    isTemplate: metadata.isTemplate,
+  });
 }
