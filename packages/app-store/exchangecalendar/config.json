@@ -3,6 +3,7 @@
   "title": "Microsoft Exchange",
   "name": "Microsoft Exchange",
   "slug": "exchange",
+  "dirName": "exchangecalendar",
   "type": "exchange_calendar",
   "logo": "icon.svg",
   "url": "https://cal.com/apps/exchange",
