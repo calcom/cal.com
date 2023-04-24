@@ -64,7 +64,7 @@ import {
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import type { WorkingHours } from "@calcom/types/schedule";
+import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
 
 import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import sendPayload from "../../webhooks/lib/sendPayload";
@@ -117,9 +117,11 @@ const isWithinAvailableHours = (
   timeSlot: { start: ConfigType; end: ConfigType },
   {
     workingHours,
+    dateOverrides,
     organizerTimeZone,
   }: {
     workingHours: WorkingHours[];
+    dateOverrides: DateOverride[];
     organizerTimeZone: string;
   }
 ) => {
@@ -144,6 +146,18 @@ const isWithinAvailableHours = (
       return true;
     }
   }
+
+  // check if it is a date override
+  for (const dateOverride of dateOverrides) {
+    // slots and date overrides are in UTC
+    if (
+      timeSlotStart.isBetween(dateOverride.start, dateOverride.end, null, "[)") &&
+      timeSlotEnd.isBetween(dateOverride.start, dateOverride.end, null, "(]")
+    ) {
+      return true;
+    }
+  }
+
   log.error(
     `NAUF: isWithinAvailableHours ${JSON.stringify({ ...timeSlot, organizerTimeZone, workingHours })}`
   );
@@ -302,7 +316,11 @@ async function ensureAvailableUsers(
   const availableUsers: IsFixedAwareUser[] = [];
   /** Let's start checking for availability */
   for (const user of eventType.users) {
-    const { busy: bufferedBusyTimes, workingHours } = await getUserAvailability(
+    const {
+      busy: bufferedBusyTimes,
+      workingHours,
+      dateOverrides,
+    } = await getUserAvailability(
       {
         userId: user.id,
         eventTypeId: eventType.id,
@@ -317,6 +335,7 @@ async function ensureAvailableUsers(
         { start: input.dateFrom, end: input.dateTo },
         {
           workingHours,
+          dateOverrides,
           organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || user.timeZone,
         }
       )
