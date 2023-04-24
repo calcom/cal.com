@@ -1760,5 +1760,6 @@
   "event_trends": "Tendințe eveniment",
   "clear_filters": "Ștergere filtre",
   "hold": "Așteptare",
-  "on_booking_option": "Percepere plată pentru rezervare"
+  "on_booking_option": "Percepere plată pentru rezervare",
+  "hold_option": "Percepere taxă pentru neprezentare"
 }
