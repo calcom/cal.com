@@ -552,6 +552,7 @@ export const eventTypesRouter = router({
       // eslint-disable-next-line
       teamId,
       bookingFields,
+      offsetStart,
       ...rest
     } = input;
 
@@ -604,6 +605,13 @@ export const eventTypesRouter = router({
       if (!isValid)
         throw new TRPCError({ code: "BAD_REQUEST", message: "Duration limits must be in ascending order." });
       data.durationLimits = durationLimits;
+    }
+
+    if (offsetStart !== undefined) {
+      if (offsetStart < 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Offset start time must be zero or greater." });
+      }
+      data.offsetStart = offsetStart;
     }
 
     if (schedule) {

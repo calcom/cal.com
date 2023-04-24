@@ -18,6 +18,7 @@ export type GetSlots = {
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
 
 const minimumOfOne = (input: number) => (input < 1 ? 1 : input);
+const minimumOfZero = (input: number) => (input < 0 ? 0 : input);
 
 function buildSlots({
   startOfInviteeDay,
@@ -45,6 +46,8 @@ function buildSlots({
   // keep the old safeguards in; may be needed.
   frequency = minimumOfOne(frequency);
   eventLength = minimumOfOne(eventLength);
+  offsetStart = minimumOfZero(offsetStart);
+
   // A day starts at 00:00 unless the startDate is the same as the current day
   const dayStart = startOfInviteeDay.isSame(startDate, "day")
     ? Math.ceil((startDate.hour() * 60 + startDate.minute()) / frequency) * frequency
