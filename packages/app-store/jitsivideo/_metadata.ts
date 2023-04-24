@@ -13,12 +13,8 @@ export const metadata = {
   logo: "/api/app-store/jitsivideo/icon.svg",
   publisher: "Cal.com",
   url: "https://jitsi.org/",
-  verified: true,
-  rating: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
-  reviews: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
   slug: "jitsi",
   title: "Jitsi Meet",
-  trending: true,
   isGlobal: false,
   email: "help@cal.com",
   appData: {
