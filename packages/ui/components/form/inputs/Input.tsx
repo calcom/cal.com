@@ -12,10 +12,10 @@ import { Eye, EyeOff, X } from "../../icon";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
-type InputProps = JSX.IntrinsicElements["input"] & { isFullWidth?: boolean };
+type InputProps = JSX.IntrinsicElements["input"] & { isFullWidth?: boolean; isStandaloneField?: boolean };
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { isFullWidth = true, ...props },
+  { isFullWidth = true, isStandaloneField = true, ...props },
   ref
 ) {
   return (
@@ -140,6 +140,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             type={type}
             placeholder={placeholder}
             isFullWidth={inputIsFullWidth}
+            isStandaloneField={false}
             className={classNames(
               className,
               "disabled:bg-muted disabled:hover:border-subtle disabled:cursor-not-allowed",
@@ -162,10 +163,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           {addOnSuffix && (
             <Addon
               isFilled={addOnFilled}
-              className={classNames(
-                "ltr:rounded-r-md ltr:border-l-0 rtl:rounded-l-md rtl:border-r-0",
-                addOnClassname
-              )}>
+              className={classNames("ltr:rounded-r-md rtl:rounded-l-md", addOnClassname)}>
               {addOnSuffix}
             </Addon>
           )}
@@ -231,10 +229,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
         addOnFilled={false}
         addOnSuffix={
           <Tooltip content={textLabel}>
-            <button
-              className="text-emphasis absolute bottom-0 h-9 ltr:right-3 rtl:left-3"
-              type="button"
-              onClick={() => toggleIsPasswordVisible()}>
+            <button className="text-emphasis h-9" type="button" onClick={() => toggleIsPasswordVisible()}>
               {isPasswordVisible ? (
                 <EyeOff className="h-4 stroke-[2.5px]" />
               ) : (
