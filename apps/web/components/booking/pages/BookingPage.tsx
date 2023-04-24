@@ -43,7 +43,7 @@ import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { trpc } from "@calcom/trpc";
 import { Button, Form, Tooltip, useCalcomTheme } from "@calcom/ui";
-import { AlertTriangle, Calendar, RefreshCw, User } from "lucide-react
+import { AlertTriangle, Calendar, RefreshCw, User } from "lucide-react";
 
 import { timeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
