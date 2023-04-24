@@ -1,10 +1,10 @@
 import type { WorkflowStep } from "@prisma/client";
 import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@prisma/client";
+import { ArrowDown, MoreHorizontal, Trash2, HelpCircle, Info } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useRef, useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
-import { ArrowDown, MoreHorizontal, Trash2, HelpCircle, Info } from "react-lucide";
 import "react-phone-number-input/style.css";
 
 import { classNames } from "@calcom/lib";
