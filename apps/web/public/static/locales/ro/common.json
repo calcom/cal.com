@@ -1759,5 +1759,6 @@
   "redirect_url_warning": "Adăugarea unei redirecționări va dezactiva pagina cu mesajul de succes. Nu uitați să menționați „Rezervare confirmată” pe pagina cu mesajul de succes personalizat.",
   "event_trends": "Tendințe eveniment",
   "clear_filters": "Ștergere filtre",
-  "hold": "Așteptare"
+  "hold": "Așteptare",
+  "on_booking_option": "Percepere plată pentru rezervare"
 }
