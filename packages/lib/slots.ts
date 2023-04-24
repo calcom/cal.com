@@ -209,7 +209,7 @@ const getSlots = ({
     return dayjs.utc(override.start).isBetween(startOfInviteeDay, startOfInviteeDay.endOf("day"), null, "[)");
   });
 
-  //find date overrides that got over midnight and part of it belongs to this day
+  //find date overrides that go over midnight and part of it belongs to this day
   const dateOverrideBelongsToNextDay = dateOverrides.filter((override) => {
     const inviteeUtcOffset = dayjs(override.end.toString()).tz(timeZone).utcOffset();
     if (dayjs.utc(override.end).isBetween(startOfInviteeDay, startOfInviteeDay.endOf("day"), null, "[)")) {
@@ -233,7 +233,7 @@ const getSlots = ({
     if (!!activeOverrides.length) {
       overrides = activeOverrides.flatMap((override) => {
         const inviteeUtcOffset = dayjs(override.start.toString()).tz(timeZone).utcOffset();
-        const scheduleUtcOffset = dayjs(override.start.toString()).tz(override.timezone).utcOffset();
+        const scheduleUtcOffset = dayjs(override.start.toString()).tz(override.timeZone).utcOffset();
 
         const endTime = dayjs.utc(override.end).add(inviteeUtcOffset, "minute");
 
