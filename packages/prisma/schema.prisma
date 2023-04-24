@@ -754,6 +754,7 @@ enum WorkflowTemplates {
 enum WorkflowMethods {
   EMAIL
   SMS
+  WHATSAPP
 }
 
 model BookingSeat {

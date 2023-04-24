@@ -19,27 +19,39 @@ function assertTwilio(twilio: TwilioClient.Twilio | undefined): asserts twilio i
   if (!twilio) throw new Error("Twilio credentials are missing from the .env file");
 }
 
-export const sendSMS = async (phoneNumber: string, body: string, sender: string) => {
+function getDefaultSender(whatsapp = false) {
+  let defaultSender = process.env.TWILIO_PHONE_NUMBER
+  if (whatsapp) {
+    defaultSender = `whatsapp:${defaultSender}`
+  }
+  return defaultSender 
+}
+
+function getSMSRecipient(phoneNumber: string, whatsapp = false) {
+  return whatsapp ? `whatsapp:${phoneNumber}` : phoneNumber;
+}
+
+export const sendSMS = async (phoneNumber: string, body: string, sender: string, whatsapp = false) => {
   assertTwilio(twilio);
   const response = await twilio.messages.create({
     body: body,
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
-    to: phoneNumber,
-    from: sender ? sender : process.env.TWILIO_PHONE_NUMBER,
+    to: getSMSRecipient(phoneNumber, whatsapp),
+    from: sender ? sender : getDefaultSender(whatsapp),
   });
 
   return response;
 };
 
-export const scheduleSMS = async (phoneNumber: string, body: string, scheduledDate: Date, sender: string) => {
+export const scheduleSMS = async (phoneNumber: string, body: string, scheduledDate: Date, sender: string, whatsapp = false) => {
   assertTwilio(twilio);
   const response = await twilio.messages.create({
     body: body,
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
-    to: phoneNumber,
+    to: getSMSRecipient(phoneNumber, whatsapp),
     scheduleType: "fixed",
     sendAt: scheduledDate,
-    from: sender ? sender : process.env.TWILIO_PHONE_NUMBER,
+    from: sender ? sender : getDefaultSender(whatsapp),
   });
 
   return response;
