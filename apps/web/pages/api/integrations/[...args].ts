@@ -4,11 +4,10 @@ import type { Session } from "next-auth";
 import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
+import { HttpError } from "@calcom/lib/http-error";
 import { revalidateCalendarCache } from "@calcom/lib/server/revalidateCalendarCache";
 import prisma from "@calcom/prisma";
 import type { AppDeclarativeHandler, AppHandler } from "@calcom/types/AppHandler";
-
-import { HttpError } from "@lib/core/http/error";
 
 const defaultIntegrationAddHandler = async ({
   slug,

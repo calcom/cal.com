@@ -1,24 +1,28 @@
-import type { I18n } from "next-i18next";
 import { RRule } from "rrule";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import type { TimeFormat } from "@calcom/lib/timeFormat";
-import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
+import { detectBrowserTimeFormat, TimeFormat } from "@calcom/lib/timeFormat";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
-import { parseZone } from "./parseZone";
+import { parseZone } from "./parse-zone";
 
-const processDate = (date: string | null | Dayjs, i18n: I18n, selectedTimeFormat?: TimeFormat) => {
+type ExtraOptions = { withDefaultTimeFormat?: boolean; selectedTimeFormat?: TimeFormat };
+
+const processDate = (date: string | null | Dayjs, language: string, options?: ExtraOptions) => {
   const parsedZone = parseZone(date);
   if (!parsedZone?.isValid()) return "Invalid date";
-  const formattedTime = parsedZone?.format(selectedTimeFormat || detectBrowserTimeFormat);
-  return formattedTime + ", " + dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" });
+  const formattedTime = parsedZone?.format(
+    options?.withDefaultTimeFormat
+      ? TimeFormat.TWELVE_HOUR
+      : options?.selectedTimeFormat || detectBrowserTimeFormat
+  );
+  return formattedTime + ", " + dayjs(date).toDate().toLocaleString(language, { dateStyle: "full" });
 };
 
-export const parseDate = (date: string | null | Dayjs, i18n: I18n, selectedTimeFormat?: TimeFormat) => {
+export const parseDate = (date: string | null | Dayjs, language: string, options?: ExtraOptions) => {
   if (!date) return ["No date"];
-  return processDate(date, i18n, selectedTimeFormat);
+  return processDate(date, language, options);
 };
 
 export const parseRecurringDates = (
@@ -28,14 +32,16 @@ export const parseRecurringDates = (
     recurringEvent,
     recurringCount,
     selectedTimeFormat,
+    withDefaultTimeFormat,
   }: {
     startDate: string | null | Dayjs;
     timeZone?: string;
     recurringEvent: RecurringEvent | null;
     recurringCount: number;
     selectedTimeFormat?: TimeFormat;
+    withDefaultTimeFormat?: boolean;
   },
-  i18n: I18n
+  language: string
 ): [string[], Date[]] => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { count, ...restRecurringEvent } = recurringEvent || {};
@@ -53,7 +59,7 @@ export const parseRecurringDates = (
   });
   const dateStrings = times.map((t) => {
     // finally; show in local timeZone again
-    return processDate(t.tz(timeZone), i18n, selectedTimeFormat);
+    return processDate(t.tz(timeZone), language, { selectedTimeFormat, withDefaultTimeFormat });
   });
 
   return [dateStrings, times.map((t) => t.toDate())];
