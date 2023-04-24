@@ -1,7 +1,7 @@
 require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-const { withSentryConfig } = require("@sentry/nextjs");
 const os = require("os");
+const glob = require("glob");
 
 const { withAxiom } = require("next-axiom");
 const { i18n } = require("./next-i18next.config");
@@ -67,6 +67,18 @@ if (process.env.ANALYZE === "true") {
 }
 
 plugins.push(withAxiom);
+
+/** Needed to rewrite public booking page, gets all static pages but [user] */
+const pages = glob
+  .sync("pages/**/[^_]*.{tsx,js,ts}", { cwd: __dirname })
+  .map((filename) =>
+    filename
+      .substr(6)
+      .replace(/(\.tsx|\.js|\.ts)/, "")
+      .replace(/\/.*/, "")
+  )
+  .filter((v, i, self) => self.indexOf(v) === i && !v.startsWith("[user]"));
+
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
@@ -98,6 +110,12 @@ const nextConfig = {
     "@calcom/ui/components/icon": {
       transform: "lucide-react/dist/esm/icons/{{ kebabCase member }}",
       preventFullImport: true,
+    },
+    "@heroicons/react/solid": {
+      transform: "@heroicons/react/solid/esm/{{ member }}",
+    },
+    "@heroicons/react/outline": {
+      transform: "@heroicons/react/outline/esm/{{ member }}",
     },
     "@calcom/features/insights/components": {
       transform: "@calcom/features/insights/components/{{member}}",
@@ -193,6 +211,16 @@ const nextConfig = {
         source: "/embed/embed.js",
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
       }, */
+      {
+        source: `/:user((?!${pages.join("|")}).*)/:type`,
+        destination: "/new-booker/:user/:type",
+        has: [{ type: "cookie", key: "new-booker-enabled" }],
+      },
+      {
+        source: "/team/:slug/:type",
+        destination: "/new-booker/team/:slug/:type",
+        has: [{ type: "cookie", key: "new-booker-enabled" }],
+      },
     ];
   },
   async headers() {
@@ -292,6 +320,11 @@ const nextConfig = {
         destination: "/api/link?action=:action&email=:email&bookingUid=:bookingUid&oldToken=:oldToken",
         permanent: true,
       },
+      {
+        source: "/support",
+        destination: "/event-types?openIntercom=true",
+        permanent: true,
+      },
     ];
 
     if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {
@@ -318,21 +351,4 @@ const nextConfig = {
   },
 };
 
-const sentryWebpackPluginOptions = {
-  silent: true, // Suppresses all logs
-};
-
-const moduleExports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
-
-if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  nextConfig.sentry = {
-    hideSourceMaps: true,
-    // Prevents Sentry from running on this Edge function, where Sentry doesn't work yet (build whould crash the api route).
-    excludeServerRoutes: [/\/api\/social\/og\/image\/?/],
-  };
-}
-
-// Sentry should be the last thing to export to catch everything right
-module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
-  ? withSentryConfig(moduleExports, sentryWebpackPluginOptions)
-  : moduleExports;
+module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);

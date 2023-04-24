@@ -26,8 +26,6 @@ export default function Router({ form, message }: inferSSRProps<typeof getServer
   );
 }
 
-Router.isThemeSupported = true;
-
 const querySchema = z
   .object({
     form: z.string(),

@@ -42,13 +42,16 @@ type UserTeams = {
   })[];
 };
 
-const checkIfUserBelongsToActiveTeam = <T extends UserTeams>(user: T): boolean =>
-  user.teams.filter((m: { team: { metadata: unknown } }) => {
-    if (!IS_TEAM_BILLING_ENABLED) return true;
+export const checkIfUserBelongsToActiveTeam = <T extends UserTeams>(user: T) =>
+  user.teams.some((m: { team: { metadata: unknown } }) => {
+    if (!IS_TEAM_BILLING_ENABLED) {
+      return true;
+    }
+
     const metadata = teamMetadataSchema.safeParse(m.team.metadata);
-    if (metadata.success && metadata.data?.subscriptionId) return true;
-    return false;
-  }).length > 0;
+
+    return metadata.success && metadata.data?.subscriptionId;
+  });
 
 const providers: Provider[] = [
   CredentialsProvider({

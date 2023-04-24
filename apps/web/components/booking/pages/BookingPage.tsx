@@ -21,6 +21,7 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { createBooking, createRecurringBooking } from "@calcom/features/bookings/lib";
 import {
   getBookingFieldsWithSystemFields,
   SystemField,
@@ -38,8 +39,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
+import { parseDate, parseRecurringDates } from "@calcom/lib/parse-dates";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { trpc } from "@calcom/trpc";
 import { Button, Form, Tooltip, useCalcomTheme } from "@calcom/ui";
@@ -47,9 +49,6 @@ import { AlertTriangle, Calendar, RefreshCw, User } from "@calcom/ui/components/
 
 import { timeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
-import createBooking from "@lib/mutations/bookings/create-booking";
-import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
-import { parseRecurringDates, parseDate } from "@lib/parseDate";
 
 import type { Gate, GateState } from "@components/Gates";
 import Gates from "@components/Gates";
@@ -252,13 +251,13 @@ const BookingPage = ({
   }
 
   useEffect(() => {
-    if (top !== window) {
+    /* if (top !== window) {
       //page_view will be collected automatically by _middleware.ts
       telemetry.event(
         telemetryEventTypes.embedView,
         collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
       );
-    }
+    } */
     reserveSlot();
     const interval = setInterval(reserveSlot, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
     return () => {
@@ -433,7 +432,6 @@ const BookingPage = ({
   // Calculate the booking date(s)
   let recurringStrings: string[] = [],
     recurringDates: Date[] = [];
-
   if (eventType.recurringEvent?.freq && recurringEventCount !== null) {
     [recurringStrings, recurringDates] = parseRecurringDates(
       {
@@ -443,7 +441,7 @@ const BookingPage = ({
         recurringCount: parseInt(recurringEventCount.toString()),
         selectedTimeFormat: timeFormat,
       },
-      i18n
+      i18n.language
     );
   }
 
@@ -554,7 +552,7 @@ const BookingPage = ({
             {showEventTypeDetails && (
               <div className="sm:border-subtle  text-default flex flex-col px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
-                  <BookingDescriptionPayment eventType={eventType} t={t} />
+                  <BookingDescriptionPayment eventType={eventType} t={t} i18n={i18n} />
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
                     <div className="dark:text-inverted text-default items-start text-sm font-medium">
                       <RefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
@@ -572,7 +570,7 @@ const BookingPage = ({
                     <div className="text-sm font-medium">
                       {isClientTimezoneAvailable &&
                         (rescheduleUid || !eventType.recurringEvent?.freq) &&
-                        `${parseDate(date, i18n, timeFormat)}`}
+                        `${parseDate(date, i18n.language, { selectedTimeFormat: timeFormat })}`}
                       {isClientTimezoneAvailable &&
                         !rescheduleUid &&
                         eventType.recurringEvent?.freq &&
@@ -602,7 +600,9 @@ const BookingPage = ({
                         <Calendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                         {isClientTimezoneAvailable &&
                           typeof booking.startTime === "string" &&
-                          parseDate(dayjs(booking.startTime), i18n, timeFormat)}
+                          parseDate(dayjs(booking.startTime), i18n.language, {
+                            selectedTimeFormat: timeFormat,
+                          })}
                       </p>
                     </div>
                   )}

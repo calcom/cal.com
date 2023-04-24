@@ -3,14 +3,15 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { EmptyScreen, showToast } from "@calcom/ui";
 import { Clock } from "@calcom/ui/components/icon";
 
 import { withQuery } from "@lib/QueryCell";
-import { HttpError } from "@lib/core/http/error";
 
+import PageWrapper from "@components/PageWrapper";
 import SkeletonLoader from "@components/availability/SkeletonLoader";
 
 export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
@@ -110,9 +111,15 @@ export default function AvailabilityPage() {
   const { t } = useLocale();
   return (
     <div>
-      <Shell heading={t("availability")} subtitle={t("configure_availability")} CTA={<NewScheduleButton />}>
+      <Shell
+        heading={t("availability")}
+        hideHeadingOnMobile
+        subtitle={t("configure_availability")}
+        CTA={<NewScheduleButton />}>
         <WithQuery success={({ data }) => <AvailabilityList {...data} />} customLoader={<SkeletonLoader />} />
       </Shell>
     </div>
   );
 }
+
+AvailabilityPage.PageWrapper = PageWrapper;

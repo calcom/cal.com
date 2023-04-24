@@ -215,14 +215,14 @@ const Route = ({
                     name="externalRedirectUrl"
                     className="border-default flex w-full flex-grow text-sm"
                     containerClassName="w-full mt-2"
-                    type="text"
+                    type="url"
                     required
                     labelSrOnly
                     value={route.action.value}
                     onChange={(e) => {
                       setRoute(route.id, { action: { ...route.action, value: e.target.value } });
                     }}
-                    placeholder="Enter External Redirect URL"
+                    placeholder="https://example.com"
                   />
                 ) : (
                   <div className="block w-full">
@@ -523,7 +523,6 @@ export default function RouteBuilder({
     />
   );
 }
-RouteBuilder.isThemeSupported = true;
 
 RouteBuilder.getLayout = (page: React.ReactElement) => {
   return (

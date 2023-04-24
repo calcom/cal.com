@@ -1,4 +1,4 @@
-import type { WebhookTriggerEvents, WorkflowReminder, Prisma } from "@prisma/client";
+import type { Prisma, WebhookTriggerEvents, WorkflowReminder } from "@prisma/client";
 import { BookingStatus, MembershipRole, WorkflowMethods } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
@@ -38,7 +38,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       user: {
         select: {
           id: true,
-          credentials: true,
+          credentials: true, // Not leaking at the moment, be careful with
           email: true,
           timeZone: true,
           name: true,
@@ -58,6 +58,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       paid: true,
       eventType: {
         select: {
+          slug: true,
           owner: true,
           teamId: true,
           recurringEvent: true,
@@ -334,7 +335,11 @@ async function handler(req: CustomRequest) {
     await sendCancelledReminders({
       workflows: bookingToDelete.eventType?.workflows,
       smsReminderNumber: bookingToDelete.smsReminderNumber,
-      evt,
+      evt: {
+        ...evt,
+        ...{ eventType: { slug: bookingToDelete.eventType.slug } },
+      },
+      hideBranding: !!bookingToDelete.eventType.owner?.hideBranding,
     });
   }
 

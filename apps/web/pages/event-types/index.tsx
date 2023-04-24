@@ -8,6 +8,7 @@ import type { FC } from "react";
 import { useEffect, useState, memo } from "react";
 import { z } from "zod";
 
+import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
@@ -16,6 +17,7 @@ import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
+import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
@@ -58,9 +60,9 @@ import {
 } from "@calcom/ui/components/icon";
 
 import { withQuery } from "@lib/QueryCell";
-import { HttpError } from "@lib/core/http/error";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
+import PageWrapper from "@components/PageWrapper";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
@@ -755,8 +757,15 @@ const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
 const EventTypesPage = () => {
   const { t } = useLocale();
   const router = useRouter();
-
+  const { open } = useIntercom();
+  const { query } = router;
   const isMobile = useMediaQuery("(max-width: 768px)");
+
+  useEffect(() => {
+    if (query?.openIntercom && query?.openIntercom === "true") {
+      open();
+    }
+  }, []);
 
   return (
     <div>
@@ -767,6 +776,7 @@ const EventTypesPage = () => {
       <Shell
         withoutSeo
         heading={t("event_types_page_title")}
+        hideHeadingOnMobile
         subtitle={t("event_types_page_subtitle")}
         CTA={<CTA />}>
         <WithQuery
@@ -816,5 +826,7 @@ const EventTypesPage = () => {
     </div>
   );
 };
+
+EventTypesPage.PageWrapper = PageWrapper;
 
 export default EventTypesPage;

@@ -9,7 +9,17 @@ import type {
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingFieldType } from "@calcom/prisma/zod-utils";
-import { PhoneInput, AddressInput, Button, Label, Group, RadioField, EmailField, Tooltip } from "@calcom/ui";
+import {
+  PhoneInput,
+  AddressInput,
+  Button,
+  Label,
+  Group,
+  RadioField,
+  EmailField,
+  Tooltip,
+  Checkbox,
+} from "@calcom/ui";
 import { UserPlus, X } from "@calcom/ui/components/icon";
 
 import { ComponentForField } from "./FormBuilder";
@@ -245,11 +255,11 @@ export const Components: Record<BookingFieldType, Component> = {
                     }
                     setValue(newValue);
                   }}
-                  className="dark:bg-darkgray-300 border-subtle border-default text-emphasis h-4 w-4 rounded focus:ring-black ltr:mr-2 rtl:ml-2"
+                  className="dark:bg-darkgray-300 border-subtle text-emphasis h-4 w-4 rounded focus:ring-black ltr:mr-2 rtl:ml-2"
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
-                <span className="dark:text-inverted ms-2 me-2 text-sm">{option.label ?? ""}</span>
+                <span className="text-emphasis ms-2 me-2 text-sm">{option.label ?? ""}</span>
               </label>
             );
           })}
@@ -304,7 +314,7 @@ export const Components: Record<BookingFieldType, Component> = {
                         type="radio"
                         disabled={readOnly}
                         name={name}
-                        className="dark:bg-darkgray-300 border-subtle border-default text-emphasis h-4 w-4 focus:ring-black ltr:mr-2 rtl:ml-2"
+                        className="dark:bg-darkgray-300 border-subtle text-emphasis h-4 w-4 focus:ring-black ltr:mr-2 rtl:ml-2"
                         value={option.value}
                         onChange={(e) => {
                           setValue({
@@ -364,8 +374,7 @@ export const Components: Record<BookingFieldType, Component> = {
     factory: ({ readOnly, label, value, setValue }) => {
       return (
         <div className="flex">
-          <input
-            type="checkbox"
+          <Checkbox
             onChange={(e) => {
               if (e.target.checked) {
                 setValue(true);
@@ -373,12 +382,11 @@ export const Components: Record<BookingFieldType, Component> = {
                 setValue(false);
               }
             }}
-            className="border-default disabled:bg-emphasis disabled:dark:text-subtle text-emphasis h-4 w-4 rounded focus:ring-black ltr:mr-2 rtl:ml-2"
             placeholder=""
             checked={value}
             disabled={readOnly}
+            description={label ?? ""}
           />
-          <Label className="text-default dark:text-inverted -mt-px block text-sm font-medium">{label}</Label>
         </div>
       );
     },
