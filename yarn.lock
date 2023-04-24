@@ -8598,13 +8598,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/engines-version@npm:4.12.0-67.659ef412370fa3b41cd7bf6e94587c1dfb7f67e7":
-  version: 4.12.0-67.659ef412370fa3b41cd7bf6e94587c1dfb7f67e7
-  resolution: "@prisma/engines-version@npm:4.12.0-67.659ef412370fa3b41cd7bf6e94587c1dfb7f67e7"
-  checksum: 54615d6982db9c50eed6132ad7ab3f32ef93f64d36b7f932b0d6109cd54028ea459293833e48b849a5dd968d934bb3cfb275b9a9172934032f95355d6f663dcf
-  languageName: node
-  linkType: hard
-
 "@prisma/engines-version@npm:4.13.0-50.1e7af066ee9cb95cf3a403c78d9aab3e6b04f37a":
   version: 4.13.0-50.1e7af066ee9cb95cf3a403c78d9aab3e6b04f37a
   resolution: "@prisma/engines-version@npm:4.13.0-50.1e7af066ee9cb95cf3a403c78d9aab3e6b04f37a"
