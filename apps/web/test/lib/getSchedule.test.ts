@@ -54,7 +54,11 @@ expect.extend({
       !schedule.slots[`${dateString}`]
         .map((slot) => slot.time)
         .every((actualSlotTime, index) => {
-          return `${dateString}T${expectedSlots[index]}` === actualSlotTime;
+          if (expectedSlots[index].length < "00:00:00.000Z".length + 1) {
+            return `${dateString}T${expectedSlots[index]}` === actualSlotTime;
+          } else {
+            return expectedSlots[index] === actualSlotTime;
+          }
         })
     ) {
       return {
@@ -76,6 +80,7 @@ expect.extend({
 const Timezones = {
   "+5:30": "Asia/Kolkata",
   "+6:00": "Asia/Dhaka",
+  "+0:00": "Atlantic/Azores",
 };
 
 const TestData = {
@@ -126,6 +131,29 @@ const TestData = {
         },
       ],
       timeZone: Timezones["+5:30"],
+    }),
+    IstWorkHoursWithFullDayDateOverride: (dateString: string) => ({
+      id: 1,
+      name: "12:00PM to 11:00PM in GMT but with a full day date override",
+      availability: [
+        {
+          userId: null,
+          eventTypeId: null,
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: "1970-01-01T12:00:00.000Z",
+          endTime: "1970-01-01T23:00:00.000Z",
+          date: null,
+        },
+        {
+          userId: null,
+          eventTypeId: null,
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: `1970-01-01T00:00:00.000Z`,
+          endTime: `1970-01-01T00:00:00.000Z`,
+          date: dateString,
+        },
+      ],
+      timeZone: Timezones["+0:00"],
     }),
   },
   users: {
@@ -804,6 +832,74 @@ describe("getSchedule", () => {
       );
     });
 
+    test("that date overrides with unavailable on a whole day shows the correct slots", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+
+      const scenarioData = {
+        eventTypes: [
+          {
+            id: 1,
+            length: 60,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHoursWithFullDayDateOverride(plus2DateString)],
+          },
+        ],
+        hosts: [],
+      };
+
+      createBookingScenario(scenarioData);
+
+      // Unavailable whole day
+      const scheduleForEventOnADayWithDateOverride = await getSchedule(
+        {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus2DateString}T00:00:00.000Z`,
+          endTime: `${plus2DateString}T23:59:59.999Z`,
+          timeZone: Timezones["+0:00"],
+        },
+        ctx
+      );
+
+      expect(scheduleForEventOnADayWithDateOverride.slots).toEqual({});
+
+      const scheduleForEventOnADayWithDateOverrideDifferentTimeZone = await getSchedule(
+        {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus2DateString}T00:00:00.000Z`,
+          endTime: `${plus2DateString}T23:59:59.999Z`,
+          timeZone: Timezones["+6:00"],
+        },
+        ctx
+      );
+
+      // 05-25 18:00-24:00 & 05-26 00:00-18:00 => UTC
+      expect(scheduleForEventOnADayWithDateOverrideDifferentTimeZone).toHaveTimeSlots(
+        [
+          `${plus1DateString}T18:00:00.000Z`,
+          `${plus1DateString}T19:00:00.000Z`,
+          `${plus1DateString}T20:00:00.000Z`,
+          `${plus1DateString}T21:00:00.000Z`,
+          `${plus1DateString}T22:00:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
+
     test("that a user is considered busy when there's a booking they host", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
@@ -869,8 +965,8 @@ describe("getSchedule", () => {
         ],
       });
 
-      // Requesting this user's availability for their
-      // individual Event Type
+      //   // Requesting this user's availability for their
+      //   // individual Event Type
       const thisUserAvailability = await getSchedule(
         {
           eventTypeId: 2,

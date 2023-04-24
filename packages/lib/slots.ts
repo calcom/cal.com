@@ -300,11 +300,7 @@ const getSlots = ({
             - override belongs to the day before or day after
             - availability is from the day day before or day after
         */
-        if (
-          !override.belongsToDifferentDay &&
-          computedLocalAvailability[i].startTime - offset >= 0 &&
-          computedLocalAvailability[i].endTime - offset < 1440
-        ) {
+        if (!override.belongsToDifferentDay && computedLocalAvailability[i].startTime - offset >= 0) {
           indexes.push(i);
         }
       }
