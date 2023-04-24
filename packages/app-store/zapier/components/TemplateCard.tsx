@@ -4,7 +4,7 @@ import type { Template } from "./AppSettingsInterface";
 
 export default function TemplateCard({ template }: { template: Template }) {
   return (
-    <div className="min-h-16 sticky flex flex-col justify-between gap-4 rounded-md border border-gray-200 bg-white p-5">
+    <div className="min-h-16 bg-default border-subtle sticky flex flex-col justify-between gap-4 rounded-md border p-5">
       <div className="flex items-start justify-start">
         <div>
           <div className="mr-4 flex h-12 w-12 items-center justify-center rounded-md p-1">
@@ -13,8 +13,8 @@ export default function TemplateCard({ template }: { template: Template }) {
         </div>
         <div className="mr-4">
           <div>
-            <p className="truncate text-sm font-medium leading-4 text-gray-900">{template.app}</p>
-            <p className="mt-[2px] text-sm text-gray-500">{template.text}</p>
+            <p className="text-emphasis truncate text-sm font-medium leading-4">{template.app}</p>
+            <p className="text-subtle mt-[2px] text-sm">{template.text}</p>
           </div>
         </div>
       </div>

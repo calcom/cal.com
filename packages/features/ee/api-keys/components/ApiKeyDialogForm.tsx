@@ -3,11 +3,11 @@ import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
-import LicenseRequired from "@calcom/ee/common/components/v2/LicenseRequired";
+import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, DatePicker, DialogFooter, Form, showToast, Switch, TextField, Tooltip } from "@calcom/ui";
-import { FiClipboard } from "@calcom/ui/components/icon";
+import { Clipboard } from "@calcom/ui/components/icon";
 
 export default function ApiKeyDialogForm({
   defaultValues,
@@ -52,17 +52,17 @@ export default function ApiKeyDialogForm({
       {successfulNewApiKeyModal ? (
         <>
           <div className="mb-10">
-            <h2 className="font-semi-bold font-cal mb-2 text-xl tracking-wide text-gray-900">
+            <h2 className="font-semi-bold font-cal text-emphasis mb-2 text-xl tracking-wide">
               {t("success_api_key_created")}
             </h2>
-            <div className="text-sm text-gray-900">
+            <div className="text-emphasis text-sm">
               <span className="font-semibold">{t("success_api_key_created_bold_tagline")}</span>{" "}
               {t("you_will_only_view_it_once")}
             </div>
           </div>
           <div>
             <div className="flex">
-              <code className="mb-2 w-full truncate rounded-md rounded-r-none bg-gray-100 py-[6px] pl-2 pr-2 align-middle font-mono text-gray-800">
+              <code className="bg-subtle text-default mb-2 w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
                 {" "}
                 {apiKey}
               </code>
@@ -74,12 +74,12 @@ export default function ApiKeyDialogForm({
                   }}
                   type="button"
                   className="rounded-l-none py-[19px] text-base ">
-                  <FiClipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
+                  <Clipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
                   {t("copy")}
                 </Button>
               </Tooltip>
             </div>
-            <span className="text-sm text-gray-400">
+            <span className="text-muted text-sm">
               {apiKeyDetails.neverExpires
                 ? t("never_expire_key")
                 : `${t("expires")} ${apiKeyDetails?.expiresAt?.toLocaleDateString()}`}
@@ -108,10 +108,10 @@ export default function ApiKeyDialogForm({
           }}
           className="space-y-4">
           <div className="mt-1 mb-10">
-            <h2 className="font-semi-bold font-cal text-xl tracking-wide text-gray-900">
+            <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
               {defaultValues ? t("edit_api_key") : t("create_api_key")}
             </h2>
-            <p className="mt-1 mb-5 text-sm text-gray-500">{t("api_key_modal_subtitle")}</p>
+            <p className="text-subtle mt-1 mb-5 text-sm">{t("api_key_modal_subtitle")}</p>
           </div>
           <div>
             <Controller
@@ -134,7 +134,7 @@ export default function ApiKeyDialogForm({
           {!defaultValues && (
             <div className="flex flex-col">
               <div className="flex justify-between py-2">
-                <span className="block text-sm font-medium text-gray-700">{t("expire_date")}</span>
+                <span className="text-default block text-sm font-medium">{t("expire_date")}</span>
                 <Controller
                   name="neverExpires"
                   control={form.control}

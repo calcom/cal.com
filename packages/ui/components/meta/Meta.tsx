@@ -1,5 +1,6 @@
 import Head from "next/head";
-import React, { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import type { ReactNode } from "react";
 
 import { APP_NAME } from "@calcom/lib/constants";
 
@@ -7,7 +8,7 @@ type MetaType = {
   title: string;
   description: string;
   backButton?: boolean;
-  CTA?: React.ReactNode;
+  CTA?: ReactNode;
 };
 
 const initialMeta: MetaType = {
@@ -27,7 +28,7 @@ export function useMeta() {
   return useContext(MetaContext);
 }
 
-export function MetaProvider({ children }: { children: React.ReactNode }) {
+export function MetaProvider({ children }: { children: ReactNode }) {
   const [value, setValue] = useState(initialMeta);
   const setMeta = (newMeta: Partial<MetaType>) => {
     setValue((v) => ({ ...v, ...newMeta }));

@@ -11,7 +11,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import { AnimatedPopover, Avatar, CreateButton, showToast } from "@calcom/ui";
 
-import LicenseRequired from "../../common/components/v2/LicenseRequired";
+import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderList";
 import type { WorkflowType } from "../components/WorkflowListPage";
 import WorkflowList from "../components/WorkflowListPage";
@@ -79,9 +79,7 @@ function WorkflowsPage() {
     }
   }, [session.status, query.isLoading, allWorkflowsData]);
 
-  if (!query.data) return null;
-
-  const profileOptions = query.data.profiles
+  const profileOptions = query?.data?.profiles
     .filter((profile) => !profile.readOnly)
     .map((profile) => {
       return {
@@ -97,11 +95,13 @@ function WorkflowsPage() {
       heading={t("workflows")}
       title={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
+      hideHeadingOnMobile
       CTA={
-        query.data.profiles.length === 1 &&
+        query?.data?.profiles.length === 1 &&
         session.data?.hasValidLicense &&
         allWorkflowsData?.workflows &&
-        allWorkflowsData?.workflows.length > 0 ? (
+        allWorkflowsData?.workflows.length &&
+        profileOptions ? (
           <CreateButton
             subtitle={t("new_workflow_subtitle").toUpperCase()}
             options={profileOptions}
@@ -111,40 +111,42 @@ function WorkflowsPage() {
             isLoading={createMutation.isLoading}
             disableMobileButton={true}
           />
-        ) : (
-          <></>
-        )
+        ) : null
       }>
       <LicenseRequired>
         {isLoading ? (
           <SkeletonLoader />
         ) : (
           <>
-            {query.data.profiles.length > 1 &&
-              allWorkflowsData?.workflows &&
-              allWorkflowsData.workflows.length > 0 && (
-                <div className="mb-4 flex">
-                  <Filter
-                    profiles={query.data.profiles}
-                    checked={checkedFilterItems}
-                    setChecked={setCheckedFilterItems}
+            {query?.data?.profiles &&
+            query?.data?.profiles.length > 1 &&
+            allWorkflowsData?.workflows &&
+            allWorkflowsData.workflows.length &&
+            profileOptions ? (
+              <div className="mb-4 flex">
+                <Filter
+                  profiles={query.data.profiles}
+                  checked={checkedFilterItems}
+                  setChecked={setCheckedFilterItems}
+                />
+                <div className="ml-auto">
+                  <CreateButton
+                    subtitle={t("new_workflow_subtitle").toUpperCase()}
+                    options={profileOptions}
+                    createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
+                    isLoading={createMutation.isLoading}
+                    disableMobileButton={true}
                   />
-                  <div className="ml-auto">
-                    <CreateButton
-                      subtitle={t("new_workflow_subtitle").toUpperCase()}
-                      options={profileOptions}
-                      createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
-                      isLoading={createMutation.isLoading}
-                      disableMobileButton={true}
-                    />
-                  </div>
                 </div>
-              )}
-            <WorkflowList
-              workflows={filteredWorkflows}
-              profileOptions={profileOptions}
-              hasNoWorkflows={!allWorkflowsData?.workflows || allWorkflowsData?.workflows.length === 0}
-            />
+              </div>
+            ) : null}
+            {profileOptions && profileOptions?.length ? (
+              <WorkflowList
+                workflows={filteredWorkflows}
+                profileOptions={profileOptions}
+                hasNoWorkflows={!allWorkflowsData?.workflows || allWorkflowsData?.workflows.length === 0}
+              />
+            ) : null}
           </>
         )}
       </LicenseRequired>
@@ -185,7 +187,7 @@ const Filter = (props: {
   return (
     <div className={classNames("-mb-2", noFilter ? "w-16" : "w-[100px]")}>
       <AnimatedPopover text={noFilter ? "All" : "Filtered"}>
-        <div className="item-center flex px-4 py-[6px] focus-within:bg-gray-100 hover:cursor-pointer hover:bg-gray-50">
+        <div className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] hover:cursor-pointer">
           <Avatar
             imageSrc={userAvatar || ""}
             size="sm"
@@ -196,14 +198,14 @@ const Filter = (props: {
           />
           <label
             htmlFor="yourWorkflows"
-            className="ml-2 mr-auto self-center truncate text-sm font-medium text-gray-700">
+            className="text-default ml-2 mr-auto self-center truncate text-sm font-medium">
             {user}
           </label>
 
           <input
             id="yourWorkflows"
             type="checkbox"
-            className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-gray-300 "
+            className="text-primary-600 focus:ring-primary-500 border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
             checked={!!checked.userId}
             onChange={(e) => {
               if (e.target.checked) {
@@ -221,7 +223,7 @@ const Filter = (props: {
         </div>
         {teams.map((profile) => (
           <div
-            className="item-center flex px-4 py-[6px] focus-within:bg-gray-100 hover:cursor-pointer hover:bg-gray-50"
+            className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] hover:cursor-pointer"
             key={`${profile.teamId || 0}`}>
             <Avatar
               imageSrc={profile.image || ""}
@@ -233,7 +235,7 @@ const Filter = (props: {
             />
             <label
               htmlFor={profile.slug || ""}
-              className="ml-2 mr-auto select-none self-center truncate text-sm font-medium text-gray-700 hover:cursor-pointer">
+              className="text-default ml-2 mr-auto select-none self-center truncate text-sm font-medium hover:cursor-pointer">
               {profile.slug}
             </label>
 
@@ -268,7 +270,7 @@ const Filter = (props: {
                   }
                 }
               }}
-              className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-gray-300 "
+              className="text-primary-600 focus:ring-primary-500 border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
             />
           </div>
         ))}

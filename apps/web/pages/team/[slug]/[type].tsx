@@ -2,6 +2,8 @@ import type { GetServerSidePropsContext } from "next";
 
 import type { LocationObject } from "@calcom/core/location";
 import { privacyFilteredLocations } from "@calcom/core/location";
+import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
+import getBooking from "@calcom/features/bookings/lib/get-booking";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -9,11 +11,10 @@ import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
-import type { GetBookingType } from "@lib/getBooking";
-import getBooking from "@lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
+import PageWrapper from "@components/PageWrapper";
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
 import { ssgInit } from "@server/lib/ssg";
@@ -23,7 +24,9 @@ export type AvailabilityTeamPageProps = inferSSRProps<typeof getServerSideProps>
 export default function TeamType(props: AvailabilityTeamPageProps) {
   return <AvailabilityPage {...props} />;
 }
-TeamType.isThemeSupported = true;
+
+TeamType.isBookingPage = true;
+TeamType.PageWrapper = PageWrapper;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const slugParam = asStringOrNull(context.query.slug);

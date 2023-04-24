@@ -85,13 +85,13 @@ export const viewerTeamsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { slug, name, logo } = input;
 
-      const nameCollisions = await ctx.prisma.team.findFirst({
+      const slugCollisions = await ctx.prisma.team.findFirst({
         where: {
           slug: slug,
         },
       });
 
-      if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "Team name already taken." });
+      if (slugCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "team_url_taken" });
 
       // Ensure that the user is not duplicating a requested team
       const duplicatedRequest = await ctx.prisma.team.findFirst({
@@ -269,6 +269,11 @@ export const viewerTeamsRouter = router({
         include: {
           user: true,
         },
+      });
+
+      // Deleted managed event types from this team from this member
+      await ctx.prisma.eventType.deleteMany({
+        where: { parent: { teamId: input.teamId }, userId: membership.userId },
       });
 
       // Sync Services
@@ -515,6 +520,7 @@ export const viewerTeamsRouter = router({
         include: {
           user: {
             select: {
+              credentials: true, // needed for getUserAvailability
               ...availabilityUserSelect,
             },
           },
@@ -586,21 +592,6 @@ export const viewerTeamsRouter = router({
           disableImpersonation: input.disableImpersonation,
         },
       });
-    }),
-  validateTeamSlug: authedProcedure
-    .input(
-      z.object({
-        slug: z.string(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      const team = await ctx.prisma.team.findFirst({
-        where: {
-          slug: input.slug,
-        },
-      });
-
-      return !team;
     }),
   publish: authedProcedure
     .input(
@@ -706,7 +697,7 @@ export const viewerTeamsRouter = router({
                 select: {
                   id: true,
                   name: true,
-                  avatar: true,
+                  username: true,
                 },
               },
             },

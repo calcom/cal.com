@@ -130,6 +130,21 @@ export const isNextDayInTimezone = (time: string, timezoneA: string, timezoneB: 
   return hoursTimezoneBIsEarlier && timezoneBIsLaterTimezone;
 };
 
+const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
+type WeekDays = (typeof weekDays)[number];
+type WeekDayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+/**
+ * Turns weekday string (eg "Monday") into a number (eg 1).
+ * Also accepts a number as parameter (and straight returns that), and accepts
+ * undefined as a parameter; returns 0 in that case.
+ */
+export const weekdayToWeekIndex = (weekday: WeekDays | string | number | undefined) => {
+  if (typeof weekday === "undefined") return 0;
+  if (typeof weekday === "number") return weekday >= 0 && weekday >= 6 ? (weekday as WeekDayIndex) : 0;
+  return (weekDays.indexOf(weekday as WeekDays) as WeekDayIndex) || 0;
+};
+
 /**
  * Dayjs does not expose the timeZone value publicly through .get("timeZone")
  * instead, we as devs are required to somewhat hack our way to get the

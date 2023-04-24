@@ -1,9 +1,9 @@
-import dayjs from "@calcom/dayjs";
+import type dayjs from "@calcom/dayjs";
 
 export const VeritcalLines = ({ days }: { days: dayjs.Dayjs[] }) => {
   return (
     <div
-      className="col-start-1 col-end-2 row-start-1 grid auto-cols-auto grid-rows-1 divide-x divide-gray-300
+      className="divide-subtle col-start-1 col-end-2 row-start-1 grid auto-cols-auto grid-rows-1 divide-x
        sm:pr-8">
       {days.map((_, i) => (
         <div

@@ -6,13 +6,13 @@ import appStore from "..";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
 
-export const getCalendar = (credential: CredentialPayload | null): Calendar | null => {
+export const getCalendar = async (credential: CredentialPayload | null): Promise<Calendar | null> => {
   if (!credential || !credential.key) return null;
   let { type: calendarType } = credential;
   if (calendarType?.endsWith("_other_calendar")) {
     calendarType = calendarType.split("_other_calendar")[0];
   }
-  const calendarApp = appStore[calendarType.split("_").join("") as keyof typeof appStore];
+  const calendarApp = await appStore[calendarType.split("_").join("") as keyof typeof appStore];
   if (!(calendarApp && "lib" in calendarApp && "CalendarService" in calendarApp.lib)) {
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;

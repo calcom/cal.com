@@ -24,7 +24,7 @@ jobs:
       - name: Analyze bundle
         run: |
           cd apps/web
-          npx -p nextjs-bundle-analysis report
+          npx -p nextjs-bundle-analysis@0.5.0 report
 
       - name: Upload bundle
         uses: actions/upload-artifact@v2
@@ -76,7 +76,7 @@ jobs:
         id: fc
         with:
           issue-number: ${{ github.event.number }}
-          body-includes: "<!-- __NEXTJS_BUNDLE -->"
+          body-includes: "<!-- __NEXTJS_BUNDLE_@calcom/web -->"
 
       - name: Create Comment
         uses: peter-evans/create-or-update-comment@v1.4.4

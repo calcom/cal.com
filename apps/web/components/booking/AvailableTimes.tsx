@@ -10,6 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { nameOfDay } from "@calcom/lib/weekday";
+import { trpc } from "@calcom/trpc/react";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots";
 import { SkeletonContainer, SkeletonText, ToggleGroup } from "@calcom/ui";
 
@@ -28,6 +29,7 @@ type AvailableTimesProps = {
   slots?: Slot[];
   isLoading: boolean;
   ethSignature?: string;
+  duration: number;
 };
 
 const AvailableTimes: FC<AvailableTimesProps> = ({
@@ -42,7 +44,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   seatsPerTimeSlot,
   bookingAttendees,
   ethSignature,
+  duration,
 }) => {
+  const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
   const { t, i18n } = useLocale();
   const router = useRouter();
@@ -63,16 +67,24 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     [isMobile]
   );
 
+  const reserveSlot = (slot: Slot) => {
+    reserveSlotMutation.mutate({
+      slotUtcStartDate: slot.time,
+      eventTypeId,
+      slotUtcEndDate: dayjs(slot.time).utc().add(duration, "minutes").format(),
+    });
+  };
+
   return (
     <div ref={slotPickerRef}>
       {!!date ? (
-        <div className="dark:bg-darkgray-100 mt-8 flex h-full w-full flex-col rounded-md px-4 text-center sm:mt-0 sm:p-4 md:-mb-5 md:min-w-[200px] md:p-4 lg:min-w-[300px]">
+        <div className="mt-8 flex h-full w-full flex-col rounded-md px-4 text-center sm:mt-0 sm:p-4 md:-mb-5 md:min-w-[200px] md:p-4 lg:min-w-[300px]">
           <div className="mb-4 flex items-center text-left text-base">
             <div className="mr-4">
-              <span className="text-bookingdarker dark:text-darkgray-800 font-semibold text-gray-900">
+              <span className="text-emphasis font-semibold">
                 {nameOfDay(i18n.language, Number(date.format("d")), "short")}
               </span>
-              <span className="text-bookinglight">
+              <span className="text-subtle">
                 , {date.toDate().toLocaleString(i18n.language, { month: "short" })} {date.format(" D ")}
               </span>
             </div>
@@ -132,7 +144,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                     {seatsPerTimeSlot && slot.attendees && (slotFull || notEnoughSeats) ? (
                       <div
                         className={classNames(
-                          "text-primary-500 dark:bg-darkgray-200 dark:text-darkgray-900 mb-2 block rounded-sm border bg-white py-2 font-medium opacity-25 dark:border-transparent ",
+                          "text-default bg-default border-subtle mb-2 block rounded-sm border py-2 font-medium opacity-25",
                           brand === "#fff" || brand === "#ffffff" ? "" : ""
                         )}>
                         {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
@@ -147,10 +159,10 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                         href={bookingUrl}
                         prefetch={false}
                         className={classNames(
-                          "hover:bg-brand hover:border-brand hover:text-brandcontrast dark:hover:text-darkmodebrandcontrast",
-                          "dark:bg-darkgray-200 dark:hover:bg-darkmodebrand dark:hover:border-darkmodebrand dark:text-darkgray-800 mb-2 block rounded-md border bg-white py-2 text-sm font-medium dark:border-transparent",
+                          " bg-default dark:bg-muted border-default hover:bg-subtle hover:border-brand-default text-emphasis mb-2 block rounded-md border py-2 text-sm font-medium",
                           brand === "#fff" || brand === "#ffffff" ? "" : ""
                         )}
+                        onClick={() => reserveSlot(slot)}
                         data-testid="time">
                         {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
                         {!!seatsPerTimeSlot && (
@@ -174,7 +186,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
 
             {!isLoading && !slots.length && (
               <div className="-mt-4 flex h-full w-full flex-col content-center items-center justify-center">
-                <h1 className="my-6 text-xl text-black dark:text-white">{t("all_booked_today")}</h1>
+                <h1 className="text-emphasis my-6 text-xl">{t("all_booked_today")}</h1>
               </div>
             )}
 
