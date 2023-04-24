@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
+import { testBothBookers } from "./lib/new-booker";
 import {
   bookFirstEvent,
   bookOptinEvent,
@@ -12,7 +13,7 @@ import {
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => users.deleteAll());
 
-test.describe("free user", () => {
+testBothBookers.describe("free user", (bookerVariant) => {
   test.beforeEach(async ({ page, users }) => {
     const free = await users.create();
     await page.goto(`/${free.username}`);
@@ -24,12 +25,18 @@ test.describe("free user", () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    // Navigate to book page
-    await page.waitForNavigation({
-      url(url) {
-        return url.pathname.endsWith("/book");
-      },
-    });
+    // Kept in if statement here, since it's only temporary
+    // until the old booker isn't used anymore, and I wanted
+    // to change the test as little as possible.
+    // eslint-disable-next-line playwright/no-conditional-in-test
+    if (bookerVariant !== "new-booker") {
+      // Navigate to book page
+      await page.waitForNavigation({
+        url(url) {
+          return url.pathname.endsWith("/book");
+        },
+      });
+    }
 
     // save booking url
     const bookingUrl: string = page.url();
@@ -51,7 +58,7 @@ test.describe("free user", () => {
   });
 });
 
-test.describe("pro user", () => {
+testBothBookers.describe("pro user", () => {
   test.beforeEach(async ({ page, users }) => {
     const pro = await users.create();
     await page.goto(`/${pro.username}`);
