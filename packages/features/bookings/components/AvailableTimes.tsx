@@ -32,7 +32,7 @@ export const AvailableTimes = ({
 
   return (
     <div className={classNames("dark:text-white", className)}>
-      <header className="bg-muted before:bg-muted sticky top-0 left-0 z-10 mb-8 flex w-full flex-row items-center before:absolute before:-top-12 before:h-24 before:w-full md:flex-col md:items-start lg:flex-row lg:items-center">
+      <header className="bg-muted before:bg-muted sticky top-0 left-0 z-10 mb-8 flex w-full flex-row items-center font-medium before:absolute before:-top-12 before:h-24 before:w-full md:flex-col md:items-start lg:flex-row lg:items-center">
         <span className="relative z-10">
           <span className="text-text font-semibold">
             {nameOfDay(i18n.language, Number(date.format("d")), "short")},
