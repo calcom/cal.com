@@ -35,5 +35,7 @@ export type EventTypeAppCardComponentProps = {
     URL: string;
   };
   app: RouterOutputs["viewer"]["apps"][number];
+  disabled?: boolean;
+  LockedIcon?: JSX.Element | false;
 };
 export type EventTypeAppCardComponent = React.FC<EventTypeAppCardComponentProps>;

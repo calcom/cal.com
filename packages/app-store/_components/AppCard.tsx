@@ -19,6 +19,7 @@ export default function AppCard({
   setAppData,
   returnTo,
   eventTypeId,
+  LockedIcon,
 }: {
   app: RouterOutputs["viewer"]["apps"][number];
   description?: React.ReactNode;
@@ -29,6 +30,7 @@ export default function AppCard({
   setAppData: SetAppDataGeneric<typeof eventTypeAppCardZod>;
   returnTo?: string;
   eventTypeId?: number;
+  LockedIcon?: React.ReactNode;
 }) {
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -54,6 +56,7 @@ export default function AppCard({
             <div className="ml-auto flex items-center">
               <Switch
                 disabled={!app.enabled || disableSwitch}
+                LockedIcon={LockedIcon}
                 onCheckedChange={(enabled) => {
                   if (switchOnClick) {
                     switchOnClick(enabled);

@@ -21,14 +21,9 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   // const installedApps = [];
   const allAppsData = methods.watch("metadata")?.apps || {};
 
-  const { data: eventTypeApps, isLoading } = trpc.viewer.appsRouter.getEventTypeApps.useQuery(
-    { eventTypeId: eventType.id },
-    {
-      onSuccess: (data) => {
-        console.log("🚀 ~ file: EventAppsTab.tsx:25 ~ EventAppsTab ~ query:", data);
-      },
-    }
-  );
+  const { data: eventTypeApps, isLoading } = trpc.viewer.appsRouter.getEventTypeApps.useQuery({
+    eventTypeId: eventType.id,
+  });
 
   const setAllAppsData = (_allAppsData: typeof allAppsData) => {
     methods.setValue("metadata", {
@@ -107,6 +102,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               key={app.slug}
               app={app}
               eventType={eventType}
+              {...shouldLockDisableProps("apps")}
             />
           ))}
         </div>

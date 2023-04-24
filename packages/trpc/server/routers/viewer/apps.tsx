@@ -380,7 +380,7 @@ export const appsRouter = router({
       const eventTypeAppsMetadataObject = eventTypeMetadataQuery as { metadata: any };
 
       let eventTypeAppsMetadata: any = {};
-      if ("apps" in eventTypeAppsMetadataObject.metadata) {
+      if (eventTypeAppsMetadataObject.metadata && "apps" in eventTypeAppsMetadataObject.metadata) {
         eventTypeAppsMetadata = eventTypeAppsMetadataObject.metadata.apps as object;
       }
 
