@@ -38,6 +38,7 @@ import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
+import { tracer, context } from '@calcom/lib/server/OTEL-initializer';
 import slugify from "@calcom/lib/slugify";
 import {
   deleteWebUser as syncServicesDeleteWebUser,
@@ -63,13 +64,16 @@ import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
 import { workflowsRouter } from "./viewer/workflows";
 
+
 // things that unauthenticated users can query about themselves
 const publicViewerRouter = router({
   session: publicProcedure.query(({ ctx }) => {
     return ctx.session;
   }),
   i18n: publicProcedure.query(async ({ ctx }) => {
+    const span = tracer.startSpan('i18n-handler', undefined, context.active());
     const { locale, i18n } = await getLocale(ctx);
+    span.end();
 
     return {
       i18n,

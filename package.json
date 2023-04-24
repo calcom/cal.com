@@ -93,6 +93,11 @@
     "typescript": "^4.9.4"
   },
   "dependencies": {
+    "@opentelemetry/api": "^1.4.1",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.38.0",
+    "@opentelemetry/resources": "^1.12.0",
+    "@opentelemetry/sdk-trace-base": "^1.12.0",
+    "@opentelemetry/semantic-conventions": "^1.12.0",
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
     "lucide-react": "^0.130.0",
