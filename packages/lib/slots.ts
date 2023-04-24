@@ -251,7 +251,7 @@ const getSlots = ({
             dayjs.utc(override.start).add(inviteeUtcOffset, "minute").hour() * 60 +
             dayjs.utc(override.start).utc().add(inviteeUtcOffset, "minute").minute(),
           endTime:
-            dayjs.utc(override.start).utc().add(inviteeUtcOffset, "minute").hour() <
+            dayjs.utc(override.start).utc().add(inviteeUtcOffset, "minute").hour() <=
             endTimeWithCorrectMidnight.hour()
               ? endTimeWithCorrectMidnight.hour() * 60 + endTimeWithCorrectMidnight.minute()
               : 24 * 60,
