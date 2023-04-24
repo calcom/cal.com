@@ -1649,5 +1649,7 @@
   "invalid_event_name_variables": "Es gibt eine ungültige Variable in Ihrem Terminnamen",
   "select_all": "Alle auswählen",
   "default_conferencing_bulk_title": "Massenaktualisierung vorhandener Termintypen",
-  "default_conferencing_bulk_description": "Orte für die ausgewählten Termintypen aktualisieren"
+  "default_conferencing_bulk_description": "Orte für die ausgewählten Termintypen aktualisieren",
+  "imprint": "Impressum",
+  "privacy": "Datenschutz"
 }
