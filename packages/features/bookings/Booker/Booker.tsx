@@ -132,7 +132,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
               <BookerSection area="meta" className="max-w-screen w-full md:w-[var(--booker-meta-width)]">
                 <EventMeta />
                 {layout !== "small_calendar" && !(layout === "mobile" && bookerState === "booking") && (
-                  <div className=" mt-auto p-6">
+                  <div className=" mt-auto p-5">
                     <DatePicker />
                   </div>
                 )}
@@ -142,7 +142,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             <BookerSection
               key="book-event-form"
               area="main"
-              className="border-subtle sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
+              className="border-subtle sticky top-0 ml-[-1px] h-full p-5 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInUp}
               visible={bookerState === "booking"}>
               <BookEventForm onCancel={() => setSelectedTimeslot(null)} />
@@ -154,7 +154,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
               visible={bookerState !== "booking" && layout === "small_calendar"}
               {...fadeInUp}
               initial="visible"
-              className="md:border-subtle ml-[-1px] h-full flex-shrink p-6 md:border-l lg:w-[var(--booker-main-width)]">
+              className="md:border-subtle ml-[-1px] h-full flex-shrink p-5 md:border-l lg:w-[var(--booker-main-width)]">
               <DatePicker />
             </BookerSection>
 
@@ -178,7 +178,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
                 (layout === "large_timeslots" && bookerState !== "booking")
               }
               className={classNames(
-                "border-subtle flex h-full w-full flex-row p-6 pb-0 md:border-l",
+                "border-subtle flex h-full w-full flex-row p-5 pb-0 md:border-l",
                 layout === "small_calendar" && "h-full overflow-auto md:w-[var(--booker-timeslots-width)]",
                 layout !== "small_calendar" && "sticky top-0"
               )}
