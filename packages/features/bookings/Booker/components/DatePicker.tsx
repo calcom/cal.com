@@ -41,6 +41,7 @@ export const DatePicker = () => {
         }}
         onMonthChange={(date: Dayjs) => {
           setMonth(date.format("YYYY-MM"));
+          setSelectedDate(date.format("YYYY-MM-DD"));
         }}
         includedDates={nonEmptyScheduleDays}
         locale={i18n.language}
