@@ -260,7 +260,6 @@ const getSlots = ({
     }
 
     if (!!dateOverrideBelongsToNextDay.length) {
-      console.log("here we are");
       const addditonalOverrides = dateOverrideBelongsToNextDay.flatMap((override) => {
         const inviteeUtcOffset = dayjs(override.start.toString()).tz(timeZone).utcOffset();
         const scheduleUtcOffset = dayjs(override.start.toString()).tz(override.timezone).utcOffset();
