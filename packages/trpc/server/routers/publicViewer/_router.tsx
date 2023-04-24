@@ -1,5 +1,6 @@
 import { publicProcedure, router } from "../../trpc";
 import { slotsRouter } from "../viewer/slots/_router";
+import { ZEventInputSchema } from "./event.schema";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
 
@@ -10,6 +11,7 @@ type PublicViewerRouterHandlerCache = {
   samlTenantProduct?: typeof import("./samlTenantProduct.handler").samlTenantProductHandler;
   stripeCheckoutSession?: typeof import("./stripeCheckoutSession.handler").stripeCheckoutSessionHandler;
   cityTimezones?: typeof import("./cityTimezones.handler").cityTimezonesHandler;
+  event?: typeof import("./event.handler").eventHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: PublicViewerRouterHandlerCache = {};
@@ -120,4 +122,19 @@ export const publicViewerRouter = router({
 
   // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
+  event: publicProcedure.input(ZEventInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.event) {
+      UNSTABLE_HANDLER_CACHE.event = await import("./event.handler").then((mod) => mod.eventHandler);
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.event) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.event({
+      ctx,
+      input,
+    });
+  }),
 });
