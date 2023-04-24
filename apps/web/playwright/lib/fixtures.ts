@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import { test as base } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
@@ -10,6 +11,7 @@ import { createServersFixture } from "../fixtures/servers";
 import { createUsersFixture } from "../fixtures/users";
 
 export interface Fixtures {
+  page: Page;
   users: ReturnType<typeof createUsersFixture>;
   bookings: ReturnType<typeof createBookingsFixture>;
   payments: ReturnType<typeof createPaymentsFixture>;

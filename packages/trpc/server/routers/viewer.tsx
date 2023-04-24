@@ -25,6 +25,7 @@ import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
+import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
@@ -160,6 +161,17 @@ const publicViewerRouter = router({
       }
     }),
   slots: slotsRouter,
+  event: publicProcedure
+    .input(
+      z.object({
+        username: z.string(),
+        eventSlug: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const event = await getPublicEvent(input.username, input.eventSlug, ctx.prisma);
+      return event;
+    }),
   cityTimezones: publicProcedure.query(async () => {
     /**
      * Lazy loads third party dependency to avoid loading 1.5Mb for ALL tRPC procedures.
