@@ -4,6 +4,7 @@ import { Fragment, useEffect, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
+import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -25,6 +26,8 @@ import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
 import { useEvent } from "./utils/event";
 
+const LargeLayouts = ["large_calendar", "large_timeslots"];
+
 const useBrandColors = ({ brandColor, darkBrandColor }: { brandColor?: string; darkBrandColor?: string }) => {
   const brandTheme = useGetBrandingColours({
     lightVal: brandColor,
@@ -44,7 +47,10 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
   const event = useEvent();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
-  const selectedDate = useBookerStore((state) => state.selectedDate);
+  const [selectedDate, setSelectedDate] = useBookerStore(
+    (state) => [state.selectedDate, state.setSelectedDate],
+    shallow
+  );
   const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
     shallow
@@ -80,7 +86,9 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
     if (layout === "mobile") {
       timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [layout, selectedDate]);
+
+    LargeLayouts.includes(layout) && setSelectedDate(dayjs().format("YYYY-MM-DD"));
+  }, [layout, selectedDate, setSelectedDate]);
 
   return (
     <>
