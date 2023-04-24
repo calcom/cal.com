@@ -10,11 +10,10 @@
   ],
   "publisher": "regexyl",
   "email": "info@regexyl.com",
-  "description": "Add a piece of code to your bookings page to measure, optimize and build audiences for your ad campaigns.",
+  "description": "Add Meta Pixel to your bookings page to measure, optimize and build audiences for your ad campaigns.",
   "extendsFeature": "EventType",
   "isTemplate": false,
   "__createdUsingCli": true,
-  "imageSrc": "icon.svg",
   "__template": "event-type-app-card",
   "dirName": "metapixel",
   "appData": {
