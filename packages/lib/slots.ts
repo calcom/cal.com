@@ -228,6 +228,7 @@ const getSlots = ({
       startTime: number;
       endTime: number;
       isDayBefore: boolean;
+      timeZone?: string;
     }[] = [];
 
     if (!!activeOverrides.length) {
@@ -262,13 +263,14 @@ const getSlots = ({
     if (!!dateOverrideBelongsToNextDay.length) {
       const addditonalOverrides = dateOverrideBelongsToNextDay.flatMap((override) => {
         const inviteeUtcOffset = dayjs(override.start.toString()).tz(timeZone).utcOffset();
-        const scheduleUtcOffset = dayjs(override.start.toString()).tz(override.timezone).utcOffset();
+        const scheduleUtcOffset = dayjs(override.start.toString()).tz(override.timeZone).utcOffset();
 
         const endTime = dayjs.utc(override.end).add(inviteeUtcOffset, "minute");
         return {
           userIds: override.userId ? [override.userId] : [],
           startTime: 0,
           endTime: endTime.hour() * 60 + endTime.minute(),
+          timeZone: override.timeZone,
           isDayBefore: false,
         };
       });
@@ -279,7 +281,7 @@ const getSlots = ({
       let i = -1;
       const indexes: number[] = [];
       const inviteeUtcOffset = dayjs(inviteeDate).tz(timeZone).utcOffset();
-      const scheduleUtcOffset = dayjs(inviteeDate).tz(override.timezone).utcOffset();
+      const scheduleUtcOffset = dayjs(inviteeDate).tz(override.timeZone).utcOffset();
       const offset = inviteeUtcOffset - scheduleUtcOffset;
 
       while (
