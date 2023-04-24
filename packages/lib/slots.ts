@@ -278,6 +278,10 @@ const getSlots = ({
     overrides.forEach((override) => {
       let i = -1;
       const indexes: number[] = [];
+      const inviteeUtcOffset = dayjs(inviteeDate).tz(timeZone).utcOffset();
+      const scheduleUtcOffset = dayjs(inviteeDate).tz(override.timezone).utcOffset();
+      const offset = inviteeUtcOffset - scheduleUtcOffset;
+
       while (
         (i = computedLocalAvailability.findIndex(
           fromIndex(
@@ -286,8 +290,15 @@ const getSlots = ({
           )
         )) != -1
       ) {
-        // if override belongs to the day before because of the different timezone then we still want to show time available on that day
-        if (!override.isDayBefore) {
+        /* we still want to show time as available if:
+            - override belongs to the day before
+            - availability is from the day day before or day after
+        */
+        if (
+          !override.isDayBefore &&
+          computedLocalAvailability[i].startTime - offset >= 0 &&
+          computedLocalAvailability[i].endTime - offset < 1440
+        ) {
           indexes.push(i);
         }
       }
