@@ -27,14 +27,14 @@ export function LargeViewHeader({ extraDays }: { extraDays: number }) {
             color="minimal"
             StartIcon={ChevronLeft}
             aria-label="Previous Day"
-            onClick={() => addToSelectedDate(-1)}
+            onClick={() => addToSelectedDate(-extraDays - 1)}
           />
           <Button
             variant="icon"
             color="minimal"
             StartIcon={ChevronRight}
             aria-label="Next Day"
-            onClick={() => addToSelectedDate(1)}
+            onClick={() => addToSelectedDate(extraDays + 1)}
           />
         </ButtonGroup>
       </div>

@@ -99,10 +99,17 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     updateQueryParam("date", selectedDate ?? "");
   },
   addToSelectedDate: (days: number) => {
-    const currentSelection = get().selectedDate;
-    const newSelection = dayjs(currentSelection).add(days, "day").format("YYYY-MM-DD");
-    set({ selectedDate: newSelection });
-    updateQueryParam("date", newSelection);
+    const currentSelection = dayjs(get().selectedDate);
+    const newSelection = currentSelection.add(days, "day");
+    const newSelectionFormatted = newSelection.format("YYYY-MM-DD");
+
+    if (newSelection.month() !== currentSelection.month()) {
+      set({ month: newSelection.format("YYYY-MM") });
+      updateQueryParam("month", newSelection.format("YYYY-MM"));
+    }
+
+    set({ selectedDate: newSelectionFormatted });
+    updateQueryParam("date", newSelectionFormatted);
   },
   username: null,
   eventSlug: null,
