@@ -210,7 +210,7 @@ const getSlots = ({
   });
 
   //find date overrides that go over midnight and part of it belongs to this day
-  const dateOverrideBelongsToNextDay = dateOverrides.filter((override) => {
+  const dateOverrideFromTheDayBefore = dateOverrides.filter((override) => {
     const inviteeUtcOffset = dayjs(override.end.toString()).tz(timeZone).utcOffset();
     if (dayjs.utc(override.end).isBetween(startOfInviteeDay, startOfInviteeDay.endOf("day"), null, "[)")) {
       if (
@@ -222,12 +222,12 @@ const getSlots = ({
     }
   });
 
-  if (!!dateOverrideBelongsToNextDay.length || !!activeOverrides.length) {
+  if (!!dateOverrideFromTheDayBefore.length || !!activeOverrides.length) {
     let overrides: {
       userIds: number[];
       startTime: number;
       endTime: number;
-      isDayBefore: boolean;
+      belongsToDifferentDay: boolean;
       timeZone?: string;
     }[] = [];
 
@@ -240,7 +240,7 @@ const getSlots = ({
 
         // defines if the override start in the schedule's time zone is on a different day than in the invitee's time zone
         const isDayBefore =
-          dayjs.utc(override.start).add(inviteeUtcOffset, "minute").day() !==
+          dayjs.utc(override.start).add(inviteeUtcOffset, "minute").day() <
           dayjs.utc(override.start).add(scheduleUtcOffset, "minute").day();
 
         const endTimeWithCorrectMidnight = isDayBefore ? endTime.subtract(1, "minute") : endTime;
@@ -255,15 +255,19 @@ const getSlots = ({
             endTimeWithCorrectMidnight.hour()
               ? endTimeWithCorrectMidnight.hour() * 60 + endTimeWithCorrectMidnight.minute()
               : 24 * 60,
-          isDayBefore,
+          belongsToDifferentDay: isDayBefore,
         };
       });
     }
 
-    if (!!dateOverrideBelongsToNextDay.length) {
-      const addditonalOverrides = dateOverrideBelongsToNextDay.flatMap((override) => {
+    if (!!dateOverrideFromTheDayBefore.length) {
+      const addditonalOverrides = dateOverrideFromTheDayBefore.flatMap((override) => {
         const inviteeUtcOffset = dayjs(override.start.toString()).tz(timeZone).utcOffset();
         const scheduleUtcOffset = dayjs(override.start.toString()).tz(override.timeZone).utcOffset();
+
+        const isDayAfter =
+          dayjs.utc(override.end).add(inviteeUtcOffset, "minute").day() !==
+          dayjs.utc(override.end).add(scheduleUtcOffset, "minute").day();
 
         const endTime = dayjs.utc(override.end).add(inviteeUtcOffset, "minute");
         return {
@@ -271,7 +275,7 @@ const getSlots = ({
           startTime: 0,
           endTime: endTime.hour() * 60 + endTime.minute(),
           timeZone: override.timeZone,
-          isDayBefore: false,
+          belongsToDifferentDay: isDayAfter,
         };
       });
       overrides = [...overrides, ...addditonalOverrides];
@@ -293,11 +297,11 @@ const getSlots = ({
         )) != -1
       ) {
         /* we still want to show time as available if:
-            - override belongs to the day before
+            - override belongs to the day before or day after
             - availability is from the day day before or day after
         */
         if (
-          !override.isDayBefore &&
+          !override.belongsToDifferentDay &&
           computedLocalAvailability[i].startTime - offset >= 0 &&
           computedLocalAvailability[i].endTime - offset < 1440
         ) {
