@@ -59,11 +59,11 @@ export const AvailableTimes = ({
         )}
       </header>
       <div className="pb-4">
-        {/* {!slots.length && (
+        {!slots.length && !isLargeTimeslots && (
           <p className={classNames("text-emphasis", showTimeformatToggle ? "-mt-1 text-lg" : "text-sm")}>
             {t("all_booked_today")}
           </p>
-        )} */}
+        )}
 
         {slots.map((slot) => {
           const bookingFull = !!(hasTimeSlots && slot.attendees && slot.attendees >= seatsPerTimeslot);
