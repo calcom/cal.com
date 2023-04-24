@@ -13,17 +13,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const [enabled, setEnabled] = useState(getAppData("enabled"));
 
   return (
-    <AppCard
-      setAppData={setAppData}
-      app={app}
-      switchOnClick={(e) => {
-        if (!e) {
-          setEnabled(false);
-        } else {
-          setEnabled(true);
-        }
-      }}
-      switchChecked={enabled}>
+    <AppCard setAppData={setAppData} app={app} switchOnClick={setEnabled} switchChecked={enabled}>
       <TextField
         name="Pixel ID"
         value={trackingId}
