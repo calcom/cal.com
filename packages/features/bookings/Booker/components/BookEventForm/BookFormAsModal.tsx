@@ -21,10 +21,7 @@ export function BookFormAsModal({ visible, onCancel }: { visible: boolean; onCan
         <h1 className="font-cal text-emphasis text-lg leading-5">{t("confirm_your_details")} </h1>
         <div className="mt-6 flex space-x-2 rounded-md leading-none">
           <Badge variant="grayWithoutHover" startIcon={Calendar} size="lg">
-            <span>{parsedSelectedTimeslot.format("LT")}</span>
-          </Badge>
-          <Badge variant="grayWithoutHover" startIcon={Clock} size="lg">
-            <span>{parsedSelectedTimeslot.format("LL")}</span>
+            <span>{parsedSelectedTimeslot.format("LLL")}</span>
           </Badge>
           {selectedDuration ||
             (data?.length && (
