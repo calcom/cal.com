@@ -2,6 +2,7 @@ import fs from "fs";
 import matter from "gray-matter";
 import MarkdownIt from "markdown-it";
 import type { GetStaticPaths, GetStaticPropsContext } from "next";
+import Link from "next/link";
 import path from "path";
 import { z } from "zod";
 
@@ -32,7 +33,18 @@ const sourceSchema = z.object({
   }),
 });
 
-function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
+function SingleAppPage(props: inferSSRProps<typeof getStaticProps>) {
+  if (props.isAppDisabled) {
+    // TODO: Improve disabled App UI. This is just a placeholder
+    return (
+      <div>
+        This App seems to be disabled. If you are an admin, you can enable this app from{" "}
+        <Link href="/settings/admin/apps">here</Link>
+      </div>
+    );
+  }
+
+  const { source, data } = props;
   return (
     <App
       name={data.name}
@@ -79,13 +91,27 @@ export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
 export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   if (typeof ctx.params?.slug !== "string") return { notFound: true };
 
+  const singleApp = await getAppWithMetadata({
+    // dirName is same as slug for all apps created through CLI. Only a few apps have a different dirName
+    slug: ctx.params?.slug,
+  });
+
   const app = await prisma.app.findUnique({
     where: { slug: ctx.params.slug.toLowerCase() },
   });
 
-  if (!app) return { notFound: true };
+  if (process.env.NODE_ENV !== "production" && singleApp && (!app || !app.enabled)) {
+    return {
+      props: {
+        isAppDisabled: true as const,
+        data: {
+          ...singleApp,
+        },
+      },
+    };
+  }
 
-  const singleApp = await getAppWithMetadata(app);
+  if (!app) return { notFound: true };
 
   if (!singleApp) return { notFound: true };
 
@@ -117,6 +143,7 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   }
   return {
     props: {
+      isAppDisabled: false as const,
       source: { content, data },
       data: singleApp,
     },

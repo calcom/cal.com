@@ -1,8 +1,6 @@
 import fs from "fs";
 import path from "path";
 
-import type seedAppStoreConfig from "@calcom/prisma/seed-app-store.config.json";
-
 import { APP_STORE_PATH, TEMPLATES_PATH } from "./constants";
 import execSync from "./utils/execSync";
 
@@ -25,10 +23,6 @@ export function getAppDirPath(slug: string, isTemplate: boolean) {
     return path.join(APP_STORE_PATH, `${slug}`);
   }
   return path.join(TEMPLATES_PATH, `${slug}`);
-}
-
-function absolutePath(appRelativePath: string) {
-  return path.join(APP_STORE_PATH, appRelativePath);
 }
 
 const updatePackageJson = ({
@@ -135,58 +129,6 @@ export const BaseAppFork = {
   delete: async function ({ slug, isTemplate }: { slug: string; isTemplate: boolean }) {
     const appDirPath = getAppDirPath(slug, isTemplate);
     await execSync(`rm -rf ${appDirPath}`);
-  },
-};
-
-export const Seed = {
-  seedConfigPath: absolutePath("../prisma/seed-app-store.config.json"),
-  update: async function ({
-    slug,
-    category,
-    oldSlug,
-    isTemplate,
-  }: {
-    slug: string;
-    category: string;
-    oldSlug: string;
-    isTemplate: boolean;
-  }) {
-    let configContent = "[]";
-    try {
-      if (fs.statSync(this.seedConfigPath)) {
-        configContent = fs.readFileSync(this.seedConfigPath).toString();
-      }
-    } catch (e) {}
-
-    let seedConfig: typeof seedAppStoreConfig = JSON.parse(configContent);
-    seedConfig = seedConfig.filter((app) => app.slug !== oldSlug);
-
-    if (!seedConfig.find((app) => app.slug === slug)) {
-      seedConfig.push({
-        dirName: slug,
-        categories: [category],
-        slug: slug,
-        type: `${slug}_${category}`,
-        isTemplate: isTemplate,
-      });
-    }
-
-    // Add the message as a property to first item so that it stays always at the top
-    seedConfig[0]["/*"] =
-      "This file is auto-generated and updated by `yarn app-store create/edit`. Don't edit it manually";
-
-    // Add the message as a property to first item so that it stays always at the top
-    seedConfig[0]["/*"] =
-      "This file is auto-generated and updated by `yarn app-store create/edit`. Don't edit it manually";
-
-    fs.writeFileSync(this.seedConfigPath, JSON.stringify(seedConfig, null, 2));
-    await execSync(`cd ${workspaceDir}/packages/prisma && yarn seed-app-store seed-templates`);
-  },
-  revert: async function ({ slug }: { slug: string }) {
-    let seedConfig: typeof seedAppStoreConfig = JSON.parse(fs.readFileSync(this.seedConfigPath).toString());
-    seedConfig = seedConfig.filter((app) => app.slug !== slug);
-    fs.writeFileSync(this.seedConfigPath, JSON.stringify(seedConfig, null, 2));
-    await execSync(`yarn workspace @calcom/prisma delete-app ${slug}`);
   },
 };
 
