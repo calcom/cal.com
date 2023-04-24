@@ -1675,7 +1675,7 @@
   "form_deleted": "Modulo eliminato",
   "delete_form": "Elimina modulo",
   "delete_form_action": "Sì, elimina modulo",
-  "delete_form_confirmation": "Eliminare questo modulo? Gli utenti con cui hai condiviso il link non saranno più in grado di usarlo per prenotare. Inoltre, verranno eliminate tutte le risposte a esso associate.",
+  "delete_form_confirmation": "Gli utenti con cui hai condiviso il link non potranno più accedere.",
   "delete_form_confirmation_2": "Tutte le risposte associate verranno eliminate.",
   "typeform_redirect_url_copied": "URL di reindirizzamento Typeform copiato! È possibile andare a impostare l'URL ne modulo Typeform.",
   "modifications_in_fields_warning": "Le eventuali modifiche apportate ai campi e ai percorsi dei seguenti moduli si rifletteranno in questo modulo.",
