@@ -1,3 +1,4 @@
+import { AlertCircle, MoreHorizontal, Trash, Video } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
@@ -24,7 +25,6 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
-import { AlertCircle, MoreHorizontal, Trash, Video } from "@calcom/ui/components/icon";
 
 import AppListCard from "@components/AppListCard";
 import PageWrapper from "@components/PageWrapper";

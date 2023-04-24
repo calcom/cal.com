@@ -1,5 +1,5 @@
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { Calendar, Video, CreditCard, Share2, BarChart, Grid } from "@calcom/ui/components/icon";
+import { Calendar, Video, CreditCard, Share2, BarChart, Grid } from "lucide-react";
 
 function getHref(baseURL: string, category: string, useQueryParam: boolean) {
   const baseUrlParsed = new URL(baseURL, WEBAPP_URL);

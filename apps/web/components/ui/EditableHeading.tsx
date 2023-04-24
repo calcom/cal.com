@@ -1,8 +1,7 @@
 import classNames from "classnames";
+import { Edit2 } from "lucide-react";
 import { useState } from "react";
 import type { ControllerRenderProps } from "react-hook-form";
-
-import { Edit2 } from "@calcom/ui/components/icon";
 
 const EditableHeading = function EditableHeading({
   value,

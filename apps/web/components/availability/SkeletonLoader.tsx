@@ -1,7 +1,7 @@
+import { MoreHorizontal } from "lucide-react";
 import React from "react";
 
 import { Button, SkeletonText } from "@calcom/ui";
-import { MoreHorizontal } from "@calcom/ui/components/icon";
 
 import classNames from "@lib/classNames";
 

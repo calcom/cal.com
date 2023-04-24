@@ -1,4 +1,5 @@
 import type { LucideIcon as IconType } from "lucide-react";
+import { ChevronDown, MoreHorizontal } from "lucide-react";
 import type { FC } from "react";
 import React from "react";
 
@@ -12,7 +13,6 @@ import {
   DropdownMenuPortal,
   DropdownMenuTrigger,
 } from "../form/dropdown";
-import { ChevronDown, MoreHorizontal } from "../icon";
 
 export type ActionType = {
   id: string;

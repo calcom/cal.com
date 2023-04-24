@@ -1,5 +1,6 @@
+import { Clock, User } from "lucide-react";
+
 import { SkeletonAvatar, SkeletonContainer, SkeletonText } from "@calcom/ui";
-import { Clock, User } from "@calcom/ui/components/icon";
 
 function SkeletonLoader() {
   return (

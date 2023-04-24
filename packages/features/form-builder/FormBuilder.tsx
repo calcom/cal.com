@@ -23,7 +23,7 @@ import {
   showToast,
   Switch,
 } from "@calcom/ui";
-import { ArrowDown, ArrowUp, X, Plus, Trash2, Info } from "@calcom/ui/components/icon";
+import { ArrowDown, ArrowUp, X, Plus, Trash2, Info } from "lucide-react";
 
 import { Components } from "./Components";
 import type { fieldsSchema } from "./FormBuilderFieldsSchema";

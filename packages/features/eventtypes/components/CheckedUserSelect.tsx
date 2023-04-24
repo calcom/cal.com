@@ -4,7 +4,7 @@ import type { Props } from "react-select";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar, EmptyScreen, Label, Select } from "@calcom/ui";
-import { FiUserPlus, FiX } from "@calcom/ui/components/icon";
+import { FiUserPlus, FiX } from "lucide-react";
 
 export type CheckedUserSelectOption = {
   avatar: string;

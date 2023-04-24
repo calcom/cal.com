@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
+import { Edit2, Check, X, Plus } from "react-lucide";
 import type { MultiValue } from "react-select";
 import { z } from "zod";
 
@@ -29,7 +30,6 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
-import { Edit2, Check, X, Plus } from "@calcom/ui/components/icon";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import type { SingleValueLocationOption, LocationOption } from "@components/ui/form/LocationSelect";

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HeadSeo } from "@calcom/ui";
-import { BookOpen, Check, ChevronRight, FileText } from "@calcom/ui/components/icon";
+import { BookOpen, Check, ChevronRight, FileText } from "lucide-react";
 
 import PageWrapper from "@components/PageWrapper";
 

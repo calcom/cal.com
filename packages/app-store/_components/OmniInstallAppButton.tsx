@@ -3,7 +3,7 @@ import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
+import { Plus } from "lucide-react";
 
 import useAddAppMutation from "../_utils/useAddAppMutation";
 import { InstallAppButton } from "../components";

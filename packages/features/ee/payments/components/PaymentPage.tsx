@@ -12,7 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
-import { CreditCard } from "@calcom/ui/components/icon";
+import { CreditCard } from "lucide-react";
 
 import type { PaymentPageProps } from "../pages/payment";
 import PaymentComponent from "./Payment";

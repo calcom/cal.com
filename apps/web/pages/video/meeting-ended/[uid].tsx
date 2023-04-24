@@ -1,3 +1,4 @@
+import { ArrowRight, Calendar, X } from "lucide-react";
 import type { NextPageContext } from "next";
 
 import dayjs from "@calcom/dayjs";
@@ -5,7 +6,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { Button, HeadSeo } from "@calcom/ui";
-import { ArrowRight, Calendar, X } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 

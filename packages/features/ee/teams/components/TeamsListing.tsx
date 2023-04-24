@@ -5,7 +5,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, ButtonGroup, Label } from "@calcom/ui";
-import { Users, RefreshCcw, UserPlus, Mail, Video, EyeOff } from "@calcom/ui/components/icon";
+import { Users, RefreshCcw, UserPlus, Mail, Video, EyeOff } from "lucide-react";
 
 import { UpgradeTip } from "../../../tips";
 import SkeletonLoaderTeamList from "./SkeletonloaderTeamList";

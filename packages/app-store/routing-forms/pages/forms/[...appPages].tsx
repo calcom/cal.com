@@ -28,7 +28,7 @@ import {
   BarChart,
   CheckCircle,
   Mail,
-} from "@calcom/ui/components/icon";
+} from "lucide-react";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 

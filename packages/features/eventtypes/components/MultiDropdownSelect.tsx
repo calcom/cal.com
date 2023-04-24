@@ -2,7 +2,7 @@ import type { GroupBase, Props, ValueContainerProps } from "react-select";
 import { components } from "react-select";
 
 import { Select } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
+import { Plus } from "lucide-react";
 
 const LimitedChipsContainer = <Option, IsMulti extends boolean, Group extends GroupBase<Option>>({
   children,

@@ -12,7 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen } from "@calcom/ui";
-import { Calendar } from "@calcom/ui/components/icon";
+import { Calendar } from "lucide-react";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 

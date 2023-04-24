@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
@@ -9,7 +10,6 @@ import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
 import { Button } from "../button";
-import { Plus } from "../icon";
 import { showToast } from "../toast";
 
 interface AppCardProps {

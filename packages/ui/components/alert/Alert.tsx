@@ -1,8 +1,7 @@
 import { CheckCircleIcon, ExclamationIcon, InformationCircleIcon, XCircleIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
+import { Info } from "lucide-react";
 import type { ReactNode } from "react";
-
-import { Info } from "../icon";
 
 export interface AlertProps {
   title?: ReactNode;

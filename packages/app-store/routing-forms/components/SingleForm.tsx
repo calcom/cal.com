@@ -34,7 +34,7 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
-import { ExternalLink, Link as LinkIcon, Download, Code, Trash } from "@calcom/ui/components/icon";
+import { ExternalLink, Link as LinkIcon, Download, Code, Trash } from "lucide-react";
 
 import { RoutingPages } from "../lib/RoutingPages";
 import { getSerializableForm } from "../lib/getSerializableForm";

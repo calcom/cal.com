@@ -20,7 +20,7 @@ import {
   Tooltip,
   Checkbox,
 } from "@calcom/ui";
-import { UserPlus, X } from "@calcom/ui/components/icon";
+import { UserPlus, X } from "lucide-react";
 
 import { ComponentForField } from "./FormBuilder";
 import type { fieldsSchema } from "./FormBuilderFieldsSchema";

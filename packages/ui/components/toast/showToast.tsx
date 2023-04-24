@@ -1,7 +1,6 @@
 import classNames from "classnames";
+import { Check, Info } from "lucide-react";
 import toast from "react-hot-toast";
-
-import { Check, Info } from "../icon";
 
 type IToast = {
   message: string;

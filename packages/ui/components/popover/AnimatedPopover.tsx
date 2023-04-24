@@ -1,10 +1,9 @@
 import * as Popover from "@radix-ui/react-popover";
+import { ChevronDown } from "lucide-react";
 import React from "react";
 
 import { classNames } from "@calcom/lib";
 import { Tooltip } from "@calcom/ui";
-
-import { ChevronDown } from "../icon";
 
 export const AnimatedPopover = ({
   text,

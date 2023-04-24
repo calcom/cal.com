@@ -12,7 +12,7 @@ import {
   DialogHeader,
   showToast,
 } from "@calcom/ui";
-import { CreditCard, AlertTriangle } from "@calcom/ui/components/icon";
+import { CreditCard, AlertTriangle } from "@calcom/ui/lucide-react";
 
 interface IRescheduleDialog {
   isOpenDialog: boolean;

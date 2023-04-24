@@ -1,3 +1,4 @@
+import { Plus, Calendar } from "lucide-react";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -24,7 +25,6 @@ import {
   SkeletonText,
   showToast,
 } from "@calcom/ui";
-import { Plus, Calendar } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 

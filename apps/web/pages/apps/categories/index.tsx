@@ -5,7 +5,7 @@ import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SkeletonText } from "@calcom/ui";
-import { ArrowLeft, ArrowRight } from "@calcom/ui/components/icon";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 import PageWrapper from "@components/PageWrapper";
 

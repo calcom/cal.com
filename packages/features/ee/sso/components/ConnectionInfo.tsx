@@ -11,7 +11,7 @@ import {
   DialogTrigger,
   Label,
 } from "@calcom/ui";
-import { Clipboard } from "@calcom/ui/components/icon";
+import { Clipboard } from "lucide-react";
 
 export default function ConnectionInfo({
   teamId,

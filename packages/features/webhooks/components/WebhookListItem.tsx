@@ -16,7 +16,7 @@ import {
   Switch,
   Tooltip,
 } from "@calcom/ui";
-import { AlertCircle, Edit, MoreHorizontal, Trash } from "@calcom/ui/components/icon";
+import { AlertCircle, Edit, MoreHorizontal, Trash } from "lucide-react";
 
 type WebhookProps = {
   id: string;

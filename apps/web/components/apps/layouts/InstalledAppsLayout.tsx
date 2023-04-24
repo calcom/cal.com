@@ -1,3 +1,4 @@
+import { BarChart, Calendar, CreditCard, Grid, Share2, Video } from "lucide-react";
 import type { ComponentProps } from "react";
 import React from "react";
 
@@ -6,7 +7,6 @@ import type { InstalledAppVariants } from "@calcom/app-store/utils";
 import Shell from "@calcom/features/shell/Shell";
 import { trpc } from "@calcom/trpc/react";
 import type { HorizontalTabItemProps, VerticalTabItemProps } from "@calcom/ui";
-import { BarChart, Calendar, CreditCard, Grid, Share2, Video } from "@calcom/ui/components/icon";
 
 const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
   {

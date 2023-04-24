@@ -1,4 +1,4 @@
-import { Globe } from "@calcom/ui/components/icon";
+import { Globe } from "lucide-react";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 

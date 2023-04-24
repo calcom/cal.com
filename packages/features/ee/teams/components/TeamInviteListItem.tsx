@@ -13,7 +13,7 @@ import {
   DropdownItem,
   DropdownMenuTrigger,
 } from "@calcom/ui";
-import { Slash, Check, MoreHorizontal, X } from "@calcom/ui/components/icon";
+import { Slash, Check, MoreHorizontal, X } from "lucide-react";
 
 interface Props {
   team: {

@@ -1,6 +1,21 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { User } from "@prisma/client";
 import { SchedulingType } from "@prisma/client";
+import {
+  ArrowDown,
+  ArrowUp,
+  Clipboard,
+  Code,
+  Copy,
+  Edit,
+  Edit2,
+  ExternalLink,
+  Link as LinkIcon,
+  MoreHorizontal,
+  Trash,
+  Upload,
+  Users,
+} from "lucide-react";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -42,21 +57,6 @@ import {
   HorizontalTabs,
   HeadSeo,
 } from "@calcom/ui";
-import {
-  ArrowDown,
-  ArrowUp,
-  Clipboard,
-  Code,
-  Copy,
-  Edit,
-  Edit2,
-  ExternalLink,
-  Link as LinkIcon,
-  MoreHorizontal,
-  Trash,
-  Upload,
-  Users,
-} from "@calcom/ui/components/icon";
 
 import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";

@@ -2,7 +2,7 @@ import { Suspense } from "react";
 
 import NoSSR from "@calcom/core/components/NoSSR";
 import { Meta } from "@calcom/ui";
-import { Loader } from "@calcom/ui/components/icon";
+import { Loader } from "lucide-react";
 
 import { FlagAdminList } from "../components/FlagAdminList";
 

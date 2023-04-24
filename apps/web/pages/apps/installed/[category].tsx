@@ -1,3 +1,14 @@
+import {
+  BarChart,
+  Calendar,
+  CreditCard,
+  Grid,
+  MoreHorizontal,
+  Plus,
+  Share2,
+  Trash,
+  Video,
+} from "lucide-react";
 import { useRouter } from "next/router";
 import { useCallback, useReducer, useState } from "react";
 import z from "zod";
@@ -29,17 +40,6 @@ import {
   DropdownItem,
   showToast,
 } from "@calcom/ui";
-import {
-  BarChart,
-  Calendar,
-  CreditCard,
-  Grid,
-  MoreHorizontal,
-  Plus,
-  Share2,
-  Trash,
-  Video,
-} from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 

@@ -17,7 +17,7 @@ import {
   Tooltip,
   Badge,
 } from "@calcom/ui";
-import { Edit2, Link as LinkIcon, MoreHorizontal, Trash2 } from "@calcom/ui/components/icon";
+import { Edit2, Link as LinkIcon, MoreHorizontal, Trash2 } from "lucide-react";
 
 import { getActionIcon } from "../lib/getActionIcon";
 import { DeleteDialog } from "./DeleteDialog";

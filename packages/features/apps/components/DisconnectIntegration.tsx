@@ -12,7 +12,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@calcom/ui";
-import { Trash, AlertCircle } from "@calcom/ui/components/icon";
+import { Trash, AlertCircle } from "lucide-react";
 
 export default function DisconnectIntegration({
   credentialId,

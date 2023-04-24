@@ -9,7 +9,7 @@ import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmailField, EmptyScreen, Label, PasswordField, TextField } from "@calcom/ui";
-import { UserCheck } from "@calcom/ui/components/icon";
+import { UserCheck } from "lucide-react";
 
 export const AdminUserContainer = (props: React.ComponentProps<typeof AdminUser> & { userCount: number }) => {
   const { t } = useLocale();

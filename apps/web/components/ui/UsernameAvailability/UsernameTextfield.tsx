@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import { debounce, noop } from "lodash";
+import { Check, Edit2 } from "lucide-react";
 import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -9,7 +10,6 @@ import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Button, Dialog, DialogClose, DialogContent, TextField } from "@calcom/ui";
-import { Check, Edit2 } from "@calcom/ui/components/icon";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;

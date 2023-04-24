@@ -7,7 +7,7 @@ import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, DatePicker, DialogFooter, Form, showToast, Switch, TextField, Tooltip } from "@calcom/ui";
-import { Clipboard } from "@calcom/ui/components/icon";
+import { Clipboard } from "lucide-react";
 
 export default function ApiKeyDialogForm({
   defaultValues,

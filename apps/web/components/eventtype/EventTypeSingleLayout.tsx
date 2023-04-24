@@ -1,5 +1,20 @@
 import { SchedulingType } from "@prisma/client";
 import { Webhook as TbWebhook } from "lucide-react";
+import {
+  Link as LinkIcon,
+  Calendar,
+  Clock,
+  Sliders,
+  Repeat,
+  Grid,
+  Zap,
+  Users,
+  ExternalLink,
+  Code,
+  Trash,
+  MoreHorizontal,
+  Loader,
+} from "lucide-react";
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import { useRouter } from "next/router";
@@ -34,21 +49,6 @@ import {
   VerticalDivider,
   VerticalTabs,
 } from "@calcom/ui";
-import {
-  Link as LinkIcon,
-  Calendar,
-  Clock,
-  Sliders,
-  Repeat,
-  Grid,
-  Zap,
-  Users,
-  ExternalLink,
-  Code,
-  Trash,
-  MoreHorizontal,
-  Loader,
-} from "@calcom/ui/components/icon";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 import type { AvailabilityOption } from "@components/eventtype/EventAvailabilityTab";

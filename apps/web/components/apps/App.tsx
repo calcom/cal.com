@@ -1,3 +1,4 @@
+import { BookOpen, Check, ExternalLink, File, Flag, Mail, Plus, Shield } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import type { IframeHTMLAttributes } from "react";
@@ -14,7 +15,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
 import { Button, showToast, SkeletonButton, SkeletonText, HeadSeo, Badge } from "@calcom/ui";
-import { BookOpen, Check, ExternalLink, File, Flag, Mail, Plus, Shield } from "@calcom/ui/components/icon";
 
 /* These app slugs all require Google Cal to be installed */
 

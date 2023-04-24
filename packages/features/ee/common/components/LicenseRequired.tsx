@@ -6,7 +6,7 @@ import React, { Fragment } from "react";
 import { APP_NAME, CONSOLE_URL, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen } from "@calcom/ui";
-import { AlertTriangle } from "@calcom/ui/components/icon";
+import { AlertTriangle } from "lucide-react";
 
 type LicenseRequiredProps = {
   as?: keyof JSX.IntrinsicElements | "";

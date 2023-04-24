@@ -1,3 +1,4 @@
+import { CreditCard, User, RefreshCcw } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
@@ -23,7 +24,6 @@ import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
 import { trpc } from "@calcom/trpc";
 import { HeadSeo, NumberInput, useCalcomTheme } from "@calcom/ui";
-import { CreditCard, User, RefreshCcw } from "@calcom/ui/components/icon";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 

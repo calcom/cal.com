@@ -13,7 +13,7 @@ import { weekdayNames } from "@calcom/lib/weekday";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Badge, Button, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
-import { ExternalLink, Globe } from "@calcom/ui/components/icon";
+import { ExternalLink, Globe } from "@calcom/ui/lucide-react";
 
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 

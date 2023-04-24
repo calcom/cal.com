@@ -1,7 +1,8 @@
+import { MapPin } from "lucide-react";
+
 import cx from "@calcom/lib/classNames";
 
 import { Input } from "../components/form";
-import { MapPin } from "../components/icon";
 
 export type AddressInputProps = {
   value: string;

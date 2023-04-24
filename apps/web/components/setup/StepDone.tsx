@@ -1,8 +1,8 @@
+import { Check } from "lucide-react";
 import { useRouter } from "next/router";
 import type { Dispatch, SetStateAction } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Check } from "@calcom/ui/components/icon";
 
 const StepDone = (props: {
   currentStep: number;

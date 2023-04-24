@@ -64,7 +64,7 @@ import {
   Slack,
   Users,
   Zap,
-} from "@calcom/ui/components/icon";
+} from "lucide-react";
 
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
 import { TeamInviteBadge } from "./TeamInviteBadge";

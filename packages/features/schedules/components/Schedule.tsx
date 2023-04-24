@@ -29,7 +29,7 @@ import {
   SkeletonText,
   Switch,
 } from "@calcom/ui";
-import { Copy, Plus, Trash } from "@calcom/ui/components/icon";
+import { Copy, Plus, Trash } from "lucide-react";
 
 export type { TimeRange };
 

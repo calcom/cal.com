@@ -9,7 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { baseEventTypeSelect } from "@calcom/prisma";
 import type { EventTypeModel } from "@calcom/prisma/zod";
 import { Badge } from "@calcom/ui";
-import { Clock, Users, RefreshCw, CreditCard, Clipboard, Plus, User, Lock } from "@calcom/ui/components/icon";
+import { Clock, Users, RefreshCw, CreditCard, Clipboard, Plus, User, Lock } from "lucide-react";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<

@@ -1,5 +1,6 @@
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { Check } from "lucide-react";
 import Link from "next/link";
 
 import classNames from "@calcom/lib/classNames";
@@ -7,7 +8,6 @@ import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
 
 import type { Maybe } from "@trpc/server";
 
-import { Check } from "../icon";
 import { Tooltip } from "../tooltip";
 
 export type AvatarProps = {

@@ -10,7 +10,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button, EmptyScreen, showToast, Switch, Tooltip, Alert } from "@calcom/ui";
-import { ExternalLink, Zap, Lock } from "@calcom/ui/components/icon";
+import { ExternalLink, Zap, Lock } from "lucide-react";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import { getActionIcon } from "../lib/getActionIcon";

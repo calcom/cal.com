@@ -49,7 +49,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Button, EmailInput, HeadSeo, Badge, useCalcomTheme } from "@calcom/ui";
-import { X, ExternalLink, ChevronLeft, Check, Calendar } from "@calcom/ui/components/icon";
+import { X, ExternalLink, ChevronLeft, Check, Calendar } from "lucide-react";
 
 import { timeZone } from "@lib/clock";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";

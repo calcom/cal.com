@@ -5,7 +5,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast, TextArea } from "@calcom/ui";
-import { ExternalLink, AlertTriangle } from "@calcom/ui/components/icon";
+import { ExternalLink, AlertTriangle } from "lucide-react";
 
 import { useFreshChat } from "../lib/freshchat/FreshChatProvider";
 import { isFreshChatEnabled } from "../lib/freshchat/FreshChatScript";

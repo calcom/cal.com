@@ -1,6 +1,7 @@
+import { X, ArrowRight } from "lucide-react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmptyScreen, HeadSeo } from "@calcom/ui";
-import { X, ArrowRight } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 

@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import { jwtVerify } from "jose";
+import { ArrowLeft } from "lucide-react";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
@@ -19,7 +20,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
-import { ArrowLeft } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { WithNonceProps } from "@lib/withNonce";

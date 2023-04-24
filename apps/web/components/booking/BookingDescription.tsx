@@ -1,4 +1,5 @@
 import { SchedulingType } from "@prisma/client";
+import { CheckSquare, Clock } from "lucide-react";
 import type { FC, ReactNode } from "react";
 import { useEffect } from "react";
 
@@ -6,7 +7,6 @@ import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui";
-import { CheckSquare, Clock } from "@calcom/ui/components/icon";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 

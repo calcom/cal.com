@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { ExternalLink, Link as LinkIcon, Trash2, LogOut } from "react-lucide";
 import { z } from "zod";
 
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
@@ -30,7 +31,6 @@ import {
   TextField,
   Editor,
 } from "@calcom/ui";
-import { ExternalLink, Link as LinkIcon, Trash2, LogOut } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 

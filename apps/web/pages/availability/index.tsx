@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { EmptyScreen, showToast } from "@calcom/ui";
-import { Clock } from "@calcom/ui/components/icon";
+import { Clock } from "lucide-react";
 
 import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";

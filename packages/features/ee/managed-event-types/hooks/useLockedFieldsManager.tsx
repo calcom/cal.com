@@ -6,7 +6,7 @@ import type z from "zod";
 import type { Prisma } from "@calcom/prisma/client";
 import type { _EventTypeModel } from "@calcom/prisma/zod/eventtype";
 import { Tooltip } from "@calcom/ui";
-import { Lock } from "@calcom/ui/components/icon";
+import { Lock } from "lucide-react";
 
 const Indicator = (label: string) => (
   <Tooltip content={<>{label}</>}>

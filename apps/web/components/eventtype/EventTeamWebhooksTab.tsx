@@ -1,5 +1,6 @@
 import type { Webhook } from "@prisma/client";
 import { Webhook as TbWebhook } from "lucide-react";
+import { Plus, Lock } from "lucide-react";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useState } from "react";
 
@@ -11,7 +12,6 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
-import { Plus, Lock } from "@calcom/ui/components/icon";
 
 export const EventTeamWebhooksTab = ({
   eventType,

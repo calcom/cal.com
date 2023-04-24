@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
   TextField,
 } from "@calcom/ui";
-import { ChevronDown } from "@calcom/ui/components/icon";
+import { ChevronDown } from "lucide-react";
 
 import { getWorkflowTimeUnitOptions } from "../lib/getOptions";
 import type { FormValues } from "../pages/workflow";

@@ -1,4 +1,5 @@
 import { BookingStatus } from "@prisma/client";
+import { Check, Clock, MapPin, RefreshCcw, Send, Slash, X, CreditCard } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -29,7 +30,6 @@ import {
   TableActions,
   TextAreaField,
 } from "@calcom/ui";
-import { Check, Clock, MapPin, RefreshCcw, Send, Slash, X, CreditCard } from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 

@@ -1,9 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
+import { ArrowLeft } from "lucide-react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge, showToast, Switch } from "@calcom/ui";
-import { ArrowLeft } from "@calcom/ui/components/icon";
 
 export function CalendarSwitch(props: {
   type: string;

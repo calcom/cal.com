@@ -29,7 +29,7 @@ import {
   TextField,
   SettingsToggle,
 } from "@calcom/ui";
-import { MoreHorizontal } from "@calcom/ui/components/icon";
+import { MoreHorizontal } from "lucide-react";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 

@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui";
-import { MoreHorizontal, Edit2, Trash } from "@calcom/ui/components/icon";
+import { MoreHorizontal, Edit2, Trash } from "lucide-react";
 
 export type TApiKeys = RouterOutputs["viewer"]["apiKeys"]["list"][number];
 

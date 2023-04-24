@@ -1,5 +1,6 @@
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
+import { Code, Trello, Sun, ArrowLeft } from "lucide-react";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 import type { MutableRefObject, RefObject } from "react";
@@ -22,7 +23,6 @@ import {
   TextField,
   ColorPicker,
 } from "@calcom/ui";
-import { Code, Trello, Sun, ArrowLeft } from "@calcom/ui/components/icon";
 
 import Select from "@components/ui/form/Select";
 

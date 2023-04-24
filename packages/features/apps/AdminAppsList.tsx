@@ -30,7 +30,7 @@ import {
   TextField,
   Switch,
 } from "@calcom/ui";
-import { AlertCircle, Edit } from "@calcom/ui/components/icon";
+import { AlertCircle, Edit } from "lucide-react";
 
 import AppListCard from "../../../apps/web/components/AppListCard";
 

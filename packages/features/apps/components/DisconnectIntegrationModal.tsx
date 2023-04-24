@@ -1,7 +1,7 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Dialog, DialogContent, showToast, DialogFooter, DialogClose } from "@calcom/ui";
-import { AlertCircle } from "@calcom/ui/components/icon";
+import { AlertCircle } from "lucide-react";
 
 interface DisconnectIntegrationModalProps {
   credentialId: number | null;

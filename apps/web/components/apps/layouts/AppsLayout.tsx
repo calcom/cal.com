@@ -1,3 +1,4 @@
+import { AlertCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import type { ComponentProps } from "react";
@@ -6,7 +7,6 @@ import React from "react";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen } from "@calcom/ui";
-import { AlertCircle } from "@calcom/ui/components/icon";
 
 type AppsLayoutProps = {
   children: React.ReactNode;

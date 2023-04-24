@@ -9,7 +9,7 @@ import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Form, ImageUploader, TextField, Alert } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import { ArrowRight } from "lucide-react";
 
 import type { NewTeamFormValues } from "../lib/types";
 

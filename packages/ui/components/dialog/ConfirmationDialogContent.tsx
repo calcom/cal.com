@@ -1,10 +1,10 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { AlertCircle, Check } from "lucide-react";
 import type { PropsWithChildren, ReactElement } from "react";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { AlertCircle, Check } from "../icon";
 import { DialogClose, DialogContent } from "./Dialog";
 
 type ConfirmBtnType =

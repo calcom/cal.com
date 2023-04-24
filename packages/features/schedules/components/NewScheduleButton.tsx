@@ -15,7 +15,7 @@ import {
   InputField,
   showToast,
 } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
+import { Plus } from "lucide-react";
 
 export function NewScheduleButton({
   name = "new-schedule",

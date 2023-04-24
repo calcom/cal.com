@@ -1,10 +1,10 @@
+import { Link } from "lucide-react";
 import { z } from "zod";
 
 import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui";
-import { Link } from "@calcom/ui/components/icon";
 
 import type { Props } from "./pages/AvailabilityPage";
 

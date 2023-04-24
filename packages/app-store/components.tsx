@@ -1,3 +1,4 @@
+import { AlertCircle, ArrowRight, Check } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef } from "react";
@@ -11,7 +12,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-import { AlertCircle, ArrowRight, Check } from "@calcom/ui/components/icon";
 
 import { InstallAppButtonMap } from "./apps.browser.generated";
 import type { InstallAppButtonProps } from "./types";

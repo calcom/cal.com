@@ -4,6 +4,7 @@ import { signOut } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { AlertTriangle, Trash2 } from "react-lucide";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
@@ -38,7 +39,6 @@ import {
   TextField,
   Editor,
 } from "@calcom/ui";
-import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import TwoFactor from "@components/auth/TwoFactor";

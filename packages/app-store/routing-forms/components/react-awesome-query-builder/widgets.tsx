@@ -8,7 +8,7 @@ import type {
 } from "react-awesome-query-builder";
 
 import { Button as CalButton, SelectWithValidation as Select, TextField, TextArea } from "@calcom/ui";
-import { Trash, Plus } from "@calcom/ui/components/icon";
+import { Trash, Plus } from "lucide-react";
 
 export type CommonProps<
   TVal extends

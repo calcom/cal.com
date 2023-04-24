@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Meta, showToast } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
+import { Plus } from "lucide-react";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";

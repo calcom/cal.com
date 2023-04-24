@@ -17,7 +17,7 @@ import {
   Button,
   DialogClose,
 } from "@calcom/ui";
-import { AlertCircle } from "@calcom/ui/components/icon";
+import { AlertCircle } from "lucide-react";
 
 type LocationTypeSetLinkDialogFormProps = {
   link?: string;

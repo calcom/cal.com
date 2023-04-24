@@ -4,7 +4,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { AnimatedPopover, Avatar } from "@calcom/ui";
-import { User } from "@calcom/ui/components/icon";
+import { User } from "lucide-react";
 
 import { useFilterQuery } from "../lib/useFilterQuery";
 

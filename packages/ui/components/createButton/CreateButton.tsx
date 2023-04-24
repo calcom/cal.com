@@ -12,7 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
+import { Plus } from "lucide-react";
 
 export interface Option {
   teamId: number | null | undefined; // if undefined, then it's a profile

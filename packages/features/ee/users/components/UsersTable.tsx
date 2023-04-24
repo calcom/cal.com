@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { trpc } from "@calcom/trpc/react";
 import { Badge, ConfirmationDialogContent, Dialog, DropdownActions, showToast, Table } from "@calcom/ui";
-import { Edit, Trash } from "@calcom/ui/components/icon";
+import { Edit, Trash } from "lucide-react";
 
 import { withLicenseRequired } from "../../common/components/LicenseRequired";
 

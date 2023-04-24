@@ -22,12 +22,12 @@ import {
   FORMAT_TEXT_COMMAND,
   SELECTION_CHANGE_COMMAND,
 } from "lexical";
+import { Bold, ChevronDown, Italic, Link } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { Button } from "../../button";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../form/dropdown";
-import { Bold, ChevronDown, Italic, Link } from "../../icon";
 import type { TextEditorProps } from "../Editor";
 import { AddVariablesDropdown } from "./AddVariablesDropdown";
 

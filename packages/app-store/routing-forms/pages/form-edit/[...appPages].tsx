@@ -16,7 +16,7 @@ import {
   TextAreaField,
   TextField,
 } from "@calcom/ui";
-import { Plus, FileText } from "@calcom/ui/components/icon";
+import { Plus, FileText } from "lucide-react";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 

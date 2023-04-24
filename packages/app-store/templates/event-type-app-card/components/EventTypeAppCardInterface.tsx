@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
-import { Sunrise, Sunset } from "@calcom/ui/components/icon";
+import { Sunrise, Sunset } from "lucide-react";
 
 import type { appDataSchema } from "../zod";
 

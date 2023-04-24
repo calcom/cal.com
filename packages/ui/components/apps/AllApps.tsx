@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useRouter } from "next/router";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -9,7 +10,6 @@ import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
 import { EmptyScreen } from "../empty-screen";
-import { ChevronLeft, ChevronRight, Search } from "../icon";
 import { AppCard } from "./AppCard";
 
 export function useShouldShowArrows() {

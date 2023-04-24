@@ -17,7 +17,7 @@ import {
   UpgradeTeamsBadge,
 } from "@calcom/ui";
 import { Button } from "@calcom/ui";
-import { Download } from "@calcom/ui/components/icon";
+import { Download } from "lucide-react";
 
 import RecordingListSkeleton from "./components/RecordingListSkeleton";
 

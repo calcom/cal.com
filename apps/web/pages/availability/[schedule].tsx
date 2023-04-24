@@ -33,7 +33,7 @@ import {
   ConfirmationDialogContent,
   VerticalDivider,
 } from "@calcom/ui";
-import { Info, Plus, Trash, MoreHorizontal } from "@calcom/ui/components/icon";
+import { Info, Plus, Trash, MoreHorizontal } from "lucide-react";
 
 import { HttpError } from "@lib/core/http/error";
 

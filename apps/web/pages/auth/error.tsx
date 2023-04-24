@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import type { GetStaticPropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -5,7 +6,6 @@ import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, SkeletonText } from "@calcom/ui";
-import { X } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";

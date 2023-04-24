@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, showToast } from "@calcom/ui";
-import { Copy } from "@calcom/ui/components/icon";
+import { Copy } from "lucide-react";
 
 import PageWrapper from "@components/PageWrapper";
 

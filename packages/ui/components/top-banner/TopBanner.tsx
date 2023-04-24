@@ -1,9 +1,8 @@
 import { XIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { noop } from "lodash";
+import { AlertTriangle, Info } from "lucide-react";
 import type { ReactNode } from "react";
-
-import { AlertTriangle, Info } from "../icon";
 
 export type TopBannerProps = {
   text: string;

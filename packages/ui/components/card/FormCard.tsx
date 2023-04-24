@@ -1,3 +1,4 @@
+import { ArrowDown, ArrowUp, Trash } from "lucide-react";
 import Link from "next/link";
 
 import { classNames } from "@calcom/lib";
@@ -5,7 +6,6 @@ import { classNames } from "@calcom/lib";
 import type { BadgeProps } from "../..";
 import { Badge } from "../..";
 import { Divider } from "../divider";
-import { ArrowDown, ArrowUp, Trash } from "../icon";
 
 type Action = { check: () => boolean; fn: () => void };
 export default function FormCard({

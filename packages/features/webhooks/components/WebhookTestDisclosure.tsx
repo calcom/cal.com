@@ -3,7 +3,7 @@ import { useWatch } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge, Button, showToast } from "@calcom/ui";
-import { Activity } from "@calcom/ui/components/icon";
+import { Activity } from "lucide-react";
 
 export default function WebhookTestDisclosure() {
   const subscriberUrl: string = useWatch({ name: "subscriberUrl" });

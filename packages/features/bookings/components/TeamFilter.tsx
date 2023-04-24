@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { AnimatedPopover, Avatar } from "@calcom/ui";
-import { Layers, User } from "@calcom/ui/components/icon";
+import { Layers, User } from "lucide-react";
 
 import { useFilterQuery } from "../lib/useFilterQuery";
 

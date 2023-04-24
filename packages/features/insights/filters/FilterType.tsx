@@ -1,6 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Select } from "@calcom/ui";
-import { Filter } from "@calcom/ui/components/icon";
+import { Filter } from "lucide-react";
 
 import { useFilterContext } from "../context/provider";
 

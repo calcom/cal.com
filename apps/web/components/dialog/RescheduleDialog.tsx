@@ -1,3 +1,4 @@
+import { Clock } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
@@ -13,7 +14,6 @@ import {
   showToast,
   TextArea,
 } from "@calcom/ui";
-import { Clock } from "@calcom/ui/components/icon";
 
 interface IRescheduleDialog {
   isOpenDialog: boolean;

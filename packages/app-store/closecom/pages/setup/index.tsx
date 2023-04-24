@@ -7,7 +7,7 @@ import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Form, showToast, TextField } from "@calcom/ui";
-import { Check, X } from "@calcom/ui/components/icon";
+import { Check, X } from "lucide-react";
 
 const formSchema = z.object({
   api_key: z.string(),

@@ -2,7 +2,7 @@ import type { WorkflowStep } from "@prisma/client";
 import { WorkflowActions } from "@prisma/client";
 
 import { classNames } from "@calcom/lib";
-import { Zap, Smartphone, Mail, Bell } from "@calcom/ui/components/icon";
+import { Zap, Smartphone, Mail, Bell } from "lucide-react";
 
 export function getActionIcon(steps: WorkflowStep[], className?: string): JSX.Element {
   if (steps.length === 0) {

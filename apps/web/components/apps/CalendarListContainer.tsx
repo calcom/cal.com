@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { ArrowLeft, Calendar, Plus } from "lucide-react";
 import Link from "next/link";
 import { Fragment } from "react";
 
@@ -17,7 +18,6 @@ import {
   Switch,
   ShellSubHeading,
 } from "@calcom/ui";
-import { ArrowLeft, Calendar, Plus } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 

@@ -11,7 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
 import { Button, Label, MultiSelectCheckboxes, TextField } from "@calcom/ui";
-import { ArrowDown, Trash2 } from "@calcom/ui/components/icon";
+import { ArrowDown, Trash2 } from "lucide-react";
 
 import { isSMSAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";

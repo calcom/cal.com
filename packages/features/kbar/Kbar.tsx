@@ -19,7 +19,7 @@ import { isMac } from "@calcom/lib/isMac";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Tooltip } from "@calcom/ui";
-import { Search, ArrowUp, ArrowDown, CornerDownLeft, Command } from "@calcom/ui/components/icon";
+import { Search, ArrowUp, ArrowDown, CornerDownLeft, Command } from "lucide-react";
 
 type shortcutArrayType = {
   shortcuts?: string[];

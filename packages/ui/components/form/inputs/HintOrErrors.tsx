@@ -1,7 +1,6 @@
+import { Check, Circle, Info, X } from "lucide-react";
 import type { FieldValues } from "react-hook-form";
 import { useFormContext } from "react-hook-form";
-
-import { Check, Circle, Info, X } from "../../icon";
 
 export function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
   hintErrors?: string[];

@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
   showToast,
 } from "@calcom/ui";
-import { Globe, MoreHorizontal, Trash, Clock } from "@calcom/ui/components/icon";
+import { Globe, MoreHorizontal, Trash, Clock } from "lucide-react";
 
 export function ScheduleListItem({
   schedule,

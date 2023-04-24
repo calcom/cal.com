@@ -15,7 +15,7 @@ import { configureChains, createClient, useAccount, useSignMessage, WagmiConfig 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast, SkeletonText } from "@calcom/ui";
-import { AlertTriangle, Loader } from "@calcom/ui/components/icon";
+import { AlertTriangle, Loader } from "lucide-react";
 
 import { ETH_MESSAGE, getProviders, SUPPORTED_CHAINS } from "../utils/ethereum";
 

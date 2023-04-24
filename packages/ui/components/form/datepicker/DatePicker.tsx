@@ -1,10 +1,9 @@
+import { Calendar } from "lucide-react";
 import "react-calendar/dist/Calendar.css";
 import "react-date-picker/dist/DatePicker.css";
 import PrimitiveDatePicker from "react-date-picker/dist/entry.nostyle";
 
 import classNames from "@calcom/lib/classNames";
-
-import { Calendar } from "../../icon";
 
 type Props = {
   date: Date;

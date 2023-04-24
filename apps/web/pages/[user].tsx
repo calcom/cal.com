@@ -1,5 +1,6 @@
 import { BadgeCheckIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
+import { ArrowRight } from "lucide-react";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -27,7 +28,6 @@ import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, AvatarGroup, HeadSeo } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";

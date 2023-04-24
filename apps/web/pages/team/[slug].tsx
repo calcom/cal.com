@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { ArrowRight } from "lucide-react";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -15,7 +16,6 @@ import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { Avatar, AvatarGroup, Button, EmptyScreen, HeadSeo } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";

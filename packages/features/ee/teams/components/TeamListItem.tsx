@@ -36,7 +36,7 @@ import {
   LogOut,
   Globe,
   Send,
-} from "@calcom/ui/components/icon";
+} from "lucide-react";
 
 import { TeamRole } from "./TeamPill";
 

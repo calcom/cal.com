@@ -1,8 +1,8 @@
+import { CreditCard } from "lucide-react";
 import { i18n } from "next-i18next";
 import type { TFunction } from "next-i18next";
 
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
-import { CreditCard } from "@calcom/ui/components/icon";
 
 const BookingDescriptionPayment = (props: {
   eventType: Parameters<typeof getPaymentAppData>[0];

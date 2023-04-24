@@ -6,7 +6,7 @@ import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar, Badge, Button, ButtonGroup, Select, Switch, Tooltip } from "@calcom/ui";
-import { ExternalLink, X } from "@calcom/ui/components/icon";
+import { ExternalLink, X } from "lucide-react";
 
 export type ChildrenEventType = {
   value: string;

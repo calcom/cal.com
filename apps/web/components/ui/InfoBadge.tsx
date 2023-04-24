@@ -1,5 +1,6 @@
+import { Info } from "lucide-react";
+
 import { Tooltip } from "@calcom/ui";
-import { Info } from "@calcom/ui/components/icon";
 
 export default function InfoBadge({ content }: { content: string }) {
   return (

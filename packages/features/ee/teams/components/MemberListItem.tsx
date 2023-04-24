@@ -26,7 +26,7 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
-import { ExternalLink, MoreHorizontal, Edit2, Lock, Trash } from "@calcom/ui/components/icon";
+import { ExternalLink, MoreHorizontal, Edit2, Lock, Trash } from "lucide-react";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";

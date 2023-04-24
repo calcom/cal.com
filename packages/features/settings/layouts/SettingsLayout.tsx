@@ -27,7 +27,7 @@ import {
   ChevronRight,
   Plus,
   Menu,
-} from "@calcom/ui/components/icon";
+} from "lucide-react";
 
 const tabs: VerticalTabItemProps[] = [
   {

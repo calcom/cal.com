@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import { useRouter } from "next/router";
 import { useCallback, useState } from "react";
 
@@ -5,7 +6,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button, TextArea } from "@calcom/ui";
-import { X } from "@calcom/ui/components/icon";
 
 type Props = {
   booking: {

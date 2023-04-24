@@ -1,5 +1,6 @@
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
+import { Plus } from "lucide-react";
 import type { LinkProps } from "next/link";
 import Link from "next/link";
 import React, { forwardRef } from "react";
@@ -8,7 +9,6 @@ import classNames from "@calcom/lib/classNames";
 import { applyStyleToMultipleVariants } from "@calcom/lib/cva";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 
-import { Plus } from "../icon";
 import { Tooltip } from "../tooltip";
 
 type InferredVariantProps = VariantProps<typeof buttonClasses>;

@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Badge, Button, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
-import { Plus, ArrowRight, Trash2 } from "@calcom/ui/components/icon";
+import { Plus, ArrowRight, Trash2 } from "lucide-react";
 
 const querySchema = z.object({
   id: z.string().transform((val) => parseInt(val)),

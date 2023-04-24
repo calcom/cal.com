@@ -5,7 +5,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 import { CreateButton, showToast, EmptyScreen as ClassicEmptyScreen } from "@calcom/ui";
-import { Smartphone, Mail, Zap } from "@calcom/ui/components/icon";
+import { Smartphone, Mail, Zap } from "lucide-react";
 
 type WorkflowExampleType = {
   Icon: SVGComponent;

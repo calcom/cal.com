@@ -10,7 +10,7 @@ import type { AppCategories } from "@calcom/prisma/client";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { HorizontalTabItemProps } from "@calcom/ui";
 import { AllApps, AppStoreCategories, HorizontalTabs, TextField, PopularAppsSlider } from "@calcom/ui";
-import { Search } from "@calcom/ui/components/icon";
+import { Search } from "lucide-react";
 
 import PageWrapper from "@components/PageWrapper";
 import AppsLayout from "@components/apps/layouts/AppsLayout";

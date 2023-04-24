@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import React from "react";
 
 import classNames from "@calcom/lib/classNames";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import { ArrowRight } from "lucide-react";
 
 import { Button } from "../button";
 

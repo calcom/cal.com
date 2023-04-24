@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import type { GetServerSidePropsContext } from "next";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -6,7 +7,6 @@ import { useEffect } from "react";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
-import { Check } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 

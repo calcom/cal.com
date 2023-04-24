@@ -6,7 +6,7 @@ import { z } from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { Badge, ListItemText } from "@calcom/ui";
-import { AlertCircle } from "@calcom/ui/components/icon";
+import { AlertCircle } from "@calcom/ui/lucide-react";
 
 type ShouldHighlight = { slug: string; shouldHighlight: true } | { shouldHighlight?: never; slug?: never };
 

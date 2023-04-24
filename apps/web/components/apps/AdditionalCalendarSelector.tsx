@@ -1,3 +1,5 @@
+import { Plus } from "lucide-react";
+
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -9,7 +11,6 @@ import {
   DropdownMenuItem,
   DropdownItem,
 } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 

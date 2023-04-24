@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { Button, ButtonGroup } from "@calcom/ui";
-import { ChevronLeft, ChevronRight } from "@calcom/ui/components/icon";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { useCalendarStore } from "../../state/store";
 

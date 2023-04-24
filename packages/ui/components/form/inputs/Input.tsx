@@ -1,3 +1,4 @@
+import { Eye, EyeOff, X } from "lucide-react";
 import type { ReactElement, ReactNode, Ref } from "react";
 import React, { forwardRef, useCallback, useId, useState } from "react";
 import type { FieldValues, SubmitHandler, UseFormReturn } from "react-hook-form";
@@ -8,7 +9,6 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Alert, showToast, Skeleton, Tooltip, UnstyledSelect } from "../../..";
-import { Eye, EyeOff, X } from "../../icon";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 

@@ -4,6 +4,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useRef, useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
+import { ArrowDown, MoreHorizontal, Trash2, HelpCircle, Info } from "react-lucide";
 import "react-phone-number-input/style.css";
 
 import { classNames } from "@calcom/lib";
@@ -35,7 +36,6 @@ import {
   AddVariablesDropdown,
   Input,
 } from "@calcom/ui";
-import { ArrowDown, MoreHorizontal, Trash2, HelpCircle, Info } from "@calcom/ui/components/icon";
 
 import { isAttendeeAction, isSMSAction } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";

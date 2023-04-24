@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { X } from "@calcom/ui/components/icon";
+import { X } from "lucide-react";
 
 export default function AddToHomescreen() {
   const { t } = useLocale();

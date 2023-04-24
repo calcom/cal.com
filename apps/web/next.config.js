@@ -91,13 +91,8 @@ const nextConfig = {
     "@calcom/prisma",
     "@calcom/trpc",
     "@calcom/ui",
-    "lucide-react",
   ],
   modularizeImports: {
-    "@calcom/ui/components/icon": {
-      transform: "lucide-react/dist/esm/icons/{{ kebabCase member }}",
-      preventFullImport: true,
-    },
     "@heroicons/react/solid": {
       transform: "@heroicons/react/solid/esm/{{ member }}",
     },

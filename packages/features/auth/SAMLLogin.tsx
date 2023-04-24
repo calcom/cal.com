@@ -7,7 +7,7 @@ import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
-import { Lock } from "@calcom/ui/components/icon";
+import { Lock } from "lucide-react";
 
 interface Props {
   samlTenantID: string;

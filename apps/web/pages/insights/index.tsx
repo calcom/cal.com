@@ -1,3 +1,5 @@
+import { RefreshCcw, UserPlus, Users } from "lucide-react";
+
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import {
   AverageEventDurationChart,
@@ -15,7 +17,6 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, ButtonGroup } from "@calcom/ui";
-import { RefreshCcw, UserPlus, Users } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 

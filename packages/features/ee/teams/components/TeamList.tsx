@@ -4,7 +4,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Card, showToast } from "@calcom/ui";
-import { UserPlus, Users, Edit } from "@calcom/ui/components/icon";
+import { UserPlus, Users, Edit } from "lucide-react";
 
 import TeamListItem from "./TeamListItem";
 

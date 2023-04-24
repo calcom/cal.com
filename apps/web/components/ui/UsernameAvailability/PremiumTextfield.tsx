@@ -1,6 +1,7 @@
 import { StarIcon as StarIconSolid } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { debounce, noop } from "lodash";
+import { Check, Edit2, ExternalLink } from "lucide-react";
 import { useRouter } from "next/router";
 import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -15,7 +16,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Button, Dialog, DialogClose, DialogContent, Input, Label } from "@calcom/ui";
-import { Check, Edit2, ExternalLink } from "@calcom/ui/components/icon";
 
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",

@@ -1,7 +1,8 @@
+import { ChevronDown } from "lucide-react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../form/dropdown";
-import { ChevronDown } from "../../icon";
 
 interface IAddVariablesDropdown {
   addVariable: (variable: string) => void;
