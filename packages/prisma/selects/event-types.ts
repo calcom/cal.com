@@ -65,6 +65,7 @@ export const availiblityPageEventTypeSelect = Prisma.validator<Prisma.EventTypeS
   availability: true,
   description: true,
   length: true,
+  offsetStart: true,
   price: true,
   currency: true,
   periodType: true,

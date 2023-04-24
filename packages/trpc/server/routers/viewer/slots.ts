@@ -186,6 +186,7 @@ async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeo
       slug: true,
       minimumBookingNotice: true,
       length: true,
+      offsetStart: true,
       seatsPerTimeSlot: true,
       timeZone: true,
       slotInterval: true,
