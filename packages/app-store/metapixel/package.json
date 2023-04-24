@@ -10,5 +10,5 @@
   "devDependencies": {
     "@calcom/types": "*"
   },
-  "description": "Add a piece of code to your bookings page to measure, optimize and build audiences for your ad campaigns."
+  "description": "Add Meta Pixel to your bookings page to measure, optimize and build audiences for your ad campaigns."
 }
