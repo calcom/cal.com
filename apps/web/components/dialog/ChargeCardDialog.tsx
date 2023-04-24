@@ -1,3 +1,4 @@
+import { CreditCard, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -12,7 +13,6 @@ import {
   DialogHeader,
   showToast,
 } from "@calcom/ui";
-import { CreditCard, AlertTriangle } from "@calcom/ui/lucide-react";
 
 interface IRescheduleDialog {
   isOpenDialog: boolean;

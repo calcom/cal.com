@@ -1,4 +1,5 @@
 import { SchedulingType } from "@prisma/client";
+import { ExternalLink, Globe } from "lucide-react";
 import type { EventTypeSetup, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -13,7 +14,6 @@ import { weekdayNames } from "@calcom/lib/weekday";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Badge, Button, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
-import { ExternalLink, Globe } from "@calcom/ui/lucide-react";
 
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 
