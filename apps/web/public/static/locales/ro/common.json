@@ -1769,5 +1769,7 @@
   "no_show_fee": "Taxă pentru neprezentare",
   "submit_card": "Trimiteți cardul",
   "submit_payment_information": "Trimiteți informațiile de plată",
-  "meeting_awaiting_payment_method": "Ședința dvs. este în așteptarea unei metode de plată"
+  "meeting_awaiting_payment_method": "Ședința dvs. este în așteptarea unei metode de plată",
+  "no_show_fee_charged_email_subject": "Taxă de neprezentare de {{amount, currency}}, percepută pentru {{title}}, pe {{date}}",
+  "no_show_fee_charged_text_body": "Taxa de neprezentare a fost percepută"
 }
