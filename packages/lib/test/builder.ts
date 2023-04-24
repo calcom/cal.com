@@ -71,6 +71,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     position: 1,
     locations: null,
     length: 15,
+    offsetStart: 0,
     hidden: false,
     userId: null,
     teamId: null,

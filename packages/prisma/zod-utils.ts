@@ -491,6 +491,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   price: true,
   slug: true,
   length: true,
+  offsetStart: true,
   locations: true,
   hidden: true,
   availability: true,

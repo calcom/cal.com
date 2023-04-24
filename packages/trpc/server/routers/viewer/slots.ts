@@ -390,6 +390,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         workingHours,
         dateOverrides,
         minimumBookingNotice: eventType.minimumBookingNotice,
+        offsetStart: eventType.offsetStart,
         frequency: eventType.slotInterval || input.duration || eventType.length,
         organizerTimeZone:
           eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
