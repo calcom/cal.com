@@ -1764,5 +1764,9 @@
   "hold_option": "Percepere taxă pentru neprezentare",
   "card_held": "Card reținut",
   "charge_card": "Debitare card",
-  "card_charged": "Card debitat"
+  "card_charged": "Card debitat",
+  "no_show_fee_amount": "Taxă de neprezentare de {{amount, currency}}",
+  "no_show_fee": "Taxă pentru neprezentare",
+  "submit_card": "Trimiteți cardul",
+  "submit_payment_information": "Trimiteți informațiile de plată"
 }
