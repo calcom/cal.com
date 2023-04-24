@@ -120,11 +120,12 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
           animate={resizeAnimationConfig[layout]?.[bookerState] || resizeAnimationConfig[layout].default}
           transition={{ ease: "easeInOut", duration: 0.4 }}
           className={classNames(
-            "[--booker-meta-width:280px] [--booker-main-width:480px] [--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
+            "[--booker-main-width:480px] [--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
             "bg-muted grid max-w-full items-start overflow-clip dark:[color-scheme:dark] md:flex-row",
             layout === "small_calendar" &&
-              "border-subtle mt-20 min-h-[450px] w-[calc(var(--booker-meta-width)+var(--booker-main-width))] rounded-md border",
-            layout !== "small_calendar" && "h-auto min-h-screen w-screen"
+              "border-subtle mt-20 min-h-[450px] w-[calc(var(--booker-meta-width)+var(--booker-main-width))] rounded-md border [--booker-meta-width:280px]",
+            layout !== "small_calendar" &&
+              "h-auto min-h-screen w-screen [--booker-meta-width:340px] lg:[--booker-meta-width:424px]"
           )}>
           <AnimatePresence>
             <StickyOnDesktop key="meta" className="relative z-10">
