@@ -11,6 +11,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button, showToast } from "@calcom/ui";
 
 import Loader from "@components/Loader";
+import PageWrapper from "@components/PageWrapper";
 
 async function sendVerificationLogin(email: string, username: string) {
   await signIn("email", {
@@ -177,3 +178,5 @@ export default function Verify() {
     </div>
   );
 }
+
+Verify.PageWrapper = PageWrapper;

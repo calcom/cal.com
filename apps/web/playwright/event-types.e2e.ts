@@ -10,7 +10,7 @@ import { bookTimeSlot, createNewEventType, selectFirstAvailableTimeSlotNextMonth
 test.describe.configure({ mode: "parallel" });
 
 test.describe("Event Types tests", () => {
-  testBothBookers.describe("user", () => {
+  testBothBookers.describe("user", (bookerVariant) => {
     test.beforeEach(async ({ page, users }) => {
       const user = await users.create();
       await user.login();
@@ -148,11 +148,17 @@ test.describe("Event Types tests", () => {
       await selectFirstAvailableTimeSlotNextMonth(page);
 
       // Navigate to book page
-      await page.waitForNavigation({
-        url(url) {
-          return url.pathname.endsWith("/book");
-        },
-      });
+      // Kept in if statement here, since it's only temporary
+      // until the old booker isn't used anymore, and I wanted
+      // to change the test as little as possible.
+      // eslint-disable-next-line playwright/no-conditional-in-test
+      if (bookerVariant === "old-booker") {
+        await page.waitForNavigation({
+          url(url) {
+            return url.pathname.endsWith("/book");
+          },
+        });
+      }
 
       for (const location of locationData) {
         await page.locator(`span:has-text("${location}")`).click();

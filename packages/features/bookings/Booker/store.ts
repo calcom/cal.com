@@ -116,7 +116,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   eventId: null,
   month: getQueryParam("month") || getQueryParam("date") || dayjs().format("YYYY-MM"),
   setMonth: (month: string | null) => {
-    set({ month, selectedDate: null, selectedTimeslot: null });
+    set({ month, selectedTimeslot: null });
     updateQueryParam("month", month ?? "");
     get().setSelectedDate(null);
   },
@@ -144,6 +144,11 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       rescheduleUid,
       rescheduleBooking,
     });
+    // Unset selected timeslot if user is rescheduling. This could happen
+    // if the user reschedules a booking right after the confirmation page.
+    // In that case the time would still be store in the store, this way we
+    // force clear this.
+    if (rescheduleBooking) set({ selectedTimeslot: null });
     if (month) set({ month });
   },
   selectedDuration: Number(getQueryParam("duration")) || null,

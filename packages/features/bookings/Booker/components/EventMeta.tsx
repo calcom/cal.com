@@ -1,10 +1,10 @@
 import { m } from "framer-motion";
+import dynamic from "next/dynamic";
 
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TimezoneSelect } from "@calcom/ui";
 import { Calendar, Globe } from "@calcom/ui/components/icon";
 
 import { fadeInUp } from "../config";
@@ -12,12 +12,17 @@ import { useBookerStore } from "../store";
 import { formatEventFromToTime } from "../utils/dates";
 import { useEvent } from "../utils/event";
 
+const TimezoneSelect = dynamic(() => import("@calcom/ui").then((mod) => mod.TimezoneSelect), {
+  ssr: false,
+});
+
 export const EventMeta = () => {
   const { timezone, setTimezone, timeFormat } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
-  const { i18n } = useLocale();
+  const rescheduleBooking = useBookerStore((state) => state.rescheduleBooking);
+  const { i18n, t } = useLocale();
   const { data: event, isLoading } = useEvent();
 
   return (
@@ -32,6 +37,21 @@ export const EventMeta = () => {
           <EventMembers schedulingType={event.schedulingType} users={event.users} profile={event.profile} />
           <EventTitle className="mt-2 mb-8">{event?.title}</EventTitle>
           <div className="space-y-4">
+            {rescheduleBooking && (
+              <EventMetaBlock icon={Calendar}>
+                {t("former_time")}
+                <br />
+                <span className="line-through" data-testid="former_time_p">
+                  {formatEventFromToTime(
+                    rescheduleBooking.startTime.toString(),
+                    null,
+                    timeFormat,
+                    timezone,
+                    i18n.language
+                  )}
+                </span>
+              </EventMetaBlock>
+            )}
             {selectedTimeslot && (
               <EventMetaBlock icon={Calendar}>
                 {formatEventFromToTime(

@@ -9,13 +9,16 @@ import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps"
 
 import type { AppProps } from "@lib/app-providers";
 
+import PageWrapper from "@components/PageWrapper";
+
 import { ssrInit } from "@server/lib/ssr";
 
 type AppPageType = {
   getServerSideProps: AppGetServerSideProps;
   // A component than can accept any properties
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: ((props: any) => JSX.Element) & Pick<AppProps["Component"], "isBookingPage" | "getLayout">;
+  default: ((props: any) => JSX.Element) &
+    Pick<AppProps["Component"], "isBookingPage" | "getLayout" | "PageWrapper">;
 };
 
 type Found = {
@@ -93,6 +96,8 @@ AppPage.getLayout = (page, router) => {
   }
   return route.Component.getLayout(page, router);
 };
+
+AppPage.PageWrapper = PageWrapper;
 
 export default AppPage;
 

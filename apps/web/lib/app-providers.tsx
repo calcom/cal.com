@@ -30,6 +30,7 @@ export type AppProps = Omit<NextAppProps<WithNonceProps & Record<string, unknown
     isThemeSupported?: boolean;
     isBookingPage?: boolean | ((arg: { router: NextRouter }) => boolean);
     getLayout?: (page: React.ReactElement, router: NextRouter) => ReactNode;
+    PageWrapper?: (props: AppProps) => JSX.Element;
   };
 
   /** Will be defined only is there was an error */
@@ -154,6 +155,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
       <SessionProvider session={session || undefined}>
         <CustomI18nextProvider {...props}>
           <TooltipProvider>
+            {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
             <CalcomThemeProvider
               nonce={props.pageProps.nonce}
               isThemeSupported={props.Component.isThemeSupported}

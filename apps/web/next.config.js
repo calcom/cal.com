@@ -111,6 +111,12 @@ const nextConfig = {
       transform: "lucide-react/dist/esm/icons/{{ kebabCase member }}",
       preventFullImport: true,
     },
+    "@heroicons/react/solid": {
+      transform: "@heroicons/react/solid/esm/{{ member }}",
+    },
+    "@heroicons/react/outline": {
+      transform: "@heroicons/react/outline/esm/{{ member }}",
+    },
     "@calcom/features/insights/components": {
       transform: "@calcom/features/insights/components/{{member}}",
       skipDefaultConversion: true,
@@ -312,6 +318,11 @@ const nextConfig = {
       {
         source: "/booking/direct/:action/:email/:bookingUid/:oldToken",
         destination: "/api/link?action=:action&email=:email&bookingUid=:bookingUid&oldToken=:oldToken",
+        permanent: true,
+      },
+      {
+        source: "/support",
+        destination: "/event-types?openIntercom=true",
         permanent: true,
       },
     ];

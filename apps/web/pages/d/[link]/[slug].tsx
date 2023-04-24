@@ -14,6 +14,7 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
+import PageWrapper from "@components/PageWrapper";
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -25,6 +26,7 @@ export default function Type(props: DynamicAvailabilityPageProps) {
 }
 
 Type.isBookingPage = true;
+Type.PageWrapper = PageWrapper;
 
 const querySchema = z.object({
   link: z.string().optional().default(""),

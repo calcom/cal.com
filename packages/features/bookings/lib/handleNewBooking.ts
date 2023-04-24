@@ -53,7 +53,7 @@ import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/Syn
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { userSelect } from "@calcom/prisma";
 import type { BookingReference } from "@calcom/prisma/client";
-import type { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod-utils";
+import { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod-utils";
 import {
   bookingCreateBodySchemaForApi,
   customInputSchema,
@@ -197,7 +197,12 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       id: true,
       customInputs: true,
       disableGuests: true,
-      users: userSelect,
+      users: {
+        select: {
+          credentials: true,
+          ...userSelect.select,
+        },
+      },
       slug: true,
       team: {
         select: {
@@ -253,7 +258,12 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       hosts: {
         select: {
           isFixed: true,
-          user: userSelect,
+          user: {
+            select: {
+              credentials: true,
+              ...userSelect.select,
+            },
+          },
         },
       },
       availability: {
@@ -277,7 +287,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
   };
 };
 
-type IsFixedAwareUser = User & { isFixed: boolean };
+type IsFixedAwareUser = User & { isFixed: boolean; credentials: Credential[] };
 
 async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
@@ -394,21 +404,81 @@ function getBookingData({
   isNotAnApiCall: boolean;
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>;
 }) {
+  const responsesSchema = getBookingResponsesSchema({
+    eventType: {
+      bookingFields: eventType.bookingFields,
+    },
+    view: req.body.rescheduleUid ? "reschedule" : "booking",
+  });
   const bookingDataSchema = isNotAnApiCall
     ? extendedBookingCreateBody.merge(
         z.object({
-          responses: getBookingResponsesSchema({
-            eventType: {
-              bookingFields: eventType.bookingFields,
-            },
-            view: req.body.rescheduleUid ? "reschedule" : "booking",
-          }),
+          responses: responsesSchema,
         })
       )
-    : bookingCreateBodySchemaForApi;
+    : bookingCreateBodySchemaForApi
+        .merge(
+          z.object({
+            responses: responsesSchema.optional(),
+          })
+        )
+        .superRefine((val, ctx) => {
+          if (val.responses && val.customInputs) {
+            ctx.addIssue({
+              code: "custom",
+              message:
+                "Don't use both customInputs and responses. `customInputs` is only there for legacy support.",
+            });
+            return;
+          }
+          const legacyProps = Object.keys(bookingCreateSchemaLegacyPropsForApi.shape);
+
+          if (val.responses) {
+            const unwantedProps: string[] = [];
+            legacyProps.forEach((legacyProp) => {
+              if (val[legacyProp as keyof typeof val]) {
+                unwantedProps.push(legacyProp);
+              }
+            });
+            if (unwantedProps.length) {
+              ctx.addIssue({
+                code: "custom",
+                message: `Legacy Props: ${unwantedProps.join(",")}. They can't be used with \`responses\``,
+              });
+              return;
+            }
+          } else if (val.customInputs) {
+            const { success } = bookingCreateSchemaLegacyPropsForApi.safeParse(val);
+            if (!success) {
+              ctx.addIssue({
+                code: "custom",
+                message: `With \`customInputs\` you must specify legacy props ${legacyProps.join(",")}`,
+              });
+            }
+          }
+        });
 
   const reqBody = bookingDataSchema.parse(req.body);
-  if ("responses" in reqBody) {
+  if ("customInputs" in reqBody) {
+    if (reqBody.customInputs) {
+      // Check if required custom inputs exist
+      handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], reqBody.customInputs);
+    }
+    const reqBodyWithLegacyProps = bookingCreateSchemaLegacyPropsForApi.parse(reqBody);
+    return {
+      ...reqBody,
+      name: reqBodyWithLegacyProps.name,
+      email: reqBodyWithLegacyProps.email,
+      guests: reqBodyWithLegacyProps.guests,
+      location: reqBodyWithLegacyProps.location || "",
+      smsReminderNumber: reqBodyWithLegacyProps.smsReminderNumber,
+      notes: reqBodyWithLegacyProps.notes,
+      rescheduleReason: reqBodyWithLegacyProps.rescheduleReason,
+    };
+  } else {
+    if (!reqBody.responses) {
+      throw new Error("`responses` must not be nullish");
+    }
     const responses = reqBody.responses;
     const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
       getCalEventResponses({
@@ -426,20 +496,6 @@ function getBookingData({
       calEventUserFieldsResponses,
       rescheduleReason: responses.rescheduleReason,
       calEventResponses,
-    };
-  } else {
-    // Check if required custom inputs exist
-    handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], reqBody.customInputs);
-
-    return {
-      ...reqBody,
-      name: reqBody.name,
-      email: reqBody.email,
-      guests: reqBody.guests,
-      location: reqBody.location || "",
-      smsReminderNumber: reqBody.smsReminderNumber,
-      notes: reqBody.notes,
-      rescheduleReason: reqBody.rescheduleReason,
     };
   }
 }
@@ -577,6 +633,7 @@ async function handler(
           },
           select: {
             ...userSelect.select,
+            credentials: true, // Don't leak to client
             metadata: true,
           },
         })
@@ -608,7 +665,10 @@ async function handler(
       where: {
         id: eventType.userId,
       },
-      ...userSelect,
+      select: {
+        credentials: true, // Don't leak to client
+        ...userSelect.select,
+      },
     });
     if (!eventTypeUser) {
       log.warn({ message: "NewBooking: eventTypeUser.notFound" });
@@ -637,8 +697,7 @@ async function handler(
       return aIndex - bIndex;
     });
     const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata);
-    const app = getAppFromSlug(firstUsersMetadata?.defaultConferencingApp?.appSlug);
-    locationBodyString = app?.appData?.location?.type || locationBodyString;
+    locationBodyString = firstUsersMetadata?.defaultConferencingApp?.appLink || locationBodyString;
     defaultLocationUrl = firstUsersMetadata?.defaultConferencingApp?.appLink;
   }
 
@@ -794,6 +853,7 @@ async function handler(
 
   const calEventUserFieldsResponses =
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
+
   let evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
@@ -1383,6 +1443,7 @@ async function handler(
        * deep cloning evt to avoid this
        */
       const copyEvent = cloneDeep(evt);
+      copyEvent.uid = booking.uid;
       await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
       const credentials = await refreshCredentials(organizerUser.credentials);
@@ -1443,7 +1504,7 @@ async function handler(
     // Here we should handle every after action that needs to be done after booking creation
 
     // Obtain event metadata that includes videoCallUrl
-    const metadata = { videoCallUrl: evt.videoCallData?.url };
+    const metadata = evt.videoCallData?.url ? { videoCallUrl: evt.videoCallData.url } : undefined;
     try {
       await scheduleWorkflowReminders({
         workflows: eventType.workflows,
@@ -2059,7 +2120,7 @@ async function handler(
     log.error("Error while creating booking references", error);
   }
 
-  const metadataFromEvent = { videoCallUrl };
+  const metadataFromEvent = videoCallUrl ? { videoCallUrl } : undefined;
 
   try {
     await scheduleWorkflowReminders({
