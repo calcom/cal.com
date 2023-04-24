@@ -204,7 +204,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
       </div>
 
       <BookFormAsModal
-        visible={layout === "large_calendar" && bookerState === "booking"}
+        visible={layout === "large_timeslots" && bookerState === "booking"}
         onCancel={() => setSelectedTimeslot(null)}
       />
     </>
