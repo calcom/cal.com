@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SchedulingType } from "@prisma/client";
 import { MembershipRole } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { useState } from "react";
@@ -29,8 +30,9 @@ import {
   RadioGroup as RadioArea,
   showToast,
   TextField,
-  Editor,
 } from "@calcom/ui";
+
+const Editor = dynamic(() => import("@calcom/ui/components/editor"));
 
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {

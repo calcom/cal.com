@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { MembershipRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -28,11 +29,12 @@ import {
   Meta,
   showToast,
   TextField,
-  Editor,
 } from "@calcom/ui";
 import { ExternalLink, Link as LinkIcon, Trash2, LogOut } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
+
+const Editor = dynamic(() => import("@calcom/ui/components/editor"));
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 

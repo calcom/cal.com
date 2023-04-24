@@ -1,5 +1,6 @@
 import type { WorkflowStep } from "@prisma/client";
 import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@prisma/client";
+import dynamic from "next/dynamic";
 import type { Dispatch, SetStateAction } from "react";
 import { useRef, useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -31,7 +32,6 @@ import {
   showToast,
   TextArea,
   TextField,
-  Editor,
   AddVariablesDropdown,
   Input,
 } from "@calcom/ui";
@@ -44,6 +44,8 @@ import emailReminderTemplate from "../lib/reminders/templates/emailReminderTempl
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
 import type { FormValues } from "../pages/workflow";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
+
+const Editor = dynamic(() => import("@calcom/ui/components/editor"));
 
 type WorkflowStepProps = {
   step?: WorkflowStep;

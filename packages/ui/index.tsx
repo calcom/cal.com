@@ -98,7 +98,6 @@ export type { HorizontalTabItemProps, NavTabProps, VerticalTabItemProps } from "
 export { Card, StepCard, FormCard } from "./components/card";
 export type { BaseCardProps } from "./components/card";
 export { Tooltip } from "./components/tooltip";
-export { Editor, AddVariablesDropdown } from "./components/editor";
 export {
   Dialog,
   DialogClose,

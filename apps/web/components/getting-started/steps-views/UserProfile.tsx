@@ -1,4 +1,5 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import type { FormEvent } from "react";
 import { useRef, useState } from "react";
@@ -9,10 +10,11 @@ import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
-import { Avatar } from "@calcom/ui";
+import { Button, ImageUploader, Label, showToast, Avatar } from "@calcom/ui";
 
 import type { IOnboardingPageProps } from "../../../pages/getting-started/[[...step]]";
+
+const Editor = dynamic(() => import("@calcom/ui/components/editor"));
 
 type FormData = {
   bio: string;

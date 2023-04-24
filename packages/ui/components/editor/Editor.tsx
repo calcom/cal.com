@@ -102,3 +102,5 @@ export const Editor = (props: TextEditorProps) => {
     </div>
   );
 };
+
+export default Editor;

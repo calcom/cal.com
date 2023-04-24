@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IdentityProvider } from "@prisma/client";
 import { signOut } from "next-auth/react";
+import dynamic from "next/dynamic";
 import type { BaseSyntheticEvent } from "react";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -36,13 +37,14 @@ import {
   SkeletonContainer,
   SkeletonText,
   TextField,
-  Editor,
 } from "@calcom/ui";
 import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
+
+const Editor = dynamic(() => import("@calcom/ui/components/editor"));
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (

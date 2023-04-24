@@ -2,6 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { Trans } from "next-i18next";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
@@ -25,7 +26,6 @@ import {
   SettingsToggle,
   Skeleton,
   TextField,
-  Editor,
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
@@ -34,6 +34,8 @@ import { Edit2, Check, X, Plus } from "@calcom/ui/components/icon";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import type { SingleValueLocationOption, LocationOption } from "@components/ui/form/LocationSelect";
 import LocationSelect from "@components/ui/form/LocationSelect";
+
+const Editor = dynamic(() => import("@calcom/ui/components/editor"));
 
 const getLocationFromType = (
   type: EventLocationType["type"],
