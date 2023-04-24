@@ -15,7 +15,6 @@
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "event-type-app-card",
-  "dirName": "metapixel",
   "appData": {
     "tag": {
       "scripts": [
