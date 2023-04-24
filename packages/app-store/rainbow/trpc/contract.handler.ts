@@ -1,9 +1,9 @@
 import { ethers } from "ethers";
-import type { TContractInputSchema } from "rainbow/trpc/contract.schema";
 import { configureChains, createClient } from "wagmi";
 
 import abi from "../utils/abi.json";
 import { getProviders, SUPPORTED_CHAINS } from "../utils/ethereum";
+import type { TContractInputSchema } from "./contract.schema";
 
 interface ContractHandlerOptions {
   input: TContractInputSchema;

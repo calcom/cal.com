@@ -1,6 +1,5 @@
-import type { TBalanceInputSchema } from "rainbow/trpc/balance.schema";
-
 import { checkBalance } from "../utils/ethereum";
+import type { TBalanceInputSchema } from "./balance.schema";
 
 interface BalanceHandlerOptions {
   input: TBalanceInputSchema;

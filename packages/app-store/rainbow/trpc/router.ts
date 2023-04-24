@@ -1,7 +1,7 @@
-import { ZBalanceInputSchema, ZBalanceOutputSchema } from "rainbow/trpc/balance.schema";
-import { ZContractInputSchema, ZContractOutputSchema } from "rainbow/trpc/contract.schema";
-
 import { router, publicProcedure } from "@calcom/trpc/server/trpc";
+
+import { ZBalanceInputSchema, ZBalanceOutputSchema } from "./balance.schema";
+import { ZContractInputSchema, ZContractOutputSchema } from "./contract.schema";
 
 interface EthRouterHandlersCache {
   contract?: typeof import("./contract.handler").contractHandler;
