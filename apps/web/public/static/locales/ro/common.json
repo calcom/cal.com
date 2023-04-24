@@ -1761,5 +1761,8 @@
   "clear_filters": "Ștergere filtre",
   "hold": "Așteptare",
   "on_booking_option": "Percepere plată pentru rezervare",
-  "hold_option": "Percepere taxă pentru neprezentare"
+  "hold_option": "Percepere taxă pentru neprezentare",
+  "card_held": "Card reținut",
+  "charge_card": "Debitare card",
+  "card_charged": "Card debitat"
 }
