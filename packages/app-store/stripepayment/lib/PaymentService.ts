@@ -62,9 +62,7 @@ export class PaymentService implements IAbstractPaymentService {
       });
 
       // Parse keys with zod
-      const { client_id, payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(
-        stripeAppKeys?.keys
-      );
+      const { payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(stripeAppKeys?.keys);
       const paymentFee = Math.round(payment.amount * payment_fee_percentage + payment_fee_fixed);
 
       const customer = await retrieveOrCreateStripeCustomerByEmail(
@@ -142,9 +140,7 @@ export class PaymentService implements IAbstractPaymentService {
     });
 
     // Parse keys with zod
-    const { client_id, payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(
-      stripeAppKeys?.keys
-    );
+    const { payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(stripeAppKeys?.keys);
     const paymentFee = Math.round(payment.amount * payment_fee_percentage + payment_fee_fixed);
 
     const customer = await retrieveOrCreateStripeCustomerByEmail(
@@ -199,7 +195,7 @@ export class PaymentService implements IAbstractPaymentService {
     return paymentData;
   }
 
-  async chargeCard(payment: Payment, bookingId: Booking["id"]): Promise<Payment> {
+  async chargeCard(payment: Payment): Promise<Payment> {
     try {
       const stripeAppKeys = await prisma?.app.findFirst({
         select: {
@@ -215,9 +211,7 @@ export class PaymentService implements IAbstractPaymentService {
       const setupIntent = paymentObject.setupIntent;
 
       // Parse keys with zod
-      const { client_id, payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(
-        stripeAppKeys?.keys
-      );
+      const { payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(stripeAppKeys?.keys);
 
       const paymentFee = Math.round(payment.amount * payment_fee_percentage + payment_fee_fixed);
 
