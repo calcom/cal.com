@@ -1758,5 +1758,6 @@
   "subtitle_analytics": "Aflați mai multe despre activitatea echipei dvs.",
   "redirect_url_warning": "Adăugarea unei redirecționări va dezactiva pagina cu mesajul de succes. Nu uitați să menționați „Rezervare confirmată” pe pagina cu mesajul de succes personalizat.",
   "event_trends": "Tendințe eveniment",
-  "clear_filters": "Ștergere filtre"
+  "clear_filters": "Ștergere filtre",
+  "hold": "Așteptare"
 }
