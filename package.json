@@ -77,7 +77,6 @@
     "@deploysentinel/playwright": "^0.3.3",
     "@playwright/test": "^1.31.2",
     "@snaplet/copycat": "^0.3.0",
-    "@types/dompurify": "^2.4.0",
     "@types/jest": "^28.1.7",
     "dotenv-checker": "^1.1.5",
     "husky": "^8.0.1",
