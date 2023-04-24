@@ -87,7 +87,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
       timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
     }
 
-    LargeLayouts.includes(layout) && setSelectedDate(dayjs().format("YYYY-MM-DD"));
+    LargeLayouts.includes(layout) && !selectedDate && setSelectedDate(dayjs().format("YYYY-MM-DD"));
   }, [layout, selectedDate, setSelectedDate]);
 
   return (
