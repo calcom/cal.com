@@ -12,8 +12,8 @@ import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import getTimeSlots from "@calcom/lib/slots";
-import { prisma } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 

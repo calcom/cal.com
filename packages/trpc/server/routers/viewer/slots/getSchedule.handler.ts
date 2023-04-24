@@ -6,6 +6,6 @@ type GetScheduleOptions = {
   input: TGetScheduleInputSchema;
 };
 
-export const getScheduleHandler = async ({ input, ctx }: GetScheduleOptions) => {
+export const getScheduleHandler = async ({ input }: GetScheduleOptions) => {
   return await getSchedule(input);
 };
