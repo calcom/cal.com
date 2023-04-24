@@ -51,6 +51,7 @@ type BookerStore = {
    */
   selectedDate: string | null;
   setSelectedDate: (date: string | null) => void;
+  addToSelectedDate: (days: number) => void;
   /**
    * Selected event duration in minutes.
    */
@@ -96,6 +97,12 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setSelectedDate: (selectedDate: string | null) => {
     set({ selectedDate });
     updateQueryParam("date", selectedDate ?? "");
+  },
+  addToSelectedDate: (days: number) => {
+    const currentSelection = get().selectedDate;
+    const newSelection = dayjs(currentSelection).add(days, "day").format("YYYY-MM-DD");
+    set({ selectedDate: newSelection });
+    updateQueryParam("date", newSelection);
   },
   username: null,
   eventSlug: null,

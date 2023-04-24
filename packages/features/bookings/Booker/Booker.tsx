@@ -17,6 +17,7 @@ import { BookEventForm } from "./components/BookEventForm";
 import { DatePicker } from "./components/DatePicker";
 import { EventMeta } from "./components/EventMeta";
 import { LargeCalendar } from "./components/LargeCalendar";
+import { LargeViewHeader } from "./components/LargeViewHeader";
 import { BookerSection } from "./components/Section";
 import { fadeInUp, fadeInLeft, resizeAnimationConfig } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
@@ -47,6 +48,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
     shallow
   );
+  const extraDays = layout === "large_timeslots" ? (isTablet ? 2 : 4) : 0;
 
   useBrandColors({
     brandColor: event.data?.profile.brandColor,
@@ -177,14 +179,15 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
                 (layout === "large_timeslots" && bookerState !== "booking")
               }
               className={classNames(
-                "border-subtle flex h-full w-full flex-row p-6 pb-0 md:border-l",
+                "border-subtle flex h-full w-full flex-col p-6 pb-0 md:border-l",
                 layout === "small_calendar" && "h-full overflow-auto md:w-[var(--booker-timeslots-width)]",
                 layout !== "small_calendar" && "sticky top-0"
               )}
               ref={timeslotsRef}
               {...fadeInLeft}>
+              {layout === "large_timeslots" && <LargeViewHeader extraDays={extraDays} />}
               <AvailableTimeSlots
-                extraDays={layout === "large_timeslots" ? (isTablet ? 2 : 4) : 0}
+                extraDays={extraDays}
                 limitHeight={layout === "small_calendar"}
                 seatsPerTimeslot={event.data?.seatsPerTimeSlot}
               />
