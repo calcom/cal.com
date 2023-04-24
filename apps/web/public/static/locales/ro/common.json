@@ -1775,5 +1775,6 @@
   "no_show_fee_charged_subtitle": "Taxa de neprezentare în valoare de {{amount, currency}} a fost percepută pentru următorul eveniment",
   "error_charging_card": "A survenit o eroare la perceperea taxei de neprezentare. Încercați din nou mai târziu.",
   "collect_no_show_fee": "Colectare taxă de neprezentare",
-  "no_show_fee_charged": "Taxă de neprezentare percepută"
+  "no_show_fee_charged": "Taxă de neprezentare percepută",
+  "insights": "Insights"
 }
