@@ -51,6 +51,7 @@ export type FormValues = {
   eventName: string;
   slug: string;
   length: number;
+  offsetStart: number;
   description: string;
   disableGuests: boolean;
   requiresConfirmation: boolean;
@@ -204,6 +205,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     bookingLimits: eventType.bookingLimits || undefined,
     durationLimits: eventType.durationLimits || undefined,
     length: eventType.length,
+    offsetStart: eventType.offsetStart,
     hidden: eventType.hidden,
     periodDates: {
       startDate: periodDates.startDate,
@@ -248,6 +250,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             )
             .optional(),
           length: z.union([z.string().transform((val) => +val), z.number()]).optional(),
+          offsetStart: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           bookingFields: eventTypeBookingFields,
         })
         // TODO: Add schema for other fields later.

@@ -753,6 +753,8 @@
   "new_event_type_to_book_description": "Create a new event type for people to book times with.",
   "length": "Length",
   "minimum_booking_notice": "Minimum Notice",
+  "offset_start": "Offset start time",
+  "offset_start_description": "Start your bookings a little later so you have time to get ready. Setting this to 5 minutes will turn a 9:00am slot into a 9:05am slot, for example.",
   "slot_interval": "Time-slot intervals",
   "slot_interval_default": "Use event length (default)",
   "delete_event_type": "Delete event type?",

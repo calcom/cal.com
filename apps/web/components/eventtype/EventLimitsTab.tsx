@@ -280,6 +280,19 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             />
           </div>
         </div>
+        <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
+          <div className="w-full lg:w-1/2">
+            <TextField
+              required
+              type="number"
+              label={t("offset_start")}
+              defaultValue={eventType.offsetStart}
+              {...formMethods.register("offsetStart")}
+              addOnSuffix={<>{t("minutes")}</>}
+              hint={t("offset_start_description")}
+            />
+          </div>
+        </div>
       </div>
       <hr className="border-subtle" />
       <Controller
