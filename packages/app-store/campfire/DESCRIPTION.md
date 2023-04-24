@@ -6,7 +6,7 @@ items:
   - 4.jpg
 ---
 
-<iframe class="w-full aspect-video -mx-2" width="560" height="315" src="https://player.vimeo.com/video/683733529?app_id=122963&h=025a2fae94&referrer=https%3A%2F%2Fwww.campfire.to%2F" />
+<iframe class="w-full aspect-video -mx-2" width="560" height="315" src="https://player.vimeo.com/video/683733529?app_id=122963&h=025a2fae94&referrer=https%3A%2F%2Fwww.campfire.to%2F" ></iframe>
 
 ## Feel connected with your remote team
 
