@@ -71,7 +71,7 @@ export const EventMeta = () => {
               {bookerState === "booking" ? (
                 <>{timezone}</>
               ) : (
-                <span className="current-timezone before:bg-subtle -mt-[2px] flex items-center justify-center before:absolute before:inset-0 before:left-[-30px] before:top-[-3px] before:bottom-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity">
+                <span className="current-timezone before:bg-subtle -mt-[2px] flex h-6 items-center justify-center before:absolute before:inset-0 before:left-[-30px] before:top-[-3px] before:bottom-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity">
                   <TimezoneSelect
                     menuPosition="fixed"
                     classNames={{
