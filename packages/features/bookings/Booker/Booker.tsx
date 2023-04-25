@@ -178,7 +178,8 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
               }
               className={classNames(
                 "border-subtle flex h-full w-full flex-col p-5 pb-0 md:border-l",
-                layout === "small_calendar" && "h-full overflow-auto md:w-[var(--booker-timeslots-width)]",
+                layout === "small_calendar" &&
+                  "scroll-bar h-full overflow-auto md:w-[var(--booker-timeslots-width)]",
                 layout !== "small_calendar" && "sticky top-0"
               )}
               ref={timeslotsRef}
