@@ -49,6 +49,7 @@ import { AlertTriangle, Calendar, RefreshCw, User } from "@calcom/ui/components/
 
 import { timeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
+import type { BookingResponse } from "@lib/types/booking";
 
 import type { Gate, GateState } from "@components/Gates";
 import Gates from "@components/Gates";
@@ -57,7 +58,6 @@ import BookingDescription from "@components/booking/BookingDescription";
 import type { BookPageProps } from "../../../pages/[user]/book";
 import type { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import type { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
-import { BookingResponse } from "@lib/types/booking";
 
 const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaster), { ssr: false });
 
