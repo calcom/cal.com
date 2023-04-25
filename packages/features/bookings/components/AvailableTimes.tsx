@@ -32,7 +32,7 @@ export const AvailableTimes = ({
 
   return (
     <div className={classNames("dark:text-white", className)}>
-      <header className="bg-muted before:bg-muted sticky top-0 left-0 z-10 mb-5 flex w-full flex-row items-center font-medium before:absolute before:-top-12 before:h-24 before:w-full md:flex-col md:items-start lg:flex-row lg:items-center">
+      <header className="bg-muted before:bg-muted sticky top-0 left-0 z-10 mb-5 flex w-full flex-row items-center font-medium before:absolute before:-top-12 before:h-24 before:w-full md:flex-col md:items-start lg:flex-row lg:items-center [.is-multiple-dates_&]:mb-12">
         <span className="relative z-10">
           <span className="text-text font-semibold">
             {nameOfDay(i18n.language, Number(date.format("d")), "short")},
@@ -65,7 +65,7 @@ export const AvailableTimes = ({
               data-testid="time"
               data-time={slot.time}
               onClick={() => onTimeSelect(slot.time)}
-              className="mb-2 flex h-auto min-h-[44px] w-full flex-col items-center justify-center py-2"
+              className="mb-2 flex h-auto min-h-[36px] w-full flex-col items-center justify-center py-2"
               color="secondary">
               {dayjs.utc(slot.time).tz(timezone).format(timeFormat)}
               {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
