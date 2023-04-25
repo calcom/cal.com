@@ -13,7 +13,7 @@ export default function Apps({ categories }: InferGetStaticPropsType<typeof getS
   const { t, isLocaleReady } = useLocale();
 
   return (
-    <Shell isPublic large>
+    <Shell isPublic large hideHeadingOnMobile>
       <div className="text-md flex items-center gap-1 px-4 pb-3 pt-3 font-normal md:px-8 lg:px-0 lg:pt-0">
         <Link
           href="/apps"

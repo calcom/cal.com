@@ -320,6 +320,7 @@ const ProfileForm = ({
   extraField?: React.ReactNode;
 }) => {
   const { t } = useLocale();
+  const [firstRender, setFirstRender] = useState(true);
 
   const profileFormSchema = z.object({
     username: z.string(),
@@ -385,6 +386,8 @@ const ProfileForm = ({
           }}
           excludedToolbarItems={["blockType"]}
           disableLists
+          firstRender={firstRender}
+          setFirstRender={setFirstRender}
         />
       </div>
       <Button disabled={isDisabled} color="primary" className="mt-8" type="submit">

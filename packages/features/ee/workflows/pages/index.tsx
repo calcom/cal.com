@@ -11,7 +11,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import { AnimatedPopover, Avatar, CreateButton, showToast } from "@calcom/ui";
 
-import LicenseRequired from "../../common/components/v2/LicenseRequired";
+import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderList";
 import type { WorkflowType } from "../components/WorkflowListPage";
 import WorkflowList from "../components/WorkflowListPage";
@@ -95,6 +95,7 @@ function WorkflowsPage() {
       heading={t("workflows")}
       title={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
+      hideHeadingOnMobile
       CTA={
         query?.data?.profiles.length === 1 &&
         session.data?.hasValidLicense &&

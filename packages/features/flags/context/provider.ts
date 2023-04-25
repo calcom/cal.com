@@ -1,4 +1,4 @@
-import * as React from "react";
+import { createContext, useContext, createElement } from "react";
 
 import type { AppFlags } from "../config";
 
@@ -12,7 +12,7 @@ export type Flags = AppFlags;
 /**
  * Allows you to access the flags from context
  */
-const FeatureContext = React.createContext<Flags | null>(null);
+const FeatureContext = createContext<Flags | null>(null);
 
 /**
  * Accesses the evaluated flags from context.
@@ -21,7 +21,7 @@ const FeatureContext = React.createContext<Flags | null>(null);
  * this component.
  */
 export function useFlagMap() {
-  const flagMapContext = React.useContext(FeatureContext);
+  const flagMapContext = useContext(FeatureContext);
   if (flagMapContext === null) throw new Error("Error: useFlagMap was used outside of FeatureProvider.");
   return flagMapContext as Flags;
 }
@@ -52,5 +52,5 @@ export function useFlagMap() {
  * so you might not need this at all._
  */
 export function FeatureProvider<F extends Flags>(props: { value: F; children: React.ReactNode }) {
-  return React.createElement(FeatureContext.Provider, { value: props.value }, props.children);
+  return createElement(FeatureContext.Provider, { value: props.value }, props.children);
 }

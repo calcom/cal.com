@@ -71,5 +71,4 @@ export const createContext = async ({ req, res }: CreateContextOptions) => {
   };
 };
 
-export type ContextInner = Awaited<ReturnType<typeof createContextInner>>;
-export type Context = Awaited<ReturnType<typeof createContext>>;
+export type TRPCContext = Awaited<ReturnType<typeof createContext>>;

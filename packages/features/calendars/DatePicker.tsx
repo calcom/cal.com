@@ -144,7 +144,7 @@ const Days = ({
             <div key={`e-${idx}`} />
           ) : props.isLoading ? (
             <button
-              className=" bg-muted text-muted opcaity-50 absolute top-0 left-0 right-0 bottom-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center"
+              className=" bg-muted text-muted opcaity-50 absolute top-0 left-0 right-0 bottom-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium"
               key={`e-${idx}`}
               disabled>
               <SkeletonText className="h-4 w-5" />
@@ -196,12 +196,12 @@ const DatePicker = ({
 
   return (
     <div className={className}>
-      <div className="mb-4 flex items-center justify-between text-xl font-light">
+      <div className="mb-1 flex items-center justify-between text-xl">
         <span className="text-default w-1/2 text-base">
           {browsingDate ? (
             <>
               <strong className="text-emphasis font-semibold">{month}</strong>{" "}
-              <span className="text-subtle">{browsingDate.format("YYYY")}</span>
+              <span className="text-subtle font-medium">{browsingDate.format("YYYY")}</span>
             </>
           ) : (
             <SkeletonText className="h-8 w-24" />
@@ -235,7 +235,7 @@ const DatePicker = ({
       </div>
       <div className="border-subtle mb-2 grid grid-cols-7 gap-4 border-t border-b text-center md:mb-0 md:border-0">
         {weekdayNames(locale, weekStart, "short").map((weekDay) => (
-          <div key={weekDay} className="text-emphasis my-4 text-xs uppercase tracking-widest">
+          <div key={weekDay} className="text-emphasis my-4 text-xs font-medium uppercase tracking-widest">
             {weekDay}
           </div>
         ))}

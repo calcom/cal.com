@@ -57,7 +57,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
               {!newApiKey ? (
                 <>
                   <div className="mt-1 text-xl">{t("generate_api_key")}:</div>
-                  <Button onClick={() => createApiKey()} className="mt-4 mb-4">
+                  <Button color="primary" onClick={() => createApiKey()} className="mt-4 mb-4">
                     {t("generate_api_key")}
                   </Button>
                 </>
