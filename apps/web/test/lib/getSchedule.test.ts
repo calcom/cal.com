@@ -965,8 +965,8 @@ describe("getSchedule", () => {
         ],
       });
 
-      //   // Requesting this user's availability for their
-      //   // individual Event Type
+      // Requesting this user's availability for their
+      // individual Event Type
       const thisUserAvailability = await getSchedule(
         {
           eventTypeId: 2,

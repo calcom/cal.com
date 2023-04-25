@@ -220,20 +220,20 @@ export async function getUserAvailability(
   const dateOverrides = availability
     .filter((availability) => !!availability.date)
     .map((override) => {
-      const organizerStartTime = dayjs.utc(override.startTime);
-      const organizerEndTime = dayjs.utc(override.endTime);
+      const scheduleStartTime = dayjs.utc(override.startTime);
+      const scheduleEndTime = dayjs.utc(override.endTime);
 
-      const organizerStartDate = dayjs
+      const scheduleStartDate = dayjs
         .utc(override.date)
-        .hour(organizerStartTime.hour())
-        .minute(organizerStartTime.minute());
-      const organizerEndDate = dayjs
+        .hour(scheduleStartTime.hour())
+        .minute(scheduleStartTime.minute());
+      const scheduleEndDate = dayjs
         .utc(override.date)
-        .hour(organizerEndTime.hour())
-        .minute(organizerEndTime.minute());
+        .hour(scheduleEndTime.hour())
+        .minute(scheduleEndTime.minute());
 
-      const utcStartDate = organizerStartDate.subtract(utcOffset, "minute");
-      const utcEndDate = organizerEndDate.subtract(utcOffset, "minute");
+      const utcStartDate = scheduleStartDate.subtract(utcOffset, "minute");
+      const utcEndDate = scheduleEndDate.subtract(utcOffset, "minute");
       return {
         start: utcStartDate.toDate(),
         end: utcEndDate.toDate(),

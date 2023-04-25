@@ -14,7 +14,7 @@ export type GetSlots = {
   eventLength: number;
   organizerTimeZone: string;
 };
-export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number; isOverMidnight?: boolean };
+export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
 
 const minimumOfOne = (input: number) => (input < 1 ? 1 : input);
 
@@ -54,7 +54,6 @@ function buildSlots({
       userIds: number[];
       startTime: number;
       endTime: number;
-      isOverMidnight?: boolean;
     }
   > = {};
   // get boundaries sorted by start time.
@@ -95,7 +94,6 @@ function buildSlots({
           userIds: (slotsTimeFrameAvailable[slotStart]?.userIds || []).concat(item.userIds || []),
           startTime: slotStart,
           endTime: slotStart + eventLength,
-          isOverMidnight: item.isOverMidnight,
         };
       });
     }
