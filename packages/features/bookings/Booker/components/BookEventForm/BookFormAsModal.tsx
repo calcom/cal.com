@@ -17,18 +17,20 @@ export function BookFormAsModal({ visible, onCancel }: { visible: boolean; onCan
 
   return (
     <Dialog open={visible} onOpenChange={onCancel}>
-      <DialogContent type={undefined} enableOverflow className="max-h-[45vh]">
+      <DialogContent
+        type={undefined}
+        enableOverflow
+        className="[&_.modalsticky]:border-t-subtle [&_.modalsticky]:bg-default max-h-[45vh] py-4 [&_.modalsticky]:sticky [&_.modalsticky]:bottom-0 [&_.modalsticky]:left-0 [&_.modalsticky]:right-0 [&_.modalsticky]:-mx-8 [&_.modalsticky]:border-t [&_.modalsticky]:px-6 [&_.modalsticky]:pt-4">
         <h1 className="font-cal text-emphasis text-lg leading-5">{t("confirm_your_details")} </h1>
         <div className="mt-6 flex space-x-2 rounded-md leading-none">
           <Badge variant="grayWithoutHover" startIcon={Calendar} size="lg">
             <span>{parsedSelectedTimeslot.format("LLL")}</span>
           </Badge>
-          {selectedDuration ||
-            (data?.length && (
-              <Badge variant="grayWithoutHover" startIcon={Clock} size="lg">
-                <span>{selectedDuration || data.length}</span>
-              </Badge>
-            ))}
+          {(selectedDuration || data?.length) && (
+            <Badge variant="grayWithoutHover" startIcon={Clock} size="lg">
+              <span>{selectedDuration || data?.length}</span>
+            </Badge>
+          )}
         </div>
         <BookEventForm onCancel={onCancel} />
       </DialogContent>
