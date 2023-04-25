@@ -83,7 +83,7 @@ apps/storybook/build-storybook.log
 
 # Submodules
 .gitmodules
-apps/api
+# apps/api
 apps/website
 apps/console
 apps/auth
