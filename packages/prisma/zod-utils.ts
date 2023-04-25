@@ -70,11 +70,7 @@ export const bookingResponses = z
   .object({
     email: z.string(),
     //TODO: Why don't we move name out of bookingResponses and let it be handled like user fields?
-    name: z.union([
-      z.string(),
-      z.object({ firstName: z.string(), lastName: z.string().optional() }),
-      z.object({ fullName: z.string() }),
-    ]),
+    name: z.union([z.string(), z.object({ firstName: z.string(), lastName: z.string().optional() })]),
     guests: z.array(z.string()).optional(),
     notes: z.string().optional(),
     location: z

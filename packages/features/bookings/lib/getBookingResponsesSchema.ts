@@ -107,9 +107,7 @@ function preprocess<T extends z.ZodType>({
               newValue = JSON.parse(value);
             } catch (e) {
               // If the value is not a valid JSON, then we will just use the value as is as it can be the full name directly
-              newValue = {
-                fullName: value,
-              };
+              newValue = value;
             }
           } else {
             newValue = value;
@@ -243,14 +241,35 @@ function preprocess<T extends z.ZodType>({
 
         if (bookingField.variantsConfig) {
           // If name is sent as a string, then we use the parent field otherwise the variant would be available in response and according to that we validate the data
-          const variantInResponse = bookingField.variant;
+          const variantInResponse =
+            bookingField.variant || bookingField.fieldTypeConfig?.variantsConfig?.defaultVariant;
           if (!variantInResponse) {
             throw new Error("`variant` must be there for booking field with `variantsConfig`");
           }
-          bookingField.variantsConfig.variants[
-            variantInResponse as keyof typeof bookingField.variantsConfig.variants
-          ].fields.forEach((subField) => {
+          const fields =
+            bookingField.variantsConfig.variants[
+              variantInResponse as keyof typeof bookingField.variantsConfig.variants
+            ].fields;
+
+          const variantSupportedFields = ["text"];
+
+          if (fields.length === 1) {
+            const field = fields[0];
+            if (variantSupportedFields.includes(field.type)) {
+              const schema = stringSchema;
+              if (!schema.safeParse(value).success) {
+                ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
+              }
+              return;
+            } else {
+              throw new Error(`Unsupported field.type with variants: ${field.type}`);
+            }
+          }
+          fields.forEach((subField) => {
             const schema = stringSchema;
+            if (!variantSupportedFields.includes(subField.type)) {
+              throw new Error(`Unsupported field.type with variants: ${subField.type}`);
+            }
             const valueIdentified = value as unknown as Record<string, string>;
             if (subField.required) {
               if (!schema.safeParse(valueIdentified[subField.name]).success) {

@@ -341,14 +341,20 @@ export const FormBuilder = function FormBuilder({
                   <div className="flex flex-col lg:flex-row lg:items-center">
                     <div className="text-default text-sm font-semibold ltr:mr-2 rtl:ml-2">
                       {(() => {
-                        const fieldTypeConfigVariants = field.fieldTypeConfig?.variantsConfig?.variants;
+                        const fieldTypeConfig = field.fieldTypeConfig;
+                        const fieldTypeConfigVariantsConfig = fieldTypeConfig?.variantsConfig;
+                        const fieldTypeConfigVariants = fieldTypeConfigVariantsConfig?.variants;
                         const variantsConfig = field.variantsConfig;
+                        const defaultVariant = fieldTypeConfigVariantsConfig?.defaultVariant;
                         if (!fieldTypeConfigVariants || !variantsConfig) {
                           return field.label || t(field.defaultLabel || "");
                         }
-                        const variant = field.variant || variantsConfig.defaultVariant;
+                        const variant = field.variant || defaultVariant;
                         if (!variant) {
-                          throw new Error("Field has variantsConfig but no defaultVariant");
+                          throw new Error(
+                            "Field has `variantsConfig` but no `defaultVariant`" +
+                              JSON.stringify(fieldTypeConfigVariantsConfig)
+                          );
                         }
                         return t(
                           fieldTypeConfigVariants[variant as keyof typeof fieldTypeConfigVariants].label
@@ -432,7 +438,7 @@ export const FormBuilder = function FormBuilder({
             fieldIndex: -1,
           })
         }>
-        <DialogContent data-testid="edit-field-dialog">
+        <DialogContent enableOverflow data-testid="edit-field-dialog">
           <DialogHeader title={t("add_a_booking_question")} subtitle={t("form_builder_field_add_subtitle")} />
           <div>
             <Form
@@ -490,8 +496,8 @@ export const FormBuilder = function FormBuilder({
               />
               {(() => {
                 const variantsConfig = fieldForm.getValues("variantsConfig");
-                const appUiVariantsConfig = fieldForm.getValues("fieldTypeConfig")?.variantsConfig;
-                const variantToggleLabel = t(appUiVariantsConfig?.toggleLabel || "");
+                const fieldTypeConfigVariantsConfig = fieldForm.getValues("fieldTypeConfig")?.variantsConfig;
+
                 if (!variantsConfig) {
                   return (
                     <>
@@ -552,17 +558,17 @@ export const FormBuilder = function FormBuilder({
                   );
                 }
 
+                if (!fieldTypeConfigVariantsConfig) {
+                  throw new Error("Field has `variantsConfig` but no `fieldTypeConfig`");
+                }
+
+                const variantToggleLabel = t(fieldTypeConfigVariantsConfig.toggleLabel || "");
+
                 if (!fieldType?.isTextType) {
                   throw new Error("Variants are currently supported only with text type");
                 }
-                const defaultVariant = variantsConfig.defaultVariant;
-                if (!defaultVariant) {
-                  throw new Error("Field has variantsConfig but no defaultVariant");
-                }
 
-                if (!appUiVariantsConfig) {
-                  throw new Error("Field has variantsConfig but no fieldTypeConfig");
-                }
+                const defaultVariant = fieldTypeConfigVariantsConfig.defaultVariant;
 
                 const variants = Object.keys(variantsConfig.variants);
                 const otherVariants = variants.filter((v) => v !== defaultVariant);
@@ -609,8 +615,8 @@ export const FormBuilder = function FormBuilder({
                           const rhfFieldPrefix =
                             `variantsConfig.variants.${variantName}.fields.${index}` as const;
                           const fieldTypeConfigVariants =
-                            appUiVariantsConfig.variants[
-                              variantName as keyof typeof appUiVariantsConfig.variants
+                            fieldTypeConfigVariantsConfig.variants[
+                              variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
                             ];
                           const appUiFieldConfig =
                             fieldTypeConfigVariants.fieldsMap[
@@ -755,7 +761,8 @@ export const ComponentForField = ({
       select: typeof val === "string",
       text: typeof val === "string",
       textList: val instanceof Array && val.every((v) => typeof v === "string"),
-      variants: typeof val === "object" && val !== null,
+      // Get it defined on the component itself ??
+      variants: (typeof val === "object" && val !== null) || typeof val === "string",
     } as const;
     if (!propsTypeConditionMap[propsType])
       throw new Error(`Invalid value for propsType ${propsType}:"${JSON.stringify(val)}"`);

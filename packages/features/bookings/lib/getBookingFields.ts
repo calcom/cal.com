@@ -22,6 +22,7 @@ const FieldTypeConfigMap: Partial<Record<Fields[0]["type"], z.infer<typeof Field
   name: {
     variantsConfig: {
       toggleLabel: 'Split "Full name" into "First name" and "Last name"',
+      defaultVariant: "fullName",
       variants: {
         firstAndLastName: {
           label: "First Name, Last Name",
@@ -205,7 +206,6 @@ export const ensureBookingInputsHaveSystemFields = ({
       defaultLabel: "your_name",
       required: true,
       variantsConfig: {
-        defaultVariant: "fullName",
         variants: {
           firstAndLastName: {
             fields: [

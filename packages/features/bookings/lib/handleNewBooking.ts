@@ -480,12 +480,6 @@ function getBookingData({
       throw new Error("`responses` must not be nullish");
     }
     const responses = reqBody.responses;
-    const name = responses.name;
-    const providedFullName = typeof name === "string" ? name : "fullName" in name ? name.fullName : null;
-
-    // Keep responses.name backward compatible for default scenario which is providing fullName
-    // It is sent in webhook as is, so webhook response won't change
-    responses.name = providedFullName ? providedFullName : name;
 
     const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
       getCalEventResponses({
@@ -591,7 +585,7 @@ async function handler(
       ? bookerName
       : "firstName" in bookerName
       ? bookerName.firstName + " " + bookerName.lastName
-      : bookerName.fullName;
+      : bookerName;
 
   const tAttendees = await getTranslation(language ?? "en", "common");
   const tGuests = await getTranslation("en", "common");

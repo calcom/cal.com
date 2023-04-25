@@ -95,7 +95,7 @@ export const Components: Record<BookingFieldType, Component> = {
         variant: "firstAndLastName" | "fullName";
         variants: NonNullable<z.infer<typeof fieldsSchema>[number]["variantsConfig"]>["variants"];
         value: Record<string, string>;
-        setValue: (value: Record<string, string>) => void;
+        setValue: (value: string | Record<string, string>) => void;
       }
     ) => {
       const { variant: variantName = "fullName" } = props;
@@ -107,6 +107,32 @@ export const Components: Record<BookingFieldType, Component> = {
       };
       if (!props.variants) {
         throw new Error("'variants' is required for 'name' type of field");
+      }
+
+      if (variantName === "fullName") {
+        const variant = props.variants[variantName];
+        const variantField = variant.fields[0];
+        let value;
+        if (typeof props.value !== "string") {
+          value = "";
+        } else {
+          value = props.value;
+        }
+        return (
+          <InputField
+            name="name"
+            placeholder={variantField.placeholder}
+            label={variantField.label}
+            containerClassName="w-full"
+            value={value}
+            required={variantField.required}
+            className="dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500"
+            type="text"
+            onChange={(e) => {
+              props.setValue(e.target.value);
+            }}
+          />
+        );
       }
       const variant = props.variants[variantName];
       const value = props.value || {};

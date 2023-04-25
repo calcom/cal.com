@@ -30,6 +30,8 @@ export const FieldTypeConfig = z
   .object({
     variantsConfig: z
       .object({
+        defaultVariant: z.string(),
+
         // Used only when there are 2 variants, so that UI can be simplified by showing a switch
         toggleLabel: z.string().optional(),
         variants: z.record(
@@ -57,7 +59,18 @@ export const FieldTypeConfig = z
       })
       .optional(),
   })
+  .refine((data) => {
+    if (!data.variantsConfig) {
+      return;
+    }
+    const variantsConfig = data.variantsConfig;
+    if (!variantsConfig.variants[variantsConfig.defaultVariant]) {
+      throw new Error(`defaultVariant: ${variantsConfig.defaultVariant} is not in variants`);
+    }
+    return true;
+  })
   .optional();
+
 const fieldSchema = z.object({
   name: z.string(),
   // TODO: We should make at least one of `defaultPlaceholder` and `placeholder` required. Do the same for label.
@@ -71,7 +84,6 @@ const fieldSchema = z.object({
   defaultPlaceholder: z.string().optional(),
   variantsConfig: z
     .object({
-      defaultVariant: z.string(),
       variants: z.record(
         z.object({
           fields: z
@@ -87,12 +99,6 @@ const fieldSchema = z.object({
             .array(),
         })
       ),
-    })
-    .refine((data) => {
-      if (!data.variants[data.defaultVariant]) {
-        throw new Error(`defaultVariant: ${data.defaultVariant} is not in variants`);
-      }
-      return true;
     })
     .optional(),
 
