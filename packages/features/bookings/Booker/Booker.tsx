@@ -14,14 +14,18 @@ import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { Away } from "./components/Away";
 import { BookEventForm } from "./components/BookEventForm";
+import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
 import { DatePicker } from "./components/DatePicker";
 import { EventMeta } from "./components/EventMeta";
 import { LargeCalendar } from "./components/LargeCalendar";
+import { LargeViewHeader } from "./components/LargeViewHeader";
 import { BookerSection } from "./components/Section";
 import { fadeInUp, fadeInLeft, resizeAnimationConfig } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
 import { useEvent } from "./utils/event";
+
+const LargeLayouts = ["large_calendar", "large_timeslots"];
 
 const useBrandColors = ({ brandColor, darkBrandColor }: { brandColor?: string; darkBrandColor?: string }) => {
   const brandTheme = useGetBrandingColours({
@@ -42,11 +46,15 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
   const event = useEvent();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
-  const selectedDate = useBookerStore((state) => state.selectedDate);
+  const [selectedDate, setSelectedDate] = useBookerStore(
+    (state) => [state.selectedDate, state.setSelectedDate],
+    shallow
+  );
   const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
     shallow
   );
+  const extraDays = layout === "large_timeslots" ? (isTablet ? 2 : 4) : 0;
 
   useBrandColors({
     brandColor: event.data?.profile.brandColor,
@@ -63,7 +71,9 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
   });
 
   useEffect(() => {
-    setLayout(isMobile ? "mobile" : "small_calendar");
+    if (isMobile) {
+      setLayout("mobile");
+    }
   }, [isMobile, setLayout]);
 
   useEffect(() => {
@@ -77,7 +87,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
     if (layout === "mobile") {
       timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [layout, selectedDate]);
+  }, [layout]);
 
   return (
     <>
@@ -89,7 +99,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
         <div className="[&>div]:bg-muted fixed top-2 right-3 z-10">
           <ToggleGroup
             onValueChange={(layout) => setLayout(layout as BookerLayout)}
-            defaultValue="small_calendar"
+            defaultValue={layout}
             options={[
               {
                 value: "small_calendar",
@@ -143,7 +153,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
               area="main"
               className="border-subtle sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInUp}
-              visible={bookerState === "booking"}>
+              visible={bookerState === "booking" && layout !== "large_timeslots"}>
               <BookEventForm onCancel={() => setSelectedTimeslot(null)} />
             </BookerSection>
 
@@ -174,17 +184,18 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
               area={{ default: "main", small_calendar: "timeslots" }}
               visible={
                 (layout !== "large_calendar" && bookerState === "selecting_time") ||
-                (layout === "large_timeslots" && bookerState !== "booking")
+                layout === "large_timeslots"
               }
               className={classNames(
-                "border-subtle flex h-full w-full flex-row p-6 pb-0 md:border-l",
+                "border-subtle flex h-full w-full flex-col p-6 pb-0 md:border-l",
                 layout === "small_calendar" && "h-full overflow-auto md:w-[var(--booker-timeslots-width)]",
                 layout !== "small_calendar" && "sticky top-0"
               )}
               ref={timeslotsRef}
               {...fadeInLeft}>
+              {layout === "large_timeslots" && <LargeViewHeader extraDays={extraDays} />}
               <AvailableTimeSlots
-                extraDays={layout === "large_timeslots" ? (isTablet ? 2 : 4) : 0}
+                extraDays={extraDays}
                 limitHeight={layout === "small_calendar"}
                 seatsPerTimeslot={event.data?.seatsPerTimeSlot}
               />
@@ -198,6 +209,11 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
           <Logo small />
         </m.span>
       </div>
+
+      <BookFormAsModal
+        visible={layout === "large_timeslots" && bookerState === "booking"}
+        onCancel={() => setSelectedTimeslot(null)}
+      />
     </>
   );
 };
