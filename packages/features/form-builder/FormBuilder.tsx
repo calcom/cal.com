@@ -589,7 +589,7 @@ export const FormBuilder = function FormBuilder({
                       onCheckedChange={(checked) => {
                         fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
                       }}
-                      classNames={{ container: "p-2 hover:bg-gray-100 rounded" }}
+                      classNames={{ container: "p-2 mt-2 hover:bg-gray-100 rounded" }}
                       tooltip={t("Toggle Variant")}
                     />
 
