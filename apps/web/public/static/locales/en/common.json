@@ -465,7 +465,7 @@
   "friday": "Friday",
   "saturday": "Saturday",
   "sunday": "Sunday",
-  "all_booked_today": "All booked today.",
+  "all_booked_today": "All booked.",
   "slots_load_fail": "Could not load the available time slots.",
   "additional_guests": "Add guests",
   "your_name": "Your name",

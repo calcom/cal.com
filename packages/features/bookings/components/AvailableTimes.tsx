@@ -39,7 +39,7 @@ export const AvailableTimes = ({
 
   return (
     <div className={classNames("text-default", className)}>
-      <header className="bg-muted before:bg-muted mb-8 flex w-full flex-row items-center md:flex-col md:items-start lg:flex-row lg:items-center">
+      <header className="bg-muted before:bg-muted mb-5 flex w-full flex-row items-center font-medium md:flex-col md:items-start lg:flex-row lg:items-center">
         <span className={classNames(isLargeTimeslots && "w-full text-center")}>
           <span className="text-emphasis font-semibold">
             {nameOfDay(i18n.language, Number(date.format("d")), "short")}
@@ -78,7 +78,7 @@ export const AvailableTimes = ({
               data-testid="time"
               data-time={slot.time}
               onClick={() => onTimeSelect(slot.time)}
-              className="mb-3 flex h-auto min-h-[44px] w-full flex-col justify-center py-2"
+              className="mb-2 flex h-auto min-h-9 w-full flex-col justify-center py-2"
               color="secondary">
               {dayjs.utc(slot.time).tz(timezone).format(timeFormat)}
               {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
