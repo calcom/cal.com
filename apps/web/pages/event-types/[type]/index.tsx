@@ -127,12 +127,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     data: { tabName },
   } = useTypedQuery(querySchema);
 
-  const { data: eventTypeApps } = trpc.viewer.apps.useQuery({
-    extendsFeature: "EventType",
-  });
-
   const { eventType, locationOptions, team, teamMembers, currentUserMembership, destinationCalendar } = props;
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
+
+  const { data: eventTypeApps } = trpc.viewer.appsRouter.getEventTypeApps.useQuery({
+    eventTypeId: eventType.id,
+  });
 
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
@@ -264,12 +264,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const availability = formMethods.watch("availability");
-  const numberOfInstalledApps = eventTypeApps?.filter((app) => app.isInstalled).length || 0;
+  const numberOfInstalledApps = eventTypeApps?.installedApps.filter((app) => app.isInstalled).length || 0;
   let numberOfActiveApps = 0;
 
   if (appsMetadata) {
     numberOfActiveApps = Object.entries(appsMetadata).filter(
-      ([appId, appData]) => eventTypeApps?.find((app) => app.slug === appId)?.isInstalled && appData.enabled
+      ([appId, appData]) =>
+        eventTypeApps?.installedApps?.find((app) => app.slug === appId)?.isInstalled && appData.enabled
     ).length;
   }
 
