@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { sendPasswordResetEmail } from "@calcom/emails";
 import { PASSWORD_RESET_EXPIRY_HOURS } from "@calcom/emails/templates/forgot-password-email";
 import rateLimit from "@calcom/lib/rateLimit";
+import { defaultHandler } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 
@@ -13,21 +14,25 @@ const limiter = rateLimit({
   intervalInMs: 60 * 1000, // 1 minute
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   const t = await getTranslation(req.body.language ?? "en", "common");
 
   const email = z
     .string()
     .email()
     .transform((val) => val.toLowerCase())
-    .parse(req.body?.email);
+    .safeParse(req.body?.email);
+
+  if (!email.success) {
+    return res.status(400).json({ message: "email is required" });
+  }
 
   // fallback to email if ip is not present
-  let ip = (req.headers["x-real-ip"] as string) ?? email;
+  let ip = (req.headers["x-real-ip"] as string) ?? email.data;
 
   const forwardedFor = req.headers["x-forwarded-for"] as string;
   if (!ip && forwardedFor) {
-    ip = forwardedFor?.split(",").at(0) ?? email;
+    ip = forwardedFor?.split(",").at(0) ?? email.data;
   }
 
   const { isRateLimited } = limiter.check(10, ip); // 10 requests per minute
@@ -36,14 +41,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(429).json({ message: "Too Many Requests." });
   }
 
-  if (req.method !== "POST") {
-    return res.status(405).end();
-  }
-
   try {
     const maybeUser = await prisma.user.findUnique({
       where: {
-        email,
+        email: email.data,
       },
       select: {
         name: true,
@@ -106,3 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ message: "Unable to create password reset request" });
   }
 }
+
+export default defaultHandler({
+  POST: Promise.resolve({ default: handler }),
+});
