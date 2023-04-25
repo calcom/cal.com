@@ -1,4 +1,5 @@
 import { useRouter } from "next/router";
+import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -9,6 +10,7 @@ import { availabilityAsString } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
+import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
@@ -24,13 +26,17 @@ import {
   Tooltip,
   Dialog,
   DialogTrigger,
+  DropdownMenuSeparator,
+  Dropdown,
+  DropdownMenuContent,
+  DropdownItem,
+  DropdownMenuTrigger,
   ConfirmationDialogContent,
   VerticalDivider,
 } from "@calcom/ui";
-import { FiInfo, FiPlus, FiTrash } from "@calcom/ui/components/icon";
+import { Info, Plus, Trash, MoreHorizontal } from "@calcom/ui/components/icon";
 
-import { HttpError } from "@lib/core/http/error";
-
+import PageWrapper from "@components/PageWrapper";
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import EditableHeading from "@components/ui/EditableHeading";
 
@@ -53,15 +59,15 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
   const { t } = useLocale();
   return (
     <div className="p-6">
-      <h3 className="font-medium leading-6 text-gray-900">
+      <h3 className="text-emphasis font-medium leading-6">
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
           <span className="inline-block">
-            <FiInfo />
+            <Info className="h-4 w-4" />
           </span>
         </Tooltip>
       </h3>
-      <p className="mb-4 text-sm text-gray-500">{t("date_overrides_subtitle")}</p>
+      <p className="text-subtle mb-4 text-sm">{t("date_overrides_subtitle")}</p>
       <div className="space-y-2">
         <DateOverrideList
           excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
@@ -75,7 +81,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
           excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
           onChange={(ranges) => append({ ranges })}
           Trigger={
-            <Button color="secondary" StartIcon={FiPlus} data-testid="add-override">
+            <Button color="secondary" StartIcon={Plus} data-testid="add-override">
               Add an override
             </Button>
           }
@@ -96,6 +102,7 @@ export default function Availability() {
 
   const { fromEventType } = router.query;
   const { timeFormat } = me.data || { timeFormat: null };
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { data: schedule, isLoading } = trpc.viewer.availability.schedule.get.useQuery(
     { scheduleId },
     {
@@ -181,11 +188,8 @@ export default function Availability() {
       }
       CTA={
         <div className="flex items-center justify-end">
-          <div className="flex items-center rounded-md px-2 sm:hover:bg-gray-100">
-            <Skeleton
-              as={Label}
-              htmlFor="hiddenSwitch"
-              className="mt-2 hidden cursor-pointer self-center pr-2 sm:inline">
+          <div className="hidden items-center rounded-md px-2 sm:flex sm:hover:bg-gray-100">
+            <Skeleton as={Label} htmlFor="hiddenSwitch" className="mt-2 cursor-pointer self-center pr-2 ">
               {t("set_to_default")}
             </Skeleton>
             <Switch
@@ -198,14 +202,15 @@ export default function Availability() {
             />
           </div>
 
-          <VerticalDivider />
+          <VerticalDivider className="hidden sm:inline" />
           <Dialog>
             <DialogTrigger asChild>
               <Button
-                StartIcon={FiTrash}
+                StartIcon={Trash}
                 variant="icon"
                 color="destructive"
                 aria-label={t("delete")}
+                className="hidden sm:inline"
                 disabled={schedule?.isLastSchedule}
                 tooltip={t("requires_at_least_one_schedule")}
               />
@@ -222,10 +227,53 @@ export default function Availability() {
               {t("delete_schedule_description")}
             </ConfirmationDialogContent>
           </Dialog>
+          <VerticalDivider className="hidden sm:inline" />
+          <Dropdown>
+            <DropdownMenuTrigger asChild>
+              <Button className="sm:hidden" StartIcon={MoreHorizontal} variant="icon" color="secondary" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent style={{ minWidth: "200px" }}>
+              <DropdownItem
+                type="button"
+                color="destructive"
+                StartIcon={Trash}
+                onClick={() => setDeleteDialogOpen(true)}>
+                {t("delete")}
+              </DropdownItem>
+              <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <ConfirmationDialogContent
+                  isLoading={deleteMutation.isLoading}
+                  variety="danger"
+                  title={t("delete_schedule")}
+                  confirmBtnText={t("delete")}
+                  loadingText={t("delete")}
+                  onConfirm={() => {
+                    schedule !== undefined && deleteMutation.mutate({ scheduleId: schedule.id });
+                  }}>
+                  {t("delete_schedule_description")}
+                </ConfirmationDialogContent>
+              </Dialog>
+              <DropdownMenuSeparator />
+              <div className="flex h-9 flex-row items-center justify-between py-2 px-4 hover:bg-gray-100">
+                <Skeleton
+                  as={Label}
+                  htmlFor="hiddenSwitch"
+                  className="mt-2 cursor-pointer self-center pr-2 sm:inline">
+                  {t("set_to_default")}
+                </Skeleton>
+                <Switch
+                  id="hiddenSwitch"
+                  disabled={isLoading || schedule?.isDefault}
+                  checked={form.watch("isDefault")}
+                  onCheckedChange={(e) => {
+                    form.setValue("isDefault", e);
+                  }}
+                />
+              </div>
+            </DropdownMenuContent>
+          </Dropdown>
 
-          <VerticalDivider />
-
-          <div className="border-l-2 border-gray-300" />
+          <div className="border-default border-l-2" />
           <Button className="ml-4 lg:ml-0" type="submit" form="availability-form">
             {t("save")}
           </Button>
@@ -245,7 +293,7 @@ export default function Availability() {
           }}
           className="flex flex-col sm:mx-0 xl:flex-row xl:space-x-6">
           <div className="flex-1 flex-row xl:mr-0">
-            <div className="mb-6 rounded-md border">
+            <div className="border-subtle mb-6 rounded-md border">
               <div>
                 {typeof me.data?.weekStart === "string" && (
                   <Schedule
@@ -260,14 +308,14 @@ export default function Availability() {
                 )}
               </div>
             </div>
-            <div className="my-6 rounded-md border">
+            <div className="border-subtle my-6 rounded-md border">
               {schedule?.workingHours && <DateOverride workingHours={schedule.workingHours} />}
             </div>
           </div>
           <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
             <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
               <div>
-                <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="timeZone" className="text-default block text-sm font-medium">
                   {t("timezone")}
                 </label>
                 <Controller
@@ -276,7 +324,7 @@ export default function Availability() {
                     value ? (
                       <TimezoneSelect
                         value={value}
-                        className="focus:border-brand mt-1 block w-72 rounded-md border-gray-300 text-sm"
+                        className="focus:border-brand-default border-default mt-1 block w-72 rounded-md text-sm"
                         onChange={(timezone) => onChange(timezone.value)}
                       />
                     ) : (
@@ -285,9 +333,9 @@ export default function Availability() {
                   }
                 />
               </div>
-              <hr className="my-6 mr-8" />
+              <hr className="border-subtle my-6 mr-8" />
               <div className="hidden rounded-md md:block">
-                <h3 className="text-sm font-medium text-gray-900">{t("something_doesnt_look_right")}</h3>
+                <h3 className="text-emphasis text-sm font-medium">{t("something_doesnt_look_right")}</h3>
                 <div className="mt-3 flex">
                   <Button href="/availability/troubleshoot" color="secondary">
                     {t("launch_troubleshooter")}
@@ -301,3 +349,5 @@ export default function Availability() {
     </Shell>
   );
 }
+
+Availability.PageWrapper = PageWrapper;

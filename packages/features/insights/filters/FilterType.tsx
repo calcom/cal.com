@@ -1,6 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Select } from "@calcom/ui";
-import { FiFilter } from "@calcom/ui/components/icon";
+import { Filter } from "@calcom/ui/components/icon";
 
 import { useFilterContext } from "../context/provider";
 
@@ -44,8 +44,8 @@ export const FilterType = () => {
       }}
       className="w-32 min-w-[130px]"
       placeholder={
-        <div className="flex flex-row text-gray-900">
-          <FiFilter className="m-auto text-gray-900" />
+        <div className="text-emphasis flex flex-row">
+          <Filter className="m-auto h-4 w-4" />
           {t("add_filter")}
         </div>
       }

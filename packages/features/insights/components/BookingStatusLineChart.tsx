@@ -1,4 +1,4 @@
-import { LineChart, Title } from "@tremor/react";
+import { Title } from "@tremor/react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -6,6 +6,7 @@ import { trpc } from "@calcom/trpc";
 import { useFilterContext } from "../context/provider";
 import { valueFormatter } from "../lib/valueFormatter";
 import { CardInsights } from "./Card";
+import { LineChart } from "./LineChart";
 import { LoadingInsight } from "./LoadingInsights";
 
 export const BookingStatusLineChart = () => {
@@ -26,14 +27,22 @@ export const BookingStatusLineChart = () => {
     data: eventsTimeLine,
     isSuccess,
     isLoading,
-  } = trpc.viewer.insights.eventsTimeline.useQuery({
-    timeView: selectedTimeView,
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-    teamId: selectedTeamId ?? undefined,
-    eventTypeId: selectedEventTypeId ?? undefined,
-    userId: selectedUserId ?? undefined,
-  });
+  } = trpc.viewer.insights.eventsTimeline.useQuery(
+    {
+      timeView: selectedTimeView,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      teamId: selectedTeamId ?? undefined,
+      eventTypeId: selectedEventTypeId ?? undefined,
+      userId: selectedUserId ?? undefined,
+    },
+    {
+      staleTime: 30000,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 
   if (isLoading) return <LoadingInsight />;
 
@@ -41,13 +50,13 @@ export const BookingStatusLineChart = () => {
 
   return (
     <CardInsights>
-      <Title>{t("event_trends")}</Title>
+      <Title className="text-emphasis">{t("event_trends")}</Title>
       <LineChart
-        className="mt-4 h-80"
+        className="linechart mt-4 h-80"
         data={eventsTimeLine ?? []}
         categories={["Created", "Completed", "Rescheduled", "Cancelled"]}
         index="Month"
-        colors={["gray", "green", "blue", "red"]}
+        colors={["purple", "green", "blue", "red"]}
         valueFormatter={valueFormatter}
       />
     </CardInsights>

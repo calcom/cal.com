@@ -74,6 +74,7 @@ export const availabilityRouter = router({
       .input(
         z.object({
           scheduleId: z.optional(z.number()),
+          isManagedEventType: z.optional(z.boolean()),
         })
       )
       .query(async ({ ctx, input }) => {
@@ -97,7 +98,7 @@ export const availabilityRouter = router({
             },
           },
         });
-        if (!schedule || schedule.userId !== user.id) {
+        if (!schedule || (schedule.userId !== user.id && !input.isManagedEventType)) {
           throw new TRPCError({
             code: "UNAUTHORIZED",
           });
@@ -112,6 +113,7 @@ export const availabilityRouter = router({
         return {
           id: schedule.id,
           name: schedule.name,
+          isManaged: schedule.userId !== user.id,
           workingHours: getWorkingHours(
             { timeZone: schedule.timeZone || undefined },
             schedule.availability || []

@@ -10,8 +10,9 @@ import type { AppCategories } from "@calcom/prisma/client";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { HorizontalTabItemProps } from "@calcom/ui";
 import { AllApps, AppStoreCategories, HorizontalTabs, TextField, PopularAppsSlider } from "@calcom/ui";
-import { FiSearch } from "@calcom/ui/components/icon";
+import { Search } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
 import AppsLayout from "@components/apps/layouts/AppsLayout";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -36,9 +37,9 @@ function AppsSearch({
 }) {
   return (
     <TextField
-      className="!border-gray-100 bg-gray-100 !pl-0 focus:!ring-offset-0"
-      addOnLeading={<FiSearch className="h-4 w-4 text-gray-500" />}
-      addOnClassname="!border-gray-100"
+      className="bg-subtle !border-muted !pl-0 focus:!ring-offset-0"
+      addOnLeading={<Search className="text-subtle h-4 w-4" />}
+      addOnClassname="!border-muted"
       containerClassName={classNames("focus:!ring-offset-0", className)}
       type="search"
       autoComplete="false"
@@ -84,6 +85,8 @@ export default function Apps({ categories, appStore }: inferSSRProps<typeof getS
     </AppsLayout>
   );
 }
+
+Apps.PageWrapper = PageWrapper;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, res } = context;

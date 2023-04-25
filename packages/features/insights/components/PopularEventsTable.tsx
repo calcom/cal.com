@@ -14,13 +14,21 @@ export const PopularEventsTable = () => {
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
-  const { data, isSuccess, isLoading } = trpc.viewer.insights.popularEventTypes.useQuery({
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-    teamId: teamId ?? undefined,
-    userId: selectedUserId ?? undefined,
-    memberUserId: selectedMemberUserId ?? undefined,
-  });
+  const { data, isSuccess, isLoading } = trpc.viewer.insights.popularEventTypes.useQuery(
+    {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      teamId: teamId ?? undefined,
+      userId: selectedUserId ?? undefined,
+      memberUserId: selectedMemberUserId ?? undefined,
+    },
+    {
+      staleTime: 30000,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 
   if (isLoading) return <LoadingInsight />;
 
@@ -28,14 +36,14 @@ export const PopularEventsTable = () => {
 
   return (
     <CardInsights>
-      <Title>{t("popular_events")}</Title>
+      <Title className="text-emphasis">{t("popular_events")}</Title>
       <Table className="mt-5">
         <TableBody>
           {data.map((item) => (
             <TableRow key={item.eventTypeId}>
-              <TableCell>{item.eventTypeName}</TableCell>
-              <TableCell className="text-right">
-                <Text>
+              <TableCell className="text-default">{item.eventTypeName}</TableCell>
+              <TableCell>
+                <Text className="text-default text-right">
                   <strong>{item.count}</strong>
                 </Text>
               </TableCell>

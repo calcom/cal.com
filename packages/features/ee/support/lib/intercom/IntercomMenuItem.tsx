@@ -15,11 +15,11 @@ export default function IntercomMenuItem(props: IntercomMenuItemProps) {
 
   return (
     <button
-      onClick={() => {
-        open();
+      onClick={async () => {
+        await open();
         onHelpItemSelect();
       }}
-      className="flex w-full px-5 py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+      className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium">
       {t("contact_support")}
     </button>
   );

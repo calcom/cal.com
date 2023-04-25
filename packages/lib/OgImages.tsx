@@ -138,7 +138,7 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
       <div tw="h-full flex flex-col justify-start">
         <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
           <img src={`${CAL_URL}/${LOGO}`} width="350" alt="Logo" />
-          {avatars.length > 0 && <div tw="font-bold text-black text-[92px] mx-8 bottom-2">/</div>}
+          {avatars.length > 0 && <div tw="font-bold text-emphasis text-[92px] mx-8 bottom-2">/</div>}
           <div tw="flex flex-row">
             {avatars.slice(0, 3).map((avatar) => (
               <img
@@ -150,13 +150,13 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
               />
             ))}
             {avatars.length > 3 && (
-              <div tw="flex items-center justify-center w-[160px] h-[160px] rounded-full bg-black text-white text-[54px] font-bold">
+              <div tw="flex items-center justify-center w-[160px] h-[160px] rounded-full bg-black text-inverted text-[54px] font-bold">
                 <span tw="flex top-[-5px] left-[-5px]">+{avatars.length - 3}</span>
               </div>
             )}
           </div>
         </div>
-        <div tw="relative flex text-[54px] w-full flex-col text-black mt-auto">
+        <div tw="relative flex text-[54px] w-full flex-col text-emphasis mt-auto">
           <div
             tw="flex w-[1040px] overflow-hidden"
             style={{ whiteSpace: "nowrap", fontFamily: "cal", textOverflow: "ellipsis" }}>
@@ -216,7 +216,7 @@ export const App = ({ name, description, slug }: AppImageProps) => (
         <img src={`${CAL_URL}${slug}`} alt="App icon" width="172" />
       </div>
     </div>
-    <div tw="flex mt-auto w-full flex-col text-black">
+    <div tw="flex mt-auto w-full flex-col text-emphasis">
       <div tw="flex text-[64px] mb-7" style={{ fontFamily: "cal", fontWeight: 600 }}>
         {name}
       </div>
@@ -234,7 +234,7 @@ export const Generic = ({ title, description }: GenericImageProps) => (
         <img src={`${CAL_URL}/cal-logo-word-black.svg`} width="350" alt="Logo" />
       </div>
 
-      <div tw="relative flex text-[54px] w-full flex-col text-black mt-auto">
+      <div tw="relative flex text-[54px] w-full flex-col text-emphasis mt-auto">
         <div tw="flex w-[1040px]" style={{ fontFamily: "cal" }}>
           {title}
         </div>

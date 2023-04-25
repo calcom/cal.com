@@ -1,6 +1,6 @@
 ---
 items:
-  - /api/app-store/sylaps/sylaps1.png
+  - 1.jpg
 ---
 
 Free Audio and Video Conferencing, Online Collaboration, Screen Sharing on web browser, mobile and desktop.

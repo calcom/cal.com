@@ -27,8 +27,9 @@ const TimeOptions: FC<Props> = ({ onSelectTimeZone }) => {
     <TimezoneSelect
       id="timeZone"
       classNames={{
-        singleValue: () => "dark:text-darkgray-600 text-gray-600",
-        menu: () => "!w-64 max-w-[90vw]",
+        singleValue: () => "text-default",
+        dropdownIndicator: () => "text-default",
+        menu: () => "!w-64 max-w-[90vw] shadow-dropdown bg-default border-subtle border rounded-md mt-1",
       }}
       variant="minimal"
       value={selectedTimeZone}

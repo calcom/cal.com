@@ -3,7 +3,7 @@ import * as React from "react";
 import type { GroupBase, Props, SingleValue, MultiValue } from "react-select";
 import ReactSelect from "react-select";
 
-import classNames from "@calcom/lib/classNames";
+import cx from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Label } from "../inputs/Label";
@@ -25,6 +25,7 @@ export const Select = <
   variant = "default",
   ...props
 }: SelectProps<Option, IsMulti, Group>) => {
+  const { classNames, ...restProps } = props;
   const reactSelectProps = React.useMemo(() => {
     return getReactSelectProps<Option, IsMulti, Group>({
       components: components || {},
@@ -38,23 +39,19 @@ export const Select = <
     <ReactSelect
       {...reactSelectProps}
       classNames={{
-        input: () => classNames("dark:text-darkgray-900 text-gray-900", props.classNames?.input),
+        input: () => cx("text-emphasis", props.classNames?.input),
         option: (state) =>
-          classNames(
-            "dark:bg-darkgray-100 flex cursor-pointer justify-between py-2.5 px-3 rounded-none text-gray-700 dark:text-darkgray-700",
-            state.isFocused && "dark:bg-darkgray-200 bg-gray-100",
-            state.isSelected && "dark:bg-darkgray-300 bg-gray-200 text-gray-900 dark:text-darkgray-900",
+          cx(
+            "bg-default flex cursor-pointer justify-between py-2.5 px-3 rounded-none text-default ",
+            state.isFocused && "bg-subtle",
+            state.isSelected && "bg-emphasis text-default",
             props.classNames?.option
           ),
-        placeholder: (state) =>
-          classNames(
-            "text-gray-400 text-sm dark:text-darkgray-400",
-            state.isFocused && variant !== "checkbox" && "hidden"
-          ),
-        dropdownIndicator: () => "text-gray-600 dark:text-darkgray-400",
+        placeholder: (state) => cx("text-muted", state.isFocused && variant !== "checkbox" && "hidden"),
+        dropdownIndicator: () => "text-default",
         control: (state) =>
-          classNames(
-            "dark:bg-darkgray-100 dark:border-darkgray-300 !min-h-9 border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal  focus-within:ring-2 focus-within:ring-gray-800 hover:border-gray-400 dark:focus-within:ring-darkgray-900 rounded-md border ",
+          cx(
+            "bg-default border-default !min-h-9 text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-2 focus-within:ring-emphasis hover:border-emphasis rounded-md border ",
             state.isMulti
               ? variant === "checkbox"
                 ? "px-3 py-2"
@@ -62,43 +59,36 @@ export const Select = <
                 ? "p-1"
                 : "px-3 py-2"
               : "py-2 px-3",
+            props.isDisabled && "bg-gray-100",
             props.classNames?.control
           ),
-        singleValue: () =>
-          classNames(
-            "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-black placeholder:text-gray-400",
-            props.classNames?.singleValue
-          ),
+        singleValue: () => cx("text-emphasis placeholder:text-muted", props.classNames?.singleValue),
         valueContainer: () =>
-          classNames(
-            "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-black placeholder:text-gray-400 flex gap-1",
-            props.classNames?.valueContainer
-          ),
+          cx("text-emphasis placeholder:text-muted flex gap-1", props.classNames?.valueContainer),
         multiValue: () =>
-          classNames(
-            "dark:bg-darkgray-200 dark:text-darkgray-700 rounded-md bg-gray-100 text-gray-700 py-1.5 px-2 flex items-center text-sm leading-none",
+          cx(
+            "bg-subtle text-default rounded-md py-1.5 px-2 flex items-center text-sm leading-none",
             props.classNames?.multiValue
           ),
         menu: () =>
-          classNames(
-            "dark:bg-darkgray-100 rounded-md bg-white text-sm leading-4 dark:text-white mt-1 border border-gray-200 dark:border-darkgray-200 ",
+          cx(
+            "rounded-md bg-default text-sm leading-4 text-default mt-1 border border-subtle",
             props.classNames?.menu
           ),
-        groupHeading: () =>
-          "leading-none text-xs uppercase text-gray-600 dark:text-darkgray-600 pl-2.5 pt-4 pb-2",
-        menuList: () => classNames("scroll-bar scrollbar-track-w-20 rounded-md", props.classNames?.menuList),
+        groupHeading: () => "leading-none text-xs uppercase text-default pl-2.5 pt-4 pb-2",
+        menuList: () => cx("scroll-bar scrollbar-track-w-20 rounded-md", props.classNames?.menuList),
         indicatorsContainer: (state) =>
-          classNames(
+          cx(
             state.selectProps.menuIsOpen
               ? state.isMulti
                 ? "[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform"
                 : "rotate-180 transition-transform"
-              : "text-gray-600 dark:text-darkgray-600" // Woo it adds another SVG here on multi for some reason
+              : "text-default" // Woo it adds another SVG here on multi for some reason
           ),
-        multiValueRemove: () => "text-gray-600 dark:text-darkgray-600 py-auto ml-2",
-        ...props.classNames,
+        multiValueRemove: () => "text-default py-auto ml-2",
+        ...classNames,
       }}
-      {...props}
+      {...restProps}
     />
   );
 };
@@ -122,10 +112,10 @@ export const SelectField = function SelectField<
   const { label = t(props.name || ""), containerClassName, labelProps, className, ...passThrough } = props;
   const id = useId();
   return (
-    <div className={classNames(containerClassName)}>
-      <div className={classNames(className)}>
+    <div className={cx(containerClassName)}>
+      <div className={cx(className)}>
         {!!label && (
-          <Label htmlFor={id} {...labelProps} className={classNames(props.error && "text-red-900")}>
+          <Label htmlFor={id} {...labelProps} className={cx(props.error && "text-error")}>
             {label}
           </Label>
         )}
@@ -173,7 +163,7 @@ export function SelectWithValidation<
   }, [value, setHiddenInputValue]);
 
   return (
-    <div className={classNames("relative", remainingProps.className)}>
+    <div className={cx("relative", remainingProps.className)}>
       <Select
         value={value}
         {...remainingProps}

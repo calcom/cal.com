@@ -33,7 +33,6 @@ export {
   DateRangePicker,
   MultiSelectCheckbox,
   ToggleGroup,
-  ToggleGroupItem,
   getReactSelectProps,
   ColorPicker,
   FormStep,
@@ -56,6 +55,7 @@ export {
   SettingsToggle,
   Stepper,
   Switch,
+  NumberInput,
 } from "./components/form";
 export type { ITimezone, ITimezoneOption } from "./components/form";
 export {
@@ -71,6 +71,7 @@ export {
 export { TopBanner } from "./components/top-banner";
 export type { TopBannerProps } from "./components/top-banner";
 export { AnimatedPopover, MeetingTimeInTimezones } from "./components/popover";
+export { Table } from "./components/table/Table";
 export { TableActions, DropdownActions } from "./components/table/TableActions";
 export type { ActionType } from "./components/table/TableActions";
 export { ErrorBoundary } from "./components/errorBoundary";
@@ -129,3 +130,4 @@ export type { Option as MultiSelectCheckboxesOptionType } from "./components/for
 export { default as ImageUploader } from "./components/image-uploader/ImageUploader";
 export type { ButtonColor } from "./components/button/Button";
 export { CreateButton } from "./components/createButton";
+export { useCalcomTheme } from "./styles/useCalcomTheme";

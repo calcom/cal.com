@@ -24,7 +24,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="mt-6 mb-8 space-y-6 divide-y">
+      <div className="mt-6 mb-8 space-y-6">
         <div className="flex items-center">
           <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
           <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
@@ -106,7 +106,7 @@ const ProfileView = () => {
           <div className="mb-6 flex items-center text-sm">
             <div>
               <p className="font-semibold">{t("theme")}</p>
-              <p className="text-gray-600">{t("theme_applies_note")}</p>
+              <p className="text-default">{t("theme_applies_note")}</p>
             </div>
           </div>
           <div className="flex flex-col justify-between sm:flex-row">
@@ -133,11 +133,11 @@ const ProfileView = () => {
             />
           </div>
 
-          <hr className="my-8 border-gray-200" />
-          <div className="mb-6 flex items-center text-sm">
+          <hr className="border-subtle my-8" />
+          <div className="text-default mb-6 flex items-center text-sm">
             <div>
               <p className="font-semibold">{t("custom_brand_colors")}</p>
-              <p className="mt-0.5 leading-5 text-gray-600">{t("customize_your_brand_colors")}</p>
+              <p className="mt-0.5 leading-5">{t("customize_your_brand_colors")}</p>
             </div>
           </div>
 
@@ -148,7 +148,7 @@ const ProfileView = () => {
               defaultValue={team.brandColor}
               render={() => (
                 <div>
-                  <p className="mb-2 block text-sm font-medium text-gray-900">{t("light_brand_color")}</p>
+                  <p className="text-emphasis mb-2 block text-sm font-medium">{t("light_brand_color")}</p>
                   <ColorPicker
                     defaultValue={team.brandColor}
                     onChange={(value) => form.setValue("brandColor", value, { shouldDirty: true })}
@@ -162,7 +162,7 @@ const ProfileView = () => {
               defaultValue={team.darkBrandColor}
               render={() => (
                 <div className="mt-6 sm:mt-0">
-                  <p className="mb-2 block text-sm font-medium text-gray-900">{t("dark_brand_color")}</p>
+                  <p className="text-emphasis mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
                   <ColorPicker
                     defaultValue={team.darkBrandColor}
                     onChange={(value) => form.setValue("darkBrandColor", value, { shouldDirty: true })}
@@ -171,15 +171,15 @@ const ProfileView = () => {
               )}
             />
           </div>
-          <hr className="my-8 border-gray-200" />
+          <hr className="border-subtle my-8" />
 
           <div className="flex flex-col gap-8">
             <div className="relative flex items-start">
               <div className="flex-grow text-sm">
-                <label htmlFor="hide-branding" className="font-medium text-gray-700">
+                <label htmlFor="hide-branding" className="text-default font-medium">
                   {t("disable_cal_branding", { appName: APP_NAME })}
                 </label>
-                <p className="text-gray-500">
+                <p className="text-subtle">
                   {t("team_disable_cal_branding_description", { appName: APP_NAME })}
                 </p>
               </div>
@@ -202,10 +202,10 @@ const ProfileView = () => {
             </div>
             <div className="relative flex items-start">
               <div className="flex-grow text-sm">
-                <label htmlFor="hide-branding" className="font-medium text-gray-700">
+                <label htmlFor="hide-branding" className="text-default font-medium">
                   {t("hide_book_a_team_member")}
                 </label>
-                <p className="text-gray-500">{t("hide_book_a_team_member_description")}</p>
+                <p className="text-subtle">{t("hide_book_a_team_member_description")}</p>
               </div>
               <div className="flex-none">
                 <Controller
@@ -229,8 +229,8 @@ const ProfileView = () => {
           </Button>
         </Form>
       ) : (
-        <div className="rounded-md border border-gray-200 p-5">
-          <span className="text-sm text-gray-600">{t("only_owner_change")}</span>
+        <div className="border-subtle rounded-md border p-5">
+          <span className="text-default text-sm">{t("only_owner_change")}</span>
         </div>
       )}
     </>

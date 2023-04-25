@@ -15,12 +15,20 @@ export const MostBookedTeamMembersTable = () => {
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
-  const { data, isSuccess, isLoading } = trpc.viewer.insights.membersWithMostBookings.useQuery({
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-    teamId,
-    eventTypeId: selectedEventTypeId ?? undefined,
-  });
+  const { data, isSuccess, isLoading } = trpc.viewer.insights.membersWithMostBookings.useQuery(
+    {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      teamId,
+      eventTypeId: selectedEventTypeId ?? undefined,
+    },
+    {
+      staleTime: 30000,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 
   if (isLoading) return <LoadingInsight />;
 
@@ -28,7 +36,7 @@ export const MostBookedTeamMembersTable = () => {
 
   return (
     <CardInsights className="shadow-none">
-      <Title>{t("most_booked_members")}</Title>
+      <Title className="text-emphasis">{t("most_booked_members")}</Title>
       <TotalBookingUsersTable data={data} />
     </CardInsights>
   );
