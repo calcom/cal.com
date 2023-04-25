@@ -348,7 +348,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
 
   // If the card information was already captured in the same customer. Delete the previous payment method
 
-  if (!eventType?.requiresConfirmation) {
+  if (!requiresConfirmation) {
     await handleConfirmation({
       user: userWithCredentials,
       evt,
