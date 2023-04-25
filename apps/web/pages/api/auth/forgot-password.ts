@@ -35,9 +35,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     ip = forwardedFor?.split(",").at(0) ?? email.data;
   }
 
-  const { isRateLimited } = limiter.check(10, ip); // 10 requests per minute
+  // 10 requests per minute
 
-  if (isRateLimited) {
+  try {
+    limiter.check(10, ip);
+  } catch (e) {
     return res.status(429).json({ message: "Too Many Requests." });
   }
 
