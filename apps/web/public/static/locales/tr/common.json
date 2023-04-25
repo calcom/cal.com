@@ -1751,7 +1751,7 @@
   "events_created": "Oluşturulan Etkinlikler",
   "events_completed": "Tamamlanan Etkinlikler",
   "events_cancelled": "İptal Edilen Etkinlikler",
-  "events_rescheduled": "Etkinlikler Yeniden Planlandı",
+  "events_rescheduled": "Yeniden Planlanan Etkinlikler",
   "from_last_period": "son dönemden itibaren",
   "from_to_date_period": "İlk tarih: {{startDate}} Son tarih: {{endDate}}",
   "analytics_for_organisation": "Öngörüler",
