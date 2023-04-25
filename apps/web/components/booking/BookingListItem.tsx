@@ -280,7 +280,7 @@ function BookingListItem(booking: BookingItemProps) {
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
       />
-      {booking.paid && (
+      {booking.paid && booking?.payment[0] && (
         <ChargeCardDialog
           isOpenDialog={chargeCardDialogIsOpen}
           setIsOpenDialog={setChargeCardDialogIsOpen}
@@ -354,11 +354,15 @@ function BookingListItem(booking: BookingItemProps) {
                 {booking.eventType.team.name}
               </Badge>
             )}
-            {booking.paid && (
-              <Badge className="ltr:mr-2 rtl:ml-2" variant="green">
-                {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
+            {booking.paid && !booking?.payment[0] ? (
+              <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+                {t("error_collecting_card")}
               </Badge>
-            )}
+            ) : booking.paid ? (
+              <Badge className="ltr:mr-2 rtl:ml-2" variant="green">
+                {booking?.payment[0]?.paymentOption === "HOLD" ? t("card_held") : t("paid")}
+              </Badge>
+            ) : null}
             {recurringDates !== undefined && (
               <div className="text-muted mt-2 text-sm">
                 <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
