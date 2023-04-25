@@ -4098,7 +4098,7 @@ __metadata:
     "@calcom/ui": "*"
     "@headlessui/react": ^1.5.0
     "@heroicons/react": ^1.0.6
-    "@prisma/client": ^4.11.0
+    "@prisma/client": ^4.13.0
     "@tailwindcss/forms": ^0.5.2
     "@types/node": 16.9.1
     "@types/react": 18.0.26
@@ -4110,7 +4110,7 @@ __metadata:
     next-auth: ^4.20.1
     next-i18next: ^11.3.0
     postcss: ^8.4.18
-    prisma: ^4.11.0
+    prisma: ^4.13.0
     prisma-field-encryption: ^1.4.0
     react: ^18.2.0
     react-chartjs-2: ^4.0.1
@@ -8454,7 +8454,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/client@npm:^4.11.0, @prisma/client@npm:^4.13.0":
+"@prisma/client@npm:^4.13.0":
   version: 4.13.0
   resolution: "@prisma/client@npm:4.13.0"
   dependencies:
@@ -32613,7 +32613,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prisma@npm:^4.11.0, prisma@npm:^4.13.0":
+"prisma@npm:^4.13.0":
   version: 4.13.0
   resolution: "prisma@npm:4.13.0"
   dependencies:
