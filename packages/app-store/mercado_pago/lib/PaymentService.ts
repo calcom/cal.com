@@ -7,7 +7,7 @@ import type { IAbstractPaymentService } from "@calcom/lib/PaymentService";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-const mercadoPagoCredentialKeysSchema = z.object({
+export const mercadoPagoCredentialKeysSchema = z.object({
   access_token: z.string(),
   public_key: z.string(),
 });
@@ -43,24 +43,8 @@ export class PaymentService implements IAbstractPaymentService {
       if (!booking) {
         throw new Error();
       }
-      const { uid: bookingUid, title } = booking;
+      const { title } = booking;
 
-      const preference = await this.mercadoPago.preferences.create({
-        items: [
-          {
-            title,
-            unit_price: payment.amount / 100,
-            quantity: 1,
-          },
-        ],
-        back_urls: {
-          success: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/booking/${bookingUid}}?payment=success`,
-          failure: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/booking/${bookingUid}}?payment=failure`,
-          pending: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/booking/${bookingUid}}?payment=pending`,
-        },
-        auto_return: "approved",
-      });
-      console.log({ preference });
       const paymentData = await prisma?.payment.create({
         data: {
           uid: uuidv4(),
@@ -76,16 +60,44 @@ export class PaymentService implements IAbstractPaymentService {
           },
           amount: payment.amount,
           currency: payment.currency,
-          externalId: bookingUid,
-          data: Object.assign({}, preference.body, {
-            stripe_publishable_key: this.credentials.public_key,
-            stripeAccount: this.credentials.access_token,
-          }) as unknown as Prisma.InputJsonValue,
+          externalId: "",
+          data: {},
           fee: 0,
           refunded: false,
           success: false,
         },
       });
+
+      const preference = await this.mercadoPago.preferences.create({
+        items: [
+          {
+            title,
+            unit_price: payment.amount / 100,
+            quantity: 1,
+          },
+        ],
+        back_urls: {
+          success: `${process.env.NEXT_PUBLIC_WEBAPP_URL}}api/integrations/mercado_pago/payment?redirect_status=success`,
+          failure: `${process.env.NEXT_PUBLIC_WEBAPP_URL}}api/integrations/mercado_pago/payment?redirect_status=failure`,
+          pending: `${process.env.NEXT_PUBLIC_WEBAPP_URL}}api/integrations/mercado_pago/payment?redirect_status=pending`,
+        },
+        auto_return: "approved",
+        external_reference: paymentData.uid,
+      });
+
+      await prisma?.payment.update({
+        where: {
+          id: paymentData.id,
+        },
+        data: {
+          externalId: preference?.body.id,
+          data: Object.assign({}, preference.body, {
+            mp_public_key: this.credentials.public_key,
+            mp_access_token: this.credentials.access_token,
+          }) as unknown as Prisma.InputJsonValue,
+        },
+      });
+
       if (!paymentData) {
         throw new Error();
       }
