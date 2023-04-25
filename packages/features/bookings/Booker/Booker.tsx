@@ -4,7 +4,6 @@ import { Fragment, useEffect, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
-import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -86,8 +85,6 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
     if (layout === "mobile") {
       timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-
-    LargeLayouts.includes(layout) && !selectedDate && setSelectedDate(dayjs().format("YYYY-MM-DD"));
   }, [layout, selectedDate, setSelectedDate]);
 
   return (
