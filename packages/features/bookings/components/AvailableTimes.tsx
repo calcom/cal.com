@@ -1,3 +1,4 @@
+import { CalendarX2 } from "lucide-react";
 import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -11,7 +12,6 @@ import { Button, SkeletonText } from "@calcom/ui";
 import { useBookerStore } from "../Booker/store";
 import { useTimePreferences } from "../lib";
 import { TimeFormatToggle } from "./TimeFormatToggle";
-import { CalendarIcon } from "lucide-react";
 
 type AvailableTimesProps = {
   date: Dayjs;
@@ -61,8 +61,8 @@ export const AvailableTimes = ({
       </header>
       <div className="pb-4">
         {!slots.length && (
-          <div className="p-6 flex flex-col justify-center bg-subtle">
-            <CalendarIcon className="w-4 h-4 text-muted"/>
+          <div className="bg-subtle flex flex-col items-center justify-center rounded-md p-6">
+            <CalendarX2 className="text-muted mb-2 h-4 w-4" />
             <p className={classNames("text-muted", showTimeformatToggle ? "-mt-1 text-lg" : "text-sm")}>
               {t("all_booked_today")}
             </p>
