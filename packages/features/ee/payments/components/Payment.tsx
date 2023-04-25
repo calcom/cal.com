@@ -53,19 +53,17 @@ const PaymentForm = (props: Props) => {
       email: router.query.email,
     };
     if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
-      const setupIntentData = props.payment.data as unknown as StripeSetupIntentData;
       payload = await stripe.confirmSetup({
         elements,
         confirmParams: {
-          return_url: `${CAL_URL}/booking/${props.booking.uid}`,
+          return_url: props.eventType.successRedirectUrl || `${CAL_URL}/booking/${props.booking.uid}`,
         },
       });
     } else if (paymentOption === "ON_BOOKING") {
-      const paymentData = props.payment.data as unknown as StripePaymentData;
       payload = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${CAL_URL}/booking/${props.booking.uid}`,
+          return_url: props.eventType.successRedirectUrl || `${CAL_URL}/booking/${props.booking.uid}`,
         },
       });
     }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { AnimatedPopover, Avatar } from "@calcom/ui";
@@ -43,10 +44,10 @@ export const PeopleFilter = () => {
       {data &&
         data.map((user) => (
           <div
-            className="item-center focus-within:bg-subtle focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] hover:cursor-pointer"
+            className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] hover:cursor-pointer"
             key={`${user.id}`}>
             <Avatar
-              imageSrc={user.avatar}
+              imageSrc={WEBAPP_URL + `/${user.username}/avatar.png`}
               size="sm"
               alt={`${user.name} Avatar`}
               gravatarFallbackMd5="fallback"
