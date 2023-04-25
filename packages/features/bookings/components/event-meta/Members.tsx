@@ -31,7 +31,7 @@ export const EventMembers = ({ schedulingType, users, profile }: EventMembersPro
   return (
     <>
       <AvatarGroup size="sm" className="border-muted" items={avatars} />
-      <p className="text-subtle text-sm">
+      <p className="text-subtle text-sm font-semibold">
         {users
           .map((user) => user.name)
           .filter((name) => name)

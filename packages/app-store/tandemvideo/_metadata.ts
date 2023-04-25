@@ -15,10 +15,6 @@ export const metadata = {
   logo: "/api/app-store/tandemvideo/icon.svg",
   publisher: "",
   url: "",
-  verified: true,
-  trending: true,
-  rating: 0,
-  reviews: 0,
   isGlobal: false,
   email: "help@cal.com",
   appData: {

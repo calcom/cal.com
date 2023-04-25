@@ -1,5 +1,3 @@
-import type { TargetAndTransition } from "framer-motion";
-
 import type { BookerLayout, BookerState } from "./types";
 
 // Framer motion fade in animation configs.
@@ -26,7 +24,7 @@ export const fadeInUp = {
 
 type ResizeAnimationConfig = {
   [key in BookerLayout]: {
-    [key in BookerState | "default"]?: TargetAndTransition;
+    [key in BookerState | "default"]?: React.CSSProperties;
   };
 };
 
