@@ -99,7 +99,7 @@ export default class BiginCalendarService implements Calendar {
           key: {
             ...(tokenInfo.data as BiginToken),
             accountServer: credentialKey.accountServer,
-            access_token: tokenInfo.data.access_token,
+            refresh_token: credentialKey.refresh_token,
           },
         },
       });
