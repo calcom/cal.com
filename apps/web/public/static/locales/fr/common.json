@@ -465,7 +465,6 @@
   "friday": "Vendredi",
   "saturday": "Samedi",
   "sunday": "Dimanche",
-  "all_booked_today": "Tout est réservé pour aujourd'hui.",
   "slots_load_fail": "Impossible de charger les créneaux disponibles.",
   "additional_guests": "Ajouter des invités",
   "your_name": "Votre nom",
