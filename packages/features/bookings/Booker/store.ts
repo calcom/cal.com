@@ -5,7 +5,7 @@ import dayjs from "@calcom/dayjs";
 
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerState, BookerLayout } from "./types";
-import { updateQueryParam, getQueryParam } from "./utils/query-param";
+import { updateQueryParam, getQueryParam, removeQueryParam } from "./utils/query-param";
 
 /**
  * Arguments passed into store initializer, containing
@@ -81,6 +81,12 @@ type BookerStore = {
   initialize: (data: StoreInitializeType) => void;
 };
 
+const validLayouts: BookerLayout[] = ["large_calendar", "large_timeslots", "small_calendar"];
+
+const checkLayout = (layout: BookerLayout) => {
+  return validLayouts.find((validLayout) => validLayout === layout);
+};
+
 /**
  * The booker store contains the data of the component's
  * current state. This data can be reused within child components
@@ -91,15 +97,14 @@ type BookerStore = {
 export const useBookerStore = create<BookerStore>((set, get) => ({
   state: "loading",
   setState: (state: BookerState) => set({ state }),
-  layout: "small_calendar",
+  layout: checkLayout(getQueryParam("layout") as BookerLayout) || "small_calendar",
   setLayout: (layout: BookerLayout) => {
-    set({ layout });
-
     // If we switch to a large layout and don't have a date selected yet,
     // we selected it here, so week title is rendered properly.
     if (["large_calendar", "large_timeslots"].includes(get().layout) && !get().selectedDate) {
       set({ selectedDate: dayjs().format("YYYY-MM-DD") });
     }
+    return set({ layout });
   },
   selectedDate: getQueryParam("date") || null,
   setSelectedDate: (selectedDate: string | null) => {
@@ -158,6 +163,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     // force clear this.
     if (rescheduleBooking) set({ selectedTimeslot: null });
     if (month) set({ month });
+    removeQueryParam("layout");
   },
   selectedDuration: Number(getQueryParam("duration")) || null,
   setSelectedDuration: (selectedDuration: number | null) => {

@@ -71,7 +71,9 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
   });
 
   useEffect(() => {
-    setLayout(isMobile ? "mobile" : "small_calendar");
+    if (isMobile) {
+      setLayout("mobile");
+    }
   }, [isMobile, setLayout]);
 
   useEffect(() => {
@@ -97,7 +99,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
         <div className="[&>div]:bg-muted fixed top-2 right-3 z-10">
           <ToggleGroup
             onValueChange={(layout) => setLayout(layout as BookerLayout)}
-            defaultValue="small_calendar"
+            defaultValue={layout}
             options={[
               {
                 value: "small_calendar",

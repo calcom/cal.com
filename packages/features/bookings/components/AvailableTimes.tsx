@@ -59,7 +59,7 @@ export const AvailableTimes = ({
           </div>
         )}
       </header>
-      <div className="pb-4">
+      <div className="h-full pb-4">
         {!slots.length && (
           <div className="bg-subtle flex h-full flex-col items-center justify-center rounded-md p-6">
             <CalendarX2 className="text-muted mb-2 h-4 w-4" />
@@ -78,7 +78,7 @@ export const AvailableTimes = ({
               data-testid="time"
               data-time={slot.time}
               onClick={() => onTimeSelect(slot.time)}
-              className="mb-3 flex h-auto min-h-[44px] w-full flex-col items-center justify-center py-2"
+              className="mb-3 flex h-auto min-h-[44px] w-full flex-col justify-center py-2"
               color="secondary">
               {dayjs.utc(slot.time).tz(timezone).format(timeFormat)}
               {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
