@@ -11,6 +11,7 @@ import { Button, SkeletonText } from "@calcom/ui";
 import { useBookerStore } from "../Booker/store";
 import { useTimePreferences } from "../lib";
 import { TimeFormatToggle } from "./TimeFormatToggle";
+import { CalendarIcon } from "lucide-react";
 
 type AvailableTimesProps = {
   date: Dayjs;
@@ -59,10 +60,13 @@ export const AvailableTimes = ({
         )}
       </header>
       <div className="pb-4">
-        {!slots.length && !isLargeTimeslots && (
-          <p className={classNames("text-emphasis", showTimeformatToggle ? "-mt-1 text-lg" : "text-sm")}>
-            {t("all_booked_today")}
-          </p>
+        {!slots.length && (
+          <div className="p-6 flex flex-col justify-center bg-subtle">
+            <CalendarIcon className="w-4 h-4 text-muted"/>
+            <p className={classNames("text-muted", showTimeformatToggle ? "-mt-1 text-lg" : "text-sm")}>
+              {t("all_booked_today")}
+            </p>
+          </div>
         )}
 
         {slots.map((slot) => {
