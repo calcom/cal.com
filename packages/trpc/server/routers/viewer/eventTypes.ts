@@ -476,7 +476,8 @@ export const eventTypesRouter = router({
 
     const data: Prisma.EventTypeCreateInput = {
       ...rest,
-      owner: teamId ? undefined : { connect: { id: userId } },
+      // Until we introduce credentials for organizations we need to use the owner's credentials for Stripe
+      owner: { connect: { id: userId } },
       metadata: (metadata as Prisma.InputJsonObject) ?? undefined,
       // Only connecting the current user for non-managed event type
       users: isManagedEventType ? undefined : { connect: { id: userId } },

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
+import { LockedIndicator } from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, TextField, Select } from "@calcom/ui";
@@ -26,8 +27,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
   const seatsEnabled = !!eventType.seatsPerTimeSlot;
-  const teamOwner = eventType.team.members.find((member) => member.role === "OWNER");
-  const teamOwnerEditing = eventType.team && teamOwner.user.id === session.data?.user?.id;
+  const teamOwner = eventType.team?.members.find((member) => member.role === "OWNER");
+  const teamOwnerEditing = eventType?.team && teamOwner.user.id === session.data?.user?.id;
 
   const getCurrencySymbol = (locale: string, currency: string) =>
     (0)
@@ -45,7 +46,17 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       setAppData={setAppData}
       app={app}
       switchChecked={requirePayment}
-      disableSwitch={!teamOwnerEditing}
+      disableSwitch={eventType.team && !teamOwnerEditing}
+      LockedIcon={
+        eventType.team
+          ? LockedIndicator(
+              t("only_event_type_owner_can_edit", {
+                owner: teamOwner ? `(${teamOwner.user.name})` : "",
+                appName: app.name,
+              })
+            )
+          : null
+      }
       eventTypeId={eventType.id}
       switchOnClick={(enabled) => {
         setRequirePayment(enabled);
@@ -107,7 +118,10 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 <Alert
                   className="mt-2"
                   severity="warning"
-                  title={t("team_owner_handle_stripe", { ownerName: teamOwner.name })}
+                  title={t("only_event_type_owner_can_edit", {
+                    owner: teamOwner ? `(${teamOwner.user.name})` : "",
+                    appName: app.name,
+                  })}
                 />
               )}
             </>

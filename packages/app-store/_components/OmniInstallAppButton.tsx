@@ -23,7 +23,6 @@ export default function OmniInstallAppButton({
   returnTo?: string;
   eventTypeId?: number;
 }) {
-  console.log("🚀 ~ file: OmniInstallAppButton.tsx:26 ~ eventTypeId:", eventTypeId, appId);
   const { t } = useLocale();
   const { data: app } = useApp(appId);
   const utils = trpc.useContext();
