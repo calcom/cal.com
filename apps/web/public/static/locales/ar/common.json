@@ -1723,6 +1723,7 @@
   "requires_at_least_one_schedule": "يجب أن يكون لديك جدول واحد على الأقل",
   "default_conferencing_bulk_description": "تحديث المواقع لأنواع الأحداث المحددة",
   "locked_for_members": "مقفل أمام الأعضاء",
+  "locked_apps_description": "سيكون الأعضاء قادرين على رؤية التطبيقات النشطة، ولكن من دون القدرة على تعديل أي إعدادات للتطبيق",
   "managed_event_dialog_title_one": "عنوان url /{{slug}} موجود بالفعل من أجل {{count}} عضو. هل تريد استبداله؟",
   "managed_event_dialog_title_other": "عنوان url /{{slug}} موجود بالفعل لـ {{count}} أعضاء. هل تريد استبداله؟",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> يستخدم بالفعل عنوان url <strong>/{{slug}}</strong>.",
