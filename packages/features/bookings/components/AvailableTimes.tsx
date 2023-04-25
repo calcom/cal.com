@@ -61,7 +61,7 @@ export const AvailableTimes = ({
       </header>
       <div className="h-full pb-4">
         {!slots.length && (
-          <div className="bg-subtle flex h-full flex-col justify-center rounded-md p-6">
+          <div className="bg-subtle flex h-full flex-col items-center rounded-md p-6">
             <CalendarX2 className="text-muted mb-2 h-4 w-4" />
             <p className={classNames("text-muted", showTimeformatToggle ? "-mt-1 text-lg" : "text-sm")}>
               {t("all_booked_today")}
