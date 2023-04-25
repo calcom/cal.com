@@ -206,11 +206,17 @@ const getSlots = ({
   });
   // an override precedes all the local working hour availability logic.
   const activeOverrides = dateOverrides.filter((override) => {
+    if (dayjs.utc(override.start).isSame(dayjs.utc(override.end))) {
+      return false;
+    }
     return dayjs.utc(override.start).isBetween(startOfInviteeDay, startOfInviteeDay.endOf("day"), null, "[)");
   });
 
   //find date overrides that go over midnight and part of it belongs to this day
   const dateOverrideFromTheDayBefore = dateOverrides.filter((override) => {
+    if (dayjs.utc(override.start).isSame(dayjs.utc(override.end))) {
+      return false;
+    }
     const inviteeUtcOffset = dayjs(override.end.toString()).tz(timeZone).utcOffset();
     if (dayjs.utc(override.end).isBetween(startOfInviteeDay, startOfInviteeDay.endOf("day"), null, "[)")) {
       if (
@@ -222,7 +228,22 @@ const getSlots = ({
     }
   });
 
-  if (!!dateOverrideFromTheDayBefore.length || !!activeOverrides.length) {
+  //handle full day overrides separately
+  const fullDayOverrides = dateOverrides.filter((override) => {
+    if (dayjs(override.start).isSame(dayjs(override.end))) {
+    }
+
+    const inviteeUtcOffset = dayjs(override.start.toString()).tz(timeZone).utcOffset();
+    const scheduleUtcOffset = dayjs(override.start.toString()).tz(override.timeZone).utcOffset();
+
+    const offset = inviteeUtcOffset - scheduleUtcOffset;
+
+    if (dayjs(override.start).day() === inviteeDate.day()) {
+      return true;
+    }
+  });
+
+  if (!!dateOverrideFromTheDayBefore.length || !!activeOverrides.length || !!fullDayOverrides.length) {
     let overrides: {
       userIds: number[];
       startTime: number;
@@ -280,13 +301,26 @@ const getSlots = ({
       });
       overrides = [...overrides, ...addditonalOverrides];
     }
+
+    // TODO: we just block the whole day, but in different timezones that's different and it might affected 2 days but not the whole day
+    if (!!fullDayOverrides.length) {
+      const fullOverrides = fullDayOverrides.flatMap((override) => {
+        return {
+          userIds: override.userId ? [override.userId] : [],
+          startTime: 0,
+          endTime: 0,
+          timeZone: override.timeZone,
+          belongsToDifferentDay: false,
+        };
+      });
+      overrides = [...overrides, ...fullOverrides];
+    }
     // unset all working hours that relate to this user availability override
     overrides.forEach((override) => {
       let i = -1;
       const indexes: number[] = [];
       const inviteeUtcOffset = dayjs(inviteeDate).tz(timeZone).utcOffset();
       const scheduleUtcOffset = dayjs(inviteeDate).tz(override.timeZone).utcOffset();
-      const offset = inviteeUtcOffset - scheduleUtcOffset;
 
       while (
         (i = computedLocalAvailability.findIndex(
@@ -300,7 +334,7 @@ const getSlots = ({
             - override belongs to the day before or day after
             - availability is from the day day before or day after
         */
-        if (!override.belongsToDifferentDay && computedLocalAvailability[i].startTime - offset >= 0) {
+        if (!override.belongsToDifferentDay) {
           indexes.push(i);
         }
       }
