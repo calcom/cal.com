@@ -284,7 +284,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
 
   if (!payment?.data || !payment?.id) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
-  const { user, evt, eventTypeRaw } = await getBooking(payment.bookingId);
+  const { booking, user, evt, eventTypeRaw } = await getBooking(payment.bookingId);
 
   const bookingData: Prisma.BookingUpdateInput = {
     paid: true,
@@ -315,6 +315,8 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
     bookingData.status = BookingStatus.ACCEPTED;
   }
 
+  if (booking.location) evt.location = booking.location;
+
   await prisma.payment.update({
     where: {
       id: payment.id,
@@ -335,7 +337,14 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
   // If the card information was already captured in the same customer. Delete the previous payment method
 
   if (!eventTypeRaw?.requiresConfirmation) {
-    await sendScheduledEmails({ ...evt });
+    await handleConfirmation({
+      user: userWithCredentials,
+      evt,
+      prisma,
+      bookingId: booking.id,
+      booking,
+      paid: true,
+    });
   } else {
     await sendOrganizerRequestEmail({ ...evt });
     await sendAttendeeRequestEmail({ ...evt }, evt.attendees[0]);
