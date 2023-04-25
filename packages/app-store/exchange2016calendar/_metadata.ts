@@ -15,12 +15,8 @@ export const metadata = {
   label: "Exchange Calendar",
   logo: "/api/app-store/exchange2016calendar/icon.svg",
   publisher: "Cal.com",
-  rating: 5,
-  reviews: 69,
   slug: "exchange2016-calendar",
-  trending: false,
   url: "https://cal.com/",
-  verified: true,
   email: "help@cal.com",
   dirName: "exchange2016calendar",
 } as AppMeta;
