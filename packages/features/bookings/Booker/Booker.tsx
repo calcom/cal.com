@@ -1,6 +1,6 @@
 import type { MotionStyle } from "framer-motion";
 import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
-import { Fragment, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
@@ -55,6 +55,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
     shallow
   );
   const extraDays = layout === "large_timeslots" ? (isTablet ? 2 : 4) : 0;
+  const onLayoutToggle = useCallback((newLayout: BookerLayout) => setLayout(newLayout), [setLayout]);
 
   useBrandColors({
     brandColor: event.data?.profile.brandColor,
@@ -71,10 +72,12 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
   });
 
   useEffect(() => {
-    if (isMobile) {
+    if (isMobile && layout !== "mobile") {
       setLayout("mobile");
+    } else if (!isMobile && layout === "mobile") {
+      setLayout("small_calendar");
     }
-  }, [isMobile, setLayout]);
+  }, [isMobile, setLayout, layout]);
 
   useEffect(() => {
     if (event.isLoading) return setBookerState("loading");
@@ -98,7 +101,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
       {!isMobile && (
         <div className="[&>div]:bg-muted fixed top-2 right-3 z-10">
           <ToggleGroup
-            onValueChange={(layout) => setLayout(layout as BookerLayout)}
+            onValueChange={onLayoutToggle}
             defaultValue={layout}
             options={[
               {
