@@ -149,6 +149,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
   const bookingLimitsLocked = shouldLockDisableProps("bookingLimits");
   const durationLimitsLocked = shouldLockDisableProps("durationLimits");
   const periodTypeLocked = shouldLockDisableProps("periodType");
+  const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
 
   const optionsPeriod = [
     { value: 1, label: t("calendar_days") },
@@ -285,6 +286,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             <TextField
               required
               type="number"
+              {...offsetStartLockedProps}
               label={t("offset_start")}
               defaultValue={eventType.offsetStart}
               {...formMethods.register("offsetStart")}
