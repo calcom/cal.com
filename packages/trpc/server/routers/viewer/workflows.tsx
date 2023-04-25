@@ -127,18 +127,24 @@ export const workflowsRouter = router({
         .optional()
     )
     .query(async ({ ctx, input }) => {
+      console.log({ input });
       if (input && input.teamId) {
         const workflows: WorkflowType[] = await ctx.prisma.workflow.findMany({
           where: {
-            team: {
-              id: input.teamId,
-              members: {
-                some: {
-                  userId: ctx.user.id,
-                  accepted: true,
+            OR: [
+              {
+                team: {
+                  id: input.teamId,
+                  members: {
+                    some: {
+                      userId: ctx.user.id,
+                      accepted: true,
+                    },
+                  },
                 },
               },
-            },
+              ...(input.userId ? [{ userId: ctx.user.id }] : []),
+            ],
           },
           include: {
             team: {

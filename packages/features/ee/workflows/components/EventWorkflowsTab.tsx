@@ -173,7 +173,7 @@ function EventWorkflowsTab(props: Props) {
   );
   const { data, isLoading } = trpc.viewer.workflows.list.useQuery({
     teamId: !isChildrenManagedEventType ? eventType.team?.id : eventType.parent?.teamId || undefined,
-    userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
+    userId: eventType.userId || undefined,
   });
   const router = useRouter();
   const [sortedWorkflows, setSortedWorkflows] = useState<Array<WorkflowType>>([]);
