@@ -172,7 +172,7 @@ function EventWorkflowsTab(props: Props) {
     t("locked_fields_member_description")
   );
   const { data, isLoading } = trpc.viewer.workflows.list.useQuery({
-    teamId: !isChildrenManagedEventType ? eventType.team?.id : eventType.parent?.teamId || undefined,
+    teamId: eventType.team?.id,
     userId: eventType.userId || undefined,
   });
   const router = useRouter();
