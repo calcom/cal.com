@@ -55,8 +55,7 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }:
     <div
       className={classNames(
         limitHeight && "flex-grow md:h-[400px]",
-        !limitHeight && "flex w-full flex-row gap-4",
-        isMultipleDates && "is-multiple-dates"
+        !limitHeight && "flex w-full flex-row gap-4"
       )}>
       {schedule.isLoading
         ? // Shows exact amount of days as skeleton.
