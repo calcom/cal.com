@@ -87,7 +87,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
     if (layout === "mobile") {
       timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [layout, selectedDate, setSelectedDate]);
+  }, [layout]);
 
   return (
     <>
