@@ -132,29 +132,29 @@ const TestData = {
       ],
       timeZone: Timezones["+5:30"],
     }),
-    IstWorkHoursWithFullDayDateOverride: (dateString: string) => ({
-      id: 1,
-      name: "12:00PM to 11:00PM in GMT but with a full day date override",
-      availability: [
-        {
-          userId: null,
-          eventTypeId: null,
-          days: [0, 1, 2, 3, 4, 5, 6],
-          startTime: "1970-01-01T12:00:00.000Z",
-          endTime: "1970-01-01T23:00:00.000Z",
-          date: null,
-        },
-        {
-          userId: null,
-          eventTypeId: null,
-          days: [0, 1, 2, 3, 4, 5, 6],
-          startTime: `1970-01-01T00:00:00.000Z`,
-          endTime: `1970-01-01T00:00:00.000Z`,
-          date: dateString,
-        },
-      ],
-      timeZone: Timezones["+0:00"],
-    }),
+    // IstWorkHoursWithFullDayDateOverride: (dateString: string) => ({
+    //   id: 1,
+    //   name: "12:00PM to 11:00PM in GMT but with a full day date override",
+    //   availability: [
+    //     {
+    //       userId: null,
+    //       eventTypeId: null,
+    //       days: [0, 1, 2, 3, 4, 5, 6],
+    //       startTime: "1970-01-01T12:00:00.000Z",
+    //       endTime: "1970-01-01T23:00:00.000Z",
+    //       date: null,
+    //     },
+    //     {
+    //       userId: null,
+    //       eventTypeId: null,
+    //       days: [0, 1, 2, 3, 4, 5, 6],
+    //       startTime: `1970-01-01T00:00:00.000Z`,
+    //       endTime: `1970-01-01T00:00:00.000Z`,
+    //       date: dateString,
+    //     },
+    //   ],
+    //   timeZone: Timezones["+0:00"],
+    // }),
   },
   users: {
     example: {
