@@ -14,12 +14,8 @@ export const metadata = {
   categories: ["calendar"],
   logo: "/api/app-store/caldavcalendar/icon.svg",
   publisher: "Cal.com",
-  rating: 5,
-  reviews: 69,
   slug: "caldav-calendar",
-  trending: false,
   url: "https://cal.com/",
-  verified: true,
   email: "help@cal.com",
   dirName: "caldavcalendar",
 } as App;
