@@ -217,6 +217,7 @@ const getSlots = ({
     }
     const inviteeUtcOffset = dayjs(override.end.toString()).tz(timeZone).utcOffset();
     if (dayjs.utc(override.end).isBetween(startOfInviteeDay, startOfInviteeDay.endOf("day"), null, "[)")) {
+      //override is  on different day, but we still need to block from the other day
       if (
         dayjs.utc(override.end).add(inviteeUtcOffset, "minutes").utcOffset(0).day() !==
         dayjs.utc(override.start).add(inviteeUtcOffset, "minutes").utcOffset(0).day()
@@ -259,11 +260,11 @@ const getSlots = ({
         const endTime = dayjs.utc(override.end).add(inviteeUtcOffset, "minute");
 
         // defines if the override start in the schedule's time zone is on a different day than in the invitee's time zone
-        const isDayBefore =
-          dayjs.utc(override.start).add(inviteeUtcOffset, "minute").day() <
+        const belongsToDifferentDay =
+          dayjs.utc(override.start).add(inviteeUtcOffset, "minute").day() !==
           dayjs.utc(override.start).add(scheduleUtcOffset, "minute").day();
 
-        const endTimeWithCorrectMidnight = isDayBefore ? endTime.subtract(1, "minute") : endTime;
+        const endTimeWithCorrectMidnight = belongsToDifferentDay ? endTime.subtract(1, "minute") : endTime;
 
         return {
           userIds: override.userId ? [override.userId] : [],
@@ -275,7 +276,7 @@ const getSlots = ({
             endTimeWithCorrectMidnight.hour()
               ? endTimeWithCorrectMidnight.hour() * 60 + endTimeWithCorrectMidnight.minute()
               : 24 * 60,
-          belongsToDifferentDay: isDayBefore,
+          belongsToDifferentDay: belongsToDifferentDay,
         };
       });
     }
@@ -318,8 +319,6 @@ const getSlots = ({
     overrides.forEach((override) => {
       let i = -1;
       const indexes: number[] = [];
-      const inviteeUtcOffset = dayjs(inviteeDate).tz(timeZone).utcOffset();
-      const scheduleUtcOffset = dayjs(inviteeDate).tz(override.timeZone).utcOffset();
 
       while (
         (i = computedLocalAvailability.findIndex(
