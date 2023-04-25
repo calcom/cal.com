@@ -1782,5 +1782,6 @@
   "card_details": "تفاصيل البطاقة",
   "seats_and_no_show_fee_error": "لا يمكن حالياً تمكين المقاعد وفرض رسوم عدم الحضور",
   "complete_your_booking": "أكمل الحجز",
-  "complete_your_booking_subject": "أكمل الحجز: {{title}} في {{date}}"
+  "complete_your_booking_subject": "أكمل الحجز: {{title}} في {{date}}",
+  "email_invite_team": "تم دعوة {{email}}"
 }
