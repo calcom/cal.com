@@ -229,15 +229,9 @@ const getSlots = ({
   //handle full day overrides separately
   const fullDayOverrides = dateOverrides.filter((override) => {
     if (dayjs(override.start).isSame(dayjs(override.end))) {
-    }
-
-    const inviteeUtcOffset = dayjs(override.start.toString()).tz(timeZone).utcOffset();
-    const scheduleUtcOffset = dayjs(override.start.toString()).tz(override.timeZone).utcOffset();
-
-    const offset = inviteeUtcOffset - scheduleUtcOffset;
-
-    if (dayjs(override.start).day() === inviteeDate.day()) {
-      return true;
+      if (dayjs(override.start).day() === inviteeDate.day()) {
+        return true;
+      }
     }
   });
 
