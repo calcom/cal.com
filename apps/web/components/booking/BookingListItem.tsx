@@ -483,12 +483,12 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
     i18n: { language },
   } = useLocale();
   const now = new Date();
-  const recurringCount = recurringDates.filter((date) => {
+  const recurringCount = recurringDates.filter((recurringDate) => {
     return (
-      date >= now &&
+      recurringDate >= now &&
       !booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
         .map((date) => date.toDateString())
-        .includes(date.toDateString())
+        .includes(recurringDate.toDateString())
     );
   }).length;
 
