@@ -1,11 +1,11 @@
 ---
 description: Connect APIs, remarkably fast. Stop writing boilerplate code, struggling with authentication and managing infrastructure. Start connecting APIs with code-level control when you need it — and no code when you don't
 items:
-  - /api/app-store/pipedream/1.png
-  - /api/app-store/pipedream/2.png
-  - /api/app-store/pipedream/3.png
-  - /api/app-store/pipedream/4.png
-  - /api/app-store/pipedream/5.png
+  - 1.png
+  - 2.png
+  - 3.png
+  - 4.png
+  - 5.png
 ---
 
 Connect APIs, remarkably fast. Stop writing boilerplate code, struggling with authentication and managing infrastructure. Start connecting APIs with code-level control when you need it — and no code when you don't

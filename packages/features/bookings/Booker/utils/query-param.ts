@@ -11,3 +11,11 @@ export const getQueryParam = (param: string) => {
 
   return new URLSearchParams(window.location.search).get(param);
 };
+
+export const removeQueryParam = (param: string) => {
+  if (typeof window === "undefined") return;
+
+  const url = new URL(window.location.href);
+  url.searchParams.delete(param);
+  window.history.pushState({}, "", url.href);
+};

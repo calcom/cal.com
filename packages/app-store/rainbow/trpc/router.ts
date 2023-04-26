@@ -1,100 +1,53 @@
-import { ethers } from "ethers";
-import { configureChains, createClient } from "wagmi";
-import { z } from "zod";
-
 import { router, publicProcedure } from "@calcom/trpc/server/trpc";
 
-import abi from "../utils/abi.json";
-import { checkBalance, getProviders, SUPPORTED_CHAINS } from "../utils/ethereum";
+import { ZBalanceInputSchema, ZBalanceOutputSchema } from "./balance.schema";
+import { ZContractInputSchema, ZContractOutputSchema } from "./contract.schema";
+
+interface EthRouterHandlersCache {
+  contract?: typeof import("./contract.handler").contractHandler;
+  balance?: typeof import("./balance.handler").balanceHandler;
+}
+
+const UNSTABLE_HANDLER_CACHE: EthRouterHandlersCache = {};
 
 const ethRouter = router({
   // Fetch contract `name` and `symbol` or error
   contract: publicProcedure
-    .input(
-      z.object({
-        address: z.string(),
-        chainId: z.number(),
-      })
-    )
-    .output(
-      z.object({
-        data: z
-          .object({
-            name: z.string(),
-            symbol: z.string(),
-          })
-          .nullish(),
-        error: z.string().nullish(),
-      })
-    )
+    .input(ZContractInputSchema)
+    .output(ZContractOutputSchema)
     .query(async ({ input }) => {
-      const { address, chainId } = input;
-      const { provider } = configureChains(
-        SUPPORTED_CHAINS.filter((chain) => chain.id === chainId),
-        getProviders()
-      );
-
-      const client = createClient({
-        provider,
-      });
-
-      const contract = new ethers.Contract(address, abi, client.provider);
-
-      try {
-        const name = await contract.name();
-        const symbol = await contract.symbol();
-
-        return {
-          data: {
-            name,
-            symbol: `$${symbol}`,
-          },
-        };
-      } catch (e) {
-        return {
-          data: {
-            name: address,
-            symbol: "$UNKNOWN",
-          },
-        };
+      if (!UNSTABLE_HANDLER_CACHE.contract) {
+        UNSTABLE_HANDLER_CACHE.contract = await import("./contract.handler").then(
+          (mod) => mod.contractHandler
+        );
       }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.contract) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.contract({
+        input,
+      });
     }),
   // Fetch user's `balance` of either ERC-20 or ERC-721 compliant token or error
   balance: publicProcedure
-    .input(
-      z.object({
-        address: z.string(),
-        tokenAddress: z.string(),
-        chainId: z.number(),
-      })
-    )
-    .output(
-      z.object({
-        data: z
-          .object({
-            hasBalance: z.boolean(),
-          })
-          .nullish(),
-        error: z.string().nullish(),
-      })
-    )
+    .input(ZBalanceInputSchema)
+    .output(ZBalanceOutputSchema)
     .query(async ({ input }) => {
-      const { address, tokenAddress, chainId } = input;
-      try {
-        const hasBalance = await checkBalance(address, tokenAddress, chainId);
-
-        return {
-          data: {
-            hasBalance,
-          },
-        };
-      } catch (e) {
-        return {
-          data: {
-            hasBalance: false,
-          },
-        };
+      if (!UNSTABLE_HANDLER_CACHE.balance) {
+        UNSTABLE_HANDLER_CACHE.balance = await import("./balance.handler").then((mod) => mod.balanceHandler);
       }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.balance) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.balance({
+        input,
+      });
     }),
 });
 
