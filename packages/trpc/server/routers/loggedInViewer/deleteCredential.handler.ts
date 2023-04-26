@@ -1,4 +1,4 @@
-import { AppCategories, BookingStatus } from "@prisma/client";
+import { AppCategories, BookingStatus, MembershipRole } from "@prisma/client";
 import z from "zod";
 
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
@@ -142,12 +142,11 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       }
     }
 
-    const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
-
-    const stripeAppData = getPaymentAppData({ ...eventType, metadata });
-
     // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
     if (credential.app?.categories.includes(AppCategories.payment)) {
+      const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+
+      const stripeAppData = getPaymentAppData({ ...eventType, metadata });
       if (stripeAppData.price) {
         await prisma.$transaction(async () => {
           await prisma.eventType.update({
@@ -163,6 +162,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                   stripe: {
                     ...metadata?.apps?.stripe,
                     price: 0,
+                    enabled: false,
                   },
                 },
               },
@@ -301,6 +301,52 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
             });
           }
         });
+      }
+    }
+  }
+
+  // Check if the user is a team owner and disable stripe for the team event type
+  if (credential.app?.categories.includes(AppCategories.payment)) {
+    const teamsWhereUserIsOwner = await prisma.team.findMany({
+      where: {
+        members: {
+          some: {
+            userId: ctx.user.id,
+            role: MembershipRole.OWNER,
+          },
+        },
+      },
+      select: {
+        eventTypes: true,
+      },
+    });
+
+    for (const team of teamsWhereUserIsOwner) {
+      for (const teamEventType of team.eventTypes) {
+        const metadata = EventTypeMetaDataSchema.parse(teamEventType.metadata);
+
+        const stripeAppData = getPaymentAppData({ ...teamEventType, metadata });
+        if (stripeAppData.enabled) {
+          await prisma.eventType.update({
+            where: {
+              id: teamEventType.id,
+            },
+            data: {
+              hidden: true,
+              metadata: {
+                ...metadata,
+                apps: {
+                  ...metadata?.apps,
+                  stripe: {
+                    ...metadata?.apps?.stripe,
+                    price: 0,
+                    enabled: false,
+                  },
+                },
+              },
+            },
+          });
+        }
       }
     }
   }
