@@ -3,7 +3,7 @@ import React from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Info, Clock, CheckSquare, RefreshCcw, CreditCard } from "@calcom/ui/components/icon";
+import { Clock, CheckSquare, RefreshCcw, CreditCard } from "@calcom/ui/components/icon";
 
 import type { PublicEvent } from "../../types";
 import { EventDetailBlocks } from "../../types";
@@ -31,7 +31,7 @@ type EventDetailCustomBlock = {
 type EventDetailsProps = EventDetailsPropsBase & (EventDetailDefaultBlock | EventDetailCustomBlock);
 
 interface EventMetaProps {
-  icon: React.FC<{ className: string }> | string;
+  icon?: React.FC<{ className: string }> | string;
   children: React.ReactNode;
   // Emphasises the text in the block. For now only
   // applying in dark mode.
@@ -80,7 +80,7 @@ export const EventMetaBlock = ({
           className="mr-2 mt-[2px] h-4 w-4 flex-shrink-0 [filter:invert(0.5)_brightness(0.5)] dark:[filter:invert(1)_brightness(0.9)]"
         />
       ) : (
-        <Icon className="relative z-20 mr-2 mt-[2px] h-4 w-4 flex-shrink-0" />
+        <>{!!Icon && <Icon className="relative z-20 mr-2 mt-[2px] h-4 w-4 flex-shrink-0" />}</>
       )}
       <div className={classNames("relative z-10", contentClassName)}>{children}</div>
     </div>
@@ -115,7 +115,9 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
           case EventDetailBlocks.DESCRIPTION:
             if (!event.description) return null;
             return (
-              <EventMetaBlock key={block} icon={Info} contentClassName="break-words max-w-full overflow-clip">
+              <EventMetaBlock
+                key={block}
+                contentClassName="break-words max-w-full max-h-[180px] scroll-bar pr-4">
                 <div dangerouslySetInnerHTML={{ __html: event.description }} />
               </EventMetaBlock>
             );
