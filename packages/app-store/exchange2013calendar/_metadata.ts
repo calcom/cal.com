@@ -14,12 +14,8 @@ export const metadata = {
   label: "Exchange Calendar",
   logo: "icon.svg",
   publisher: "Cal.com",
-  rating: 5,
-  reviews: 69,
   slug: "exchange2013-calendar",
-  trending: false,
   url: "https://cal.com/",
-  verified: true,
   email: "help@cal.com",
   dirName: "exchange2013calendar",
 } as AppMeta;

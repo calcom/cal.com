@@ -14,10 +14,6 @@ export const metadata = {
   logo: "icon.svg",
   publisher: "",
   url: "",
-  verified: true,
-  trending: true,
-  rating: 0,
-  reviews: 0,
   isGlobal: false,
   email: "help@cal.com",
   appData: {

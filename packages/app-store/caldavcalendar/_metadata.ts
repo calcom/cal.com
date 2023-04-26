@@ -13,12 +13,8 @@ export const metadata = {
   categories: ["calendar"],
   logo: "icon.svg",
   publisher: "Cal.com",
-  rating: 5,
-  reviews: 69,
   slug: "caldav-calendar",
-  trending: false,
   url: "https://cal.com/",
-  verified: true,
   email: "ali@cal.com",
   dirName: "caldavcalendar",
 } as AppMeta;

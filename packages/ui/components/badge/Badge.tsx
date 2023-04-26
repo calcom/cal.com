@@ -1,6 +1,6 @@
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import type { ComponentProps, ReactNode } from "react";
+import React from "react";
 import { GoPrimitiveDot } from "react-icons/go";
 
 import classNames from "@calcom/lib/classNames";
@@ -41,19 +41,40 @@ type IconOrDot =
     }
   | { startIcon?: unknown; withDot?: boolean };
 
-export type BadgeProps = InferredBadgeStyles &
-  ComponentProps<"div"> & { children: ReactNode; rounded?: boolean } & IconOrDot;
+export type BadgeBaseProps = InferredBadgeStyles & {
+  children: React.ReactNode;
+  rounded?: boolean;
+} & IconOrDot;
+
+export type BadgeProps =
+  /**
+   * This union type helps TypeScript understand that there's two options for this component:
+   * Either it's a div element on which the onClick prop is not allowed, or it's a button element
+   * on which the onClick prop is required. This is because the onClick prop is used to determine
+   * whether the component should be a button or a div.
+   */
+  | (BadgeBaseProps & Omit<React.HTMLAttributes<HTMLDivElement>, "onClick"> & { onClick?: never })
+  | (BadgeBaseProps & Omit<React.HTMLAttributes<HTMLButtonElement>, "onClick"> & { onClick: () => void });
 
 export const Badge = function Badge(props: BadgeProps) {
   const { variant, className, size, startIcon, withDot, children, rounded, ...passThroughProps } = props;
+  const isButton = "onClick" in passThroughProps && passThroughProps.onClick !== undefined;
   const StartIcon = startIcon ? (startIcon as SVGComponent) : undefined;
-  return (
-    <div
-      className={classNames(badgeStyles({ variant, size }), rounded && "h-5 w-5 rounded-full p-0", className)}
-      {...passThroughProps}>
+  const classes = classNames(
+    badgeStyles({ variant, size }),
+    rounded && "h-5 w-5 rounded-full p-0",
+    className
+  );
+
+  const Children = () => (
+    <>
       {withDot ? <GoPrimitiveDot className="h-3 w-3 stroke-[3px]" /> : null}
       {StartIcon ? <StartIcon className="h-3 w-3 stroke-[3px]" /> : null}
-      <div>{children}</div>
-    </div>
+      {children}
+    </>
   );
+
+  const Wrapper = isButton ? "button" : "div";
+
+  return React.createElement(Wrapper, { ...passThroughProps, className: classes }, <Children />);
 };

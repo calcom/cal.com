@@ -12,13 +12,9 @@ export const metadata = {
   categories: ["calendar"],
   logo: "icon.svg",
   publisher: "Cal.com",
-  rating: 5,
-  reviews: 69,
   slug: "office365-calendar",
   dirName: "office365calendar",
-  trending: false,
   url: "https://cal.com/",
-  verified: true,
   email: "help@cal.com",
 } as AppMeta;
 

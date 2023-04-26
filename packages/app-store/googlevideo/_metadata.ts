@@ -15,11 +15,7 @@ export const metadata = {
   variant: "conferencing",
   logo: "logo.webp",
   publisher: "Cal.com",
-  rating: 5,
-  reviews: 69,
-  trending: false,
   url: "https://cal.com/",
-  verified: true,
   isGlobal: false,
   email: "help@cal.com",
   appData: {

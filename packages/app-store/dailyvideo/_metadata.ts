@@ -10,12 +10,8 @@ export const metadata = {
   variant: "conferencing",
   url: "https://daily.co",
   categories: ["video"],
-  trending: true,
   logo: "icon.svg",
   publisher: "Cal.com",
-  verified: true,
-  rating: 4.3, // TODO: placeholder for now, pull this from TrustPilot or G2
-  reviews: 69, // TODO: placeholder for now, pull this from TrustPilot or G2
   category: "video",
   slug: "daily-video",
   title: "Cal Video",

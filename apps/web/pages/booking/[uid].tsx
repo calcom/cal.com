@@ -24,6 +24,7 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getBookingWithResponses } from "@calcom/features/bookings/lib/get-booking";
 import {
   SystemField,
   getBookingFieldsWithSystemFields,
@@ -36,7 +37,6 @@ import {
   formatToLocalizedTimezone,
 } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import { getBookingWithResponses } from "@calcom/lib/getBooking";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";

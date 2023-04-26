@@ -13,13 +13,9 @@ export const metadata = {
   logo: "icon.svg",
   publisher: "huddle01.com",
   url: "https://huddle01.com",
-  verified: true,
-  rating: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
-  reviews: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
   category: "web3",
   slug: "huddle01",
   title: "Huddle01",
-  trending: true,
   isGlobal: false,
   email: "support@huddle01.com",
   appData: {
