@@ -11,5 +11,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
   const { teamSlug, eventTypeSlug, username } = querySchema.parse(req.query);
   const { eventType } = await getEventTypeWithUsers(eventTypeSlug, teamSlug, username);
+  if (!eventType) {
+    return res.status(404).json({ message: "Not found" });
+  }
+
   return res.status(200).json({ eventType });
 }
