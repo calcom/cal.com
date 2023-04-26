@@ -111,6 +111,9 @@ module.exports = {
         sans: ["var(--font-inter)", ...fontFamily.sans],
         mono: ["Roboto Mono", "monospace"],
       },
+      height: {
+        9: "2.25rem",
+      },
       maxHeight: (theme) => ({
         0: "0",
         97: "25rem",
@@ -120,6 +123,7 @@ module.exports = {
       }),
       minHeight: (theme) => ({
         0: "0",
+        8.5: "2.125rem",
         ...theme("spacing"),
         full: "100%",
         screen: "100vh",
