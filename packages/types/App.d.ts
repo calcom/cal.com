@@ -2,8 +2,6 @@ import type { Prisma } from "@prisma/client";
 
 import type { Tag } from "@calcom/app-store/types";
 
-import type { Optional } from "./utils";
-
 type CommonProperties = {
   default?: false;
   type: string;
@@ -156,4 +154,4 @@ export type AppFrontendPayload = Omit<App, "key"> & {
   }[];
 };
 
-export type AppMeta = Optional<App, "rating" | "trending" | "reviews" | "verified">;
+export type AppMeta = App;

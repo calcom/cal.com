@@ -22,7 +22,7 @@ export { Select, SelectField, SelectWithValidation, getReactSelectProps } from "
 export { TimezoneSelect } from "./timezone-select";
 export type { ITimezone, ITimezoneOption } from "./timezone-select";
 export { DateRangePickerLazy as DateRangePicker } from "./date-range-picker";
-export { BooleanToggleGroup, BooleanToggleGroupField, ToggleGroup, ToggleGroupItem } from "./toggleGroup";
+export { BooleanToggleGroup, BooleanToggleGroupField, ToggleGroup } from "./toggleGroup";
 export { DatePicker } from "./datepicker";
 export { FormStep, Steps, Stepper } from "./step";
 export { WizardForm } from "./wizard";

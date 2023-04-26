@@ -7,6 +7,7 @@ import prisma from "@calcom/prisma";
 
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
+import { testBothBookers } from "./lib/new-booker";
 import {
   bookTimeSlot,
   createNewSeatedEventType,
@@ -46,7 +47,7 @@ async function createUserWithSeatedEventAndAttendees(
   return { user, eventType, booking };
 }
 
-test.describe("Booking with Seats", () => {
+testBothBookers.describe("Booking with Seats", (bookerVariant) => {
   test("User can create a seated event (2 seats as example)", async ({ users, page }) => {
     const user = await users.create({ name: "Seated event" });
     await user.login();
@@ -64,11 +65,19 @@ test.describe("Booking with Seats", () => {
     });
     await page.goto(`/${user.username}/${slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
-    await page.waitForNavigation({
-      url(url) {
-        return url.pathname.endsWith("/book");
-      },
-    });
+
+    // Kept in if statement here, since it's only temporary
+    // until the old booker isn't used anymore, and I wanted
+    // to change the test as little as possible.
+    // eslint-disable-next-line playwright/no-conditional-in-test
+    if (bookerVariant === "old-booker") {
+      await page.waitForNavigation({
+        url(url) {
+          return url.pathname.endsWith("/book");
+        },
+      });
+    }
+
     const bookingUrl = page.url();
     await test.step("Attendee #1 can book a seated event time slot", async () => {
       await page.goto(bookingUrl);
@@ -93,7 +102,7 @@ test.describe("Booking with Seats", () => {
   // TODO: Make E2E test: All attendees canceling should delete the booking for the User
   // todo("All attendees canceling should delete the booking for the User");
 
-  test.describe("Reschedule for booking with seats", () => {
+  testBothBookers.describe("Reschedule for booking with seats", () => {
     test("Should reschedule booking with seats", async ({ page, users, bookings }) => {
       const { booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
         { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
