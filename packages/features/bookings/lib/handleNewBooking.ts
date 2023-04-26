@@ -237,6 +237,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       owner: {
         select: {
           hideBranding: true,
+          id: true,
         },
       },
       workflows: {
@@ -1475,10 +1476,6 @@ async function handler(
             },
           },
         });
-        console.log(
-          "🚀 ~ file: handleNewBooking.ts:1463 ~ handleSeats ~ credentialPaymentAppCategories:",
-          credentialPaymentAppCategories
-        );
 
         const eventTypePaymentAppCredential = credentialPaymentAppCategories.find((credential) => {
           return credential.appId === paymentAppData.appId;
@@ -1683,29 +1680,6 @@ async function handler(
 
     if (typeof paymentAppData.price === "number" && paymentAppData.price > 0) {
       console.log("This statement triggers");
-      console.log(
-        "🚀 ~ file: handleNewBooking.ts:1677 ~ createBooking ~ paymentAppData.appId:",
-        paymentAppData.appId
-      );
-      console.log(
-        "🚀 ~ file: handleNewBooking.ts:1679 ~ createBooking ~ eventType.owner?.id:",
-        eventType.owner?.id
-      );
-
-      /* Validate if there is any payment app credential for this event type */
-      // const paymentCred = await prisma.credential.findFirst({
-      //   where: {
-      //     appId: paymentAppData.appId,
-      //     userId: eventType.owner?.id || organizerUser.id,
-      //   },
-      //   select: {
-      //     id: true,
-      //   },
-      // });
-      // console.log("🚀 ~ file: handleNewBooking.ts:1680 ~ createBooking ~ paymentCred:", paymentCred);
-      // if (!paymentCred) {
-      //   throw new Error();
-      // }
     }
 
     return prisma.booking.create(createBookingObj);
@@ -1987,7 +1961,7 @@ async function handler(
           members: true,
         },
       });
-      const teamOwner = teamMembers.members.find((member) => member.role === "OWNER");
+      const teamOwner = teamMembers?.members.find((member) => member.role === "OWNER");
 
       if (teamOwner) {
         paymentCredentialUserId = teamOwner.userId;

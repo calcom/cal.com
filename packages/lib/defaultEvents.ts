@@ -88,7 +88,7 @@ const commons = {
   durationLimits: null,
   hidden: false,
   userId: 0,
-  owner: { id: 0, hideBranding: false },
+  owner: null,
   workflows: [],
   users: [user],
   hosts: [],
