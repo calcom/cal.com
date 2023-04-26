@@ -18,7 +18,6 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   const { t } = useLocale();
   const methods = useFormContext<FormValues>();
 
-  // const installedApps = [];
   const allAppsData = methods.watch("metadata")?.apps || {};
 
   const { data: eventTypeApps, isLoading } = trpc.viewer.appsRouter.getEventTypeApps.useQuery({
@@ -69,7 +68,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     <>
       <div>
         <div className="before:border-0">
-          {!eventTypeApps?.installedApps?.length && isManagedEventType && (
+          {isManagedEventType && (
             <Alert
               severity="neutral"
               className="mb-2"

@@ -30,9 +30,10 @@ export type EventTypeAppCardComponentProps = {
   // Limit what data should be accessible to apps
   eventType: Pick<
     z.infer<typeof _EventTypeModel>,
-    "id" | "title" | "description" | "teamId" | "length" | "recurringEvent" | "seatsPerTimeSlot"
+    "id" | "title" | "description" | "teamId" | "length" | "recurringEvent" | "seatsPerTimeSlot" | "parentId"
   > & {
     URL: string;
+    team?: Pick<z.infer<typeof _TeamModel>, "id" | "slug"> & { members: z.infer<typeof _TeamMemberModel>[] };
   };
   app: RouterOutputs["viewer"]["apps"][number];
   disabled?: boolean;

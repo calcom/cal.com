@@ -15,7 +15,13 @@ import type { appDataSchema } from "../zod";
 
 type Option = { value: string; label: string };
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
+  app,
+  eventType,
+  disabled,
+  LockedIcon,
+}) {
+  console.log("🚀 ~ file: EventTypeAppCardInterface.tsx:19 ~ EventTypeAppCard ~ eventType:", eventType);
   const { asPath } = useRouter();
   const session = useSession();
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
@@ -29,6 +35,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const seatsEnabled = !!eventType.seatsPerTimeSlot;
   const teamOwner = eventType.team?.members.find((member) => member.role === "OWNER");
   const teamOwnerEditing = eventType?.team && teamOwner.user.id === session.data?.user?.id;
+  const shouldDisableFields = eventType.team ? !teamOwnerEditing : disabled;
 
   const getCurrencySymbol = (locale: string, currency: string) =>
     (0)
@@ -46,15 +53,17 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       setAppData={setAppData}
       app={app}
       switchChecked={requirePayment}
-      disableSwitch={eventType.team && !teamOwnerEditing}
+      disableSwitch={shouldDisableFields}
       LockedIcon={
-        eventType.team
+        eventType.team && !teamOwnerEditing
           ? LockedIndicator(
               t("only_event_type_owner_can_edit", {
                 owner: teamOwner ? `(${teamOwner.user.name})` : "",
                 appName: app.name,
               })
             )
+          : eventType.parentId
+          ? LockedIcon
           : null
       }
       eventTypeId={eventType.id}
@@ -89,7 +98,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   type="number"
                   required
                   placeholder="Price"
-                  disabled={!teamOwnerEditing}
+                  disabled={shouldDisableFields}
                   onChange={(e) => {
                     setAppData("price", Number(e.target.value) * 100);
                   }}
@@ -108,7 +117,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     if (input) setAppData("paymentOption", input.value);
                   }}
                   className="mb-1 h-[38px] w-full"
-                  isDisabled={seatsEnabled || !teamOwnerEditing}
+                  isDisabled={seatsEnabled || shouldDisableFields}
                 />
               </div>
               {seatsEnabled && paymentOption === "HOLD" && (
