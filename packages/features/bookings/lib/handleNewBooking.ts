@@ -152,7 +152,7 @@ const isWithinAvailableHours = (
   // check if it is a date override
   for (const dateOverride of dateOverrides) {
     const utcOffSet = dayjs(dateOverride.start).tz(inviteeTimeZone).utcOffset();
-    //slot start add invitee offset
+
     const slotStart = dayjs(timeSlotStart).add(utcOffSet, "minute");
     const slotEnd = dayjs(timeSlotEnd).add(utcOffSet, "minute");
 
