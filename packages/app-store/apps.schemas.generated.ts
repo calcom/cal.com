@@ -10,6 +10,7 @@ import { appDataSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
 import { appDataSchema as gtm_zod_ts } from "./gtm/zod";
 import { appDataSchema as hubspot_zod_ts } from "./hubspot/zod";
 import { appDataSchema as larkcalendar_zod_ts } from "./larkcalendar/zod";
+import { appDataSchema as metapixel_zod_ts } from "./metapixel/zod";
 import { appDataSchema as office365calendar_zod_ts } from "./office365calendar/zod";
 import { appDataSchema as office365video_zod_ts } from "./office365video/zod";
 import { appDataSchema as plausible_zod_ts } from "./plausible/zod";
@@ -36,6 +37,7 @@ export const appDataSchemas = {
   gtm: gtm_zod_ts,
   hubspot: hubspot_zod_ts,
   larkcalendar: larkcalendar_zod_ts,
+  metapixel: metapixel_zod_ts,
   office365calendar: office365calendar_zod_ts,
   office365video: office365video_zod_ts,
   plausible: plausible_zod_ts,
