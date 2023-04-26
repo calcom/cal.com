@@ -1,5 +1,5 @@
+import type { WorkflowActions } from "@prisma/client";
 import type { WorkflowStep } from "@prisma/client";
-import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@prisma/client";
 import type { Dispatch, SetStateAction } from "react";
 import { useRef, useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -11,6 +11,12 @@ import { SENDER_ID } from "@calcom/lib/constants";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import {
+  TimeUnit,
+  WorkflowActions as workflowActionsEnum,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
@@ -68,14 +74,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [verificationCode, setVerificationCode] = useState("");
 
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
-    step?.action === WorkflowActions.SMS_NUMBER ? true : false
+    step?.action === workflowActionsEnum.SMS_NUMBER ? true : false
   );
 
   const [updateTemplate, setUpdateTemplate] = useState(false);
   const [firstRender, setFirstRender] = useState(true);
 
   const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(
-    step?.action === WorkflowActions.SMS_NUMBER || step?.action === WorkflowActions.SMS_ATTENDEE
+    step?.action === workflowActionsEnum.SMS_NUMBER || step?.action === workflowActionsEnum.SMS_ATTENDEE
       ? true
       : false
   );
@@ -87,13 +93,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   }, [verifiedNumbers.length]);
 
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(
-    step?.action === WorkflowActions.EMAIL_ADDRESS ? true : false
+    step?.action === workflowActionsEnum.EMAIL_ADDRESS ? true : false
   );
 
   const [isEmailSubjectNeeded, setIsEmailSubjectNeeded] = useState(
-    step?.action === WorkflowActions.EMAIL_ATTENDEE ||
-      step?.action === WorkflowActions.EMAIL_HOST ||
-      step?.action === WorkflowActions.EMAIL_ADDRESS
+    step?.action === workflowActionsEnum.EMAIL_ATTENDEE ||
+      step?.action === workflowActionsEnum.EMAIL_HOST ||
+      step?.action === workflowActionsEnum.EMAIL_ADDRESS
       ? true
       : false
   );
@@ -272,6 +278,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       }
                     }}
                     defaultValue={selectedTrigger}
+                    // @ts-expect-error WIP
                     options={triggerOptions}
                   />
                 );
@@ -376,7 +383,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             if (isSMSAction(val.value)) {
                               setIsSenderIdNeeded(true);
                               setIsEmailAddressNeeded(false);
-                              setIsPhoneNumberNeeded(val.value === WorkflowActions.SMS_NUMBER);
+                              setIsPhoneNumberNeeded(val.value === workflowActionsEnum.SMS_NUMBER);
                               setNumberVerified(false);
 
                               // email action changes to sms action
@@ -389,7 +396,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             } else {
                               setIsPhoneNumberNeeded(false);
                               setIsSenderIdNeeded(false);
-                              setIsEmailAddressNeeded(val.value === WorkflowActions.EMAIL_ADDRESS);
+                              setIsEmailAddressNeeded(val.value === workflowActionsEnum.EMAIL_ADDRESS);
                               setIsEmailSubjectNeeded(true);
                             }
 
@@ -446,6 +453,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           }
                         }}
                         defaultValue={selectedAction}
+                        // @ts-expect-error WIP
                         options={actionOptions}
                         isOptionDisabled={(option: {
                           label: string;
@@ -572,7 +580,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </>
                 )}
               </div>
-              {form.getValues(`steps.${step.stepNumber - 1}.action`) === WorkflowActions.SMS_ATTENDEE && (
+              {form.getValues(`steps.${step.stepNumber - 1}.action`) === workflowActionsEnum.SMS_ATTENDEE && (
                 <div className="mt-2">
                   <Controller
                     name={`steps.${step.stepNumber - 1}.numberRequired`}
@@ -646,6 +654,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           }
                         }}
                         defaultValue={selectedTemplate}
+                        // @ts-expect-error WIP
                         options={templateOptions}
                       />
                     );
@@ -683,8 +692,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </div>
                 )}
 
-                {step.action !== WorkflowActions.SMS_ATTENDEE &&
-                step.action !== WorkflowActions.SMS_NUMBER ? (
+                {step.action !== workflowActionsEnum.SMS_ATTENDEE &&
+                step.action !== workflowActionsEnum.SMS_NUMBER ? (
                   <>
                     <div className="mb-2 flex items-center pb-[1.5px]">
                       <Label className="mb-0 flex-none ">

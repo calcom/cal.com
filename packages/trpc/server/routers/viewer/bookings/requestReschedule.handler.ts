@@ -1,5 +1,4 @@
-import type { BookingReference, EventType, WebhookTriggerEvents } from "@prisma/client";
-import { BookingStatus, WorkflowMethods } from "@prisma/client";
+import type { BookingReference, EventType } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -17,6 +16,7 @@ import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
+import { BookingStatus, WorkflowMethods, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -233,7 +233,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     };
 
     // Send webhook
-    const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
+    const eventTrigger = WebhookTriggerEvents.BOOKING_CANCELLED;
     // Send Webhook call if hooked to BOOKING.CANCELLED
     const subscriberOptions = {
       userId: bookingToReschedule.userId,

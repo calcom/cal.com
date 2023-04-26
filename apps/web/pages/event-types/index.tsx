@@ -1,6 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { User } from "@prisma/client";
-import { SchedulingType } from "@prisma/client";
+import type { User, SchedulingType } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -18,6 +17,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
+import { SchedulingType as schedulingTypeEnum } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
@@ -133,7 +133,9 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
           className="text-subtle hidden font-normal leading-4 sm:inline"
           data-testid={"event-type-slug-" + type.id}>
           {`/${
-            type.schedulingType !== SchedulingType.MANAGED ? group.profile.slug : t("username_placeholder")
+            type.schedulingType !== schedulingTypeEnum.MANAGED
+              ? group.profile.slug
+              : t("username_placeholder")
           }/${type.slug}`}
         </small>
       ) : null}
@@ -358,9 +360,10 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
           const calLink = `${CAL_URL}/${embedLink}`;
-          const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
+          const isManagedEventType = type.schedulingType === schedulingTypeEnum.MANAGED;
           const isChildrenManagedEventType =
-            type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
+            type.metadata?.managedEventConfig !== undefined &&
+            type.schedulingType !== schedulingTypeEnum.MANAGED;
           return (
             <li key={type.id}>
               <div className="hover:bg-muted flex w-full items-center justify-between">
@@ -617,16 +620,16 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
         <ConfirmationDialogContent
           variety="danger"
           title={t(
-            `delete_${deleteDialogTypeSchedulingType === SchedulingType.MANAGED && "managed"}_event_type`
+            `delete_${deleteDialogTypeSchedulingType === schedulingTypeEnum.MANAGED && "managed"}_event_type`
           )}
           confirmBtnText={t(
             `confirm_delete_${
-              deleteDialogTypeSchedulingType === SchedulingType.MANAGED && "managed"
+              deleteDialogTypeSchedulingType === schedulingTypeEnum.MANAGED && "managed"
             }_event_type`
           )}
           loadingText={t(
             `confirm_delete_${
-              deleteDialogTypeSchedulingType === SchedulingType.MANAGED && "managed"
+              deleteDialogTypeSchedulingType === schedulingTypeEnum.MANAGED && "managed"
             }_event_type`
           )}
           onConfirm={(e) => {
@@ -636,14 +639,14 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
           <p className="mt-5">
             {t(
               `delete_${
-                deleteDialogTypeSchedulingType === SchedulingType.MANAGED && "managed"
+                deleteDialogTypeSchedulingType === schedulingTypeEnum.MANAGED && "managed"
               }_event_type_description`
             )}
           </p>
           <p className="mt-5">
             <Trans
               i18nKey={`delete_${
-                deleteDialogTypeSchedulingType === SchedulingType.MANAGED && "managed"
+                deleteDialogTypeSchedulingType === schedulingTypeEnum.MANAGED && "managed"
               }_event_type_warning`}
             />
           </p>

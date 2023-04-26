@@ -1,10 +1,11 @@
-import { MembershipRole, Prisma, SchedulingType } from "@prisma/client";
-import type { PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import type { PrismaClient, MembershipRole } from "@prisma/client";
 import { orderBy } from "lodash";
 
 import { CAL_URL } from "@calcom/lib/constants";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
+import { MembershipRole as membershipRoleEnum, SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -198,13 +199,15 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
       },
       metadata: {
         membershipCount: membership.team.members.length,
-        readOnly: membership.role === MembershipRole.MEMBER,
+        readOnly: membership.role === membershipRoleEnum.MEMBER,
       },
       eventTypes: membership.team.eventTypes
         .map(mapEventType)
         .filter((evType) => evType.userId === null || evType.userId === ctx.user.id)
         .filter((evType) =>
-          membership.role === MembershipRole.MEMBER ? evType.schedulingType !== SchedulingType.MANAGED : true
+          membership.role === membershipRoleEnum.MEMBER
+            ? evType.schedulingType !== SchedulingType.MANAGED
+            : true
         ),
     }))
   );

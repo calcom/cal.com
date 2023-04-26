@@ -1,3 +1,4 @@
+import type { User } from "@prisma/client";
 import type { GetStaticPaths, GetStaticPropsContext } from "next";
 import { z } from "zod";
 
@@ -6,7 +7,6 @@ import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import type { User } from "@calcom/prisma/client";
 
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";

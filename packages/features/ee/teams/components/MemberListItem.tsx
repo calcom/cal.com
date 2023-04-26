@@ -1,10 +1,10 @@
-import { MembershipRole } from "@prisma/client";
 import classNames from "classnames";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -288,7 +288,7 @@ export default function MemberListItem(props: Props) {
           currentMember={props.team.membership.role}
           teamId={props.team?.id}
           memberId={props.member.id}
-          initialRole={props.member.role as MembershipRole}
+          initialRole={props.member.role}
           onExit={() => setShowChangeMemberRoleModal(false)}
         />
       )}

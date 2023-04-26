@@ -1,7 +1,8 @@
+import type { Prisma } from "@prisma/client";
+
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
 
 interface ITimeRange {
   start: Dayjs;

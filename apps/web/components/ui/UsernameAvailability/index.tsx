@@ -1,9 +1,9 @@
+import type { User } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
-import type { User } from "@calcom/prisma/client";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 

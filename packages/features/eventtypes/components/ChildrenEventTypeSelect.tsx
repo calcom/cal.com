@@ -1,10 +1,11 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { MembershipRole } from "@prisma/client";
+import type { MembershipRole } from "@prisma/client";
 import type { Props } from "react-select";
 
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole as membershipRoleEnum } from "@calcom/prisma/enums";
 import { Avatar, Badge, Button, ButtonGroup, Select, Switch, Tooltip } from "@calcom/ui";
 import { ExternalLink, X } from "@calcom/ui/components/icon";
 
@@ -73,7 +74,7 @@ export const ChildrenEventTypeSelect = ({
                 <div className="flex flex-col">
                   <span className="text text-sm font-semibold leading-none">
                     {children.owner.name}
-                    {children.owner.membership === MembershipRole.OWNER ? (
+                    {children.owner.membership === membershipRoleEnum.OWNER ? (
                       <Badge className="ml-2" variant="gray">
                         {t("owner")}
                       </Badge>

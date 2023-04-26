@@ -1,8 +1,8 @@
-import { BookingStatus } from "@prisma/client";
+import type { Prisma, PrismaClient, BookingStatus } from "@prisma/client";
 
 import { parseRecurringEvent } from "@calcom/lib";
 import { bookingMinimalSelect } from "@calcom/prisma";
-import type { Prisma, PrismaClient } from "@calcom/prisma/client";
+import { BookingStatus as bookingStatusEnum } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
@@ -32,11 +32,11 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       OR: [
         {
           recurringEventId: { not: null },
-          status: { equals: BookingStatus.ACCEPTED },
+          status: { equals: bookingStatusEnum.ACCEPTED },
         },
         {
           recurringEventId: { equals: null },
-          status: { notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED] },
+          status: { notIn: [bookingStatusEnum.CANCELLED, bookingStatusEnum.REJECTED] },
         },
       ],
     },
@@ -44,22 +44,25 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       endTime: { gte: new Date() },
       AND: [
         { NOT: { recurringEventId: { equals: null } } },
-        { status: { notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED] } },
+        { status: { notIn: [bookingStatusEnum.CANCELLED, bookingStatusEnum.REJECTED] } },
       ],
     },
     past: {
       endTime: { lte: new Date() },
       AND: [
-        { NOT: { status: { equals: BookingStatus.CANCELLED } } },
-        { NOT: { status: { equals: BookingStatus.REJECTED } } },
+        { NOT: { status: { equals: bookingStatusEnum.CANCELLED } } },
+        { NOT: { status: { equals: bookingStatusEnum.REJECTED } } },
       ],
     },
     cancelled: {
-      OR: [{ status: { equals: BookingStatus.CANCELLED } }, { status: { equals: BookingStatus.REJECTED } }],
+      OR: [
+        { status: { equals: bookingStatusEnum.CANCELLED } },
+        { status: { equals: bookingStatusEnum.REJECTED } },
+      ],
     },
     unconfirmed: {
       endTime: { gte: new Date() },
-      status: { equals: BookingStatus.PENDING },
+      status: { equals: bookingStatusEnum.PENDING },
     },
   };
   const bookingListingOrderby: Record<

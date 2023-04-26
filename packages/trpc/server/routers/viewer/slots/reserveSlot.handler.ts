@@ -1,10 +1,10 @@
+import type { PrismaClient } from "@prisma/client";
 import { serialize } from "cookie";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 as uuid } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
-import type { PrismaClient } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 

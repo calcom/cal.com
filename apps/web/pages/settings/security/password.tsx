@@ -1,10 +1,9 @@
-import { IdentityProvider } from "@prisma/client";
 import { signOut, useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 
-import { identityProviderNameMap } from "@calcom/features/auth/lib/identityProviderNameMap";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Form, Meta, PasswordField, Select, SettingsToggle, showToast } from "@calcom/ui";
@@ -118,13 +117,13 @@ const PasswordView = () => {
           <div className="mt-6">
             <h2 className="font-cal text-emphasis text-lg font-medium leading-6">
               {t("account_managed_by_identity_provider", {
-                provider: identityProviderNameMap[user.identityProvider],
+                provider: IdentityProvider[user.identityProvider],
               })}
             </h2>
           </div>
           <p className="text-subtle mt-1 text-sm">
             {t("account_managed_by_identity_provider_description", {
-              provider: identityProviderNameMap[user.identityProvider],
+              provider: IdentityProvider[user.identityProvider],
             })}
           </p>
         </div>

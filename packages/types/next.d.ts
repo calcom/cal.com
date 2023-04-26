@@ -1,7 +1,6 @@
+import type { PrismaClient } from "@prisma/client";
 import type { IncomingMessage } from "http";
 import type { Session } from "next-auth";
-
-import type { PrismaClient } from "@calcom/prisma/client";
 
 import "./next-auth";
 

@@ -1,6 +1,6 @@
 import type { Availability as AvailabilityModel, Schedule as ScheduleModel, User } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 
-import type { PrismaClient } from "@calcom/prisma/client";
 import type { Schedule } from "@calcom/types/schedule";
 
 export const getDefaultScheduleId = async (userId: number, prisma: PrismaClient) => {

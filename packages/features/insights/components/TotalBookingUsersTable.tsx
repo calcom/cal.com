@@ -1,6 +1,6 @@
+import type { User } from "@prisma/client";
 import { Table, TableBody, TableCell, TableRow, Text } from "@tremor/react";
 
-import type { User } from "@calcom/prisma/client";
 import { Avatar } from "@calcom/ui";
 
 export const TotalBookingUsersTable = ({

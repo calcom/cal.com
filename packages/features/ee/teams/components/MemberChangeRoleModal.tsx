@@ -1,8 +1,9 @@
-import { MembershipRole } from "@prisma/client";
+import type { MembershipRole } from "@prisma/client";
 import type { SyntheticEvent } from "react";
 import { useMemo, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole as membershipRoleEnum } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Dialog, DialogContent, Select } from "@calcom/ui";
 
@@ -25,23 +26,25 @@ export default function MemberChangeRoleModal(props: {
     return [
       {
         label: t("member"),
-        value: MembershipRole.MEMBER,
+        value: membershipRoleEnum.MEMBER,
       },
       {
         label: t("admin"),
-        value: MembershipRole.ADMIN,
+        value: membershipRoleEnum.ADMIN,
       },
       {
         label: t("owner"),
-        value: MembershipRole.OWNER,
+        value: membershipRoleEnum.OWNER,
       },
-    ].filter(({ value }) => value !== MembershipRole.OWNER || props.currentMember === MembershipRole.OWNER);
+    ].filter(
+      ({ value }) => value !== membershipRoleEnum.OWNER || props.currentMember === membershipRoleEnum.OWNER
+    );
   }, [t, props.currentMember]);
 
   const [role, setRole] = useState<MembershipRoleOption>(
     options.find((option) => option.value === props.initialRole) || {
       label: t("member"),
-      value: MembershipRole.MEMBER,
+      value: membershipRoleEnum.MEMBER,
     }
   );
   const [errorMessage, setErrorMessage] = useState("");

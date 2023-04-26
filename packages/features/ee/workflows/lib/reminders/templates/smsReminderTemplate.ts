@@ -1,6 +1,7 @@
-import { WorkflowActions } from "@prisma/client";
+import type { WorkflowActions } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
+import { WorkflowActions as workflowActionsEnum } from "@calcom/prisma/enums";
 
 const smsReminderTemplate = (
   isEditingMode: boolean,
@@ -18,8 +19,8 @@ const smsReminderTemplate = (
     startTime = "{START_TIME_h:mmA}";
 
     eventDate = "{EVENT_DATE_YYYY MMM D}";
-    attendee = action === WorkflowActions.SMS_ATTENDEE ? "{ORGANIZER}" : "{ATTENDEE}";
-    name = action === WorkflowActions.SMS_ATTENDEE ? "{ATTENDEE}" : "{ORGANIZER}";
+    attendee = action === workflowActionsEnum.SMS_ATTENDEE ? "{ORGANIZER}" : "{ATTENDEE}";
+    name = action === workflowActionsEnum.SMS_ATTENDEE ? "{ATTENDEE}" : "{ORGANIZER}";
   } else {
     eventDate = dayjs(startTime).tz(timeZone).format("YYYY MMM D");
     startTime = dayjs(startTime).tz(timeZone).format("h:mmA");

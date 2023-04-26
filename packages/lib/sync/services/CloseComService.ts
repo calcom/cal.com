@@ -1,4 +1,4 @@
-import { MembershipRole } from "@prisma/client";
+import type { MembershipRole } from "@prisma/client";
 
 import type { CloseComFieldOptions, CloseComLead } from "@calcom/lib/CloseCom";
 import CloseCom from "@calcom/lib/CloseCom";
@@ -8,6 +8,7 @@ import type { TeamInfoType } from "@calcom/lib/sync/ISyncService";
 import SyncServiceCore from "@calcom/lib/sync/ISyncService";
 import type { ConsoleUserInfoType, WebUserInfoType } from "@calcom/lib/sync/ISyncService";
 import type ISyncService from "@calcom/lib/sync/ISyncService";
+import { MembershipRole as membershipRoleEnum } from "@calcom/prisma/enums";
 
 // Cal.com Custom Contact Fields
 const calComCustomContactFields: CloseComFieldOptions = [
@@ -60,7 +61,7 @@ export default class CloseComService extends SyncServiceCore implements ISyncSer
         ? new Date(lastBooking.booking.createdAt).toLocaleDateString("en-US")
         : null, // Last Booking
       user.createdDate,
-      role === MembershipRole.OWNER ? "Point of Contact" : "",
+      role === membershipRoleEnum.OWNER ? "Point of Contact" : "",
     ];
     this.log.debug("sync:closecom:contact:allFieldsValues", { allFieldsValues });
     // Preparing Custom Activity Instance data for Close.com

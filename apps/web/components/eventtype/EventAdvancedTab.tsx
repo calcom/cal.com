@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
@@ -15,7 +16,6 @@ import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import { classNames } from "@calcom/lib";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip, Alert } from "@calcom/ui";
 import { Edit, Copy } from "@calcom/ui/components/icon";

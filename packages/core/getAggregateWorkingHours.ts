@@ -1,5 +1,6 @@
-import { SchedulingType } from "@prisma/client";
+import type { SchedulingType } from "@prisma/client";
 
+import { SchedulingType as schedulingTypeEnum } from "@calcom/prisma/enums";
 import type { WorkingHours } from "@calcom/types/schedule";
 
 /**
@@ -19,11 +20,11 @@ export const getAggregateWorkingHours = (
     return usersWorkingHoursAndBusySlots.flatMap((s) => s.workingHours);
   }
   const looseHostWorkingHours = usersWorkingHoursAndBusySlots
-    .filter(({ user }) => schedulingType !== SchedulingType.COLLECTIVE && user?.isFixed !== true)
+    .filter(({ user }) => schedulingType !== schedulingTypeEnum.COLLECTIVE && user?.isFixed !== true)
     .flatMap((s) => s.workingHours);
 
   const fixedHostSchedules = usersWorkingHoursAndBusySlots.filter(
-    ({ user }) => schedulingType === SchedulingType.COLLECTIVE || user?.isFixed
+    ({ user }) => schedulingType === schedulingTypeEnum.COLLECTIVE || user?.isFixed
   );
   // return early when there are no fixed hosts.
   if (!fixedHostSchedules.length) {
@@ -49,7 +50,7 @@ export const getAggregateWorkingHours = (
             startTime: Math.max(workingHour.startTime, compare.startTime),
             endTime: Math.min(workingHour.endTime, compare.endTime),
           };
-          if (schedulingType !== SchedulingType.COLLECTIVE) {
+          if (schedulingType !== schedulingTypeEnum.COLLECTIVE) {
             retVal.userId = compare.userId;
           }
           return retVal;

@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { PeriodType } from "@prisma/client";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import type { Key } from "react";
@@ -13,7 +14,6 @@ import type { DurationType } from "@calcom/lib/convertToNewDurationType";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { PeriodType } from "@calcom/prisma/client";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 import { Button, DateRangePicker, InputField, Label, Select, SettingsToggle, TextField } from "@calcom/ui";
 import { Plus, Trash } from "@calcom/ui/components/icon";

@@ -8,13 +8,13 @@ import type {
   Booking as PrismaBooking,
   App as PrismaApp,
   SchedulingType,
+  BookingStatus,
 } from "@prisma/client";
 import { diff } from "jest-diff";
 import { v4 as uuidv4 } from "uuid";
 
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type { BookingStatus } from "@calcom/prisma/client";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
 

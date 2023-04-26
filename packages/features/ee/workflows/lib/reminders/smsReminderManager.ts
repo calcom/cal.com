@@ -1,10 +1,20 @@
-import type { TimeUnit } from "@prisma/client";
-import { WorkflowTriggerEvents, WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@prisma/client";
+import type {
+  Prisma,
+  TimeUnit,
+  WorkflowTriggerEvents,
+  WorkflowActions,
+  WorkflowTemplates,
+} from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import {
+  WorkflowTriggerEvents as workflowTriggerEventsEnum,
+  WorkflowTemplates as workflowTemplatesEnum,
+  WorkflowActions as workflowActionsEnum,
+  WorkflowMethods,
+} from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalEventResponses } from "@calcom/types/Calendar";
 
@@ -71,7 +81,7 @@ export const scheduleSMSReminder = async (
   //SMS_ATTENDEE action does not need to be verified
   //isVerificationPending is from all already existing workflows (once they edit their workflow, they will also have to verify the number)
   async function getIsNumberVerified() {
-    if (action === WorkflowActions.SMS_ATTENDEE) return true;
+    if (action === workflowActionsEnum.SMS_ATTENDEE) return true;
     const verifiedNumber = await prisma.verifiedNumber.findFirst({
       where: {
         OR: [{ userId }, { teamId }],
@@ -83,19 +93,20 @@ export const scheduleSMSReminder = async (
   }
   const isNumberVerified = await getIsNumberVerified();
 
-  if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
+  if (triggerEvent === workflowTriggerEventsEnum.BEFORE_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(startTime).subtract(timeSpan.time, timeUnit) : null;
-  } else if (triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) {
+  } else if (triggerEvent === workflowTriggerEventsEnum.AFTER_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(endTime).add(timeSpan.time, timeUnit) : null;
   }
 
-  const name = action === WorkflowActions.SMS_ATTENDEE ? evt.attendees[0].name : "";
-  const attendeeName = action === WorkflowActions.SMS_ATTENDEE ? evt.organizer.name : evt.attendees[0].name;
+  const name = action === workflowActionsEnum.SMS_ATTENDEE ? evt.attendees[0].name : "";
+  const attendeeName =
+    action === workflowActionsEnum.SMS_ATTENDEE ? evt.organizer.name : evt.attendees[0].name;
   const timeZone =
-    action === WorkflowActions.SMS_ATTENDEE ? evt.attendees[0].timeZone : evt.organizer.timeZone;
+    action === workflowActionsEnum.SMS_ATTENDEE ? evt.attendees[0].timeZone : evt.organizer.timeZone;
 
   const locale =
-    action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
+    action === workflowActionsEnum.EMAIL_ATTENDEE || action === workflowActionsEnum.SMS_ATTENDEE
       ? evt.attendees[0].language?.locale
       : evt.organizer.language.locale;
 
@@ -117,7 +128,7 @@ export const scheduleSMSReminder = async (
     };
     const customMessage = customTemplate(message, variables, locale);
     message = customMessage.text;
-  } else if (template === WorkflowTemplates.REMINDER) {
+  } else if (template === workflowTemplatesEnum.REMINDER) {
     message =
       smsReminderTemplate(false, action, evt.startTime, evt.title, timeZone, attendeeName, name) || message;
   }
@@ -128,9 +139,9 @@ export const scheduleSMSReminder = async (
   if (message.length > 0 && reminderPhone && isNumberVerified) {
     //send SMS when event is booked/cancelled/rescheduled
     if (
-      triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
-      triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ||
-      triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
+      triggerEvent === workflowTriggerEventsEnum.NEW_EVENT ||
+      triggerEvent === workflowTriggerEventsEnum.EVENT_CANCELLED ||
+      triggerEvent === workflowTriggerEventsEnum.RESCHEDULE_EVENT
     ) {
       try {
         await twilio.sendSMS(reminderPhone, message, senderID);
@@ -138,8 +149,8 @@ export const scheduleSMSReminder = async (
         console.log(`Error sending SMS with error ${error}`);
       }
     } else if (
-      (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT ||
-        triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
+      (triggerEvent === workflowTriggerEventsEnum.BEFORE_EVENT ||
+        triggerEvent === workflowTriggerEventsEnum.AFTER_EVENT) &&
       scheduledDate
     ) {
       // Can only schedule at least 60 minutes in advance and at most 7 days in advance

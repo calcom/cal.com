@@ -1,4 +1,3 @@
-import { IdentityProvider } from "@prisma/client";
 import type { NextApiRequest } from "next";
 import z from "zod";
 
@@ -8,6 +7,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import { IdentityProvider } from "@calcom/prisma/enums";
 
 const querySchema = z.object({
   username: z

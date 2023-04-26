@@ -1,5 +1,6 @@
 import type { User } from "@prisma/client";
 import { Prisma } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 
 import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
@@ -9,7 +10,6 @@ import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import type { PrismaClient } from "@calcom/prisma/client";
 import {
   EventTypeMetaDataSchema,
   customInputSchema,

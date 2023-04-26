@@ -1,12 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { WorkflowStep } from "@prisma/client";
-import {
-  TimeUnit,
-  WorkflowActions,
-  WorkflowTemplates,
-  WorkflowTriggerEvents,
-  MembershipRole,
-} from "@prisma/client";
+import type { WorkflowStep, WorkflowTriggerEvents, TimeUnit } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -19,6 +12,13 @@ import { classNames } from "@calcom/lib";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import {
+  TimeUnit as timeUnitEnum,
+  WorkflowActions,
+  WorkflowTemplates,
+  WorkflowTriggerEvents as workflowTriggerEventsEnum,
+  MembershipRole,
+} from "@calcom/prisma/enums";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
@@ -49,9 +49,9 @@ export function onlyLettersNumbersSpaces(str: string) {
 const formSchema = z.object({
   name: z.string(),
   activeOn: z.object({ value: z.string(), label: z.string() }).array(),
-  trigger: z.nativeEnum(WorkflowTriggerEvents),
+  trigger: z.nativeEnum(workflowTriggerEventsEnum),
   time: z.number().gte(0).optional(),
-  timeUnit: z.nativeEnum(TimeUnit).optional(),
+  timeUnit: z.nativeEnum(timeUnitEnum).optional(),
   steps: z
     .object({
       id: z.number(),

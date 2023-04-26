@@ -55,7 +55,9 @@ export const TimeTimeUnitInput = (props: Props) => {
                       key={index}
                       type="button"
                       onClick={() => {
+                        // @ts-expect-error WIP
                         setTimeUnit(option.value);
+                        // @ts-expect-error WIP
                         form.setValue("timeUnit", option.value);
                       }}>
                       {option.label}

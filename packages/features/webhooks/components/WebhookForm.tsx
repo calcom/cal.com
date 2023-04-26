@@ -1,9 +1,10 @@
-import { WebhookTriggerEvents } from "@prisma/client";
+import type { WebhookTriggerEvents } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { WebhookTriggerEvents as webhookTriggerEventsEnum } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Form, Label, Select, Switch, TextArea, TextField, ToggleGroup } from "@calcom/ui";
 
@@ -30,12 +31,12 @@ type WebhookTriggerEventOptions = readonly { value: WebhookTriggerEvents; label:
 
 const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEventOptions> = {
   core: [
-    { value: WebhookTriggerEvents.BOOKING_CANCELLED, label: "booking_cancelled" },
-    { value: WebhookTriggerEvents.BOOKING_CREATED, label: "booking_created" },
-    { value: WebhookTriggerEvents.BOOKING_RESCHEDULED, label: "booking_rescheduled" },
-    { value: WebhookTriggerEvents.MEETING_ENDED, label: "meeting_ended" },
+    { value: webhookTriggerEventsEnum.BOOKING_CANCELLED, label: "booking_cancelled" },
+    { value: webhookTriggerEventsEnum.BOOKING_CREATED, label: "booking_created" },
+    { value: webhookTriggerEventsEnum.BOOKING_RESCHEDULED, label: "booking_rescheduled" },
+    { value: webhookTriggerEventsEnum.MEETING_ENDED, label: "meeting_ended" },
   ],
-  "routing-forms": [{ value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" }],
+  "routing-forms": [{ value: webhookTriggerEventsEnum.FORM_SUBMITTED, label: "form_submitted" }],
 } as const;
 
 const WebhookForm = (props: {

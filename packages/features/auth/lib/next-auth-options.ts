@@ -1,5 +1,4 @@
 import type { UserPermissionRole, Membership, Team } from "@prisma/client";
-import { IdentityProvider } from "@prisma/client";
 import type { AuthOptions, Session } from "next-auth";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
@@ -18,6 +17,7 @@ import { randomString } from "@calcom/lib/random";
 import rateLimit from "@calcom/lib/rateLimit";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { ErrorCode } from "./ErrorCode";
@@ -485,7 +485,7 @@ export const AUTH_OPTIONS: AuthOptions = {
       }
 
       if (account?.provider) {
-        const idP: IdentityProvider = mapIdentityProvider(account.provider);
+        const idP = mapIdentityProvider(account.provider);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore-error TODO validate email_verified key on profile
         user.email_verified = user.email_verified || !!user.emailVerified || profile.email_verified;

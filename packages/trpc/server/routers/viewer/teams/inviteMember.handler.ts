@@ -1,4 +1,5 @@
-import { MembershipRole, Prisma } from "@prisma/client";
+import type { MembershipRole } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
 
 import { sendTeamInviteEmail } from "@calcom/emails";
@@ -7,6 +8,7 @@ import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole as membershipRoleEnum } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -23,7 +25,7 @@ type InviteMemberOptions = {
 
 export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) => {
   if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-  if (input.role === MembershipRole.OWNER && !(await isTeamOwner(ctx.user?.id, input.teamId)))
+  if (input.role === membershipRoleEnum.OWNER && !(await isTeamOwner(ctx.user?.id, input.teamId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const translation = await getTranslation(input.language ?? "en", "common");

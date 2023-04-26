@@ -1,8 +1,8 @@
+import type { Credential } from "@prisma/client";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import type { Credential } from "@calcom/prisma/client";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";

@@ -1,5 +1,4 @@
-import type { Prisma, UserPermissionRole } from "@prisma/client";
-import { BookingStatus, MembershipRole } from "@prisma/client";
+import type { MembershipRole, Prisma, UserPermissionRole } from "@prisma/client";
 import { uuid } from "short-uuid";
 
 import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
@@ -8,6 +7,7 @@ import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { BookingStatus, MembershipRole as membershipRoleEnum } from "@calcom/prisma/enums";
 
 import prisma from ".";
 import mainAppStore from "./seed-app-store";
@@ -156,7 +156,7 @@ async function createTeamAndAddUsers(
   );
 
   for (const user of users) {
-    const { role = MembershipRole.OWNER, id, username } = user;
+    const { role = membershipRoleEnum.OWNER, id, username } = user;
     await prisma.membership.create({
       data: {
         teamId: team.id,

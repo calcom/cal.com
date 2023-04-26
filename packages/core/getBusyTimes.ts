@@ -1,12 +1,12 @@
 import type { Credential } from "@prisma/client";
-import { BookingStatus } from "@prisma/client";
+import type { SelectedCalendar } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
-import type { SelectedCalendar } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 
 export async function getBusyTimes(params: {

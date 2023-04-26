@@ -1,9 +1,9 @@
 import type { PrismaClient } from "@prisma/client";
+import type { AppCategories } from "@prisma/client";
 
 import { getLocalAppMetadata } from "@calcom/app-store/utils";
 import { sendDisabledAppEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server";
-import type { AppCategories } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 

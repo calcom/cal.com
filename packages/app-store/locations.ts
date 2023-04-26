@@ -1,8 +1,9 @@
-import { BookingStatus } from "@prisma/client";
+import type { BookingStatus } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import logger from "@calcom/lib/logger";
+import { BookingStatus as bookingStatusEnum } from "@calcom/prisma/enums";
 import type { Ensure, Optional } from "@calcom/types/utils";
 
 import type { EventLocationTypeFromAppMeta } from "../types/App";
@@ -374,9 +375,9 @@ export function getSuccessPageLocationMessage(
   const eventLocationType = getEventLocationType(location);
   let locationToDisplay = location;
   if (eventLocationType && !eventLocationType.default && eventLocationType.linkType === "dynamic") {
-    const isConfirmed = bookingStatus === BookingStatus.ACCEPTED;
+    const isConfirmed = bookingStatus === bookingStatusEnum.ACCEPTED;
 
-    if (bookingStatus === BookingStatus.CANCELLED || bookingStatus === BookingStatus.REJECTED) {
+    if (bookingStatus === bookingStatusEnum.CANCELLED || bookingStatus === bookingStatusEnum.REJECTED) {
       locationToDisplay == t("web_conference");
     } else if (isConfirmed) {
       locationToDisplay =

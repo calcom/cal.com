@@ -1,7 +1,8 @@
-import { WorkflowActions } from "@prisma/client";
+import type { WorkflowActions } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
 import { APP_NAME } from "@calcom/lib/constants";
+import { WorkflowActions as workflowActionsEnum } from "@calcom/prisma/enums";
 
 const emailReminderTemplate = (
   isEditingMode: boolean,
@@ -20,8 +21,8 @@ const emailReminderTemplate = (
     endTime = "{EVENT_END_TIME}";
     eventName = "{EVENT_NAME}";
     timeZone = "{TIMEZONE}";
-    otherPerson = action === WorkflowActions.EMAIL_ATTENDEE ? "{ORGANIZER}" : "{ATTENDEE}";
-    name = action === WorkflowActions.EMAIL_ATTENDEE ? "{ATTENDEE}" : "{ORGANIZER}";
+    otherPerson = action === workflowActionsEnum.EMAIL_ATTENDEE ? "{ORGANIZER}" : "{ATTENDEE}";
+    name = action === workflowActionsEnum.EMAIL_ATTENDEE ? "{ATTENDEE}" : "{ORGANIZER}";
     eventDate = "{EVENT_DATE_ddd, MMM D, YYYY H:mmA}";
   } else {
     eventDate = dayjs(startTime).tz(timeZone).format("ddd, MMM D, YYYY H:mmA");

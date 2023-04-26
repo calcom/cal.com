@@ -1,14 +1,8 @@
-import type {
-  Account,
-  IdentityProvider,
-  Prisma,
-  PrismaClient,
-  User,
-  VerificationToken,
-} from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import type { IdentityProvider } from "@prisma/client";
+import type { Account, PrismaClient, User, VerificationToken } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
-import { identityProviderNameMap } from "./identityProviderNameMap";
+import { IdentityProvider as identityProviderEnum } from "@calcom/prisma/enums";
 
 /** @return { import("next-auth/adapters").Adapter } */
 export default function CalComAdapter(prismaClient: PrismaClient) {
@@ -40,7 +34,7 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
       if (["GOOGLE", "SAML"].indexOf(provider) < 0) {
         return null;
       }
-      const obtainProvider = identityProviderNameMap[provider].toUpperCase() as IdentityProvider;
+      const obtainProvider = identityProviderEnum[provider];
       const user = await prismaClient.user.findFirst({
         where: {
           identityProviderId: provider_providerAccountId?.providerAccountId,
@@ -69,7 +63,7 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
       } catch (error) {
         // If token already used/deleted, just return null
         // https://www.prisma.io/docs/reference/api-reference/error-reference#p2025
-        if (error instanceof PrismaClientKnownRequestError) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
           if (error.code === "P2025") return null;
         }
         throw error;

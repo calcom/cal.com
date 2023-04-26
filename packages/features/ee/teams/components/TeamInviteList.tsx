@@ -1,6 +1,6 @@
+import type { MembershipRole } from "@prisma/client";
 import { useState } from "react";
 
-import type { MembershipRole } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui";
 

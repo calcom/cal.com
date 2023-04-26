@@ -1,11 +1,6 @@
 import { z } from "zod";
 
-import {
-  TIME_UNIT,
-  WORKFLOW_ACTIONS,
-  WORKFLOW_TEMPLATES,
-  WORKFLOW_TRIGGER_EVENTS,
-} from "@calcom/features/ee/workflows/lib/constants";
+import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
 export const ZUpdateInputSchema = z.object({
   id: z.number(),
@@ -15,20 +10,20 @@ export const ZUpdateInputSchema = z.object({
     .object({
       id: z.number(),
       stepNumber: z.number(),
-      action: z.enum(WORKFLOW_ACTIONS),
+      action: z.nativeEnum(WorkflowActions),
       workflowId: z.number(),
       sendTo: z.string().optional().nullable(),
       reminderBody: z.string().optional().nullable(),
       emailSubject: z.string().optional().nullable(),
-      template: z.enum(WORKFLOW_TEMPLATES),
+      template: z.nativeEnum(WorkflowTemplates),
       numberRequired: z.boolean().nullable(),
       sender: z.string().optional().nullable(),
       senderName: z.string().optional().nullable(),
     })
     .array(),
-  trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
+  trigger: z.nativeEnum(WorkflowTriggerEvents),
   time: z.number().nullable(),
-  timeUnit: z.enum(TIME_UNIT).nullable(),
+  timeUnit: z.nativeEnum(TimeUnit).nullable(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

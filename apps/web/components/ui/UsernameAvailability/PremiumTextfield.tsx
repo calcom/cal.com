@@ -1,4 +1,5 @@
 import { StarIcon as StarIconSolid } from "@heroicons/react/solid";
+import type { User } from "@prisma/client";
 import classNames from "classnames";
 import { debounce, noop } from "lodash";
 import { useRouter } from "next/router";
@@ -9,7 +10,6 @@ import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/ut
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { User } from "@calcom/prisma/client";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";

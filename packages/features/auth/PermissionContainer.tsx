@@ -1,7 +1,9 @@
-import { UserPermissionRole } from "@prisma/client";
+import type { UserPermissionRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import type { FC } from "react";
 import { Fragment } from "react";
+
+import { UserPermissionRole as userPermissionRoleEnum } from "@calcom/prisma/enums";
 
 type AdminRequiredProps = {
   as?: keyof JSX.IntrinsicElements;
@@ -19,7 +21,7 @@ export const PermissionContainer: FC<AdminRequiredProps> = ({
   const session = useSession();
 
   // Admin can do everything
-  if (session.data?.user.role !== roleRequired && session.data?.user.role != UserPermissionRole.ADMIN)
+  if (session.data?.user.role !== roleRequired && session.data?.user.role != userPermissionRoleEnum.ADMIN)
     return null;
   const Component = as ?? Fragment;
   return <Component {...rest}>{children}</Component>;

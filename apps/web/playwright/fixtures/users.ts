@@ -1,11 +1,12 @@
 import type { Page, WorkerInfo } from "@playwright/test";
-import type Prisma from "@prisma/client";
-import { MembershipRole, Prisma as PrismaType } from "@prisma/client";
+import type { User, MembershipRole } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { hashSync as hash } from "bcryptjs";
 
 import dayjs from "@calcom/dayjs";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole as membershipRoleEnum } from "@calcom/prisma/enums";
 
 import type { TimeZoneEnum } from "./types";
 
@@ -17,13 +18,13 @@ export function hashPassword(password: string) {
 
 type UserFixture = ReturnType<typeof createUserFixture>;
 
-const userIncludes = PrismaType.validator<PrismaType.UserInclude>()({
+const userIncludes = Prisma.validator<Prisma.UserInclude>()({
   eventTypes: true,
   credentials: true,
   routingForms: true,
 });
 
-const userWithEventTypes = PrismaType.validator<PrismaType.UserArgs>()({
+const userWithEventTypes = Prisma.validator<Prisma.UserArgs>()({
   include: userIncludes,
 });
 
@@ -32,7 +33,7 @@ const seededForm = {
   name: "Seeded Form - Pro",
 };
 
-type UserWithIncludes = PrismaType.UserGetPayload<typeof userWithEventTypes>;
+type UserWithIncludes = Prisma.UserGetPayload<typeof userWithEventTypes>;
 
 const createTeamAndAddUser = async (
   { user }: { user: { id: number; role?: MembershipRole } },
@@ -45,7 +46,7 @@ const createTeamAndAddUser = async (
     },
   });
 
-  const { role = MembershipRole.OWNER, id: userId } = user;
+  const { role = membershipRoleEnum.OWNER, id: userId } = user;
   await prisma.membership.create({
     data: {
       teamId: team.id,
@@ -280,17 +281,17 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
   };
 };
 
-type SupportedTestEventTypes = PrismaType.EventTypeCreateInput & {
-  _bookings?: PrismaType.BookingCreateInput[];
+type SupportedTestEventTypes = Prisma.EventTypeCreateInput & {
+  _bookings?: Prisma.BookingCreateInput[];
 };
 type CustomUserOptsKeys = "username" | "password" | "completedOnboarding" | "locale" | "name";
-type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
+type CustomUserOpts = Partial<Pick<User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
   eventTypes?: SupportedTestEventTypes[];
 };
 
 // creates the actual user in the db.
-const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): PrismaType.UserCreateInput => {
+const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): Prisma.UserCreateInput => {
   // build a unique name for our user
   const uname = `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
   return {
@@ -320,7 +321,7 @@ const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): Prism
 
 // login using a replay of an E2E routine.
 export async function login(
-  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "password" | "email">>,
+  user: Pick<User, "username"> & Partial<Pick<User, "password" | "email">>,
   page: Page
 ) {
   // get locators

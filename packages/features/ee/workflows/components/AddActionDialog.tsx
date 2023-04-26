@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { WorkflowActions } from "@prisma/client";
+import type { WorkflowActions } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
@@ -9,6 +9,7 @@ import { z } from "zod";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { WorkflowActions as workflowActionsEnum } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -25,7 +26,6 @@ import {
   Select,
 } from "@calcom/ui";
 
-import { WORKFLOW_ACTIONS } from "../lib/constants";
 import { onlyLettersNumbersSpaces } from "../pages/workflow";
 
 interface IAddActionDialog {
@@ -53,6 +53,20 @@ type AddActionFormValues = {
   senderName?: string;
 };
 
+const formSchema = z.object({
+  action: z.nativeEnum(workflowActionsEnum),
+  sendTo: z
+    .string()
+    .refine((val) => isValidPhoneNumber(val) || val.includes("@"))
+    .optional(),
+  numberRequired: z.boolean().optional(),
+  senderId: z
+    .string()
+    .refine((val) => onlyLettersNumbersSpaces(val))
+    .nullable(),
+  senderName: z.string().nullable(),
+});
+
 export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog, addAction } = props;
@@ -61,24 +75,10 @@ export const AddActionDialog = (props: IAddActionDialog) => {
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(false);
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
 
-  const formSchema = z.object({
-    action: z.enum(WORKFLOW_ACTIONS),
-    sendTo: z
-      .string()
-      .refine((val) => isValidPhoneNumber(val) || val.includes("@"))
-      .optional(),
-    numberRequired: z.boolean().optional(),
-    senderId: z
-      .string()
-      .refine((val) => onlyLettersNumbersSpaces(val))
-      .nullable(),
-    senderName: z.string().nullable(),
-  });
-
   const form = useForm<AddActionFormValues>({
     mode: "onSubmit",
     defaultValues: {
-      action: WorkflowActions.EMAIL_HOST,
+      action: workflowActionsEnum.EMAIL_HOST,
       senderId: SENDER_ID,
       senderName: SENDER_NAME,
     },
@@ -88,15 +88,15 @@ export const AddActionDialog = (props: IAddActionDialog) => {
   const handleSelectAction = (newValue: ISelectActionOption | null) => {
     if (newValue) {
       form.setValue("action", newValue.value);
-      if (newValue.value === WorkflowActions.SMS_NUMBER) {
+      if (newValue.value === workflowActionsEnum.SMS_NUMBER) {
         setIsPhoneNumberNeeded(true);
         setIsSenderIdNeeded(true);
         setIsEmailAddressNeeded(false);
-      } else if (newValue.value === WorkflowActions.EMAIL_ADDRESS) {
+      } else if (newValue.value === workflowActionsEnum.EMAIL_ADDRESS) {
         setIsEmailAddressNeeded(true);
         setIsSenderIdNeeded(false);
         setIsPhoneNumberNeeded(false);
-      } else if (newValue.value === WorkflowActions.SMS_ATTENDEE) {
+      } else if (newValue.value === workflowActionsEnum.SMS_ATTENDEE) {
         setIsSenderIdNeeded(true);
         setIsEmailAddressNeeded(false);
         setIsPhoneNumberNeeded(false);
@@ -147,8 +147,10 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                       <Select
                         isSearchable={false}
                         className="text-sm"
+                        // @ts-expect-error WIP
                         defaultValue={actionOptions[0]}
                         onChange={handleSelectAction}
+                        // @ts-expect-error WIP
                         options={actionOptions}
                         isOptionDisabled={(option: {
                           label: string;
@@ -213,7 +215,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                   <Input type="text" placeholder={SENDER_NAME} {...form.register(`senderName`)} />
                 </div>
               )}
-              {form.getValues("action") === WorkflowActions.SMS_ATTENDEE && (
+              {form.getValues("action") === workflowActionsEnum.SMS_ATTENDEE && (
                 <div className="mt-5">
                   <Controller
                     name="numberRequired"

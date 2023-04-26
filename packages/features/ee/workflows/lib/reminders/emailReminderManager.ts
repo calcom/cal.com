@@ -1,6 +1,4 @@
-import type { TimeUnit } from "@prisma/client";
-import { WorkflowTemplates } from "@prisma/client";
-import { WorkflowTriggerEvents, WorkflowActions, WorkflowMethods } from "@prisma/client";
+import type { WorkflowTriggerEvents, WorkflowTemplates, TimeUnit, WorkflowActions } from "@prisma/client";
 import client from "@sendgrid/client";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
 import sgMail from "@sendgrid/mail";
@@ -8,6 +6,12 @@ import sgMail from "@sendgrid/mail";
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import {
+  WorkflowTemplates as workflowTemplatesEnum,
+  WorkflowTriggerEvents as workflowTriggerEventsEnum,
+  WorkflowActions as workflowActionsEnum,
+  WorkflowMethods,
+} from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
@@ -42,7 +46,7 @@ export const scheduleEmailReminder = async (
   sender: string,
   hideBranding?: boolean
 ) => {
-  if (action === WorkflowActions.EMAIL_ADDRESS) return;
+  if (action === workflowActionsEnum.EMAIL_ADDRESS) return;
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
@@ -50,9 +54,9 @@ export const scheduleEmailReminder = async (
 
   let scheduledDate = null;
 
-  if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
+  if (triggerEvent === workflowTriggerEventsEnum.BEFORE_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(startTime).subtract(timeSpan.time, timeUnit) : null;
-  } else if (triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) {
+  } else if (triggerEvent === workflowTriggerEventsEnum.AFTER_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(endTime).add(timeSpan.time, timeUnit) : null;
   }
 
@@ -66,12 +70,12 @@ export const scheduleEmailReminder = async (
   let timeZone = "";
 
   switch (action) {
-    case WorkflowActions.EMAIL_HOST:
+    case workflowActionsEnum.EMAIL_HOST:
       name = evt.organizer.name;
       attendeeName = evt.attendees[0].name;
       timeZone = evt.organizer.timeZone;
       break;
-    case WorkflowActions.EMAIL_ATTENDEE:
+    case workflowActionsEnum.EMAIL_ATTENDEE:
       name = evt.attendees[0].name;
       attendeeName = evt.organizer.name;
       timeZone = evt.attendees[0].timeZone;
@@ -100,14 +104,14 @@ export const scheduleEmailReminder = async (
     };
 
     const locale =
-      action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
+      action === workflowActionsEnum.EMAIL_ATTENDEE || action === workflowActionsEnum.SMS_ATTENDEE
         ? evt.attendees[0].language?.locale
         : evt.organizer.language.locale;
 
     const emailSubjectTemplate = customTemplate(emailSubject, variables, locale);
     emailContent.emailSubject = emailSubjectTemplate.text;
     emailContent.emailBody = customTemplate(emailBody, variables, locale, hideBranding).html;
-  } else if (template === WorkflowTemplates.REMINDER) {
+  } else if (template === workflowTemplatesEnum.REMINDER) {
     emailContent = emailReminderTemplate(
       false,
       action,
@@ -129,9 +133,9 @@ export const scheduleEmailReminder = async (
   });
 
   if (
-    triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
-    triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ||
-    triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
+    triggerEvent === workflowTriggerEventsEnum.NEW_EVENT ||
+    triggerEvent === workflowTriggerEventsEnum.EVENT_CANCELLED ||
+    triggerEvent === workflowTriggerEventsEnum.RESCHEDULE_EVENT
   ) {
     try {
       await sgMail.send({
@@ -149,8 +153,8 @@ export const scheduleEmailReminder = async (
       console.log("Error sending Email");
     }
   } else if (
-    (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT ||
-      triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
+    (triggerEvent === workflowTriggerEventsEnum.BEFORE_EVENT ||
+      triggerEvent === workflowTriggerEventsEnum.AFTER_EVENT) &&
     scheduledDate
   ) {
     // Sendgrid to schedule emails

@@ -2,6 +2,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { PeriodType, SchedulingType } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { Trans } from "next-i18next";
 import { useEffect, useState } from "react";
@@ -18,7 +19,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import type { Prisma } from "@calcom/prisma/client";
 import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";

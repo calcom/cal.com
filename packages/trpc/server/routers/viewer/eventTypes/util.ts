@@ -1,6 +1,7 @@
-import { MembershipRole, PeriodType } from "@prisma/client";
+import { PeriodType } from "@prisma/client";
 import { z } from "zod";
 
+import { MembershipRole, PeriodType as periodTypeEnum } from "@calcom/prisma/enums";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -79,7 +80,7 @@ export function handlePeriodType(periodType: string | undefined): PeriodType | u
   if (typeof periodType !== "string") return undefined;
   const passedPeriodType = periodType.toUpperCase();
   if (!isPeriodType(passedPeriodType)) return undefined;
-  return PeriodType[passedPeriodType];
+  return periodTypeEnum[passedPeriodType];
 }
 
 export function handleCustomInputs(customInputs: CustomInputSchema[], eventTypeId: number) {

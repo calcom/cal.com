@@ -1,10 +1,10 @@
+import type { DestinationCalendar } from "@prisma/client";
 import classNames from "classnames";
 import { useEffect, useState } from "react";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { DestinationCalendar } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Select } from "@calcom/ui";
 

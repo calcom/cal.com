@@ -1,7 +1,8 @@
-import { MembershipRole } from "@prisma/client";
+import type { MembershipRole } from "@prisma/client";
 import classNames from "classnames";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole as membershipRoleEnum } from "@calcom/prisma/enums";
 
 type PillColor = "blue" | "green" | "red" | "orange";
 
@@ -27,9 +28,9 @@ export default function TeamPill(props: Props) {
 export function TeamRole(props: { role: MembershipRole }) {
   const { t } = useLocale();
   const keys: Record<MembershipRole, PillColor | undefined> = {
-    [MembershipRole.OWNER]: "blue",
-    [MembershipRole.ADMIN]: "red",
-    [MembershipRole.MEMBER]: undefined,
+    [membershipRoleEnum.OWNER]: "blue",
+    [membershipRoleEnum.ADMIN]: "red",
+    [membershipRoleEnum.MEMBER]: undefined,
   };
   return <TeamPill text={t(props.role.toLowerCase())} color={keys[props.role]} />;
 }

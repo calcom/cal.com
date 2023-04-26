@@ -1,10 +1,10 @@
-import type { PrismaClient, Prisma } from "@prisma/client";
-import { SchedulingType } from "@prisma/client";
+import type { PrismaClient, Prisma, SchedulingType } from "@prisma/client";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import { sendSlugReplacementEmail } from "@calcom/emails/email-manager";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { SchedulingType as schedulingTypeEnum } from "@calcom/prisma/enums";
 import { _EventTypeModel } from "@calcom/prisma/zod";
 import { allManagedEventTypeProps, unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
 
@@ -104,7 +104,7 @@ export default async function handleChildrenEventTypes({
   prisma,
 }: handleChildrenEventTypesProps) {
   // Check we are dealing with a managed event type
-  if (updatedEventType?.schedulingType !== SchedulingType.MANAGED)
+  if (updatedEventType?.schedulingType !== schedulingTypeEnum.MANAGED)
     return {
       message: "No managed event type",
     };

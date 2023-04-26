@@ -1,4 +1,4 @@
-import { BookingStatus } from "@calcom/prisma/client";
+import type { BookingStatus } from "@prisma/client";
 
 export interface CalendarEvent {
   id: number;
