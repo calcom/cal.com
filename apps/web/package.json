@@ -127,6 +127,7 @@
     "turndown": "^7.1.1",
     "uuid": "^8.3.2",
     "web3": "^1.7.5",
+    "webpack-sources": "^3.2.3",
     "zod": "^3.20.2"
   },
   "devDependencies": {

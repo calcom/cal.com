@@ -13,12 +13,12 @@ const deletePayment = async (
     } | null;
   }
 ): Promise<boolean> => {
-  const paymentApp = await appStore[paymentAppCredentials?.app?.dirName as keyof typeof appStore];
+  const paymentApp = await appStore[paymentAppCredentials?.app?.dirName as keyof typeof appStore]();
   if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return false;
   }
-  const PaymentService = paymentApp.lib.PaymentService;
+  const PaymentService = paymentApp.lib.PaymentService as any;
   const paymentInstance = new PaymentService(paymentAppCredentials);
   const deleted = await paymentInstance.deletePayment(paymentId);
   return deleted;

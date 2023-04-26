@@ -17,12 +17,17 @@ function setHeader(ctx: NextPageContext, name: string, value: string) {
 class MyDocument extends Document<Props> {
   static async getInitialProps(ctx: DocumentContext) {
     const { nonce } = csp(ctx.req || null, ctx.res || null);
-    if (!process.env.CSP_POLICY) {
-      setHeader(ctx, "x-csp", "not-opted-in");
-    } else if (!ctx.res?.getHeader("x-csp")) {
-      // If x-csp not set by gSSP, then it's initialPropsOnly
-      setHeader(ctx, "x-csp", "initialPropsOnly");
+    try {
+      if (!process.env.CSP_POLICY) {
+        setHeader(ctx, "x-csp", "not-opted-in");
+      } else if (!ctx.res?.getHeader("x-csp")) {
+        // If x-csp not set by gSSP, then it's initialPropsOnly
+        setHeader(ctx, "x-csp", "initialPropsOnly");
+      }
+    } catch (e) {
+      console.log((e as Error).message);
     }
+
     const asPath = ctx.asPath || "";
     // Use a dummy URL as default so that URL parsing works for relative URLs as well. We care about searchParams and pathname only
     const parsedUrl = new URL(asPath, "https://dummyurl");

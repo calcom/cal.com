@@ -273,13 +273,13 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           }
 
           // Posible to refactor TODO:
-          const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore];
+          const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore]();
           if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
             console.warn(`payment App service of type ${paymentApp} is not implemented`);
             return null;
           }
 
-          const PaymentService = paymentApp.lib.PaymentService;
+          const PaymentService = paymentApp.lib.PaymentService as any;
           const paymentInstance = new PaymentService(paymentAppCredential);
           const paymentData = await paymentInstance.refund(successPayment.id);
           if (!paymentData.refunded) {
