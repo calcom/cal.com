@@ -23,6 +23,10 @@ for module in "$@"; do
     git submodule add --force $project "apps/$module"
     # Set the default branch to main
     git config -f .gitmodules --add "submodule.apps/$module.branch" main
+
+    # Update to the latest from main in that submodule
+    cd apps/$module && git pull origin main && cd ../..
+
     # Adding the subdmoule ignores the `.gitignore` so a reset is needed
     git reset
   else
