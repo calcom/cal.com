@@ -14,12 +14,8 @@ export const metadata = {
   category: "calendar",
   logo: "/api/app-store/applecalendar/icon.svg",
   publisher: "Cal.com",
-  rating: 5,
-  reviews: 69,
   slug: "apple-calendar",
-  trending: false,
   url: "https://cal.com/",
-  verified: true,
   email: "help@cal.com",
   dirName: "applecalendar",
 } as AppMeta;

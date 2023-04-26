@@ -465,7 +465,6 @@
   "friday": "Cuma",
   "saturday": "Cumartesi",
   "sunday": "Pazar",
-  "all_booked_today": "Bugün tüm zaman aralıkları rezerve edildi.",
   "slots_load_fail": "Kullanılabilir zaman aralıkları yüklenemedi.",
   "additional_guests": "Misafir ekle",
   "your_name": "Adınız",

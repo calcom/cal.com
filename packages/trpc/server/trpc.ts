@@ -92,15 +92,20 @@ async function getUserFromSession({ session }: { session: Maybe<Session> }) {
   };
 }
 
+export type TrpcSessionUser = Awaited<ReturnType<typeof getUserFromSession>>;
+
 const t = initTRPC.context<typeof createContextInner>().create({
   transformer: superjson,
 });
 
 const perfMiddleware = t.middleware(async ({ path, type, next }) => {
   performance.mark("Start");
+  const start = performance.now();
   const result = await next();
+  const end = performance.now();
   performance.mark("End");
   performance.measure(`[${result.ok ? "OK" : "ERROR"}][$1] ${type} '${path}'`, "Start", "End");
+  console.log(`[${result.ok ? "OK" : "ERROR"}][${end - start}ms] ${type} '${path}'`);
   return result;
 });
 

@@ -465,7 +465,6 @@
   "friday": "Petak",
   "saturday": "Subota",
   "sunday": "Nedelja",
-  "all_booked_today": "Svi termini rezervisani za danas.",
   "slots_load_fail": "Problem pri učitavanju dostupnih termina.",
   "additional_guests": "+ Dodatni Gosti",
   "your_name": "Vaše ime",
