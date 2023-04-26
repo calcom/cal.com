@@ -13,10 +13,56 @@ import type { inferRouterInputs, inferRouterOutputs, Maybe } from "../server";
 import type { AppRouter } from "../server/routers/_app";
 
 /**
- * We deploy our tRPC router on multiple lambdas to keep bundle size as small as possible
+ * We deploy our tRPC router on multiple lambdas to keep number of imports as small as possible
+ * TODO: Make this dynamic based on folders in trpc server?
  */
-const ENDPOINTS = ["slots", "viewer"] as const;
+const ENDPOINTS = [
+  "apiKeys",
+  "appRoutingForms",
+  "apps",
+  "auth",
+  "availability",
+  "bookings",
+  "deploymentSetup",
+  "eth",
+  "eventTypes",
+  "features",
+  "insights",
+  "payments",
+  "public",
+  "saml",
+  "slots",
+  "teams",
+  "users",
+  "viewer",
+  "webhook",
+  "workflows",
+] as const;
 export type Endpoint = (typeof ENDPOINTS)[number];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const resolveEndpoint = (links: any) => {
+  // TODO: Update our trpc routes so they are more clear.
+  // This function parses paths like the following and maps them
+  // to the correct API endpoints.
+  // - viewer.me - 2 segment paths like this are for logged in requests
+  // - viewer.public.i18n - 3 segments paths can be public or authed
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (ctx: any) => {
+    const parts = ctx.op.path.split(".");
+    let endpoint;
+    let path = '';
+    if (parts.length == 2) {
+      endpoint = parts[0] as keyof typeof links;
+      path = parts[1];
+    } else {
+      endpoint = parts[1] as keyof typeof links;
+      path = parts.splice(2, parts.length - 2).join('.');
+    }
+
+    return links[endpoint]({ ...ctx, op: { ...ctx.op, path } });
+  };
+};
 
 /**
  * A set of strongly-typed React hooks from your `AppRouter` type signature with `createTRPCReact`.
@@ -53,24 +99,14 @@ export const trpc = createTRPCNext<AppRouter, NextPageContext, "ExperimentalSusp
             const links = Object.fromEntries(
               ENDPOINTS.map((endpoint) => [endpoint, httpLink({ url: url + "/" + endpoint })(runtime)])
             );
-            return (ctx) => {
-              const parts = ctx.op.path.split(".");
-              const endpoint = parts.shift() as keyof typeof links;
-              const path = parts.join(".");
-              return links[endpoint]({ ...ctx, op: { ...ctx.op, path } });
-            };
+            return resolveEndpoint(links);
           },
           // when condition is false, use batch request
           false: (runtime) => {
             const links = Object.fromEntries(
               ENDPOINTS.map((endpoint) => [endpoint, httpBatchLink({ url: url + "/" + endpoint })(runtime)])
             );
-            return (ctx) => {
-              const parts = ctx.op.path.split(".");
-              const endpoint = parts.shift() as keyof typeof links;
-              const path = parts.join(".");
-              return links[endpoint]({ ...ctx, op: { ...ctx.op, path } });
-            };
+            return resolveEndpoint(links);
           },
         }),
       ],
