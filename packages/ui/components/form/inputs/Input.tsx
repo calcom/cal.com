@@ -347,11 +347,6 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
           event.preventDefault();
           event.stopPropagation();
 
-          if (form.formState?.errors?.apiError) {
-            // @ts-expect-error FIXME Fix these typings
-            form.clearErrors("apiError");
-          }
-
           form
             .handleSubmit(handleSubmit)(event)
             .catch((err) => {
