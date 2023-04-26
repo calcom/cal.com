@@ -33,7 +33,7 @@ export type EventTypeAppCardComponentProps = {
     "id" | "title" | "description" | "teamId" | "length" | "recurringEvent" | "seatsPerTimeSlot" | "parentId"
   > & {
     URL: string;
-    team?: Pick<z.infer<typeof _TeamModel>, "id" | "slug"> & { members: z.infer<typeof _TeamMemberModel>[] };
+    team?: RouterOutputs["viewer"]["eventTypes"]["get"]["team"];
   };
   app: RouterOutputs["viewer"]["apps"][number];
   disabled?: boolean;

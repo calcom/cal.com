@@ -21,7 +21,6 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   disabled,
   LockedIcon,
 }) {
-  console.log("🚀 ~ file: EventTypeAppCardInterface.tsx:19 ~ EventTypeAppCard ~ eventType:", eventType);
   const { asPath } = useRouter();
   const session = useSession();
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
@@ -34,7 +33,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
   const seatsEnabled = !!eventType.seatsPerTimeSlot;
   const teamOwner = eventType.team?.members.find((member) => member.role === "OWNER");
-  const teamOwnerEditing = eventType?.team && teamOwner.user.id === session.data?.user?.id;
+  const teamOwnerEditing = eventType?.team && teamOwner?.user.id === session.data?.user?.id;
   const shouldDisableFields = eventType.team ? !teamOwnerEditing : disabled;
 
   const getCurrencySymbol = (locale: string, currency: string) =>
