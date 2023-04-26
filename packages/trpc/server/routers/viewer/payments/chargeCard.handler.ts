@@ -79,9 +79,38 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     },
   };
 
+  let paymentCredentialUserId = ctx.user.id;
+
+  const eventType = booking.eventType;
+  const isTeamEvent = eventType?.schedulingType || eventType?.parentId;
+
+  if (isTeamEvent) {
+    const teamMembers = await prisma.team.findFirst({
+      where: {
+        eventTypes: {
+          some: {
+            id: eventType?.parentId || eventType.id,
+          },
+        },
+      },
+      select: {
+        members: true,
+      },
+    });
+    const teamOwner = teamMembers?.members.find((member) => member.role === "OWNER");
+
+    if (teamOwner) {
+      paymentCredentialUserId = teamOwner.userId;
+    } else {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Missing team owner user id for payment credential",
+      });
+    }
+  }
   const paymentCredential = await prisma.credential.findFirst({
     where: {
-      userId: ctx.user.id,
+      userId: paymentCredentialUserId,
       appId: booking.payment[0].appId,
     },
     include: {

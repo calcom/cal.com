@@ -75,8 +75,7 @@ function getNavigation(props: {
   installedAppsNumber: number;
   availability: AvailabilityOption | undefined;
 }) {
-  const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber, availability } =
-    props;
+  const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber } = props;
   const duration =
     eventType.metadata?.multipleDuration?.map((duration) => ` ${duration}`) || eventType.length;
 
