@@ -1,4 +1,5 @@
 import { authedAdminProcedure, authedProcedure, router } from "../../../trpc";
+import { ZGetEventTypeAppsInputSchema } from "./getEventTypeApps.schema";
 import { ZListLocalInputSchema } from "./listLocal.schema";
 import { ZQueryForDependenciesInputSchema } from "./queryForDependencies.schema";
 import { ZSaveKeysInputSchema } from "./saveKeys.schema";
@@ -12,6 +13,7 @@ type AppsRouterHandlerCache = {
   checkForGCal?: typeof import("./checkForGCal.handler").checkForGCalHandler;
   updateAppCredentials?: typeof import("./updateAppCredentials.handler").updateAppCredentialsHandler;
   queryForDependencies?: typeof import("./queryForDependencies.handler").queryForDependenciesHandler;
+  getEventTypeApps?: typeof import("./getEventTypeApps.handler").getEventTypeAppsHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
@@ -123,4 +125,22 @@ export const appsRouter = router({
         input,
       });
     }),
+
+  getEventTypeApps: authedProcedure.input(ZGetEventTypeAppsInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getEventTypeApps) {
+      UNSTABLE_HANDLER_CACHE.getEventTypeApps = await import("./getEventTypeApps.handler").then(
+        (mod) => mod.getEventTypeAppsHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getEventTypeApps) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getEventTypeApps({
+      ctx,
+      input,
+    });
+  }),
 });
