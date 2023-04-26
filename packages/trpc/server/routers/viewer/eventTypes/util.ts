@@ -5,7 +5,7 @@ import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import { authedProcedure } from "../../../trpc";
+import authedProcedure from "../../../procedures/authedProcedure";
 import type { EventTypeUpdateInput } from "./types";
 
 export const eventOwnerProcedure = authedProcedure

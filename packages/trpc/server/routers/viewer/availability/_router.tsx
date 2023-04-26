@@ -1,4 +1,5 @@
-import { authedProcedure, router } from "../../../trpc";
+import authedProcedure from "../../../procedures/authedProcedure";
+import { router } from "../../../trpc";
 import { scheduleRouter } from "./schedule/_router";
 import { ZUserInputSchema } from "./user.schema";
 

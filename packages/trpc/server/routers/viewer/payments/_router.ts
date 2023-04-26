@@ -1,4 +1,5 @@
-import { router, authedProcedure } from "../../../trpc";
+import authedProcedure from "../../../procedures/authedProcedure";
+import { router } from "../../../trpc";
 import { ZChargerCardInputSchema } from "./chargeCard.schema";
 
 interface PaymentsRouterHandlerCache {

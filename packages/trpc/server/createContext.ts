@@ -72,3 +72,8 @@ export const createContext = async ({ req, res }: CreateContextOptions) => {
 };
 
 export type TRPCContext = Awaited<ReturnType<typeof createContext>>;
+export type TRPCContextInner = Awaited<ReturnType<typeof createContextInner>>;
+export type WithLocale<T extends TRPCContext = any> = T &
+  Required<Pick<CreateInnerContextOptions, "i18n" | "locale">>;
+export type WithSession<T extends TRPCContext = any> = T &
+  Required<Pick<CreateInnerContextOptions, "session">>;

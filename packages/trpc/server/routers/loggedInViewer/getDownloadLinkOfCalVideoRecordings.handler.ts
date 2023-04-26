@@ -4,11 +4,11 @@ import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 
 import { TRPCError } from "@trpc/server";
 
-import type { CreateInnerContextOptions } from "../../createContext";
+import type { WithSession } from "../../createContext";
 import type { TGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLinkOfCalVideoRecordings.schema";
 
 type GetDownloadLinkOfCalVideoRecordingsHandlerOptions = {
-  ctx: CreateInnerContextOptions;
+  ctx: WithSession;
   input: TGetDownloadLinkOfCalVideoRecordingsInputSchema;
 };
 

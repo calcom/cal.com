@@ -1,16 +1,15 @@
 import type { Session } from "next-auth";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
 
 import { TRPCError } from "@trpc/server";
 import type { Maybe } from "@trpc/server";
 
-import type { ContextInner } from "../createContext";
+import type { TRPCContextInner } from "../createContext";
 import { middleware } from "../trpc";
 
-export async function getUserFromSession(ctx: ContextInner, session: Maybe<Session>) {
+export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<Session>) {
   const { prisma } = ctx;
   if (!session?.user?.id) {
     return null;
@@ -97,7 +96,8 @@ export async function getUserFromSession(ctx: ContextInner, session: Maybe<Sessi
 
 export type UserFromSession = Awaited<ReturnType<typeof getUserFromSession>>;
 
-const getUserSession = async (ctx: ContextInner) => {
+const getUserSession = async (ctx: TRPCContextInner) => {
+  const { getServerSession } = await import("@calcom/features/auth/lib/getServerSession");
   const { req, res } = ctx;
 
   const session = req ? await getServerSession({ req, res }) : null;

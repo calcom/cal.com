@@ -1,8 +1,7 @@
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-
 import sessionMiddleware from "./sessionMiddleware";
 
 const localeMiddleware = sessionMiddleware.unstable_pipe(async ({ ctx, next }) => {
+  const { serverSideTranslations } = await import("next-i18next/serverSideTranslations");
   const { user } = ctx;
 
   const i18n = await serverSideTranslations(

@@ -1,19 +1,19 @@
-import type { Session } from "next-auth";
+import type { PrismaClient } from "@prisma/client";
 
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
-import { prisma } from "@calcom/prisma";
 
 import type { TSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 
 type SamlTenantProductOptions = {
   ctx: {
-    session: Session | null;
+    prisma: PrismaClient;
   };
   input: TSamlTenantProductInputSchema;
 };
 
-export const samlTenantProductHandler = async ({ ctx: _ctx, input }: SamlTenantProductOptions) => {
+export const samlTenantProductHandler = ({ ctx, input }: SamlTenantProductOptions) => {
+  const { prisma } = ctx;
   const { email } = input;
 
-  return await samlTenantProduct(prisma, email);
+  return samlTenantProduct(prisma, email);
 };
