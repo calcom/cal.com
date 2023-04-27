@@ -16,7 +16,8 @@ import type {
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import dayjs from "@calcom/dayjs";
-import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
+import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
+import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
 import { slugify } from "@calcom/lib/slugify";
 
 // Let's not import 118kb just to get an enum
@@ -61,8 +62,8 @@ export const EventTypeMetaDataSchema = z
   .nullable();
 
 export const eventTypeBookingFields = formBuilderFieldsSchema;
-export const BookingFieldType = eventTypeBookingFields.element.shape.type.Enum;
-export type BookingFieldType = typeof BookingFieldType extends z.Values<infer T> ? T[number] : never;
+export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;
+export type BookingFieldType = FormBuilderFieldType;
 
 // Validation of user added bookingFields' responses happen using `getBookingResponsesSchema` which requires `eventType`.
 // So it is a dynamic validation and thus entire validation can't exist here

@@ -2,8 +2,8 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import z from "zod";
 
 // Instead of using the `bookingResponses` schema directly, the field itself should have a way to get it's schema
-import type { ALL_VIEWS } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
-import { FieldTypeSchema } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
+import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
+import { fieldTypesSchemaMap, dbReadResponseSchema } from "@calcom/features/form-builder/schema";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses } from "@calcom/prisma/zod-utils";
 
@@ -11,19 +11,8 @@ type EventType = Parameters<typeof preprocess>[0]["eventType"];
 // eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
 
-export const bookingResponse = z.union([
-  z.string(),
-  z.boolean(),
-  z.string().array(),
-  z.object({
-    optionValue: z.string(),
-    value: z.string(),
-  }),
-  // For variantsConfig case
-  z.record(z.string()),
-]);
-
-export const bookingResponsesDbSchema = z.record(bookingResponse);
+export const bookingResponse = dbReadResponseSchema;
+export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
 
 const catchAllSchema = bookingResponsesDbSchema;
 
@@ -84,10 +73,14 @@ function preprocess<T extends z.ZodType>({
           // If the field is not applicable in the current view, then we don't need to do any processing
           return;
         }
-        // TODO: Move all the schemas along with their respective types to FieldTypeSchema, that would make schemas shared across Routing Forms builder an Booking Question Formm builder
-        if (FieldTypeSchema[field.type as keyof typeof FieldTypeSchema]) {
-          newResponses[field.name] =
-            FieldTypeSchema[field.type as keyof typeof FieldTypeSchema].preprocess(value);
+        const fieldTypeSchema = fieldTypesSchemaMap[field.type as keyof typeof fieldTypesSchemaMap];
+        // TODO: Move all the schemas along with their respective types to FieldTypeSchema, that would make schemas shared across Routing Forms builder and Booking Question Formm builder
+        if (fieldTypeSchema) {
+          newResponses[field.name] = fieldTypeSchema.preprocess({
+            response: value,
+            isPartialSchema,
+            field,
+          });
           return newResponses;
         }
         if (field.type === "boolean") {
@@ -157,12 +150,14 @@ function preprocess<T extends z.ZodType>({
           return;
         }
 
-        if (FieldTypeSchema[bookingField.type as keyof typeof FieldTypeSchema]) {
-          FieldTypeSchema[bookingField.type as keyof typeof FieldTypeSchema].superRefine({
+        const fieldTypeSchema = fieldTypesSchemaMap[bookingField.type as keyof typeof fieldTypesSchemaMap];
+
+        if (fieldTypeSchema) {
+          fieldTypeSchema.superRefine({
             response: value,
             ctx,
             m,
-            bookingField,
+            field: bookingField,
             isPartialSchema,
           });
           return;
@@ -236,7 +231,6 @@ function preprocess<T extends z.ZodType>({
           return;
         }
 
-        // TODO: Probably, use propsType to validate the type of the value instead of using the field.type.
         if (["address", "text", "select", "number", "radio", "textarea"].includes(bookingField.type)) {
           const schema = stringSchema;
           if (!schema.safeParse(value).success) {

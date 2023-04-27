@@ -1,10 +1,9 @@
 import type { EventTypeCustomInput, EventType, Prisma, Workflow } from "@prisma/client";
 import { z } from "zod";
 
-import { FieldTypeConfigMap } from "@calcom/features/form-builder/FormBuilderFieldsTypeConfig";
 import slugify from "@calcom/lib/slugify";
 import {
-  BookingFieldType,
+  BookingFieldTypeEnum,
   customInputSchema,
   eventTypeBookingFields,
   EventTypeMetaDataSchema,
@@ -134,12 +133,12 @@ export const ensureBookingInputsHaveSystemFields = ({
   // If bookingFields is set already, the migration is done.
   const handleMigration = !bookingFields.length;
   const CustomInputTypeToFieldType = {
-    [EventTypeCustomInputType.TEXT]: BookingFieldType.text,
-    [EventTypeCustomInputType.TEXTLONG]: BookingFieldType.textarea,
-    [EventTypeCustomInputType.NUMBER]: BookingFieldType.number,
-    [EventTypeCustomInputType.BOOL]: BookingFieldType.boolean,
-    [EventTypeCustomInputType.RADIO]: BookingFieldType.radio,
-    [EventTypeCustomInputType.PHONE]: BookingFieldType.phone,
+    [EventTypeCustomInputType.TEXT]: BookingFieldTypeEnum.text,
+    [EventTypeCustomInputType.TEXTLONG]: BookingFieldTypeEnum.textarea,
+    [EventTypeCustomInputType.NUMBER]: BookingFieldTypeEnum.number,
+    [EventTypeCustomInputType.BOOL]: BookingFieldTypeEnum.boolean,
+    [EventTypeCustomInputType.RADIO]: BookingFieldTypeEnum.radio,
+    [EventTypeCustomInputType.PHONE]: BookingFieldTypeEnum.phone,
   };
 
   const smsNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
@@ -164,8 +163,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       // This is the `name` of the main field
       name: "name",
       editable: "system",
-      // Label is currently required by Email Sending logic
-      // Need to write a toText() fn to convert a field to text that can output multiple label and value pairs
+      // This Label is used in Email only as of now.
       defaultLabel: "your_name",
       required: true,
       variantsConfig: {
@@ -176,14 +174,13 @@ export const ensureBookingInputsHaveSystemFields = ({
               {
                 // This name won't be configurable by user. User can always configure the main field name
                 name: "firstName",
+                // This type won't be configurable by user right now.
                 type: "text",
-                label: "First Name",
                 required: true,
               },
               {
                 name: "lastName",
                 type: "text",
-                label: "Last Name",
                 required: false,
               },
             ],
@@ -193,7 +190,6 @@ export const ensureBookingInputsHaveSystemFields = ({
               {
                 name: "fullName",
                 type: "text",
-                label: "Your Name",
                 required: true,
               },
             ],
@@ -376,17 +372,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       };
     }
   }
-
-  bookingFields = bookingFields.concat(missingSystemAfterFields).map((field) => {
-    const fieldTypeConfig = FieldTypeConfigMap[field.type];
-    if (!fieldTypeConfig) {
-      return field;
-    }
-    return {
-      ...field,
-      fieldTypeConfig: fieldTypeConfig,
-    };
-  });
+  bookingFields = bookingFields.concat(missingSystemAfterFields);
 
   return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(bookingFields);
 };

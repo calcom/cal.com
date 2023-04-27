@@ -1798,5 +1798,8 @@
   "charge_attendee": "Charge attendee {{amount, currency}}",
   "payment_app_commission": "Require payment ({{paymentFeePercentage}}% + {{fee, currency}} commission per transaction)",
   "email_invite_team": "{{email}} has been invited",
-  "image_size_limit_exceed": "Uploaded image shouldn't exceed 5mb size limit"
+  "image_size_limit_exceed": "Uploaded image shouldn't exceed 5mb size limit",
+  "first_name": "First name",
+  "last_name": "Last name",
+  "first_last_name": "First name, Last name"
 }

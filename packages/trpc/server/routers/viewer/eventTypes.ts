@@ -115,11 +115,7 @@ const EventTypeUpdateInput = _EventTypeModel
   .partial()
   .extend({
     metadata: EventTypeMetaDataSchema.optional(),
-    bookingFields: eventTypeBookingFields.element
-      .omit({
-        fieldTypeConfig: true,
-      })
-      .array(),
+    bookingFields: eventTypeBookingFields.optional(),
   })
   .merge(
     _EventTypeModel

@@ -442,7 +442,7 @@ export default function Success(props: SuccessProps) {
                           )}
                           {bookingInfo?.attendees.map((attendee) => (
                             <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
-                              {attendee.name && <p>{attendee.name}</p>}
+                              {attendee.name && <p data-testid="attendee-name">{attendee.name}</p>}
                               <p data-testid={`attendee-${attendee.email}`}>{attendee.email}</p>
                             </div>
                           ))}

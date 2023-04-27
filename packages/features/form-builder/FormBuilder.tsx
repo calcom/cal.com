@@ -1,6 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 import type { z } from "zod";
@@ -27,7 +27,8 @@ import {
 import { ArrowDown, ArrowUp, X, Plus, Trash2, Info } from "@calcom/ui/components/icon";
 
 import { Components, isValidValueProp } from "./Components";
-import type { fieldsSchema } from "./FormBuilderFieldsSchema";
+import { fieldTypesConfigMap } from "./fieldTypes";
+import type { fieldsSchema } from "./schema";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -63,90 +64,7 @@ export const FormBuilder = function FormBuilder({
     options: Record<string, { label: string; value: string; inputPlaceholder?: string }[]>;
   };
 }) {
-  const FieldTypesMap: Record<
-    string,
-    {
-      value: RhfForm["fields"][number]["type"];
-      label: string;
-      needsOptions?: boolean;
-      systemOnly?: boolean;
-      isTextType?: boolean;
-    }
-  > = {
-    name: {
-      label: "Name",
-      value: "name",
-      isTextType: true,
-    },
-    email: {
-      label: "Email",
-      value: "email",
-      isTextType: true,
-    },
-    phone: {
-      label: "Phone",
-      value: "phone",
-      isTextType: true,
-    },
-    text: {
-      label: "Short Text",
-      value: "text",
-      isTextType: true,
-    },
-    number: {
-      label: "Number",
-      value: "number",
-      isTextType: true,
-    },
-    textarea: {
-      label: "Long Text",
-      value: "textarea",
-      isTextType: true,
-    },
-    select: {
-      label: "Select",
-      value: "select",
-      needsOptions: true,
-      isTextType: true,
-    },
-    multiselect: {
-      label: "MultiSelect",
-      value: "multiselect",
-      needsOptions: true,
-      isTextType: false,
-    },
-    multiemail: {
-      label: "Multiple Emails",
-      value: "multiemail",
-      isTextType: true,
-    },
-    radioInput: {
-      label: "Radio Input",
-      value: "radioInput",
-      isTextType: false,
-      systemOnly: true,
-      // This is false currently because we don't want to show the options for Location field right now. It is the only field with type radioInput.
-      // needsOptions: true,
-    },
-    checkbox: {
-      label: "Checkbox Group",
-      value: "checkbox",
-      needsOptions: true,
-      isTextType: false,
-    },
-    radio: {
-      label: "Radio Group",
-      value: "radio",
-      needsOptions: true,
-      isTextType: false,
-    },
-    boolean: {
-      label: "Checkbox",
-      value: "boolean",
-      isTextType: false,
-    },
-  };
-  const FieldTypes = Object.values(FieldTypesMap);
+  const fieldTypes = Object.values(fieldTypesConfigMap);
 
   // I would have liked to give Form Builder it's own Form but nested Forms aren't something that browsers support.
   // So, this would reuse the same Form as the parent form.
@@ -154,6 +72,17 @@ export const FormBuilder = function FormBuilder({
 
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>();
+  useEffect(() => {
+    const fieldVariantsConfig = fieldForm.getValues("variantsConfig");
+    const defaultVariantsConfig =
+      fieldTypesConfigMap[fieldForm.getValues("type") as keyof typeof fieldTypesConfigMap]?.variantsConfig?.defaultValue;
+
+    // For a user field with type `name` e.g. we need to use defaultVariantsConfig as it might not have `variantsConfig` set already.
+    if (!fieldVariantsConfig && defaultVariantsConfig) {
+      fieldForm.setValue("variantsConfig", defaultVariantsConfig);
+    }
+  }, [fieldForm]);
+
   const { fields, swap, remove, update, append } = useFieldArray({
     control: fieldsForm.control,
     // HACK: It allows any property name to be used for instead of `fields` property name
@@ -271,7 +200,7 @@ export const FormBuilder = function FormBuilder({
     remove(index);
   };
 
-  const fieldType = FieldTypesMap[fieldForm.watch("type") || "text"];
+  const fieldType = fieldTypesConfigMap[fieldForm.watch("type") || "text"];
   const isFieldEditMode = fieldDialog.fieldIndex !== -1;
   return (
     <div>
@@ -292,7 +221,7 @@ export const FormBuilder = function FormBuilder({
             if (field.hideWhenJustOneOption && numOptions <= 1) {
               return null;
             }
-            const fieldType = FieldTypesMap[field.type];
+            const fieldType = fieldTypesConfigMap[field.type];
             const isRequired = field.required;
             const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
             const isFieldEditableSystem = field.editable === "system";
@@ -456,7 +385,7 @@ export const FormBuilder = function FormBuilder({
                 });
               }}>
               <SelectField
-                defaultValue={FieldTypes[3]} // "text" as defaultValue
+                defaultValue={fieldTypesConfigMap.text}
                 id="test-field-type"
                 isDisabled={
                   fieldForm.getValues("editable") === "system" ||
@@ -469,16 +398,15 @@ export const FormBuilder = function FormBuilder({
                   }
                   fieldForm.setValue("type", value);
                 }}
-                value={FieldTypesMap[fieldForm.getValues("type")]}
-                options={FieldTypes.filter((f) => !f.systemOnly)}
+                value={fieldTypesConfigMap[fieldForm.getValues("type")]}
+                options={fieldTypes.filter((f) => !f.systemOnly)}
                 label={t("input_type")}
                 classNames={{
                   menuList: () => "min-h-[27.25rem]",
                 }}
               />
               {(() => {
-                const variantsConfig = fieldForm.getValues("variantsConfig");
-
+                const variantsConfig = fieldForm.watch("variantsConfig");
                 if (!variantsConfig) {
                   return (
                     <>
@@ -755,13 +683,14 @@ export const ComponentForField = ({
         name={field.name}
         variant={field.variant}
         value={value as { value: string; optionValue: string }}
-        setValue={setValue as (arg: typeof value) => void}
+        setValue={setValue as (arg: Record<string, string> | string) => void}
         variants={field.variantsConfig.variants}
       />
     );
   }
 
   assertUnreachable(componentConfig);
+  return null;
 };
 
 export const FormBuilderField = ({
@@ -775,6 +704,17 @@ export const FormBuilderField = ({
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
+  if (field.variantsConfig?.variants) {
+    Object.entries(field.variantsConfig.variants).forEach(([variantName, variant]) => {
+      variant.fields.forEach((variantField) => {
+        const variantsConfig = fieldTypesConfigMap[field.type]?.variantsConfig;
+        const defaultVariantFieldLabel =
+          variantsConfig?.variants?.[variantName]?.fieldsMap[variantField.name]?.defaultLabel;
+
+        variantField.label = variantField.label || t(defaultVariantFieldLabel || "");
+      });
+    });
+  }
   return (
     <div data-fob-field-name={field.name} className={classNames(className, field.hidden ? "hidden" : "")}>
       <Controller
@@ -829,7 +769,7 @@ export const FormBuilderField = ({
 
 function FieldLabel({ field }: { field: RhfFormField }) {
   const { t } = useLocale();
-  const fieldTypeConfig = field.fieldTypeConfig;
+  const fieldTypeConfig = fieldTypesConfigMap[field.type];
   const fieldTypeConfigVariantsConfig = fieldTypeConfig?.variantsConfig;
   const fieldTypeConfigVariants = fieldTypeConfigVariantsConfig?.variants;
   const variantsConfig = field.variantsConfig;
@@ -857,10 +797,10 @@ function VariantFields({ fieldForm }: { fieldForm: UseFormReturn<RhfFormField> }
   if (!variantsConfig) {
     throw new Error("VariantFields component needs variantsConfig");
   }
-  const fieldTypeConfigVariantsConfig = fieldForm.getValues("fieldTypeConfig")?.variantsConfig;
+  const fieldTypeConfigVariantsConfig = fieldTypesConfigMap[fieldForm.getValues("type")]?.variantsConfig;
 
   if (!fieldTypeConfigVariantsConfig) {
-    throw new Error("Field has `variantsConfig` but no `fieldTypeConfig`");
+    throw new Error("Coniguration Issue: FieldType doesn't have `variantsConfig`");
   }
 
   const variantToggleLabel = t(fieldTypeConfigVariantsConfig.toggleLabel || "");
@@ -887,6 +827,7 @@ function VariantFields({ fieldForm }: { fieldForm: UseFormReturn<RhfFormField> }
         <Switch
           checked={!isDefaultVariant}
           label={variantToggleLabel}
+          data-testid="variant-toggle"
           onCheckedChange={(checked) => {
             fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
           }}
@@ -930,7 +871,7 @@ function VariantFields({ fieldForm }: { fieldForm: UseFormReturn<RhfFormField> }
               )}
               <InputField
                 {...fieldForm.register(`${rhfVariantFieldPrefix}.label`)}
-                placeholder={t(appUiFieldConfig.defaultLabel || "")}
+                placeholder={t(appUiFieldConfig?.defaultLabel || "")}
                 containerClassName="mt-6"
                 label={t("label")}
               />
@@ -939,7 +880,7 @@ function VariantFields({ fieldForm }: { fieldForm: UseFormReturn<RhfFormField> }
                 key={f.name}
                 containerClassName="mt-6"
                 label={t("placeholder")}
-                placeholder={t(appUiFieldConfig.defaultPlaceholder || "")}
+                placeholder={t(appUiFieldConfig?.defaultPlaceholder || "")}
               />
 
               <Controller
@@ -949,7 +890,7 @@ function VariantFields({ fieldForm }: { fieldForm: UseFormReturn<RhfFormField> }
                   return (
                     <BooleanToggleGroupField
                       data-testid="field-required"
-                      disabled={!appUiFieldConfig.canChangeRequirability}
+                      disabled={!appUiFieldConfig?.canChangeRequirability}
                       value={value}
                       onValueChange={(val) => {
                         onChange(val);

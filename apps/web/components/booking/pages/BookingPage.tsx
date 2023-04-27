@@ -167,6 +167,7 @@ const BookingFields = ({
           }
         }
 
+        // TODO: Move this logic to FormBuilder itself
         const label = noLabel ? "" : field.label || t(field.defaultLabel || "");
         const placeholder = field.placeholder || t(field.defaultPlaceholder || "");
 
@@ -270,13 +271,20 @@ const BookingPage = ({
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
       const { uid } = responseData;
+      const name = bookingForm.getValues("responses.name");
+      let nameString = "";
+      if (typeof name === "string") {
+        nameString = name;
+      } else {
+        nameString = name.firstName + " " + name.lastName;
+      }
 
       if ("paymentUid" in responseData && !!responseData.paymentUid) {
         return await router.push(
           createPaymentLink({
             paymentUid: responseData.paymentUid,
             date,
-            name: bookingForm.getValues("responses.name"),
+            name: nameString,
             email: bookingForm.getValues("responses.email"),
             absolute: false,
           })
