@@ -34,10 +34,10 @@ export type BiginContact = {
 
 export default class BiginCalendarService implements Calendar {
   private readonly integrationName = "zoho-bigin";
-  private readonly auth: { getToken: () => Promise<string> };
+  private readonly auth: { getToken: () => Promise<BiginToken> };
   private log: typeof logger;
-  private eventsUrl = "https://www.zohoapis.com/bigin/v1/Events";
-  private contactsUrl = "https://www.zohoapis.com/bigin/v1/Contacts";
+  private eventsSlug = "/bigin/v1/Events";
+  private contactsSlug = "/bigin/v1/Contacts";
 
   constructor(credential: CredentialPayload) {
     this.auth = this.biginAuth(credential);
@@ -57,7 +57,7 @@ export default class BiginCalendarService implements Calendar {
     return {
       getToken: () =>
         isTokenValid(credentialKey)
-          ? Promise.resolve(credentialKey.access_token)
+          ? Promise.resolve(credentialKey)
           : this.refreshAccessToken(credentialId, credentialKey),
     };
   }
@@ -90,17 +90,15 @@ export default class BiginCalendarService implements Calendar {
     if (!tokenInfo.data.error) {
       // set expiry date as offset from current time.
       tokenInfo.data.expiryDate = Math.round(Date.now() + tokenInfo.data.expires_in);
+      tokenInfo.data.accountServer = credentialKey.accountServer;
+      tokenInfo.data.refresh_token = credentialKey.refresh_token;
 
       await prisma.credential.update({
         where: {
           id: credentialId,
         },
         data: {
-          key: {
-            ...(tokenInfo.data as BiginToken),
-            accountServer: credentialKey.accountServer,
-            refresh_token: credentialKey.refresh_token,
-          },
+          key: tokenInfo.data as BiginToken,
         },
       });
       this.log.debug("Fetched token", tokenInfo.data.access_token);
@@ -108,7 +106,7 @@ export default class BiginCalendarService implements Calendar {
       this.log.error(tokenInfo.data);
     }
 
-    return (tokenInfo.data.access_token as string) || "";
+    return tokenInfo.data as BiginToken;
   }
 
   /***
@@ -130,10 +128,10 @@ export default class BiginCalendarService implements Calendar {
 
     return axios({
       method: "post",
-      url: this.contactsUrl,
+      url: token.api_domain + this.contactsSlug,
       headers: {
         "content-type": "application/json",
-        authorization: `Zoho-oauthtoken ${token}`,
+        authorization: `Zoho-oauthtoken ${token.access_token}`,
       },
       data: JSON.stringify({ data: contacts }),
     });
@@ -149,9 +147,9 @@ export default class BiginCalendarService implements Calendar {
 
     return await axios({
       method: "get",
-      url: `${this.contactsUrl}/search?criteria=${searchCriteria}`,
+      url: `${token.api_domain}${this.contactsSlug}/search?criteria=${searchCriteria}`,
       headers: {
-        authorization: `Zoho-oauthtoken ${token}`,
+        authorization: `Zoho-oauthtoken ${token.access_token}`,
       },
     })
       .then((data) => data.data)
@@ -173,10 +171,10 @@ export default class BiginCalendarService implements Calendar {
 
     return axios({
       method: "post",
-      url: this.eventsUrl,
+      url: token.api_domain + this.eventsSlug,
       headers: {
         "content-type": "application/json",
-        authorization: `Zoho-oauthtoken ${token}`,
+        authorization: `Zoho-oauthtoken ${token.access_token}`,
       },
       data: JSON.stringify({ data: [biginEvent] }),
     })
@@ -235,7 +233,6 @@ export default class BiginCalendarService implements Calendar {
    */
   async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
     const token = await this.auth.getToken();
-
     const biginEvent = {
       id: uid,
       Event_Title: event.title,
@@ -246,10 +243,10 @@ export default class BiginCalendarService implements Calendar {
     };
 
     return axios
-      .put(this.eventsUrl, JSON.stringify({ data: [biginEvent] }), {
+      .put(token.api_domain + this.eventsSlug, JSON.stringify({ data: [biginEvent] }), {
         headers: {
           "content-type": "application/json",
-          authorization: `Zoho-oauthtoken ${token}`,
+          authorization: `Zoho-oauthtoken ${token.access_token}`,
         },
       })
       .then((data) => data.data)
@@ -261,10 +258,10 @@ export default class BiginCalendarService implements Calendar {
   async deleteEvent(uid: string): Promise<void> {
     const token = await this.auth.getToken();
     return axios
-      .delete(`${this.eventsUrl}?ids=${uid}`, {
+      .delete(`${token.api_domain}${this.eventsSlug}?ids=${uid}`, {
         headers: {
           "content-type": "application/json",
-          authorization: `Zoho-oauthtoken ${token}`,
+          authorization: `Zoho-oauthtoken ${token.access_token}`,
         },
       })
       .then((data) => data.data)
