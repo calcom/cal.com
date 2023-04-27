@@ -84,7 +84,7 @@ export const trpc = createTRPCNext<AppRouter, NextPageContext, "ExperimentalSusp
                 path = parts[1];
               } else {
                 endpoint = parts[1];
-                path = parts[parts.length - 1];
+                path = parts.splice(2, parts.length - 2).join('.');
               }
               return links[endpoint]({ ...ctx, op: { ...ctx.op, path } });
             };
@@ -103,7 +103,7 @@ export const trpc = createTRPCNext<AppRouter, NextPageContext, "ExperimentalSusp
                 path = parts[1];
               } else {
                 endpoint = parts[1];
-                path = parts[parts.length - 1];
+                path = parts.splice(2, parts.length - 2).join('.');
               }
               return links[endpoint]({ ...ctx, op: { ...ctx.op, path } });
             };
