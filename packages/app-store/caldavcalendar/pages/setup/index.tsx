@@ -33,7 +33,7 @@ export default function CalDavCalendarSetup() {
             />
           </div>
           <div className="flex w-10/12 flex-col">
-            <h1 className="text-default">{t("connect_caldav_server")}</h1>
+            <h1 className="text-default">{t("connect_caldav")}</h1>
             <div className="mt-1 text-sm">{t("credentials_stored_encrypted")}</div>
             <div className="my-2 mt-3">
               <Form
