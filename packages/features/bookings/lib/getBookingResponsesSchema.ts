@@ -1,7 +1,9 @@
 import { isValidPhoneNumber } from "libphonenumber-js";
 import z from "zod";
 
+// Instead of using the `bookingResponses` schema directly, the field itself should have a way to get it's schema
 import type { ALL_VIEWS } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
+import { FieldTypeSchema } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses } from "@calcom/prisma/zod-utils";
 
@@ -82,6 +84,12 @@ function preprocess<T extends z.ZodType>({
           // If the field is not applicable in the current view, then we don't need to do any processing
           return;
         }
+        // TODO: Move all the schemas along with their respective types to FieldTypeSchema, that would make schemas shared across Routing Forms builder an Booking Question Formm builder
+        if (FieldTypeSchema[field.type as keyof typeof FieldTypeSchema]) {
+          newResponses[field.name] =
+            FieldTypeSchema[field.type as keyof typeof FieldTypeSchema].preprocess(value);
+          return newResponses;
+        }
         if (field.type === "boolean") {
           // Turn a boolean in string to a real boolean
           newResponses[field.name] = value === "true" || value === true;
@@ -100,19 +108,6 @@ function preprocess<T extends z.ZodType>({
             parsedValue = JSON.parse(value);
           } catch (e) {}
           newResponses[field.name] = parsedValue;
-        } else if (field.type === "name") {
-          let newValue;
-          if (typeof value === "string") {
-            try {
-              newValue = JSON.parse(value);
-            } catch (e) {
-              // If the value is not a valid JSON, then we will just use the value as is as it can be the full name directly
-              newValue = value;
-            }
-          } else {
-            newValue = value;
-          }
-          newResponses[field.name] = newValue;
         } else {
           newResponses[field.name] = value;
         }
@@ -159,6 +154,17 @@ function preprocess<T extends z.ZodType>({
               message: m("email_validation_error"),
             });
           }
+          return;
+        }
+
+        if (FieldTypeSchema[bookingField.type as keyof typeof FieldTypeSchema]) {
+          FieldTypeSchema[bookingField.type as keyof typeof FieldTypeSchema].superRefine({
+            response: value,
+            ctx,
+            m,
+            bookingField,
+            isPartialSchema,
+          });
           return;
         }
 
@@ -236,50 +242,6 @@ function preprocess<T extends z.ZodType>({
           if (!schema.safeParse(value).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
           }
-          return;
-        }
-
-        if (bookingField.variantsConfig) {
-          // If name is sent as a string, then we use the parent field otherwise the variant would be available in response and according to that we validate the data
-          const variantInResponse =
-            bookingField.variant || bookingField.fieldTypeConfig?.variantsConfig?.defaultVariant;
-          if (!variantInResponse) {
-            throw new Error("`variant` must be there for booking field with `variantsConfig`");
-          }
-          const fields =
-            bookingField.variantsConfig.variants[
-              variantInResponse as keyof typeof bookingField.variantsConfig.variants
-            ].fields;
-
-          const variantSupportedFields = ["text"];
-
-          if (fields.length === 1) {
-            const field = fields[0];
-            if (variantSupportedFields.includes(field.type)) {
-              const schema = stringSchema;
-              if (!schema.safeParse(value).success) {
-                ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
-              }
-              return;
-            } else {
-              throw new Error(`Unsupported field.type with variants: ${field.type}`);
-            }
-          }
-          fields.forEach((subField) => {
-            const schema = stringSchema;
-            if (!variantSupportedFields.includes(subField.type)) {
-              throw new Error(`Unsupported field.type with variants: ${subField.type}`);
-            }
-            const valueIdentified = value as unknown as Record<string, string>;
-            if (subField.required) {
-              if (!schema.safeParse(valueIdentified[subField.name]).success) {
-                ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
-                return;
-              }
-              if (!isPartialSchema && !valueIdentified[subField.name])
-                ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
-            }
-          });
           return;
         }
 

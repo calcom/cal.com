@@ -26,6 +26,17 @@ import { UserPlus, X } from "@calcom/ui/components/icon";
 import { ComponentForField } from "./FormBuilder";
 import type { fieldsSchema } from "./FormBuilderFieldsSchema";
 
+export const isValidValueProp: Record<Component["propsType"], (val: unknown) => boolean> = {
+  boolean: (val) => typeof val === "boolean",
+  multiselect: (val) => val instanceof Array && val.every((v) => typeof v === "string"),
+  objectiveWithInput: (val) => (typeof val === "object" && val !== null ? "value" in val : false),
+  select: (val) => typeof val === "string",
+  text: (val) => typeof val === "string",
+  textList: (val) => val instanceof Array && val.every((v) => typeof v === "string"),
+  // Get it defined on the component itself ??
+  variants: (val) => (typeof val === "object" && val !== null) || typeof val === "string",
+};
+
 type Component =
   | {
       propsType: "text";

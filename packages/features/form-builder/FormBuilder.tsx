@@ -2,6 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
@@ -25,7 +26,7 @@ import {
 } from "@calcom/ui";
 import { ArrowDown, ArrowUp, X, Plus, Trash2, Info } from "@calcom/ui/components/icon";
 
-import { Components } from "./Components";
+import { Components, isValidValueProp } from "./Components";
 import type { fieldsSchema } from "./FormBuilderFieldsSchema";
 
 type RhfForm = {
@@ -340,26 +341,7 @@ export const FormBuilder = function FormBuilder({
                 <div>
                   <div className="flex flex-col lg:flex-row lg:items-center">
                     <div className="text-default text-sm font-semibold ltr:mr-2 rtl:ml-2">
-                      {(() => {
-                        const fieldTypeConfig = field.fieldTypeConfig;
-                        const fieldTypeConfigVariantsConfig = fieldTypeConfig?.variantsConfig;
-                        const fieldTypeConfigVariants = fieldTypeConfigVariantsConfig?.variants;
-                        const variantsConfig = field.variantsConfig;
-                        const defaultVariant = fieldTypeConfigVariantsConfig?.defaultVariant;
-                        if (!fieldTypeConfigVariants || !variantsConfig) {
-                          return field.label || t(field.defaultLabel || "");
-                        }
-                        const variant = field.variant || defaultVariant;
-                        if (!variant) {
-                          throw new Error(
-                            "Field has `variantsConfig` but no `defaultVariant`" +
-                              JSON.stringify(fieldTypeConfigVariantsConfig)
-                          );
-                        }
-                        return t(
-                          fieldTypeConfigVariants[variant as keyof typeof fieldTypeConfigVariants].label
-                        );
-                      })()}
+                      <FieldLabel field={field} />
                     </div>
                     <div className="flex items-center space-x-2">
                       {field.hidden ? (
@@ -496,7 +478,6 @@ export const FormBuilder = function FormBuilder({
               />
               {(() => {
                 const variantsConfig = fieldForm.getValues("variantsConfig");
-                const fieldTypeConfigVariantsConfig = fieldForm.getValues("fieldTypeConfig")?.variantsConfig;
 
                 if (!variantsConfig) {
                   return (
@@ -558,118 +539,11 @@ export const FormBuilder = function FormBuilder({
                   );
                 }
 
-                if (!fieldTypeConfigVariantsConfig) {
-                  throw new Error("Field has `variantsConfig` but no `fieldTypeConfig`");
-                }
-
-                const variantToggleLabel = t(fieldTypeConfigVariantsConfig.toggleLabel || "");
-
-                if (!fieldType?.isTextType) {
+                if (!fieldType.isTextType) {
                   throw new Error("Variants are currently supported only with text type");
                 }
 
-                const defaultVariant = fieldTypeConfigVariantsConfig.defaultVariant;
-
-                const variants = Object.keys(variantsConfig.variants);
-                const otherVariants = variants.filter((v) => v !== defaultVariant);
-                if (otherVariants.length > 1) {
-                  throw new Error("More than one other variant. Remove toggleLabel ");
-                }
-                const otherVariant = otherVariants[0];
-                const variantName = fieldForm.watch("variant") || defaultVariant;
-                const variantFields =
-                  variantsConfig.variants[variantName as keyof typeof variantsConfig]?.fields;
-                const isSimpleVariant = variantFields.length === 1;
-                const isDefaultVariant = variantName === defaultVariant;
-                return (
-                  <>
-                    <Switch
-                      checked={!isDefaultVariant}
-                      label={variantToggleLabel}
-                      onCheckedChange={(checked) => {
-                        fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
-                      }}
-                      classNames={{ container: "p-2 mt-2 hover:bg-gray-100 rounded" }}
-                      tooltip={t("Toggle Variant")}
-                    />
-
-                    <InputField
-                      required
-                      {...fieldForm.register("name")}
-                      containerClassName="mt-6"
-                      disabled={
-                        fieldForm.getValues("editable") === "system" ||
-                        fieldForm.getValues("editable") === "system-but-optional"
-                      }
-                      label="Identifier"
-                    />
-
-                    {variantFields && (
-                      <ul
-                        className={classNames(
-                          !isSimpleVariant
-                            ? "border-default divide-subtle mt-2 divide-y rounded-md border"
-                            : ""
-                        )}>
-                        {variantFields.map((f, index) => {
-                          const rhfFieldPrefix =
-                            `variantsConfig.variants.${variantName}.fields.${index}` as const;
-                          const fieldTypeConfigVariants =
-                            fieldTypeConfigVariantsConfig.variants[
-                              variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
-                            ];
-                          const appUiFieldConfig =
-                            fieldTypeConfigVariants.fieldsMap[
-                              f.name as keyof typeof fieldTypeConfigVariants.fieldsMap
-                            ];
-                          return (
-                            <li className={classNames(!isSimpleVariant ? "p-4" : "")} key={f.name}>
-                              {!isSimpleVariant && (
-                                <Label className="flex justify-between">
-                                  <span>{`Field ${index + 1}`}</span>
-                                  <span className="text-muted">{`${fieldForm.getValues("name")}.${
-                                    f.name
-                                  }`}</span>
-                                </Label>
-                              )}
-                              <InputField
-                                {...fieldForm.register(`${rhfFieldPrefix}.label`)}
-                                placeholder={t(appUiFieldConfig.defaultLabel || "")}
-                                containerClassName="mt-6"
-                                label={t("label")}
-                              />
-                              <InputField
-                                {...fieldForm.register(`${rhfFieldPrefix}.placeholder`)}
-                                key={f.name}
-                                containerClassName="mt-6"
-                                label={t("placeholder")}
-                                placeholder={t(appUiFieldConfig.defaultPlaceholder || "")}
-                              />
-
-                              <Controller
-                                name={`${rhfFieldPrefix}.required`}
-                                control={fieldForm.control}
-                                render={({ field: { value, onChange } }) => {
-                                  return (
-                                    <BooleanToggleGroupField
-                                      data-testid="field-required"
-                                      disabled={!appUiFieldConfig.canChangeRequirability}
-                                      value={value}
-                                      onValueChange={(val) => {
-                                        onChange(val);
-                                      }}
-                                      label={t("required")}
-                                    />
-                                  );
-                                }}
-                              />
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                  </>
-                );
+                return <VariantFields fieldForm={fieldForm} />;
               })()}
 
               <DialogFooter>
@@ -754,19 +628,8 @@ export const ComponentForField = ({
   const componentConfig = Components[fieldType];
 
   const isValueOfPropsType = (val: unknown, propsType: typeof componentConfig.propsType) => {
-    const propsTypeConditionMap = {
-      boolean: typeof val === "boolean",
-      multiselect: val instanceof Array && val.every((v) => typeof v === "string"),
-      objectiveWithInput: typeof val === "object" && val !== null ? "value" in val : false,
-      select: typeof val === "string",
-      text: typeof val === "string",
-      textList: val instanceof Array && val.every((v) => typeof v === "string"),
-      // Get it defined on the component itself ??
-      variants: (typeof val === "object" && val !== null) || typeof val === "string",
-    } as const;
-    if (!propsTypeConditionMap[propsType])
-      throw new Error(`Invalid value for propsType ${propsType}:"${JSON.stringify(val)}"`);
-    return propsTypeConditionMap[propsType];
+    const isValid = isValidValueProp[propsType](val);
+    return isValid;
   };
 
   // If possible would have wanted `isValueOfPropsType` to narrow the type of `value` and `setValue` accordingly, but can't seem to do it.
@@ -963,6 +826,147 @@ export const FormBuilderField = ({
     </div>
   );
 };
+
+function FieldLabel({ field }: { field: RhfFormField }) {
+  const { t } = useLocale();
+  const fieldTypeConfig = field.fieldTypeConfig;
+  const fieldTypeConfigVariantsConfig = fieldTypeConfig?.variantsConfig;
+  const fieldTypeConfigVariants = fieldTypeConfigVariantsConfig?.variants;
+  const variantsConfig = field.variantsConfig;
+  const defaultVariant = fieldTypeConfigVariantsConfig?.defaultVariant;
+  if (!fieldTypeConfigVariants || !variantsConfig) {
+    return <span>{field.label || t(field.defaultLabel || "")}</span>;
+  }
+  const variant = field.variant || defaultVariant;
+  if (!variant) {
+    throw new Error(
+      "Field has `variantsConfig` but no `defaultVariant`" + JSON.stringify(fieldTypeConfigVariantsConfig)
+    );
+  }
+  return <span>{t(fieldTypeConfigVariants[variant as keyof typeof fieldTypeConfigVariants].label)}</span>;
+}
+
+function VariantSelector() {
+  // Implement a Variant selector for cases when there are more than 2 variants
+  return null;
+}
+
+function VariantFields({ fieldForm }: { fieldForm: UseFormReturn<RhfFormField> }) {
+  const { t } = useLocale();
+  const variantsConfig = fieldForm.getValues("variantsConfig");
+  if (!variantsConfig) {
+    throw new Error("VariantFields component needs variantsConfig");
+  }
+  const fieldTypeConfigVariantsConfig = fieldForm.getValues("fieldTypeConfig")?.variantsConfig;
+
+  if (!fieldTypeConfigVariantsConfig) {
+    throw new Error("Field has `variantsConfig` but no `fieldTypeConfig`");
+  }
+
+  const variantToggleLabel = t(fieldTypeConfigVariantsConfig.toggleLabel || "");
+
+  const defaultVariant = fieldTypeConfigVariantsConfig.defaultVariant;
+
+  const variantNames = Object.keys(variantsConfig.variants);
+  const otherVariants = variantNames.filter((v) => v !== defaultVariant);
+  if (otherVariants.length > 1 && variantToggleLabel) {
+    throw new Error("More than one other variant. Remove toggleLabel ");
+  }
+  const otherVariant = otherVariants[0];
+  const variantName = fieldForm.watch("variant") || defaultVariant;
+  const variantFields = variantsConfig.variants[variantName as keyof typeof variantsConfig].fields;
+  /**
+   * A variant that has just one field can be shown in a simpler way in UI.
+   */
+  const isSimpleVariant = variantFields.length === 1;
+  const isDefaultVariant = variantName === defaultVariant;
+  const supportsVariantToggle = variantNames.length === 2;
+  return (
+    <>
+      {supportsVariantToggle ? (
+        <Switch
+          checked={!isDefaultVariant}
+          label={variantToggleLabel}
+          onCheckedChange={(checked) => {
+            fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
+          }}
+          classNames={{ container: "p-2 mt-2 hover:bg-gray-100 rounded" }}
+          tooltip={t("Toggle Variant")}
+        />
+      ) : (
+        <VariantSelector />
+      )}
+
+      <InputField
+        required
+        {...fieldForm.register("name")}
+        containerClassName="mt-6"
+        disabled={
+          fieldForm.getValues("editable") === "system" ||
+          fieldForm.getValues("editable") === "system-but-optional"
+        }
+        label="Identifier"
+      />
+
+      <ul
+        className={classNames(
+          !isSimpleVariant ? "border-default divide-subtle mt-2 divide-y rounded-md border" : ""
+        )}>
+        {variantFields.map((f, index) => {
+          const rhfVariantFieldPrefix = `variantsConfig.variants.${variantName}.fields.${index}` as const;
+          const fieldTypeConfigVariants =
+            fieldTypeConfigVariantsConfig.variants[
+              variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
+            ];
+          const appUiFieldConfig =
+            fieldTypeConfigVariants.fieldsMap[f.name as keyof typeof fieldTypeConfigVariants.fieldsMap];
+          return (
+            <li className={classNames(!isSimpleVariant ? "p-4" : "")} key={f.name}>
+              {!isSimpleVariant && (
+                <Label className="flex justify-between">
+                  <span>{`Field ${index + 1}`}</span>
+                  <span className="text-muted">{`${fieldForm.getValues("name")}.${f.name}`}</span>
+                </Label>
+              )}
+              <InputField
+                {...fieldForm.register(`${rhfVariantFieldPrefix}.label`)}
+                placeholder={t(appUiFieldConfig.defaultLabel || "")}
+                containerClassName="mt-6"
+                label={t("label")}
+              />
+              <InputField
+                {...fieldForm.register(`${rhfVariantFieldPrefix}.placeholder`)}
+                key={f.name}
+                containerClassName="mt-6"
+                label={t("placeholder")}
+                placeholder={t(appUiFieldConfig.defaultPlaceholder || "")}
+              />
+
+              <Controller
+                name={`${rhfVariantFieldPrefix}.required`}
+                control={fieldForm.control}
+                render={({ field: { value, onChange } }) => {
+                  return (
+                    <BooleanToggleGroupField
+                      data-testid="field-required"
+                      disabled={!appUiFieldConfig.canChangeRequirability}
+                      value={value}
+                      onValueChange={(val) => {
+                        onChange(val);
+                      }}
+                      label={t("required")}
+                    />
+                  );
+                }}
+              />
+            </li>
+          );
+        })}
+      </ul>
+    </>
+  );
+}
+
 function assertUnreachable(arg: never) {
   throw new Error(`Don't know how to handle ${JSON.stringify(arg)}`);
 }
