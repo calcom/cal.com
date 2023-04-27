@@ -1,9 +1,9 @@
-import { WebhookTriggerEvents } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Form, Label, Select, Switch, TextArea, TextField, ToggleGroup } from "@calcom/ui";
 

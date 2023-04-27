@@ -1,4 +1,4 @@
-import type { BookingReference, EventType, WebhookTriggerEvents } from "@prisma/client";
+import type { BookingReference, EventType } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -16,6 +16,7 @@ import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
+import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 

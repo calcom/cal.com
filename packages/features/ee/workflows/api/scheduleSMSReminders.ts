@@ -1,11 +1,11 @@
 /* Schedule any workflow reminder that falls within 7 days for SMS */
-import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
