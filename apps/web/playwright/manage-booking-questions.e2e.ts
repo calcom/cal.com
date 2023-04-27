@@ -7,6 +7,8 @@ import { uuid } from "short-uuid";
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
+import { testBothBookers } from "./lib/new-booker";
+import type { BookerVariants } from "./lib/new-booker";
 import { createHttpServer, waitFor, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 async function getLabelText(field: Locator) {
@@ -18,7 +20,7 @@ test.describe("Manage Booking Questions", () => {
     await users.deleteAll();
   });
 
-  test.describe("For User EventType", () => {
+  testBothBookers.describe("For User EventType", (bookerVariant) => {
     test("Do a booking with a user added question and verify a few thing in b/w", async ({
       page,
       users,
@@ -37,11 +39,11 @@ test.describe("Manage Booking Questions", () => {
         await firstEventTypeElement.click();
       });
 
-      await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver);
+      await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver, bookerVariant);
     });
   });
 
-  test.describe("For Team EventType", () => {
+  testBothBookers.describe("For Team EventType", (bookerVariant) => {
     test("Do a booking with a user added question and verify a few thing in b/w", async ({
       page,
       users,
@@ -60,7 +62,7 @@ test.describe("Manage Booking Questions", () => {
         await firstEventTypeElement.click();
       });
 
-      await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver);
+      await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver, bookerVariant);
     });
   });
 });
@@ -73,7 +75,8 @@ async function runTestStepsCommonForTeamAndUserEventType(
     close: () => import("http").Server;
     requestList: (import("http").IncomingMessage & { body?: unknown })[];
     url: string;
-  }
+  },
+  bookerVariant: BookerVariants
 ) {
   await page.click('[href$="tabName=advanced"]');
 
@@ -89,7 +92,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
       },
     });
 
-    await doOnFreshPreview(page, context, async (page) => {
+    await doOnFreshPreview(page, context, bookerVariant, async (page) => {
       const allFieldsLocator = await expectSystemFieldsToBeThere(page);
       const userFieldLocator = allFieldsLocator.nth(5);
 
@@ -105,7 +108,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
       name: "how_are_you",
       page,
     });
-    await doOnFreshPreview(page, context, async (page) => {
+    await doOnFreshPreview(page, context, bookerVariant, async (page) => {
       const formBuilderFieldLocator = page.locator('[data-fob-field-name="how_are_you"]');
       await expect(formBuilderFieldLocator).toBeHidden();
     });
@@ -119,7 +122,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
   });
 
   await test.step('Try to book without providing "How are you?" response', async () => {
-    await doOnFreshPreview(page, context, async (page) => {
+    await doOnFreshPreview(page, context, bookerVariant, async (page) => {
       await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
       await expectErrorToBeThereFor({ page, name: "how_are_you" });
     });
@@ -138,6 +141,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
       return await doOnFreshPreview(
         page,
         context,
+        bookerVariant,
         async (page) => {
           const formBuilderFieldLocator = page.locator('[data-fob-field-name="how_are_you"]');
           await expect(formBuilderFieldLocator).toBeVisible();
@@ -196,8 +200,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
 
   await test.step("Do a reschedule and notice that we can't book without giving a value for rescheduleReason", async () => {
     const page = previewTabPage;
-    await rescheduleFromTheLinkOnPage({ page });
-    await page.pause();
+    await rescheduleFromTheLinkOnPage({ page, bookerVariant });
     await expectErrorToBeThereFor({ page, name: "rescheduleReason" });
   });
 }
@@ -304,10 +307,11 @@ async function expectErrorToBeThereFor({ page, name }: { page: Page; name: strin
 async function doOnFreshPreview(
   page: Page,
   context: PlaywrightTestArgs["context"],
+  bookerVariant: BookerVariants,
   callback: (page: Page) => Promise<void>,
   persistTab = false
 ) {
-  const previewTabPage = await openBookingFormInPreviewTab(context, page);
+  const previewTabPage = await openBookingFormInPreviewTab(context, page, bookerVariant);
   await callback(previewTabPage);
   if (!persistTab) {
     await previewTabPage.close();
@@ -347,25 +351,39 @@ async function createAndLoginUserWithEventTypes({ users }: { users: ReturnType<t
   return user;
 }
 
-async function rescheduleFromTheLinkOnPage({ page }: { page: Page }) {
+async function rescheduleFromTheLinkOnPage({
+  page,
+  bookerVariant,
+}: {
+  page: Page;
+  bookerVariant: BookerVariants;
+}) {
   await page.locator('[data-testid="reschedule-link"]').click();
   await page.waitForLoadState();
   await selectFirstAvailableTimeSlotNextMonth(page);
-  await page.waitForNavigation({
-    url: (url) => url.pathname.endsWith("/book"),
-  });
+  if (bookerVariant === "old-booker") {
+    await page.waitForNavigation({
+      url: (url) => url.pathname.endsWith("/book"),
+    });
+  }
   await page.click('[data-testid="confirm-reschedule-button"]');
 }
 
-async function openBookingFormInPreviewTab(context: PlaywrightTestArgs["context"], page: Page) {
+async function openBookingFormInPreviewTab(
+  context: PlaywrightTestArgs["context"],
+  page: Page,
+  bookerVariant: BookerVariants
+) {
   const previewTabPromise = context.waitForEvent("page");
   await page.locator('[data-testid="preview-button"]').click();
   const previewTabPage = await previewTabPromise;
   await previewTabPage.waitForLoadState();
   await selectFirstAvailableTimeSlotNextMonth(previewTabPage);
-  await previewTabPage.waitForNavigation({
-    url: (url) => url.pathname.endsWith("/book"),
-  });
+  if (bookerVariant === "old-booker") {
+    await previewTabPage.waitForNavigation({
+      url: (url) => url.pathname.endsWith("/book"),
+    });
+  }
   return previewTabPage;
 }
 

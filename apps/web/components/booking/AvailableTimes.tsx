@@ -11,7 +11,7 @@ import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { nameOfDay } from "@calcom/lib/weekday";
 import { trpc } from "@calcom/trpc/react";
-import type { Slot } from "@calcom/trpc/server/routers/viewer/slots";
+import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { SkeletonContainer, SkeletonText, ToggleGroup } from "@calcom/ui";
 
 import classNames from "@lib/classNames";
