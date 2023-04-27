@@ -7,8 +7,6 @@ import { trpc } from "@calcom/trpc/react";
 export function useViewerI18n() {
   return trpc.viewer.public.i18n.useQuery(undefined, {
     staleTime: Infinity,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
     /**
      * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
      * We intend to not cache i18n query
