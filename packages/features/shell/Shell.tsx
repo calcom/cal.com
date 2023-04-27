@@ -412,6 +412,13 @@ function UserDropdown({ small }: { small?: boolean }) {
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
+
+                <DropdownMenuItem>
+                  <DropdownItem type="button" href="/settings/my-account/profile" StartIcon={Settings}>
+                    {t("settings")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"

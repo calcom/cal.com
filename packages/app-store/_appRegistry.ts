@@ -11,10 +11,6 @@ export async function getAppWithMetadata(app: { dirName: string }) {
   // Let's not leak api keys to the front end
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { key, ...metadata } = appMetadata;
-  if (metadata.logo && !metadata.logo.includes("/api/app-store/")) {
-    const appDirName = `${metadata.isTemplate ? "templates" : ""}/${app.dirName}`;
-    metadata.logo = `/api/app-store/${appDirName}/${metadata.logo}`;
-  }
   return metadata;
 }
 
@@ -32,13 +28,8 @@ export async function getAppRegistry() {
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
 
-    const { rating, reviews, trending, verified, ...remainingAppProps } = app;
     apps.push({
-      rating: rating || 0,
-      reviews: reviews || 0,
-      trending: trending || true,
-      verified: verified || true,
-      ...remainingAppProps,
+      ...app,
       category: app.category || "other",
       installed:
         true /* All apps from DB are considered installed by default. @TODO: Add and filter our by `enabled` property */,
@@ -98,13 +89,8 @@ export async function getAppRegistryWithCredentials(userId: number) {
       });
     }
 
-    const { rating, reviews, trending, verified, ...remainingAppProps } = app;
     apps.push({
-      rating: rating || 0,
-      reviews: reviews || 0,
-      trending: trending || true,
-      verified: verified || true,
-      ...remainingAppProps,
+      ...app,
       categories: dbapp.categories,
       credentials: dbapp.credentials,
       installed: true,
