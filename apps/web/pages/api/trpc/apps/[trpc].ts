@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import * as trpcNext from "@calcom/trpc/server/adapters/next";
 import { createContext as createTrpcContext } from "@calcom/trpc/server/createContext";
-import { appsRouter } from "@calcom/trpc/server/routers/viewer/appsRouter/_router";
+import { appsRouter } from "@calcom/trpc/server/routers/viewer/apps/_router";
 
 export default trpcNext.createNextApiHandler({
   router: appsRouter,
