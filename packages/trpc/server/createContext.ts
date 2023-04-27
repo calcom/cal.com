@@ -8,9 +8,6 @@ import type { SelectedCalendar, User as PrismaUser } from "@calcom/prisma/client
 
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
 
-/* eslint-disable prettier/prettier */
-console.log("imports tRPC createContext");
-
 type CreateContextOptions = CreateNextContextOptions | GetServerSidePropsContext;
 
 export type CreateInnerContextOptions = {

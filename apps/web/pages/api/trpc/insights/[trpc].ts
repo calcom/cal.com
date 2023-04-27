@@ -5,14 +5,10 @@ import { z } from "zod";
 
 import * as trpcNext from "@calcom/trpc/server/adapters/next";
 import { createContext as createTrpcContext } from "@calcom/trpc/server/createContext";
-import { appRouter } from "@calcom/trpc/server/routers/_app";
-
-/* eslint-disable prettier/prettier */
-console.log("trcpEndpoint");
-performance.mark("tRPCStart");
+import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 
 export default trpcNext.createNextApiHandler({
-  router: appRouter,
+  router: insightsRouter,
   /**
    * @link https://trpc.io/docs/context
    */
@@ -38,7 +34,7 @@ export default trpcNext.createNextApiHandler({
    * @link https://trpc.io/docs/caching#api-response-caching
    */
   responseMeta({ ctx, paths, type, errors }) {
-    console.log("responseMeta method");
+
     // Some helpers relevant to this function only
     const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
     // assuming you have all your public routes with the keyword `public` in them

@@ -5,10 +5,10 @@ import { z } from "zod";
 
 import * as trpcNext from "@calcom/trpc/server/adapters/next";
 import { createContext as createTrpcContext } from "@calcom/trpc/server/createContext";
-import { publicViewerRouter } from "@calcom/trpc/server/routers/publicViewer/_router";
+import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
 
 export default trpcNext.createNextApiHandler({
-  router: publicViewerRouter,
+  router: userAdminRouter,
   /**
    * @link https://trpc.io/docs/context
    */
