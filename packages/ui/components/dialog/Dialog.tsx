@@ -135,7 +135,12 @@ export function DialogHeader(props: DialogHeaderProps) {
 }
 
 export function DialogFooter(props: { children: ReactNode }) {
-  return <div className="mt-7 flex justify-end space-x-2 rtl:space-x-reverse ">{props.children}</div>;
+  return (
+    <>
+      <hr className="border-subtle my-7 " />
+      <div className="flex justify-end space-x-2 rtl:space-x-reverse ">{props.children}</div>
+    </>
+  );
 }
 
 DialogContent.displayName = "DialogContent";
