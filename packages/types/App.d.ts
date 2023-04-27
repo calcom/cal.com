@@ -68,11 +68,6 @@ export interface App {
   name: string;
   /** A brief description, usually found in the app's package.json */
   description: string;
-  /**
-   * @deprecated logo is used instead
-   * The icon to display in /apps/installed
-   */
-  imageSrc?: string;
   /** TODO determine if we should use this instead of category */
   variant:
     | "calendar"

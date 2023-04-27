@@ -6,6 +6,7 @@ import type Stripe from "stripe";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
+import dayjs from "@calcom/dayjs";
 import { sendScheduledEmails, sendOrganizerRequestEmail, sendAttendeeRequestEmail } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
@@ -15,6 +16,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma, bookingMinimalSelect } from "@calcom/prisma";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 export const config = {
@@ -31,6 +33,7 @@ async function getEventType(id: number) {
     select: {
       recurringEvent: true,
       requiresConfirmation: true,
+      metadata: true,
     },
   });
 }
@@ -73,6 +76,8 @@ async function getBooking(bookingId: number) {
     eventTypeRaw = await getEventType(booking.eventTypeId);
   }
 
+  const eventType = { ...eventTypeRaw, metadata: EventTypeMetaDataSchema.parse(eventTypeRaw?.metadata) };
+
   const { user } = booking;
 
   if (!user) throw new HttpCode({ statusCode: 204, message: "No user found" });
@@ -109,14 +114,14 @@ async function getBooking(bookingId: number) {
     attendees: attendeesList,
     uid: booking.uid,
     destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
-    recurringEvent: parseRecurringEvent(eventTypeRaw?.recurringEvent),
+    recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
   };
 
   return {
     booking,
     user,
     evt,
-    eventTypeRaw,
+    eventType,
   };
 }
 
@@ -214,6 +219,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       language: { translate: t, locale: user.locale ?? "en" },
     },
     attendees: attendeesList,
+    location: booking.location,
     uid: booking.uid,
     destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
     recurringEvent: parseRecurringEvent(eventTypeRaw?.recurringEvent),
@@ -284,7 +290,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
 
   if (!payment?.data || !payment?.id) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
-  const { user, evt, eventTypeRaw } = await getBooking(payment.bookingId);
+  const { booking, user, evt, eventType } = await getBooking(payment.bookingId);
 
   const bookingData: Prisma.BookingUpdateInput = {
     paid: true,
@@ -308,7 +314,15 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
 
   if (!userWithCredentials) throw new HttpCode({ statusCode: 204, message: "No user found" });
 
-  if (!eventTypeRaw?.requiresConfirmation) {
+  let requiresConfirmation = eventType?.requiresConfirmation;
+  const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
+  if (rcThreshold) {
+    if (dayjs(dayjs(booking.startTime).utc().format()).diff(dayjs(), rcThreshold.unit) > rcThreshold.time) {
+      requiresConfirmation = false;
+    }
+  }
+
+  if (!requiresConfirmation) {
     const eventManager = new EventManager(userWithCredentials);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
@@ -334,8 +348,15 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
 
   // If the card information was already captured in the same customer. Delete the previous payment method
 
-  if (!eventTypeRaw?.requiresConfirmation) {
-    await sendScheduledEmails({ ...evt });
+  if (!requiresConfirmation) {
+    await handleConfirmation({
+      user: userWithCredentials,
+      evt,
+      prisma,
+      bookingId: booking.id,
+      booking,
+      paid: true,
+    });
   } else {
     await sendOrganizerRequestEmail({ ...evt });
     await sendAttendeeRequestEmail({ ...evt }, evt.attendees[0]);
