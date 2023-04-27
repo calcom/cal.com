@@ -1,8 +1,5 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # .env file
 .env
-!packages/prisma/.env
 
 # dependencies
 node_modules
@@ -12,11 +9,11 @@ node_modules
 # testing
 coverage
 /test-results/
-**/playwright/videos
-**/playwright/screenshots
-**/playwright/artifacts
-**/playwright/results
-**/playwright/reports/*
+playwright/videos
+playwright/screenshots
+playwright/artifacts
+playwright/results
+playwright/reports/*
 
 # next.js
 .next/
@@ -40,7 +37,6 @@ yarn-error.log*
 .env.production.local
 .env.*
 !.env.example
-!.env.appStore.example
 
 # vercel
 .vercel
@@ -49,6 +45,7 @@ yarn-error.log*
 .idea
 
 ### VisualStudioCode template
+.vscode/
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -74,24 +71,11 @@ dist
 # Linting
 lint-results
 
-#Storybook
-apps/storybook/build-storybook.log
+# Yarn
+yarn-error.log
 
-# Snaplet
-.snaplet/snapshots
-.snaplet/structure.d.ts
-
-# Submodules
-.gitmodules
-apps/website
-apps/console
-apps/auth
-
-# Yarn Modern
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
+.turbo
+.next
+.husky
+.vscode
+.env
