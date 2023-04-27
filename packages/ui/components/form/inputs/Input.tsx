@@ -68,13 +68,13 @@ type AddonProps = {
 const Addon = ({ isFilled, children, className, error }: AddonProps) => (
   <div
     className={classNames(
-      "addon-wrapper border-default min-h-8.5 border px-3",
+      "addon-wrapper border-default min-h-9 border px-3",
       isFilled && "bg-subtle",
       className
     )}>
     <div
       className={classNames(
-        "min-h-8.5 flex flex-col justify-center text-sm",
+        "min-h-9 flex flex-col justify-center text-sm",
         error ? "text-error" : "text-default"
       )}>
       <span className="flex whitespace-nowrap">{children}</span>
