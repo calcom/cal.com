@@ -465,6 +465,7 @@
   "friday": "Vendredi",
   "saturday": "Samedi",
   "sunday": "Dimanche",
+  "all_booked_today": "Tout est réservé.",
   "slots_load_fail": "Impossible de charger les créneaux disponibles.",
   "additional_guests": "Ajouter des invités",
   "your_name": "Votre nom",
@@ -1792,10 +1793,12 @@
   "seats_and_no_show_fee_error": "Il n'est pas possible d'activer les places et de facturer des frais d'absence pour le moment",
   "complete_your_booking": "Terminer votre réservation",
   "complete_your_booking_subject": "Terminer votre réservation : {{title}} le {{date}}",
+  "confirm_your_details": "Confirmez vos coordonnées",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Vous êtes sur le point de facturer {{amount, currency}} au participant. Voulez-vous vraiment continuer ?",
   "charge_attendee": "Facturer {{amount, currency}} au participant",
   "payment_app_commission": "Exiger un paiement ({{paymentFeePercentage}} % + {{fee, currency}} de commission par transaction)",
   "email_invite_team": "{{email}} a été invité",
+  "error_collecting_card": "Erreur lors de la collecte de la carte",
   "image_size_limit_exceed": "L'image téléchargée ne doit pas dépasser 5 Mo"
 }

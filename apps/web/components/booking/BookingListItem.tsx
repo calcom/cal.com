@@ -280,13 +280,13 @@ function BookingListItem(booking: BookingItemProps) {
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
       />
-      {booking.paid && (
+      {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
           isOpenDialog={chargeCardDialogIsOpen}
           setIsOpenDialog={setChargeCardDialogIsOpen}
           bookingId={booking.id}
-          paymentAmount={booking?.payment[0].amount}
-          paymentCurrency={booking?.payment[0].currency}
+          paymentAmount={booking.payment[0].amount}
+          paymentCurrency={booking.payment[0].currency}
         />
       )}
       {showRecordingsButtons && (
@@ -354,11 +354,15 @@ function BookingListItem(booking: BookingItemProps) {
                 {booking.eventType.team.name}
               </Badge>
             )}
-            {booking.paid && (
+            {booking.paid && !booking.payment[0] ? (
+              <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+                {t("error_collecting_card")}
+              </Badge>
+            ) : booking.paid ? (
               <Badge className="ltr:mr-2 rtl:ml-2" variant="green">
                 {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
               </Badge>
-            )}
+            ) : null}
             {recurringDates !== undefined && (
               <div className="text-muted mt-2 text-sm">
                 <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
@@ -458,7 +462,7 @@ function BookingListItem(booking: BookingItemProps) {
               <RequestSentMessage />
             </div>
           )}
-          {booking.status === "ACCEPTED" && booking.paid && booking?.payment[0]?.paymentOption === "HOLD" && (
+          {booking.status === "ACCEPTED" && booking.paid && booking.payment[0]?.paymentOption === "HOLD" && (
             <div className="ml-2">
               <TableActions actions={chargeCardActions} />
             </div>
