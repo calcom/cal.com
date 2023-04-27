@@ -48,7 +48,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
           setEnabled(true);
         }
       }}
-      switchChecked={enabled}>
+      switchChecked={enabled}
+      eventTypeId={eventType.id}>
       <div className="max-w-60 flex items-baseline justify-between gap-2 text-sm ">
         <QRCode size={256} data={eventTypeURL} />
         <QRCode size={128} data={eventTypeURL} />

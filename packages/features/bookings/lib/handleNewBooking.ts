@@ -1678,10 +1678,6 @@ async function handler(
       }
     }
 
-    if (typeof paymentAppData.price === "number" && paymentAppData.price > 0) {
-      console.log("This statement triggers");
-    }
-
     return prisma.booking.create(createBookingObj);
   }
 
