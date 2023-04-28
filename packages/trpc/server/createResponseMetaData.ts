@@ -1,7 +1,9 @@
 import { z } from "zod";
+import type { AnyRouter, inferRouterContext, ProcedureType, TRPCError } from "@trpc/server";
+import type { ResponseMeta } from "@trpc/server/http";
 
 export type CreateResponseDataOptions = {
-  ctx: inferRouterContext<TRouter>,
+  ctx: inferRouterContext<AnyRouter>,
   paths?: string[];
   type: ProcedureType | 'unknown';
   errors: TRPCError[];
@@ -11,7 +13,7 @@ export type CreateResponseDataOptions = {
 /**
  * Creates meta data for an outgoing response
  */
-export const createResponseMetaData: ResponseMeta = async ({ ctx, paths, type, errors, isPublic }: CreateResponseDataOptions) => {
+export function createResponseMetaData({ ctx, paths, type, errors, isPublic }: CreateResponseDataOptions): ResponseMeta {
   const allOk = errors.length === 0;
   const isQuery = type === "query";
   const noHeaders = {};
@@ -32,7 +34,7 @@ export const createResponseMetaData: ResponseMeta = async ({ ctx, paths, type, e
   // No cache by default
   defaultHeaders.headers["cache-control"] = `no-cache`;
 
-  if (isPublic) {
+  if (isPublic && paths) {
     const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
     const cacheRules = {
       "session": `no-cache`,
