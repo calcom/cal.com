@@ -465,7 +465,6 @@
   "friday": "금요일",
   "saturday": "토요일",
   "sunday": "일요일",
-  "all_booked_today": "오늘 모두 예약되었습니다.",
   "slots_load_fail": "사용 가능한 시간 슬롯을 로드할 수 없습니다.",
   "additional_guests": "게스트 추가",
   "your_name": "당신의 이름",

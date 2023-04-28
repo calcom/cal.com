@@ -56,12 +56,12 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
   }
 
   const EventTypes = () => (
-    <ul className="border-subtle border-subtle rounded-md border">
+    <ul className="border-subtle rounded-md border">
       {team.eventTypes.map((type, index) => (
         <li
           key={index}
           className={classNames(
-            "dark:bg-darkgray-100 border-subtle bg-default hover:bg-muted border-subtle group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0",
+            "dark:bg-darkgray-100 bg-default hover:bg-muted border-subtle group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0",
             !isEmbed && "bg-default"
           )}>
           <div className="px-6 py-4 ">
@@ -105,7 +105,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
         }}
       />
       <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pt-12 pb-12">
-        <div className="max-w-96 mx-auto mb-8 text-center">
+        <div className="mx-auto mb-8 max-w-3xl text-center">
           <Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />
           <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider">{teamName}</p>
           {!isBioEmpty && (
@@ -126,7 +126,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
               <div>
                 <div className="relative mt-12">
                   <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                    <div className="border-subtle border-subtle w-full border-t" />
+                    <div className="border-subtle w-full border-t" />
                   </div>
                   <div className="relative flex justify-center">
                     <span className="dark:bg-darkgray-50 bg-subtle text-subtle dark:text-inverted px-2 text-sm">
