@@ -513,6 +513,7 @@ export const workflowsRouter = router({
       });
 
       //check if new event types belong to user or team
+      const newActiveOnEventTypes = [];
       for (const newEventTypeId of newActiveEventTypes) {
         const newEventType = await ctx.prisma.eventType.findFirst({
           where: {
@@ -525,6 +526,7 @@ export const workflowsRouter = router({
                 members: true,
               },
             },
+            children: true,
           },
         });
 
@@ -541,6 +543,8 @@ export const workflowsRouter = router({
           ) {
             throw new TRPCError({ code: "UNAUTHORIZED" });
           }
+
+          newActiveOnEventTypes.push(newEventType);
         }
       }
 
@@ -615,7 +619,16 @@ export const workflowsRouter = router({
           //create reminders for all bookings with newEventTypes
           const bookingsForReminders = await ctx.prisma.booking.findMany({
             where: {
-              eventTypeId: { in: newEventTypes },
+              OR: [
+                { eventTypeId: { in: newEventTypes } },
+                {
+                  eventType: {
+                    parentId: {
+                      in: newEventTypes,
+                    },
+                  },
+                },
+              ],
               status: BookingStatus.ACCEPTED,
               startTime: {
                 gte: new Date(),
@@ -714,13 +727,28 @@ export const workflowsRouter = router({
           });
         }
         //create all workflow - eventtypes relationships
-        activeOn.forEach(async (eventTypeId) => {
-          await ctx.prisma.workflowsOnEventTypes.createMany({
-            data: {
+        const createdRelations: number[] = [];
+        await ctx.prisma.workflowsOnEventTypes.createMany({
+          data: newActiveOnEventTypes.flatMap((newEvTy) => {
+            const out = [];
+            out.push({
               workflowId: id,
-              eventTypeId,
-            },
-          });
+              eventTypeId: newEvTy.id,
+            });
+            createdRelations.push(newEvTy.id);
+            if (newEvTy.children.length) {
+              newEvTy.children.map((ch) => {
+                if (!createdRelations.includes(ch.id)) {
+                  out.push({
+                    workflowId: id,
+                    eventTypeId: ch.id,
+                  });
+                  createdRelations.push(ch.id);
+                }
+              });
+            }
+            return out;
+          }),
         });
       }
 
@@ -1304,6 +1332,9 @@ action === WorkflowActions.EMAIL_ADDRESS*/
             },
           ],
         },
+        include: {
+          children: true,
+        },
       });
 
       if (!userEventType)
@@ -1349,6 +1380,20 @@ action === WorkflowActions.EMAIL_ADDRESS*/
           },
         });
 
+        // Also delete children workflows if managed event type
+        if (userEventType.children.length) {
+          await ctx.prisma.$transaction(
+            userEventType.children.map((ch) => {
+              return ctx.prisma.workflowsOnEventTypes.deleteMany({
+                where: {
+                  workflowId,
+                  eventTypeId: ch.id,
+                },
+              });
+            })
+          );
+        }
+
         await removeSmsReminderFieldForBooking({
           workflowId,
           eventTypeId,
@@ -1360,6 +1405,20 @@ action === WorkflowActions.EMAIL_ADDRESS*/
             eventTypeId,
           },
         });
+
+        // Also delete children workflows if managed event type
+        if (userEventType.children.length) {
+          await ctx.prisma.$transaction(
+            userEventType.children.map((ch) => {
+              return ctx.prisma.workflowsOnEventTypes.create({
+                data: {
+                  workflowId,
+                  eventTypeId: ch.id,
+                },
+              });
+            })
+          );
+        }
 
         if (
           eventTypeWorkflow.steps.some((step) => {

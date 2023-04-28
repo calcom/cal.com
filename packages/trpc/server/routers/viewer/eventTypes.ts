@@ -693,6 +693,11 @@ export const eventTypesRouter = router({
               userId: true,
             },
           },
+          workflows: {
+            select: {
+              workflowId: true,
+            },
+          },
           team: {
             select: {
               name: true,

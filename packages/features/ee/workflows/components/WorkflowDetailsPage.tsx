@@ -51,7 +51,7 @@ export default function WorkflowDetailsPage(props: Props) {
           ...options,
           ...group.eventTypes.map((eventType) => ({
             value: String(eventType.id),
-            label: eventType.title,
+            label: `${eventType.title} ${eventType.children.length ? `(+${eventType.children.length})` : ``}`,
           })),
         ];
       }, [] as Option[]) || [],

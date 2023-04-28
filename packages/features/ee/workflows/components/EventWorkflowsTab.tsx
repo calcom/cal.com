@@ -23,6 +23,7 @@ type ItemProps = {
     id: number;
     title: string;
   };
+  isChildrenManagedEventType: boolean;
 };
 
 const WorkflowListItem = (props: ItemProps) => {
@@ -141,8 +142,20 @@ const WorkflowListItem = (props: ItemProps) => {
           </Link>
         </div>
       )}
-      <Tooltip content={t("turn_off") as string}>
-        <div className="ltr:mr-2 rtl:ml-2">
+      <Tooltip
+        content={
+          t(
+            workflow.readOnly && props.isChildrenManagedEventType
+              ? "locked_by_admin"
+              : isActive
+              ? "turn_off"
+              : "turn_on"
+          ) as string
+        }>
+        <div className="flex items-center ltr:mr-2 rtl:ml-2">
+          {workflow.readOnly && props.isChildrenManagedEventType && (
+            <Lock className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
+          )}
           <Switch
             checked={isActive}
             disabled={workflow.readOnly}
@@ -173,7 +186,7 @@ function EventWorkflowsTab(props: Props) {
   );
   const { data, isLoading } = trpc.viewer.workflows.list.useQuery({
     teamId: eventType.team?.id,
-    userId: eventType.userId || undefined,
+    userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
   });
   const router = useRouter();
   const [sortedWorkflows, setSortedWorkflows] = useState<Array<WorkflowType>>([]);
@@ -184,7 +197,7 @@ function EventWorkflowsTab(props: Props) {
         const dataWf = data.workflows.find((wf) => wf.id === workflowOnEventType.id);
         return {
           ...workflowOnEventType,
-          readOnly: dataWf?.readOnly,
+          readOnly: dataWf?.readOnly ?? true,
         } as WorkflowType;
       });
       const disabledWorkflows = data.workflows.filter(
@@ -233,7 +246,12 @@ function EventWorkflowsTab(props: Props) {
               <div className="space-y-4">
                 {sortedWorkflows.map((workflow) => {
                   return (
-                    <WorkflowListItem key={workflow.id} workflow={workflow} eventType={props.eventType} />
+                    <WorkflowListItem
+                      key={workflow.id}
+                      workflow={workflow}
+                      eventType={props.eventType}
+                      isChildrenManagedEventType
+                    />
                   );
                 })}
               </div>
@@ -245,19 +263,13 @@ function EventWorkflowsTab(props: Props) {
                 headline={t("workflows")}
                 description={t("no_workflows_description")}
                 buttonRaw={
-                  isChildrenManagedEventType && !isManagedEventType ? (
-                    <Button StartIcon={Lock} color="secondary" disabled>
-                      {t("locked_by_admin")}
-                    </Button>
-                  ) : (
-                    <Button
-                      target="_blank"
-                      color="secondary"
-                      onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
-                      loading={createMutation.isLoading}>
-                      {t("create_workflow")}
-                    </Button>
-                  )
+                  <Button
+                    target="_blank"
+                    color="secondary"
+                    onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
+                    loading={createMutation.isLoading}>
+                    {t("create_workflow")}
+                  </Button>
                 }
               />
             </div>
