@@ -23,25 +23,27 @@ const downloadLinkSchema = z.object({
   download_link: z.string(),
 });
 
-const triggerWebhook = async ({ booking, downloadLink }: { booking: any; downloadLink: string }) => {
-  const evt: CalendarEvent = {
-    type: booking?.title,
-    title: booking?.title,
-    startTime: booking?.startTime,
-    endTime: booking?.endTime,
-    attendees: booking?.attendees,
-    organizer: booking?.user,
+const triggerWebhook = async ({
+  evt,
+  downloadLink,
+  booking,
+}: {
+  evt: CalendarEvent;
+  downloadLink: string;
+  booking: {
+    userId: number | undefined;
+    eventTypeId: number | null;
   };
-  // Send webhook
+}) => {
   const eventTrigger: WebhookTriggerEvents = "RECORDING_READY";
   // Send Webhook call if hooked to BOOKING.RECORDING_READY
   const subscriberOptions = {
-    userId: booking.userId,
-    eventTypeId: (booking.eventTypeId as number) || 0,
+    userId: booking.userId ?? 0,
+    eventTypeId: booking.eventTypeId ?? 0,
     triggerEvent: eventTrigger,
   };
   const webhooks = await getWebhooks(subscriberOptions);
-  console.log("webhooks", webhooks);
+
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
       ...evt,
@@ -144,28 +146,32 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const downloadLinkResponse = downloadLinkSchema.parse(response);
     const downloadLink = downloadLinkResponse.download_link;
 
-    await triggerWebhook({ booking, downloadLink });
+    const evt: CalendarEvent = {
+      type: booking.title,
+      title: booking.title,
+      description: booking.description || undefined,
+      startTime: booking.startTime.toISOString(),
+      endTime: booking.endTime.toISOString(),
+      organizer: {
+        email: booking.user?.email || "Email-less",
+        name: booking.user?.name || "Nameless",
+        timeZone: booking.user?.timeZone || "Europe/London",
+        language: { translate: t, locale: booking?.user?.locale ?? "en" },
+      },
+      attendees: attendeesList,
+      uid: booking.uid,
+    };
+
+    await triggerWebhook({
+      evt,
+      downloadLink,
+      booking: { userId: booking?.user?.id, eventTypeId: booking.eventTypeId },
+    });
 
     const isSendingEmailsAllowed = IS_SELF_HOSTED || session?.user?.belongsToActiveTeam;
 
     // send emails to all attendees only when user has team plan
     if (isSendingEmailsAllowed) {
-      const evt: CalendarEvent = {
-        type: booking.title,
-        title: booking.title,
-        description: booking.description || undefined,
-        startTime: booking.startTime.toISOString(),
-        endTime: booking.endTime.toISOString(),
-        organizer: {
-          email: booking.user?.email || "Email-less",
-          name: booking.user?.name || "Nameless",
-          timeZone: booking.user?.timeZone || "Europe/London",
-          language: { translate: t, locale: booking?.user?.locale ?? "en" },
-        },
-        attendees: attendeesList,
-        uid: booking.uid,
-      };
-
       await sendDailyVideoRecordingEmails(evt, downloadLink);
       return res.status(200).json({ message: "Success" });
     }
