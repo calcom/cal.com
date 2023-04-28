@@ -9,7 +9,7 @@ import { viewerRouter } from "./viewer/_router";
  * If you want to use SSG, you need export this
  * @link https://trpc.io/docs/ssg
  * @link https://trpc.io/docs/router
-*/
+ */
 export const appRouter = router({
   viewer: viewerRouter,
 });
