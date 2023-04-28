@@ -1,19 +1,27 @@
+import { useQuery } from "@tanstack/react-query";
 import { isEmpty } from "lodash";
+import type { SSRConfig } from "next-i18next";
 import { useTranslation } from "next-i18next";
 import { useEffect } from "react";
 
-import { trpc } from "@calcom/trpc/react";
-
 export function useViewerI18n() {
-  return trpc.viewer.public.i18n.useQuery(undefined, {
-    staleTime: Infinity,
-    /**
-     * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
-     * We intend to not cache i18n query
-     **/
-    trpc: {
-      context: { skipBatch: true },
+  const { data } = useQuery<{ locale: string }>({
+    queryKey: ["locale-key"],
+    queryFn: async () => {
+      const req = await fetch("/api/get-locale");
+      return req.json();
     },
+    staleTime: Infinity,
+  });
+
+  return useQuery<{ locale: string; i18n: SSRConfig }>({
+    queryKey: ["i18n"],
+    queryFn: async () => {
+      const req = await fetch(`/api/i18n?lang=${data?.locale}`);
+      return req.json();
+    },
+    staleTime: Infinity,
+    enabled: typeof data !== "undefined",
   });
 }
 
