@@ -36,7 +36,7 @@ const middleware: NextMiddleware = async (req) => {
     return NextResponse.rewrite(url);
   }
 
-  if (url.pathname.startsWith("/auth/login")) {
+  if (false && url.pathname.startsWith("/auth/login")) {
     const moreHeaders = new Headers();
     // Use this header to actually enforce CSP, otherwise it is running in Report Only mode on all pages.
     moreHeaders.set("x-csp-enforce", "true");
