@@ -223,7 +223,7 @@ function WorkflowPage() {
 
           //check if phone number is verified
           if (
-            step.action === WorkflowActions.SMS_NUMBER &&
+            (step.action === WorkflowActions.SMS_NUMBER  || step.action === WorkflowActions.WHATSAPP_NUMBER)&&
             !verifiedNumbers?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo)
           ) {
             isVerified = false;
