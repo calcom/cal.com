@@ -43,7 +43,7 @@ export type Endpoint = (typeof ENDPOINTS)[number];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const resolveEndpoint = (links: any) => {
   // TODO: Update our trpc routes so they are more clear.
-  // This function parses paths like the following are maps them
+  // This function parses paths like the following and maps them
   // to the correct API endpoints.
   // - viewer.me - 2 segment paths like this are for logged in requests
   // - viewer.public.i18n - 3 segments paths can be public or authed
