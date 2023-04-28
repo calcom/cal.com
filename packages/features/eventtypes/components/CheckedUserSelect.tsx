@@ -1,10 +1,9 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Props } from "react-select";
 
-import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar, EmptyScreen, Label, Select } from "@calcom/ui";
-import { FiUserPlus, FiX } from "@calcom/ui/components/icon";
+import { UserPlus, X } from "@calcom/ui/components/icon";
 
 export type CheckedUserSelectOption = {
   avatar: string;
@@ -48,14 +47,13 @@ export const CheckedUserSelect = ({
           <div className="flex overflow-hidden rounded-md border border-gray-200 bg-white">
             <ul className="w-full" data-testid="managed-event-types" ref={animationRef}>
               {value.map((option, index) => {
-                const calLink = `${CAL_URL}/${option.value}`;
                 return (
                   <li
                     key={option.value}
                     className={`flex py-2 px-3 ${index === value.length - 1 ? "" : "border-b"}`}>
                     <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
                     <p className="my-auto ml-3 text-sm text-gray-900">{option.label}</p>
-                    <FiX
+                    <X
                       onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
                       className="my-auto ml-auto"
                     />
@@ -68,7 +66,7 @@ export const CheckedUserSelect = ({
       ) : (
         <div className="mt-6">
           <EmptyScreen
-            Icon={FiUserPlus}
+            Icon={UserPlus}
             headline={t("no_assigned_members")}
             description={t("start_assigning_members_above")}
           />
