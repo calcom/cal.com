@@ -184,7 +184,7 @@ const Component = ({
               label={t("disconnect")}
               credentialId={existingCredentials[0]}
               onSuccess={() => {
-               appCredentials.refetch();
+                appCredentials.refetch();
               }}
             />
           ) : (
