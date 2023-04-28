@@ -12,7 +12,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 
 import type { createContextInner, CreateInnerContextOptions } from "./createContext";
 
-async function getUserFromSession({ session }: { session: Maybe<Session> }) {
+export async function getUserFromSession({ session }: { session: Maybe<Session> }) {
   if (!session?.user?.id) {
     return null;
   }
