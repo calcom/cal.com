@@ -1,0 +1,17 @@
+name: Production Build (without database)
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: ./.github/actions/yarn-install
+      - uses: ./.github/actions/env-read-file
+      - uses: ./.github/actions/cache-db
+      - uses: ./.github/actions/cache-build

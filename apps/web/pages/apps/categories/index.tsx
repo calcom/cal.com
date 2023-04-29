@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import type { InferGetStaticPropsType } from "next";
 import Link from "next/link";
 
@@ -48,17 +49,32 @@ export default function Apps({ categories }: InferGetStaticPropsType<typeof getS
 Apps.PageWrapper = PageWrapper;
 
 export const getStaticProps = async () => {
-  const appStore = await getAppRegistry();
-  const categories = appStore.reduce((c, app) => {
-    for (const category of app.categories) {
-      c[category] = c[category] ? c[category] + 1 : 1;
-    }
-    return c;
-  }, {} as Record<string, number>);
+  try {
+    const appStore = await getAppRegistry();
+    const categories = appStore.reduce((c, app) => {
+      for (const category of app.categories) {
+        c[category] = c[category] ? c[category] + 1 : 1;
+      }
+      return c;
+    }, {} as Record<string, number>);
 
-  return {
-    props: {
-      categories: Object.entries(categories).map(([name, count]) => ({ name, count })),
-    },
-  };
+    return {
+      props: {
+        categories: Object.entries(categories).map(([name, count]) => ({ name, count })),
+      },
+    };
+  } catch (e: unknown) {
+    if (e instanceof Prisma.PrismaClientInitializationError) {
+      // Database is not available at build time.
+      // We'll build an empty page for now, but revalidate until we have a connection
+      return {
+        props: {
+          categories: [],
+        },
+        revalidate: 10,
+      };
+    } else {
+      throw e;
+    }
+  }
 };
