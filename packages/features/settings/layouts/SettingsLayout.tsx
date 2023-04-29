@@ -105,14 +105,15 @@ const adminRequiredKeys = ["admin"];
 
 const useTabs = () => {
   const session = useSession();
+  const { data: user } = trpc.viewer.me.useQuery();
 
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
   tabs.map((tab) => {
-    if (tab.name === "my_account") {
-      tab.name = session.data?.user?.name || "my_account";
+    if (tab.href === "/settings/my-account") {
+      tab.name = user?.name || "my_account";
       tab.icon = undefined;
-      tab.avatar = WEBAPP_URL + "/" + session.data?.user?.username + "/avatar.png";
+      tab.avatar = WEBAPP_URL + "/" + user?.username + "/avatar.png";
     }
     return tab;
   });
