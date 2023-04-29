@@ -7,11 +7,12 @@ const rule = createRule({
     return {
       ImportDeclaration(node) {
         node.source.value === "@prisma/client" &&
+          node.importKind !== "type" &&
           node.specifiers.forEach((item) => {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             const enumType = item.imported?.name; // ts doesn't know about imported, bad type?
-            if (!enumType || enumType === "Prisma") return null;
+            if (!enumType || enumType === "Prisma" || enumType === "PrismaClient") return null;
 
             return context.report({
               node: item,
