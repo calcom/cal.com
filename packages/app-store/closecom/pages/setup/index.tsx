@@ -140,7 +140,7 @@ export default function CloseComSetup() {
                       testPassed !== undefined ? (testPassed ? "test_passed" : "test_failed") : "test_api_key"
                     )}
                   </Button>
-                  <Button type="submit" loading={form.formState.isSubmitting}>
+                  <Button color="secondary" type="submit" loading={form.formState.isSubmitting}>
                     {t("save")}
                   </Button>
                 </div>
