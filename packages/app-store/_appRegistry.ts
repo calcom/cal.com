@@ -11,10 +11,6 @@ export async function getAppWithMetadata(app: { dirName: string }) {
   // Let's not leak api keys to the front end
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { key, ...metadata } = appMetadata;
-  if (metadata.logo && !metadata.logo.includes("/api/app-store/")) {
-    const appDirName = `${metadata.isTemplate ? "templates" : ""}/${app.dirName}`;
-    metadata.logo = `/api/app-store/${appDirName}/${metadata.logo}`;
-  }
   return metadata;
 }
 

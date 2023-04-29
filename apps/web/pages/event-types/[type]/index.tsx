@@ -136,6 +136,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
+      formMethods.setValue(
+        "children",
+        formMethods.getValues().children.map((child) => ({
+          ...child,
+          created: true,
+        }))
+      );
       showToast(
         t("event_type_updated_successfully", {
           eventTypeTitle: eventType.title,
