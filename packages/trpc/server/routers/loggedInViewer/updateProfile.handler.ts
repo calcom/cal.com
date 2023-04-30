@@ -74,8 +74,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     }
 
     // Iterate over subscriptions and look for premium product id and status active
-    let isPremiumUsernameSubscriptionActive = false;
-    let hasMore = stripeSubscriptions.hasMore;
+    let isPremiumUsernameSubscriptionActive: boolean = false;
+    let hasMore: boolean = stripeSubscriptions.has_more;
     while (!isPremiumUsernameSubscriptionActive && hasMore) {
       const currentSubscriptions = stripeSubscriptions.data;
 
@@ -90,7 +90,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
           customer: stripeCustomerId,
           starting_after: currentSubscriptions[currentSubscriptions.length - 1].id,
         });
-        hasMore = stripeSubscriptions.hasMore;
+        hasMore = stripeSubscriptions.has_more;
       }
     }
 
