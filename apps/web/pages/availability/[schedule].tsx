@@ -188,8 +188,8 @@ export default function Availability() {
       }
       CTA={
         <div className="flex items-center justify-end">
-          <div className="hidden items-center rounded-md px-2 sm:flex sm:hover:bg-gray-100">
-            <Skeleton as={Label} htmlFor="hiddenSwitch" className="mt-2 cursor-pointer self-center pr-2 ">
+          <div className="hidden items-center rounded-md px-2 sm:flex sm:hover:bg-gray-300 group">
+            <Skeleton as={Label} htmlFor="hiddenSwitch" className="mt-2 cursor-pointer self-center pr-2 sm:group-hover:text-gray-900">
               {t("set_to_default")}
             </Skeleton>
             <Switch
@@ -254,11 +254,11 @@ export default function Availability() {
                 </ConfirmationDialogContent>
               </Dialog>
               <DropdownMenuSeparator />
-              <div className="flex h-9 flex-row items-center justify-between py-2 px-4 hover:bg-gray-100">
+              <div className="flex h-9 flex-row items-center justify-between py-2 px-4 group hover:bg-gray-300">
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"
-                  className="mt-2 cursor-pointer self-center pr-2 sm:inline">
+                  className="mt-2 cursor-pointer self-center pr-2 sm:inline group-hover:text-gray-900">
                   {t("set_to_default")}
                 </Skeleton>
                 <Switch
