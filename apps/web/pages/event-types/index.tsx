@@ -15,6 +15,8 @@ import { DuplicateDialog } from "@calcom/features/eventtypes/components/Duplicat
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -660,6 +662,8 @@ const EventTypeListHeading = ({
 }: EventTypeListHeadingProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
+  const { data: loggedInUser } = useMeQuery();
+  const { data: avatar } = useAvatarQuery();
 
   const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
     onSuccess(data) {
@@ -675,7 +679,7 @@ const EventTypeListHeading = ({
       <Avatar
         alt={profile?.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={`${WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
+        imageSrc={loggedInUser.username === profile.slug ? avatar.avatar : `${WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
         size="md"
         className="mt-1 inline-flex justify-center"
       />

@@ -28,6 +28,8 @@ import {
   Plus,
   Menu,
 } from "@calcom/ui/components/icon";
+import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
 const tabs: VerticalTabItemProps[] = [
   {
@@ -105,8 +107,8 @@ const adminRequiredKeys = ["admin"];
 
 const useTabs = () => {
   const session = useSession();
-  const { data: user } = trpc.viewer.me.useQuery();
-  const { data: avatar } = trpc.viewer.avatar.useQuery();
+  const { data: user } = useMeQuery();
+  const { data: avatar } = useAvatarQuery();
 
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
