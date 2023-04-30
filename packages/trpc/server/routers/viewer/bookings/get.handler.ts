@@ -16,6 +16,12 @@ type GetOptions = {
   input: TGetInputSchema;
 };
 
+type InputFilters = Pick<TGetInputSchema["filters"], "teamIds" | "userIds">;
+
+type BookingWhereInputFilters = {
+  [key in keyof InputFilters]: Prisma.BookingWhereInput;
+};
+
 export const getHandler = async ({ ctx, input }: GetOptions) => {
   // using offset actually because cursor pagination requires a unique column
   // for orderBy, but we don't use a unique column in our orderBy
@@ -73,8 +79,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     unconfirmed: { startTime: "asc" },
   };
 
-  // TODO: Fix record typing
-  const bookingWhereInputFilters: Record<string, Prisma.BookingWhereInput> = {
+  const bookingWhereInputFilters: BookingWhereInputFilters = {
     teamIds: {
       AND: [
         {
@@ -107,9 +112,11 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
 
   const filtersCombined: Prisma.BookingWhereInput[] =
     input.filters &&
-    Object.keys(input.filters).map((key) => {
-      return bookingWhereInputFilters[key];
-    });
+    Object.keys(input.filters)
+      .map((key) => {
+        return bookingWhereInputFilters[key as keyof InputFilters];
+      })
+      .filter((inputFilter): inputFilter is Prisma.BookingWhereInput => inputFilter !== undefined);
 
   const passedBookingsStatusFilter = bookingListingFilters[bookingListingByStatus];
   const orderBy = bookingListingOrderby[bookingListingByStatus];
