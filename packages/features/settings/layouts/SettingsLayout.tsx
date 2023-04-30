@@ -196,7 +196,7 @@ const SettingsSidebarContainer = ({
                   {!tab.icon && tab?.avatar && (
                     <img
                       className="h-4 w-4 rounded-full ltr:mr-3 rtl:ml-3"
-                      src={tab?.info === "userAvatar" ? avatar?.avatar : tab?.avatar}
+                      src={tab?.info === "userAvatar" ? avatar?.avatar || undefined : tab?.avatar}
                       alt="User Avatar"
                     />
                   )}
