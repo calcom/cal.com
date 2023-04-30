@@ -96,6 +96,7 @@
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
     "lucide-react": "^0.130.0",
+    "polished": "^4.2.2",
     "turbo": "^1.8.3"
   },
   "resolutions": {
