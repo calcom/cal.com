@@ -1,3 +1,5 @@
+import { rgb } from "polished";
+
 import { useBrandColors } from "@calcom/embed-core/embed-iframe";
 
 const BRAND_COLOR = "#292929";
@@ -49,8 +51,7 @@ function hexToRgb(hex: string): Rgb {
 }
 
 function rgbToHex(r: number, g: number, b: number): string {
-  const toHex = (c: number) => `0${c.toString(16)}`.slice(-2);
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  return rgb(r, g, b);
 }
 
 function lighten(hex: string, intensity: number): string {
