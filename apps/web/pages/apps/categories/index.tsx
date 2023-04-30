@@ -1,16 +1,19 @@
-import { Prisma } from "@prisma/client";
-import type { InferGetStaticPropsType } from "next";
+import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 
-import { getAppRegistry } from "@calcom/app-store/_appRegistry";
+import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { SkeletonText } from "@calcom/ui";
 import { ArrowLeft, ArrowRight } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 
-export default function Apps({ categories }: InferGetStaticPropsType<typeof getStaticProps>) {
+import { ssrInit } from "@server/lib/ssr";
+
+export default function Apps({ categories }: inferSSRProps<typeof getServerSideProps>) {
   const { t, isLocaleReady } = useLocale();
 
   return (
@@ -48,33 +51,31 @@ export default function Apps({ categories }: InferGetStaticPropsType<typeof getS
 
 Apps.PageWrapper = PageWrapper;
 
-export const getStaticProps = async () => {
-  try {
-    const appStore = await getAppRegistry();
-    const categories = appStore.reduce((c, app) => {
-      for (const category of app.categories) {
-        c[category] = c[category] ? c[category] + 1 : 1;
-      }
-      return c;
-    }, {} as Record<string, number>);
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const { req, res } = context;
 
-    return {
-      props: {
-        categories: Object.entries(categories).map(([name, count]) => ({ name, count })),
-      },
-    };
-  } catch (e: unknown) {
-    if (e instanceof Prisma.PrismaClientInitializationError) {
-      // Database is not available at build time.
-      // We'll build an empty page for now, but revalidate until we have a connection
-      return {
-        props: {
-          categories: [],
-        },
-        revalidate: 10,
-      };
-    } else {
-      throw e;
-    }
+  const ssr = await ssrInit(context);
+
+  const session = await getServerSession({ req, res });
+
+  let appStore;
+  if (session?.user?.id) {
+    appStore = await getAppRegistryWithCredentials(session.user.id);
+  } else {
+    appStore = await getAppRegistry();
   }
+
+  const categories = appStore.reduce((c, app) => {
+    for (const category of app.categories) {
+      c[category] = c[category] ? c[category] + 1 : 1;
+    }
+    return c;
+  }, {} as Record<string, number>);
+
+  return {
+    props: {
+      categories: Object.entries(categories).map(([name, count]) => ({ name, count })),
+      trpcState: ssr.dehydrate(),
+    },
+  };
 };
