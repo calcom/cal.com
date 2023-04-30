@@ -12,6 +12,8 @@ import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { VerticalTabItemProps } from "@calcom/ui";
 import { Badge, Button, ErrorBoundary, Skeleton, useMeta, VerticalTabItem } from "@calcom/ui";
 import {
@@ -28,8 +30,6 @@ import {
   Plus,
   Menu,
 } from "@calcom/ui/components/icon";
-import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
 const tabs: VerticalTabItemProps[] = [
   {

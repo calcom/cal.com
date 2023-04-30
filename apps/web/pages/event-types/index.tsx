@@ -15,13 +15,13 @@ import { DuplicateDialog } from "@calcom/features/eventtypes/components/Duplicat
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import {
   Avatar,
   AvatarGroup,
@@ -679,7 +679,11 @@ const EventTypeListHeading = ({
       <Avatar
         alt={profile?.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={loggedInUser.username === profile.slug ? avatar.avatar : `${WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
+        imageSrc={
+          loggedInUser?.username === profile.slug
+            ? avatar?.avatar
+            : `${WEBAPP_URL}/${profile.slug}/avatar.png` || undefined
+        }
         size="md"
         className="mt-1 inline-flex justify-center"
       />

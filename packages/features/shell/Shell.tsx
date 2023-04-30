@@ -296,7 +296,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   className="rounded-full"
-                  src={avatar.avatar || WEBAPP_URL + "/" + user.username + "/avatar.png"}
+                  src={avatar?.avatar || WEBAPP_URL + "/" + user.username + "/avatar.png"}
                   alt={user.username || "Nameless User"}
                 />
               }
