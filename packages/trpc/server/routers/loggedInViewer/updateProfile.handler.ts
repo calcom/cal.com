@@ -64,7 +64,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       throw new TRPCError({ code: "BAD_REQUEST", message: "User is not premium" });
     }
 
-    const stripeSubscriptions = await stripe.subscriptions.list({ customer: stripeCustomerId });
+    let stripeSubscriptions = await stripe.subscriptions.list({ customer: stripeCustomerId });
 
     if (!stripeSubscriptions || !stripeSubscriptions.data.length) {
       throw new TRPCError({
@@ -74,12 +74,25 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     }
 
     // Iterate over subscriptions and look for premium product id and status active
-    // @TODO: iterate if stripeSubscriptions.hasMore is true
-    const isPremiumUsernameSubscriptionActive = stripeSubscriptions.data.some(
-      (subscription) =>
-        subscription.items.data[0].price.product === getPremiumPlanProductId() &&
-        subscription.status === "active"
-    );
+    let isPremiumUsernameSubscriptionActive = false;
+    let hasMore = stripeSubscriptions.hasMore;
+    while (!isPremiumUsernameSubscriptionActive && hasMore) {
+      const currentSubscriptions = stripeSubscriptions.data;
+
+      isPremiumUsernameSubscriptionActive = currentSubscriptions.some(
+        (subscription) =>
+          subscription.items.data[0].price.product === getPremiumPlanProductId() &&
+          subscription.status === "active"
+      );
+
+      if (!isPremiumUsernameSubscriptionActive) {
+        stripeSubscriptions = await stripe.subscriptions.list({
+          customer: stripeCustomerId,
+          starting_after: currentSubscriptions[currentSubscriptions.length - 1].id,
+        });
+        hasMore = stripeSubscriptions.hasMore;
+      }
+    }
 
     if (!isPremiumUsernameSubscriptionActive) {
       throw new TRPCError({
