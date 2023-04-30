@@ -1,4 +1,4 @@
-import { rgb, lighten as lightenColor } from "polished";
+import { rgb, lighten as lightenColor, darken as darkenColor } from "polished";
 
 import { useBrandColors } from "@calcom/embed-core/embed-iframe";
 
@@ -59,17 +59,7 @@ function lighten(hex: string, intensity: number): string {
 }
 
 function darken(hex: string, intensity: number): string {
-  const color = hexToRgb(hex);
-
-  if (!color) {
-    return "";
-  }
-
-  const r = Math.round(color.r * intensity);
-  const g = Math.round(color.g * intensity);
-  const b = Math.round(color.b * intensity);
-
-  return rgbToHex(r, g, b);
+  return darkenColor(intensity, hex);
 }
 
 function normalizeHexCode(hex: string | null, dark: boolean) {
