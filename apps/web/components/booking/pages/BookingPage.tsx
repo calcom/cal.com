@@ -550,9 +550,9 @@ const BookingPage = ({
           className={classNames(
             "main",
             isBackgroundTransparent ? "" : "bg-default dark:bg-muted",
-            "border-booker sm:border-booker-width min-h-[412px] rounded-md"
+            "border-booker sm:border-booker-width min-h-[412px] rounded-md md:min-h-[432px]"
           )}>
-          <div className="min-h-[412px] sm:flex">
+          <div className="min-h-[412px] sm:flex md:min-h-[432px]">
             {showEventTypeDetails && (
               <div className="sm:border-subtle  text-default flex flex-col px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
