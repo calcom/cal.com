@@ -130,5 +130,6 @@
   "events_rescheduled": "நிகழ்வுகள் மீண்டும் திட்டமிடப்பட்டுள்ளன",
   "from_last_period": "கடந்த காலத்திலிருந்து",
   "from_to_date_period": "{{startDate}} லிருந்து {{endDate}} வரை",
-  "event_trends": "நிகழ்வுப் போக்குகள்"
+  "event_trends": "நிகழ்வுப் போக்குகள்",
+  "Please reschedule.": "தயவுசெய்து மீண்டும் திட்டமிடவும்."
 }

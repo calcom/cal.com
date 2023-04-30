@@ -1783,5 +1783,6 @@
   "seats_and_no_show_fee_error": "Momentan, nu se pot elibera locuri și nici nu se poate percepe o taxă de neprezentare",
   "complete_your_booking": "Finalizați rezervarea",
   "complete_your_booking_subject": "Finalizați rezervarea: {{title}}, pe {{date}}",
-  "email_invite_team": "{{email}} a fost invitat"
+  "email_invite_team": "{{email}} a fost invitat",
+  "Please reschedule.": "Vă rugăm să reprogramați."
 }

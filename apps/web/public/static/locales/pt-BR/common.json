@@ -1783,5 +1783,6 @@
   "seats_and_no_show_fee_error": "Neste momento, não é possível habilitar assentos e cobrar taxa de não comparecimento",
   "complete_your_booking": "Conclua sua reserva",
   "complete_your_booking_subject": "Conclua sua reserva: {{title}} à(s) {{date}}",
-  "email_invite_team": "{{email}} recebeu um convite"
+  "email_invite_team": "{{email}} recebeu um convite",
+  "Please reschedule.": "Please reschedule."
 }

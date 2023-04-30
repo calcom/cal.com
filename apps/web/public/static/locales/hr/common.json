@@ -347,5 +347,6 @@
   "dark": "Tamna",
   "automatically_adjust_theme": "Automatski prilagodite temu na temelju preferencija pozvanih osoba",
   "user_dynamic_booking_disabled": "Neki od korisnika u grupi trenutno su onemogućili dinamičke grupne rezervacije",
-  "email_no_user_cta": "Kreiraj svoj račun"
+  "email_no_user_cta": "Kreiraj svoj račun",
+  "Please reschedule.": "Molimo pomaknite termin."
 }

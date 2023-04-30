@@ -1783,5 +1783,6 @@
   "seats_and_no_show_fee_error": "Наразі неможливо ввімкнути місця і стягнути плату за відсутність",
   "complete_your_booking": "Завершіть бронювання",
   "complete_your_booking_subject": "Завершіть бронювання: {{title}} {{date}}",
-  "email_invite_team": "{{email}} запрошено"
+  "email_invite_team": "{{email}} запрошено",
+  "Please reschedule.": "Будь ласка, перенесіть."
 }

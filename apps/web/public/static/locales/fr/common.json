@@ -1800,5 +1800,6 @@
   "payment_app_commission": "Exiger un paiement ({{paymentFeePercentage}} % + {{fee, currency}} de commission par transaction)",
   "email_invite_team": "{{email}} a été invité",
   "error_collecting_card": "Erreur lors de la collecte de la carte",
-  "image_size_limit_exceed": "L'image téléchargée ne doit pas dépasser 5 Mo"
+  "image_size_limit_exceed": "L'image téléchargée ne doit pas dépasser 5 Mo",
+  "Please reschedule.": "Veuillez reprogrammer."
 }

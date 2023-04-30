@@ -1783,5 +1783,6 @@
   "seats_and_no_show_fee_error": "V současné době nelze povolit místa a strhnout poplatek za nedostavení se",
   "complete_your_booking": "Dokončete svou rezervaci",
   "complete_your_booking_subject": "Dokončete svou rezervaci: {{title}} dne {{date}}",
-  "email_invite_team": "Pozvánka pro uživatele {{email}} odeslána"
+  "email_invite_team": "Pozvánka pro uživatele {{email}} odeslána",
+  "Please reschedule.": "Prosím o změnu termínu."
 }

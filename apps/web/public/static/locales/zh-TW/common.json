@@ -1783,5 +1783,6 @@
   "seats_and_no_show_fee_error": "目前無法啟用座位並收取缺席費",
   "complete_your_booking": "完成您的預約",
   "complete_your_booking_subject": "完成您的預約：{{date}} 的 {{title}}",
-  "email_invite_team": "已邀請 {{email}}"
+  "email_invite_team": "已邀請 {{email}}",
+  "Please reschedule.": "請重新安排。"
 }

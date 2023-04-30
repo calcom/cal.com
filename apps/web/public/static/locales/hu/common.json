@@ -218,5 +218,6 @@
   "organizer_name_info": "Neved",
   "theme_light": "Világos",
   "theme_dark": "Sötét",
-  "timezone_variable": "Időzóna"
+  "timezone_variable": "Időzóna",
+  "Please reschedule.": "Kérem, ütemezze át."
 }

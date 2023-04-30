@@ -1783,5 +1783,6 @@
   "seats_and_no_show_fee_error": "現在、座席の有効化と予約不参加料金の請求はできません",
   "complete_your_booking": "予約を完了する",
   "complete_your_booking_subject": "次の予約を完了する：{{date}} の {{title}}",
-  "email_invite_team": "{{email}} は招待されました"
+  "email_invite_team": "{{email}} は招待されました",
+  "Please reschedule.": "再スケジュールしてください。"
 }

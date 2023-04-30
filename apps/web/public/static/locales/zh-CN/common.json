@@ -1783,5 +1783,6 @@
   "seats_and_no_show_fee_error": "当前无法启用位置和收取失约费",
   "complete_your_booking": "完成您的预约",
   "complete_your_booking_subject": "完成您的预约: {{date}} 的 {{title}}",
-  "email_invite_team": "{{email}} 已被邀请"
+  "email_invite_team": "{{email}} 已被邀请",
+  "Please reschedule.": "请重新安排。"
 }

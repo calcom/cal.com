@@ -24,6 +24,7 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import type { PersonAttendeeCommonFields } from "./types";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 type RequestRescheduleOptions = {
   ctx: {
@@ -34,6 +35,7 @@ type RequestRescheduleOptions = {
 
 export const requestRescheduleHandler = async ({ ctx, input }: RequestRescheduleOptions) => {
   const { user } = ctx;
+  const {t} = useLocale();
   const { bookingId, rescheduleReason: cancellationReason } = input;
 
   const bookingToReschedule = await prisma.booking.findFirstOrThrow({
@@ -229,7 +231,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       location: bookingToReschedule?.location,
       destinationCalendar:
         bookingToReschedule?.destinationCalendar || bookingToReschedule?.destinationCalendar,
-      cancellationReason: `Please reschedule. ${cancellationReason}`, // TODO::Add i18-next for this
+      cancellationReason: t('Please reschedule.') + " " + cancellationReason,
     };
 
     // Send webhook

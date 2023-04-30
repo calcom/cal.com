@@ -1800,5 +1800,6 @@
   "payment_app_commission": "Require payment ({{paymentFeePercentage}}% + {{fee, currency}} commission per transaction)",
   "email_invite_team": "{{email}} has been invited",
   "error_collecting_card": "Error collecting card",
-  "image_size_limit_exceed": "Uploaded image shouldn't exceed 5mb size limit"
+  "image_size_limit_exceed": "Uploaded image shouldn't exceed 5mb size limit",
+  "Please reschedule.": "Please reschedule."
 }

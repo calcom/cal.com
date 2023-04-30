@@ -1674,5 +1674,6 @@
   "events_rescheduled": "ארועים שתוזמנו מחדש",
   "from_last_period": "מפרק הזמן האחרון",
   "from_to_date_period": "מ: {{startDate}} עד: {{endDate}}",
-  "event_trends": "מגמות ארוע"
+  "event_trends": "מגמות ארוע",
+  "Please reschedule.": "נא לתאם מחדש."
 }
