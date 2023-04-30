@@ -59,6 +59,8 @@ import type { BookPageProps } from "../../../pages/[user]/book";
 import type { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import type { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
+const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
+
 const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaster), { ssr: false });
 
 /** These are like 40kb that not every user needs */
@@ -674,6 +676,7 @@ const BookingPage = ({
             </div>
           </div>
         </div>
+        <PoweredBy />
       </main>
       <Toaster position="bottom-right" />
     </Gates>
