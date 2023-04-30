@@ -43,6 +43,7 @@ const tabs: VerticalTabItemProps[] = [
       // TODO
       // { name: "referrals", href: "/settings/my-account/referrals" },
     ],
+    info:"userAvatar"
   },
   {
     name: "security",
@@ -149,6 +150,7 @@ const SettingsSidebarContainer = ({
 }: SettingsSidebarContainerProps) => {
   const { t } = useLocale();
   const router = useRouter();
+  const { data: avatar} = trpc.viewer.avatar.useQuery();
   const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
@@ -194,7 +196,7 @@ const SettingsSidebarContainer = ({
                   {!tab.icon && tab?.avatar && (
                     <img
                       className="h-4 w-4 rounded-full ltr:mr-3 rtl:ml-3"
-                      src={tab?.avatar}
+                      src={tab?.info === "userAvatar" ? avatar?.avatar : tab?.avatar}
                       alt="User Avatar"
                     />
                   )}
