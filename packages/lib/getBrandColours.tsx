@@ -1,4 +1,4 @@
-import { rgb, lighten as lightenColor, darken as darkenColor } from "polished";
+import { rgb, lighten as lightenColor, darken as darkenColor, getContrast, getLuminance } from "polished";
 
 import { useBrandColors } from "@calcom/embed-core/embed-iframe";
 
@@ -112,23 +112,15 @@ export const createColorMap = (brandColor: string) => {
 };
 
 function getWCAGContrastColor(background: string): string {
-  // Convert the hex background color to RGB
-  const { r, g, b } = hexToRgb(background);
   // Calculate the luminance of the background color
-  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  const luminance = getLuminance(background);
 
   // If the luminance is less than 0.5, use white as the text color, otherwise use black
   return luminance < 0.5 ? "#FFFFFF" : "#000000";
 }
 
 export function checkWCAGContrastColor(background: string, target: string) {
-  const backgroundRGB = hexToRgb(background);
-  const targetRGB = hexToRgb(target);
-  const bgLuminance = (0.2126 * backgroundRGB.r + 0.7152 * backgroundRGB.g + 0.0722 * backgroundRGB.b) / 255;
-  const targetLuminance = (0.2126 * targetRGB.r + 0.7152 * targetRGB.g + 0.0722 * targetRGB.b) / 255;
-
-  const contrastRadio =
-    (Math.max(bgLuminance, targetLuminance) + 0.05) / (Math.min(targetLuminance, bgLuminance) + 0.05);
+  const contrastRadio = getContrast(background, target);
 
   const MIN_CONTRAST_RATIO = 4.5; // used for BGs
 
