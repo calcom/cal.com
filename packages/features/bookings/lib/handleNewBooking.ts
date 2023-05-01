@@ -1443,6 +1443,7 @@ async function handler(
        * deep cloning evt to avoid this
        */
       const copyEvent = cloneDeep(evt);
+      copyEvent.uid = booking.uid;
       await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
       const credentials = await refreshCredentials(organizerUser.credentials);
@@ -1503,7 +1504,7 @@ async function handler(
     // Here we should handle every after action that needs to be done after booking creation
 
     // Obtain event metadata that includes videoCallUrl
-    const metadata = { videoCallUrl: evt.videoCallData?.url };
+    const metadata = evt.videoCallData?.url ? { videoCallUrl: evt.videoCallData.url } : undefined;
     try {
       await scheduleWorkflowReminders({
         workflows: eventType.workflows,
@@ -2119,7 +2120,7 @@ async function handler(
     log.error("Error while creating booking references", error);
   }
 
-  const metadataFromEvent = { videoCallUrl };
+  const metadataFromEvent = videoCallUrl ? { videoCallUrl } : undefined;
 
   try {
     await scheduleWorkflowReminders({

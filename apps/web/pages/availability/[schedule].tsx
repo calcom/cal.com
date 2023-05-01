@@ -10,6 +10,7 @@ import { availabilityAsString } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
+import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
@@ -34,8 +35,6 @@ import {
   VerticalDivider,
 } from "@calcom/ui";
 import { Info, Plus, Trash, MoreHorizontal } from "@calcom/ui/components/icon";
-
-import { HttpError } from "@lib/core/http/error";
 
 import PageWrapper from "@components/PageWrapper";
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
