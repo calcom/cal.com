@@ -474,7 +474,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               StartIcon={Italic}
               onClick={() => {
                 editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
-                if (isItalic) {
+                if (isBold) {
                   editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
                 }
               }}
