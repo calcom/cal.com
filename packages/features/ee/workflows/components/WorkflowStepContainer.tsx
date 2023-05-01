@@ -74,11 +74,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [updateTemplate, setUpdateTemplate] = useState(false);
   const [firstRender, setFirstRender] = useState(true);
 
-  const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(
-    step?.action === WorkflowActions.SMS_NUMBER || step?.action === WorkflowActions.SMS_ATTENDEE
-      ? true
-      : false
-  );
+  const senderNeeded = (
+    step?.action === WorkflowActions.SMS_NUMBER || 
+    step?.action === WorkflowActions.SMS_ATTENDEE ||
+    step?.action === WorkflowActions.WHATSAPP_ATTENDEE ||
+    step?.action === WorkflowActions.WHATSAPP_NUMBER
+  )
+  const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(senderNeeded ? true : false);
   useEffect(() => {
     setNumberVerified(
       !!step &&
@@ -303,6 +305,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     };
 
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
+
+    const canRequirePhoneNumber = (workflowStep: string) => {
+      return (
+        WorkflowActions.SMS_ATTENDEE === workflowStep ||
+        WorkflowActions.WHATSAPP_ATTENDEE === workflowStep
+      )
+    }
 
     return (
       <>
@@ -572,7 +581,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </>
                 )}
               </div>
-              {form.getValues(`steps.${step.stepNumber - 1}.action`) === WorkflowActions.SMS_ATTENDEE && (
+              {canRequirePhoneNumber(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
                 <div className="mt-2">
                   <Controller
                     name={`steps.${step.stepNumber - 1}.numberRequired`}

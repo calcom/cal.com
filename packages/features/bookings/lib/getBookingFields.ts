@@ -144,7 +144,7 @@ export const ensureBookingInputsHaveSystemFields = ({
   const smsNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
   workflows.forEach((workflow) => {
     workflow.workflow.steps.forEach((step) => {
-      if (step.action === "SMS_ATTENDEE") {
+      if (step.action === "SMS_ATTENDEE" || step.action === "WHATSAPP_ATTENDEE") {
         const workflowId = workflow.workflow.id;
         smsNumberSources.push(
           getSmsReminderNumberSource({

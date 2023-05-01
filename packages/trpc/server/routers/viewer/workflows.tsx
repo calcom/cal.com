@@ -1426,7 +1426,7 @@ action === WorkflowActions.EMAIL_ADDRESS*/
 
         if (
           eventTypeWorkflow.steps.some((step) => {
-            return step.action === WorkflowActions.SMS_ATTENDEE;
+            return step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.WHATSAPP_ATTENDEE;
           })
         ) {
           const isSmsReminderNumberRequired = eventTypeWorkflow.steps.some((step) => {

@@ -122,6 +122,13 @@ export const AddActionDialog = (props: IAddActionDialog) => {
 
   if (!actionOptions) return null;
 
+  const canRequirePhoneNumber = (workflowStep: string) => {
+    return (
+      WorkflowActions.SMS_ATTENDEE === workflowStep ||
+      WorkflowActions.WHATSAPP_ATTENDEE === workflowStep
+    )
+  }
+
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent type="creation" title={t("add_action")}>
@@ -221,7 +228,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                   <Input type="text" placeholder={SENDER_NAME} {...form.register(`senderName`)} />
                 </div>
               )}
-              {form.getValues("action") === WorkflowActions.SMS_ATTENDEE && (
+              {canRequirePhoneNumber(form.getValues("action")) && (
                 <div className="mt-5">
                   <Controller
                     name="numberRequired"

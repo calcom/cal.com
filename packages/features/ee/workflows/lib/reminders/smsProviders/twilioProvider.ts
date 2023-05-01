@@ -22,7 +22,7 @@ function assertTwilio(twilio: TwilioClient.Twilio | undefined): asserts twilio i
 function getDefaultSender(whatsapp = false) {
   let defaultSender = process.env.TWILIO_PHONE_NUMBER
   if (whatsapp) {
-    defaultSender = `whatsapp:${defaultSender}`
+    defaultSender = `whatsapp:+${process.env.TWILIO_WHATSAPP_PHONE_NUMBER}`
   }
   return defaultSender 
 }
