@@ -8,6 +8,7 @@ import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
+import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
 import type { Dispatch, SetStateAction } from "react";
@@ -87,6 +88,7 @@ export const Editor = (props: TextEditorProps) => {
             <ListPlugin />
             <LinkPlugin />
             <AutoLinkPlugin />
+            <HistoryPlugin />
             <MarkdownShortcutPlugin
               transformers={
                 props.disableLists
