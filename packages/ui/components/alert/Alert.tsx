@@ -1,8 +1,7 @@
-import { CheckCircleIcon, ExclamationIcon, InformationCircleIcon, XCircleIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import type { ReactNode } from "react";
 
-import { Info } from "../icon";
+import { CheckCircle2, AlertTriangle, Info, XCircle } from "@calcom/ui/components/icon";
 
 export interface AlertProps {
   title?: ReactNode;
@@ -32,25 +31,39 @@ export function Alert(props: AlertProps) {
       <div className="relative flex flex-col md:flex-row">
         <div className="flex-shrink-0">
           {severity === "error" && (
-            <XCircleIcon className={classNames("h-5 w-5 text-red-400", iconClassName)} aria-hidden="true" />
+            <XCircle
+              fill="rgb(248 113 113)"
+              color="white"
+              className={classNames("h-5 w-5", iconClassName)}
+              aria-hidden="true"
+            />
           )}
           {severity === "warning" && (
-            <ExclamationIcon
-              className={classNames("h-5 w-5 text-yellow-400", iconClassName)}
+            <AlertTriangle
+              color="white"
+              fill="rgb(250 204 21)"
+              className={classNames("h-5 w-5", iconClassName)}
               aria-hidden="true"
             />
           )}
           {severity === "info" && (
-            <InformationCircleIcon
+            <Info
+              color="white"
+              fill="rgb(56 189 248)"
               className={classNames("h-5 w-5 text-sky-400", iconClassName)}
               aria-hidden="true"
             />
           )}
           {severity === "neutral" && (
-            <Info className={classNames("text-default h-5 w-5", iconClassName)} aria-hidden="true" />
+            <Info className={classNames("h-5 w-5", iconClassName)} aria-hidden="true" />
           )}
           {severity === "success" && (
-            <CheckCircleIcon className={classNames("text-muted h-5 w-5", iconClassName)} aria-hidden="true" />
+            <CheckCircle2
+              color="white"
+              fill="#9CA3AF"
+              className={classNames("h-5 w-5", iconClassName)}
+              aria-hidden="true"
+            />
           )}
         </div>
         <div className="ml-3 flex-grow">

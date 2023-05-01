@@ -1,4 +1,3 @@
-import { ArrowRightIcon } from "@heroicons/react/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -10,6 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Button, TimezoneSelect } from "@calcom/ui";
+import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
@@ -116,7 +116,7 @@ const UserSettings = (props: IUserSettingsProps) => {
         className="mt-8 flex w-full flex-row justify-center"
         disabled={mutation.isLoading}>
         {t("next_step_text")}
-        <ArrowRightIcon className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
+        <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </Button>
     </form>
   );

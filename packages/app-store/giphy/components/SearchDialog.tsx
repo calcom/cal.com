@@ -1,10 +1,10 @@
-import { LinkIcon, SearchIcon } from "@heroicons/react/outline";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, Dialog, DialogClose, DialogContent, DialogFooter, Input } from "@calcom/ui";
+import { Link, Search } from "@calcom/ui/components/icon";
 
 interface ISearchDialog {
   isOpenDialog: boolean;
@@ -118,8 +118,8 @@ export const SearchDialog = (props: ISearchDialog) => {
         </h3>
         <p className="text-subtle mb-3 text-sm font-light">{t("find_gif_spice_confirmation")}</p>
         <div className="border-emphasis flex items-center border-b border-solid">
-          {renderTab(SearchIcon, t("search_giphy"), MODE_SEARCH)}
-          {renderTab(LinkIcon, t("add_link_from_giphy"), MODE_URL)}
+          {renderTab(Search, t("search_giphy"), MODE_SEARCH)}
+          {renderTab(Link, t("add_link_from_giphy"), MODE_URL)}
         </div>
         <form
           className="flex w-full justify-center space-x-2 space-y-2 rtl:space-x-reverse"

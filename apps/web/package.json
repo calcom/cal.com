@@ -41,7 +41,6 @@
     "@daily-co/daily-js": "^0.37.0",
     "@formkit/auto-animate": "^1.0.0-beta.5",
     "@glidejs/glide": "^3.5.2",
-    "@heroicons/react": "^1.0.6",
     "@hookform/error-message": "^2.0.0",
     "@hookform/resolvers": "^2.9.7",
     "@next-auth/prisma-adapter": "^1.0.4",
