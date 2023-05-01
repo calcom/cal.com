@@ -2,7 +2,7 @@
  * This file contains the root router of your tRPC-backend
  */
 import { router } from "../trpc";
-import { viewerRouter } from "./routers/viewer/_router";
+import { viewerRouter } from "./viewer/_router";
 
 import type { Endpoint } from "../../react";
 
