@@ -192,6 +192,9 @@ export default class BiginCalendarService implements Calendar {
       return Promise.resolve({
         uid: meetingEvent.data[0].details.id,
         id: meetingEvent.data[0].details.id,
+        //FIXME: `externalCalendarId` is required by the `updateAllCalendarEvents` method, but is not used by zoho-bigin App. Not setting this property actually skips calling updateEvent..
+        // Here the value doesn't matter. We just need to set it to something.
+        externalCalendarId: "NO_CALENDAR_ID_NEEDED",
         type: this.integrationName,
         password: "",
         url: "",
@@ -232,6 +235,7 @@ export default class BiginCalendarService implements Calendar {
    * Updates an existing event in Zoho Bigin.
    */
   async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
+    this.log.debug(`Updating Event with uid ${uid}`);
     const token = await this.auth.getToken();
     const biginEvent = {
       id: uid,
