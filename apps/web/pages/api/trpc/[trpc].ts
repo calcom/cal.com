@@ -1,6 +1,7 @@
 /**
  * This file contains tRPC's HTTP response handler
  */
+import { cacheHeader } from "pretty-cache-header";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -67,7 +68,7 @@ export default trpcNext.createNextApiHandler({
     // we want to create a map that can match potential paths with their desired cache value
     const cacheRules = {
       "viewer.public.session": `no-cache`,
-      "viewer.public.i18n": `no-cache`,
+      "viewer.public.i18n": cacheHeader({ public: true, maxAge: "1d", staleWhileRevalidate: "1d" }),
       // Revalidation time here should be 1 second, per https://github.com/calcom/cal.com/pull/6823#issuecomment-1423215321
       "viewer.public.slots.getSchedule": `no-cache`, // FIXME
       "viewer.public.cityTimezones": `max-age=${ONE_DAY_IN_SECONDS}, stale-while-revalidate`,
