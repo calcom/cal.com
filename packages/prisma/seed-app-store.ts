@@ -277,12 +277,6 @@ export default async function main() {
       client_secret: process.env.ZOOM_CLIENT_SECRET,
     });
   }
-  if (process.env.WEBEX_CLIENT_ID && process.env.WEBEX_CLIENT_SECRET) {
-    await createApp("webex", "webex", ["video"], "webex_video", {
-      client_id: process.env.WEBEX_CLIENT_ID,
-      client_secret: process.env.WEBEX_CLIENT_SECRET,
-    });
-  }
   await createApp("jitsi", "jitsivideo", ["video"], "jitsi_video");
   // Other apps
   if (process.env.HUBSPOT_CLIENT_ID && process.env.HUBSPOT_CLIENT_SECRET) {
