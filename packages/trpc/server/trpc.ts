@@ -1,5 +1,4 @@
 import type { Session } from "next-auth";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -112,22 +111,18 @@ const perfMiddleware = t.middleware(async ({ path, type, next }) => {
 export const getLocale = async (ctx: CreateInnerContextOptions) => {
   const user = await getUserFromSession({ session: ctx.session });
 
-  const i18n =
-    user?.locale && user?.locale !== ctx.locale
-      ? await serverSideTranslations(user.locale, ["common", "vital"])
-      : ctx.i18n;
   const locale = user?.locale || ctx.locale;
-  return { user, i18n, session: ctx.session, locale };
+  return { user, session: ctx.session, locale };
 };
 
 export const isAuthed = t.middleware(async ({ ctx, next }) => {
-  const { user, session, locale, i18n } = await getLocale(ctx);
+  const { user, session, locale } = await getLocale(ctx);
   if (!user || !session) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
   return next({
-    ctx: { locale, i18n, user: { ...user, locale }, session },
+    ctx: { locale, user: { ...user, locale }, session },
   });
 });
 
