@@ -1,6 +1,7 @@
 import { publicProcedure, router } from "../../trpc";
 import { slotsRouter } from "../viewer/slots/_router";
 import { ZEventInputSchema } from "./event.schema";
+import { ZI18nInputSchema } from "./i18n.schema";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
 
@@ -12,6 +13,7 @@ type PublicViewerRouterHandlerCache = {
   stripeCheckoutSession?: typeof import("./stripeCheckoutSession.handler").stripeCheckoutSessionHandler;
   cityTimezones?: typeof import("./cityTimezones.handler").cityTimezonesHandler;
   event?: typeof import("./event.handler").eventHandler;
+  locale?: typeof import("./i18n.handler").localeHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: PublicViewerRouterHandlerCache = {};
@@ -33,7 +35,7 @@ export const publicViewerRouter = router({
     });
   }),
 
-  i18n: publicProcedure.query(async ({ ctx }) => {
+  i18n: publicProcedure.input(ZI18nInputSchema).query(async ({ input }) => {
     if (!UNSTABLE_HANDLER_CACHE.i18n) {
       UNSTABLE_HANDLER_CACHE.i18n = await import("./i18n.handler").then((mod) => mod.i18nHandler);
     }
@@ -43,9 +45,20 @@ export const publicViewerRouter = router({
       throw new Error("Failed to load handler");
     }
 
-    return UNSTABLE_HANDLER_CACHE.i18n({
-      ctx,
-    });
+    return UNSTABLE_HANDLER_CACHE.i18n(input.locale);
+  }),
+
+  locale: publicProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.locale) {
+      UNSTABLE_HANDLER_CACHE.locale = await import("./i18n.handler").then((mod) => mod.localeHandler);
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.locale) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.locale(ctx);
   }),
 
   countryCode: publicProcedure.query(async ({ ctx }) => {
