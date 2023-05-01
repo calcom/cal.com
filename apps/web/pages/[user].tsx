@@ -93,7 +93,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   delete query.user; // So it doesn't display in the Link (and make tests fail)
   const nameOrUsername = user.name || user.username || "";
 
-  /* 
+  /*
    const telemetry = useTelemetry();
    useEffect(() => {
     if (top !== window) {
@@ -131,11 +131,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
               <h1 className="font-cal text-emphasis mb-1 text-3xl">
                 {nameOrUsername}
                 {user.verified && (
-                  <Verified
-                    fill="rgb(59 130 246)"
-                    color="white"
-                    className=" mx-1 -mt-1 inline h-6 w-6"
-                  />
+                  <Verified fill="rgb(59 130 246)" color="white" className=" mx-1 -mt-1 inline h-6 w-6" />
                 )}
               </h1>
               {!isBioEmpty && (
