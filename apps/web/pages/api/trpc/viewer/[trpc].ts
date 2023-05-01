@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import * as trpcNext from "@calcom/trpc/server/adapters/next";
 import { createContext as createTrpcContext } from "@calcom/trpc/server/createContext";
-import { viewerRouter } from "@calcom/trpc/server/routers/viewer";
+import { viewerRouter } from "@calcom/trpc/server/routers/viewer/_router";
 
 export default trpcNext.createNextApiHandler({
   router: viewerRouter,

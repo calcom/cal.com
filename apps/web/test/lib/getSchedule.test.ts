@@ -15,7 +15,7 @@ import { v4 as uuidv4 } from "uuid";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/client";
-import { getSchedule, type Slot } from "@calcom/trpc/server/routers/slots";
+import { getSchedule, type Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 
 import { prismaMock, CalendarManagerMock } from "../../../../tests/config/singleton";
 

@@ -4,7 +4,7 @@ import superjson from "superjson";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { createProxySSGHelpers } from "@calcom/trpc/react/ssg";
 import { createContext } from "@calcom/trpc/server/createContext";
-import { viewerRouter } from "@calcom/trpc/server/routers/viewer";
+import { appRouter } from "@calcom/trpc/server/routers/_app";
 
 /**
  * Initialize server-side rendering tRPC helpers.
@@ -20,13 +20,13 @@ export async function ssrInit(context: GetServerSidePropsContext) {
   const ctx = await createContext(context, sessionGetter);
 
   const ssr = createProxySSGHelpers({
-    router: viewerRouter,
+    router: appRouter,
     transformer: superjson,
     ctx,
   });
 
   // always preload "viewer.public.i18n"
-  await ssr.public.i18n.fetch();
+  await ssr.viewer.public.i18n.fetch();
 
   return ssr;
 }

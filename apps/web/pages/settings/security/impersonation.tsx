@@ -91,7 +91,7 @@ ProfileImpersonationView.PageWrapper = PageWrapper;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
-  await ssr.me.prefetch();
+  await ssr.viewer.me.prefetch();
   return {
     props: {
       trpcState: ssr.dehydrate(),

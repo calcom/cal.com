@@ -532,7 +532,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  await ssr.eventTypes.get.prefetch({ id: typeParam });
+  await ssr.viewer.eventTypes.get.prefetch({ id: typeParam });
   return {
     props: {
       type: typeParam,

@@ -5,7 +5,7 @@ import superjson from "superjson";
 
 import prisma from "@calcom/prisma";
 import { createProxySSGHelpers } from "@calcom/trpc/react/ssg";
-import { viewerRouter } from "@calcom/trpc/server/routers/viewer";
+import { appRouter } from "@calcom/trpc/server/routers/_app";
 
 /**
  * Initialize static site rendering tRPC helpers.
@@ -24,7 +24,7 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
   const _i18n = await serverSideTranslations(locale, ["common"]);
 
   const ssg = createProxySSGHelpers({
-    router: viewerRouter,
+    router: appRouter,
     transformer: superjson,
     ctx: {
       prisma,
@@ -35,7 +35,7 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
   });
 
   // always preload i18n
-  await ssg.public.i18n.fetch();
+  await ssg.viewer.public.i18n.fetch();
 
   return ssg;
 }

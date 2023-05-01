@@ -2,8 +2,7 @@
  * This file contains the root router of your tRPC-backend
  */
 import { router } from "../trpc";
-import { viewerRouter } from "./viewer";
-import { slotsRouter } from "./slots";
+import { viewerRouter } from "./routers/viewer/_router";
 
 import type { Endpoint } from "../../react";
 
@@ -14,7 +13,6 @@ import type { Endpoint } from "../../react";
  * @link https://trpc.io/docs/router
  */
 export const appRouter = router({
-  slots: slotsRouter,
   viewer: viewerRouter,
 } satisfies Record<Endpoint, any>);
 
