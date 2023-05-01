@@ -18,6 +18,7 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
+
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 
 export const checkIfIsAvailable = ({
