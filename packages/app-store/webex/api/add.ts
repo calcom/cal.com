@@ -5,6 +5,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import config from "../config.json";
 import { getWebexAppKeys } from "../lib/getWebexAppKeys";
 
 async function handler(req: NextApiRequest) {
@@ -24,7 +25,7 @@ async function handler(req: NextApiRequest) {
   const params = {
     response_type: "code",
     client_id,
-    redirect_uri: WEBAPP_URL + "/api/integrations/webex/callback",
+    redirect_uri: `${WEBAPP_URL}/api/integrations/${config.slug}/callback`,
     scope: "spark:kms meeting:schedules_read meeting:schedules_write", //should be "A space-separated list of scopes being requested by your integration"
     state: "",
   };
