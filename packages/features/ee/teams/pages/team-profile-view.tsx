@@ -225,7 +225,7 @@ const ProfileView = () => {
                 <Editor
                   getText={() => md.render(form.getValues("bio") || "")}
                   setText={(value: string) => form.setValue("bio", turndown(value))}
-                  excludedToolbarItems={["blockType"]}
+                  excludedItems={["blockType"]}
                   disableLists
                   firstRender={firstRender}
                   setFirstRender={setFirstRender}

@@ -186,7 +186,7 @@ export default function ImageUploader({
             {!result && (
               <div className="bg-muted flex h-20 max-h-20 w-20 items-center justify-start rounded-full">
                 {!imageSrc && (
-                  <p className="text-emphasis w-full text-center text-sm sm:text-xs">
+                  <p className="text-emphasis w-full text-center text-sm sm:text-xs mt-10">
                     {t("no_target", { target })}
                   </p>
                 )}
