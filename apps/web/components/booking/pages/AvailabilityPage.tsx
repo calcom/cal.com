@@ -36,7 +36,7 @@ import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
-const PoweredByCal = dynamic(() => import("@components/ui/PoweredByCal"));
+const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
 
 const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaster), { ssr: false });
 /*const SlotPicker = dynamic(() => import("../SlotPicker").then((mod) => mod.SlotPicker), {
@@ -301,7 +301,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
               </div>
             </div>
             {/* FIXME: We don't show branding in Embed yet because we need to place branding on top of the main content. Keeping it outside the main content would have visibility issues because outside main content background is transparent */}
-            {!restProps.isBrandingHidden && !isEmbed && <PoweredByCal />}
+            {!restProps.isBrandingHidden && !isEmbed && <PoweredBy />}
           </div>
         </main>
       </div>

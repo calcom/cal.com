@@ -38,7 +38,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       user: {
         select: {
           id: true,
-          credentials: true,
+          credentials: true, // Not leaking at the moment, be careful with
           email: true,
           timeZone: true,
           name: true,

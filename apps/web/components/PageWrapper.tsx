@@ -4,7 +4,6 @@ import localFont from "next/font/local";
 import Script from "next/script";
 
 import "@calcom/embed-core/src/embed-iframe";
-import { useEmbedUiConfig } from "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 
 import type { AppProps } from "@lib/app-providers";
@@ -29,17 +28,6 @@ const calFont = localFont({
 function PageWrapper(props: AppProps) {
   const { Component, pageProps, err, router } = props;
   let pageStatus = "200";
-  const { cssVarsPerTheme } = useEmbedUiConfig();
-  const cssVarsStyle = [];
-  if (cssVarsPerTheme) {
-    for (const [themeName, cssVars] of Object.entries(cssVarsPerTheme)) {
-      cssVarsStyle.push(`.${themeName} {`);
-      for (const [cssVarName, value] of Object.entries(cssVars)) {
-        cssVarsStyle.push(`--${cssVarName}: ${value};`);
-      }
-      cssVarsStyle.push(`}`);
-    }
-  }
 
   if (router.pathname === "/404") {
     pageStatus = "404";
@@ -77,11 +65,6 @@ function PageWrapper(props: AppProps) {
         }
       `}</style>
 
-      <style jsx global>
-        {`
-          ${cssVarsStyle.join("")}
-        `}
-      </style>
       {getLayout(
         Component.requiresLicense ? (
           <LicenseRequired>

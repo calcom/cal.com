@@ -15,16 +15,17 @@ export default function useTheme(themeToSet?: Maybe<string>) {
 
   useEffect(() => {
     // If themeToSet is not provided the purpose is to just return the current the current values
-    if (themeToSet === undefined) return;
+    if (!themeToSet) return;
 
     // Embed theme takes precedence over theme configured in app. This allows embeds to be themed differently
-    const finalThemeToSet = embedTheme || themeToSet || "system";
+    const finalThemeToSet = embedTheme || themeToSet;
 
     if (!finalThemeToSet || finalThemeToSet === activeTheme) return;
 
     setTheme(finalThemeToSet);
-  }, [themeToSet, setTheme, embedTheme, activeTheme]);
-
+    // We must not add `activeTheme` to the dependency list as it can cause an infinite loop b/w dark and theme switches
+    // because there might be another booking page with conflicting theme.
+  }, [themeToSet, setTheme, embedTheme]);
   return {
     resolvedTheme,
     setTheme,
