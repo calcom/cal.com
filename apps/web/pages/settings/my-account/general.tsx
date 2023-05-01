@@ -20,8 +20,6 @@ import {
   TimezoneSelect,
 } from "@calcom/ui";
 
-import { withQuery } from "@lib/QueryCell";
-
 import PageWrapper from "@components/PageWrapper";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
@@ -45,22 +43,17 @@ interface GeneralViewProps {
   user: RouterOutputs["viewer"]["me"];
 }
 
-const WithQuery = withQuery(trpc.viewer.public.i18n, undefined, { trpc: { context: { skipBatch: true } } });
-
 const GeneralQueryView = () => {
   const { t } = useLocale();
 
+  const { data: locale, isLoading: localeLoading } = trpc.viewer.public.locale.useQuery();
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
-  if (isLoading) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
+  if (isLoading || localeLoading)
+    return <SkeletonLoader title={t("general")} description={t("general_description")} />;
   if (!user) {
     throw new Error(t("something_went_wrong"));
   }
-  return (
-    <WithQuery
-      success={({ data }) => <GeneralView user={user} localeProp={data.locale} />}
-      customLoader={<SkeletonLoader title={t("general")} description={t("general_description")} />}
-    />
-  );
+  return <GeneralView user={user} localeProp={locale?.locale ?? "en"} />;
 };
 
 const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
@@ -69,17 +62,18 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   const { t } = useLocale();
 
   const mutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: async () => {
-      // Invalidate our previous i18n cache
-      await utils.viewer.public.i18n.invalidate();
+    onSuccess: async (value) => {
+      if (value?.locale) {
+        const locale = value?.locale;
+        utils.viewer.public.locale.setData(undefined, { locale });
+        await utils.viewer.public.i18n.invalidate({ locale });
+      }
+
       reset(getValues());
       showToast(t("settings_updated_successfully"), "success");
     },
     onError: () => {
       showToast(t("error_updating_settings"), "error");
-    },
-    onSettled: async () => {
-      await utils.viewer.public.i18n.invalidate();
     },
   });
 
