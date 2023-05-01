@@ -4,8 +4,6 @@
 import { router } from "../trpc";
 import { viewerRouter } from "./viewer/_router";
 
-import type { Endpoint } from "../../react";
-
 /**
  * Create your application's root router
  * If you want to use SSG, you need export this
@@ -14,6 +12,6 @@ import type { Endpoint } from "../../react";
  */
 export const appRouter = router({
   viewer: viewerRouter,
-} satisfies Record<Endpoint, any>);
+});
 
 export type AppRouter = typeof appRouter;
