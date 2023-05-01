@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -12,6 +13,7 @@ export function CalendarSwitch(props: {
   defaultSelected: boolean;
   isSelected: boolean;
 }) {
+  const [ isSelected, setIsSelected ] = useState(props.defaultSelected);
   const { t } = useLocale();
 
   const utils = trpc.useContext();
@@ -68,8 +70,9 @@ export function CalendarSwitch(props: {
         key={props.externalId}
         name="enabled"
         label={props.title}
-        defaultChecked={props.isSelected}
+        checked={isSelected}
         onCheckedChange={(isOn: boolean) => {
+          setIsSelected(isOn);
           mutation.mutate({ isOn });
         }}
       />
