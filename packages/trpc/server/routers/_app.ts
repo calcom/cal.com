@@ -12,10 +12,6 @@ import type { Endpoint } from "../../react";
  * If you want to use SSG, you need export this
  * @link https://trpc.io/docs/ssg
  * @link https://trpc.io/docs/router
- * 
- * Make sure to "join" all the endpoint routers together
- * so that the correct type can be inferred on the client.
- * The `satisfies` will help make sure all endpoints are included.
  */
 export const appRouter = router({
   slots: slotsRouter,

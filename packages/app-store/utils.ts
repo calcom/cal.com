@@ -19,10 +19,7 @@ type LocationOption = {
 
 const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   const metadata = appStoreMetadata[key as keyof typeof appStoreMetadata] as AppMeta;
-  if (metadata.logo && !metadata.logo.includes("/")) {
-    const appDirName = `${metadata.isTemplate ? "templates" : ""}/${metadata.slug}`;
-    metadata.logo = `/api/app-store/${appDirName}/${metadata.logo}`;
-  }
+
   store[key] = metadata;
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -53,14 +50,17 @@ export const InstalledAppVariants = [
 export const ALL_APPS = Object.values(ALL_APPS_MAP);
 
 export function getLocationGroupedOptions(integrations: ReturnType<typeof getApps>, t: TFunction) {
-  const apps: Record<string, { label: string; value: string; disabled?: boolean; icon?: string }[]> = {};
+  const apps: Record<
+    string,
+    { label: string; value: string; disabled?: boolean; icon?: string; slug?: string }[]
+  > = {};
   integrations.forEach((app) => {
     if (app.locationOption) {
       // All apps that are labeled as a locationOption are video apps. Extract the secondary category if available
       let category =
         app.categories.length >= 2 ? app.categories.find((category) => category !== "video") : app.category;
       if (!category) category = "video";
-      const option = { ...app.locationOption, icon: app.logo };
+      const option = { ...app.locationOption, icon: app.logo, slug: app.slug };
       if (apps[category]) {
         apps[category] = [...apps[category], option];
       } else {

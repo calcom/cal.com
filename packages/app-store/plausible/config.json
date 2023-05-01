@@ -3,8 +3,7 @@
   "name": "Plausible",
   "slug": "plausible",
   "type": "plausible_analytics",
-  "imageSrc": "/api/app-store/plausible/icon.svg",
-  "logo": "/api/app-store/plausible/icon.svg",
+  "logo": "icon.svg",
   "url": "https://cal.com/apps/plausible",
   "variant": "analytics",
   "categories": ["analytics"],
@@ -15,7 +14,7 @@
     "tag": {
       "scripts": [
         {
-          "src": "https://plausible.io/js/script.js",
+          "src": "{PLAUSIBLE_URL}",
           "attrs": {
             "data-domain": "{TRACKING_ID}"
           }

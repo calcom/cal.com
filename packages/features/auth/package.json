@@ -14,6 +14,7 @@
     "bcryptjs": "^2.4.3",
     "handlebars": "^4.7.7",
     "jose": "^4.13.1",
+    "lru-cache": "^9.0.3",
     "next-auth": "^4.20.1",
     "nodemailer": "^6.7.8",
     "otplib": "^12.0.1"

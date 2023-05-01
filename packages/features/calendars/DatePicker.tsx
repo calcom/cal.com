@@ -8,7 +8,7 @@ import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { Button, SkeletonText } from "@calcom/ui";
-import { FiArrowRight } from "@calcom/ui/components/icon";
+import { ArrowRight } from "@calcom/ui/components/icon";
 
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
@@ -82,7 +82,7 @@ const NoAvailabilityOverlay = ({
   return (
     <div className=" bg-muted border-subtle absolute top-40 left-1/2 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border p-8 shadow-sm">
       <h4 className="text-emphasis  mb-4 font-medium">{t("no_availability_in_month", { month: month })}</h4>
-      <Button onClick={nextMonthButton} color="primary" EndIcon={FiArrowRight}>
+      <Button onClick={nextMonthButton} color="primary" EndIcon={ArrowRight}>
         {t("view_next_month")}
       </Button>
     </div>
@@ -144,7 +144,7 @@ const Days = ({
             <div key={`e-${idx}`} />
           ) : props.isLoading ? (
             <button
-              className=" bg-muted text-muted opcaity-50 absolute top-0 left-0 right-0 bottom-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center"
+              className=" bg-muted text-muted opcaity-50 absolute top-0 left-0 right-0 bottom-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium"
               key={`e-${idx}`}
               disabled>
               <SkeletonText className="h-4 w-5" />
@@ -196,12 +196,12 @@ const DatePicker = ({
 
   return (
     <div className={className}>
-      <div className="mb-4 flex items-center justify-between text-xl font-light">
+      <div className="mb-1 flex items-center justify-between text-xl">
         <span className="text-default w-1/2 text-base">
           {browsingDate ? (
             <>
               <strong className="text-emphasis font-semibold">{month}</strong>{" "}
-              <span className="text-subtle">{browsingDate.format("YYYY")}</span>
+              <span className="text-subtle font-medium">{browsingDate.format("YYYY")}</span>
             </>
           ) : (
             <SkeletonText className="h-8 w-24" />
@@ -235,7 +235,7 @@ const DatePicker = ({
       </div>
       <div className="border-subtle mb-2 grid grid-cols-7 gap-4 border-t border-b text-center md:mb-0 md:border-0">
         {weekdayNames(locale, weekStart, "short").map((weekDay) => (
-          <div key={weekDay} className="text-emphasis my-4 text-xs uppercase tracking-widest">
+          <div key={weekDay} className="text-emphasis my-4 text-xs font-medium uppercase tracking-widest">
             {weekDay}
           </div>
         ))}

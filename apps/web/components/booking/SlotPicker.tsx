@@ -194,6 +194,7 @@ export const SlotPicker = ({
         bookingAttendees={bookingAttendees}
         recurringCount={recurringEventCount}
         ethSignature={ethSignature}
+        duration={parseInt(duration)}
       />
     </>
   );

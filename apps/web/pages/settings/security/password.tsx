@@ -9,6 +9,8 @@ import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Form, Meta, PasswordField, Select, SettingsToggle, showToast } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
+
 type ChangePasswordSessionFormValues = {
   oldPassword: string;
   newPassword: string;
@@ -197,6 +199,7 @@ const PasswordView = () => {
             color="primary"
             className="mt-8"
             type="submit"
+            onClick={() => formMethods.clearErrors("apiError")}
             disabled={isDisabled || passwordMutation.isLoading || sessionMutation.isLoading}>
             {t("update")}
           </Button>
@@ -207,5 +210,6 @@ const PasswordView = () => {
 };
 
 PasswordView.getLayout = getLayout;
+PasswordView.PageWrapper = PageWrapper;
 
 export default PasswordView;

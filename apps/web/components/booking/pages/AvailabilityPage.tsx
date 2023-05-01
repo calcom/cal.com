@@ -1,7 +1,6 @@
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
-import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
@@ -21,11 +20,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
 import { trpc } from "@calcom/trpc";
-import { HeadSeo, useCalcomTheme } from "@calcom/ui";
-import { FiCreditCard, FiUser, FiRefreshCcw } from "@calcom/ui/components/icon";
+import { HeadSeo, NumberInput, useCalcomTheme } from "@calcom/ui";
+import { CreditCard, User, RefreshCcw } from "@calcom/ui/components/icon";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 
@@ -38,7 +36,7 @@ import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
-const PoweredByCal = dynamic(() => import("@components/ui/PoweredByCal"));
+const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
 
 const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaster), { ssr: false });
 /*const SlotPicker = dynamic(() => import("../SlotPicker").then((mod) => mod.SlotPicker), {
@@ -76,7 +74,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
   });
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
   //TODO: Plan to remove shouldAlignCentrallyInEmbed config
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
@@ -105,8 +103,9 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
 
   const [recurringEventCount, setRecurringEventCount] = useState(eventType.recurringEvent?.count);
 
+  /*
   const telemetry = useTelemetry();
-  useEffect(() => {
+   useEffect(() => {
     if (top !== window) {
       //page_view will be collected automatically by _middleware.ts
       telemetry.event(
@@ -114,7 +113,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
         collectPageParameters("/availability", { isTeamBooking: document.URL.includes("team/") })
       );
     }
-  }, [telemetry]);
+  }, [telemetry]); */
   const embedUiConfig = useEmbedUiConfig();
   // get dynamic user list here
   const userList = eventType.users ? eventType.users.map((user) => user.username).filter(notEmpty) : [];
@@ -124,16 +123,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
     [timeZone]
   );
   const paymentAppData = getPaymentAppData(eventType);
-  const paymentAmount = () => {
-    return;
-    <IntlProvider locale="en">
-      <FormattedNumber
-        value={paymentAppData.price / 100.0}
-        style="currency"
-        currency={paymentAppData.currency?.toUpperCase()}
-      />
-    </IntlProvider>;
-  };
+
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
@@ -191,7 +181,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
               style={availabilityDatePickerEmbedStyles}
               className={classNames(
                 isBackgroundTransparent ? "" : "bg-default dark:bg-muted pb-4 md:pb-0",
-                "border-subtle md:rounded-md md:border",
+                "border-booker md:border-booker-width md:rounded-md",
                 isEmbed && "mx-auto"
               )}>
               <div className="md:flex">
@@ -210,7 +200,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                             " text-default",
                             "ltr:mr-[10px] rtl:ml-[10px]"
                           )}>
-                          <FiUser
+                          <User
                             className={classNames(
                               "min-h-4 min-w-4 ml-[2px] inline-block ltr:mr-[10px] rtl:ml-[10px]",
                               "mt-[2px]"
@@ -221,21 +211,23 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                       )}
                       {!rescheduleUid && eventType.recurringEvent && (
                         <div className="flex items-start text-sm font-medium">
-                          <FiRefreshCcw className="float-left mt-[7px] ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
+                          <RefreshCcw className="float-left mt-[7px] ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
                           <div>
                             <p className="mb-1 -ml-2 inline px-2 py-1">
                               {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
                             </p>
-                            <input
-                              type="number"
+
+                            <NumberInput
+                              defaultValue={eventType.recurringEvent.count}
                               min="1"
                               max={eventType.recurringEvent.count}
-                              className="w-15 border-default bg-default dark:border-empthasis h-7 rounded-sm text-sm font-medium [appearance:textfield] ltr:mr-2 rtl:ml-2"
-                              defaultValue={eventType.recurringEvent.count}
+                              isFullWidth={false}
+                              className="me-2 inline w-16"
                               onChange={(event) => {
                                 setRecurringEventCount(parseInt(event?.target.value));
                               }}
                             />
+
                             <p className="inline">
                               {t("occurrence", {
                                 count: recurringEventCount,
@@ -246,7 +238,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                       )}
                       {paymentAppData.price > 0 && (
                         <p className="-ml-2 px-2 text-sm font-medium">
-                          <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                          <CreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                           {paymentAppData.paymentOption === "HOLD" ? (
                             <>
                               {t("no_show_fee_amount", {
@@ -255,13 +247,12 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                               })}
                             </>
                           ) : (
-                            <IntlProvider locale="en">
-                              <FormattedNumber
-                                value={paymentAppData.price / 100.0}
-                                style="currency"
-                                currency={paymentAppData.currency?.toUpperCase()}
-                              />
-                            </IntlProvider>
+                            <>
+                              {new Intl.NumberFormat(i18n.language, {
+                                style: "currency",
+                                currency: paymentAppData.currency,
+                              }).format(paymentAppData.price / 100)}
+                            </>
                           )}
                         </p>
                       )}
@@ -310,7 +301,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
               </div>
             </div>
             {/* FIXME: We don't show branding in Embed yet because we need to place branding on top of the main content. Keeping it outside the main content would have visibility issues because outside main content background is transparent */}
-            {!restProps.isBrandingHidden && !isEmbed && <PoweredByCal />}
+            {!restProps.isBrandingHidden && !isEmbed && <PoweredBy />}
           </div>
         </main>
       </div>

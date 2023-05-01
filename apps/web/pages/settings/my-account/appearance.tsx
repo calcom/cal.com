@@ -22,6 +22,8 @@ import {
   UpgradeTeamsBadge,
 } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
+
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
@@ -50,6 +52,7 @@ const AppearanceView = () => {
   const utils = trpc.useContext();
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
   const [darkModeError, setDarkModeError] = useState(false);
+  const [lightModeError, setLightModeError] = useState(false);
 
   const { isLoading: isTeamPlanStatusLoading, hasPaidPlan } = useHasPaidPlan();
 
@@ -143,7 +146,14 @@ const AppearanceView = () => {
               <p className="text-default mb-2 block text-sm font-medium">{t("light_brand_color")}</p>
               <ColorPicker
                 defaultValue={user.brandColor}
-                onChange={(value) => formMethods.setValue("brandColor", value, { shouldDirty: true })}
+                onChange={(value) => {
+                  if (!checkWCAGContrastColor("#ffffff", value)) {
+                    setLightModeError(true);
+                  } else {
+                    setLightModeError(false);
+                  }
+                  formMethods.setValue("brandColor", value, { shouldDirty: true });
+                }}
               />
             </div>
           )}
@@ -178,10 +188,18 @@ const AppearanceView = () => {
           />
         </div>
       ) : null}
+      {lightModeError ? (
+        <div className="mt-4">
+          <Alert
+            severity="warning"
+            message="Light Theme color doesn't pass contrast check. We recommend you change this colour so your buttons will be more visible."
+          />
+        </div>
+      ) : null}
       {/* TODO future PR to preview brandColors */}
       {/* <Button
         color="secondary"
-        EndIcon={FiExternalLink}
+        EndIcon={ExternalLink}
         className="mt-6"
         onClick={() => window.open(`${WEBAPP_URL}/${user.username}/${user.eventTypes[0].title}`, "_blank")}>
         Preview
@@ -230,5 +248,6 @@ const AppearanceView = () => {
 };
 
 AppearanceView.getLayout = getLayout;
+AppearanceView.PageWrapper = PageWrapper;
 
 export default AppearanceView;

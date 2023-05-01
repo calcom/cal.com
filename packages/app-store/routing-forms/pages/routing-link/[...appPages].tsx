@@ -86,7 +86,7 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
         router.push(`/${decidedAction.value}`);
       } else if (decidedAction.type === "externalRedirectUrl") {
-        window.location.href = decidedAction.value;
+        window.parent.location.href = decidedAction.value;
       }
       // showToast("Form submitted successfully! Redirecting now ...", "success");
     },
@@ -120,7 +120,7 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
             </Head>
             <div className={classNames("mx-auto my-0 max-w-3xl", isEmbed ? "" : "md:my-24")}>
               <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-                <div className="main border-bookinglightest dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-default mx-0 rounded-md p-4 py-6 sm:-mx-4 sm:px-8 md:border">
+                <div className="main border-booker md:border-booker-width dark:bg-muted bg-default mx-0 rounded-md p-4 py-6 sm:-mx-4 sm:px-8 ">
                   <Toaster position="bottom-right" />
 
                   <form onSubmit={handleOnSubmit}>
@@ -150,7 +150,7 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
         ) : (
           <div className="mx-auto my-0 max-w-3xl md:my-24">
             <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-              <div className="main dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-default -mx-4 rounded-md border border-neutral-200 p-4 py-6 sm:mx-0 sm:px-8">
+              <div className="main dark:bg-darkgray-100 sm:border-subtle bg-default -mx-4 rounded-md border border-neutral-200 p-4 py-6 sm:mx-0 sm:px-8">
                 <div className="text-emphasis">{customPageMessage}</div>
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function RoutingLink(props: inferSSRProps<typeof getServerSidePro
   return <RoutingForm {...props} />;
 }
 
-RoutingLink.isThemeSupported = true;
+RoutingLink.isBookingPage = true;
 
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,

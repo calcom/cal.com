@@ -151,7 +151,7 @@ const TestData = {
 };
 
 const ctx = {
-  prisma,
+  prisma: prismaMock,
 };
 
 type App = {
@@ -269,16 +269,13 @@ describe("getSchedule", () => {
           end: `${plus2DateString}T23:00:00.000Z`,
         },
       ]);
-      const scheduleForDayWithAGoogleCalendarBooking = await getSchedule(
-        {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-        },
-        ctx
-      );
+      const scheduleForDayWithAGoogleCalendarBooking = await getSchedule({
+        eventTypeId: 1,
+        eventTypeSlug: "",
+        startTime: `${plus1DateString}T18:30:00.000Z`,
+        endTime: `${plus2DateString}T18:29:59.999Z`,
+        timeZone: Timezones["+5:30"],
+      });
 
       // As per Google Calendar Availability, only 4PM(4-4:45PM) GMT slot would be available
       expect(scheduleForDayWithAGoogleCalendarBooking).toHaveTimeSlots([`04:00:00.000Z`], {
@@ -355,17 +352,14 @@ describe("getSchedule", () => {
       });
 
       // Day Plus 2 is completely free - It only has non accepted bookings
-      const scheduleOnCompletelyFreeDay = await getSchedule(
-        {
-          eventTypeId: 1,
-          // EventTypeSlug doesn't matter for non-dynamic events
-          eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-        },
-        ctx
-      );
+      const scheduleOnCompletelyFreeDay = await getSchedule({
+        eventTypeId: 1,
+        // EventTypeSlug doesn't matter for non-dynamic events
+        eventTypeSlug: "",
+        startTime: `${plus1DateString}T18:30:00.000Z`,
+        endTime: `${plus2DateString}T18:29:59.999Z`,
+        timeZone: Timezones["+5:30"],
+      });
 
       // getSchedule returns timeslots in GMT
       expect(scheduleOnCompletelyFreeDay).toHaveTimeSlots(
@@ -388,16 +382,13 @@ describe("getSchedule", () => {
       );
 
       // Day plus 3
-      const scheduleForDayWithOneBooking = await getSchedule(
-        {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${plus2DateString}T18:30:00.000Z`,
-          endTime: `${plus3DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-        },
-        ctx
-      );
+      const scheduleForDayWithOneBooking = await getSchedule({
+        eventTypeId: 1,
+        eventTypeSlug: "",
+        startTime: `${plus2DateString}T18:30:00.000Z`,
+        endTime: `${plus3DateString}T18:29:59.999Z`,
+        timeZone: Timezones["+5:30"],
+      });
 
       expect(scheduleForDayWithOneBooking).toHaveTimeSlots(
         [
@@ -453,16 +444,13 @@ describe("getSchedule", () => {
       });
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-      const scheduleForEventWith30Length = await getSchedule(
-        {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-        },
-        ctx
-      );
+      const scheduleForEventWith30Length = await getSchedule({
+        eventTypeId: 1,
+        eventTypeSlug: "",
+        startTime: `${plus1DateString}T18:30:00.000Z`,
+        endTime: `${plus2DateString}T18:29:59.999Z`,
+        timeZone: Timezones["+5:30"],
+      });
       expect(scheduleForEventWith30Length).toHaveTimeSlots(
         [
           `04:00:00.000Z`,
@@ -488,16 +476,13 @@ describe("getSchedule", () => {
         }
       );
 
-      const scheduleForEventWith30minsLengthAndSlotInterval2hrs = await getSchedule(
-        {
-          eventTypeId: 2,
-          eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-        },
-        ctx
-      );
+      const scheduleForEventWith30minsLengthAndSlotInterval2hrs = await getSchedule({
+        eventTypeId: 2,
+        eventTypeSlug: "",
+        startTime: `${plus1DateString}T18:30:00.000Z`,
+        endTime: `${plus2DateString}T18:29:59.999Z`,
+        timeZone: Timezones["+5:30"],
+      });
       // `slotInterval` takes precedence over `length`
       expect(scheduleForEventWith30minsLengthAndSlotInterval2hrs).toHaveTimeSlots(
         [`04:00:00.000Z`, `06:00:00.000Z`, `08:00:00.000Z`, `10:00:00.000Z`, `12:00:00.000Z`],
@@ -551,16 +536,13 @@ describe("getSchedule", () => {
       });
       const { dateString: todayDateString } = getDate();
       const { dateString: minus1DateString } = getDate({ dateIncrement: -1 });
-      const scheduleForEventWithBookingNotice13Hrs = await getSchedule(
-        {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${minus1DateString}T18:30:00.000Z`,
-          endTime: `${todayDateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-        },
-        ctx
-      );
+      const scheduleForEventWithBookingNotice13Hrs = await getSchedule({
+        eventTypeId: 1,
+        eventTypeSlug: "",
+        startTime: `${minus1DateString}T18:30:00.000Z`,
+        endTime: `${todayDateString}T18:29:59.999Z`,
+        timeZone: Timezones["+5:30"],
+      });
       expect(scheduleForEventWithBookingNotice13Hrs).toHaveTimeSlots(
         [
           /*`04:00:00.000Z`, `06:00:00.000Z`, - Minimum time slot is 07:30 UTC*/ `08:00:00.000Z`,
@@ -572,16 +554,13 @@ describe("getSchedule", () => {
         }
       );
 
-      const scheduleForEventWithBookingNotice10Hrs = await getSchedule(
-        {
-          eventTypeId: 2,
-          eventTypeSlug: "",
-          startTime: `${minus1DateString}T18:30:00.000Z`,
-          endTime: `${todayDateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-        },
-        ctx
-      );
+      const scheduleForEventWithBookingNotice10Hrs = await getSchedule({
+        eventTypeId: 2,
+        eventTypeSlug: "",
+        startTime: `${minus1DateString}T18:30:00.000Z`,
+        endTime: `${todayDateString}T18:29:59.999Z`,
+        timeZone: Timezones["+5:30"],
+      });
       expect(scheduleForEventWithBookingNotice10Hrs).toHaveTimeSlots(
         [
           /*`04:00:00.000Z`, - Minimum bookable time slot is 04:30 UTC but next available is 06:00*/
@@ -637,16 +616,13 @@ describe("getSchedule", () => {
         },
       ]);
 
-      const scheduleForEventOnADayWithNonCalBooking = await getSchedule(
-        {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${plus2DateString}T18:30:00.000Z`,
-          endTime: `${plus3DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-        },
-        ctx
-      );
+      const scheduleForEventOnADayWithNonCalBooking = await getSchedule({
+        eventTypeId: 1,
+        eventTypeSlug: "",
+        startTime: `${plus2DateString}T18:30:00.000Z`,
+        endTime: `${plus3DateString}T18:29:59.999Z`,
+        timeZone: Timezones["+5:30"],
+      });
 
       expect(scheduleForEventOnADayWithNonCalBooking).toHaveTimeSlots(
         [
@@ -712,16 +688,13 @@ describe("getSchedule", () => {
         },
       ]);
 
-      const scheduleForEventOnADayWithCalBooking = await getSchedule(
-        {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-        },
-        ctx
-      );
+      const scheduleForEventOnADayWithCalBooking = await getSchedule({
+        eventTypeId: 1,
+        eventTypeSlug: "",
+        startTime: `${plus1DateString}T18:30:00.000Z`,
+        endTime: `${plus2DateString}T18:29:59.999Z`,
+        timeZone: Timezones["+5:30"],
+      });
 
       expect(scheduleForEventOnADayWithCalBooking).toHaveTimeSlots(
         [
@@ -765,16 +738,13 @@ describe("getSchedule", () => {
 
       createBookingScenario(scenarioData);
 
-      const scheduleForEventOnADayWithDateOverride = await getSchedule(
-        {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-        },
-        ctx
-      );
+      const scheduleForEventOnADayWithDateOverride = await getSchedule({
+        eventTypeId: 1,
+        eventTypeSlug: "",
+        startTime: `${plus1DateString}T18:30:00.000Z`,
+        endTime: `${plus2DateString}T18:29:59.999Z`,
+        timeZone: Timezones["+5:30"],
+      });
 
       expect(scheduleForEventOnADayWithDateOverride).toHaveTimeSlots(
         ["08:30:00.000Z", "09:30:00.000Z", "10:30:00.000Z", "11:30:00.000Z"],
@@ -851,16 +821,13 @@ describe("getSchedule", () => {
 
       // Requesting this user's availability for their
       // individual Event Type
-      const thisUserAvailability = await getSchedule(
-        {
-          eventTypeId: 2,
-          eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-        },
-        ctx
-      );
+      const thisUserAvailability = await getSchedule({
+        eventTypeId: 2,
+        eventTypeSlug: "",
+        startTime: `${plus1DateString}T18:30:00.000Z`,
+        endTime: `${plus2DateString}T18:29:59.999Z`,
+        timeZone: Timezones["+5:30"],
+      });
 
       expect(thisUserAvailability).toHaveTimeSlots(
         [
@@ -949,16 +916,13 @@ describe("getSchedule", () => {
         hosts: [],
       });
 
-      const scheduleForTeamEventOnADayWithNoBooking = await getSchedule(
-        {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${todayDateString}T18:30:00.000Z`,
-          endTime: `${plus1DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-        },
-        ctx
-      );
+      const scheduleForTeamEventOnADayWithNoBooking = await getSchedule({
+        eventTypeId: 1,
+        eventTypeSlug: "",
+        startTime: `${todayDateString}T18:30:00.000Z`,
+        endTime: `${plus1DateString}T18:29:59.999Z`,
+        timeZone: Timezones["+5:30"],
+      });
 
       expect(scheduleForTeamEventOnADayWithNoBooking).toHaveTimeSlots(
         [
@@ -979,16 +943,13 @@ describe("getSchedule", () => {
         }
       );
 
-      const scheduleForTeamEventOnADayWithOneBookingForEachUser = await getSchedule(
-        {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-        },
-        ctx
-      );
+      const scheduleForTeamEventOnADayWithOneBookingForEachUser = await getSchedule({
+        eventTypeId: 1,
+        eventTypeSlug: "",
+        startTime: `${plus1DateString}T18:30:00.000Z`,
+        endTime: `${plus2DateString}T18:29:59.999Z`,
+        timeZone: Timezones["+5:30"],
+      });
       // A user with blocked time in another event, still affects Team Event availability
       // It's a collective availability, so both user 101 and 102 are considered for timeslots
       expect(scheduleForTeamEventOnADayWithOneBookingForEachUser).toHaveTimeSlots(
@@ -1086,16 +1047,13 @@ describe("getSchedule", () => {
         ],
         hosts: [],
       });
-      const scheduleForTeamEventOnADayWithOneBookingForEachUserButOnDifferentTimeslots = await getSchedule(
-        {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-        },
-        ctx
-      );
+      const scheduleForTeamEventOnADayWithOneBookingForEachUserButOnDifferentTimeslots = await getSchedule({
+        eventTypeId: 1,
+        eventTypeSlug: "",
+        startTime: `${plus1DateString}T18:30:00.000Z`,
+        endTime: `${plus2DateString}T18:29:59.999Z`,
+        timeZone: Timezones["+5:30"],
+      });
       // A user with blocked time in another event, still affects Team Event availability
       expect(scheduleForTeamEventOnADayWithOneBookingForEachUserButOnDifferentTimeslots).toHaveTimeSlots(
         [
@@ -1114,16 +1072,13 @@ describe("getSchedule", () => {
         { dateString: plus2DateString }
       );
 
-      const scheduleForTeamEventOnADayWithOneBookingForEachUserOnSameTimeSlot = await getSchedule(
-        {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${plus2DateString}T18:30:00.000Z`,
-          endTime: `${plus3DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-        },
-        ctx
-      );
+      const scheduleForTeamEventOnADayWithOneBookingForEachUserOnSameTimeSlot = await getSchedule({
+        eventTypeId: 1,
+        eventTypeSlug: "",
+        startTime: `${plus2DateString}T18:30:00.000Z`,
+        endTime: `${plus3DateString}T18:29:59.999Z`,
+        timeZone: Timezones["+5:30"],
+      });
       // A user with blocked time in another event, still affects Team Event availability
       expect(scheduleForTeamEventOnADayWithOneBookingForEachUserOnSameTimeSlot).toHaveTimeSlots(
         [
