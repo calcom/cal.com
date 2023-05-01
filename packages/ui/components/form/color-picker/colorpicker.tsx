@@ -10,7 +10,7 @@ export type ColorPickerProps = {
   onChange: (text: string) => void;
   container?: HTMLElement;
   popoverAlign?: React.ComponentProps<typeof Popover.Content>["align"];
-  colorInputClassName?: string;
+  className?: string;
 };
 
 const ColorPicker = (props: ColorPickerProps) => {
@@ -48,7 +48,7 @@ const ColorPicker = (props: ColorPickerProps) => {
       <HexColorInput
         className={cx(
           "border-default text-default bg-default block h-full w-full border px-3 py-2 ltr:rounded-r-md rtl:rounded-l-md sm:text-sm",
-          props.colorInputClassName
+          props.className
         )}
         color={color}
         onChange={(val) => {
