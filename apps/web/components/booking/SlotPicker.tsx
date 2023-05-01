@@ -43,7 +43,7 @@ const useSlots = ({
 }) => {
   const [refetchCount, setRefetchCount] = useState(0);
   const refetchInterval = getRefetchInterval(refetchCount);
-  const { data, isLoading, isPaused, fetchStatus } = trpc.viewer.slots.getSchedule.useQuery(
+  const { data, isLoading, isPaused, fetchStatus } = trpc.viewer.public.slots.getSchedule.useQuery(
     {
       eventTypeId,
       eventTypeSlug,
