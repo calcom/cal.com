@@ -21,7 +21,7 @@ CALCOM_LICENSE_KEY=
 # ***********************************************************************************************************
 
 # - DATABASE ************************************************************************************************
-DATABASE_URL="postgresql://postgres:@localhost:5450/calendso"
+DATABASE_URL="postgresql://postgres:"GOANAR123"@localhost:5432/postgres"
 
 # Uncomment to enable a dedicated connection pool for Prisma using Prisma Data Proxy
 # Cold boots will be faster and you'll be able to scale your DB independently of your app.
@@ -179,3 +179,4 @@ CSP_POLICY=
 EDGE_CONFIG=
 
 NEXT_PUBLIC_MINUTES_TO_BOOK=5 # Minutes
+NEXT_PUBLIC_DEBUG=1 

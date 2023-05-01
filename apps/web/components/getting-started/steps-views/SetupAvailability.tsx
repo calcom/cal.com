@@ -1,7 +1,6 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
-
 import { Schedule } from "@calcom/features/schedules";
 import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
