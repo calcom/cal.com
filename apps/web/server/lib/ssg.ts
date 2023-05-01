@@ -1,6 +1,5 @@
 import type { GetStaticPropsContext } from "next";
 import { i18n } from "next-i18next.config";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 
 import prisma from "@calcom/prisma";
@@ -21,8 +20,6 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
   }
   const locale = isSupportedLocale ? requestedLocale : i18n.defaultLocale;
 
-  const _i18n = await serverSideTranslations(locale, ["common"]);
-
   const ssg = createProxySSGHelpers({
     router: appRouter,
     transformer: superjson,
@@ -30,12 +27,12 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
       prisma,
       session: null,
       locale,
-      i18n: _i18n,
     },
   });
 
   // always preload i18n
-  await ssg.viewer.public.i18n.fetch();
+
+  await ssg.viewer.public.i18n.fetch({ locale });
 
   return ssg;
 }

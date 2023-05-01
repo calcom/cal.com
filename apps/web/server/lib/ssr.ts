@@ -26,7 +26,10 @@ export async function ssrInit(context: GetServerSidePropsContext) {
   });
 
   // always preload "viewer.public.i18n"
-  await ssr.viewer.public.i18n.fetch();
+
+  const { locale } = await ssr.viewer.public.locale.fetch();
+
+  await ssr.viewer.public.i18n.fetch({ locale });
 
   return ssr;
 }
