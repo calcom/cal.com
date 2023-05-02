@@ -488,7 +488,7 @@ export default function Success(props: SuccessProps) {
                       // We show rescheduleReason at the top
                       if (!field) return null;
                       const isSystemField = SystemField.safeParse(field.name);
-                      // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the folowing responses list
+                      // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
                       if (isSystemField.success && field.name !== SMS_REMINDER_NUMBER_FIELD) return null;
 
                       const label = field.label || t(field.defaultLabel || "");
