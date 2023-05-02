@@ -93,10 +93,8 @@ async function selectFirstAvailableTimeSlotNextMonth(frame: Frame, page: Page) {
 export async function bookFirstEvent(username: string, frame: Frame, page: Page) {
   // Click first event type
   await frame.click('[data-testid="event-type-link"]');
-  await frame.waitForNavigation({
-    url(url) {
-      return !!url.pathname.match(new RegExp(`/${username}/.*$`));
-    },
+  await frame.waitForURL((url) => {
+    return !!url.pathname.match(new RegExp(`/${username}/.*$`));
   });
 
   // Let current month dates fully render.
@@ -107,10 +105,8 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   // expect(await page.screenshot()).toMatchSnapshot("availability-page-1.png");
   const eventSlug = new URL(frame.url()).pathname;
   await selectFirstAvailableTimeSlotNextMonth(frame, page);
-  await frame.waitForNavigation({
-    url(url) {
-      return url.pathname.includes(`/${username}/book`);
-    },
+  await frame.waitForURL((url) => {
+    return url.pathname.includes(`/${username}/book`);
   });
   // expect(await page.screenshot()).toMatchSnapshot("booking-page.png");
   // --- fill form
@@ -136,10 +132,8 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
 
 export async function rescheduleEvent(username, frame, page) {
   await selectFirstAvailableTimeSlotNextMonth(frame, page);
-  await frame.waitForNavigation({
-    url(url) {
-      return url.pathname.includes(`/${username}/book`);
-    },
+  await frame.waitForURL((url) => {
+    return url.pathname.includes(`/${username}/book`);
   });
   // --- fill form
   await frame.press('[name="email"]', "Enter");

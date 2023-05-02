@@ -1,7 +1,7 @@
 import type { WorkflowStep } from "@prisma/client";
-import { WorkflowActions } from "@prisma/client";
 
 import { classNames } from "@calcom/lib";
+import { WorkflowActions } from "@calcom/prisma/enums";
 import { Zap, Smartphone, Mail, Bell } from "@calcom/ui/components/icon";
 
 export function getActionIcon(steps: WorkflowStep[], className?: string): JSX.Element {
