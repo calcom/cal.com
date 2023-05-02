@@ -29,7 +29,7 @@ export async function ssrInit(context: GetServerSidePropsContext) {
 
   const { locale } = await ssr.viewer.public.locale.fetch();
 
-  await ssr.viewer.public.i18n.fetch({ locale });
+  await ssr.viewer.public.i18n.prefetch({ locale });
 
   return ssr;
 }
