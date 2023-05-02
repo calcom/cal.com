@@ -410,8 +410,6 @@ select:focus {
   }
 }
 
-
-
 #timeZone input:focus {
   box-shadow: none;
 }
