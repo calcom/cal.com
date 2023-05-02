@@ -4,6 +4,7 @@ import { trpc } from "@calcom/trpc/react";
 import { showToast, Switch } from "@calcom/ui";
 
 import classNames from "@lib/classNames";
+import { useState } from "react";
 
 interface ICalendarSwitchProps {
   title: string;
@@ -16,6 +17,7 @@ interface ICalendarSwitchProps {
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
   const { title, externalId, type, isChecked, name, isLastItemInList = false } = props;
   const utils = trpc.useContext();
+  const [isSwitchOn, setIsSwitchOn] = useState<boolean>(isChecked)
   const mutation = useMutation<
     unknown,
     unknown,
@@ -64,15 +66,19 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       },
     }
   );
+
+  const handleSwitchToggle = (isOn: boolean) => {
+    setIsSwitchOn(isOn)
+    mutation.mutate({isOn})
+  }
   return (
     <div className={classNames("flex flex-row items-center", !isLastItemInList ? "mb-4" : "")}>
       <div className="flex pl-2">
         <Switch
           id={externalId}
           defaultChecked={isChecked}
-          onCheckedChange={(isOn: boolean) => {
-            mutation.mutate({ isOn });
-          }}
+          checked={isSwitchOn}
+          onCheckedChange={handleSwitchToggle}
         />
       </div>
       <label className="ml-3 text-sm font-medium leading-5" htmlFor={externalId}>
