@@ -3,10 +3,10 @@ import { z } from "zod";
 
 import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
+import getBooking from "@calcom/features/bookings/lib/get-booking";
+import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
-import type { GetBookingType } from "@calcom/lib/getBooking";
-import getBooking from "@calcom/lib/getBooking";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma from "@calcom/prisma";
 import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
