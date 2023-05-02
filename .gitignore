@@ -42,7 +42,6 @@ yarn-error.log*
 !.env.example
 !.env.appStore.example
 
-
 # vercel
 .vercel
 
