@@ -1,5 +1,5 @@
 import { decodeHTML } from "entities";
-import {createTransport} from "nodemailer";
+import { createTransport } from "nodemailer";
 import { z } from "zod";
 
 import type { Dayjs } from "@calcom/dayjs";
