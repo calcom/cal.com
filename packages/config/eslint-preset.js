@@ -24,6 +24,7 @@ module.exports = {
     "jsx-a11y/role-supports-aria-props": "off", // @see https://github.com/vercel/next.js/issues/27989#issuecomment-897638654
     "react/jsx-curly-brace-presence": ["error", { props: "never", children: "never" }],
     "react/self-closing-comp": ["error", { component: true, html: true }],
+    "react-hooks/exhaustive-deps": "off",
     "@typescript-eslint/no-unused-vars": [
       "warn",
       {
