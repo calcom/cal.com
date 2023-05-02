@@ -64,7 +64,7 @@ function FloatingLinkEditor({ editor }: { editor: LexicalEditor }) {
   const mouseDownRef = useRef(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [linkUrl, setLinkUrl] = useState("");
-  const [isEditMode, setEditMode] = useState(false);
+  const [isEditMode, setEditMode] = useState(true);
   const [lastSelection, setLastSelection] = useState<RangeSelection | NodeSelection | GridSelection | null>(
     null
   );

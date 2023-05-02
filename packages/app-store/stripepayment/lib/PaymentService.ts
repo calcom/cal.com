@@ -113,7 +113,7 @@ export class PaymentService implements IAbstractPaymentService {
       }
       return paymentData;
     } catch (error) {
-      console.error(error);
+      console.error(`Payment could not be created for bookingId ${bookingId}`, error);
       throw new Error("Payment could not be created");
     }
   }
@@ -124,75 +124,80 @@ export class PaymentService implements IAbstractPaymentService {
     bookerEmail: string,
     paymentOption: PaymentOption
   ): Promise<Payment> {
-    // Ensure that the payment service can support the passed payment option
-    if (paymentOptionEnum.parse(paymentOption) !== "HOLD") {
-      throw new Error("Payment option is not compatible with create method");
+    try {
+      // Ensure that the payment service can support the passed payment option
+      if (paymentOptionEnum.parse(paymentOption) !== "HOLD") {
+        throw new Error("Payment option is not compatible with create method");
+      }
+
+      // Load stripe keys
+      const stripeAppKeys = await prisma?.app.findFirst({
+        select: {
+          keys: true,
+        },
+        where: {
+          slug: "stripe",
+        },
+      });
+
+      // Parse keys with zod
+      const { payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(stripeAppKeys?.keys);
+      const paymentFee = Math.round(payment.amount * payment_fee_percentage + payment_fee_fixed);
+
+      const customer = await retrieveOrCreateStripeCustomerByEmail(
+        bookerEmail,
+        this.credentials.stripe_user_id
+      );
+
+      const params = {
+        customer: customer.id,
+        payment_method_types: ["card"],
+        metadata: {
+          bookingId,
+        },
+      };
+
+      const setupIntent = await this.stripe.setupIntents.create(params, {
+        stripeAccount: this.credentials.stripe_user_id,
+      });
+
+      const paymentData = await prisma?.payment.create({
+        data: {
+          uid: uuidv4(),
+          app: {
+            connect: {
+              slug: "stripe",
+            },
+          },
+          booking: {
+            connect: {
+              id: bookingId,
+            },
+          },
+          amount: payment.amount,
+          currency: payment.currency,
+          externalId: setupIntent.id,
+
+          data: Object.assign(
+            {},
+            {
+              setupIntent,
+              stripe_publishable_key: this.credentials.stripe_publishable_key,
+              stripeAccount: this.credentials.stripe_user_id,
+            }
+          ) as unknown as Prisma.InputJsonValue,
+          fee: paymentFee,
+          refunded: false,
+          success: false,
+          paymentOption: paymentOption || "ON_BOOKING",
+        },
+      });
+
+      return paymentData;
+    } catch (error) {
+      console.error(`Payment method could not be collected for bookingId ${bookingId}`, error);
+      throw new Error("Payment could not be created");
     }
-
-    // Load stripe keys
-    const stripeAppKeys = await prisma?.app.findFirst({
-      select: {
-        keys: true,
-      },
-      where: {
-        slug: "stripe",
-      },
-    });
-
-    // Parse keys with zod
-    const { payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(stripeAppKeys?.keys);
-    const paymentFee = Math.round(payment.amount * payment_fee_percentage + payment_fee_fixed);
-
-    const customer = await retrieveOrCreateStripeCustomerByEmail(
-      bookerEmail,
-      this.credentials.stripe_user_id
-    );
-
-    const params = {
-      customer: customer.id,
-      payment_method_types: ["card"],
-      metadata: {
-        bookingId,
-      },
-    };
-
-    const setupIntent = await this.stripe.setupIntents.create(params, {
-      stripeAccount: this.credentials.stripe_user_id,
-    });
-
-    const paymentData = await prisma?.payment.create({
-      data: {
-        uid: uuidv4(),
-        app: {
-          connect: {
-            slug: "stripe",
-          },
-        },
-        booking: {
-          connect: {
-            id: bookingId,
-          },
-        },
-        amount: payment.amount,
-        currency: payment.currency,
-        externalId: setupIntent.id,
-
-        data: Object.assign(
-          {},
-          {
-            setupIntent,
-            stripe_publishable_key: this.credentials.stripe_publishable_key,
-            stripeAccount: this.credentials.stripe_user_id,
-          }
-        ) as unknown as Prisma.InputJsonValue,
-        fee: paymentFee,
-        refunded: false,
-        success: false,
-        paymentOption: paymentOption || "ON_BOOKING",
-      },
-    });
-
-    return paymentData;
   }
 
   async chargeCard(payment: Payment): Promise<Payment> {
@@ -264,7 +269,7 @@ export class PaymentService implements IAbstractPaymentService {
 
       return paymentData;
     } catch (error) {
-      console.error(error);
+      console.error(`Could not charge card for payment ${payment.id}`, error);
       throw new Error("Payment could not be created");
     }
   }
