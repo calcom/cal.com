@@ -1,7 +1,8 @@
 import { useId } from "@radix-ui/react-id";
 import * as React from "react";
-import type { GroupBase, Props, SingleValue, MultiValue } from "react-select";
-import ReactSelect from "react-select";
+
+import type { GroupBase, Props, SingleValue, MultiValue, OptionProps } from "react-select";
+import ReactSelect, { components } from "react-select";
 
 import cx from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,7 +14,7 @@ export type SelectProps<
   Option,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
-> = Props<Option, IsMulti, Group> & { variant?: "default" | "checkbox"; "data-testid"?: string };
+> = Props<Option, IsMulti, Group> & { variant?: "default" | "checkbox" | "multiSelectCheckbox"; "data-testid"?: string };
 
 export const Select = <
   Option,
@@ -34,12 +35,16 @@ export const Select = <
     multiValue?: string;
     menu?: string;
     menuList?: string;
-  };
-}) => {
-  const { classNames, innerClassNames, ...restProps } = props;
+  }}) => {
+  const { classNames, className, innerClassNames, ...restProps } = props;
+  const additonalComponents = { MultiValue };
+  const componentProps = variant === "multiSelectCheckbox" ? {
+    ...additonalComponents,
+    Option: InputOption as React.ComponentType<OptionProps<Option, IsMulti, Group>>,
+  } : components
   const reactSelectProps = React.useMemo(() => {
     return getReactSelectProps<Option, IsMulti, Group>({
-      components: components || {},
+      components: componentProps || {},
       menuPlacement,
     });
   }, [components, menuPlacement]);
@@ -100,6 +105,7 @@ export const Select = <
         multiValueRemove: () => "text-default py-auto ml-2",
         ...classNames,
       }}
+      className={className ? className : variant === "multiSelectCheckbox" ? "w-64 text-sm" : ""}
       {...restProps}
     />
   );
@@ -207,3 +213,45 @@ export function SelectWithValidation<
     </div>
   );
 }
+
+export type Option = {
+  value: string;
+  label: string;
+};
+
+const InputOption: React.FC<OptionProps<any, boolean, GroupBase<any>>> = ({
+  isDisabled,
+  isFocused,
+  isSelected,
+  children,
+  innerProps,
+  className,
+  ...rest
+}) => {
+  const props = {
+    ...innerProps,
+  };
+
+  return (
+    <components.Option
+      {...rest}
+      isDisabled={isDisabled}
+      isFocused={isFocused}
+      isSelected={isSelected}
+      innerProps={props}>
+      <input
+        type="checkbox"
+        className="text-primary-600 focus:ring-primary-500 border-default h-4 w-4 rounded ltr:mr-2 rtl:ml-2"
+        checked={isSelected}
+        readOnly
+      />
+      {children}
+    </components.Option>
+  );
+};
+
+const MultiValue = ({ index, getValue }: { index: number; getValue: any }) => {
+  const { t } = useLocale();
+
+  return <>{!index && <div>{t("nr_event_type", { count: getValue().length })}</div>}</>;
+};
