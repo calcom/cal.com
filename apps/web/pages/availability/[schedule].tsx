@@ -188,8 +188,8 @@ export default function Availability() {
       }
       CTA={
         <div className="flex items-center justify-end">
-          <div className="hidden items-center rounded-md px-2 sm:flex sm:hover:bg-gray-100">
-            <Skeleton as={Label} htmlFor="hiddenSwitch" className="mt-2 cursor-pointer self-center pr-2 ">
+          <div className="hidden items-center rounded-md px-2 sm:flex">
+            <Skeleton as={Label} htmlFor="hiddenSwitch" className="mt-2 self-center pr-2 ">
               {t("set_to_default")}
             </Skeleton>
             <Switch
@@ -212,7 +212,7 @@ export default function Availability() {
                 aria-label={t("delete")}
                 className="hidden sm:inline"
                 disabled={schedule?.isLastSchedule}
-                tooltip={t("requires_at_least_one_schedule")}
+                tooltip={t("delete")}
               />
             </DialogTrigger>
             <ConfirmationDialogContent
