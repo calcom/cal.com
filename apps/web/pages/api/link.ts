@@ -1,10 +1,10 @@
-import { UserPermissionRole } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@calcom/trpc/server";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { viewerRouter } from "@calcom/trpc/server/routers/viewer/_router";
