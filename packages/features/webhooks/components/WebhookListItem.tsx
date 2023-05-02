@@ -1,7 +1,6 @@
-import type { WebhookTriggerEvents } from "@prisma/client";
-
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
   Badge,

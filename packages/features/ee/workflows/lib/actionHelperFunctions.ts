@@ -1,4 +1,4 @@
-import { WorkflowActions } from "@prisma/client";
+import { WorkflowActions } from "@calcom/prisma/enums";
 
 export function isSMSAction(action: WorkflowActions) {
   return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER;

@@ -1,4 +1,3 @@
-import { IdentityProvider } from "@prisma/client";
 import { authenticator } from "otplib";
 
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
@@ -7,6 +6,7 @@ import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { deleteWebUser as syncServicesDeleteWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TDeleteMeInputSchema } from "./deleteMe.schema";
