@@ -16,7 +16,7 @@ const getBookingRedirectExtraParams = (booking: BookingResponse) => {
 
   return (Object.keys(booking) as BookingResponseKey[])
     .filter((key) => redirectQueryParamKeys.includes(key))
-    .reduce((obj, key) => Object.assign(obj, { [key]: booking[key] }), {});
+    .reduce((obj, key) => ({ ...obj, [key]: booking[key] }), {});
 };
 
 export const bookingSuccessRedirect = async ({
