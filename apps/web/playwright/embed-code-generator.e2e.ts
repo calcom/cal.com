@@ -36,14 +36,12 @@ async function expectToBeNavigatingToEmbedTypesDialog(
   if (!embedUrl) {
     throw new Error("Couldn't find embedUrl");
   }
-  await page.waitForNavigation({
-    url: (url) => {
-      return (
-        url.pathname === basePage &&
-        url.searchParams.get("dialog") === "embed" &&
-        url.searchParams.get("embedUrl") === embedUrl
-      );
-    },
+  await page.waitForURL((url) => {
+    return (
+      url.pathname === basePage &&
+      url.searchParams.get("dialog") === "embed" &&
+      url.searchParams.get("embedUrl") === embedUrl
+    );
   });
 }
 
@@ -54,16 +52,14 @@ async function expectToBeNavigatingToEmbedCodeAndPreviewDialog(
   if (!embedUrl) {
     throw new Error("Couldn't find embedUrl");
   }
-  await page.waitForNavigation({
-    url: (url) => {
-      return (
-        url.pathname === basePage &&
-        url.searchParams.get("dialog") === "embed" &&
-        url.searchParams.get("embedUrl") === embedUrl &&
-        url.searchParams.get("embedType") === embedType &&
-        url.searchParams.get("embedTabName") === "embed-code"
-      );
-    },
+  await page.waitForURL((url) => {
+    return (
+      url.pathname === basePage &&
+      url.searchParams.get("dialog") === "embed" &&
+      url.searchParams.get("embedUrl") === embedUrl &&
+      url.searchParams.get("embedType") === embedType &&
+      url.searchParams.get("embedTabName") === "embed-code"
+    );
   });
 }
 
@@ -183,9 +179,7 @@ test.describe("Embed Code Generator Tests", () => {
       await page.goto(`/event-types`);
       await Promise.all([
         page.locator('[href*="/event-types/"]').first().click(),
-        page.waitForNavigation({
-          url: (url) => url.pathname.startsWith("/event-types/"),
-        }),
+        page.waitForURL((url) => url.pathname.startsWith("/event-types/")),
       ]);
     });
 

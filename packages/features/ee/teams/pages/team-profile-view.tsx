@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useLayoutEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -54,6 +54,10 @@ const ProfileView = () => {
   const utils = trpc.useContext();
   const session = useSession();
   const [firstRender, setFirstRender] = useState(true);
+  
+  useLayoutEffect(() => {
+    document.body.focus();
+  }, []);
 
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
