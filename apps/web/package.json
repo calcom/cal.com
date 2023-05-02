@@ -113,7 +113,7 @@
     "react-phone-number-input": "^3.2.7",
     "react-schemaorg": "^2.0.0",
     "react-select": "^5.7.0",
-    "react-timezone-select": "^1.4.0",
+    "react-timezone-select": "^1.5.1",
     "react-use-intercom": "1.5.1",
     "remark": "^14.0.2",
     "rrule": "^2.7.1",
