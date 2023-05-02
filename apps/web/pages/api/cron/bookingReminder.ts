@@ -1,4 +1,3 @@
-import { BookingStatus, ReminderType } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
@@ -7,6 +6,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { BookingStatus, ReminderType } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

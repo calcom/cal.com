@@ -1,8 +1,8 @@
-import { MembershipRole } from "@prisma/client";
 import type { SyntheticEvent } from "react";
 import { useMemo, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Dialog, DialogContent, Select } from "@calcom/ui";
 
