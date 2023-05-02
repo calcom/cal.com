@@ -1,5 +1,5 @@
-import localeMiddleware from "../../midlewares/localeMiddleware";
-import sessionMiddleware from "../../midlewares/sessionMiddleware";
+import localeMiddleware from "../../middlewares/localeMiddleware";
+import sessionMiddleware from "../../middlewares/sessionMiddleware";
 import publicProcedure from "../../procedures/publicProcedure";
 import { router } from "../../trpc";
 import { slotsRouter } from "../viewer/slots/_router";

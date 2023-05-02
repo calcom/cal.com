@@ -1,5 +1,5 @@
-import perfMiddleware from "../midlewares/perfMiddleware";
-import { isAdminMiddleware, isAuthed } from "../midlewares/sessionMiddleware";
+import perfMiddleware from "../middlewares/perfMiddleware";
+import { isAdminMiddleware, isAuthed } from "../middlewares/sessionMiddleware";
 import { procedure } from "../trpc";
 import publicProcedure from "./publicProcedure";
 
