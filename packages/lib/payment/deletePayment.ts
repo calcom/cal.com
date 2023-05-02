@@ -1,6 +1,7 @@
 import type { AppCategories, Payment, Prisma } from "@prisma/client";
 
 import appStore from "@calcom/app-store";
+import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 const deletePayment = async (
   paymentId: Payment["id"],
@@ -18,8 +19,9 @@ const deletePayment = async (
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return false;
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const PaymentService = paymentApp.lib.PaymentService as any;
-  const paymentInstance = new PaymentService(paymentAppCredentials);
+  const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;
   const deleted = await paymentInstance.deletePayment(paymentId);
   return deleted;
 };

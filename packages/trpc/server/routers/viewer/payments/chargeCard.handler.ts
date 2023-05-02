@@ -98,9 +98,9 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
   if (!("lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Payment service not found" });
   }
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const PaymentService = paymentApp.lib.PaymentService as any;
-  const paymentInstance = new PaymentService(paymentCredential);
+  const paymentInstance = new PaymentService(paymentCredential) as IAbstractPaymentService;
 
   try {
     const paymentData = await paymentInstance.chargeCard(booking.payment[0]);

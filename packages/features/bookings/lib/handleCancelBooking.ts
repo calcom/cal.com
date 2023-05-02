@@ -24,6 +24,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 async function getBookingToDelete(id: number | undefined, uid: string | undefined) {
   return await prisma.booking.findUnique({
@@ -597,8 +598,10 @@ async function handler(req: CustomRequest) {
       return null;
     }
 
-    const PaymentService = paymentApp.lib.PaymentService as any;
-    const paymentInstance = new PaymentService(paymentAppCredential);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const PaymentService = paymentApp.lib.PaymentService as unknown as any;
+    const paymentInstance = new PaymentService(paymentAppCredential) as IAbstractPaymentService;
+
     try {
       await paymentInstance.refund(successPayment.id);
     } catch (error) {

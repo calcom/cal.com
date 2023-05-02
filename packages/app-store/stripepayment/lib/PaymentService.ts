@@ -4,10 +4,10 @@ import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
 import { sendAwaitingPaymentEmail } from "@calcom/emails";
-import type { IAbstractPaymentService } from "@calcom/lib/PaymentService";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import { paymentOptionEnum } from "../zod";
 import { createPaymentLink } from "./client";

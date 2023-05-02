@@ -8,6 +8,7 @@ import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import { TRPCError } from "@trpc/server";
 
@@ -279,8 +280,9 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
             return null;
           }
 
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const PaymentService = paymentApp.lib.PaymentService as any;
-          const paymentInstance = new PaymentService(paymentAppCredential);
+          const paymentInstance = new PaymentService(paymentAppCredential) as IAbstractPaymentService;
           const paymentData = await paymentInstance.refund(successPayment.id);
           if (!paymentData.refunded) {
             throw new Error("Payment could not be refunded");
