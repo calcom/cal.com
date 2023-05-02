@@ -1,0 +1,19 @@
+{
+  "name": "example",
+  "slug": "example",
+  "type": "example_other",
+  "logo": "icon.svg",
+  "url": "https://example.com/link",
+  "variant": "other",
+  "categories": [
+    "other"
+  ],
+  "publisher": "Elhadis",
+  "email": "a",
+  "description": "exsample_issues",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "imageSrc": "icon.svg",
+  "__template": "general-app-settings",
+  "dirName": "example"
+}

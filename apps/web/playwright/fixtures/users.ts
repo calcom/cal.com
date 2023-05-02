@@ -239,6 +239,7 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
     get: () => store.users,
     logout: async () => {
       await page.goto("/auth/logout");
+      
     },
     deleteAll: async () => {
       const ids = store.users.map((u) => u.id);

@@ -1,5 +1,5 @@
 import { IdentityProvider } from "@prisma/client";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 
 import { identityProviderNameMap } from "@calcom/features/auth/lib/identityProviderNameMap";
@@ -67,7 +67,7 @@ const PasswordView = () => {
       so this a workaround to hide the banner after updating the password.
       discussion: https://github.com/nextauthjs/next-auth/discussions/4229
       */
-        signOut({ callbackUrl: "/auth/login" });
+        ({ callbackUrl: "/auth/login" });
       }
     },
     onError: (error) => {

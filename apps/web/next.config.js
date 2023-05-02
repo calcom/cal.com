@@ -272,7 +272,7 @@ const nextConfig = {
       },
       {
         source: "/settings",
-        destination: "/settings/my-account/profile",
+        destination: "/settings/my-account/",
         permanent: true,
       },
       {
@@ -282,8 +282,8 @@ const nextConfig = {
       },
       /* V2 testers get redirected to the new settings */
       {
-        source: "/settings/profile",
-        destination: "/settings/my-account/profile",
+        source: "/settings/",
+        destination: "/settings/my-account/",
         permanent: false,
       },
       {

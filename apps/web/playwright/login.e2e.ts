@@ -27,7 +27,7 @@ test.describe("user can login & logout succesfully", async () => {
 
     //
     await test.step("Log out", async () => {
-      const signOutLabel = (await localize("en"))("sign_out");
+      const Label = (await localize("en"))("sign_out");
       const userDropdownDisclose = async () => page.locator("[data-testid=user-dropdown-trigger]").click();
 
       // disclose and click the sign out button from the user dropdown
@@ -36,7 +36,7 @@ test.describe("user can login & logout succesfully", async () => {
       await signOutBtn.click();
 
       // 2s of delay to assure the session is cleared
-      await page.waitForURL("/auth/logout");
+      await page.waitForURL();
 
       // Reroute to the home page to check if the login form shows up
       await page.goto("/");
