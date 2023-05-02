@@ -1,7 +1,6 @@
-import { WorkflowActions } from "@prisma/client";
-
 import dayjs from "@calcom/dayjs";
 import { APP_NAME } from "@calcom/lib/constants";
+import { WorkflowActions } from "@calcom/prisma/enums";
 
 const emailReminderTemplate = (
   isEditingMode: boolean,
