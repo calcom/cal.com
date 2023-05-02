@@ -41,6 +41,7 @@ yarn-error.log*
 .env.*
 !.env.example
 !.env.appStore.example
+.yarn.lock
 
 # vercel
 .vercel
@@ -65,8 +66,9 @@ tsconfig.tsbuildinfo
 # turbo
 .turbo
 
-# Prisma-Zod
+# Prisma generated files
 packages/prisma/zod/*.ts
+packages/prisma/enums
 
 # Builds
 dist

@@ -4365,6 +4365,7 @@ __metadata:
   dependencies:
     "@calcom/lib": "*"
     "@prisma/client": ^4.13.0
+    "@prisma/generator-helper": ^4.13.0
     npm-run-all: ^4.1.5
     prisma: ^4.13.0
     ts-node: ^10.9.1
@@ -4806,7 +4807,7 @@ __metadata:
     react-phone-number-input: ^3.2.7
     react-schemaorg: ^2.0.0
     react-select: ^5.7.0
-    react-timezone-select: ^1.4.0
+    react-timezone-select: ^1.5.1
     react-use-intercom: 1.5.1
     remark: ^14.0.2
     rrule: ^2.7.1
@@ -8048,6 +8049,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@prisma/debug@npm:4.13.0":
+  version: 4.13.0
+  resolution: "@prisma/debug@npm:4.13.0"
+  dependencies:
+    "@types/debug": 4.1.7
+    debug: 4.3.4
+    strip-ansi: 6.0.1
+  checksum: cd8b3361a3992ad93855923aeea0cedfc3ff316508fc1d6b526d46d05af35b47dc2e2203e3e0f95258c9e5a72a8a6d9a9737ebca9d8280e4df6135ef810b553b
+  languageName: node
+  linkType: hard
+
 "@prisma/engines-version@npm:4.13.0-50.1e7af066ee9cb95cf3a403c78d9aab3e6b04f37a":
   version: 4.13.0-50.1e7af066ee9cb95cf3a403c78d9aab3e6b04f37a
   resolution: "@prisma/engines-version@npm:4.13.0-50.1e7af066ee9cb95cf3a403c78d9aab3e6b04f37a"
@@ -8059,6 +8071,18 @@ __metadata:
   version: 4.13.0
   resolution: "@prisma/engines@npm:4.13.0"
   checksum: 6c2315dc1e1a8a07f02a074ee6898a66a96a3bbbb4341224cb1dc966da3959c2ee7557131a2ce37fd559c53d210b904b72c4559474e017438e6753d480c3cfe1
+  languageName: node
+  linkType: hard
+
+"@prisma/generator-helper@npm:^4.13.0":
+  version: 4.13.0
+  resolution: "@prisma/generator-helper@npm:4.13.0"
+  dependencies:
+    "@prisma/debug": 4.13.0
+    "@types/cross-spawn": 6.0.2
+    chalk: 4.1.2
+    cross-spawn: 7.0.3
+  checksum: 0b0724bd03d40b691a85e002d8ed91216df9e6883d1fe5e69368ad135b59cff5ae49d65860db727fca6acf984c3efe382bca26c4127e0328b2e72748dbf59369
   languageName: node
   linkType: hard
 
@@ -32367,17 +32391,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-timezone-select@npm:^1.4.0":
-  version: 1.4.0
-  resolution: "react-timezone-select@npm:1.4.0"
+"react-timezone-select@npm:^1.5.1":
+  version: 1.5.6
+  resolution: "react-timezone-select@npm:1.5.6"
   dependencies:
     react-select: ^5.7.0
-    spacetime: ^7.1.4
-    timezone-soft: ^1.3.1
+    spacetime: ^7.4.1
+    timezone-soft: ^1.4.1
   peerDependencies:
     react: ^18 || ^17.0.1 || ^16
     react-dom: ^18 || ^17.0.1 || ^16
-  checksum: 646205fb2c66694dfc70c6a32b079eb64d0e82269b8f3172011a312f6fc745a158453f7eb3565a0dac78184c3d93d005bccbe7796cc5387684be033faf90b131
+  checksum: a0d591eeb0d58a98d8a9b4a7e0e38957e6a549b019163aea444061ac01e25a0ed605e93b40a757a4947528509f653bad541433861a1865011295dfac6dbc3ac9
   languageName: node
   linkType: hard
 
@@ -34509,10 +34533,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"spacetime@npm:^7.1.4":
-  version: 7.1.4
-  resolution: "spacetime@npm:7.1.4"
-  checksum: a0153759f2da8a94bc86a10d823876297a99fc397405ae371aadcb932d3ae73dc6afa77a3d50826c02ee9c85571b7bc50563040d395d10c42ef3fb2b1b9465e2
+"spacetime@npm:^7.4.1":
+  version: 7.4.3
+  resolution: "spacetime@npm:7.4.3"
+  checksum: 44349923c96f35e5310733e1b48ffc2c9fc7dc05e67dd43d7a7e3bdebb38aae4874cf2c2e479abd720c0d7d2347b7814e32ef16bfbc331966c7414cdde2ea4b7
   languageName: node
   linkType: hard
 
@@ -36104,10 +36128,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"timezone-soft@npm:^1.3.1":
-  version: 1.3.1
-  resolution: "timezone-soft@npm:1.3.1"
-  checksum: 0402405ee6b7bf93b6c5935938903eaa1878bd052c2aaa1c4055395d3400cd0a00461c32136d2b4a8bff66659275c37e14222807a1a898110815a67170c3e3cc
+"timezone-soft@npm:^1.4.1":
+  version: 1.4.1
+  resolution: "timezone-soft@npm:1.4.1"
+  checksum: d504bef27403fa21399620c37231adad5d368066b5f67516a2dbaf6d84cebbe92e0f15722d8847ebf39ff108af7292607dcb25d9815bc65fcd756fe9609bc38f
   languageName: node
   linkType: hard
 
