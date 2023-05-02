@@ -1,9 +1,9 @@
-import { MembershipRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Meta, showToast } from "@calcom/ui";
 import { Plus } from "@calcom/ui/components/icon";

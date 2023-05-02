@@ -1,10 +1,10 @@
 import type { Locator, Page, PlaywrightTestArgs } from "@playwright/test";
 import { expect } from "@playwright/test";
-import { WebhookTriggerEvents } from "@prisma/client";
 import type { createUsersFixture } from "playwright/fixtures/users";
 import { uuid } from "short-uuid";
 
 import prisma from "@calcom/prisma";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 import { testBothBookers } from "./lib/new-booker";

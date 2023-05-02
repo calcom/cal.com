@@ -1,4 +1,4 @@
-import { MembershipRole } from "@prisma/client";
+import type { MembershipRole } from "@calcom/prisma/enums";
 
 export interface NewTeamFormValues {
   name: string;

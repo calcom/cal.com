@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
-import { BookingStatus } from "@prisma/client";
 
 import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 import { testBothBookers } from "./lib/new-booker";

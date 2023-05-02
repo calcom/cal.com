@@ -1,9 +1,9 @@
 import { expect } from "@playwright/test";
 import type { Prisma } from "@prisma/client";
-import { BookingStatus } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
@@ -198,7 +198,8 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
 
       await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-      await page.waitForURL(/.*booking/);
+      // Using waitForUrl here fails the assertion `expect(oldBooking?.status).toBe(BookingStatus.CANCELLED);` probably because waitForUrl is considered complete before waitForNavigation and till that time the booking is not cancelled
+      await page.waitForNavigation({ url: /.*booking/ });
 
       // Should expect old booking to be cancelled
       const oldBooking = await prisma.booking.findFirst({
