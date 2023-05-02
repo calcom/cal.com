@@ -19,7 +19,7 @@ export interface IAbstractPaymentService {
   ): Promise<Payment>;
   chargeCard(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
-    bookingId: Booking["id"]
+    bookingId?: Booking["id"]
   ): Promise<Payment>;
   update(paymentId: Payment["id"], data: Partial<Prisma.PaymentUncheckedCreateInput>): Promise<Payment>;
   refund(paymentId: Payment["id"]): Promise<Payment>;

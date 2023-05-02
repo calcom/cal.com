@@ -4,6 +4,7 @@ import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import { TRPCError } from "@trpc/server";
 
