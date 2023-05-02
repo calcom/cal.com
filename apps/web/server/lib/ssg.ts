@@ -32,7 +32,7 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
 
   // always preload i18n
 
-  await ssg.viewer.public.i18n.fetch({ locale });
+  await ssg.viewer.public.i18n.prefetch({ locale });
 
   return ssg;
 }
