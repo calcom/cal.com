@@ -1783,6 +1783,5 @@
   "seats_and_no_show_fee_error": "Kan op dit moment geen plaatsen inschakelen en afwezigheidsvergoeding in rekening brengen",
   "complete_your_booking": "Voltooi uw boeking",
   "complete_your_booking_subject": "Voltooi uw boeking: {{title}} op {{date}}",
-  "email_invite_team": "{{email}} is uitgenodigd",
-  "Please reschedule.": "Maak een nieuwe afspraak."
+  "email_invite_team": "{{email}} is uitgenodigd"
 }

@@ -76,6 +76,5 @@
   "limit_booking_frequency": "Mugatu erreserbatzeko maiztasuna",
   "booking_tentative": "Erreserba hau behin-behinekoa da",
   "limit_future_bookings": "Mugatu etorkizuneko erreserbak",
-  "all_bookings_filter_label": "Erreserba guztiak",
-  "Please reschedule.": "Mesedez, berriro programatu."
+  "all_bookings_filter_label": "Erreserba guztiak"
 }

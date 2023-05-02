@@ -1783,6 +1783,5 @@
   "seats_and_no_show_fee_error": "Actualmente no se pueden habilitar cupos ni cobrar una tarifa por no presentarse",
   "complete_your_booking": "Complete su reserva",
   "complete_your_booking_subject": "Complete su reserva: {{title}} el {{date}}",
-  "email_invite_team": "Se ha invitado a {{email}}",
-  "Please reschedule.": "Por favor reprograme."
+  "email_invite_team": "Se ha invitado a {{email}}"
 }

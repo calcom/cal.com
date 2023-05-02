@@ -1783,6 +1783,5 @@
   "seats_and_no_show_fee_error": "För närvarande går det inte att aktivera platser och ta ut en avgift för utebliven ankomst",
   "complete_your_booking": "Slutför din bokning",
   "complete_your_booking_subject": "Slutför din bokning: {{title}} {{date}}",
-  "email_invite_team": "{{email}} har bjudits in",
-  "Please reschedule.": "Vänligen boka om."
+  "email_invite_team": "{{email}} har bjudits in"
 }

@@ -1783,6 +1783,5 @@
   "seats_and_no_show_fee_error": "Atualmente, não é possível ativar lugares e cobrar uma taxa de não-comparência",
   "complete_your_booking": "Concluir a sua reserva",
   "complete_your_booking_subject": "Concluir a sua reserva: {{title}} a {{date}}",
-  "email_invite_team": "{{email}} foi convidado/a",
-  "Please reschedule.": "Por favor, reagende."
+  "email_invite_team": "{{email}} foi convidado/a"
 }

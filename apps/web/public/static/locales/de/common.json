@@ -1783,6 +1783,5 @@
   "seats_and_no_show_fee_error": "Aktuell können keine Plätze aktiviert werden oder eine Gebühr für das Nichterscheinen berechnet werden",
   "complete_your_booking": "Schließen Sie Ihre Buchung ab",
   "complete_your_booking_subject": "Schließen Sie Ihre Buchung ab: {{title}} am {{date}}",
-  "email_invite_team": "{{email}} wurde eingeladen",
-  "Please reschedule.": "Bitte umplanen."
+  "email_invite_team": "{{email}} wurde eingeladen"
 }

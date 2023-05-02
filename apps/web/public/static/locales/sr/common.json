@@ -1788,6 +1788,5 @@
   "charge_attendee": "Naplatite polazniku {{amount, currency}}",
   "payment_app_commission": "Zahtevajte plaćanje ({{paymentFeePercentage}}% + {{fee, currency}} provizija po transakciji)",
   "email_invite_team": "{{email}} je pozvan",
-  "image_size_limit_exceed": "Otpremljena slika ne sme da prevazilazi ograničenje od 5mb",
-  "Please reschedule.": "Молимо вас да поново закажете."
+  "image_size_limit_exceed": "Otpremljena slika ne sme da prevazilazi ograničenje od 5mb"
 }

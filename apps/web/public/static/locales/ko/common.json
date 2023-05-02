@@ -1783,6 +1783,5 @@
   "seats_and_no_show_fee_error": "현재 좌석을 활성화할 수 없으므로 노쇼 수수료를 부과할 수 없습니다",
   "complete_your_booking": "예약을 완료하세요",
   "complete_your_booking_subject": "예약 완료: {{title}} 날짜 {{date}}",
-  "email_invite_team": "{{email}} 이 초대되었습니다.",
-  "Please reschedule.": "일정을 변경하십시오."
+  "email_invite_team": "{{email}} 이 초대되었습니다."
 }

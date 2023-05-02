@@ -1783,6 +1783,5 @@
   "seats_and_no_show_fee_error": "В данный момент не удается активировать места и зачислить комиссию за отсутствие на событии",
   "complete_your_booking": "Завершите бронирование",
   "complete_your_booking_subject": "Завершите бронирование: {{title}} от {{date}}",
-  "email_invite_team": "{{email}} приглашен(а)",
-  "Please reschedule.": "Пожалуйста, перенесите."
+  "email_invite_team": "{{email}} приглашен(а)"
 }

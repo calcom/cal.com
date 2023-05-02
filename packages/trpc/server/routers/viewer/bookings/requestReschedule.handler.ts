@@ -231,7 +231,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       location: bookingToReschedule?.location,
       destinationCalendar:
         bookingToReschedule?.destinationCalendar || bookingToReschedule?.destinationCalendar,
-      cancellationReason: t('Please reschedule.') + " " + cancellationReason,
+      cancellationReason: t("Please reschedule.", { cancellationReasonMessage: cancellationReason })
     };
 
     // Send webhook

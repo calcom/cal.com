@@ -1783,6 +1783,5 @@
   "seats_and_no_show_fee_error": "Attualmente non è possibile abilitare i posti e addebitare la penale per mancata presentazione",
   "complete_your_booking": "Completa la prenotazione",
   "complete_your_booking_subject": "Completa la prenotazione: {{title}} del {{date}}",
-  "email_invite_team": "{{email}} è stato invitato",
-  "Please reschedule.": "Si prega di riprogrammare."
+  "email_invite_team": "{{email}} è stato invitato"
 }
