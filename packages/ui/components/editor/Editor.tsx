@@ -4,12 +4,14 @@ import { ListItemNode, ListNode } from "@lexical/list";
 import { TRANSFORMERS } from "@lexical/markdown";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
+import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
+import type { Dispatch, SetStateAction } from "react";
 
 import { classNames } from "@calcom/lib";
 
@@ -33,6 +35,9 @@ export type TextEditorProps = {
   height?: string;
   placeholder?: string;
   disableLists?: boolean;
+  updateTemplate?: boolean;
+  firstRender?: boolean;
+  setFirstRender?: Dispatch<SetStateAction<boolean>>;
   editable?: boolean;
 };
 
@@ -69,9 +74,12 @@ export const Editor = (props: TextEditorProps) => {
             editable={editable}
             excludedToolbarItems={props.excludedToolbarItems}
             variables={props.variables}
+            updateTemplate={props.updateTemplate}
+            firstRender={props.firstRender}
+            setFirstRender={props.setFirstRender}
           />
           <div
-            className={classNames("editor-inner", !editable && "bg-muted")}
+            className={classNames("editor-inner scroll-bar", !editable && "bg-muted")}
             style={{ height: props.height }}>
             <RichTextPlugin
               contentEditable={<ContentEditable style={{ height: props.height }} className="editor-input" />}
@@ -80,6 +88,7 @@ export const Editor = (props: TextEditorProps) => {
             <ListPlugin />
             <LinkPlugin />
             <AutoLinkPlugin />
+            <HistoryPlugin />
             <MarkdownShortcutPlugin
               transformers={
                 props.disableLists

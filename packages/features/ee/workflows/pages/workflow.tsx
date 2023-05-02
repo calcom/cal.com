@@ -1,12 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { WorkflowStep } from "@prisma/client";
-import {
-  TimeUnit,
-  WorkflowActions,
-  WorkflowTemplates,
-  WorkflowTriggerEvents,
-  MembershipRole,
-} from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -19,15 +12,17 @@ import { classNames } from "@calcom/lib";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import { TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+import { WorkflowTriggerEvents, MembershipRole } from "@calcom/prisma/enums";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
 import { Alert, Button, Form, showToast, Badge } from "@calcom/ui";
 
-import LicenseRequired from "../../common/components/v2/LicenseRequired";
+import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
-import { isSMSAction } from "../lib/isSMSAction";
+import { isSMSAction } from "../lib/actionHelperFunctions";
 import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
 export type FormValues = {
@@ -204,10 +199,7 @@ function WorkflowPage() {
         values.steps.forEach((step) => {
           const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
 
-          const isBodyEmpty =
-            step.template === WorkflowTemplates.CUSTOM &&
-            !isSMSAction(step.action) &&
-            strippedHtml.length <= 1;
+          const isBodyEmpty = !isSMSAction(step.action) && strippedHtml.length <= 1;
 
           if (isBodyEmpty) {
             form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
@@ -266,6 +258,7 @@ function WorkflowPage() {
             </Button>
           </div>
         }
+        hideHeadingOnMobile
         heading={
           session.data?.hasValidLicense &&
           isAllDataLoaded && (

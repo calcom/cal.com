@@ -1,9 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
-import { MembershipRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -13,6 +13,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import objectKeys from "@calcom/lib/objectKeys";
 import turndown from "@calcom/lib/turndownService";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
@@ -52,6 +53,7 @@ const ProfileView = () => {
   const router = useRouter();
   const utils = trpc.useContext();
   const session = useSession();
+  const [firstRender, setFirstRender] = useState(true);
 
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
@@ -225,6 +227,8 @@ const ProfileView = () => {
                   setText={(value: string) => form.setValue("bio", turndown(value))}
                   excludedToolbarItems={["blockType"]}
                   disableLists
+                  firstRender={firstRender}
+                  setFirstRender={setFirstRender}
                 />
               </div>
               <p className="text-default mt-2 text-sm">{t("team_description")}</p>

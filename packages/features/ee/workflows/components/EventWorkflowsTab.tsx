@@ -1,4 +1,3 @@
-import { WorkflowActions } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -7,12 +6,13 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import { WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button, EmptyScreen, showToast, Switch, Tooltip, Alert } from "@calcom/ui";
 import { ExternalLink, Zap, Lock } from "@calcom/ui/components/icon";
 
-import LicenseRequired from "../../common/components/v2/LicenseRequired";
+import LicenseRequired from "../../common/components/LicenseRequired";
 import { getActionIcon } from "../lib/getActionIcon";
 import SkeletonLoader from "./SkeletonLoaderEventWorkflowsTab";
 import type { WorkflowType } from "./WorkflowListPage";

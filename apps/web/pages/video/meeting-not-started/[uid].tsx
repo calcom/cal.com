@@ -8,6 +8,8 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, HeadSeo, EmptyScreen } from "@calcom/ui";
 import { ArrowRight, Calendar, Clock } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
+
 export default function MeetingNotStarted(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   return (
@@ -36,6 +38,8 @@ export default function MeetingNotStarted(props: inferSSRProps<typeof getServerS
     </>
   );
 }
+
+MeetingNotStarted.PageWrapper = PageWrapper;
 
 export async function getServerSideProps(context: NextPageContext) {
   const booking = await prisma.booking.findUnique({

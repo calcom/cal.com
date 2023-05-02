@@ -64,7 +64,7 @@ function FloatingLinkEditor({ editor }: { editor: LexicalEditor }) {
   const mouseDownRef = useRef(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [linkUrl, setLinkUrl] = useState("");
-  const [isEditMode, setEditMode] = useState(false);
+  const [isEditMode, setEditMode] = useState(true);
   const [lastSelection, setLastSelection] = useState<RangeSelection | NodeSelection | GridSelection | null>(
     null
   );
@@ -340,23 +340,47 @@ export default function ToolbarPlugin(props: TextEditorProps) {
   };
 
   useEffect(() => {
-    editor.update(() => {
-      const parser = new DOMParser();
-      const dom = parser.parseFromString(props.getText(), "text/html");
+    if (!props.firstRender) {
+      editor.update(() => {
+        const root = $getRoot();
+        if (root) {
+          editor.update(() => {
+            const parser = new DOMParser();
+            // Create a new TextNode
+            const dom = parser.parseFromString(props.getText(), "text/html");
 
-      const nodes = $generateNodesFromDOM(editor, dom);
-
-      $getRoot().select();
-      $insertNodes(nodes);
-
-      editor.registerUpdateListener(({ editorState, prevEditorState }) => {
-        editorState.read(() => {
-          const textInHtml = $generateHtmlFromNodes(editor).replace(/&lt;/g, "<").replace(/&gt;/g, ">");
-          props.setText(textInHtml);
-        });
-        if (!prevEditorState._selection) editor.blur();
+            const nodes = $generateNodesFromDOM(editor, dom);
+            const paragraph = $createParagraphNode();
+            root.clear().append(paragraph);
+            paragraph.select();
+            $insertNodes(nodes);
+          });
+        }
       });
-    });
+    }
+  }, [props.updateTemplate]);
+
+  useEffect(() => {
+    if (props.setFirstRender) {
+      props.setFirstRender(false);
+      editor.update(() => {
+        const parser = new DOMParser();
+        const dom = parser.parseFromString(props.getText(), "text/html");
+
+        const nodes = $generateNodesFromDOM(editor, dom);
+
+        $getRoot().select();
+        $insertNodes(nodes);
+
+        editor.registerUpdateListener(({ editorState, prevEditorState }) => {
+          editorState.read(() => {
+            const textInHtml = $generateHtmlFromNodes(editor).replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+            props.setText(textInHtml);
+          });
+          if (!prevEditorState._selection) editor.blur();
+        });
+      });
+    }
   }, []);
 
   useEffect(() => {

@@ -1,4 +1,3 @@
-import { SchedulingType } from "@prisma/client";
 import { Webhook as TbWebhook } from "lucide-react";
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
@@ -13,6 +12,7 @@ import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
   Button,
@@ -51,6 +51,7 @@ import {
 } from "@calcom/ui/components/icon";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
+import type { AvailabilityOption } from "@components/eventtype/EventAvailabilityTab";
 
 type Props = {
   children: React.ReactNode;
@@ -63,6 +64,7 @@ type Props = {
   enabledWorkflowsNumber: number;
   formMethods: UseFormReturn<FormValues>;
   isUpdateMutationLoading?: boolean;
+  availability?: AvailabilityOption;
 };
 
 function getNavigation(props: {
@@ -71,8 +73,10 @@ function getNavigation(props: {
   enabledAppsNumber: number;
   enabledWorkflowsNumber: number;
   installedAppsNumber: number;
+  availability: AvailabilityOption | undefined;
 }) {
-  const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber } = props;
+  const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber, availability } =
+    props;
   const duration =
     eventType.metadata?.multipleDuration?.map((duration) => ` ${duration}`) || eventType.length;
 
@@ -128,6 +132,7 @@ function EventTypeSingleLayout({
   enabledWorkflowsNumber,
   isUpdateMutationLoading,
   formMethods,
+  availability,
 }: Props) {
   const utils = trpc.useContext();
   const { t } = useLocale();
@@ -171,6 +176,7 @@ function EventTypeSingleLayout({
       enabledAppsNumber,
       installedAppsNumber,
       enabledWorkflowsNumber,
+      availability,
     });
     navigation.splice(1, 0, {
       name: "availability",
@@ -214,7 +220,7 @@ function EventTypeSingleLayout({
       });
     }
     return navigation;
-  }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team]);
+  }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team, availability]);
 
   const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
     eventType.slug
@@ -374,6 +380,8 @@ function EventTypeSingleLayout({
               tabs={EventTypeTabs}
               sticky
               linkProps={{ shallow: true }}
+              itemClassname="items-start"
+              iconClassName="md:mt-px"
             />
           </div>
           <div className="p-2 md:mx-0 md:p-0 xl:hidden">

@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { IdentityProvider } from "@prisma/client";
 import { signOut } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import { useRef, useState } from "react";
@@ -13,6 +12,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
@@ -40,6 +40,7 @@ import {
 } from "@calcom/ui";
 import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
@@ -319,6 +320,7 @@ const ProfileForm = ({
   extraField?: React.ReactNode;
 }) => {
   const { t } = useLocale();
+  const [firstRender, setFirstRender] = useState(true);
 
   const profileFormSchema = z.object({
     username: z.string(),
@@ -384,6 +386,8 @@ const ProfileForm = ({
           }}
           excludedToolbarItems={["blockType"]}
           disableLists
+          firstRender={firstRender}
+          setFirstRender={setFirstRender}
         />
       </div>
       <Button disabled={isDisabled} color="primary" className="mt-8" type="submit">
@@ -394,5 +398,6 @@ const ProfileForm = ({
 };
 
 ProfileView.getLayout = getLayout;
+ProfileView.PageWrapper = PageWrapper;
 
 export default ProfileView;

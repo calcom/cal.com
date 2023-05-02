@@ -90,7 +90,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         user: {
           select: {
             id: true,
-            credentials: true,
             timeZone: true,
             email: true,
             name: true,

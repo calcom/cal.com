@@ -1,4 +1,3 @@
-import { UserPermissionRole } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -8,9 +7,11 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Meta, WizardForm } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
 import { AdminUserContainer as AdminUser } from "@components/setup/AdminUser";
 import ChooseLicense from "@components/setup/ChooseLicense";
 import EnterpriseLicense from "@components/setup/EnterpriseLicense";
@@ -136,7 +137,7 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
 }
 
 Setup.isThemeSupported = false;
-
+Setup.PageWrapper = PageWrapper;
 export default Setup;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {

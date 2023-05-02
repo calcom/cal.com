@@ -7,11 +7,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SkeletonText } from "@calcom/ui";
 import { ArrowLeft, ArrowRight } from "@calcom/ui/components/icon";
 
+import PageWrapper from "@components/PageWrapper";
+
 export default function Apps({ categories }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t, isLocaleReady } = useLocale();
 
   return (
-    <Shell isPublic large>
+    <Shell isPublic large hideHeadingOnMobile>
       <div className="text-md flex items-center gap-1 px-4 pb-3 pt-3 font-normal md:px-8 lg:px-0 lg:pt-0">
         <Link
           href="/apps"
@@ -42,6 +44,8 @@ export default function Apps({ categories }: InferGetStaticPropsType<typeof getS
     </Shell>
   );
 }
+
+Apps.PageWrapper = PageWrapper;
 
 export const getStaticProps = async () => {
   const appStore = await getAppRegistry();

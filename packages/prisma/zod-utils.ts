@@ -1,5 +1,4 @@
 import type { Prisma } from "@prisma/client";
-import { EventTypeCustomInputType } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
 import { pick } from "lodash";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
@@ -18,6 +17,7 @@ import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import dayjs from "@calcom/dayjs";
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
 import { slugify } from "@calcom/lib/slugify";
+import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 
 // Let's not import 118kb just to get an enum
 export enum Frequency {
@@ -220,7 +220,7 @@ export const bookingCreateSchemaLegacyPropsForApi = z.object({
 
 // This is the schema that is used for the API. It has all the legacy props that are part of `responses` now.
 export const bookingCreateBodySchemaForApi = extendedBookingCreateBody.merge(
-  bookingCreateSchemaLegacyPropsForApi
+  bookingCreateSchemaLegacyPropsForApi.partial()
 );
 
 export const schemaBookingCancelParams = z.object({
@@ -450,6 +450,28 @@ export const getAccessLinkResponseSchema = z.object({
 
 export type GetAccessLinkResponseSchema = z.infer<typeof getAccessLinkResponseSchema>;
 
+/** Facilitates converting values from Select inputs to plain ones before submitting */
+export const optionToValueSchema = <T extends z.ZodTypeAny>(valueSchema: T) =>
+  z
+    .object({
+      label: z.string(),
+      value: valueSchema,
+    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .transform((foo) => (foo as any).value as z.infer<T>);
+
+/**
+ * Allows parsing without losing original data inference.
+ * @url https://github.com/colinhacks/zod/discussions/1655#discussioncomment-4367368
+ */
+export const getParserWithGeneric =
+  <T extends z.ZodTypeAny>(valueSchema: T) =>
+  <Data>(data: Data) => {
+    type Output = z.infer<typeof valueSchema>;
+    return valueSchema.parse(data) as {
+      [key in keyof Data]: key extends keyof Output ? Output[key] : Data[key];
+    };
+  };
 export const sendDailyVideoRecordingEmailsSchema = z.object({
   recordingId: z.string(),
   bookingUID: z.string(),

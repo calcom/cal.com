@@ -1,4 +1,3 @@
-import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -7,6 +6,7 @@ import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationM
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -105,7 +105,7 @@ export default function TeamListItem(props: Props) {
         alt="Team Logo"
         className="inline-flex justify-center"
       />
-      <div className="ms-3 inline-block">
+      <div className="ms-3 inline-block truncate">
         <span className="text-default text-sm font-bold">{team.name}</span>
         <span className="text-muted block text-xs">
           {team.slug ? `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}` : "Unpublished team"}

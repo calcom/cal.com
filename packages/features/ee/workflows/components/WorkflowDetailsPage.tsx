@@ -1,5 +1,3 @@
-import type { WorkflowActions } from "@prisma/client";
-import { WorkflowTemplates, SchedulingType } from "@prisma/client";
 import { useRouter } from "next/router";
 import type { Dispatch, SetStateAction } from "react";
 import { useMemo, useState } from "react";
@@ -8,12 +6,14 @@ import { Controller } from "react-hook-form";
 
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { WorkflowTemplates, SchedulingType } from "@calcom/prisma/enums";
+import type { WorkflowActions } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
 import { Button, Label, MultiSelectCheckboxes, TextField } from "@calcom/ui";
 import { ArrowDown, Trash2 } from "@calcom/ui/components/icon";
 
-import { isSMSAction } from "../lib/isSMSAction";
+import { isSMSAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";

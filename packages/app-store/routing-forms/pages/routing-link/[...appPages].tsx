@@ -86,7 +86,7 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
         router.push(`/${decidedAction.value}`);
       } else if (decidedAction.type === "externalRedirectUrl") {
-        window.location.href = decidedAction.value;
+        window.parent.location.href = decidedAction.value;
       }
       // showToast("Form submitted successfully! Redirecting now ...", "success");
     },
@@ -165,7 +165,7 @@ export default function RoutingLink(props: inferSSRProps<typeof getServerSidePro
   return <RoutingForm {...props} />;
 }
 
-RoutingLink.isThemeSupported = true;
+RoutingLink.isBookingPage = true;
 
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,

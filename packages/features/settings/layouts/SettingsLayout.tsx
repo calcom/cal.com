@@ -1,25 +1,26 @@
-import { MembershipRole, UserPermissionRole } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import type { ComponentProps } from "react";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { VerticalTabItemProps } from "@calcom/ui";
-import { Badge, Button, ErrorBoundary, VerticalTabItem, Skeleton, useMeta } from "@calcom/ui";
+import { Badge, Button, ErrorBoundary, Skeleton, useMeta, VerticalTabItem } from "@calcom/ui";
 import {
   User,
   Key,
   CreditCard,
   Terminal,
   Users,
+  Loader,
   Lock,
   ArrowLeft,
   ChevronDown,
@@ -87,7 +88,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "license", href: "/auth/setup?step=1" },
       { name: "impersonation", href: "/settings/admin/impersonation" },
       { name: "apps", href: "/settings/admin/apps/calendar" },
-      { name: "users", href: "https://console.cal.com" },
+      { name: "users", href: "/settings/admin/users" },
     ],
   },
 ];
@@ -129,7 +130,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
       href="/"
       className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-64 flex-row items-center rounded-md py-2 px-3 text-sm font-medium leading-4"
       data-testid={`vertical-tab-${name}`}>
-      <ArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] md:mt-0" />
+      <ArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0" />
       <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate">
         {name}
       </Skeleton>
@@ -254,8 +255,12 @@ const SettingsSidebarContainer = ({
                                   }),
                                 ])
                               }>
-                              <div className="ltr:mr-3 rtl:ml-3">
-                                {teamMenuState[index].teamMenuOpen ? <ChevronDown /> : <ChevronRight />}
+                              <div className="me-3">
+                                {teamMenuState[index].teamMenuOpen ? (
+                                  <ChevronDown className="h-4 w-4" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4" />
+                                )}
                               </div>
                               <img
                                 src={getPlaceholderAvatar(team.logo, team?.name as string)}
@@ -342,7 +347,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
   return (
     <>
-      <nav className="bg-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b sm:relative lg:hidden">
+      <nav className="bg-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b py-2 sm:relative lg:hidden">
         <div className="flex items-center space-x-3 ">
           <Button StartIcon={Menu} color="minimal" variant="icon" onClick={props.onSideContainerOpen}>
             <span className="sr-only">{t("show_navigation")}</span>
@@ -351,7 +356,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
           <button
             className="hover:bg-emphasis flex items-center space-x-2 rounded-md px-3 py-1 rtl:space-x-reverse"
             onClick={() => router.back()}>
-            <ArrowLeft className="text-default" />
+            <ArrowLeft className="text-default h-4 w-4" />
             <p className="text-emphasis font-semibold">{t("settings")}</p>
           </button>
         </div>
@@ -392,6 +397,7 @@ export default function SettingsLayout({
     <Shell
       withoutSeo={true}
       flexChildrenContainer
+      hideHeadingOnMobile
       {...rest}
       SidebarContainer={
         <>
@@ -414,7 +420,9 @@ export default function SettingsLayout({
       <div className="flex flex-1 [&>*]:flex-1">
         <div className="mx-auto max-w-full justify-center md:max-w-3xl">
           <ShellHeader />
-          <ErrorBoundary>{children}</ErrorBoundary>
+          <ErrorBoundary>
+            <Suspense fallback={<Loader />}>{children}</Suspense>
+          </ErrorBoundary>
         </div>
       </div>
     </Shell>

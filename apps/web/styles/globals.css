@@ -166,16 +166,16 @@ html.todesktop aside {
   margin: 0px -6px;
 }
 
-html.todesktop .desktop-transparent{
+html.todesktop-platform-darwin .desktop-transparent{
   background: transparent !important;
   border: none !important;
 }
 
-html.todesktop.dark main.bg-default{
+html.todesktop-platform-darwin.dark main.bg-default{
   background: rgba(0,0,0,0.6) !important
 }
 
-html.todesktop.light main.bg-default{
+html.todesktop-platform-darwin.light main.bg-default{
   background: rgba(255,255,255,0.8) !important
 }
 
@@ -205,7 +205,7 @@ html.todesktop nav a svg{
     https://github.com/tailwindlabs/tailwindcss/pull/5732
 */
 @layer utilities {
-  @variants responsive {
+  @layer responsive {
     /* Chrome, Safari and Opera */
     .no-scrollbar::-webkit-scrollbar {
       display: none;

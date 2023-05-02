@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
 import type { IframeHTMLAttributes } from "react";
 import React, { useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton, AppDependencyComponent } from "@calcom/app-store/components";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
-import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import Shell from "@calcom/features/shell/Shell";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
@@ -41,9 +40,8 @@ const Component = ({
   isTemplate,
   dependencies,
 }: Parameters<typeof App>[0]) => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
-  const router = useRouter();
 
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
@@ -186,7 +184,7 @@ const Component = ({
               label={t("disconnect")}
               credentialId={existingCredentials[0]}
               onSuccess={() => {
-                router.replace("/apps/installed");
+                appCredentials.refetch();
               }}
             />
           ) : (
@@ -238,7 +236,7 @@ const Component = ({
           </span>
         )}
 
-        <div className="prose-sm prose prose-headings:text-emphasis prose-code:text-default prose-strong:text-default text-default mt-8">
+        <div className="prose-sm prose prose-a:text-default prose-headings:text-emphasis prose-code:text-default prose-strong:text-default text-default mt-8">
           {body}
         </div>
         <h4 className="text-emphasis mt-8 font-semibold ">{t("pricing")}</h4>
@@ -247,7 +245,7 @@ const Component = ({
             t("free_to_use_apps")
           ) : (
             <>
-              {Intl.NumberFormat("en-US", {
+              {Intl.NumberFormat(i18n.language, {
                 style: "currency",
                 currency: "USD",
                 useGrouping: false,
@@ -366,7 +364,7 @@ export default function App(props: {
   dependencies?: string[];
 }) {
   return (
-    <Shell smallHeading isPublic heading={<ShellHeading />} backPath="/apps" withoutSeo>
+    <Shell smallHeading isPublic hideHeadingOnMobile heading={<ShellHeading />} backPath="/apps" withoutSeo>
       <HeadSeo
         title={props.name}
         description={props.description}

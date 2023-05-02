@@ -26,6 +26,7 @@ import type { WithNonceProps } from "@lib/withNonce";
 import withNonce from "@lib/withNonce";
 
 import AddToHomescreen from "@components/AddToHomescreen";
+import PageWrapper from "@components/PageWrapper";
 import TwoFactor from "@components/auth/TwoFactor";
 import AuthContainer from "@components/ui/AuthContainer";
 
@@ -164,14 +165,6 @@ export default function Login({
                   {...register("email")}
                 />
                 <div className="relative">
-                  <div className="absolute -top-[6px]  z-10 ltr:right-0 rtl:left-0">
-                    <Link
-                      href="/auth/forgot-password"
-                      tabIndex={-1}
-                      className="text-default text-sm font-medium">
-                      {t("forgot")}
-                    </Link>
-                  </div>
                   <PasswordField
                     id="password"
                     autoComplete="off"
@@ -179,6 +172,14 @@ export default function Login({
                     className="mb-0"
                     {...register("password")}
                   />
+                  <div className="absolute -top-1.5 ltr:right-0 rtl:left-0">
+                    <Link
+                      href="/auth/forgot-password"
+                      tabIndex={-1}
+                      className="text-default text-sm font-medium">
+                      {t("forgot")}
+                    </Link>
+                  </div>
                 </div>
               </div>
 
@@ -302,5 +303,6 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
 };
 
 Login.isThemeSupported = false;
+Login.PageWrapper = PageWrapper;
 
 export const getServerSideProps = withNonce(_getServerSideProps);
