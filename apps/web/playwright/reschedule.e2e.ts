@@ -149,10 +149,8 @@ testBothBookers.describe("Reschedule Tests", async () => {
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-    await page.waitForNavigation({
-      url(url) {
-        return url.pathname.indexOf("/payment") > -1;
-      },
+    await page.waitForURL((url) => {
+      return url.pathname.indexOf("/payment") > -1;
     });
 
     await expect(page).toHaveURL(/.*payment/);
