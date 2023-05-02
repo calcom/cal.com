@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AppCategories } from "@prisma/client";
 import { noop } from "lodash";
 import { useRouter } from "next/router";
 import type { FC } from "react";
@@ -11,6 +10,7 @@ import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavi
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { classNames as cs } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { AppCategories } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
