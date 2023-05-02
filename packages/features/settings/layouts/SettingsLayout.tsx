@@ -28,6 +28,8 @@ import {
   Plus,
   Menu,
 } from "@calcom/ui/components/icon";
+import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery"
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
 const tabs: VerticalTabItemProps[] = [
   {
@@ -105,14 +107,16 @@ const adminRequiredKeys = ["admin"];
 
 const useTabs = () => {
   const session = useSession();
+  const { data: user } = useMeQuery();
+  const { data: avatar } = useAvatarQuery();
 
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
   tabs.map((tab) => {
-    if (tab.name === "my_account") {
-      tab.name = session.data?.user?.name || "my_account";
+    if (tab.href === "/settings/my-account") {
+      tab.name = user?.name || "my_account";
       tab.icon = undefined;
-      tab.avatar = WEBAPP_URL + "/" + session.data?.user?.username + "/avatar.png";
+      tab.avatar = avatar?.avatar || WEBAPP_URL + "/" + user?.username + "/avatar.png";
     }
     return tab;
   });
