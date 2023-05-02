@@ -1,5 +1,4 @@
 import type { Prisma, WebhookTriggerEvents, WorkflowReminder } from "@prisma/client";
-import { BookingStatus, MembershipRole, WorkflowMethods } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import appStore from "@calcom/app-store";
@@ -22,6 +21,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { handleRefundError } from "@calcom/lib/payment/handleRefundError";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { BookingStatus, MembershipRole, WorkflowMethods } from "@calcom/prisma/enums";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
