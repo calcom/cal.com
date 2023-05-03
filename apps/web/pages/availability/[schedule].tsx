@@ -190,8 +190,9 @@ export default function Availability() {
         <div className="flex items-center justify-end">
           <div className="group hidden items-center rounded-md px-2 sm:flex sm:hover:bg-gray-300">
             <Skeleton 
-              as={Label} 
-              htmlFor="hiddenSwitch" className="mt-2 cursor-pointer self-center pr-2 sm:group-hover:text-gray-900">
+              as={Label}
+              htmlFor="hiddenSwitch"
+              className="mt-2 cursor-pointer self-center pr-2 sm:group-hover:text-gray-900">
               {t("set_to_default")}
             </Skeleton>
             <Switch
