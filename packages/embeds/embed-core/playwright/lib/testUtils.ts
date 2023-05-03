@@ -91,10 +91,11 @@ async function selectFirstAvailableTimeSlotNextMonth(frame: Frame, page: Page) {
 }
 
 export async function bookFirstEvent(username: string, frame: Frame, page: Page) {
-  // Click first event type
+  // Click first event type on Profile Page
   await frame.click('[data-testid="event-type-link"]');
   await frame.waitForURL((url) => {
-    return !!url.pathname.match(new RegExp(`/${username}/.*$`));
+    // Wait for reaching the event page
+    return !!url.pathname.match(new RegExp(`/${username}/.+$`));
   });
 
   // Let current month dates fully render.
