@@ -40,10 +40,10 @@ const Switch = (
         )}>
         <PrimitiveSwitch.Root
           className={cx(
-            props.checked || props.defaultChecked ? "bg-brand-default" : "bg-emphasis",
+            isChecked ? "bg-brand-default" : "bg-emphasis",
             primitiveProps.disabled && "cursor-not-allowed",
             "focus:ring-brand-default h-5 w-[34px] rounded-full shadow-none",
-            props.className
+            props?.className
           )}
           {...primitiveProps}>
           <PrimitiveSwitch.Thumb

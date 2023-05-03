@@ -12,101 +12,23 @@ import {
   Button,
   EmptyScreen,
   List,
-  showToast,
   AppSkeletonLoader as SkeletonLoader,
-  Switch,
   ShellSubHeading,
 } from "@calcom/ui";
-import { ArrowLeft, Calendar, Plus } from "@calcom/ui/components/icon";
+import { Calendar, Plus } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
 import AppListCard from "@components/AppListCard";
 import AdditionalCalendarSelector from "@components/apps/AdditionalCalendarSelector";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
+import { CalendarSwitch } from "@components/settings/CalendarSwitch";
 
 type Props = {
   onChanged: () => unknown | Promise<unknown>;
   fromOnboarding?: boolean;
   destinationCalendarId?: string;
 };
-
-function CalendarSwitch(props: {
-  type: string;
-  externalId: string;
-  title: string;
-  defaultSelected: boolean;
-  destination?: boolean;
-}) {
-  const { t } = useLocale();
-  const utils = trpc.useContext();
-
-  const mutation = useMutation<
-    unknown,
-    unknown,
-    {
-      isOn: boolean;
-    }
-  >(
-    async ({ isOn }) => {
-      const body = {
-        integration: props.type,
-        externalId: props.externalId,
-      };
-      if (isOn) {
-        const res = await fetch("/api/availability/calendar", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
-        if (!res.ok) {
-          throw new Error("Something went wrong");
-        }
-      } else {
-        const res = await fetch("/api/availability/calendar", {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
-
-        if (!res.ok) {
-          throw new Error("Something went wrong");
-        }
-      }
-    },
-    {
-      async onSettled() {
-        await utils.viewer.integrations.invalidate();
-      },
-      onError() {
-        showToast(`Something went wrong when toggling "${props.title}""`, "error");
-      },
-    }
-  );
-  return (
-    <div className="flex flex-col py-1 sm:flex-row">
-      <Switch
-        key={props.externalId}
-        name="enabled"
-        label={props.title}
-        defaultChecked={props.defaultSelected}
-        onCheckedChange={(isOn: boolean) => {
-          mutation.mutate({ isOn });
-        }}
-      />
-      {!!props.destination && (
-        <span className="bg-subtle text-default ml-8 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-normal sm:ml-4">
-          <ArrowLeft className="h-4 w-4" />
-          {t("adding_events_to")}
-        </span>
-      )}
-    </div>
-  );
-}
 
 function CalendarList(props: Props) {
   const { t } = useLocale();
@@ -192,8 +114,8 @@ function ConnectedCalendarsList(props: Props) {
                                 externalId={cal.externalId}
                                 title={cal.name || "Nameless calendar"}
                                 type={item.integration.type}
-                                defaultSelected={cal.isSelected}
-                                destination={cal.externalId === props.destinationCalendarId}
+                                isSelected={cal.isSelected}
+                                defaultSelected={cal.externalId === props.destinationCalendarId}
                               />
                             ))}
                           </ul>
