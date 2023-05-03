@@ -524,8 +524,8 @@ async function rescheduleFromTheLinkOnPage({
   await page.waitForLoadState();
   await selectFirstAvailableTimeSlotNextMonth(page);
   if (bookerVariant === "old-booker") {
-    await page.waitForNavigation({
-      url: (url) => url.pathname.endsWith("/book"),
+    await page.waitForURL((url) => {
+      return url.pathname.endsWith("/book");
     });
   }
   await page.click('[data-testid="confirm-reschedule-button"]');
@@ -542,8 +542,8 @@ async function openBookingFormInPreviewTab(
   await previewTabPage.waitForLoadState();
   await selectFirstAvailableTimeSlotNextMonth(previewTabPage);
   if (bookerVariant === "old-booker") {
-    await previewTabPage.waitForNavigation({
-      url: (url) => url.pathname.endsWith("/book"),
+    await previewTabPage.waitForURL((url) => {
+      return url.pathname.endsWith("/book");
     });
   }
   return previewTabPage;

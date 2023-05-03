@@ -44,15 +44,6 @@ export const getSmsReminderNumberSource = ({
   editUrl: `/workflows/${workflowId}`,
 });
 
-const EventTypeCustomInputType = {
-  TEXT: "TEXT",
-  TEXTLONG: "TEXTLONG",
-  NUMBER: "NUMBER",
-  BOOL: "BOOL",
-  RADIO: "RADIO",
-  PHONE: "PHONE",
-} as const;
-
 export const SystemField = z.enum([
   "name",
   "email",

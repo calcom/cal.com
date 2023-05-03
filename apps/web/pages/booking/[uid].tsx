@@ -27,6 +27,7 @@ import { getBookingWithResponses } from "@calcom/features/bookings/lib/get-booki
 import {
   SystemField,
   getBookingFieldsWithSystemFields,
+  SMS_REMINDER_NUMBER_FIELD,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -487,7 +488,8 @@ export default function Success(props: SuccessProps) {
                       // We show rescheduleReason at the top
                       if (!field) return null;
                       const isSystemField = SystemField.safeParse(field.name);
-                      if (isSystemField.success) return null;
+                      // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
+                      if (isSystemField.success && field.name !== SMS_REMINDER_NUMBER_FIELD) return null;
 
                       const label = field.label || t(field.defaultLabel || "");
 

@@ -75,7 +75,8 @@ export const FormBuilder = function FormBuilder({
   useEffect(() => {
     const fieldVariantsConfig = fieldForm.getValues("variantsConfig");
     const defaultVariantsConfig =
-      fieldTypesConfigMap[fieldForm.getValues("type") as keyof typeof fieldTypesConfigMap]?.variantsConfig?.defaultValue;
+      fieldTypesConfigMap[fieldForm.getValues("type") as keyof typeof fieldTypesConfigMap]?.variantsConfig
+        ?.defaultValue;
 
     // For a user field with type `name` e.g. we need to use defaultVariantsConfig as it might not have `variantsConfig` set already.
     if (!fieldVariantsConfig && defaultVariantsConfig) {

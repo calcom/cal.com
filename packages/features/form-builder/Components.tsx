@@ -80,7 +80,7 @@ type Component =
       propsType: "variants";
       factory: <
         TProps extends Omit<TextLikeComponentProps, "value" | "setValue"> & {
-          variant: "firstAndLastName" | "fullName" | undefined;
+          variant: string | undefined;
           variants: z.infer<typeof variantsConfigSchema>["variants"];
           value: Record<string, string> | string;
           setValue: (value: string | Record<string, string>) => void;
@@ -126,6 +126,10 @@ export const Components: Record<FieldType, Component> = {
         throw new Error("'variants' is required for 'name' type of field");
       }
 
+      if (variantName !== "firstAndLastName" && variantName !== "fullName") {
+        throw new Error(`Invalid variant name '${variantName}' for 'name' type of field`);
+      }
+
       const value = preprocessNameFieldDataWithVariant(variantName, props.value);
 
       if (variantName === "fullName") {
@@ -152,10 +156,6 @@ export const Components: Record<FieldType, Component> = {
       }
 
       const variant = props.variants[variantName];
-
-      if (!variant) {
-        throw new Error(`Variant ${variantName} not found`);
-      }
 
       if (typeof value !== "object") {
         throw new Error("Invalid value for 'fullName' variant");

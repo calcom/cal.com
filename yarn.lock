@@ -5020,7 +5020,7 @@ __metadata:
     react-phone-number-input: ^3.2.7
     react-schemaorg: ^2.0.0
     react-select: ^5.7.0
-    react-timezone-select: ^1.4.0
+    react-timezone-select: ^1.5.1
     react-use-intercom: 1.5.1
     remark: ^14.0.2
     rrule: ^2.7.1
@@ -34012,17 +34012,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-timezone-select@npm:^1.4.0":
-  version: 1.4.0
-  resolution: "react-timezone-select@npm:1.4.0"
+"react-timezone-select@npm:^1.5.1":
+  version: 1.5.6
+  resolution: "react-timezone-select@npm:1.5.6"
   dependencies:
     react-select: ^5.7.0
-    spacetime: ^7.1.4
-    timezone-soft: ^1.3.1
+    spacetime: ^7.4.1
+    timezone-soft: ^1.4.1
   peerDependencies:
     react: ^18 || ^17.0.1 || ^16
     react-dom: ^18 || ^17.0.1 || ^16
-  checksum: 646205fb2c66694dfc70c6a32b079eb64d0e82269b8f3172011a312f6fc745a158453f7eb3565a0dac78184c3d93d005bccbe7796cc5387684be033faf90b131
+  checksum: a0d591eeb0d58a98d8a9b4a7e0e38957e6a549b019163aea444061ac01e25a0ed605e93b40a757a4947528509f653bad541433861a1865011295dfac6dbc3ac9
   languageName: node
   linkType: hard
 
@@ -36230,10 +36230,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"spacetime@npm:^7.1.4":
-  version: 7.1.4
-  resolution: "spacetime@npm:7.1.4"
-  checksum: a0153759f2da8a94bc86a10d823876297a99fc397405ae371aadcb932d3ae73dc6afa77a3d50826c02ee9c85571b7bc50563040d395d10c42ef3fb2b1b9465e2
+"spacetime@npm:^7.4.1":
+  version: 7.4.3
+  resolution: "spacetime@npm:7.4.3"
+  checksum: 44349923c96f35e5310733e1b48ffc2c9fc7dc05e67dd43d7a7e3bdebb38aae4874cf2c2e479abd720c0d7d2347b7814e32ef16bfbc331966c7414cdde2ea4b7
   languageName: node
   linkType: hard
 
@@ -37882,10 +37882,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"timezone-soft@npm:^1.3.1":
-  version: 1.3.1
-  resolution: "timezone-soft@npm:1.3.1"
-  checksum: 0402405ee6b7bf93b6c5935938903eaa1878bd052c2aaa1c4055395d3400cd0a00461c32136d2b4a8bff66659275c37e14222807a1a898110815a67170c3e3cc
+"timezone-soft@npm:^1.4.1":
+  version: 1.4.1
+  resolution: "timezone-soft@npm:1.4.1"
+  checksum: d504bef27403fa21399620c37231adad5d368066b5f67516a2dbaf6d84cebbe92e0f15722d8847ebf39ff108af7292607dcb25d9815bc65fcd756fe9609bc38f
   languageName: node
   linkType: hard
 
