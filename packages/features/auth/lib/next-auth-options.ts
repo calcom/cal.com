@@ -1,5 +1,4 @@
 import type { UserPermissionRole, Membership, Team } from "@prisma/client";
-import { IdentityProvider } from "@prisma/client";
 import type { AuthOptions, Session } from "next-auth";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
@@ -18,6 +17,7 @@ import { randomString } from "@calcom/lib/random";
 import rateLimit from "@calcom/lib/rateLimit";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { ErrorCode } from "./ErrorCode";

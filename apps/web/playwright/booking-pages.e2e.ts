@@ -33,10 +33,8 @@ testBothBookers.describe("free user", (bookerVariant) => {
     // eslint-disable-next-line playwright/no-conditional-in-test
     if (bookerVariant !== "new-booker") {
       // Navigate to book page
-      await page.waitForNavigation({
-        url(url) {
-          return url.pathname.endsWith("/book");
-        },
+      await page.waitForURL((url) => {
+        return url.pathname.endsWith("/book");
       });
     }
 
@@ -86,19 +84,15 @@ testBothBookers.describe("pro user", () => {
     await page.waitForSelector('[data-testid="bookings"]');
     await page.locator('[data-testid="edit_booking"]').nth(0).click();
     await page.locator('[data-testid="reschedule"]').click();
-    await page.waitForNavigation({
-      url: (url) => {
-        const bookingId = url.searchParams.get("rescheduleUid");
-        return !!bookingId;
-      },
+    await page.waitForURL((url) => {
+      const bookingId = url.searchParams.get("rescheduleUid");
+      return !!bookingId;
     });
     await selectSecondAvailableTimeSlotNextMonth(page);
     // --- fill form
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
-    await page.waitForNavigation({
-      url(url) {
-        return url.pathname.startsWith("/booking");
-      },
+    await page.waitForURL((url) => {
+      return url.pathname.startsWith("/booking");
     });
   });
 

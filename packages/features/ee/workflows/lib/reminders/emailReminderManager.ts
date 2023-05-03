@@ -1,6 +1,3 @@
-import type { TimeUnit } from "@prisma/client";
-import { WorkflowTemplates } from "@prisma/client";
-import { WorkflowTriggerEvents, WorkflowActions, WorkflowMethods } from "@prisma/client";
 import client from "@sendgrid/client";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
 import sgMail from "@sendgrid/mail";
@@ -8,6 +5,9 @@ import sgMail from "@sendgrid/mail";
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import type { TimeUnit } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
+import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
