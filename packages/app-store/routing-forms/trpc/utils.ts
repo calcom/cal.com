@@ -1,9 +1,9 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
-import { WebhookTriggerEvents } from "@prisma/client";
 
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
+import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
 
 import ResponseEmail from "../emails/templates/response-email";
