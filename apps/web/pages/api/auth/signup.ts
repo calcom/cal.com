@@ -43,7 +43,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       OR: [
         { username },
         {
-          AND: [{ email: userEmail }, { password: { not: null } }, { username: { not: null } }],
+          AND: [
+            { email: userEmail },
+            {
+              OR: [
+                { verified: true },
+                {
+                  AND: [{ password: { not: null } }, { username: { not: null } }],
+                },
+              ],
+            },
+          ],
         },
       ],
     },
