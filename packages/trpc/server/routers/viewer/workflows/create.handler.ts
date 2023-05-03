@@ -1,16 +1,16 @@
 import type { Workflow } from "@prisma/client";
+
+import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
+import { SENDER_NAME } from "@calcom/lib/constants";
+import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma/client";
 import {
   MembershipRole,
   TimeUnit,
   WorkflowActions,
   WorkflowTemplates,
   WorkflowTriggerEvents,
-} from "@prisma/client";
-
-import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
-import { SENDER_NAME } from "@calcom/lib/constants";
-import { prisma } from "@calcom/prisma";
-import type { PrismaClient } from "@calcom/prisma/client";
+} from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";

@@ -4,6 +4,7 @@ const recommended = {
   rules: {
     "@calcom/eslint/deprecated-imports": "error",
     "@calcom/eslint/avoid-web-storage": "error",
+    "@calcom/eslint/avoid-prisma-client-import-for-enums": "error",
   },
 };
 
