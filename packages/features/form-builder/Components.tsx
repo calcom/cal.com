@@ -113,11 +113,12 @@ export const Components: Record<FieldType, Component> = {
     factory: (props) => {
       const { variant: variantName = "fullName" } = props;
       const onChange = (name: string, value: string) => {
-        if (typeof props.value !== "object") {
-          return;
+        let currentValue = props.value;
+        if (typeof currentValue !== "object") {
+          currentValue = {};
         }
         props.setValue({
-          ...props.value,
+          ...currentValue,
           [name]: value,
         });
       };

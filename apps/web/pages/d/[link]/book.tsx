@@ -74,7 +74,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     ...eventTypeRaw,
     metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata || {}),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
-    bookingFields: getBookingFieldsWithSystemFields(eventTypeRaw.bookingFields),
+    bookingFields: getBookingFieldsWithSystemFields(eventTypeRaw),
   };
 
   const eventTypeObject = [eventType].map((e) => {

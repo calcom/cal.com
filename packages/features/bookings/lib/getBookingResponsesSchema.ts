@@ -1,7 +1,6 @@
 import { isValidPhoneNumber } from "libphonenumber-js";
 import z from "zod";
 
-// Instead of using the `bookingResponses` schema directly, the field itself should have a way to get it's schema
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
 import { fieldTypesSchemaMap, dbReadResponseSchema } from "@calcom/features/form-builder/schema";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
