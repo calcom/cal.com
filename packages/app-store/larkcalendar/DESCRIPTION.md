@@ -1,9 +1,9 @@
 ---
 items:
-  - /api/app-store/larkcalendar/1.png
-  - /api/app-store/larkcalendar/2.png
-  - /api/app-store/larkcalendar/3.png
-  - /api/app-store/larkcalendar/4.png
+  - 1.png
+  - 2.png
+  - 3.png
+  - 4.png
 ---
 
 <iframe class="w-full aspect-video" width="560" height="315" src="https://www.youtube.com/embed/ciqbZ466XSQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>

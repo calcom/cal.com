@@ -1,8 +1,8 @@
 import { CAL_URL } from "@calcom/lib/constants";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { AvatarGroup } from "@calcom/ui";
 
 import type { PublicEvent } from "../../types";
-import { SchedulingType } from ".prisma/client";
 
 export interface EventMembersProps {
   /**
@@ -31,7 +31,7 @@ export const EventMembers = ({ schedulingType, users, profile }: EventMembersPro
   return (
     <>
       <AvatarGroup size="sm" className="border-muted" items={avatars} />
-      <p className="text-subtle text-sm">
+      <p className="text-subtle text-sm font-semibold">
         {users
           .map((user) => user.name)
           .filter((name) => name)

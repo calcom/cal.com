@@ -1,5 +1,4 @@
 import type { Prisma } from "@prisma/client";
-import { EventTypeCustomInputType } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
 import { pick } from "lodash";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
@@ -19,6 +18,7 @@ import dayjs from "@calcom/dayjs";
 import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
 import { slugify } from "@calcom/lib/slugify";
+import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 
 // Let's not import 118kb just to get an enum
 export enum Frequency {

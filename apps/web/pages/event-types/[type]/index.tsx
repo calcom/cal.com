@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { PeriodType, SchedulingType } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { Trans } from "next-i18next";
 import { useEffect, useState } from "react";
@@ -19,6 +18,7 @@ import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { Prisma } from "@calcom/prisma/client";
+import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -136,6 +136,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
+      formMethods.setValue(
+        "children",
+        formMethods.getValues().children.map((child) => ({
+          ...child,
+          created: true,
+        }))
+      );
       showToast(
         t("event_type_updated_successfully", {
           eventTypeTitle: eventType.title,

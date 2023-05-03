@@ -2,6 +2,7 @@ import type { EventTypeCustomInput, EventType, Prisma, Workflow } from "@prisma/
 import { z } from "zod";
 
 import slugify from "@calcom/lib/slugify";
+import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 import {
   BookingFieldTypeEnum,
   customInputSchema,
