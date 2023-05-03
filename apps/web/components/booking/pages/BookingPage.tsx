@@ -30,6 +30,7 @@ import {
 import getBookingResponsesSchema, {
   getBookingResponsesPartialSchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { getFullName } from "@calcom/features/form-builder/utils";
 import { bookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, MINUTES_TO_BOOK } from "@calcom/lib/constants";
@@ -161,20 +162,14 @@ const BookingPage = ({
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
       const { uid } = responseData;
-      const name = bookingForm.getValues("responses.name");
-      let nameString = "";
-      if (typeof name === "string") {
-        nameString = name;
-      } else {
-        nameString = name.firstName + " " + name.lastName;
-      }
+      const fullName = getFullName(bookingForm.getValues("responses.name"));
 
       if ("paymentUid" in responseData && !!responseData.paymentUid) {
         return await router.push(
           createPaymentLink({
             paymentUid: responseData.paymentUid,
             date,
-            name: nameString,
+            name: fullName,
             email: bookingForm.getValues("responses.email"),
             absolute: false,
           })

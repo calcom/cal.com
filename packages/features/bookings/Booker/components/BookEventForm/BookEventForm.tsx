@@ -22,6 +22,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import getBookingResponsesSchema, {
   getBookingResponsesPartialSchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { getFullName } from "@calcom/features/form-builder/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { Form, Button, Alert, EmptyScreen } from "@calcom/ui";
@@ -171,19 +172,13 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const createBookingMutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
       const { uid, paymentUid } = responseData;
-      const name = bookingForm.getValues("responses.name");
-      let nameString = "";
-      if (typeof name === "string") {
-        nameString = name;
-      } else {
-        nameString = name.firstName + " " + name.lastName;
-      }
+      const fullName = getFullName(bookingForm.getValues("responses.name"));
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
             paymentUid,
             date: timeslot,
-            name: nameString,
+            name: fullName,
             email: bookingForm.getValues("responses.email"),
             absolute: false,
           })
