@@ -1,5 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
+import type { TFunction } from "next-i18next";
 import { useState, useEffect } from "react";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
@@ -694,6 +695,45 @@ export const ComponentForField = ({
   return null;
 };
 
+function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TFunction) {
+  let noLabel = false;
+  let hidden = !!field.hidden;
+  if (field.type === "radioInput") {
+    const options = field.options;
+
+    // If we have only one option and it has an input, we don't show the field label because Option name acts as label.
+    // e.g. If it's just Attendee Phone Number option then we don't show `Location` label
+    if (options?.length === 1) {
+      if (!field.optionsInputs) {
+        throw new Error("radioInput must have optionsInputs");
+      }
+      if (field.optionsInputs[options[0].value]) {
+        noLabel = true;
+      } else {
+        // If there's only one option and it doesn't have an input, we don't show the field at all because it's visible in the left side bar
+        hidden = true;
+      }
+    }
+  }
+
+  const label = noLabel ? "" : field.label || t(field.defaultLabel || "");
+  const placeholder = field.placeholder || t(field.defaultPlaceholder || "");
+
+  if (field.variantsConfig?.variants) {
+    Object.entries(field.variantsConfig.variants).forEach(([variantName, variant]) => {
+      variant.fields.forEach((variantField) => {
+        const fieldTypeVariantsConfig = fieldTypesConfigMap[field.type]?.variantsConfig;
+        const defaultVariantFieldLabel =
+          fieldTypeVariantsConfig?.variants?.[variantName]?.fieldsMap[variantField.name]?.defaultLabel;
+
+        variantField.label = variantField.label || t(defaultVariantFieldLabel || "");
+      });
+    });
+  }
+
+  return { hidden, placeholder, label };
+}
+
 export const FormBuilderField = ({
   field,
   readOnly,
@@ -705,19 +745,11 @@ export const FormBuilderField = ({
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
-  if (field.variantsConfig?.variants) {
-    Object.entries(field.variantsConfig.variants).forEach(([variantName, variant]) => {
-      variant.fields.forEach((variantField) => {
-        const variantsConfig = fieldTypesConfigMap[field.type]?.variantsConfig;
-        const defaultVariantFieldLabel =
-          variantsConfig?.variants?.[variantName]?.fieldsMap[variantField.name]?.defaultLabel;
 
-        variantField.label = variantField.label || t(defaultVariantFieldLabel || "");
-      });
-    });
-  }
+  const { hidden, placeholder, label } = getAndUpdateNormalizedValues(field, t);
+
   return (
-    <div data-fob-field-name={field.name} className={classNames(className, field.hidden ? "hidden" : "")}>
+    <div data-fob-field-name={field.name} className={classNames(className, hidden ? "hidden" : "")}>
       <Controller
         control={control}
         // Make it a variable
@@ -726,7 +758,7 @@ export const FormBuilderField = ({
           return (
             <div>
               <ComponentForField
-                field={field}
+                field={{ ...field, label, placeholder, hidden }}
                 value={value}
                 readOnly={readOnly}
                 setValue={(val: unknown) => {
@@ -747,9 +779,11 @@ export const FormBuilderField = ({
                   }
 
                   message = message.replace(/\{[^}]+\}(.*)/, "$1").trim();
-                  if (field.hidden) {
+
+                  if (hidden) {
                     console.error(`Error message for hidden field:${field.name} => ${message}`);
                   }
+
                   return (
                     <div
                       data-testid={`error-message-${field.name}`}

@@ -1,10 +1,11 @@
 import type { GetServerSidePropsContext } from "next";
 
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma from "@calcom/prisma";
 import { bookEventTypeSelect } from "@calcom/prisma/selects";
-import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -15,7 +16,6 @@ import BookingPage from "@components/booking/pages/BookingPage";
 import { ssrInit } from "@server/lib/ssr";
 
 export type HashLinkPageProps = inferSSRProps<typeof getServerSideProps>;
-
 export default function Book(props: HashLinkPageProps) {
   return <BookingPage {...props} />;
 }
@@ -74,7 +74,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     ...eventTypeRaw,
     metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata || {}),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
-    bookingFields: eventTypeBookingFields.parse(eventTypeRaw.bookingFields || []),
+    bookingFields: getBookingFieldsWithSystemFields(eventTypeRaw.bookingFields),
   };
 
   const eventTypeObject = [eventType].map((e) => {

@@ -26,6 +26,7 @@ export const BookingFields = ({
 
   return (
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
+    // The logic here intends to make modifications to booking fields based on the way we want to specifically show Booking Form
     <div>
       {fields.map((field, index) => {
         // During reschedule by default all system fields are readOnly. Make them editable on case by case basis.
@@ -33,7 +34,6 @@ export const BookingFields = ({
         let readOnly =
           (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
 
-        let noLabel = false;
         let hidden = !!field.hidden;
         const fieldViews = field.views;
 
@@ -90,28 +90,10 @@ export const BookingFields = ({
           field.options = options.filter(
             (location): location is NonNullable<(typeof options)[number]> => !!location
           );
-          // If we have only one option and it has an input, we don't show the field label because Option name acts as label.
-          // e.g. If it's just Attendee Phone Number option then we don't show `Location` label
-          if (field.options.length === 1) {
-            if (field.optionsInputs[field.options[0].value]) {
-              noLabel = true;
-            } else {
-              // If there's only one option and it doesn't have an input, we don't show the field at all because it's visible in the left side bar
-              hidden = true;
-            }
-          }
         }
 
-        const label = noLabel ? "" : field.label || t(field.defaultLabel || "");
-        const placeholder = field.placeholder || t(field.defaultPlaceholder || "");
-
         return (
-          <FormBuilderField
-            className="mb-4"
-            field={{ ...field, label, placeholder, hidden }}
-            readOnly={readOnly}
-            key={index}
-          />
+          <FormBuilderField className="mb-4" field={{ ...field, hidden }} readOnly={readOnly} key={index} />
         );
       })}
     </div>

@@ -12,6 +12,7 @@ test.describe("App Store - Authed", () => {
     await pro.login();
     await page.goto("/apps/categories/calendar");
     await page.click('[data-testid="app-store-app-card-apple-calendar"]');
+    // TODO: I saw this assertion failing because earlier await completed without reaching apps/apple-calendar page which has this button. Shouldn't we waitForURL ?
     await page.click('[data-testid="install-app-button"]');
     await expect(page.locator(`text=Connect to Apple Server`)).toBeVisible();
   });
