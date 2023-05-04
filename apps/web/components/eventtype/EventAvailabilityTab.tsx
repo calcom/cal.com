@@ -184,8 +184,6 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
         });
       }
 
-      console.log({ watchSchedule });
-
       // We are showing a managed event for a member and team owner selected their own schedule, so adding
       // the managed schedule option
       if (
@@ -211,8 +209,6 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
           ? option.value === 0
           : option.value === schedules.find((schedule) => schedule.isDefault)?.id
       );
-
-      console.log({ scheduleId, value });
 
       formMethods.setValue("availability", value);
     },
