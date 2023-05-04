@@ -87,7 +87,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   });
 
   //check if new event types belong to user or team
-  const newActiveOnEventTypes = [];
   for (const newEventTypeId of newActiveEventTypes) {
     const newEventType = await ctx.prisma.eventType.findFirst({
       where: {
@@ -117,10 +116,24 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       ) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
-
-      newActiveOnEventTypes.push(newEventType);
     }
   }
+
+  const activeOnEventTypes = await ctx.prisma.eventType.findMany({
+    where: {
+      id: {
+        in: activeOn,
+      },
+    },
+    select: {
+      id: true,
+      children: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
 
   //remove all scheduled Email and SMS reminders for eventTypes that are not active any more
   const removedEventTypes = oldActiveOnEventTypes
@@ -301,28 +314,24 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     }
     //create all workflow - eventtypes relationships
-    const createdRelations: number[] = [];
-    await ctx.prisma.workflowsOnEventTypes.createMany({
-      data: newActiveOnEventTypes.flatMap((newEvTy) => {
-        const out = [];
-        out.push({
+    activeOnEventTypes.forEach(async (eventType) => {
+      await ctx.prisma.workflowsOnEventTypes.createMany({
+        data: {
           workflowId: id,
-          eventTypeId: newEvTy.id,
-        });
-        createdRelations.push(newEvTy.id);
-        if (newEvTy.children.length) {
-          newEvTy.children.map((ch) => {
-            if (!createdRelations.includes(ch.id)) {
-              out.push({
-                workflowId: id,
-                eventTypeId: ch.id,
-              });
-              createdRelations.push(ch.id);
-            }
+          eventTypeId: eventType.id,
+        },
+      });
+
+      if (eventType.children.length) {
+        eventType.children.forEach(async (chEventType) => {
+          await ctx.prisma.workflowsOnEventTypes.createMany({
+            data: {
+              workflowId: id,
+              eventTypeId: chEventType.id,
+            },
           });
-        }
-        return out;
-      }),
+        });
+      }
     });
   }
 

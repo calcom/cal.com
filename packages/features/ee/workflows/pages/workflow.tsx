@@ -122,10 +122,13 @@ function WorkflowPage() {
         setIsMixedEventType(true);
       }
       setSelectedEventTypes(
-        workflow.activeOn.map((active) => ({
-          value: String(active.eventType.id),
-          label: active.eventType.title,
-        })) || []
+        workflow.activeOn.flatMap((active) => {
+          if (active.eventType.parentId) return [];
+          return {
+            value: String(active.eventType.id),
+            label: active.eventType.title,
+          };
+        }) || []
       );
       const activeOn = workflow.activeOn
         ? workflow.activeOn.map((active) => ({
