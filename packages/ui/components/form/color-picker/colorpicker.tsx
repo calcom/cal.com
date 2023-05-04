@@ -69,7 +69,6 @@ const ColorPicker = (props: ColorPickerProps) => {
         <div className="px-1">
           <Button
             color={resetDefaultValue == "#292929" ? "primary" : "secondary"}
-            data-testid="preview-button"
             target="_blank"
             variant="icon"
             rel="noreferrer"
