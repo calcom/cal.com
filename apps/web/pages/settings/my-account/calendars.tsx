@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { Fragment } from "react";
 
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
+import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
@@ -29,7 +30,6 @@ import { Plus, Calendar } from "@calcom/ui/components/icon";
 import { QueryCell } from "@lib/QueryCell";
 
 import PageWrapper from "@components/PageWrapper";
-import { CalendarSwitch } from "@components/settings/CalendarSwitch";
 
 const SkeletonLoader = () => {
   return (
@@ -184,8 +184,9 @@ const CalendarsView = () => {
                                 key={cal.externalId}
                                 externalId={cal.externalId}
                                 title={cal.name || "Nameless calendar"}
+                                name={cal.name || "Nameless calendar"}
                                 type={item.integration.type}
-                                isSelected={cal.isSelected}
+                                isChecked={cal.isSelected}
                                 defaultSelected={cal.externalId === data?.destinationCalendar?.externalId}
                               />
                             ))}
