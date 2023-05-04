@@ -1,4 +1,4 @@
-import { CAL_URL } from "@calcom/lib/constants";
+import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { AvatarGroup } from "@calcom/ui";
 
@@ -21,19 +21,12 @@ export const EventMembers = ({ schedulingType, users, profile }: EventMembersPro
   const avatars = shownUsers
     .map((user) => ({
       title: `${user.name}`,
-      image: "image" in user ? `${user.image}` : `${CAL_URL}/${user.username}/avatar.png`,
+      image: "image" in user ? `${user.image}` : `${WEBAPP_URL}/${user.username}/avatar.png`,
       alt: user.name || undefined,
       href: user.username ? `${CAL_URL}/${user.username}` : undefined,
     }))
     .filter((item) => !!item.image)
-    .filter((item, index, self) => {
-      // Filter out duplicates by checking both the image and the href,
-      // sometimes we tend to get the same avatar prefixed with app.cal.com and cal.com,
-      // so only the image match wouldn't work here.
-      const imageIsUnique = self.findIndex((t) => t.image === item.image) === index;
-      const hrefIsUnique = self.findIndex((t) => t.href === item.href) === index;
-      return imageIsUnique && (!item.href || hrefIsUnique);
-    });
+    .filter((item, index, self) => self.findIndex((t) => t.image === item.image) === index);
 
   return (
     <>
