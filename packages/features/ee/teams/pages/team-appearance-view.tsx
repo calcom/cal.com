@@ -1,9 +1,9 @@
-import { MembershipRole } from "@prisma/client";
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
