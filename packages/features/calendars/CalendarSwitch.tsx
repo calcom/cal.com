@@ -18,8 +18,8 @@ interface ICalendarSwitchProps {
   destination?: boolean;
 }
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
-  const { title, externalId, type, isChecked, name, isLastItemInList = false } = props;
-  const [checkedInternal, setCheckedInternal] = useState(isChecked);
+  const { title, externalId, type, isChecked, name, isLastItemInList = false, defaultSelected } = props;
+  const [checkedInternal, setCheckedInternal] = useState(isChecked || defaultSelected);
   const utils = trpc.useContext();
   const { t } = useLocale();
   const mutation = useMutation<
