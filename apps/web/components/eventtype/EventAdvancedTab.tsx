@@ -16,6 +16,7 @@ import { classNames } from "@calcom/lib";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
+import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip, Alert } from "@calcom/ui";
 import { Edit, Copy } from "@calcom/ui/components/icon";
@@ -42,6 +43,18 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
 
   const bookingFields: Prisma.JsonObject = {};
+
+  const workflows = eventType.workflows
+    .map((workflowOnEventType) => workflowOnEventType.workflow)
+    .filter((workflow) => workflow.trigger === WorkflowTriggerEvents.NEW_EVENT);
+
+  const allowDisablingHostConfirmationEmail = !!workflows.find(
+    (workflow) => !!workflow.steps.find((step) => step.action === WorkflowActions.EMAIL_HOST)
+  );
+
+  const allowDisablingAttendeeConfirmationEmail = !!workflows.find(
+    (workflow) => !!workflow.steps.find((step) => step.action === WorkflowActions.EMAIL_ATTENDEE)
+  );
 
   eventType.bookingFields.forEach(({ name }) => {
     bookingFields[name] = name + " input";
@@ -338,64 +351,69 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </>
         )}
       />
-      <hr className="border-subtle" />
-
-      <Controller
-        name="metadata.disableStandardEmails.confirmation.attendee"
-        control={formMethods.control}
-        //defaultValue
-        render={({ field: { value, onChange } }) => (
-          <>
-            <SettingsToggle
-              title={t("Disable standard confirmation emails for attendees")}
-              // {...seatsLocked}
-              description={t(
-                "This event is active on at least one workflow that sends an email to the attendee when the event is booked."
-              )}
-              checked={value || false}
-              onCheckedChange={(e) => {
-                // todo make that cleaner
-                if (e) {
-                  formMethods.setValue("metadata.disableStandardEmails.confirmation.attendee", true);
-                } else {
-                  formMethods.setValue("metadata.disableStandardEmails.confirmation.attendee", false);
-                }
-                onChange(e);
-              }}
-            />
-          </>
-        )}
-      />
-      <hr className="border-subtle" />
-
-      <Controller
-        name="metadata.disableStandardEmails.confirmation.host"
-        control={formMethods.control}
-        defaultValue={!!eventType.seatsPerTimeSlot}
-        render={({ field: { value, onChange } }) => (
-          <>
-            <SettingsToggle
-              title={t("Disable standard confirmation emails for host")}
-              // {...seatsLocked}
-              description={t(
-                "This event is active on at least one workflow that sends an email to the host when the event is booked."
-              )}
-              checked={value || false}
-              // disabled={noShowFeeEnabled}
-              onCheckedChange={(e) => {
-                // todo make that cleaner
-                if (e) {
-                  formMethods.setValue("metadata.disableStandardEmails.confirmation.host", true);
-                } else {
-                  formMethods.setValue("metadata.disableStandardEmails.confirmation.host", false);
-                }
-                onChange(e);
-              }}
-            />
-          </>
-        )}
-      />
-
+      {allowDisablingAttendeeConfirmationEmail && (
+        <>
+          <hr className="border-subtle" />
+          <Controller
+            name="metadata.disableStandardEmails.confirmation.attendee"
+            control={formMethods.control}
+            //defaultValue
+            render={({ field: { value, onChange } }) => (
+              <>
+                <SettingsToggle
+                  title={t("Disable standard confirmation emails for attendees")}
+                  // {...seatsLocked}
+                  description={t(
+                    "This event type is active on at least one workflow that sends an email to the attendee when the event is booked."
+                  )}
+                  checked={value || false}
+                  onCheckedChange={(e) => {
+                    // todo make that cleaner
+                    if (e) {
+                      formMethods.setValue("metadata.disableStandardEmails.confirmation.attendee", true);
+                    } else {
+                      formMethods.setValue("metadata.disableStandardEmails.confirmation.attendee", false);
+                    }
+                    onChange(e);
+                  }}
+                />
+              </>
+            )}
+          />
+        </>
+      )}
+      {allowDisablingHostConfirmationEmail && (
+        <>
+          <hr className="border-subtle" />
+          <Controller
+            name="metadata.disableStandardEmails.confirmation.host"
+            control={formMethods.control}
+            defaultValue={!!eventType.seatsPerTimeSlot}
+            render={({ field: { value, onChange } }) => (
+              <>
+                <SettingsToggle
+                  title={t("Disable standard confirmation emails for host")}
+                  // {...seatsLocked}
+                  description={t(
+                    "This event type is active on at least one workflow that sends an email to the host when the event is booked."
+                  )}
+                  checked={value || false}
+                  // disabled={noShowFeeEnabled}
+                  onCheckedChange={(e) => {
+                    // todo make that cleaner
+                    if (e) {
+                      formMethods.setValue("metadata.disableStandardEmails.confirmation.host", true);
+                    } else {
+                      formMethods.setValue("metadata.disableStandardEmails.confirmation.host", false);
+                    }
+                    onChange(e);
+                  }}
+                />
+              </>
+            )}
+          />
+        </>
+      )}
       {showEventNameTip && (
         <CustomEventTypeModal
           close={closeEventNameTip}
