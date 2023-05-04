@@ -2,7 +2,6 @@ import * as Popover from "@radix-ui/react-popover";
 import { useState } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 
-import { classNames } from "@calcom/lib";
 import cx from "@calcom/lib/classNames";
 import { fallBackHex, isValidHexCode } from "@calcom/lib/getBrandColours";
 import { Button } from "@calcom/ui";
@@ -62,21 +61,23 @@ const ColorPicker = (props: ColorPickerProps) => {
         }}
         type="text"
       />
-      <div className={classNames("px-1", resetDefaultValue == null && "invisible")}>
-        <Button
-          color={resetDefaultValue == "#292929" ? "primary" : "secondary"}
-          data-testid="preview-button"
-          target="_blank"
-          variant="icon"
-          rel="noreferrer"
-          StartIcon={RotateCcw}
-          tooltip="Reset to default"
-          onClick={() => {
-            setColor(fallBackHex(resetDefaultValue, false));
-            props.onChange(resetDefaultValue);
-          }}
-        />
-      </div>
+      {resetDefaultValue && (
+        <div className="px-1">
+          <Button
+            color={resetDefaultValue == "#292929" ? "primary" : "secondary"}
+            data-testid="preview-button"
+            target="_blank"
+            variant="icon"
+            rel="noreferrer"
+            StartIcon={RotateCcw}
+            tooltip="Reset to default"
+            onClick={() => {
+              setColor(fallBackHex(resetDefaultValue, false));
+              props.onChange(resetDefaultValue);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };
