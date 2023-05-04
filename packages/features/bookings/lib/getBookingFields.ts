@@ -4,11 +4,13 @@ import { z } from "zod";
 import slugify from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 import {
-  BookingFieldType,
+  BookingFieldTypeEnum,
   customInputSchema,
   eventTypeBookingFields,
   EventTypeMetaDataSchema,
 } from "@calcom/prisma/zod-utils";
+
+type Fields = z.infer<typeof eventTypeBookingFields>;
 
 export const SMS_REMINDER_NUMBER_FIELD = "smsReminderNumber";
 
@@ -41,8 +43,6 @@ export const getSmsReminderNumberSource = ({
   fieldRequired: isSmsReminderNumberRequired,
   editUrl: `/workflows/${workflowId}`,
 });
-
-type Fields = z.infer<typeof eventTypeBookingFields>;
 
 export const SystemField = z.enum([
   "name",
@@ -125,12 +125,12 @@ export const ensureBookingInputsHaveSystemFields = ({
   // If bookingFields is set already, the migration is done.
   const handleMigration = !bookingFields.length;
   const CustomInputTypeToFieldType = {
-    [EventTypeCustomInputType.TEXT]: BookingFieldType.text,
-    [EventTypeCustomInputType.TEXTLONG]: BookingFieldType.textarea,
-    [EventTypeCustomInputType.NUMBER]: BookingFieldType.number,
-    [EventTypeCustomInputType.BOOL]: BookingFieldType.boolean,
-    [EventTypeCustomInputType.RADIO]: BookingFieldType.radio,
-    [EventTypeCustomInputType.PHONE]: BookingFieldType.phone,
+    [EventTypeCustomInputType.TEXT]: BookingFieldTypeEnum.text,
+    [EventTypeCustomInputType.TEXTLONG]: BookingFieldTypeEnum.textarea,
+    [EventTypeCustomInputType.NUMBER]: BookingFieldTypeEnum.number,
+    [EventTypeCustomInputType.BOOL]: BookingFieldTypeEnum.boolean,
+    [EventTypeCustomInputType.RADIO]: BookingFieldTypeEnum.radio,
+    [EventTypeCustomInputType.PHONE]: BookingFieldTypeEnum.phone,
   };
 
   const smsNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
@@ -151,10 +151,12 @@ export const ensureBookingInputsHaveSystemFields = ({
   // These fields should be added before other user fields
   const systemBeforeFields: typeof bookingFields = [
     {
-      defaultLabel: "your_name",
       type: "name",
+      // This is the `name` of the main field
       name: "name",
       editable: "system",
+      // This Label is used in Email only as of now.
+      defaultLabel: "your_name",
       required: true,
       sources: [
         {
@@ -332,7 +334,6 @@ export const ensureBookingInputsHaveSystemFields = ({
       };
     }
   }
-
   bookingFields = bookingFields.concat(missingSystemAfterFields);
 
   return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(bookingFields);

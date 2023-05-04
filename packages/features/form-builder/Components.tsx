@@ -8,7 +8,6 @@ import type {
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { BookingFieldType } from "@calcom/prisma/zod-utils";
 import {
   PhoneInput,
   AddressInput,
@@ -18,12 +17,25 @@ import {
   RadioField,
   EmailField,
   Tooltip,
+  InputField,
   Checkbox,
 } from "@calcom/ui";
 import { UserPlus, X } from "@calcom/ui/components/icon";
 
-import { ComponentForField } from "./FormBuilder";
-import type { fieldsSchema } from "./FormBuilderFieldsSchema";
+import { ComponentForField } from "./FormBuilderField";
+import type { FieldType, variantsConfigSchema, fieldSchema } from "./schema";
+import { preprocessNameFieldDataWithVariant } from "./utils";
+
+export const isValidValueProp: Record<Component["propsType"], (val: unknown) => boolean> = {
+  boolean: (val) => typeof val === "boolean",
+  multiselect: (val) => val instanceof Array && val.every((v) => typeof v === "string"),
+  objectiveWithInput: (val) => (typeof val === "object" && val !== null ? "value" in val : false),
+  select: (val) => typeof val === "string",
+  text: (val) => typeof val === "string",
+  textList: (val) => val instanceof Array && val.every((v) => typeof v === "string"),
+  // Get it defined on the component itself ??
+  variants: (val) => (typeof val === "object" && val !== null) || typeof val === "string",
+};
 
 type Component =
   | {
@@ -54,11 +66,24 @@ type Component =
           value: string;
           optionValue: string;
         }> & {
-          optionsInputs: NonNullable<z.infer<typeof fieldsSchema>[number]["optionsInputs"]>;
+          optionsInputs: NonNullable<z.infer<typeof fieldSchema>["optionsInputs"]>;
           value: { value: string; optionValue: string };
         } & {
           name?: string;
           required?: boolean;
+        }
+      >(
+        props: TProps
+      ) => JSX.Element;
+    }
+  | {
+      propsType: "variants";
+      factory: <
+        TProps extends Omit<TextLikeComponentProps, "value" | "setValue"> & {
+          variant: string | undefined;
+          variants: z.infer<typeof variantsConfigSchema>["variants"];
+          value: Record<string, string> | string;
+          setValue: (value: string | Record<string, string>) => void;
         }
       >(
         props: TProps
@@ -68,7 +93,7 @@ type Component =
 // TODO: Share FormBuilder components across react-query-awesome-builder(for Routing Forms) widgets.
 // There are certain differences b/w two. Routing Forms expect label to be provided by the widget itself and FormBuilder adds label itself and expect no label to be added by component.
 // Routing Form approach is better as it provides more flexibility to show the label in complex components. But that can't be done right now because labels are missing consistent asterisk required support across different components
-export const Components: Record<BookingFieldType, Component> = {
+export const Components: Record<FieldType, Component> = {
   text: {
     propsType: "text",
     factory: (props) => <Widgets.TextWidget noLabel={true} {...props} />,
@@ -83,9 +108,79 @@ export const Components: Record<BookingFieldType, Component> = {
     factory: (props) => <Widgets.NumberWidget noLabel={true} {...props} />,
   },
   name: {
-    propsType: "text",
+    propsType: "variants",
     // Keep special "name" type field and later build split(FirstName and LastName) variant of it.
-    factory: (props) => <Widgets.TextWidget noLabel={true} {...props} />,
+    factory: (props) => {
+      const { variant: variantName = "fullName" } = props;
+      const onChange = (name: string, value: string) => {
+        let currentValue = props.value;
+        if (typeof currentValue !== "object") {
+          currentValue = {};
+        }
+        props.setValue({
+          ...currentValue,
+          [name]: value,
+        });
+      };
+
+      if (!props.variants) {
+        throw new Error("'variants' is required for 'name' type of field");
+      }
+
+      if (variantName !== "firstAndLastName" && variantName !== "fullName") {
+        throw new Error(`Invalid variant name '${variantName}' for 'name' type of field`);
+      }
+
+      const value = preprocessNameFieldDataWithVariant(variantName, props.value);
+
+      if (variantName === "fullName") {
+        if (typeof value !== "string") {
+          throw new Error("Invalid value for 'fullName' variant");
+        }
+        const variant = props.variants[variantName];
+        const variantField = variant.fields[0];
+        return (
+          <InputField
+            name="name"
+            placeholder={variantField.placeholder}
+            label={variantField.label}
+            containerClassName="w-full"
+            value={value}
+            required={variantField.required}
+            className="dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500"
+            type="text"
+            onChange={(e) => {
+              props.setValue(e.target.value);
+            }}
+          />
+        );
+      }
+
+      const variant = props.variants[variantName];
+
+      if (typeof value !== "object") {
+        throw new Error("Invalid value for 'fullName' variant");
+      }
+
+      return (
+        <div className="flex space-x-4">
+          {variant.fields.map((variantField) => (
+            <InputField
+              key={variantField.name}
+              name={variantField.name}
+              placeholder={variantField.placeholder}
+              label={variantField.label}
+              containerClassName="w-full"
+              value={value[variantField.name as keyof typeof value]}
+              required={variantField.required}
+              className="dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500"
+              type="text"
+              onChange={(e) => onChange(variantField.name, e.target.value)}
+            />
+          ))}
+        </div>
+      );
+    },
   },
   phone: {
     propsType: "text",
