@@ -20,7 +20,11 @@ const ColorPicker = (props: ColorPickerProps) => {
   const init = !isValidHexCode(props.defaultValue)
     ? fallBackHex(props.defaultValue, false)
     : props.defaultValue;
-  const resetDefaultValue = props.resetDefaultValue;
+  const resetDefaultValue =
+    props.resetDefaultValue &&
+    (!isValidHexCode(props.resetDefaultValue)
+      ? fallBackHex(props.resetDefaultValue, false)
+      : props.resetDefaultValue);
   const [color, setColor] = useState(init);
 
   return (
