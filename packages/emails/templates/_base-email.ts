@@ -1,5 +1,5 @@
 import { decodeHTML } from "entities";
-import nodemailer from "nodemailer";
+import { createTransport } from "nodemailer";
 import { z } from "zod";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -53,9 +53,9 @@ export default class BaseEmail {
     };
 
     new Promise((resolve, reject) =>
-      nodemailer
-        .createTransport(this.getMailerOptions().transport)
-        .sendMail(payloadWithUnEscapedSubject, (_err, info) => {
+      createTransport(this.getMailerOptions().transport).sendMail(
+        payloadWithUnEscapedSubject,
+        (_err, info) => {
           if (_err) {
             const err = getErrorFromUnknown(_err);
             this.printNodeMailerError(err);
@@ -63,7 +63,8 @@ export default class BaseEmail {
           } else {
             resolve(info);
           }
-        })
+        }
+      )
     ).catch((e) => console.error("sendEmail", e));
     return new Promise((resolve) => resolve("send mail async"));
   }

@@ -276,7 +276,7 @@ export const EventSetupTab = (
               return (
                 <li
                   key={`${location.type}${index}`}
-                  className="border-default text-default mb-2 rounded-md border py-1.5 px-2 hover:cursor-pointer">
+                  className="border-default text-default mb-2 h-9 rounded-md border py-1.5 px-2 hover:cursor-pointer">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <img

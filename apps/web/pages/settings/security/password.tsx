@@ -1,10 +1,10 @@
-import { IdentityProvider } from "@prisma/client";
 import { signOut, useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 
 import { identityProviderNameMap } from "@calcom/features/auth/lib/identityProviderNameMap";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Form, Meta, PasswordField, Select, SettingsToggle, showToast } from "@calcom/ui";
@@ -199,6 +199,7 @@ const PasswordView = () => {
             color="primary"
             className="mt-8"
             type="submit"
+            onClick={() => formMethods.clearErrors("apiError")}
             disabled={isDisabled || passwordMutation.isLoading || sessionMutation.isLoading}>
             {t("update")}
           </Button>
