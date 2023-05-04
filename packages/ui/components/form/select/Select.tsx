@@ -8,6 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Label } from "../inputs/Label";
 import { getReactSelectProps } from "./selectTheme";
+import { SelectComponents } from "react-select/dist/declarations/src/components";
 
 export type SelectProps<
   Option,
@@ -36,7 +37,7 @@ export const Select = <
   } : components
   const reactSelectProps = React.useMemo(() => {
     return getReactSelectProps<Option, IsMulti, Group>({
-      components: componentProps || {},
+      components: componentProps as Partial<SelectComponents<Option, IsMulti, Group>> || {},
       menuPlacement,
     });
   }, [components, menuPlacement]);
