@@ -70,7 +70,12 @@ const WorkflowListItem = (props: ItemProps) => {
         showToast(message, "error");
       }
       if (err.data?.code === "UNAUTHORIZED") {
-        showToast(t("unauthorized_workflow_error_message"), "error");
+        showToast(
+          t("unauthorized_workflow_error_message", {
+            errorCode: err.data.code,
+          }),
+          "error"
+        );
       }
     },
   });
