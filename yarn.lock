@@ -5021,7 +5021,7 @@ __metadata:
     react-phone-number-input: ^3.2.7
     react-schemaorg: ^2.0.0
     react-select: ^5.7.3
-    react-timezone-select: ^1.5.1
+    react-timezone-select: ^1.4.0
     react-use-intercom: 1.5.1
     remark: ^14.0.2
     rrule: ^2.7.1
@@ -34033,7 +34033,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-timezone-select@npm:^1.5.1":
+"react-timezone-select@npm:^1.4.0":
   version: 1.5.6
   resolution: "react-timezone-select@npm:1.5.6"
   dependencies:
