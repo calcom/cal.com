@@ -49,8 +49,9 @@ function MembersList(props: MembersListProps) {
         autoComplete="false"
         onChange={(e) => setQuery(e.target.value)}
         value={query}
+        defaultValue=""
       />
-      {membersList && team ? (
+      {membersList?.length && team ? (
         <ul className="divide-subtle border-subtle divide-y rounded-md border ">
           {membersList.map((member) => {
             return <MemberListItem key={member.id} team={team} member={member} />;
