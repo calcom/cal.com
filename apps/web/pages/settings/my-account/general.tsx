@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -6,6 +7,7 @@ import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { getQueryKey } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -60,13 +62,26 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   const router = useRouter();
   const utils = trpc.useContext();
   const { t } = useLocale();
+  const queryClient = useQueryClient();
 
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (value) => {
+      const previousLocale = utils.viewer.public.locale.getData();
+
       if (value?.locale) {
         const locale = value?.locale;
+
+        await utils.viewer.public.i18n.fetch({ locale });
         utils.viewer.public.locale.setData(undefined, { locale });
-        await utils.viewer.public.i18n.invalidate({ locale });
+        if (previousLocale) {
+          const oldLocaleKey = getQueryKey(
+            trpc.viewer.public.i18n,
+            { locale: previousLocale.locale },
+            "query"
+          );
+          // remove old locale from cache because cache because cache time is set to Infinity
+          queryClient.removeQueries({ queryKey: oldLocaleKey });
+        }
       }
 
       reset(getValues());
