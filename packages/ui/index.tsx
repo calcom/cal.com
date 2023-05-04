@@ -34,7 +34,6 @@ export {
   BooleanToggleGroupField,
   DatePicker,
   DateRangePicker,
-  MultiSelectCheckbox,
   ToggleGroup,
   getReactSelectProps,
   ColorPicker,
@@ -131,8 +130,7 @@ export {
   RadioField,
 } from "./form/radio-area";
 
-export { default as MultiSelectCheckboxes } from "./components/form/checkbox/MultiSelectCheckboxes";
-export type { Option as MultiSelectCheckboxesOptionType } from "./components/form/checkbox/MultiSelectCheckboxes";
+export type { Option } from "./components/form/select/Select";
 export { default as ImageUploader } from "./components/image-uploader/ImageUploader";
 export type { ButtonColor } from "./components/button/Button";
 export { CreateButton, CreateButtonWithTeamsList } from "./components/createButton";
