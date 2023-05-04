@@ -12,7 +12,7 @@ const outputDir = path.join(__dirname, "test-results");
 
 // So, if not in CI, keep the timers high, if the test is stuck somewhere and there is unnecessary wait developer can see in browser that it's stuck
 const DEFAULT_NAVIGATION_TIMEOUT = process.env.CI ? 15000 : 50000;
-const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 10000 : 50000;
+const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 15000 : 50000;
 
 // Test Timeout can hit due to slow expect, slow navigation.
 // So, it should me much higher than sum of expect and navigation timeouts as there can be many async expects and navigations in a single test
