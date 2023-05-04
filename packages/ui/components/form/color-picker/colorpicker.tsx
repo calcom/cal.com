@@ -65,7 +65,7 @@ const ColorPicker = (props: ColorPickerProps) => {
         }}
         type="text"
       />
-      {resetDefaultValue && (
+      {resetDefaultValue && color != resetDefaultValue && (
         <div className="px-1">
           <Button
             color={resetDefaultValue == "#292929" ? "primary" : "secondary"}
