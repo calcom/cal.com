@@ -1,6 +1,5 @@
-import { WorkflowActions } from "@prisma/client";
-
 import dayjs from "@calcom/dayjs";
+import { WorkflowActions } from "@calcom/prisma/enums";
 
 const smsReminderTemplate = (
   isEditingMode: boolean,

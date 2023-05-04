@@ -94,10 +94,8 @@ test.describe("Event Types tests", () => {
       const $eventTypes = page.locator("[data-testid=event-types] > li a");
       const firstEventTypeElement = $eventTypes.first();
       await firstEventTypeElement.click();
-      await page.waitForNavigation({
-        url: (url) => {
-          return !!url.pathname.match(/\/event-types\/.+/);
-        },
+      await page.waitForURL((url) => {
+        return !!url.pathname.match(/\/event-types\/.+/);
       });
       await page.locator("[data-testid=update-eventtype]").click();
       const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
@@ -108,10 +106,8 @@ test.describe("Event Types tests", () => {
       const $eventTypes = page.locator("[data-testid=event-types] > li a");
       const firstEventTypeElement = $eventTypes.first();
       await firstEventTypeElement.click();
-      await page.waitForNavigation({
-        url: (url) => {
-          return !!url.pathname.match(/\/event-types\/.+/);
-        },
+      await page.waitForURL((url) => {
+        return !!url.pathname.match(/\/event-types\/.+/);
       });
 
       const locationData = ["location 1", "location 2", "location 3"];
@@ -153,10 +149,8 @@ test.describe("Event Types tests", () => {
       // to change the test as little as possible.
       // eslint-disable-next-line playwright/no-conditional-in-test
       if (bookerVariant === "old-booker") {
-        await page.waitForNavigation({
-          url(url) {
-            return url.pathname.endsWith("/book");
-          },
+        await page.waitForURL((url) => {
+          return url.pathname.endsWith("/book");
         });
       }
 

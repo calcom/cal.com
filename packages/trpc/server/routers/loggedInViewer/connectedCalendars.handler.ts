@@ -1,8 +1,8 @@
 import type { DestinationCalendar } from "@prisma/client";
-import { AppCategories } from "@prisma/client";
 
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { prisma } from "@calcom/prisma";
+import { AppCategories } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 type ConnectedCalendarsOptions = {
