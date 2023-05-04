@@ -26,7 +26,14 @@ export const EventMembers = ({ schedulingType, users, profile }: EventMembersPro
       href: user.username ? `${CAL_URL}/${user.username}` : undefined,
     }))
     .filter((item) => !!item.image)
-    .filter((item, index, self) => self.findIndex((t) => t.image === item.image) === index);
+    .filter((item, index, self) => {
+      // Filter out duplicates by checking both the image and the href,
+      // sometimes we tend to get the same avatar prefixed with app.cal.com and cal.com,
+      // so only the image match wouldn't work here.
+      const imageIsUnique = self.findIndex((t) => t.image === item.image) === index;
+      const hrefIsUnique = self.findIndex((t) => t.href === item.href) === index;
+      return imageIsUnique && hrefIsUnique;
+    });
 
   return (
     <>
