@@ -13,7 +13,7 @@ export interface ICity {
   timezone: string;
 }
 
-export function TimezoneSelect({
+function TimezoneSelect({
   className,
   classNames: timezoneClassNames,
   components,
@@ -111,3 +111,5 @@ export function TimezoneSelect({
 }
 
 export type { ITimezone, ITimezoneOption };
+
+export default TimezoneSelect;

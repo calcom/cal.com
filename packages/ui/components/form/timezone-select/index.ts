@@ -1,2 +1,2 @@
-export { TimezoneSelect } from "./TimezoneSelect";
-export type { ITimezone, ITimezoneOption, ICity } from "./TimezoneSelect";
+export type { ICity, ITimezone, ITimezoneOption } from "./TimezoneSelect";
+export { default as TimezoneSelect } from "./TimezoneSelectLazy";
