@@ -32,7 +32,7 @@ export const EventMembers = ({ schedulingType, users, profile }: EventMembersPro
       // so only the image match wouldn't work here.
       const imageIsUnique = self.findIndex((t) => t.image === item.image) === index;
       const hrefIsUnique = self.findIndex((t) => t.href === item.href) === index;
-      return imageIsUnique && hrefIsUnique;
+      return imageIsUnique && (!item.href || hrefIsUnique);
     });
 
   return (
