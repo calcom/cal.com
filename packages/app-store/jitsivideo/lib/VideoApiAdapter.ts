@@ -17,7 +17,7 @@ const JitsiVideoApiAdapter = (): VideoApiAdapter => {
         type: "jitsi_video",
         id: meetingID,
         password: "",
-        url: hostUrl + meetingID,
+        url: process.env.JITSI_INSTANCE_URL || "https://meet.jit.si/cal/" + meetingID,
       });
     },
     deleteMeeting: async (): Promise<void> => {
