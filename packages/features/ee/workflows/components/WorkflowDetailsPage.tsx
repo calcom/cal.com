@@ -9,8 +9,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { WorkflowActions } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Button, Label, MultiSelectCheckboxes, TextField } from "@calcom/ui";
+import type { Option } from "@calcom/ui";
+import { Button, Label, Select, TextField } from "@calcom/ui";
 import { ArrowDown, Trash2 } from "@calcom/ui/components/icon";
 
 import { isSMSAction } from "../lib/actionHelperFunctions";
@@ -126,16 +126,20 @@ export default function WorkflowDetailsPage(props: Props) {
             control={form.control}
             render={() => {
               return (
-                <MultiSelectCheckboxes
-                  options={allEventTypeOptions}
-                  isDisabled={props.readOnly}
-                  isLoading={isLoading}
-                  className="w-full md:w-64"
-                  setSelected={setSelectedEventTypes}
-                  selected={selectedEventTypes}
-                  setValue={(s: Option[]) => {
+                <Select
+                  value={selectedEventTypes}
+                  onChange={(s: any) => {
+                    setSelectedEventTypes(s);
                     form.setValue("activeOn", s);
                   }}
+                  variant="checkbox"
+                  options={allEventTypeOptions}
+                  isMulti
+                  className="w-full md:w-64"
+                  isSearchable={false}
+                  closeMenuOnSelect={false}
+                  hideSelectedOptions={false}
+                  isLoading={isLoading}
                 />
               );
             }}

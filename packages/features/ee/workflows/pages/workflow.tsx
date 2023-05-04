@@ -16,7 +16,7 @@ import { TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enu
 import { WorkflowTriggerEvents, MembershipRole } from "@calcom/prisma/enums";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
+import type { Option } from "@calcom/ui";
 import { Alert, Button, Form, showToast, Badge } from "@calcom/ui";
 
 import LicenseRequired from "../../common/components/LicenseRequired";

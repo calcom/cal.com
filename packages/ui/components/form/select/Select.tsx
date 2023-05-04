@@ -1,6 +1,5 @@
 import { useId } from "@radix-ui/react-id";
 import * as React from "react";
-import type { Dispatch, SetStateAction } from "react";
 import type { GroupBase, Props, SingleValue, MultiValue, OptionProps } from "react-select";
 import ReactSelect, { components } from "react-select";
 
@@ -14,7 +13,7 @@ export type SelectProps<
   Option,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
-> = Props<Option, IsMulti, Group> & { variant?: "default" | "checkbox" | "multiSelectCheckbox" };
+> = Props<Option, IsMulti, Group> & { variant?: "default" | "checkbox" };
 
 export const Select = <
   Option,
@@ -23,12 +22,15 @@ export const Select = <
 >({
   components,
   menuPlacement,
+  isMulti,
   variant = "default",
   ...props
 }: SelectProps<Option, IsMulti, Group>) => {
   const { classNames, className, ...restProps } = props;
   const additonalComponents = { MultiValue };
-  const componentProps = variant === "multiSelectCheckbox" ? {
+  const isMultiSelectCheckbox = variant === "checkbox" && isMulti;
+
+  const componentProps = isMultiSelectCheckbox ? {
     ...additonalComponents,
     Option: InputOption,
   } : components
@@ -94,7 +96,7 @@ export const Select = <
         multiValueRemove: () => "text-default py-auto ml-2",
         ...classNames,
       }}
-      className={className ? className : variant === "multiSelectCheckbox" ? "w-64 text-sm" : ""}
+      className={className ? className : isMultiSelectCheckbox ? "w-64 text-sm" : ""}
       {...restProps}
     />
   );
@@ -208,7 +210,7 @@ export type Option = {
   label: string;
 };
 
-const InputOption: React.FC<OptionProps<any, boolean, GroupBase<any>>> = ({
+const InputOption: React.FC<OptionProps<Option, boolean, GroupBase<any>>> = ({
   isDisabled,
   isFocused,
   isSelected,
