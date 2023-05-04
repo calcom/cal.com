@@ -93,6 +93,7 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
       await expect(page.locator("[data-testid=success-page]")).toBeHidden();
     });
   });
+
   // TODO: Make E2E test: Attendee #1 should be able to cancel his booking
   // todo("Attendee #1 should be able to cancel his booking");
   // TODO: Make E2E test: Attendee #1 should be able to reschedule his booking
@@ -460,6 +461,57 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
         .locator('p[data-testid="attendee-first+seats@cal.com"]')
         .first();
       await expect(foundFirstAttendeeAgain).toHaveCount(1);
+    });
+    // Test: Attendee #1 should be able to cancel his booking. 
+    test("cancel booking for a seated event", )async ({
+      page,
+      users,
+      bookings,
+    }) => {
+      const { booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+        { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+        { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+      ]);
+      await user.login();
+
+      const bookingAttendees = await prisma.attendee.findMany({
+        where: { bookingId: booking.id },
+        select: {
+          id: true,
+        },
+      });
+
+      const bookingSeats = [
+        { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUid: uuidv4() },
+        { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUid: uuidv4() },
+      ];
+
+      await prisma.bookingSeat.createMany({
+        data: bookingSeats,
+      });
+
+      // Now we cancel the booking as the first attendee
+      // booking/${bookingUid}?cancel=true&allRemainingBookings=false&seatReferenceUid={bookingSeat.referenceUid}
+      await page.goto(
+        `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[0].referenceUid}`
+      );
+
+      await page.locator('[data-testid="cancel"]').click();
+
+      await page.waitForLoadState("networkidle");
+
+      await expect(page).toHaveURL(/.*booking/);
+
+      await page.goto(
+        `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[1].referenceUid}`
+      );
+
+      // Page should not be 404
+      await page.locator('[data-testid="cancel"]').click();
+
+      await page.waitForLoadState("networkidle");
+
+      await expect(page).toHaveURL(/.*booking/);
     });
   });
 });
