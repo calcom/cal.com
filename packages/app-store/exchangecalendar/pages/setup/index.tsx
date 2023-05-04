@@ -6,10 +6,9 @@ import { Toaster } from "react-hot-toast";
 import z from "zod";
 
 import { WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
+import { cFetch } from "@calcom/lib/fetch-wrapper";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, EmailField, Form, PasswordField, SelectField, Switch, TextField } from "@calcom/ui";
-
-import { cFetch } from "@lib/core/http/fetch-wrapper";
 
 import { ExchangeAuthentication, ExchangeVersion } from "../../enums";
 

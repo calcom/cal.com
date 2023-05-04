@@ -2,11 +2,10 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
+import { cFetch } from "@calcom/lib/fetch-wrapper";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, Dialog, DialogClose, DialogContent, DialogFooter, Input } from "@calcom/ui";
 import { Link, Search } from "@calcom/ui/components/icon";
-
-import { cFetch } from "@lib/core/http/fetch-wrapper";
 
 interface ISearchDialog {
   isOpenDialog: boolean;

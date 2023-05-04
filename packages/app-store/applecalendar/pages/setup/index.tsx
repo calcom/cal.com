@@ -4,10 +4,9 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 
 import { APP_NAME, WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
+import { cFetch } from "@calcom/lib/fetch-wrapper";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, Form, TextField } from "@calcom/ui";
-
-import { cFetch } from "@lib/core/http/fetch-wrapper";
 
 export default function AppleCalendarSetup() {
   const { t } = useLocale();

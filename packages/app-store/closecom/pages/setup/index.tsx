@@ -6,11 +6,10 @@ import { Toaster } from "react-hot-toast";
 import z from "zod";
 
 import { WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
+import { cFetch } from "@calcom/lib/fetch-wrapper";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Form, showToast, TextField } from "@calcom/ui";
 import { Check, X } from "@calcom/ui/components/icon";
-
-import { cFetch } from "@lib/core/http/fetch-wrapper";
 
 const formSchema = z.object({
   api_key: z.string(),

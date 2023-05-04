@@ -1,4 +1,4 @@
-import { cFetch } from "@lib/core/http/fetch-wrapper";
+import { cFetch } from "@calcom/lib/fetch-wrapper";
 
 const TwoFactorAuthAPI = {
   async setup(password: string) {

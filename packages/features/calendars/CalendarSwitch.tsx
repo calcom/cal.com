@@ -2,12 +2,11 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { classNames } from "@calcom/lib";
+import { cFetch } from "@calcom/lib/fetch-wrapper";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast, Switch } from "@calcom/ui";
 import { ArrowLeft, RotateCcw } from "@calcom/ui/components/icon";
-
-import { cFetch } from "@lib/core/http/fetch-wrapper";
 
 interface ICalendarSwitchProps {
   title: string;

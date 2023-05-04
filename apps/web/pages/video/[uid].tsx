@@ -11,12 +11,11 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
+import { cFetch } from "@calcom/lib/fetch-wrapper";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { ChevronRight } from "@calcom/ui/components/icon";
-
-import { cFetch } from "@lib/core/http/fetch-wrapper";
 
 import PageWrapper from "@components/PageWrapper";
 

@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { cFetch } from "@calcom/lib/fetch-wrapper";
 import { Button, Select, showToast } from "@calcom/ui";
-
-import { cFetch } from "@lib/core/http/fetch-wrapper";
 
 export interface IAppConfigurationProps {
   credentialIds: number[];

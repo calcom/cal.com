@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { cFetch } from "@lib/core/http/fetch-wrapper";
+import { cFetch } from "@calcom/lib/fetch-wrapper";
 
 import type { InstallAppButtonProps } from "../../types";
 

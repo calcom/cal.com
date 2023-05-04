@@ -8,11 +8,10 @@ import type { CSSProperties } from "react";
 import React, { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { cFetch } from "@calcom/lib/fetch-wrapper";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { Button, TextField } from "@calcom/ui";
-
-import { cFetch } from "@lib/core/http/fetch-wrapper";
 
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";

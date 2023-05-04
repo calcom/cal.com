@@ -8,10 +8,9 @@ import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { cFetch } from "@calcom/lib/fetch-wrapper";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmailField } from "@calcom/ui";
-
-import { cFetch } from "@lib/core/http/fetch-wrapper";
 
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";

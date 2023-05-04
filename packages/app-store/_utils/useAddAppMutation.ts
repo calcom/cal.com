@@ -3,9 +3,8 @@ import { useMutation } from "@tanstack/react-query";
 
 import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
 import { WEBAPP_PREFIX_PATH, WEBAPP_URL } from "@calcom/lib/constants";
+import { cFetch } from "@calcom/lib/fetch-wrapper";
 import type { App } from "@calcom/types/App";
-
-import { cFetch } from "@lib/core/http/fetch-wrapper";
 
 import getInstalledAppPath from "./getInstalledAppPath";
 
