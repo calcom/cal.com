@@ -121,13 +121,19 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
         <div
           style={resizeAnimationConfig[layout]?.[bookerState] || resizeAnimationConfig[layout].default}
           className={classNames(
+            // Size settings are abstracted on their own lines purely for readbility.
+            // General sizes:
             "[--booker-main-width:480px] [--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
-            "bg-muted grid max-w-full items-start overflow-clip dark:[color-scheme:dark] md:flex-row",
+            // Sizes only applicable for small_calendar
             layout === "small_calendar" &&
-              "border-subtle mt-20 min-h-[450px] w-[calc(var(--booker-meta-width)+var(--booker-main-width))] rounded-md border [--booker-meta-width:280px]",
-            layout !== "small_calendar" &&
-              "h-auto min-h-screen w-screen [--booker-meta-width:340px] lg:[--booker-meta-width:424px]",
-            "transition-[width] duration-300"
+              "w-[calc(var(--booker-meta-width)+var(--booker-main-width))] [--booker-meta-width:240px] lg:[--booker-meta-width:280px]",
+            // Sizes for fullscreen layouts:
+            layout !== "small_calendar" && "[--booker-meta-width:340px] lg:[--booker-meta-width:424px]",
+            // Other styles
+            "bg-muted grid max-w-full items-start overflow-clip dark:[color-scheme:dark] md:flex-row",
+            layout === "small_calendar" && "border-subtle mt-20 min-h-[450px] rounded-md border",
+            layout !== "small_calendar" && "h-auto min-h-screen w-screen",
+            "transition-[width,max-width] duration-300"
           )}>
           <AnimatePresence>
             <StickyOnDesktop key="meta" className="relative z-10">
