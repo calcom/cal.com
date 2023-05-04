@@ -410,10 +410,6 @@ select:focus {
   }
 }
 
-.boxshadow-outline{
-  box-shadow: 0 10px 40px #0000001a;
-}
-
 #timeZone input:focus {
   box-shadow: none;
 }
