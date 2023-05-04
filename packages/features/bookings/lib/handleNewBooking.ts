@@ -1,6 +1,10 @@
 import type { App, Attendee, Credential, EventTypeCustomInput } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import async from "async";
+import {
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "ee/workflows/lib/allowDisablingStandardEmails";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
@@ -1953,6 +1957,22 @@ async function handler(
         videoCallUrl = metadata.hangoutLink || defaultLocationUrl || videoCallUrl;
       }
       if (noEmail !== true) {
+        let isHostConfirmationEmailsDisabled = eventType.metadata?.disableStandardEmails?.confirmation?.host;
+        let isAttendeeConfirmationEmailDisabled =
+          eventType.metadata?.disableStandardEmails?.confirmation?.attendee;
+
+        const workflows = eventType.workflows.map((workflow) => workflow.workflow);
+
+        if (eventType.workflows) {
+          if (isHostConfirmationEmailsDisabled) {
+            isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
+          }
+
+          if (isAttendeeConfirmationEmailDisabled) {
+            isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
+          }
+        }
+
         await sendScheduledEmails(
           {
             ...evt,
@@ -1960,7 +1980,9 @@ async function handler(
             additionalNotes,
             customInputs,
           },
-          eventNameObject
+          eventNameObject,
+          isHostConfirmationEmailsDisabled,
+          isAttendeeConfirmationEmailDisabled
         );
       }
     }

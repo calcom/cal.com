@@ -11,12 +11,15 @@ import { getEventName } from "@calcom/core/event";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import {
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import { classNames } from "@calcom/lib";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
-import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip, Alert } from "@calcom/ui";
 import { Edit, Copy } from "@calcom/ui/components/icon";
@@ -44,17 +47,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
 
   const bookingFields: Prisma.JsonObject = {};
 
-  const workflows = eventType.workflows
-    .map((workflowOnEventType) => workflowOnEventType.workflow)
-    .filter((workflow) => workflow.trigger === WorkflowTriggerEvents.NEW_EVENT);
-
-  const allowDisablingHostConfirmationEmail = !!workflows.find(
-    (workflow) => !!workflow.steps.find((step) => step.action === WorkflowActions.EMAIL_HOST)
-  );
-
-  const allowDisablingAttendeeConfirmationEmail = !!workflows.find(
-    (workflow) => !!workflow.steps.find((step) => step.action === WorkflowActions.EMAIL_ATTENDEE)
-  );
+  const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
 
   eventType.bookingFields.forEach(({ name }) => {
     bookingFields[name] = name + " input";
@@ -351,7 +344,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </>
         )}
       />
-      {allowDisablingAttendeeConfirmationEmail && (
+      {allowDisablingAttendeeConfirmationEmails(workflows) && (
         <>
           <hr className="border-subtle" />
           <Controller
@@ -382,7 +375,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         </>
       )}
-      {allowDisablingHostConfirmationEmail && (
+      {allowDisablingHostConfirmationEmails(workflows) && (
         <>
           <hr className="border-subtle" />
           <Controller

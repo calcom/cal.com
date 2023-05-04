@@ -47,33 +47,42 @@ const sendEmail = (prepare: () => BaseEmail) => {
   });
 };
 
-export const sendScheduledEmails = async (calEvent: CalendarEvent, eventNameObject?: EventNameObjectType) => {
+export const sendScheduledEmails = async (
+  calEvent: CalendarEvent,
+  eventNameObject?: EventNameObjectType,
+  hostEmailDisabled?: boolean,
+  attendeeEmailDisabled?: boolean
+) => {
   const emailsToSend: Promise<unknown>[] = [];
 
-  emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent })));
+  if (!hostEmailDisabled) {
+    emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent })));
 
-  if (calEvent.team) {
-    for (const teamMember of calEvent.team.members) {
-      emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent, teamMember })));
+    if (calEvent.team) {
+      for (const teamMember of calEvent.team.members) {
+        emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent, teamMember })));
+      }
     }
   }
 
-  emailsToSend.push(
-    ...calEvent.attendees.map((attendee) => {
-      return sendEmail(
-        () =>
-          new AttendeeScheduledEmail(
-            {
-              ...calEvent,
-              ...(eventNameObject && {
-                title: getEventName({ ...eventNameObject, t: attendee.language.translate }),
-              }),
-            },
-            attendee
-          )
-      );
-    })
-  );
+  if (!attendeeEmailDisabled) {
+    emailsToSend.push(
+      ...calEvent.attendees.map((attendee) => {
+        return sendEmail(
+          () =>
+            new AttendeeScheduledEmail(
+              {
+                ...calEvent,
+                ...(eventNameObject && {
+                  title: getEventName({ ...eventNameObject, t: attendee.language.translate }),
+                }),
+              },
+              attendee
+            )
+        );
+      })
+    );
+  }
 
   await Promise.all(emailsToSend);
 };
