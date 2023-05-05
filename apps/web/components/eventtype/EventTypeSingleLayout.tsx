@@ -209,9 +209,9 @@ function EventTypeSingleLayout({
       });
     }
     if (isManagedEventType || isChildrenManagedEventType) {
-      // Removing apps and workflows for manageg event types by admins v1
+      // Removing apps and workflows for managed event types by admins v1
       navigation = navigation.slice(0, -2);
-    } else {
+    } else if (team) {
       navigation.push({
         name: "webhooks",
         href: `/event-types/${eventType.id}?tabName=webhooks`,
