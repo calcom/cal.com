@@ -58,9 +58,10 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
       gridTemplateColumns: "var(--booker-meta-width) var(--booker-main-width)",
     },
     selecting_time: {
-      width: "calc(var(--booker-meta-width) + var(--booker-main-width) + var(--booker-timeslots-width))",
+      width: "100%",
+      maxWidth: "calc(var(--booker-meta-width) + var(--booker-main-width) + var(--booker-timeslots-width))",
       gridTemplateAreas: `"meta main timeslots"`,
-      gridTemplateColumns: "var(--booker-meta-width) var(--booker-main-width) var(--booker-timeslots-width)",
+      gridTemplateColumns: "var(--booker-meta-width) 1fr var(--booker-timeslots-width)",
     },
   },
   large_calendar: {

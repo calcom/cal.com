@@ -44,6 +44,7 @@ export const Day = ({
   active: boolean;
   date: Dayjs;
 }) => {
+  const { t } = useLocale();
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
   const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
   return (
@@ -64,7 +65,9 @@ export const Day = ({
       {...props}>
       {date.date()}
       {date.isToday() && (
-        <span className="absolute left-0 right-0 bottom-0 h-2/5 align-middle text-4xl leading-[0rem]">.</span>
+        <span className="absolute left-1/2 top-1/2 flex h-[5px] w-[5px] translate-y-[8px] -translate-x-1/2 items-center justify-center rounded-full bg-white align-middle sm:translate-y-[12px]">
+          <span className="sr-only">{t("today")}</span>
+        </span>
       )}
     </button>
   );
