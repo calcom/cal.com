@@ -9,10 +9,10 @@ const JitsiVideoApiAdapter = (): VideoApiAdapter => {
       return Promise.resolve([]);
     },
     createMeeting: async (): Promise<VideoCallData> => {
-	  //TODO: make this configurable: e.g. `/{Event type}-{Scheduler}-{uuid}`
+      //TODO: make this configurable: e.g. `/{Event type}-{Scheduler}-{uuid}`
       const meetingID = uuidv4();
-	  //TODO: make this configurable via the web interface.
-	  const hostUrl = process.env.JITSI_HOST_URL || "https://meet.jit.si/cal/";
+      //TODO: make this configurable via the web interface.
+      const hostUrl = process.env.JITSI_HOST_URL || "https://meet.jit.si/cal/";
       return Promise.resolve({
         type: "jitsi_video",
         id: meetingID,
