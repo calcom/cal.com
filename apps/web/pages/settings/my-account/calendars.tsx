@@ -186,8 +186,9 @@ const CalendarsView = () => {
                                 title={cal.name || "Nameless calendar"}
                                 name={cal.name || "Nameless calendar"}
                                 type={item.integration.type}
-                                isChecked={cal.isSelected}
-                                defaultSelected={cal.externalId === data?.destinationCalendar?.externalId}
+                                isChecked={
+                                  cal.isSelected || cal.externalId === data?.destinationCalendar?.externalId
+                                }
                               />
                             ))}
                           </ul>
