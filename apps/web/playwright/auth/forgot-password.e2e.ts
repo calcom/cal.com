@@ -17,9 +17,7 @@ test("Can reset forgotten password", async ({ page, users }) => {
 
   // Press Enter
   await Promise.all([
-    page.waitForNavigation({
-      url: (u) => u.pathname.startsWith("/auth/forgot-password/"),
-    }),
+    page.waitForURL((u) => u.pathname.startsWith("/auth/forgot-password/")),
     page.press('input[name="email"]', "Enter"),
   ]);
 
@@ -38,7 +36,7 @@ test("Can reset forgotten password", async ({ page, users }) => {
   await expect(page.locator(`text=Password updated`)).toBeVisible();
   // Click button:has-text("Login")
   await Promise.all([
-    page.waitForNavigation({ url: (u) => u.pathname.startsWith("/auth/login") }),
+    page.waitForURL((u) => u.pathname.startsWith("/auth/login")),
     page.click('a:has-text("Login")'),
   ]);
 

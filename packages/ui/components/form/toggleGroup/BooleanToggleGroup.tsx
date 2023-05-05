@@ -43,7 +43,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
       value={yesNoValue}
       type="single"
       disabled={disabled}
-      className="border-subtle flex space-x-2 rounded-md border p-1 rtl:space-x-reverse"
+      className="border-subtle flex h-9 space-x-2 rounded-md border p-1 rtl:space-x-reverse"
       onValueChange={(yesNoValue: "yes" | "no") => {
         setYesNoValue(yesNoValue);
         onValueChange(boolean(yesNoValue));

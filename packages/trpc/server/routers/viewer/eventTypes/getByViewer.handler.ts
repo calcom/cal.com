@@ -1,10 +1,10 @@
-import { MembershipRole, Prisma, SchedulingType } from "@prisma/client";
-import type { PrismaClient } from "@prisma/client";
+import { type PrismaClient, Prisma } from "@prisma/client";
 import { orderBy } from "lodash";
 
 import { CAL_URL } from "@calcom/lib/constants";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
