@@ -174,7 +174,8 @@ function getProfileFromEvent(event: Event) {
     username,
     name: profile.name,
     weekStart,
-    image: `${WEBAPP_URL}${basePath}/avatar.png`,
+    image: team ? undefined : `${WEBAPP_URL}${basePath}/avatar.png`,
+    logo: !team ? undefined : team.logo,
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
   };
