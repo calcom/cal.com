@@ -23,9 +23,16 @@ export default class BaseEmail {
   protected getRecipientTime(time: string): Dayjs;
   protected getRecipientTime(time: string, format: string): string;
   protected getRecipientTime(time: string, format?: string) {
-    const date = dayjs(time).tz(this.getTimezone());
-    if (typeof format === "string") return date.format(format);
-    return date;
+    try {
+      const date = dayjs(time).tz(this.getTimezone());
+      if (typeof format === "string") return date.format(format);
+      return date;
+
+    } catch (error) {
+      console.error("Error in getRecipientTime:",error);
+      throw error;
+    }
+
   }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
