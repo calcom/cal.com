@@ -37,12 +37,13 @@ function AppsSearch({
 }) {
   return (
     <TextField
-      className="bg-subtle !border-muted !pl-0 focus:!ring-offset-0"
+    className="bg-subtle !border-muted !pl-15 pr-6 focus:!ring-offset-0 md:w-96"
       addOnLeading={<Search className="text-subtle h-4 w-4" />}
       addOnClassname="!border-muted"
-      containerClassName={classNames("focus:!ring-offset-0", className)}
+      containerClassName={classNames("focus:!ring-offset-0 pr-4 pl-6", className)}
       type="search"
       autoComplete="false"
+      placeholder="Search App Name"
       onChange={onChange}
     />
   );
