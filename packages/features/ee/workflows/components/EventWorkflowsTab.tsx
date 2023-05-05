@@ -41,6 +41,8 @@ const WorkflowListItem = (props: ItemProps) => {
   const isActive = activeEventTypeIds.includes(eventType.id);
   const utils = trpc.useContext();
 
+  console.log(workflow.readOnly, props.isChildrenManagedEventType);
+
   const activateEventTypeMutation = trpc.viewer.workflows.activateEventType.useMutation({
     onSuccess: async () => {
       let offOn = "";
@@ -197,7 +199,7 @@ function EventWorkflowsTab(props: Props) {
         const dataWf = data.workflows.find((wf) => wf.id === workflowOnEventType.id);
         return {
           ...workflowOnEventType,
-          readOnly: dataWf?.readOnly ?? true,
+          readOnly: isChildrenManagedEventType ? true : dataWf?.readOnly ?? true,
         } as WorkflowType;
       });
       const disabledWorkflows = data.workflows.filter(
