@@ -146,6 +146,7 @@ const AppearanceView = () => {
               <p className="text-default mb-2 block text-sm font-medium">{t("light_brand_color")}</p>
               <ColorPicker
                 defaultValue={user.brandColor}
+                resetDefaultValue="#292929"
                 onChange={(value) => {
                   if (!checkWCAGContrastColor("#ffffff", value)) {
                     setLightModeError(true);
@@ -167,6 +168,7 @@ const AppearanceView = () => {
               <p className="text-default mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
               <ColorPicker
                 defaultValue={user.darkBrandColor}
+                resetDefaultValue="#fafafa"
                 onChange={(value) => {
                   if (!checkWCAGContrastColor("#101010", value)) {
                     setDarkModeError(true);
