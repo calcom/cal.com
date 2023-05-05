@@ -7,9 +7,9 @@ import type {
   EventType,
   User,
 } from "@prisma/client";
-import { SchedulingType } from "@prisma/client";
 
 import { prisma } from "@calcom/prisma";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 

@@ -2,6 +2,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { useState } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 
+import cx from "@calcom/lib/classNames";
 import { fallBackHex, isValidHexCode } from "@calcom/lib/getBrandColours";
 
 export type ColorPickerProps = {
@@ -9,6 +10,7 @@ export type ColorPickerProps = {
   onChange: (text: string) => void;
   container?: HTMLElement;
   popoverAlign?: React.ComponentProps<typeof Popover.Content>["align"];
+  className?: string;
 };
 
 const ColorPicker = (props: ColorPickerProps) => {
@@ -44,7 +46,10 @@ const ColorPicker = (props: ColorPickerProps) => {
       </Popover.Root>
 
       <HexColorInput
-        className="border-default text-default bg-default block h-full w-full border px-3 py-2 ltr:rounded-r-md rtl:rounded-l-md sm:text-sm"
+        className={cx(
+          "border-default text-default bg-default block h-full w-full border px-3 py-2 ltr:rounded-r-md rtl:rounded-l-md sm:text-sm",
+          props.className
+        )}
         color={color}
         onChange={(val) => {
           setColor(val);
