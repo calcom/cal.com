@@ -27,8 +27,8 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { user, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid } = context.query;
 
-  const { ssgInit } = await import("@server/lib/ssg");
-  const ssg = await ssgInit(context);
+  const { ssrInit } = await import("@server/lib/ssr");
+  const ssr = await ssrInit(context);
   const usernameList = getUsernameList(user);
 
   const users = await prisma.user.findMany({
@@ -53,13 +53,15 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     booking = await getBookingByUidOrRescheduleUid(`${rescheduleUid}`);
   }
 
+  await ssr.viewer.public.event.prefetch({ username, eventSlug: slug });
+
   return {
     props: {
       booking,
       user,
       slug,
       away: false,
-      trpcState: ssg.dehydrate(),
+      trpcState: ssr.dehydrate(),
     },
   };
 }
@@ -67,8 +69,9 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 async function getUserPageProps(context: GetServerSidePropsContext) {
   const { user: username, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid } = context.query;
-  const { ssgInit } = await import("@server/lib/ssg");
-  const ssg = await ssgInit(context);
+
+  const { ssrInit } = await import("@server/lib/ssr");
+  const ssr = await ssrInit(context);
   const user = await prisma.user.findUnique({
     where: {
       username,
@@ -89,13 +92,15 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     booking = await getBookingByUidOrRescheduleUid(`${rescheduleUid}`);
   }
 
+  await ssr.viewer.public.event.prefetch({ username, eventSlug: slug });
+
   return {
     props: {
       booking,
       away: user?.away,
       user: username,
       slug,
-      trpcState: ssg.dehydrate(),
+      trpcState: ssr.dehydrate(),
     },
   };
 }
