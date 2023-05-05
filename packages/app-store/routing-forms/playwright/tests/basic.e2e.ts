@@ -179,7 +179,7 @@ test.describe("Routing Forms", () => {
 
       await page.goto(`/apps/routing-forms/reporting/${routingForm.id}`);
       // Can't keep waiting forever. So, added a timeout of 5000ms
-      await page.waitForResponse((response) => response.url().includes("viewer.appRoutingForms.report"), {
+      await page.waitForResponse((response) => response.url().includes("appRoutingForms/report"), {
         timeout: 5000,
       });
       const headerEls = page.locator("[data-testid='reporting-header'] th");
