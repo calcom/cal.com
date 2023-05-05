@@ -38,7 +38,7 @@ function AppsSearch({
   return (
     <TextField
       className="bg-subtle !border-muted !pl-0 focus:!ring-offset-0"
-      addOnLeading={<Search className="text-subtle h-4 w-4" />}
+      addOnLeading={<Search className="w-4 h-4 text-subtle" />}
       addOnClassname="!border-muted"
       containerClassName={classNames("focus:!ring-offset-0", className)}
       type="search"
@@ -58,11 +58,11 @@ export default function Apps({ categories, appStore }: inferSSRProps<typeof getS
       heading={t("app_store")}
       subtitle={t("app_store_description")}
       actions={(className) => (
-        <div className="flex w-full flex-col pt-4 md:flex-row md:justify-between md:pt-0 lg:w-auto">
+        <div className="flex flex-col w-full pt-4 md:flex-row md:justify-between md:pt-0 lg:w-auto">
           <div className="ltr:mr-2 rtl:ml-2 lg:hidden">
             <HorizontalTabs tabs={tabs} />
           </div>
-          <div>
+          <div className="mr-2">
             <AppsSearch className={className} onChange={(e) => setSearchText(e.target.value)} />
           </div>
         </div>
