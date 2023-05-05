@@ -1,4 +1,5 @@
 import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
@@ -7,14 +8,13 @@ import classNames from "@calcom/lib/classNames";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
-import { Logo, ToggleGroup, useCalcomTheme } from "@calcom/ui";
+import { ToggleGroup, useCalcomTheme } from "@calcom/ui";
 import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { Away } from "./components/Away";
 import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
-import { DatePicker } from "./components/DatePicker";
 import { EventMeta } from "./components/EventMeta";
 import { LargeCalendar } from "./components/LargeCalendar";
 import { LargeViewHeader } from "./components/LargeViewHeader";
@@ -23,6 +23,11 @@ import { fadeInLeft, resizeAnimationConfig } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
 import { useEvent } from "./utils/event";
+
+const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
+const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
+  ssr: false,
+});
 
 const useBrandColors = ({ brandColor, darkBrandColor }: { brandColor?: string; darkBrandColor?: string }) => {
   const brandTheme = useGetBrandingColours({
@@ -121,13 +126,18 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
         <div
           style={resizeAnimationConfig[layout]?.[bookerState] || resizeAnimationConfig[layout].default}
           className={classNames(
+            // Size settings are abstracted on their own lines purely for readbility.
+            // General sizes:
             "[--booker-main-width:480px] [--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
-            "bg-muted grid max-w-full items-start overflow-clip dark:[color-scheme:dark] md:flex-row",
+            "bg-muted grid max-w-full auto-rows-max items-start overflow-clip dark:[color-scheme:dark] md:flex-row",
             layout === "small_calendar" &&
-              "border-subtle mt-20 min-h-[450px] w-[calc(var(--booker-meta-width)+var(--booker-main-width))] rounded-md border [--booker-meta-width:280px]",
-            layout !== "small_calendar" &&
-              "h-auto min-h-screen w-screen [--booker-meta-width:340px] lg:[--booker-meta-width:424px]",
-            "transition-[width] duration-300"
+              "w-[calc(var(--booker-meta-width)+var(--booker-main-width))] [--booker-meta-width:240px] lg:[--booker-meta-width:280px]",
+            // Sizes for fullscreen layouts:
+            layout !== "small_calendar" && "[--booker-meta-width:340px] lg:[--booker-meta-width:424px]",
+            // Other styles
+            layout === "small_calendar" && "border-subtle mt-20 min-h-[450px] rounded-md border",
+            layout !== "small_calendar" && "h-auto min-h-screen w-screen",
+            "transition-[width,max-width] duration-300"
           )}>
           <AnimatePresence>
             <StickyOnDesktop key="meta" className="relative z-10">
@@ -199,8 +209,11 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
 
         <m.span
           key="logo"
-          className={classNames("mt-auto mb-6 pt-6", layout === "small_calendar" ? "block" : "hidden")}>
-          <Logo small />
+          className={classNames(
+            "mt-auto mb-6 pt-6 [&_img]:h-[15px]",
+            layout === "small_calendar" ? "block" : "hidden"
+          )}>
+          <PoweredBy logoOnly />
         </m.span>
       </div>
 
