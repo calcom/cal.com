@@ -1,6 +1,6 @@
-import { MembershipRole } from "@prisma/client";
 import { z } from "zod";
 
+import { MembershipRole } from "@calcom/prisma/enums";
 import { _MembershipModel as Membership, _TeamModel } from "@calcom/prisma/zod";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 

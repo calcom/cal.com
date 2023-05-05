@@ -1,10 +1,10 @@
-import { MembershipRole, UserPermissionRole } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { createContext } from "@calcom/trpc/server/createContext";
-import { viewerRouter } from "@calcom/trpc/server/routers/viewer";
+import { publishHandler } from "@calcom/trpc/server/routers/viewer/teams/publish.handler";
 
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
@@ -33,10 +33,13 @@ const patchHandler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   /** @see https://trpc.io/docs/server-side-calls */
   const ctx = await createContext({ req, res }, sessionGetter);
-  const caller = viewerRouter.createCaller(ctx);
+  const user = ctx.user;
+  if (!user) {
+    throw new Error("Internal Error.");
+  }
   try {
     const { teamId } = schemaQueryTeamId.parse(req.query);
-    return await caller.teams.publish({ teamId });
+    return await publishHandler({ input: { teamId }, ctx: { ...ctx, user } });
   } catch (cause) {
     if (cause instanceof TRPCError) {
       const statusCode = getHTTPStatusCodeFromError(cause);

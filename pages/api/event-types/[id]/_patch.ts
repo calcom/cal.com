@@ -1,10 +1,10 @@
 import type { Prisma } from "@prisma/client";
-import { SchedulingType } from "@prisma/client";
 import type { NextApiRequest } from "next";
 import type { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 import type { schemaEventTypeBaseBodyParams } from "~/lib/validations/event-type";
 import { schemaEventTypeEditBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";

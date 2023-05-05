@@ -1,9 +1,9 @@
-import { MembershipRole } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { schemaMembershipPublic } from "~/lib/validations/membership";
 import { schemaTeamBodyParams, schemaTeamReadPublic } from "~/lib/validations/team";

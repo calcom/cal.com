@@ -1,8 +1,8 @@
 import type { Prisma } from "@prisma/client";
-import { MembershipRole } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
 
