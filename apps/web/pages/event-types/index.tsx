@@ -20,8 +20,6 @@ import { HttpError } from "@calcom/lib/http-error";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
-import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import {
   Avatar,
   AvatarGroup,
@@ -662,8 +660,6 @@ const EventTypeListHeading = ({
 }: EventTypeListHeadingProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
-  const { data: loggedInUser } = useMeQuery();
-  const { data: avatar } = useAvatarQuery();
 
   const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
     onSuccess(data) {
@@ -679,11 +675,7 @@ const EventTypeListHeading = ({
       <Avatar
         alt={profile?.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={
-          loggedInUser?.username === profile.slug
-            ? avatar?.avatar
-            : `${WEBAPP_URL}/${profile.slug}/avatar.png` || undefined
-        }
+        imageSrc={`${WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
         size="md"
         className="mt-1 inline-flex justify-center"
       />
