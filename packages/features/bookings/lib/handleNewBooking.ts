@@ -1005,6 +1005,82 @@ async function handler(
     return deletedReferences;
   };
 
+  const eventTrigger: WebhookTriggerEvents = rescheduleUid
+    ? WebhookTriggerEvents.BOOKING_RESCHEDULED
+    : WebhookTriggerEvents.BOOKING_CREATED;
+
+  const handleWebhooks = async () => {
+    const subscriberOptions = {
+      userId: organizerUser.id,
+      eventTypeId,
+      triggerEvent: eventTrigger,
+    };
+
+    const subscriberOptionsMeetingEnded = {
+      userId: organizerUser.id,
+      eventTypeId,
+      triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+    };
+
+    try {
+      const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+
+      subscribersMeetingEnded.forEach((subscriber) => {
+        if (rescheduleUid && originalRescheduledBooking) {
+          cancelScheduledJobs(originalRescheduledBooking, undefined, true);
+        }
+        if (booking && booking.status === BookingStatus.ACCEPTED) {
+          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+        }
+      });
+    } catch (error) {
+      log.error("Error while running scheduledJobs for booking", error);
+    }
+
+    try {
+      // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
+      const subscribers = await getWebhooks(subscriberOptions);
+      console.log("evt:", {
+        ...evt,
+        metadata: reqBody.metadata,
+      });
+      const bookingId = booking?.id;
+
+      const eventTypeInfo: EventTypeInfo = {
+        eventTitle: eventType.title,
+        eventDescription: eventType.description,
+        requiresConfirmation: requiresConfirmation || null,
+        price: paymentAppData.price,
+        currency: eventType.currency,
+        length: eventType.length,
+      };
+
+      const promises = subscribers.map((sub) =>
+        sendPayload(sub.secret, eventTrigger, new Date().toISOString(), sub, {
+          ...evt,
+          ...eventTypeInfo,
+          bookingId,
+          rescheduleUid,
+          rescheduleStartTime: originalRescheduledBooking?.startTime
+            ? dayjs(originalRescheduledBooking?.startTime).utc().format()
+            : undefined,
+          rescheduleEndTime: originalRescheduledBooking?.endTime
+            ? dayjs(originalRescheduledBooking?.endTime).utc().format()
+            : undefined,
+          metadata: { ...metadata, ...reqBody.metadata },
+          eventTypeId,
+          status: "ACCEPTED",
+          smsReminderNumber: booking?.smsReminderNumber || undefined,
+        }).catch((e) => {
+          console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
+        })
+      );
+      await Promise.all(promises);
+    } catch (error) {
+      log.error("Error while sending webhook", error);
+    }
+  };
+
   const handleSeats = async () => {
     let resultBooking:
       | (Partial<Booking> & {
@@ -2033,78 +2109,76 @@ async function handler(
       }
     : undefined;
   if (isConfirmedByDefault) {
-    const eventTrigger: WebhookTriggerEvents = rescheduleUid
-      ? WebhookTriggerEvents.BOOKING_RESCHEDULED
-      : WebhookTriggerEvents.BOOKING_CREATED;
-    const subscriberOptions = {
-      userId: organizerUser.id,
-      eventTypeId,
-      triggerEvent: eventTrigger,
-    };
+    handleWebhooks();
+    // const subscriberOptions = {
+    //   userId: organizerUser.id,
+    //   eventTypeId,
+    //   triggerEvent: eventTrigger,
+    // };
 
-    const subscriberOptionsMeetingEnded = {
-      userId: organizerUser.id,
-      eventTypeId,
-      triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-    };
+    // const subscriberOptionsMeetingEnded = {
+    //   userId: organizerUser.id,
+    //   eventTypeId,
+    //   triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+    // };
 
-    try {
-      const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+    // try {
+    //   const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
 
-      subscribersMeetingEnded.forEach((subscriber) => {
-        if (rescheduleUid && originalRescheduledBooking) {
-          cancelScheduledJobs(originalRescheduledBooking, undefined, true);
-        }
-        if (booking && booking.status === BookingStatus.ACCEPTED) {
-          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
-        }
-      });
-    } catch (error) {
-      log.error("Error while running scheduledJobs for booking", error);
-    }
+    //   subscribersMeetingEnded.forEach((subscriber) => {
+    //     if (rescheduleUid && originalRescheduledBooking) {
+    //       cancelScheduledJobs(originalRescheduledBooking, undefined, true);
+    //     }
+    //     if (booking && booking.status === BookingStatus.ACCEPTED) {
+    //       scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+    //     }
+    //   });
+    // } catch (error) {
+    //   log.error("Error while running scheduledJobs for booking", error);
+    // }
 
-    try {
-      // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-      const subscribers = await getWebhooks(subscriberOptions);
-      console.log("evt:", {
-        ...evt,
-        metadata: reqBody.metadata,
-      });
-      const bookingId = booking?.id;
+    // try {
+    //   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
+    //   const subscribers = await getWebhooks(subscriberOptions);
+    //   console.log("evt:", {
+    //     ...evt,
+    //     metadata: reqBody.metadata,
+    //   });
+    //   const bookingId = booking?.id;
 
-      const eventTypeInfo: EventTypeInfo = {
-        eventTitle: eventType.title,
-        eventDescription: eventType.description,
-        requiresConfirmation: requiresConfirmation || null,
-        price: paymentAppData.price,
-        currency: eventType.currency,
-        length: eventType.length,
-      };
+    //   const eventTypeInfo: EventTypeInfo = {
+    //     eventTitle: eventType.title,
+    //     eventDescription: eventType.description,
+    //     requiresConfirmation: requiresConfirmation || null,
+    //     price: paymentAppData.price,
+    //     currency: eventType.currency,
+    //     length: eventType.length,
+    //   };
 
-      const promises = subscribers.map((sub) =>
-        sendPayload(sub.secret, eventTrigger, new Date().toISOString(), sub, {
-          ...evt,
-          ...eventTypeInfo,
-          bookingId,
-          rescheduleUid,
-          rescheduleStartTime: originalRescheduledBooking?.startTime
-            ? dayjs(originalRescheduledBooking?.startTime).utc().format()
-            : undefined,
-          rescheduleEndTime: originalRescheduledBooking?.endTime
-            ? dayjs(originalRescheduledBooking?.endTime).utc().format()
-            : undefined,
-          metadata: { ...metadata, ...reqBody.metadata },
-          eventTypeId,
-          status: "ACCEPTED",
-          smsReminderNumber: booking?.smsReminderNumber || undefined,
-        }).catch((e) => {
-          console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
-        })
-      );
-      await Promise.all(promises);
-    } catch (error) {
-      log.error("Error while sending webhook", error);
-    }
+    //   const promises = subscribers.map((sub) =>
+    //     sendPayload(sub.secret, eventTrigger, new Date().toISOString(), sub, {
+    //       ...evt,
+    //       ...eventTypeInfo,
+    //       bookingId,
+    //       rescheduleUid,
+    //       rescheduleStartTime: originalRescheduledBooking?.startTime
+    //         ? dayjs(originalRescheduledBooking?.startTime).utc().format()
+    //         : undefined,
+    //       rescheduleEndTime: originalRescheduledBooking?.endTime
+    //         ? dayjs(originalRescheduledBooking?.endTime).utc().format()
+    //         : undefined,
+    //       metadata: { ...metadata, ...reqBody.metadata },
+    //       eventTypeId,
+    //       status: "ACCEPTED",
+    //       smsReminderNumber: booking?.smsReminderNumber || undefined,
+    //     }).catch((e) => {
+    //       console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
+    //     })
+    //   );
+    //   await Promise.all(promises);
+    // } catch (error) {
+    //   log.error("Error while sending webhook", error);
+    // }
   }
 
   // Avoid passing referencesToCreate with id unique constrain values
