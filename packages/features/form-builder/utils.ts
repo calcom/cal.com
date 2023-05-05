@@ -1,3 +1,8 @@
+import type z from "zod";
+
+import { fieldTypesConfigMap } from "./fieldTypes";
+import type { fieldSchema } from "./schema";
+
 export const preprocessNameFieldDataWithVariant = (
   variantName: "fullName" | "firstAndLastName",
   value: string | Record<"firstName" | "lastName", string>
@@ -44,3 +49,14 @@ function getFirstAndLastName(value: string | Record<"firstName" | "lastName", st
   }
   return newValue;
 }
+
+export const getVariantsConfig = (field: Pick<z.infer<typeof fieldSchema>, "variantsConfig" | "type">) => {
+  const fieldVariantsConfig = field.variantsConfig;
+  const fieldTypeConfig = fieldTypesConfigMap[field.type as keyof typeof fieldTypesConfigMap];
+  const defaultVariantsConfig = fieldTypeConfig?.variantsConfig?.defaultValue;
+  const variantsConfig = fieldVariantsConfig || defaultVariantsConfig;
+  if (fieldTypeConfig.propsType === "variants" && !variantsConfig) {
+    throw new Error("Could not compute variantsConfig is not defined");
+  }
+  return variantsConfig;
+};

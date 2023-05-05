@@ -108,6 +108,15 @@ export const fieldTypeConfigSchema = z
     isTextType: z.boolean().default(false).optional(),
     systemOnly: z.boolean().default(false).optional(),
     needsOptions: z.boolean().default(false).optional(),
+    propsType: z.enum([
+      "text",
+      "textList",
+      "select",
+      "multiselect",
+      "boolean",
+      "objectiveWithInput",
+      "variants",
+    ]),
     // It is the config that can tweak what an existing or a new field shows in the App UI or booker UI.
     variantsConfig: z
       .object({

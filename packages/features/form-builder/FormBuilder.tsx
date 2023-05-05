@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { getVariantsConfig } from "form-builder/utils";
 import { useState, useEffect } from "react";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
@@ -174,13 +175,14 @@ export const FormBuilder = function FormBuilder({
       return;
     }
     const fieldVariantsConfig = fieldForm.getValues("variantsConfig");
-    const defaultVariantsConfig =
-      fieldTypesConfigMap[fieldForm.getValues("type") as keyof typeof fieldTypesConfigMap]?.variantsConfig
-        ?.defaultValue;
 
-    // For a variant supported field, we need to fallback to `defaultVariantsConfig`
-    if (!fieldVariantsConfig && defaultVariantsConfig) {
-      fieldForm.setValue("variantsConfig", defaultVariantsConfig);
+    const variantsConfig = getVariantsConfig({
+      type: fieldForm.getValues("type"),
+      variantsConfig: fieldVariantsConfig,
+    });
+
+    if (fieldForm.getValues("variantsConfig") !== variantsConfig) {
+      fieldForm.setValue("variantsConfig", variantsConfig);
     }
   }, [fieldForm, fieldDialog.isOpen]);
 

@@ -11,6 +11,7 @@ import { Info } from "@calcom/ui/components/icon";
 import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";
 import type { fieldsSchema } from "./schema";
+import { getVariantsConfig } from "./utils";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -319,9 +320,11 @@ export const ComponentForField = ({
   }
 
   if (componentConfig.propsType === "variants") {
-    if (!field.variantsConfig?.variants) {
-      throw new Error("Field variantsConfig.variants is not defined");
+    const variantsConfig = getVariantsConfig(field);
+    if (!variantsConfig) {
+      return null;
     }
+
     return (
       <componentConfig.factory
         placeholder={field.placeholder}
@@ -330,7 +333,7 @@ export const ComponentForField = ({
         variant={field.variant}
         value={value as { value: string; optionValue: string }}
         setValue={setValue as (arg: Record<string, string> | string) => void}
-        variants={field.variantsConfig.variants}
+        variants={variantsConfig.variants}
       />
     );
   }

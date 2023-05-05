@@ -23,6 +23,7 @@ import {
 import { UserPlus, X } from "@calcom/ui/components/icon";
 
 import { ComponentForField } from "./FormBuilderField";
+import { propsTypes } from "./propsTypes";
 import type { FieldType, variantsConfigSchema, fieldSchema } from "./schema";
 import { preprocessNameFieldDataWithVariant } from "./utils";
 
@@ -33,7 +34,6 @@ export const isValidValueProp: Record<Component["propsType"], (val: unknown) => 
   select: (val) => typeof val === "string",
   text: (val) => typeof val === "string",
   textList: (val) => val instanceof Array && val.every((v) => typeof v === "string"),
-  // Get it defined on the component itself ??
   variants: (val) => (typeof val === "object" && val !== null) || typeof val === "string",
 };
 
@@ -95,20 +95,20 @@ type Component =
 // Routing Form approach is better as it provides more flexibility to show the label in complex components. But that can't be done right now because labels are missing consistent asterisk required support across different components
 export const Components: Record<FieldType, Component> = {
   text: {
-    propsType: "text",
+    propsType: propsTypes.text,
     factory: (props) => <Widgets.TextWidget noLabel={true} {...props} />,
   },
   textarea: {
-    propsType: "text",
+    propsType: propsTypes.textarea,
     // TODO: Make rows configurable in the form builder
     factory: (props) => <Widgets.TextAreaWidget rows={3} {...props} />,
   },
   number: {
-    propsType: "text",
+    propsType: propsTypes.number,
     factory: (props) => <Widgets.NumberWidget noLabel={true} {...props} />,
   },
   name: {
-    propsType: "variants",
+    propsType: propsTypes.name,
     // Keep special "name" type field and later build split(FirstName and LastName) variant of it.
     factory: (props) => {
       const { variant: variantName = "fullName" } = props;
@@ -183,7 +183,7 @@ export const Components: Record<FieldType, Component> = {
     },
   },
   phone: {
-    propsType: "text",
+    propsType: propsTypes.phone,
     factory: ({ setValue, readOnly, ...props }) => {
       if (!props) {
         return <div />;
@@ -201,7 +201,7 @@ export const Components: Record<FieldType, Component> = {
     },
   },
   email: {
-    propsType: "text",
+    propsType: propsTypes.email,
     factory: (props) => {
       if (!props) {
         return <div />;
@@ -210,7 +210,7 @@ export const Components: Record<FieldType, Component> = {
     },
   },
   address: {
-    propsType: "text",
+    propsType: propsTypes.address,
     factory: (props) => {
       return (
         <AddressInput
@@ -223,7 +223,7 @@ export const Components: Record<FieldType, Component> = {
     },
   },
   multiemail: {
-    propsType: "textList",
+    propsType: propsTypes.multiemail,
     //TODO: Make it a ui component
     factory: function MultiEmail({ value, readOnly, label, setValue, ...props }) {
       const placeholder = props.placeholder;
@@ -312,7 +312,7 @@ export const Components: Record<FieldType, Component> = {
     },
   },
   multiselect: {
-    propsType: "multiselect",
+    propsType: propsTypes.multiselect,
     factory: (props) => {
       const newProps = {
         ...props,
@@ -322,7 +322,7 @@ export const Components: Record<FieldType, Component> = {
     },
   },
   select: {
-    propsType: "select",
+    propsType: propsTypes.select,
     factory: (props) => {
       const newProps = {
         ...props,
@@ -332,7 +332,7 @@ export const Components: Record<FieldType, Component> = {
     },
   },
   checkbox: {
-    propsType: "multiselect",
+    propsType: propsTypes.checkbox,
     factory: ({ options, readOnly, setValue, value }) => {
       value = value || [];
       return (
@@ -363,7 +363,7 @@ export const Components: Record<FieldType, Component> = {
     },
   },
   radio: {
-    propsType: "select",
+    propsType: propsTypes.radio,
     factory: ({ setValue, name, value, options }) => {
       return (
         <Group
@@ -386,7 +386,7 @@ export const Components: Record<FieldType, Component> = {
     },
   },
   radioInput: {
-    propsType: "objectiveWithInput",
+    propsType: propsTypes.radioInput,
     factory: function RadioInputWithLabel({ name, options, optionsInputs, value, setValue, readOnly }) {
       useEffect(() => {
         if (!value) {
@@ -465,7 +465,7 @@ export const Components: Record<FieldType, Component> = {
     },
   },
   boolean: {
-    propsType: "boolean",
+    propsType: propsTypes.boolean,
     factory: ({ readOnly, label, value, setValue }) => {
       return (
         <div className="flex">

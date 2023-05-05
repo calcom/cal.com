@@ -1,8 +1,9 @@
 import type z from "zod";
 
+import { propsTypes } from "./propsTypes";
 import type { FieldType, fieldTypeConfigSchema } from "./schema";
 
-export const fieldTypesConfigMap: Record<FieldType, z.infer<typeof fieldTypeConfigSchema>> = {
+const configMap: Record<FieldType, Omit<z.infer<typeof fieldTypeConfigSchema>, "propsType">> = {
   // This won't be stored in DB. It allows UI to be configured from the codebase for all existing booking fields stored in DB as well
   // Candidates for this are:
   // - Anything that you want to show in App UI only.
@@ -126,6 +127,7 @@ export const fieldTypesConfigMap: Record<FieldType, z.infer<typeof fieldTypeConf
     value: "radioInput",
     isTextType: false,
     systemOnly: true,
+
     // This is false currently because we don't want to show the options for Location field right now. It is the only field with type radioInput.
     // needsOptions: true,
   },
@@ -147,3 +149,9 @@ export const fieldTypesConfigMap: Record<FieldType, z.infer<typeof fieldTypeConf
     isTextType: false,
   },
 };
+
+export const fieldTypesConfigMap = configMap as Record<FieldType, z.infer<typeof fieldTypeConfigSchema>>;
+
+Object.entries(fieldTypesConfigMap).forEach(([fieldType, config]) => {
+  config.propsType = propsTypes[fieldType as keyof typeof fieldTypesConfigMap];
+});
