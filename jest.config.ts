@@ -1,5 +1,8 @@
 import type { Config } from "jest";
 
+// Added +2 to ensure we need to do some conversions in our tests
+process.env.TZ = "GMT+2";
+
 const config: Config = {
   preset: "ts-jest",
   verbose: true,
@@ -65,6 +68,22 @@ const config: Config = {
       },
       transformIgnorePatterns: ["/node_modules/", "^.+\\.module\\.(css|sass|scss)$"],
       testEnvironment: "jsdom",
+    },
+    {
+      displayName: "@calcom/features",
+      roots: ["<rootDir>/packages/features"],
+      testMatch: ["**/*.(spec|test).(ts|tsx|js)"],
+      transform: {
+        "^.+\\.ts?$": "ts-jest",
+      },
+      transformIgnorePatterns: ["/node_modules/", "^.+\\.module\\.(css|sass|scss)$"],
+      testEnvironment: "jsdom",
+      moduleDirectories: ["node_modules", "<rootDir>"],
+      globals: {
+        "ts-jest": {
+          tsconfig: "<rootDir>/packages/features/tsconfig.json",
+        },
+      },
     },
     // FIXME: Prevent this breaking Jest when API module is missing
     // {

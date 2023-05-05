@@ -10,6 +10,7 @@ import { availabilityAsString } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
+import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
@@ -34,8 +35,6 @@ import {
   VerticalDivider,
 } from "@calcom/ui";
 import { Info, Plus, Trash, MoreHorizontal } from "@calcom/ui/components/icon";
-
-import { HttpError } from "@lib/core/http/error";
 
 import PageWrapper from "@components/PageWrapper";
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
@@ -189,7 +188,7 @@ export default function Availability() {
       }
       CTA={
         <div className="flex items-center justify-end">
-          <div className="hidden items-center rounded-md px-2 sm:flex sm:hover:bg-gray-100">
+          <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 sm:flex">
             <Skeleton as={Label} htmlFor="hiddenSwitch" className="mt-2 cursor-pointer self-center pr-2 ">
               {t("set_to_default")}
             </Skeleton>

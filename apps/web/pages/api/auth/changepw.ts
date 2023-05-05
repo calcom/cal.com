@@ -1,4 +1,3 @@
-import { IdentityProvider } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
@@ -6,6 +5,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import prisma from "@calcom/prisma";
+import { IdentityProvider } from "@calcom/prisma/enums";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession({ req, res });
