@@ -1,5 +1,7 @@
+import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
+import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole, WorkflowActions } from "@calcom/prisma/enums";
+import { MembershipRole, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -17,7 +19,7 @@ type ActivateEventTypeOptions = {
 export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventTypeOptions) => {
   const { eventTypeId, workflowId } = input;
 
-  // Check that vent type belong to the user or team
+  // Check that event type belong to the user or team
   const userEventType = await prisma.eventType.findFirst({
     where: {
       id: eventTypeId,
@@ -76,6 +78,35 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
   });
 
   if (isActive) {
+    // disable workflow for this event type & delete all reminders
+    const remindersToDelete = await prisma.workflowReminder.findMany({
+      where: {
+        booking: {
+          eventTypeId: eventTypeId,
+          userId: ctx.user.id,
+        },
+        workflowStepId: {
+          in: eventTypeWorkflow.steps.map((step) => {
+            return step.id;
+          }),
+        },
+      },
+      select: {
+        id: true,
+        referenceId: true,
+        method: true,
+        scheduled: true,
+      },
+    });
+
+    remindersToDelete.forEach((reminder) => {
+      if (reminder.method === WorkflowMethods.EMAIL) {
+        deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
+      } else if (reminder.method === WorkflowMethods.SMS) {
+        deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+      }
+    });
+
     await prisma.workflowsOnEventTypes.deleteMany({
       where: {
         workflowId,
@@ -88,6 +119,9 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       eventTypeId,
     });
   } else {
+    // activate workflow and schedule reminders
+    // todo
+
     await prisma.workflowsOnEventTypes.create({
       data: {
         workflowId,
