@@ -121,6 +121,9 @@ Here is what you need to be able to run Cal.com.
    ```sh
    git clone https://github.com/calcom/cal.com.git
    ```
+   > If you are on windows, run the following command on `gitbash` with admin privileges: <br>
+   ```git clone -c core.symlinks=true https://github.com/calcom/cal.com.git``` <br>
+   See [docs](https://cal.com/docs/how-to-guides/how-to-troubleshoot-symbolic-link-issues-on-windows#enable-symbolic-links) for more details.
 
 1. Go to the project folder
 
@@ -500,7 +503,7 @@ following
 
 ## License
 
-Distributed under the AGPLv3 License. See `LICENSE` for more information.
+Distributed under the [AGPLv3 License](https://github.com/calcom/cal.com/blob/main/LICENSE). See `LICENSE` for more information.
 
 <!-- ACKNOWLEDGEMENTS -->
 

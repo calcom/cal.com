@@ -90,3 +90,27 @@ previewWindow.addEventListener("message", (e) => {
     }
   }
 });
+
+function makePreviewPageUseSystemPreference() {
+  const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+  function handleColorSchemeChange(e: MediaQueryListEvent) {
+    if (e.matches) {
+      // Dark color scheme
+      document.body.classList.remove("light");
+      document.body.classList.add("dark");
+    } else {
+      // Light color scheme
+      document.body.classList.add("light");
+      document.body.classList.remove("dark");
+    }
+  }
+
+  colorSchemeQuery.addEventListener("change", handleColorSchemeChange);
+
+  // Initial check
+  handleColorSchemeChange(new MediaQueryListEvent("change", { matches: colorSchemeQuery.matches }));
+}
+
+// This makes preview page behave like a website that has system preference enabled. This provides a better experience of preview when user switch their system theme to dark
+makePreviewPageUseSystemPreference();
