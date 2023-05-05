@@ -44,16 +44,17 @@ type ValueProps =
 
 export const FormBuilderField = ({
   field,
-  readOnly,
-  className,
+  readOnly = false,
+  className = "",
 }: {
   field: RhfFormFields[number];
-  readOnly: boolean;
-  className: string;
+  readOnly?: boolean;
+  className?: string;
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
 
+  //TODO: How can we ensure that responses is where all the responses are stored?
   const { hidden, placeholder, label } = getAndUpdateNormalizedValues(field, t);
 
   return (
@@ -97,7 +98,7 @@ export const FormBuilderField = ({
                       data-testid={`error-message-${field.name}`}
                       className="mt-2 flex items-center text-sm text-red-700 ">
                       <Info className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                      <p>{t(message || "invalid_input")}</p>
+                      <p>{t(message || error?.message || "invalid_input")}</p>
                     </div>
                   );
                 }}

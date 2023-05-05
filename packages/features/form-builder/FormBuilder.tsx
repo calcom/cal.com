@@ -42,17 +42,14 @@ type RhfFormField = RhfFormFields[number];
  * `formProp` specifies the name of the property in the react-hook-form that has the fields. This is where fields would be updated.
  */
 export const FormBuilder = function FormBuilder({
-  title,
-  description,
   addFieldLabel,
   formProp,
   disabled,
   LockedIcon,
   dataStore,
+  forms,
 }: {
   formProp: string;
-  title: string;
-  description: string;
   addFieldLabel: string;
   disabled: boolean;
   LockedIcon: false | JSX.Element;
@@ -62,6 +59,12 @@ export const FormBuilder = function FormBuilder({
   dataStore: {
     options: Record<string, { label: string; value: string; inputPlaceholder?: string }[]>;
   };
+  forms: {
+    title: string;
+    description: string;
+    disableUserFields?: boolean;
+    id?: string;
+  }[];
 }) {
   // I would have liked to give Form Builder it's own Form but nested Forms aren't something that browsers support.
   // So, this would reuse the same Form as the parent form.
@@ -101,189 +104,225 @@ export const FormBuilder = function FormBuilder({
     remove(index);
   };
 
+  const formBuilderForms = forms.map((formBuilderForm) => {
+    return {
+      ...formBuilderForm,
+      fields: fields
+        .map((f, index) => {
+          return {
+            ...f,
+            _rhfFieldsIndex: index,
+          };
+        })
+        .filter((field) => {
+          if (!formBuilderForm.id) {
+            return !field.form;
+          }
+          return field.form === formBuilderForm.id;
+        }),
+    };
+  });
+
   return (
     <div>
-      <div>
-        <div className="text-default text-sm font-semibold ltr:mr-1 rtl:ml-1">
-          {title}
-          {LockedIcon}
-        </div>
-        <p className="text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[500px]">{description}</p>
-        <ul className="border-default divide-subtle mt-2 divide-y rounded-md border">
-          {fields.map((field, index) => {
-            const options = field.options
-              ? field.options
-              : field.getOptionsAt
-              ? dataStore.options[field.getOptionsAt as keyof typeof dataStore]
-              : [];
-            const numOptions = options?.length ?? 0;
-            if (field.hideWhenJustOneOption && numOptions <= 1) {
-              return null;
-            }
-            const fieldType = fieldTypesConfigMap[field.type];
-            const isRequired = field.required;
-            const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
-            const isFieldEditableSystem = field.editable === "system";
-            const isUserField = !isFieldEditableSystem && !isFieldEditableSystemButOptional;
+      {formBuilderForms.map((formBuilderForm, index) => {
+        return (
+          <div className={classNames(index !== formBuilderForms.length - 1 ? "mb-4" : "")} key={index}>
+            <div>
+              <div className="text-default text-sm font-semibold ltr:mr-1 rtl:ml-1">
+                {formBuilderForm.title}
+                {LockedIcon}
+              </div>
+              <p className="text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[500px]">
+                {formBuilderForm.description}
+              </p>
+              <ul className="border-default divide-subtle mt-2 divide-y rounded-md border">
+                {formBuilderForm.fields.map((field, index) => {
+                  const options = field.options
+                    ? field.options
+                    : field.getOptionsAt
+                    ? dataStore.options[field.getOptionsAt as keyof typeof dataStore]
+                    : [];
+                  const numOptions = options?.length ?? 0;
+                  if (field.hideWhenJustOneOption && numOptions <= 1) {
+                    return null;
+                  }
+                  const fieldType = fieldTypesConfigMap[field.type];
+                  const isRequired = field.required;
+                  const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
+                  const isFieldEditableSystem = field.editable === "system";
+                  const isUserField = !isFieldEditableSystem && !isFieldEditableSystemButOptional;
 
-            if (!fieldType) {
-              throw new Error(`Invalid field type - ${field.type}`);
-            }
-            const sources = field.sources || [];
-            const groupedBySourceLabel = sources.reduce((groupBy, source) => {
-              const item = groupBy[source.label] || [];
-              if (source.type === "user" || source.type === "default") {
-                return groupBy;
-              }
-              item.push(source);
-              groupBy[source.label] = item;
-              return groupBy;
-            }, {} as Record<string, NonNullable<(typeof field)["sources"]>>);
+                  if (!fieldType) {
+                    throw new Error(`Invalid field type - ${field.type}`);
+                  }
 
-            return (
-              <li
-                key={field.name}
-                data-testid={`field-${field.name}`}
-                className="hover:bg-muted group relative flex items-center  justify-between p-4 ">
-                {!disabled && (
-                  <>
-                    {index >= 1 && (
-                      <button
-                        type="button"
-                        className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-default hover:border-emphasis invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
-                        onClick={() => swap(index, index - 1)}>
-                        <ArrowUp className="h-5 w-5" />
-                      </button>
-                    )}
-                    {index < fields.length - 1 && (
-                      <button
-                        type="button"
-                        className="bg-default text-muted hover:border-emphasis border-default hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
-                        onClick={() => swap(index, index + 1)}>
-                        <ArrowDown className="h-5 w-5" />
-                      </button>
-                    )}
-                  </>
-                )}
+                  const sources = field.sources || [];
+                  const groupedBySourceLabel = sources.reduce((groupBy, source) => {
+                    const item = groupBy[source.label] || [];
+                    if (source.type === "user" || source.type === "default") {
+                      return groupBy;
+                    }
+                    item.push(source);
+                    groupBy[source.label] = item;
+                    return groupBy;
+                  }, {} as Record<string, NonNullable<(typeof field)["sources"]>>);
 
-                <div>
-                  <div className="flex flex-col lg:flex-row lg:items-center">
-                    <div className="text-default text-sm font-semibold ltr:mr-2 rtl:ml-2">
-                      <FieldLabel field={field} />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {field.hidden ? (
-                        // Hidden field can't be required, so we don't need to show the Optional badge
-                        <Badge variant="grayWithoutHover">{t("hidden")}</Badge>
-                      ) : (
-                        <Badge variant="grayWithoutHover">{isRequired ? t("required") : t("optional")}</Badge>
+                  return (
+                    <li
+                      key={field.name}
+                      data-testid={`field-${field.name}`}
+                      className="hover:bg-muted group relative flex items-center  justify-between p-4 ">
+                      {!disabled && formBuilderForm.fields.length > 1 && (
+                        <>
+                          {index >= 1 && (
+                            <button
+                              type="button"
+                              className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-default hover:border-emphasis invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                              onClick={() => swap(index, index - 1)}>
+                              <ArrowUp className="h-5 w-5" />
+                            </button>
+                          )}
+                          {index < fields.length - 1 && (
+                            <button
+                              type="button"
+                              className="bg-default text-muted hover:border-emphasis border-default hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                              onClick={() => swap(index, index + 1)}>
+                              <ArrowDown className="h-5 w-5" />
+                            </button>
+                          )}
+                        </>
                       )}
-                      {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
-                        // We don't know how to pluralize `sourceLabel` because it can be anything
-                        <Badge key={key} variant="blue">
-                          {sources.length} {sources.length === 1 ? sourceLabel : `${sourceLabel}s`}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-subtle max-w-[280px] break-words pt-1 text-sm sm:max-w-[500px]">
-                    {fieldType.label}
-                  </p>
-                </div>
-                {field.editable !== "user-readonly" && !disabled && (
-                  <div className="flex items-center space-x-2">
-                    {!isFieldEditableSystem && !disabled && (
-                      <Switch
-                        data-testid="toggle-field"
-                        disabled={isFieldEditableSystem}
-                        checked={!field.hidden}
-                        onCheckedChange={(checked) => {
-                          update(index, { ...field, hidden: !checked });
-                        }}
-                        classNames={{ container: "p-2 sm:hover:bg-muted rounded" }}
-                        tooltip={t("show_on_booking_page")}
-                      />
-                    )}
-                    {isUserField && (
-                      <Button
-                        color="destructive"
-                        disabled={!isUserField}
-                        variant="icon"
-                        onClick={() => {
-                          removeField(index);
-                        }}
-                        StartIcon={Trash2}
-                      />
-                    )}
-                    <Button
-                      data-testid="edit-field-action"
-                      color="secondary"
-                      onClick={() => {
-                        editField(index, field);
-                      }}>
-                      {t("edit")}
-                    </Button>
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-        {!disabled && (
-          <Button
-            color="minimal"
-            data-testid="add-field"
-            onClick={addField}
-            className="mt-4"
-            StartIcon={Plus}>
-            {addFieldLabel}
-          </Button>
-        )}
-      </div>
-      {/* Move this Dialog in another component and it would take with it fieldForm */}
-      {fieldDialog.isOpen && (
-        <FieldEditDialog
-          dialog={fieldDialog}
-          onOpenChange={(isOpen) =>
-            setFieldDialog({
-              isOpen,
-              fieldIndex: -1,
-              data: null,
-            })
-          }
-          handleSubmit={(data: Parameters<SubmitHandler<RhfFormField>>[0]) => {
-            const type = data.type || "text";
-            const isNewField = !fieldDialog.data;
-            if (isNewField && fields.some((f) => f.name === data.name)) {
-              showToast(t("form_builder_field_already_exists"), "error");
-              return;
-            }
-            if (fieldDialog.data) {
-              update(fieldDialog.fieldIndex, data);
-            } else {
-              const field: RhfFormField = {
-                ...data,
-                type,
-                sources: [
-                  {
-                    label: "User",
-                    type: "user",
-                    id: "user",
-                    fieldRequired: data.required,
-                  },
-                ],
-              };
-              field.editable = field.editable || "user";
-              append(field);
-            }
-            setFieldDialog({
-              isOpen: false,
-              fieldIndex: -1,
-              data: null,
-            });
-          }}
-        />
-      )}
+
+                      <div>
+                        <div className="flex flex-col lg:flex-row lg:items-center">
+                          <div className="text-default text-sm font-semibold ltr:mr-2 rtl:ml-2">
+                            <FieldLabel field={field} />
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            {field.hidden ? (
+                              // Hidden field can't be required, so we don't need to show the Optional badge
+                              <Badge variant="grayWithoutHover">{t("hidden")}</Badge>
+                            ) : (
+                              <Badge variant="grayWithoutHover">
+                                {isRequired ? t("required") : t("optional")}
+                              </Badge>
+                            )}
+                            {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
+                              // We don't know how to pluralize `sourceLabel` because it can be anything
+                              <Badge key={key} variant="blue">
+                                {sources.length} {sources.length === 1 ? sourceLabel : `${sourceLabel}s`}
+                              </Badge>
+                            ))}
+                            {field.views?.map((view) => (
+                              // We don't know how to pluralize `sourceLabel` because it can be anything
+                              <Badge key={view.id} variant="blue">
+                                {view.label}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-subtle max-w-[280px] break-words pt-1 text-sm sm:max-w-[500px]">
+                          {fieldType.label}
+                        </p>
+                      </div>
+                      {field.editable !== "user-readonly" && !disabled && (
+                        <div className="flex items-center space-x-2">
+                          {!isFieldEditableSystem && !disabled && (
+                            <Switch
+                              data-testid="toggle-field"
+                              disabled={isFieldEditableSystem}
+                              checked={!field.hidden}
+                              onCheckedChange={(checked) => {
+                                update(field._rhfFieldsIndex, { ...field, hidden: !checked });
+                              }}
+                              classNames={{ container: "p-2 sm:hover:bg-muted rounded" }}
+                              tooltip={t("show_on_booking_page")}
+                            />
+                          )}
+                          {isUserField && (
+                            <Button
+                              color="destructive"
+                              disabled={!isUserField}
+                              variant="icon"
+                              onClick={() => {
+                                removeField(field._rhfFieldsIndex);
+                              }}
+                              StartIcon={Trash2}
+                            />
+                          )}
+                          <Button
+                            data-testid="edit-field-action"
+                            color="secondary"
+                            onClick={() => {
+                              editField(field._rhfFieldsIndex, field);
+                            }}>
+                            {t("edit")}
+                          </Button>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+              {!disabled && !formBuilderForm.disableUserFields && (
+                <Button
+                  color="minimal"
+                  data-testid="add-field"
+                  onClick={addField}
+                  className="mt-4"
+                  StartIcon={Plus}>
+                  {addFieldLabel}
+                </Button>
+              )}
+            </div>
+            {/* Move this Dialog in another component and it would take with it fieldForm */}
+            {fieldDialog.isOpen && (
+              <FieldEditDialog
+                dialog={fieldDialog}
+                onOpenChange={(isOpen) =>
+                  setFieldDialog({
+                    isOpen,
+                    fieldIndex: -1,
+                    data: null,
+                  })
+                }
+                handleSubmit={(data: Parameters<SubmitHandler<RhfFormField>>[0]) => {
+                  const type = data.type || "text";
+                  const isNewField = !fieldDialog.data;
+                  if (isNewField && fields.some((f) => f.name === data.name)) {
+                    showToast(t("form_builder_field_already_exists"), "error");
+                    return;
+                  }
+                  if (fieldDialog.data) {
+                    update(fieldDialog.fieldIndex, data);
+                  } else {
+                    const field: RhfFormField = {
+                      ...data,
+                      type,
+                      sources: [
+                        {
+                          label: "User",
+                          type: "user",
+                          id: "user",
+                          fieldRequired: data.required,
+                        },
+                      ],
+                    };
+                    field.editable = field.editable || "user";
+                    append(field);
+                  }
+                  setFieldDialog({
+                    isOpen: false,
+                    fieldIndex: -1,
+                    data: null,
+                  });
+                }}
+              />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };

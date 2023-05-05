@@ -545,7 +545,12 @@ export default function Success(props: SuccessProps) {
                     <>
                       <hr className="border-subtle" />
                       <CancelBooking
-                        booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title, id: bookingInfo?.id }}
+                        booking={{
+                          uid: bookingInfo?.uid,
+                          title: bookingInfo?.title,
+                          id: bookingInfo?.id,
+                        }}
+                        bookingFields={eventType.bookingFields}
                         profile={{ name: props.profile.name, slug: props.profile.slug }}
                         recurringEvent={eventType.recurringEvent}
                         team={eventType?.team?.name}

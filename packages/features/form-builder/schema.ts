@@ -49,6 +49,7 @@ const baseFieldSchema = z.object({
    */
   defaultPlaceholder: z.string().optional(),
   required: z.boolean().default(false).optional(),
+  form: z.string().optional(),
   /**
    * It is the list of options that is valid for a certain type of fields.
    *
@@ -91,6 +92,7 @@ export const variantsConfigSchema = z.object({
           options: true,
           getOptionsAt: true,
           optionsInputs: true,
+          form: true,
         })
         .array(),
     })
@@ -316,6 +318,24 @@ export const fieldTypesSchemaMap: Partial<
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
         }
       });
+    },
+  },
+  text: {
+    preprocess: ({ response }) => {
+      return response;
+    },
+    superRefine: ({ response, field, isPartialSchema, ctx, m }) => {
+      if (field.required) {
+        if (!isPartialSchema && !response) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
+          return;
+        }
+      }
+      if (z.string().optional().safeParse(response).success) {
+        return;
+      }
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
+      return;
     },
   },
 };

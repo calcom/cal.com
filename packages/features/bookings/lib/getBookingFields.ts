@@ -257,6 +257,22 @@ export const ensureBookingInputsHaveSystemFields = ({
         },
       ],
     },
+    {
+      defaultLabel: "cancellation_reason",
+      type: "textarea",
+      editable: "system-but-optional",
+      name: "cancellationReason",
+      defaultPlaceholder: "cancellation_reason_placeholder",
+      required: true,
+      form: "cancellation",
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
+    },
   ];
 
   const missingSystemBeforeFields = [];

@@ -72,6 +72,10 @@ function preprocess<T extends z.ZodType>({
           // If the field is not applicable in the current view, then we don't need to do any processing
           return;
         }
+        const doesFieldBelongToBookingForm = !field.form;
+        if (!doesFieldBelongToBookingForm) {
+          return;
+        }
         const fieldTypeSchema = fieldTypesSchemaMap[field.type as keyof typeof fieldTypesSchemaMap];
         // TODO: Move all the schemas along with their respective types to fieldTypeSchema, that would make schemas shared across Routing Forms builder and Booking Question Formm builder
         if (fieldTypeSchema) {
@@ -121,8 +125,12 @@ function preprocess<T extends z.ZodType>({
         // Tag the message with the input name so that the message can be shown at appropriate place
         const m = (message: string) => `{${bookingField.name}}${message}`;
         const views = bookingField.views;
+        const doesFieldBelongToBookingForm = !bookingField.form;
+
         const isFieldApplicableToCurrentView =
-          currentView === "ALL_VIEWS" ? true : views ? views.find((view) => view.id === currentView) : true;
+          doesFieldBelongToBookingForm &&
+          (currentView === "ALL_VIEWS" ? true : views ? views.find((view) => view.id === currentView) : true);
+
         let hidden = bookingField.hidden;
         const numOptions = bookingField.options?.length ?? 0;
         if (bookingField.hideWhenJustOneOption) {

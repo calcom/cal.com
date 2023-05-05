@@ -161,8 +161,18 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       </div>
       <hr className="border-subtle" />
       <FormBuilder
-        title={t("booking_questions_title")}
-        description={t("booking_questions_description")}
+        forms={[
+          {
+            title: t("booking_questions_title"),
+            description: t("booking_questions_description"),
+          },
+          {
+            id: "cancellation",
+            title: t("cancellation_questions_title"),
+            description: t("cancellation_questions_description"),
+            disableUserFields: true,
+          },
+        ]}
         addFieldLabel={t("add_a_booking_question")}
         formProp="bookingFields"
         {...shouldLockDisableProps("bookingFields")}

@@ -41,6 +41,12 @@ export const BookingFields = ({
           return null;
         }
 
+        const isBookingField = !field.form;
+
+        if (!isBookingField) {
+          return null;
+        }
+
         if (field.name === SystemField.Enum.rescheduleReason) {
           // rescheduleReason is a reschedule specific field and thus should be editable during reschedule
           readOnly = false;
