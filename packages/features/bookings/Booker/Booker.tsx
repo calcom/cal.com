@@ -16,7 +16,6 @@ import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { Away } from "./components/Away";
 import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
-import { DatePicker } from "./components/DatePicker";
 import { EventMeta } from "./components/EventMeta";
 import { LargeCalendar } from "./components/LargeCalendar";
 import { LargeViewHeader } from "./components/LargeViewHeader";
@@ -26,6 +25,9 @@ import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
 
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
+const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
+  ssr: false,
+});
 
 const useBrandColors = ({ brandColor, darkBrandColor }: { brandColor?: string; darkBrandColor?: string }) => {
   const brandTheme = useGetBrandingColours({
