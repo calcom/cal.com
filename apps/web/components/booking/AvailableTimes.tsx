@@ -53,6 +53,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   const { rescheduleUid } = router.query;
 
   const [brand, setBrand] = useState("#292929");
+  const [isSlotSelected, setIsSlotSelected] = useState<boolean>(false);
 
   useEffect(() => {
     setBrand(getComputedStyle(document.documentElement).getPropertyValue("--brand-color").trim());
@@ -68,6 +69,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   );
 
   const reserveSlot = (slot: Slot) => {
+    setIsSlotSelected(true);
     reserveSlotMutation.mutate({
       slotUtcStartDate: slot.time,
       eventTypeId,
@@ -159,7 +161,10 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                         href={bookingUrl}
                         prefetch={false}
                         className={classNames(
-                          " bg-default dark:bg-muted border-default hover:bg-subtle hover:border-brand-default text-emphasis mb-2 block rounded-md border py-2 text-sm font-medium",
+                          " bg-default dark:bg-muted border-default text-emphasis mb-2 block rounded-md border py-2 text-sm font-medium",
+                          isSlotSelected
+                            ? "border-subtle cursor-not-allowed"
+                            : "hover:bg-subtle border-default hover:border-brand-default",
                           brand === "#fff" || brand === "#ffffff" ? "" : ""
                         )}
                         onClick={() => reserveSlot(slot)}
