@@ -1,8 +1,8 @@
-import { CAL_URL } from "@calcom/lib/constants";
+import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { AvatarGroup } from "@calcom/ui";
 
 import type { PublicEvent } from "../../types";
-import { SchedulingType } from ".prisma/client";
 
 export interface EventMembersProps {
   /**
@@ -21,7 +21,7 @@ export const EventMembers = ({ schedulingType, users, profile }: EventMembersPro
   const avatars = shownUsers
     .map((user) => ({
       title: `${user.name}`,
-      image: "image" in user ? `${user.image}` : `${CAL_URL}/${user.username}/avatar.png`,
+      image: "image" in user ? `${user.image}` : `${WEBAPP_URL}/${user.username}/avatar.png`,
       alt: user.name || undefined,
       href: user.username ? `${CAL_URL}/${user.username}` : undefined,
     }))
