@@ -1,8 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { getVariantsConfig } from "form-builder/utils";
 import { useState, useEffect } from "react";
-import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
-import type { UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray, useFormContext, useForm } from "react-hook-form";
+import type { UseFormReturn, SubmitHandler } from "react-hook-form";
 import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
@@ -21,13 +20,14 @@ import {
   SelectField,
   InputField,
   Input,
-  showToast,
   Switch,
+  showToast,
 } from "@calcom/ui";
 import { ArrowDown, ArrowUp, X, Plus, Trash2 } from "@calcom/ui/components/icon";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import type { fieldsSchema } from "./schema";
+import { getVariantsConfig } from "./utils";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -63,14 +63,11 @@ export const FormBuilder = function FormBuilder({
     options: Record<string, { label: string; value: string; inputPlaceholder?: string }[]>;
   };
 }) {
-  const fieldTypes = Object.values(fieldTypesConfigMap);
-
   // I would have liked to give Form Builder it's own Form but nested Forms aren't something that browsers support.
   // So, this would reuse the same Form as the parent form.
   const fieldsForm = useFormContext<RhfForm>();
 
   const { t } = useLocale();
-  const fieldForm = useForm<RhfFormField>();
 
   const { fields, swap, remove, update, append } = useFieldArray({
     control: fieldsForm.control,
@@ -78,127 +75,25 @@ export const FormBuilder = function FormBuilder({
     name: formProp as unknown as "fields",
   });
 
-  function OptionsField({
-    label = "Options",
-    value,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    onChange = () => {},
-    className = "",
-    readOnly = false,
-  }: {
-    label?: string;
-    value: { label: string; value: string }[];
-    onChange?: (value: { label: string; value: string }[]) => void;
-    className?: string;
-    readOnly?: boolean;
-  }) {
-    const [animationRef] = useAutoAnimate<HTMLUListElement>();
-    if (!value) {
-      onChange([
-        {
-          label: "Option 1",
-          value: "Option 1",
-        },
-        {
-          label: "Option 2",
-          value: "Option 2",
-        },
-      ]);
-    }
-    return (
-      <div className={className}>
-        <Label>{label}</Label>
-        <div className="bg-muted rounded-md p-4">
-          <ul ref={animationRef}>
-            {value?.map((option, index) => (
-              <li key={index}>
-                <div className="flex items-center">
-                  <Input
-                    required
-                    value={option.label}
-                    onChange={(e) => {
-                      // Right now we use label of the option as the value of the option. It allows us to not separately lookup the optionId to know the optionValue
-                      // It has the same drawback that if the label is changed, the value of the option will change. It is not a big deal for now.
-                      value.splice(index, 1, {
-                        label: e.target.value,
-                        value: e.target.value.toLowerCase().trim(),
-                      });
-                      onChange(value);
-                    }}
-                    readOnly={readOnly}
-                    placeholder={`Enter Option ${index + 1}`}
-                  />
-                  {value.length > 2 && !readOnly && (
-                    <Button
-                      type="button"
-                      className="mb-2 -ml-8 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
-                      size="sm"
-                      color="minimal"
-                      StartIcon={X}
-                      onClick={() => {
-                        if (!value) {
-                          return;
-                        }
-                        const newOptions = [...value];
-                        newOptions.splice(index, 1);
-                        onChange(newOptions);
-                      }}
-                    />
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-          {!readOnly && (
-            <Button
-              color="minimal"
-              onClick={() => {
-                value.push({ label: "", value: "" });
-                onChange(value);
-              }}
-              StartIcon={Plus}>
-              Add an Option
-            </Button>
-          )}
-        </div>
-      </div>
-    );
-  }
   const [fieldDialog, setFieldDialog] = useState({
     isOpen: false,
     fieldIndex: -1,
+    data: {} as RhfFormField | null,
   });
 
-  useEffect(() => {
-    // If Dialog is not open, there is no field for which we need to compute the default variantsConfig
-    if (!fieldDialog.isOpen) {
-      return;
-    }
-    const fieldVariantsConfig = fieldForm.getValues("variantsConfig");
-
-    const variantsConfig = getVariantsConfig({
-      type: fieldForm.getValues("type"),
-      variantsConfig: fieldVariantsConfig,
-    });
-
-    if (fieldForm.getValues("variantsConfig") !== variantsConfig) {
-      fieldForm.setValue("variantsConfig", variantsConfig);
-    }
-  }, [fieldForm, fieldDialog.isOpen]);
-
   const addField = () => {
-    fieldForm.reset({});
     setFieldDialog({
       isOpen: true,
       fieldIndex: -1,
+      data: null,
     });
   };
 
   const editField = (index: number, data: RhfFormField) => {
-    fieldForm.reset(data);
     setFieldDialog({
       isOpen: true,
       fieldIndex: index,
+      data,
     });
   };
 
@@ -206,8 +101,6 @@ export const FormBuilder = function FormBuilder({
     remove(index);
   };
 
-  const fieldType = fieldTypesConfigMap[fieldForm.watch("type") || "text"];
-  const isFieldEditMode = fieldDialog.fieldIndex !== -1;
   return (
     <div>
       <div>
@@ -347,157 +240,279 @@ export const FormBuilder = function FormBuilder({
           </Button>
         )}
       </div>
+      {/* Move this Dialog in another component and it would take with it fieldForm */}
       {fieldDialog.isOpen && (
-        <Dialog
-          open={fieldDialog.isOpen}
+        <FieldEditDialog
+          dialog={fieldDialog}
           onOpenChange={(isOpen) =>
             setFieldDialog({
               isOpen,
               fieldIndex: -1,
+              data: null,
             })
-          }>
-          <DialogContent enableOverflow data-testid="edit-field-dialog">
-            <DialogHeader
-              title={t("add_a_booking_question")}
-              subtitle={t("form_builder_field_add_subtitle")}
-            />
-            <div>
-              <Form
-                form={fieldForm}
-                handleSubmit={(data) => {
-                  const type = data.type || "text";
-                  const isNewField = fieldDialog.fieldIndex == -1;
-                  if (isNewField && fields.some((f) => f.name === data.name)) {
-                    showToast(t("form_builder_field_already_exists"), "error");
-                    return;
-                  }
-                  if (fieldDialog.fieldIndex !== -1) {
-                    update(fieldDialog.fieldIndex, data);
-                  } else {
-                    const field: RhfFormField = {
-                      ...data,
-                      type,
-                      sources: [
-                        {
-                          label: "User",
-                          type: "user",
-                          id: "user",
-                          fieldRequired: data.required,
-                        },
-                      ],
-                    };
-                    field.editable = field.editable || "user";
-                    append(field);
-                  }
-                  setFieldDialog({
-                    isOpen: false,
-                    fieldIndex: -1,
-                  });
-                }}>
-                <SelectField
-                  defaultValue={fieldTypesConfigMap.text}
-                  id="test-field-type"
-                  isDisabled={
-                    fieldForm.getValues("editable") === "system" ||
-                    fieldForm.getValues("editable") === "system-but-optional"
-                  }
-                  onChange={(e) => {
-                    const value = e?.value;
-                    if (!value) {
-                      return;
-                    }
-                    fieldForm.setValue("type", value);
-                  }}
-                  value={fieldTypesConfigMap[fieldForm.getValues("type")]}
-                  options={fieldTypes.filter((f) => !f.systemOnly)}
-                  label={t("input_type")}
-                  classNames={{
-                    menuList: () => "min-h-[27.25rem]",
-                  }}
-                />
-                {(() => {
-                  const variantsConfig = fieldForm.watch("variantsConfig");
-                  if (!variantsConfig) {
-                    return (
-                      <>
-                        <InputField
-                          required
-                          {...fieldForm.register("name")}
-                          containerClassName="mt-6"
-                          disabled={
-                            fieldForm.getValues("editable") === "system" ||
-                            fieldForm.getValues("editable") === "system-but-optional"
-                          }
-                          label="Identifier"
-                        />
-                        <InputField
-                          {...fieldForm.register("label")}
-                          // System fields have a defaultLabel, so there a label is not required
-                          required={
-                            !["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")
-                          }
-                          placeholder={t(fieldForm.getValues("defaultLabel") || "")}
-                          containerClassName="mt-6"
-                          label={t("label")}
-                        />
-                        {fieldType?.isTextType ? (
-                          <InputField
-                            {...fieldForm.register("placeholder")}
-                            containerClassName="mt-6"
-                            label={t("placeholder")}
-                            placeholder={t(fieldForm.getValues("defaultPlaceholder") || "")}
-                          />
-                        ) : null}
-                        {fieldType?.needsOptions && !fieldForm.getValues("getOptionsAt") ? (
-                          <Controller
-                            name="options"
-                            render={({ field: { value, onChange } }) => {
-                              return <OptionsField onChange={onChange} value={value} className="mt-6" />;
-                            }}
-                          />
-                        ) : null}
-                        <Controller
-                          name="required"
-                          control={fieldForm.control}
-                          render={({ field: { value, onChange } }) => {
-                            return (
-                              <BooleanToggleGroupField
-                                data-testid="field-required"
-                                disabled={fieldForm.getValues("editable") === "system"}
-                                value={value}
-                                onValueChange={(val) => {
-                                  onChange(val);
-                                }}
-                                label={t("required")}
-                              />
-                            );
-                          }}
-                        />
-                      </>
-                    );
-                  }
-
-                  if (!fieldType.isTextType) {
-                    throw new Error("Variants are currently supported only with text type");
-                  }
-
-                  return <VariantFields fieldForm={fieldForm} />;
-                })()}
-
-                <DialogFooter>
-                  <DialogClose color="secondary">{t("cancel")}</DialogClose>
-                  <Button data-testid="field-add-save" type="submit">
-                    {isFieldEditMode ? t("save") : t("add")}
-                  </Button>
-                </DialogFooter>
-              </Form>
-            </div>
-          </DialogContent>
-        </Dialog>
+          }
+          handleSubmit={(data: Parameters<SubmitHandler<RhfFormField>>[0]) => {
+            const type = data.type || "text";
+            const isNewField = !fieldDialog.data;
+            if (isNewField && fields.some((f) => f.name === data.name)) {
+              showToast(t("form_builder_field_already_exists"), "error");
+              return;
+            }
+            if (fieldDialog.data) {
+              update(fieldDialog.fieldIndex, data);
+            } else {
+              const field: RhfFormField = {
+                ...data,
+                type,
+                sources: [
+                  {
+                    label: "User",
+                    type: "user",
+                    id: "user",
+                    fieldRequired: data.required,
+                  },
+                ],
+              };
+              field.editable = field.editable || "user";
+              append(field);
+            }
+            setFieldDialog({
+              isOpen: false,
+              fieldIndex: -1,
+              data: null,
+            });
+          }}
+        />
       )}
     </div>
   );
 };
+
+function Options({
+  label = "Options",
+  value,
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  onChange = () => {},
+  className = "",
+  readOnly = false,
+}: {
+  label?: string;
+  value: { label: string; value: string }[];
+  onChange?: (value: { label: string; value: string }[]) => void;
+  className?: string;
+  readOnly?: boolean;
+}) {
+  const [animationRef] = useAutoAnimate<HTMLUListElement>();
+  if (!value) {
+    onChange([
+      {
+        label: "Option 1",
+        value: "Option 1",
+      },
+      {
+        label: "Option 2",
+        value: "Option 2",
+      },
+    ]);
+  }
+  return (
+    <div className={className}>
+      <Label>{label}</Label>
+      <div className="bg-muted rounded-md p-4">
+        <ul ref={animationRef}>
+          {value?.map((option, index) => (
+            <li key={index}>
+              <div className="flex items-center">
+                <Input
+                  required
+                  value={option.label}
+                  onChange={(e) => {
+                    // Right now we use label of the option as the value of the option. It allows us to not separately lookup the optionId to know the optionValue
+                    // It has the same drawback that if the label is changed, the value of the option will change. It is not a big deal for now.
+                    value.splice(index, 1, {
+                      label: e.target.value,
+                      value: e.target.value.toLowerCase().trim(),
+                    });
+                    onChange(value);
+                  }}
+                  readOnly={readOnly}
+                  placeholder={`Enter Option ${index + 1}`}
+                />
+                {value.length > 2 && !readOnly && (
+                  <Button
+                    type="button"
+                    className="mb-2 -ml-8 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
+                    size="sm"
+                    color="minimal"
+                    StartIcon={X}
+                    onClick={() => {
+                      if (!value) {
+                        return;
+                      }
+                      const newOptions = [...value];
+                      newOptions.splice(index, 1);
+                      onChange(newOptions);
+                    }}
+                  />
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+        {!readOnly && (
+          <Button
+            color="minimal"
+            onClick={() => {
+              value.push({ label: "", value: "" });
+              onChange(value);
+            }}
+            StartIcon={Plus}>
+            Add an Option
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FieldEditDialog({
+  dialog,
+  onOpenChange,
+  handleSubmit,
+}: {
+  dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
+  onOpenChange: (isOpen: boolean) => void;
+  handleSubmit: SubmitHandler<RhfFormField>;
+}) {
+  const { t } = useLocale();
+  const fieldForm = useForm<RhfFormField>({
+    defaultValues: dialog.data || {},
+    // resolver: zodResolver(fieldSchema),
+  });
+  useEffect(() => {
+    if (!fieldForm.getValues("type")) {
+      return;
+    }
+    const variantsConfig = getVariantsConfig({
+      type: fieldForm.getValues("type"),
+      variantsConfig: fieldForm.getValues("variantsConfig"),
+    });
+    fieldForm.setValue("variantsConfig", variantsConfig);
+  }, [fieldForm]);
+  const isFieldEditMode = !!dialog.data;
+  const fieldType = fieldTypesConfigMap[fieldForm.watch("type") || "text"];
+
+  const variantsConfig = fieldForm.watch("variantsConfig");
+
+  const fieldTypes = Object.values(fieldTypesConfigMap);
+
+  return (
+    <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
+      <DialogContent enableOverflow data-testid="edit-field-dialog">
+        <DialogHeader title={t("add_a_booking_question")} subtitle={t("form_builder_field_add_subtitle")} />
+        <div>
+          <Form form={fieldForm} handleSubmit={handleSubmit}>
+            <SelectField
+              defaultValue={fieldTypesConfigMap.text}
+              id="test-field-type"
+              isDisabled={
+                fieldForm.getValues("editable") === "system" ||
+                fieldForm.getValues("editable") === "system-but-optional"
+              }
+              onChange={(e) => {
+                const value = e?.value;
+                if (!value) {
+                  return;
+                }
+                fieldForm.setValue("type", value);
+              }}
+              value={fieldTypesConfigMap[fieldForm.getValues("type")]}
+              options={fieldTypes.filter((f) => !f.systemOnly)}
+              label={t("input_type")}
+              classNames={{
+                menuList: () => "min-h-[27.25rem]",
+              }}
+            />
+            {(() => {
+              if (!variantsConfig) {
+                return (
+                  <>
+                    <InputField
+                      required
+                      {...fieldForm.register("name")}
+                      containerClassName="mt-6"
+                      disabled={
+                        fieldForm.getValues("editable") === "system" ||
+                        fieldForm.getValues("editable") === "system-but-optional"
+                      }
+                      label="Identifier"
+                    />
+                    <InputField
+                      {...fieldForm.register("label")}
+                      // System fields have a defaultLabel, so there a label is not required
+                      required={
+                        !["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")
+                      }
+                      placeholder={t(fieldForm.getValues("defaultLabel") || "")}
+                      containerClassName="mt-6"
+                      label={t("label")}
+                    />
+                    {fieldType?.isTextType ? (
+                      <InputField
+                        {...fieldForm.register("placeholder")}
+                        containerClassName="mt-6"
+                        label={t("placeholder")}
+                        placeholder={t(fieldForm.getValues("defaultPlaceholder") || "")}
+                      />
+                    ) : null}
+                    {fieldType?.needsOptions && !fieldForm.getValues("getOptionsAt") ? (
+                      <Controller
+                        name="options"
+                        render={({ field: { value, onChange } }) => {
+                          return <Options onChange={onChange} value={value} className="mt-6" />;
+                        }}
+                      />
+                    ) : null}
+                    <Controller
+                      name="required"
+                      control={fieldForm.control}
+                      render={({ field: { value, onChange } }) => {
+                        return (
+                          <BooleanToggleGroupField
+                            data-testid="field-required"
+                            disabled={fieldForm.getValues("editable") === "system"}
+                            value={value}
+                            onValueChange={(val) => {
+                              onChange(val);
+                            }}
+                            label={t("required")}
+                          />
+                        );
+                      }}
+                    />
+                  </>
+                );
+              }
+
+              if (!fieldType.isTextType) {
+                throw new Error("Variants are currently supported only with text type");
+              }
+
+              return <VariantFields variantsConfig={variantsConfig} fieldForm={fieldForm} />;
+            })()}
+
+            <DialogFooter>
+              <DialogClose color="secondary">{t("cancel")}</DialogClose>
+              <Button data-testid="field-add-save" type="submit">
+                {isFieldEditMode ? t("save") : t("add")}
+              </Button>
+            </DialogFooter>
+          </Form>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 /**
  * Shows the label of the field, taking into account the current variant selected
@@ -526,9 +541,14 @@ function VariantSelector() {
   return null;
 }
 
-function VariantFields({ fieldForm }: { fieldForm: UseFormReturn<RhfFormField> }) {
+function VariantFields({
+  fieldForm,
+  variantsConfig,
+}: {
+  fieldForm: UseFormReturn<RhfFormField>;
+  variantsConfig: RhfFormField["variantsConfig"];
+}) {
   const { t } = useLocale();
-  const variantsConfig = fieldForm.getValues("variantsConfig");
   if (!variantsConfig) {
     throw new Error("VariantFields component needs variantsConfig");
   }
@@ -606,6 +626,7 @@ function VariantFields({ fieldForm }: { fieldForm: UseFormReturn<RhfFormField> }
               )}
               <InputField
                 {...fieldForm.register(`${rhfVariantFieldPrefix}.label`)}
+                value={f.label || ""}
                 placeholder={t(appUiFieldConfig?.defaultLabel || "")}
                 containerClassName="mt-6"
                 label={t("label")}
@@ -613,6 +634,7 @@ function VariantFields({ fieldForm }: { fieldForm: UseFormReturn<RhfFormField> }
               <InputField
                 {...fieldForm.register(`${rhfVariantFieldPrefix}.placeholder`)}
                 key={f.name}
+                value={f.placeholder || ""}
                 containerClassName="mt-6"
                 label={t("placeholder")}
                 placeholder={t(appUiFieldConfig?.defaultPlaceholder || "")}
@@ -621,12 +643,12 @@ function VariantFields({ fieldForm }: { fieldForm: UseFormReturn<RhfFormField> }
               <Controller
                 name={`${rhfVariantFieldPrefix}.required`}
                 control={fieldForm.control}
-                render={({ field: { value, onChange } }) => {
+                render={({ field: { onChange } }) => {
                   return (
                     <BooleanToggleGroupField
                       data-testid="field-required"
                       disabled={!appUiFieldConfig?.canChangeRequirability}
-                      value={value}
+                      value={f.required}
                       onValueChange={(val) => {
                         onChange(val);
                       }}

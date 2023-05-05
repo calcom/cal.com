@@ -50,11 +50,18 @@ function getFirstAndLastName(value: string | Record<"firstName" | "lastName", st
   return newValue;
 }
 
+/**
+ * Get's the field's variantsConfig and if not available, then it will get the default variantsConfig from the fieldTypesConfigMap
+ */
 export const getVariantsConfig = (field: Pick<z.infer<typeof fieldSchema>, "variantsConfig" | "type">) => {
   const fieldVariantsConfig = field.variantsConfig;
   const fieldTypeConfig = fieldTypesConfigMap[field.type as keyof typeof fieldTypesConfigMap];
+
+  if (!fieldTypeConfig) throw new Error(`Invalid field.type ${field.type}}`);
+
   const defaultVariantsConfig = fieldTypeConfig?.variantsConfig?.defaultValue;
   const variantsConfig = fieldVariantsConfig || defaultVariantsConfig;
+
   if (fieldTypeConfig.propsType === "variants" && !variantsConfig) {
     throw new Error("Could not compute variantsConfig is not defined");
   }
