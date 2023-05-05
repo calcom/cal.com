@@ -27,6 +27,12 @@ export const EventMembers = ({ schedulingType, users, profile }: EventMembersPro
   const showMembers = schedulingType !== SchedulingType.ROUND_ROBIN;
   const shownUsers = showMembers ? users : [];
 
+  // In some cases we don't show the user's names, but only show the profile name.
+  const showOnlyProfileName =
+    (profile.name && schedulingType === SchedulingType.ROUND_ROBIN) ||
+    !users.length ||
+    (profile.name !== users[0].name && schedulingType === SchedulingType.COLLECTIVE);
+
   const avatars: Avatar[] = shownUsers.map((user) => ({
     title: `${user.name}`,
     image: "image" in user ? `${user.image}` : `${CAL_URL}/${user.username}/avatar.png`,
@@ -37,7 +43,7 @@ export const EventMembers = ({ schedulingType, users, profile }: EventMembersPro
   // Add profile later since we don't want to force creating an avatar for this if it doesn't exist.
   avatars.unshift({
     title: `${profile.name}`,
-    image: "logo" in profile ? `${profile.logo}` : undefined,
+    image: "logo" in profile && profile.logo ? `${profile.logo}` : undefined,
     alt: profile.name || undefined,
     href: profile.username ? `${CAL_URL}/${profile.username}` : undefined,
   });
@@ -50,10 +56,12 @@ export const EventMembers = ({ schedulingType, users, profile }: EventMembersPro
     <>
       <AvatarGroup size="sm" className="border-muted" items={uniqueAvatars} />
       <p className="text-subtle text-sm font-semibold">
-        {uniqueAvatars
-          .map((user) => user.title)
-          .filter((name) => name)
-          .join(", ")}
+        {showOnlyProfileName
+          ? profile.name
+          : shownUsers
+              .map((user) => user.name)
+              .filter((name) => name)
+              .join(", ")}
       </p>
     </>
   );
