@@ -7,7 +7,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Meta, TextField, showToast } from "@calcom/ui";
-import { Search } from "@calcom/ui/components/icon";
 import { Plus } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
@@ -27,6 +26,7 @@ const checkIfExist = (comp: string, query: string) =>
 
 function MembersList(props: MembersListProps) {
   const { team } = props;
+  const { t } = useLocale();
   const [query, setQuery] = useState<string>("");
 
   const members = team?.members;
@@ -44,12 +44,12 @@ function MembersList(props: MembersListProps) {
   return (
     <div className="flex flex-col gap-y-3">
       <TextField
-        addOnLeading={<Search className="text-subtle h-4 w-4" />}
         type="search"
         autoComplete="false"
         onChange={(e) => setQuery(e.target.value)}
         value={query}
         defaultValue=""
+        placeholder={`${t("search")}...`}
       />
       {membersList?.length && team ? (
         <ul className="divide-subtle border-subtle divide-y rounded-md border ">
