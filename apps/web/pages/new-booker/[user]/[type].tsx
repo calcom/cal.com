@@ -53,7 +53,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     booking = await getBookingByUidOrRescheduleUid(`${rescheduleUid}`);
   }
 
-  await ssr.viewer.public.event.prefetch({ username, eventSlug: slug });
+  await ssr.viewer.public.event.prefetch({ username: user, eventSlug: slug });
 
   return {
     props: {

@@ -30,8 +30,8 @@ const paramsSchema = z.object({ type: z.string(), slug: z.string() });
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(context.params);
   const { rescheduleUid } = context.query;
-  const { ssgInit } = await import("@server/lib/ssg");
-  const ssg = await ssgInit(context);
+  const { ssrInit } = await import("@server/lib/ssr");
+  const ssr = await ssrInit(context);
 
   const team = await prisma.team.findFirst({
     where: {
@@ -52,14 +52,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (rescheduleUid) {
     booking = await getBookingByUidOrRescheduleUid(`${rescheduleUid}`);
   }
-
+  await ssr.viewer.public.event.prefetch({ username: teamSlug, eventSlug: meetingSlug });
   return {
     props: {
       booking,
       away: false,
       user: teamSlug,
       slug: meetingSlug,
-      trpcState: ssg.dehydrate(),
+      trpcState: ssr.dehydrate(),
     },
   };
 };
