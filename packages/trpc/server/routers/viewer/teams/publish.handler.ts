@@ -5,7 +5,6 @@ import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
@@ -13,7 +12,7 @@ import type { TPublishInputSchema } from "./publish.schema";
 
 type PublishOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: NonNullable<{ id: number }>;
   };
   input: TPublishInputSchema;
 };
