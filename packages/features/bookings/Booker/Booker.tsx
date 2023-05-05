@@ -129,13 +129,12 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             // Size settings are abstracted on their own lines purely for readbility.
             // General sizes:
             "[--booker-main-width:480px] [--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
-            // Sizes only applicable for small_calendar
+            "bg-muted grid max-w-full auto-rows-max items-start overflow-clip dark:[color-scheme:dark] md:flex-row",
             layout === "small_calendar" &&
               "w-[calc(var(--booker-meta-width)+var(--booker-main-width))] [--booker-meta-width:240px] lg:[--booker-meta-width:280px]",
             // Sizes for fullscreen layouts:
             layout !== "small_calendar" && "[--booker-meta-width:340px] lg:[--booker-meta-width:424px]",
             // Other styles
-            "bg-muted grid max-w-full items-start overflow-clip dark:[color-scheme:dark] md:flex-row",
             layout === "small_calendar" && "border-subtle mt-20 min-h-[450px] rounded-md border",
             layout !== "small_calendar" && "h-auto min-h-screen w-screen",
             "transition-[width,max-width] duration-300"
