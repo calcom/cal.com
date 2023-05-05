@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,6 +18,7 @@ interface ICalendarSwitchProps {
 }
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
   const { title, externalId, type, isChecked, name, isLastItemInList = false } = props;
+  const [checkedInternal, setCheckedInternal] = useState(isChecked);
   const utils = trpc.useContext();
   const { t } = useLocale();
   const mutation = useMutation<
@@ -64,7 +66,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
         await utils.viewer.connectedCalendars.invalidate();
       },
       onError() {
-        // setCheckedInternal(false);
+        setCheckedInternal(false);
         showToast(`Something went wrong when toggling "${title}""`, "error");
       },
     }
@@ -74,8 +76,9 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       <div className="flex pl-2">
         <Switch
           id={externalId}
-          checked={isChecked}
+          checked={checkedInternal}
           onCheckedChange={(isOn: boolean) => {
+            setCheckedInternal(isOn);
             mutation.mutate({ isOn });
           }}
         />
