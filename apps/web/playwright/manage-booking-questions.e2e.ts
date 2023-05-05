@@ -338,15 +338,17 @@ async function expectSystemFieldsToBeThereOnBookingPage({
     if (values?.name) {
       await expect(nameLocator.locator('[name="firstName"]')).toHaveValue(values?.name?.firstName || "");
       await expect(nameLocator.locator('[name="lastName"]')).toHaveValue(values?.name?.lastName || "");
+      expect(await nameLocator.locator(".testid-firstName > label").innerText()).toContain("*");
     } else {
       await expect(nameLocator.locator('[name="firstName"]')).toBeVisible();
       await expect(nameLocator.locator('[name="lastName"]')).toBeVisible();
     }
   } else {
     if (values?.name) {
-      await expect(nameLocator.locator('[name="lastName"]')).toHaveValue(values?.name?.fullName || "");
+      await expect(nameLocator.locator('[name="name"]')).toHaveValue(values?.name?.fullName || "");
     }
     await expect(nameLocator.locator('[name="name"]')).toBeVisible();
+    expect(await nameLocator.locator("label").innerText()).toContain("*");
   }
 
   if (values?.email) {

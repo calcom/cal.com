@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
-import { preprocessNameFieldDataWithVariant } from "./utils";
+import { getVariantsConfig, preprocessNameFieldDataWithVariant } from "./utils";
 
 const fieldTypeEnum = z.enum([
   "name",
@@ -278,12 +278,10 @@ export const fieldTypesSchemaMap: Partial<
         throw new Error("`variant` must be there for the field with `variantsConfig`");
       }
 
-      if (!field.variantsConfig) {
-        throw new Error(`variantsConfig must be there for the field ${field.type}`);
-      }
+      const variantsConfig = getVariantsConfig(field);
 
       const fields =
-        field.variantsConfig.variants[variantInResponse as keyof typeof field.variantsConfig.variants].fields;
+        variantsConfig.variants[variantInResponse as keyof typeof variantsConfig.variants].fields;
 
       const variantSupportedFields = ["text"];
 
