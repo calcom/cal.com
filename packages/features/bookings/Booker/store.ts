@@ -133,7 +133,6 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     updateQueryParam("month", month ?? "");
     get().setSelectedDate(null);
   },
-  hideBranding: undefined,
   initialize: ({
     username,
     eventSlug,
