@@ -130,9 +130,7 @@ test.describe("Routing Forms", () => {
       // Install app
       await page.goto(`/apps/routing-forms`);
       await page.click('[data-testid="install-app-button"]');
-      await page.waitForNavigation({
-        url: (url) => url.pathname === `/apps/routing-forms/forms`,
-      });
+      await page.waitForURL((url) => url.pathname === `/apps/routing-forms/forms`);
     });
 
     test.afterEach(async ({ users }) => {
@@ -163,9 +161,7 @@ test.describe("Routing Forms", () => {
       // Install app
       await page.goto(`/apps/routing-forms`);
       await page.click('[data-testid="install-app-button"]');
-      await page.waitForNavigation({
-        url: (url) => url.pathname === `/apps/routing-forms/forms`,
-      });
+      await page.waitForURL((url) => url.pathname === `/apps/routing-forms/forms`);
       return user;
     };
 
@@ -260,17 +256,13 @@ test.describe("Routing Forms", () => {
       // Router should be publicly accessible
       await users.logout();
       page.goto(`/router?form=${routingForm.id}&Test field=event-routing`);
-      await page.waitForNavigation({
-        url(url) {
-          return url.pathname.endsWith("/pro/30min");
-        },
+      await page.waitForURL((url) => {
+        return url.pathname.endsWith("/pro/30min");
       });
 
       page.goto(`/router?form=${routingForm.id}&Test field=external-redirect`);
-      await page.waitForNavigation({
-        url(url) {
-          return url.hostname.includes("google.com");
-        },
+      await page.waitForURL((url) => {
+        return url.hostname.includes("google.com");
       });
 
       await page.goto(`/router?form=${routingForm.id}&Test field=custom-page`);
@@ -352,19 +344,15 @@ async function fillSeededForm(page: Page, routingFormId: string) {
   await gotoRoutingLink(page, routingFormId);
   await page.fill('[data-testid="form-field"]', "event-routing");
   page.click('button[type="submit"]');
-  await page.waitForNavigation({
-    url(url) {
-      return url.pathname.endsWith("/pro/30min");
-    },
+  await page.waitForURL((url) => {
+    return url.pathname.endsWith("/pro/30min");
   });
 
   await gotoRoutingLink(page, routingFormId);
   await page.fill('[data-testid="form-field"]', "external-redirect");
   page.click('button[type="submit"]');
-  await page.waitForNavigation({
-    url(url) {
-      return url.hostname.includes("google.com");
-    },
+  await page.waitForURL((url) => {
+    return url.hostname.includes("google.com");
   });
 
   await gotoRoutingLink(page, routingFormId);

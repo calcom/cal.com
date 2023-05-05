@@ -2,8 +2,8 @@
 description: Adds a link to copy Typeform Redirect URL to integrate with Routing Forms.
 items:
   - iframe: { src: https://www.youtube.com/embed/vcV-N2gLPZc }
-  - /api/app-store/typeform/copy-typeform-redirect-url.png
-  - /api/app-store/typeform/how-it-looks-in-typeform.png
+  - copy-typeform-redirect-url.png
+  - how-it-looks-in-typeform.png
 ---
 
 <!-- Feel free to edit description or add other frontmatter. Frontmatter would be available in the components here as variables by same name -->
