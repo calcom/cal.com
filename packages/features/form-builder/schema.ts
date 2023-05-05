@@ -280,6 +280,10 @@ export const fieldTypesSchemaMap: Partial<
 
       const variantsConfig = getVariantsConfig(field);
 
+      if (!variantsConfig) {
+        throw new Error("variantsConfig must be there for `name` field");
+      }
+
       const fields =
         variantsConfig.variants[variantInResponse as keyof typeof variantsConfig.variants].fields;
 

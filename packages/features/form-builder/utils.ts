@@ -59,15 +59,11 @@ export const getVariantsConfig = (field: Pick<z.infer<typeof fieldSchema>, "vari
 
   if (!fieldTypeConfig) throw new Error(`Invalid field.type ${field.type}}`);
 
-  if (fieldTypeConfig.propsType !== "variants") {
-    throw new Error(`Invalid field.type ${field.type}} for getVariantsConfig`);
-  }
-
   const defaultVariantsConfig = fieldTypeConfig?.variantsConfig?.defaultValue;
   const variantsConfig = fieldVariantsConfig || defaultVariantsConfig;
 
-  if (!variantsConfig) {
-    throw new Error("Could not compute variantsConfig is not defined");
+  if (fieldTypeConfig.propsType === "variants" && !variantsConfig) {
+    throw new Error(`propsType variants must have variantsConfig`);
   }
   return variantsConfig;
 };

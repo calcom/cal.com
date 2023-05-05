@@ -5,6 +5,7 @@ import { uuid } from "short-uuid";
 
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { test } from "./lib/fixtures";
 import { testBothBookers } from "./lib/new-booker";
@@ -188,7 +189,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
       page,
       question: {
         name: "how_are_you",
-        type: "Name",
+        type: "Address",
         label: "How are you?",
         placeholder: "I'm fine, thanks",
         required: true,
@@ -202,7 +203,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
       await expect(userFieldLocator.locator('[name="how_are_you"]')).toBeVisible();
       // There are 2 labels right now. Will be one in future. The second one is hidden
       expect(await getLabelText(userFieldLocator)).toBe("How are you?");
-      await expect(userFieldLocator.locator("input[type=text]")).toBeVisible();
+      await expect(userFieldLocator.locator("input")).toBeVisible();
     });
   });
 
@@ -585,14 +586,19 @@ async function addWebhook(user: Awaited<ReturnType<typeof createAndLoginUserWith
 
 async function expectWebhookToBeCalled(
   webhookReceiver: Awaited<ReturnType<typeof addWebhook>>,
-  expectedBody: Record<string, any>
+  expectedBody: {
+    triggerEvent: WebhookTriggerEvents;
+    payload: Omit<Partial<CalendarEvent>, "attendees"> & {
+      attendees: Partial<CalendarEvent["attendees"][number]>[];
+    };
+  }
 ) {
   await waitFor(() => {
     expect(webhookReceiver.requestList.length).toBe(1);
   });
   const [request] = webhookReceiver.requestList;
 
-  const body = request.body as any;
+  const body = request.body;
 
   expect(body).toMatchObject(expectedBody);
 }

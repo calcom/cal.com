@@ -230,6 +230,8 @@ function preprocess<T extends z.ZodType>({
           return;
         }
 
+        // Use fieldTypeConfig.propsType to validate for propsType=="text" or propsType=="select" as in those cases, the response would be a string.
+        // If say we want to do special validation for 'address' that can be added to `fieldTypesSchemaMap`
         if (["address", "text", "select", "number", "radio", "textarea"].includes(bookingField.type)) {
           const schema = stringSchema;
           if (!schema.safeParse(value).success) {
