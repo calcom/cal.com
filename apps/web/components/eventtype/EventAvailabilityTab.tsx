@@ -154,12 +154,11 @@ const EventTypeScheduleDetails = ({
 
 const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
-  const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } =
-    useLockedFieldsManager(
-      eventType,
-      t("locked_fields_admin_description"),
-      t("locked_fields_member_description")
-    );
+  const { shouldLockIndicator, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
+    eventType,
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
+  );
   const { watch } = useFormContext<FormValues>();
   const watchSchedule = watch("schedule");
   const formMethods = useFormContext<FormValues>();
