@@ -19,7 +19,6 @@ type StoreInitializeType = {
   eventId: number | undefined;
   rescheduleUid: string | null;
   rescheduleBooking: GetBookingType | null | undefined;
-  hideBranding: boolean | undefined;
 };
 
 type BookerStore = {
@@ -30,7 +29,6 @@ type BookerStore = {
   username: string | null;
   eventSlug: string | null;
   eventId: number | null;
-  hideBranding: boolean | undefined;
   /**
    * Current month being viewed. Format is YYYY-MM.
    */
@@ -143,10 +141,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     eventId,
     rescheduleUid = null,
     rescheduleBooking = null,
-    hideBranding = undefined,
   }: StoreInitializeType) => {
     if (
-      get().hideBranding === hideBranding &&
       get().username === username &&
       get().eventSlug === eventSlug &&
       get().month === month &&
@@ -161,7 +157,6 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       eventId,
       rescheduleUid,
       rescheduleBooking,
-      hideBranding,
     });
     // Unset selected timeslot if user is rescheduling. This could happen
     // if the user reschedules a booking right after the confirmation page.
@@ -194,10 +189,9 @@ export const useInitializeBookerStore = ({
   eventId,
   rescheduleUid = null,
   rescheduleBooking = null,
-  hideBranding = undefined,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
-    initializeStore({ username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking, hideBranding });
-  }, [initializeStore, username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking, hideBranding]);
+    initializeStore({ username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking });
+  }, [initializeStore, username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking]);
 };
