@@ -1,4 +1,5 @@
 import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
@@ -7,7 +8,7 @@ import classNames from "@calcom/lib/classNames";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
-import { Logo, ToggleGroup, useCalcomTheme } from "@calcom/ui";
+import { ToggleGroup, useCalcomTheme } from "@calcom/ui";
 import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
@@ -23,6 +24,8 @@ import { fadeInLeft, resizeAnimationConfig } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
 import { useEvent } from "./utils/event";
+
+const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
 
 const useBrandColors = ({ brandColor, darkBrandColor }: { brandColor?: string; darkBrandColor?: string }) => {
   const brandTheme = useGetBrandingColours({
@@ -205,8 +208,11 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
 
         <m.span
           key="logo"
-          className={classNames("mt-auto mb-6 pt-6", layout === "small_calendar" ? "block" : "hidden")}>
-          <Logo small />
+          className={classNames(
+            "mt-auto mb-6 pt-6 [&_img]:h-[15px]",
+            layout === "small_calendar" ? "block" : "hidden"
+          )}>
+          <PoweredBy logoOnly />
         </m.span>
       </div>
 
