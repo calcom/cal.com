@@ -5165,6 +5165,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/zoho-bigin@workspace:packages/app-store/zoho-bigin":
+  version: 0.0.0-use.local
+  resolution: "@calcom/zoho-bigin@workspace:packages/app-store/zoho-bigin"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/zohocrm@workspace:packages/app-store/zohocrm":
   version: 0.0.0-use.local
   resolution: "@calcom/zohocrm@workspace:packages/app-store/zohocrm"
