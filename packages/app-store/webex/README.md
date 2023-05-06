@@ -7,7 +7,7 @@
 5. Give your app a name.
 6. Upload an icon or choose one of the default icons.
 7. Give your app a short description.
-8. Set the Redirect URI as `<Cal.com URL>/api/integrations/webex/callback` replacing Cal.com URL with the URI at which your application runs.
+8. Set the Redirect URI as `<Cal.com URL>/api/integrations/webex/callback` replacing Cal.com URL with the URI at which your application runs. Also add the `<Cal.com URL>/api/auth/callback/webex` in Redirect URIs to allow authentication.
 9. Select the following scopes: "meeting:schedules_read", "meeting:schedules_write".
 10. Click "Add Integration".
 11. Copy the Client ID and Client Secret and add these while enabling the app through Settings -> Admin -> Apps interface
