@@ -166,7 +166,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    <details>
    <summary>If you don't know how to configure the DATABASE_URL, then follow the steps here to create a quick local DB</summary>
 
-   1. [Download](https://www.postgresql.org/download/) and install postgres in your local (if you already don't have it).
+   1. [Download](https://www.postgresql.org/download/) and install postgres in your local (if you don't have it already).
 
    2. Create your own local db by executing `createDB <DB name>` 
 
