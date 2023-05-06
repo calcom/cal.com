@@ -75,21 +75,45 @@ export const userAdminRouter = router({
     const { requestedUser } = ctx;
     return { user: requestedUser };
   }),
-  list: authedAdminProcedure.query(async ({ ctx }) => {
-    const { prisma } = ctx;
-    // TODO: Add search, pagination, etc.
-    const users = await prisma.user.findMany();
-    return users.map((user) => ({
-      /** Don't leak the password */
-      ...exclude(user, ["password"]),
-      /**
-       * FIXME: This should be either a prisma extension or middleware
-       * @see https://www.prisma.io/docs/concepts/components/prisma-client/middleware
-       * @see https://www.prisma.io/docs/concepts/components/prisma-client/client-extensions/result
-       **/
-      avatar: getAvatarUrlFromUser(user),
-    }));
-  }),
+  list: authedAdminProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+        skip: z.number().int().min(0).optional(),
+        take: z.number().int().min(1).max(100).optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { prisma } = ctx;
+      const { search, skip, take } = input;
+
+      // Build a where object to filter users by search query
+      const where = search
+        ? {
+            OR: [
+              { firstName: { contains: search } },
+              { lastName: { contains: search } },
+              { email: { contains: search } },
+            ],
+          }
+        : undefined;
+
+      const users = await prisma.user.findMany({
+        where,
+        skip,
+        take,
+      });
+      return users.map((user) => ({
+        /** Don't leak the password */
+        ...exclude(user, ["password"]),
+        /**
+         * FIXME: This should be either a prisma extension or middleware
+         * @see https://www.prisma.io/docs/concepts/components/prisma-client/middleware
+         * @see https://www.prisma.io/docs/concepts/components/prisma-client/client-extensions/result
+         **/
+        avatar: getAvatarUrlFromUser(user),
+      }));
+    }),
   add: authedAdminProcedure.input(userBodySchema).mutation(async ({ ctx, input }) => {
     const { prisma } = ctx;
     const user = await prisma.user.create({ data: input });
