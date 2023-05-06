@@ -3,7 +3,9 @@ import { z } from "zod";
 import appStore from "@calcom/app-store";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import sendPayload from "@calcom/lib/server/webhooks/sendPayload";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -111,6 +113,26 @@ export const paymentsRouter = router({
         if (!paymentData) {
           throw new TRPCError({ code: "NOT_FOUND", message: `Could not generate payment data` });
         }
+
+        const subscriberOptions = {
+          userId: ctx.user.id || 0,
+          eventTypeId: booking.eventTypeId || 0,
+          triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
+        };
+
+        const subscribers = await getWebhooks(subscriberOptions);
+
+        await Promise.all(
+          subscribers.map(async (subscriber) => {
+            sendPayload(subscriber.secret, WebhookTriggerEvents.BOOKING_PAID, {
+              ...evt,
+              bookingId: booking.id,
+              paymentId: booking.payment[0].id,
+              paymentData,
+              eventTypeId: subscriberOptions.eventTypeId,
+            });
+          })
+        );
 
         await sendNoShowFeeChargedEmail(attendeesListPromises[0], evt);
 
