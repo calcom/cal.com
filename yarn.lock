@@ -4365,6 +4365,7 @@ __metadata:
   dependencies:
     "@calcom/lib": "*"
     "@prisma/client": ^4.13.0
+    "@prisma/generator-helper": ^4.13.0
     npm-run-all: ^4.1.5
     prisma: ^4.13.0
     ts-node: ^10.9.1
@@ -4872,6 +4873,15 @@ __metadata:
     "@calcom/types": "*"
     "@types/node-schedule": ^2.1.0
     node-schedule: 2.1.0
+  languageName: unknown
+  linkType: soft
+
+"@calcom/zoho-bigin@workspace:packages/app-store/zoho-bigin":
+  version: 0.0.0-use.local
+  resolution: "@calcom/zoho-bigin@workspace:packages/app-store/zoho-bigin"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
   languageName: unknown
   linkType: soft
 
@@ -8057,6 +8067,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@prisma/debug@npm:4.13.0":
+  version: 4.13.0
+  resolution: "@prisma/debug@npm:4.13.0"
+  dependencies:
+    "@types/debug": 4.1.7
+    debug: 4.3.4
+    strip-ansi: 6.0.1
+  checksum: cd8b3361a3992ad93855923aeea0cedfc3ff316508fc1d6b526d46d05af35b47dc2e2203e3e0f95258c9e5a72a8a6d9a9737ebca9d8280e4df6135ef810b553b
+  languageName: node
+  linkType: hard
+
 "@prisma/engines-version@npm:4.13.0-50.1e7af066ee9cb95cf3a403c78d9aab3e6b04f37a":
   version: 4.13.0-50.1e7af066ee9cb95cf3a403c78d9aab3e6b04f37a
   resolution: "@prisma/engines-version@npm:4.13.0-50.1e7af066ee9cb95cf3a403c78d9aab3e6b04f37a"
@@ -8068,6 +8089,18 @@ __metadata:
   version: 4.13.0
   resolution: "@prisma/engines@npm:4.13.0"
   checksum: 6c2315dc1e1a8a07f02a074ee6898a66a96a3bbbb4341224cb1dc966da3959c2ee7557131a2ce37fd559c53d210b904b72c4559474e017438e6753d480c3cfe1
+  languageName: node
+  linkType: hard
+
+"@prisma/generator-helper@npm:^4.13.0":
+  version: 4.13.0
+  resolution: "@prisma/generator-helper@npm:4.13.0"
+  dependencies:
+    "@prisma/debug": 4.13.0
+    "@types/cross-spawn": 6.0.2
+    chalk: 4.1.2
+    cross-spawn: 7.0.3
+  checksum: 0b0724bd03d40b691a85e002d8ed91216df9e6883d1fe5e69368ad135b59cff5ae49d65860db727fca6acf984c3efe382bca26c4127e0328b2e72748dbf59369
   languageName: node
   linkType: hard
 

@@ -49,7 +49,7 @@ test.describe("Stripe integration", () => {
     await page.fill('[name="name"]', "Stripe Stripeson");
     await page.fill('[name="email"]', "test@example.com");
 
-    await Promise.all([page.waitForNavigation({ url: "/payment/*" }), page.press('[name="email"]', "Enter")]);
+    await Promise.all([page.waitForURL("/payment/*"), page.press('[name="email"]', "Enter")]);
 
     const stripeFrame = page
       .frameLocator('iframe[src^="https://js.stripe.com/v3/elements-inner-card-"]')

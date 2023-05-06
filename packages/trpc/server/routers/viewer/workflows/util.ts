@@ -1,5 +1,4 @@
 import type { Workflow } from "@prisma/client";
-import { MembershipRole } from "@prisma/client";
 
 import { isSMSAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
 import {
@@ -11,6 +10,7 @@ import { removeBookingField, upsertBookingField } from "@calcom/features/eventty
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import type PrismaType from "@calcom/prisma";
 import type { WorkflowStep } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 export function getSender(
   step: Pick<WorkflowStep, "action" | "sender"> & { senderName: string | null | undefined }
