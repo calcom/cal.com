@@ -1,7 +1,7 @@
 import { useId } from "@radix-ui/react-id";
 import * as React from "react";
 import type { GroupBase, Props, SingleValue, MultiValue, OptionProps } from "react-select";
-import ReactSelect, { components } from "react-select";
+import ReactSelect from "react-select";
 
 import cx from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,6 +15,12 @@ export type SelectProps<
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 > = Props<Option, IsMulti, Group> & { variant?: "default" | "checkbox" };
+
+type InputOptionProps = 
+{
+  Option?: React.ComponentType<OptionProps<Option, boolean, GroupBase<Option>>>;
+  inputProps: OptionProps<Option, boolean, GroupBase<Option>>;
+};
 
 export const Select = <
   Option,
@@ -33,7 +39,9 @@ export const Select = <
 
   const componentProps = isMultiSelectCheckbox ? {
     ...additonalComponents,
-    Option: InputOption,
+    Option: (props: InputOptionProps["inputProps"]) => (
+      <InputOption inputProps={props} Option={components?.Option as InputOptionProps["Option"]} />
+    )
   } : components
   const reactSelectProps = React.useMemo(() => {
     return getReactSelectProps<Option, IsMulti, Group>({
@@ -211,21 +219,17 @@ export type Option = {
   label: string;
 };
 
-const InputOption: React.FC<OptionProps<Option, boolean, GroupBase<any>>> = ({
-  isDisabled,
-  isFocused,
-  isSelected,
-  children,
-  innerProps,
-  className,
-  ...rest
+const InputOption: React.FC<InputOptionProps> = ({
+  Option,
+  inputProps
 }) => {
+  const { isDisabled, isFocused, isSelected, children, innerProps, className, ...rest } = inputProps;
   const props = {
     ...innerProps,
   };
 
   return (
-    <components.Option
+    Option ? <Option
       {...rest}
       isDisabled={isDisabled}
       isFocused={isFocused}
@@ -238,7 +242,7 @@ const InputOption: React.FC<OptionProps<Option, boolean, GroupBase<any>>> = ({
         readOnly
       />
       {children}
-    </components.Option>
+    </Option> : <></>
   );
 };
 
