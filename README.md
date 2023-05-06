@@ -170,7 +170,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    <details>
    <summary>If you don't know how to configure the DATABASE_URL, then follow the steps here to create a quick DB using Heroku.</summary>
 
-   1. Create a free account with [Heroku](https://heroku.com).
+   1. Create an account with [Heroku](https://heroku.com).
 
    2. Create a new app.
       <img width="306" alt="Create an App" src="https://user-images.githubusercontent.com/16905768/115322780-b3d58c00-a17e-11eb-8a52-b758fb0ea942.png">
