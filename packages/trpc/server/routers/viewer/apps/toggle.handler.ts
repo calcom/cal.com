@@ -69,11 +69,31 @@ export const toggleHandler = async ({ input, ctx }: ToggleOptions) => {
         },
       });
 
-      // TODO: This should be done async probably using a queue.
-      Promise.all(
-        appCredentials.map(async (credential) => {
+      class Queue<T> {
+        private items: T[] = [];
+
+        enqueue(item: T) {
+          this.items.push(item);
+        }
+
+        dequeue(): T | undefined {
+          return this.items.shift();
+        }
+
+        isEmpty(): boolean {
+          return this.items.length === 0;
+        }
+      }
+
+      const processQueue = async (queue: Queue<(typeof appCredentials)[0]>) => {
+        while (!queue.isEmpty()) {
+          const credential = queue.dequeue();
+
+          // no need to continue if credential is not present
+          if (!credential) continue;
+
           // No need to continue if credential does not have a user
-          if (!credential.user || !credential.user.email) return;
+          if (!credential.user || !credential.user.email) continue;
 
           const locale = credential.user.locale ?? "en";
           let t = translations.get(locale);
@@ -89,8 +109,14 @@ export const toggleHandler = async ({ input, ctx }: ToggleOptions) => {
             appType: app.categories,
             t,
           });
-        })
-      );
+        }
+      };
+
+      const queue = new Queue<(typeof appCredentials)[0]>();
+      appCredentials.forEach((credential) => queue.enqueue(credential));
+
+      // Start processing the queue
+      await processQueue(queue);
     } else {
       const eventTypesWithApp = await prisma.eventType.findMany({
         where: {
