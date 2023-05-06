@@ -17,6 +17,8 @@ export const bookingResponse = z.union([
     optionValue: z.string(),
     value: z.string(),
   }),
+  // For variantsConfig case
+  z.record(z.string()),
 ]);
 
 export const bookingResponsesDbSchema = z.record(bookingResponse);
