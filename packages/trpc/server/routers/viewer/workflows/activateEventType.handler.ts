@@ -1,6 +1,5 @@
-import { MembershipRole, WorkflowActions } from "@prisma/client";
-
 import { prisma } from "@calcom/prisma";
+import { MembershipRole, WorkflowActions } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
