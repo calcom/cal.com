@@ -145,6 +145,7 @@ export const Components: Record<FieldType, Component> = {
             placeholder={variantField.placeholder}
             label={variantField.label}
             containerClassName="w-full"
+            readOnly={props.readOnly}
             value={value}
             required={variantField.required}
             className="dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500"
@@ -168,6 +169,7 @@ export const Components: Record<FieldType, Component> = {
             <InputField
               key={variantField.name}
               name={variantField.name}
+              readOnly={props.readOnly}
               placeholder={variantField.placeholder}
               label={variantField.label}
               containerClassName={`w-full testid-${variantField.name}`}
