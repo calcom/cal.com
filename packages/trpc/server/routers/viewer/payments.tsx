@@ -34,11 +34,13 @@ export const paymentsRouter = router({
         },
       });
 
+      const payment = booking.payment[0];
+
       if (!booking) {
         throw new Error("Booking not found");
       }
 
-      if (booking.payment[0].success) {
+      if (payment.success) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: `The no show fee for ${booking.id} has already been charged.`,
@@ -78,16 +80,16 @@ export const paymentsRouter = router({
         },
         attendees: attendeesList,
         paymentInfo: {
-          amount: booking.payment[0].amount,
-          currency: booking.payment[0].currency,
-          paymentOption: booking.payment[0].paymentOption,
+          amount: payment.amount,
+          currency: payment.currency,
+          paymentOption: payment.paymentOption,
         },
       };
 
       const paymentCredential = await prisma.credential.findFirst({
         where: {
           userId: ctx.user.id,
-          appId: booking.payment[0].appId,
+          appId: payment.appId,
         },
         include: {
           app: true,
@@ -108,7 +110,7 @@ export const paymentsRouter = router({
       const paymentInstance = new PaymentService(paymentCredential);
 
       try {
-        const paymentData = await paymentInstance.chargeCard(booking.payment[0]);
+        const paymentData = await paymentInstance.chargeCard(payment);
 
         if (!paymentData) {
           throw new TRPCError({ code: "NOT_FOUND", message: `Could not generate payment data` });
@@ -127,7 +129,7 @@ export const paymentsRouter = router({
             sendPayload(subscriber.secret, WebhookTriggerEvents.BOOKING_PAID, {
               ...evt,
               bookingId: booking.id,
-              paymentId: booking.payment[0].id,
+              paymentId: payment.id,
               paymentData,
               eventTypeId: subscriberOptions.eventTypeId,
             });
