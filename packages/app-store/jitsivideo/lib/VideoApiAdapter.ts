@@ -13,10 +13,10 @@ const JitsiVideoApiAdapter = (): VideoApiAdapter => {
     createMeeting: async (): Promise<VideoCallData> => {
       //TODO: make this configurable: e.g. `/{Event type}-{Scheduler}-{uuid}`
       const meetingID = uuidv4();
-      const appKeys = getAppKeysFromSlug('jitsivideo');
+      const appKeys = getAppKeysFromSlug("jitsivideo");
 
-      let fallback_hostUrl = "https://meet.jit.si/cal/";
-      const hostUrl = (typeof appKeys.jitsi_host === "string") ? appKeys.jitsi_host : fallback_hostUrl;
+      const fallback_hostUrl = "https://meet.jit.si/cal/";
+      const hostUrl = typeof·appKeys.jitsi_host·===·"string" ? appKeys.jitsi_host : fallback_hostUrl;
 
       return Promise.resolve({
         type: "jitsi_video",
