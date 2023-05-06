@@ -43,22 +43,27 @@ export type Endpoint = (typeof ENDPOINTS)[number];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const resolveEndpoint = (links: any) => {
-  // TODO: Update our trpc routes so they are more clear.
   // This function parses paths like the following and maps them
   // to the correct API endpoints.
   // - viewer.me - 2 segment paths like this are for logged in requests
   // - viewer.public.i18n - 3 segments paths can be public or authed
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (ctx: any) => {
+    // split the segmented path into an array
     const parts = ctx.op.path.split(".");
-    let endpoint;
+
+    // type-safe for ensuring the keys are form ENDPOINTS
+    let endpoint: keyof typeof links;
     let path = "";
+
+    // based on the path segments
     if (parts.length == 2) {
-      endpoint = parts[0] as keyof typeof links;
-      path = parts[1];
+      // assign first segment to endpoint & second segment to path
+      [endpoint, path] = parts;
     } else {
-      endpoint = parts[1] as keyof typeof links;
-      path = parts.splice(2, parts.length - 2).join(".");
+      // assign second segment to endpoint & the rest to path
+      endpoint = parts[1];
+      path = parts.slice(2).join(".");
     }
     return links[endpoint]({ ...ctx, op: { ...ctx.op, path } });
   };
