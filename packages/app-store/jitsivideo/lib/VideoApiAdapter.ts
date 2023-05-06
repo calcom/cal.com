@@ -15,8 +15,8 @@ const JitsiVideoApiAdapter = (): VideoApiAdapter => {
       const meetingID = uuidv4();
       const appKeys = getAppKeysFromSlug("jitsivideo");
 
-      const fallback_hostUrl = "https://meet.jit.si/cal/";
-      const hostUrl = typeof·appKeys.jitsi_host·===·"string" ? appKeys.jitsi_host : fallback_hostUrl;
+      let hostUrl = "https://meet.jit.si/cal/";
+      if (typeof appKeys.jitsi_host === "string") hostUrl = appKeys.jitsi_host;
 
       return Promise.resolve({
         type: "jitsi_video",
