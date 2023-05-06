@@ -99,7 +99,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
   });
 }
 
-type CustomRequest = NextApiRequest & {
+export type CustomRequest = NextApiRequest & {
   userId?: number;
   bookingToDelete?: Awaited<ReturnType<typeof getBookingToDelete>>;
 };
