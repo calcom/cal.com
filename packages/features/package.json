@@ -12,7 +12,13 @@
     "@calcom/ui": "*",
     "@lexical/react": "^0.5.0",
     "dompurify": "^2.4.1",
+    "framer-motion": "^10.12.3",
     "lexical": "^0.5.0",
-    "zustand": "^4.1.4"
+    "react-sticky-box": "^2.0.4",
+    "zustand": "^4.3.2"
+  },
+  "devDependencies": {
+    "@testing-library/react-hooks": "^8.0.1",
+    "mockdate": "^3.0.5"
   }
 }

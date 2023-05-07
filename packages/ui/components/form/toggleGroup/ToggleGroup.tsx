@@ -1,14 +1,31 @@
 import * as RadixToggleGroup from "@radix-ui/react-toggle-group";
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 
 import { classNames } from "@calcom/lib";
-
-export const ToggleGroupItem = () => <div>hi</div>;
+import { Tooltip } from "@calcom/ui";
 
 interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps, "type"> {
-  options: { value: string; label: string; disabled?: boolean }[];
+  options: { value: string; label: string | ReactNode; disabled?: boolean; tooltip?: string }[];
   isFullWidth?: boolean;
 }
+
+const OptionalTooltipWrapper = ({
+  children,
+  tooltipText,
+}: {
+  children: ReactNode;
+  tooltipText?: ReactNode;
+}) => {
+  if (tooltipText) {
+    return (
+      <Tooltip delayDuration={150} sideOffset={12} side="bottom" content={tooltipText}>
+        {children}
+      </Tooltip>
+    );
+  }
+  return <>{children}</>;
+};
 
 export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: ToggleGroupProps) => {
   const [value, setValue] = useState<string | undefined>(props.defaultValue);
@@ -36,25 +53,26 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
           style={{ left: activeToggleElement?.offsetLeft, width: activeToggleElement?.offsetWidth }}
         />
         {options.map((option) => (
-          <RadixToggleGroup.Item
-            disabled={option.disabled}
-            key={option.value}
-            value={option.value}
-            className={classNames(
-              "relative rounded-[4px] px-3 py-1 text-sm leading-tight",
-              option.disabled
-                ? " text-gray-400 hover:cursor-not-allowed"
-                : " text-default [&[aria-checked='false']]:hover:bg-subtle",
-              isFullWidth && "w-full"
-            )}
-            ref={(node) => {
-              if (node && value === option.value) {
-                setActiveToggleElement(node);
-              }
-              return node;
-            }}>
-            {option.label}
-          </RadixToggleGroup.Item>
+          <OptionalTooltipWrapper key={option.value} tooltipText={option.tooltip}>
+            <RadixToggleGroup.Item
+              disabled={option.disabled}
+              value={option.value}
+              className={classNames(
+                "relative rounded-[4px] px-3 py-1 text-sm leading-tight",
+                option.disabled
+                  ? "text-gray-400 hover:cursor-not-allowed"
+                  : "text-default [&[aria-checked='false']]:hover:bg-subtle",
+                isFullWidth && "w-full"
+              )}
+              ref={(node) => {
+                if (node && value === option.value && activeToggleElement !== node) {
+                  setActiveToggleElement(node);
+                }
+                return node;
+              }}>
+              {option.label}
+            </RadixToggleGroup.Item>
+          </OptionalTooltipWrapper>
         ))}
       </RadixToggleGroup.Root>
     </>

@@ -465,7 +465,6 @@
   "friday": "周五",
   "saturday": "周六",
   "sunday": "周日",
-  "all_booked_today": "今天已约满。",
   "slots_load_fail": "无法加载可用的时间段。",
   "additional_guests": "添加访客",
   "your_name": "您的姓名",

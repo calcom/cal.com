@@ -3,6 +3,9 @@
   "sideEffects": false,
   "version": "0.0.0",
   "private": true,
+  "scripts": {
+    "dx": "docker compose up -d"
+  },
   "dependencies": {
     "@calcom/dayjs": "*",
     "@calcom/lib": "*",
