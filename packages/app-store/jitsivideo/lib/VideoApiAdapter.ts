@@ -13,7 +13,7 @@ const JitsiVideoApiAdapter = (): VideoApiAdapter => {
     createMeeting: async (): Promise<VideoCallData> => {
       //TODO: make this configurable: e.g. `/{Event type}-{Scheduler}-{uuid}`
       const meetingID = uuidv4();
-      const appKeys = getAppKeysFromSlug("jitsivideo");
+      const appKeys = await getAppKeysFromSlug("jitsivideo");
 
       let hostUrl = "https://meet.jit.si/cal/";
       if (typeof appKeys.jitsi_host === "string") hostUrl = appKeys.jitsi_host;
