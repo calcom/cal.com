@@ -75,31 +75,28 @@ export const userAdminRouter = router({
     const { requestedUser } = ctx;
     return { user: requestedUser };
   }),
+  // validate 3 optional input properties: search, skip & take (for pagination)
   list: authedAdminProcedure
     .input(
       z.object({
         search: z.string().optional(),
         skip: z.number().int().min(0).optional(),
-        take: z.number().int().min(1).max(100).optional(),
+        take: z.number().int().min(1).max(40).optional(),
       })
     )
     .query(async ({ ctx, input }) => {
       const { prisma } = ctx;
       const { search, skip, take } = input;
 
-      // Build a where object to filter users by search query
-      const where = search
+      // search_user object to filter users by search param
+      const search_user = search
         ? {
-            OR: [
-              { firstName: { contains: search } },
-              { lastName: { contains: search } },
-              { email: { contains: search } },
-            ],
+            OR: [{ username: { contains: search } }, { email: { contains: search } }],
           }
         : undefined;
 
       const users = await prisma.user.findMany({
-        where,
+        where: search_user,
         skip,
         take,
       });
