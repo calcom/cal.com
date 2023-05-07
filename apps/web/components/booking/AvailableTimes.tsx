@@ -78,7 +78,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   return (
     <div ref={slotPickerRef}>
       {!!date ? (
-        <div className="mt-8 flex h-full w-full flex-col rounded-md px-4 text-center dark:bg-gradient-to-tr dark:from-[#1c1c1c] dark:to-[#2a2a2a] sm:mt-0 sm:p-4 md:-mb-5 md:min-w-[200px] md:p-4 lg:min-w-[300px]">
+        <div className="mt-8 flex h-full w-full flex-col rounded-md px-4 text-center sm:mt-0 sm:p-4 md:-mb-5 md:min-w-[200px] md:p-4 lg:min-w-[300px]">
           <div className="mb-4 flex items-center text-left text-base">
             <div className="mr-4">
               <span className="text-emphasis font-semibold">
