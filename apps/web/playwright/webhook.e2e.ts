@@ -9,7 +9,6 @@ import {
 } from "./lib/testUtils";
 
 test.describe("webhooks", async () => {
-  const webhookReceiver = createHttpServer();
 
   test.afterEach(({ users }) => users.deleteAll());
 
@@ -17,6 +16,7 @@ test.describe("webhooks", async () => {
     page,
     users,
   }, testInfo) => {
+    const webhookReceiver = createHttpServer();
     const user = await users.create();
     const [eventType] = user.eventTypes;
     await user.login();
@@ -140,17 +140,42 @@ test.describe("webhooks", async () => {
     page,
     users,
   }) => {
-    const proUser = await users.create();
-    await page.goto(`/${proUser.username}`);
+    const webhookReceiver = createHttpServer();
+    // --- create a user
+    const user = await users.create();
+
+    // --- visit user page
+    await page.goto(`/${user.username}`);
+
+    // --- book the user's event
     await bookOptinEvent(page);
-    const [pro] = users.get();
-    await pro.login();
+
+    // --- login as that user
+    await user.login();
+
+    await page.goto(`/settings/developer/webhooks`);
+
+    // --- add webhook
+    await page.click('[data-testid="new_webhook"]');
+
+    await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
+
+    await page.fill('[name="secret"]', "secret");
+
+    await Promise.all([
+      page.click("[type=submit]"),
+      page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
+    ]);
+
+    // page contains the url
+    expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
 
     await page.goto("/bookings/unconfirmed");
     await page.click('[data-testid="reject"]');
+    await page.click('[data-testid="rejection-confirm"]')
+    await page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm"))
 
-    await page.click('[data-testid="rejection-confirm"]');
-    await page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm"));
+    // --- check that webhook was called
     await waitFor(() => {
       expect(webhookReceiver.requestList.length).toBe(1);
     });
