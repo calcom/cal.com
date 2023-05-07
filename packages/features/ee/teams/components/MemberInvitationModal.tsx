@@ -51,9 +51,10 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const newMemberFormMethods = useForm<NewMemberForm>();
 
   const validateUniqueInvite = (value: string) => {
+    const trimmedValue = value.trim()
     return !(
-      props.members.some((member) => member?.username === value) ||
-      props.members.some((member) => member?.email === value)
+      props.members.some((member) => member?.username === trimmedValue) ||
+      props.members.some((member) => member?.email === trimmedValue)
     );
   };
 
