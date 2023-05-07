@@ -200,6 +200,12 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    ```sh
    yarn workspace @calcom/prisma db-deploy
    ```
+1. Run [mailhog](https://github.com/mailhog/MailHog) to view emails sent during development
+
+   ```sh
+   docker pull mailhog/mailhog
+   docker run -d -p 8025:8025 -p 1025:1025 mailhog/mailhog
+   ```
 
 1. Run (in development mode)
 
