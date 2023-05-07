@@ -1,6 +1,7 @@
-import { Prisma, SchedulingType } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { WEBAPP_URL } from "../../../constants";

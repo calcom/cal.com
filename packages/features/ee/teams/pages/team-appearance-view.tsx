@@ -1,9 +1,9 @@
-import { MembershipRole } from "@prisma/client";
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -151,6 +151,7 @@ const ProfileView = () => {
                   <p className="text-emphasis mb-2 block text-sm font-medium">{t("light_brand_color")}</p>
                   <ColorPicker
                     defaultValue={team.brandColor}
+                    resetDefaultValue="#292929"
                     onChange={(value) => form.setValue("brandColor", value, { shouldDirty: true })}
                   />
                 </div>
@@ -165,6 +166,7 @@ const ProfileView = () => {
                   <p className="text-emphasis mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
                   <ColorPicker
                     defaultValue={team.darkBrandColor}
+                    resetDefaultValue="#fafafa"
                     onChange={(value) => form.setValue("darkBrandColor", value, { shouldDirty: true })}
                   />
                 </div>

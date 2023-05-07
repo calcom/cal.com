@@ -299,19 +299,19 @@ function UserDropdown({ small }: { small?: boolean }) {
                 />
               }
               {!user.away && (
-                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
+                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-muted bg-green-500" />
               )}
               {user.away && (
-                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-yellow-500" />
+                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-muted bg-yellow-500" />
               )}
             </span>
             {!small && (
               <span className="flex flex-grow items-center truncate">
                 <span className="flex-grow truncate text-sm">
-                  <span className="text-emphasis mb-1 block truncate font-medium leading-none">
+                  <span className="text-emphasis mb-1 pb-1 block truncate font-medium leading-none">
                     {user.name || "Nameless User"}
                   </span>
-                  <span className="text-default block truncate font-normal leading-none">
+                  <span className="text-default pb-1 truncate font-normal leading-none">
                     {user.username
                       ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
                         ? `cal.com/${user.username}`
