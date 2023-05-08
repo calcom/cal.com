@@ -134,17 +134,33 @@ export const scheduleEmailReminder = async (
     triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
   ) {
     try {
-      await sgMail.send({
-        to: sendTo,
-        from: {
-          email: senderEmail,
-          name: sender,
-        },
-        subject: emailContent.emailSubject,
-        html: emailContent.emailBody,
-        batchId: batchIdResponse[1].batch_id,
-        replyTo: evt.organizer.email,
-      });
+      if (Array.isArray(sendTo)) {
+        for (const email of sendTo) {
+          await sgMail.send({
+            to: email,
+            from: {
+              email: senderEmail,
+              name: sender,
+            },
+            subject: emailContent.emailSubject,
+            html: emailContent.emailBody,
+            batchId: batchIdResponse[1].batch_id,
+            replyTo: evt.organizer.email,
+          });
+        }
+      } else {
+        await sgMail.send({
+          to: sendTo,
+          from: {
+            email: senderEmail,
+            name: sender,
+          },
+          subject: emailContent.emailSubject,
+          html: emailContent.emailBody,
+          batchId: batchIdResponse[1].batch_id,
+          replyTo: evt.organizer.email,
+        });
+      }
     } catch (error) {
       console.log("Error sending Email");
     }
