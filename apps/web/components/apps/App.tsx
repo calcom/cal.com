@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
 import type { IframeHTMLAttributes } from "react";
 import React, { useState } from "react";
 
@@ -43,7 +42,6 @@ const Component = ({
 }: Parameters<typeof App>[0]) => {
   const { t, i18n } = useLocale();
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
-  const router = useRouter();
 
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
@@ -186,7 +184,7 @@ const Component = ({
               label={t("disconnect")}
               credentialId={existingCredentials[0]}
               onSuccess={() => {
-                router.replace("/apps/installed");
+                appCredentials.refetch();
               }}
             />
           ) : (

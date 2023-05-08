@@ -9,7 +9,7 @@ import { Calendar, Globe } from "@calcom/ui/components/icon";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
-import { formatEventFromToTime } from "../utils/dates";
+import { FromToTime } from "../utils/dates";
 import { useEvent } from "../utils/event";
 
 const TimezoneSelect = dynamic(() => import("@calcom/ui").then((mod) => mod.TimezoneSelect), {
@@ -42,25 +42,25 @@ export const EventMeta = () => {
                 {t("former_time")}
                 <br />
                 <span className="line-through" data-testid="former_time_p">
-                  {formatEventFromToTime(
-                    rescheduleBooking.startTime.toString(),
-                    null,
-                    timeFormat,
-                    timezone,
-                    i18n.language
-                  )}
+                  <FromToTime
+                    date={rescheduleBooking.startTime.toString()}
+                    duration={null}
+                    timeFormat={timeFormat}
+                    timeZone={timezone}
+                    language={i18n.language}
+                  />
                 </span>
               </EventMetaBlock>
             )}
             {selectedTimeslot && (
               <EventMetaBlock icon={Calendar}>
-                {formatEventFromToTime(
-                  selectedTimeslot,
-                  selectedDuration,
-                  timeFormat,
-                  timezone,
-                  i18n.language
-                )}
+                <FromToTime
+                  date={selectedTimeslot}
+                  duration={selectedDuration || event.length}
+                  timeFormat={timeFormat}
+                  timeZone={timezone}
+                  language={i18n.language}
+                />
               </EventMetaBlock>
             )}
             <EventDetails event={event} />
