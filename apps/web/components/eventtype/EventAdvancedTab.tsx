@@ -350,23 +350,16 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           <Controller
             name="metadata.disableStandardEmails.confirmation.attendee"
             control={formMethods.control}
-            //defaultValue
             render={({ field: { value, onChange } }) => (
               <>
                 <SettingsToggle
                   title={t("Disable standard confirmation emails for attendees")}
-                  // {...seatsLocked}
                   description={t(
                     "This event type is active on at least one workflow that sends an email to the attendee when the event is booked."
                   )}
                   checked={value || false}
                   onCheckedChange={(e) => {
-                    // todo make that cleaner
-                    if (e) {
-                      formMethods.setValue("metadata.disableStandardEmails.confirmation.attendee", true);
-                    } else {
-                      formMethods.setValue("metadata.disableStandardEmails.confirmation.attendee", false);
-                    }
+                    formMethods.setValue("metadata.disableStandardEmails.confirmation.attendee", e);
                     onChange(e);
                   }}
                 />
@@ -386,19 +379,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               <>
                 <SettingsToggle
                   title={t("Disable standard confirmation emails for host")}
-                  // {...seatsLocked}
                   description={t(
                     "This event type is active on at least one workflow that sends an email to the host when the event is booked."
                   )}
                   checked={value || false}
-                  // disabled={noShowFeeEnabled}
                   onCheckedChange={(e) => {
-                    // todo make that cleaner
-                    if (e) {
-                      formMethods.setValue("metadata.disableStandardEmails.confirmation.host", true);
-                    } else {
-                      formMethods.setValue("metadata.disableStandardEmails.confirmation.host", false);
-                    }
+                    formMethods.setValue("metadata.disableStandardEmails.confirmation.host", e);
                     onChange(e);
                   }}
                 />
