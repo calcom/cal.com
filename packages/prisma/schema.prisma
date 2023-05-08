@@ -749,6 +749,9 @@ model WorkflowReminder {
 enum WorkflowTemplates {
   REMINDER
   CUSTOM
+  CANCELLED
+  RESCHEDULED
+  COMPLETED
 }
 
 enum WorkflowMethods {

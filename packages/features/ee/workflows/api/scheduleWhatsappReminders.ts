@@ -15,7 +15,6 @@ import customTemplate from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  console.log("Started scheduling Whatsapp Reminders", new Date())
   const apiKey = req.headers.authorization || req.query.apiKey;
   if (process.env.CRON_API_KEY !== apiKey) {
     res.status(401).json({ message: "Not authenticated" });

@@ -90,12 +90,15 @@ const WorkflowListItem = (props: ItemProps) => {
       case WorkflowActions.SMS_ATTENDEE:
         sendTo.add(t("attendee_name_variable"));
         break;
+      case WorkflowActions.WHATSAPP_ATTENDEE:
+        sendTo.add(t("attendee_name_variable"));
+        break;
       case WorkflowActions.SMS_NUMBER:
         sendTo.add(step.sendTo || "");
         break;
       case WorkflowActions.WHATSAPP_NUMBER:
-          sendTo.add(step.sendTo || "");
-          break;
+        sendTo.add(step.sendTo || "");
+        break;
       case WorkflowActions.EMAIL_ADDRESS:
         sendTo.add(step.sendTo || "");
         break;

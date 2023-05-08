@@ -37,11 +37,12 @@ import {
 } from "@calcom/ui";
 import { ArrowDown, MoreHorizontal, Trash2, HelpCircle, Info } from "@calcom/ui/components/icon";
 
-import { isAttendeeAction, isSMSAction } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
+import { isAttendeeAction, isSMSAction, isWhatsappAction } from "../lib/actionHelperFunctions";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
+import { whatsappEventCancelledTemplate, whatsappEventCompletedTemplate, whatsappReminderTemplate } from "../lib/reminders/templates/whatsapp";
 import type { FormValues } from "../pages/workflow";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
@@ -114,8 +115,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   if (step && form.getValues(`steps.${step.stepNumber - 1}.template`) === WorkflowTemplates.REMINDER) {
     if (!form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
-      if (isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`))) {
-        const smsBody = smsReminderTemplate(true, form.getValues(`steps.${step.stepNumber - 1}.action`));
+      const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
+      if (isSMSAction(action)) {
+        const reminderTemplateFunction = isWhatsappAction(action) ? whatsappReminderTemplate : smsReminderTemplate
+        const smsBody = reminderTemplateFunction(true, form.getValues(`steps.${step.stepNumber - 1}.action`));
         form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, smsBody);
       } else {
         const reminderBodyTemplate = emailReminderTemplate(
@@ -131,6 +134,36 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         form.getValues(`steps.${step.stepNumber - 1}.action`)
       ).emailSubject;
       form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
+    }
+  } else if (step && isWhatsappAction(step.action)) {
+    switch(step.template) {
+      case "CANCELLED":
+        form.setValue(
+          `steps.${step.stepNumber - 1}.reminderBody`,
+          whatsappEventCancelledTemplate(
+            true,
+            form.getValues(`steps.${step.stepNumber - 1}.action`)
+          )
+        );
+        break
+      case "RESCHEDULED":
+        form.setValue(
+          `steps.${step.stepNumber - 1}.reminderBody`,
+          whatsappEventCancelledTemplate(
+            true,
+            form.getValues(`steps.${step.stepNumber - 1}.action`)
+          )
+        );
+        break
+      case "COMPLETED":
+        form.setValue(
+          `steps.${step.stepNumber - 1}.reminderBody`,
+          whatsappEventCompletedTemplate(
+            true,
+            form.getValues(`steps.${step.stepNumber - 1}.action`)
+          )
+        );
+        break
     }
   }
 
@@ -431,9 +464,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                 }
                               } else {
                                 if (isSMSAction(val.value)) {
+                                  const reminderTemplateFunction = isWhatsappAction(val.value) ? whatsappReminderTemplate : smsReminderTemplate
                                   form.setValue(
                                     `steps.${step.stepNumber - 1}.reminderBody`,
-                                    smsReminderTemplate(true, val.value)
+                                    reminderTemplateFunction(true, val.value)
                                   );
                                 } else {
                                   const emailReminderBody = emailReminderTemplate(true, val.value);
@@ -617,12 +651,22 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   render={() => {
                     return (
                       <Select
+                        isDisabled={isWhatsappAction(step.action)}
                         isSearchable={false}
                         className="text-sm"
                         onChange={(val) => {
                           if (val) {
                             if (val.value === WorkflowTemplates.REMINDER) {
-                              if (isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`))) {
+                              const action = form.getValues(`steps.${step.stepNumber - 1}.action`)
+                              if (isWhatsappAction(action)) {
+                                form.setValue(
+                                  `steps.${step.stepNumber - 1}.reminderBody`,
+                                  whatsappReminderTemplate(
+                                    true,
+                                    form.getValues(`steps.${step.stepNumber - 1}.action`)
+                                  )
+                                );
+                              } else if (isSMSAction(action)) {
                                 form.setValue(
                                   `steps.${step.stepNumber - 1}.reminderBody`,
                                   smsReminderTemplate(
@@ -647,8 +691,38 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                 );
                               }
                             } else {
-                              form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
-                              form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, "");
+                              switch(val.value) {
+                                case "CANCELLED":
+                                  form.setValue(
+                                    `steps.${step.stepNumber - 1}.reminderBody`,
+                                    whatsappEventCancelledTemplate(
+                                      true,
+                                      form.getValues(`steps.${step.stepNumber - 1}.action`)
+                                    )
+                                  );
+                                  break
+                                case "RESCHEDULED":
+                                  form.setValue(
+                                    `steps.${step.stepNumber - 1}.reminderBody`,
+                                    whatsappEventCancelledTemplate(
+                                      true,
+                                      form.getValues(`steps.${step.stepNumber - 1}.action`)
+                                    )
+                                  );
+                                  break
+                                case "COMPLETED":
+                                  form.setValue(
+                                    `steps.${step.stepNumber - 1}.reminderBody`,
+                                    whatsappEventCompletedTemplate(
+                                      true,
+                                      form.getValues(`steps.${step.stepNumber - 1}.action`)
+                                    )
+                                  );
+                                  break
+                                default:
+                                  form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
+                                  form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, "");
+                              }
                             }
                             form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
                             setUpdateTemplate(!updateTemplate);
@@ -713,6 +787,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       updateTemplate={updateTemplate}
                       firstRender={firstRender}
                       setFirstRender={setFirstRender}
+                      editable={!isWhatsappAction(step.action)}
                     />
                   </>
                 ) : (
