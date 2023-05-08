@@ -3,6 +3,7 @@ import type { Session } from "next-auth";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 
 import type { TStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
+import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
 
 type StripeCheckoutSessionOptions = {
   ctx: {
@@ -15,12 +16,9 @@ export const stripeCheckoutSessionHandler = async ({ input }: StripeCheckoutSess
   const { checkoutSessionId, stripeCustomerId } = input;
 
   // TODO: Move the following data checks to superRefine
-  if (!checkoutSessionId && !stripeCustomerId) {
-    throw new Error("Missing checkoutSessionId or stripeCustomerId");
-  }
-
-  if (checkoutSessionId && stripeCustomerId) {
-    throw new Error("Both checkoutSessionId and stripeCustomerId provided");
+  const validationResult = ZStripeCheckoutSessionInputSchema.safeParse(input);
+  if (!validationResult.success) {
+    throw new Error(validationResult.error.message);
   }
   let customerId: string;
   let isPremiumUsername = false;
