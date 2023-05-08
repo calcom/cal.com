@@ -27,7 +27,7 @@ import { Alert, Button, Form, showToast, Badge } from "@calcom/ui";
 import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
-import { isSMSAction } from "../lib/actionHelperFunctions";
+import { isSMSOrWhatsappAction } from "../lib/actionHelperFunctions";
 import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
 export type FormValues = {
@@ -144,7 +144,7 @@ function WorkflowPage() {
         const updatedStep = {
           ...step,
           senderName: step.sender,
-          sender: isSMSAction(step.action) ? step.sender : SENDER_ID,
+          sender: isSMSOrWhatsappAction(step.action) ? step.sender : SENDER_ID,
         };
         if (step.reminderBody) {
           updatedStep.reminderBody = getTranslatedText(step.reminderBody || "", {
@@ -204,7 +204,7 @@ function WorkflowPage() {
         values.steps.forEach((step) => {
           const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
 
-          const isBodyEmpty = !isSMSAction(step.action) && strippedHtml.length <= 1;
+          const isBodyEmpty = !isSMSOrWhatsappAction(step.action) && strippedHtml.length <= 1;
 
           if (isBodyEmpty) {
             form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {

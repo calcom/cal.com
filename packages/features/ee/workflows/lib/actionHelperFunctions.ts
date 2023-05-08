@@ -1,11 +1,15 @@
 import { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@prisma/client";
 
 export function isSMSAction(action: WorkflowActions) {
-  return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER || isWhatsappAction(action)
+  return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER
 }
 
 export function isWhatsappAction(action: WorkflowActions) {
   return action === WorkflowActions.WHATSAPP_NUMBER || action === WorkflowActions.WHATSAPP_ATTENDEE;
+}
+
+export function isSMSOrWhatsappAction(action: WorkflowActions) {
+  return isSMSAction(action) || isWhatsappAction(action)
 }
 
 export function isAttendeeAction(action: WorkflowActions) {

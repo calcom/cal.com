@@ -17,7 +17,7 @@ import {
   getSmsReminderNumberSource,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
-import { isSMSAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { isSMSOrWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import {
   WORKFLOW_TEMPLATES,
   WORKFLOW_TRIGGER_EVENTS,
@@ -58,7 +58,7 @@ import { viewerTeamsRouter } from "./teams";
 function getSender(
   step: Pick<WorkflowStep, "action" | "sender"> & { senderName: string | null | undefined }
 ) {
-  return isSMSAction(step.action) ? step.sender || SENDER_ID : step.senderName || SENDER_NAME;
+  return isSMSOrWhatsappAction(step.action) ? step.sender || SENDER_ID : step.senderName || SENDER_NAME;
 }
 
 async function isAuthorized(
@@ -785,8 +785,8 @@ export const workflowsRouter = router({
           if (
             !userWorkflow.teamId &&
             !userWorkflow.user?.teams.length &&
-            !isSMSAction(oldStep.action) &&
-            isSMSAction(newStep.action)
+            !isSMSOrWhatsappAction(oldStep.action) &&
+            isSMSOrWhatsappAction(newStep.action)
           ) {
             throw new TRPCError({ code: "UNAUTHORIZED" });
           }
@@ -959,7 +959,7 @@ export const workflowsRouter = router({
       //added steps
       const addedSteps = steps.map((s) => {
         if (s.id <= 0) {
-          if (!userWorkflow.user?.teams.length && isSMSAction(s.action)) {
+          if (!userWorkflow.user?.teams.length && isSMSOrWhatsappAction(s.action)) {
             throw new TRPCError({ code: "UNAUTHORIZED" });
           }
           const { id: _stepId, ...stepToAdd } = s;
@@ -1226,7 +1226,7 @@ export const workflowsRouter = router({
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
-    if (isSMSAction(step.action) /*|| step.action === WorkflowActions.EMAIL_ADDRESS*/ /*) {
+    if (isSMSOrWhatsappAction(step.action) /*|| step.action === WorkflowActions.EMAIL_ADDRESS*/ /*) {
 const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId: user.id } })) > 0;
 if (!hasTeamPlan) {
 throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });

@@ -64,20 +64,19 @@ export const scheduleWhatsappReminder = async (
   const timeZone =
     action === WorkflowActions.WHATSAPP_ATTENDEE ? evt.attendees[0].timeZone : evt.organizer.timeZone;
 
-  const locale =
-    action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE
-      ? evt.attendees[0].language?.locale
-      : evt.organizer.language.locale;
-
   switch(template) {
     case WorkflowTemplates.REMINDER:
       message = whatsappReminderTemplate(false, action, evt.startTime, evt.title, timeZone, attendeeName, name) || message;
+      break;
     case WorkflowTemplates.CANCELLED:
       message = whatsappEventCancelledTemplate(false, action, evt.startTime, evt.title, timeZone, attendeeName, name) || message;
+      break
     case WorkflowTemplates.RESCHEDULED:
       message = whatsappEventRescheduledTemplate(false, action, evt.startTime, evt.title, timeZone, attendeeName, name) || message;
+      break;
     case WorkflowTemplates.COMPLETED:
       message = whatsappEventCompletedTemplate(false, action, evt.startTime, evt.title, timeZone, attendeeName, name) || message;
+      break
     default:
       message = whatsappReminderTemplate(false, action, evt.startTime, evt.title, timeZone, attendeeName, name) || message;
   }

@@ -1,14 +1,8 @@
 import type { WorkflowStep } from "@prisma/client";
-import { WorkflowActions } from "@prisma/client";
 
 import { classNames } from "@calcom/lib";
 import { Zap, Smartphone, Mail, Bell } from "@calcom/ui/components/icon";
-
-export function isSMSAction(action: WorkflowActions): boolean {
-  const isForSMS= action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER
-  const isForWhatsapp = action === WorkflowActions.WHATSAPP_ATTENDEE || action === WorkflowActions.WHATSAPP_NUMBER
-  return isForSMS || isForWhatsapp
-}
+import { isSMSOrWhatsappAction } from "ee/workflows/lib/actionHelperFunctions";
 
 export function getActionIcon(steps: WorkflowStep[], className?: string): JSX.Element {
   if (steps.length === 0) {
@@ -16,7 +10,7 @@ export function getActionIcon(steps: WorkflowStep[], className?: string): JSX.El
   }
 
   if (steps.length === 1) {
-    if (isSMSAction(steps[0].action)) {
+    if (isSMSOrWhatsappAction(steps[0].action)) {
       return (
         <Smartphone
           className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
@@ -35,9 +29,9 @@ export function getActionIcon(steps: WorkflowStep[], className?: string): JSX.El
 
     for (const step of steps) {
       if (!messageType) {
-        messageType = isSMSAction(step.action) ? "SMS" : "EMAIL";
+        messageType = isSMSOrWhatsappAction(step.action) ? "SMS" : "EMAIL";
       } else if (messageType !== "MIX") {
-        const newMessageType = isSMSAction(step.action) ? "SMS" : "EMAIL";
+        const newMessageType = isSMSOrWhatsappAction(step.action) ? "SMS" : "EMAIL";
         if (newMessageType !== messageType) {
           messageType = "MIX";
         }

@@ -204,7 +204,7 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
             );
           } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE || step.action === WorkflowActions.WHATSAPP_NUMBER) {
             const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
-            await scheduleSMSReminder(
+            await scheduleWhatsappReminder(
               evt,
               sendTo,
               workflow.trigger,

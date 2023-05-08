@@ -1,7 +1,7 @@
 import { WorkflowActions } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
-import { isSMSAction } from "./actionHelperFunctions";
+import { isSMSOrWhatsappAction } from "./actionHelperFunctions";
 import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_EVENTS } from "./constants";
 
 export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean) {
@@ -12,7 +12,7 @@ export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean) {
       return {
         label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
         value: action,
-        needsUpgrade: isSMSAction(action) && !isTeamsPlan,
+        needsUpgrade: isSMSOrWhatsappAction(action) && !isTeamsPlan,
       };
     });
 }
