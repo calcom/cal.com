@@ -276,6 +276,26 @@ export default abstract class BaseCalendarService implements Calendar {
     }
   }
 
+  getUserTimezone = async (userId: number): string => {
+    const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        timeZone: true,
+      },
+    });
+    return user?.timeZone;
+  };
+
+  getFirstUserId = (selectedCalendars: IntegrationCalendar[]): number | null => {
+    if (selectedCalendars.length === 0) {
+      return null;
+    }
+    return selectedCalendars[0].userId;
+  };
+
   isValidFormat = (url: string): boolean => {
     const allowedExtensions = ["eml", "ics"];
     const urlExtension = getFileExtension(url);
@@ -299,6 +319,9 @@ export default abstract class BaseCalendarService implements Calendar {
       dateTo,
       headers: this.headers,
     });
+
+    const firstUserId = this.getFirstUserId(selectedCalendars);
+    const userTimeZone = firstUserId ? await this.getUserTimezone(firstUserId) : "Europe/London";
     const events: { start: string; end: string }[] = [];
     objects.forEach((object) => {
       if (object.data == null || JSON.stringify(object.data) == "{}") return;
@@ -322,21 +345,30 @@ export default abstract class BaseCalendarService implements Calendar {
         const isUTC = timezone === "Z";
         const tzid: string | undefined = vevent?.getFirstPropertyValue("tzid") || isUTC ? "UTC" : timezone;
         // In case of icalendar, when only tzid is available without vtimezone, we need to add vtimezone explicitly to take care of timezone diff
-        if (!vcalendar.getFirstSubcomponent("vtimezone") && tzid) {
-          const timezoneComp = new ICAL.Component("vtimezone");
-          timezoneComp.addPropertyWithValue("tzid", tzid);
-          const standard = new ICAL.Component("standard");
-          // get timezone offset
-          const tzoffsetfrom = dayjs(event.startDate.toJSDate()).tz(tzid).format("Z");
-          const tzoffsetto = dayjs(event.endDate.toJSDate()).tz(tzid).format("Z");
+        if (!vcalendar.getFirstSubcomponent("vtimezone")) {
+          const timezoneToUse = tzid || userTimeZone;
+          if (timezoneToUse) {
+            try {
+              const timezoneComp = new ICAL.Component("vtimezone");
+              timezoneComp.addPropertyWithValue("tzid", timezoneToUse);
+              const standard = new ICAL.Component("standard");
 
-          // set timezone offset
-          standard.addPropertyWithValue("tzoffsetfrom", tzoffsetfrom);
-          standard.addPropertyWithValue("tzoffsetto", tzoffsetto);
-          // provide a standard dtstart
-          standard.addPropertyWithValue("dtstart", "1601-01-01T00:00:00");
-          timezoneComp.addSubcomponent(standard);
-          vcalendar.addSubcomponent(timezoneComp);
+              // get timezone offset
+              const tzoffsetfrom = dayjs(event.startDate.toJSDate()).tz(timezoneToUse).format("Z");
+              const tzoffsetto = dayjs(event.endDate.toJSDate()).tz(timezoneToUse).format("Z");
+
+              // set timezone offset
+              standard.addPropertyWithValue("tzoffsetfrom", tzoffsetfrom);
+              standard.addPropertyWithValue("tzoffsetto", tzoffsetto);
+              // provide a standard dtstart
+              standard.addPropertyWithValue("dtstart", "1601-01-01T00:00:00");
+              timezoneComp.addSubcomponent(standard);
+              vcalendar.addSubcomponent(timezoneComp);
+            } catch (e) {
+              // Adds try-catch to ensure the code proceeds when Apple Calendar provides non-standard TZIDs
+              console.log("error in adding vtimezone", e);
+            }
+          }
         }
         const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
 
