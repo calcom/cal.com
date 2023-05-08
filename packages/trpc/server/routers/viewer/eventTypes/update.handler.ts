@@ -142,22 +142,23 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
   }
 
-  const workflows = await ctx.prisma.workflow.findMany({
-    where: {
-      activeOn: {
-        some: {
-          eventTypeId: input.id,
-        },
-      },
-      trigger: WorkflowTriggerEvents.NEW_EVENT,
-    },
-    include: {
-      steps: true,
-    },
-  });
-
   if (input.metadata?.disableStandardEmails) {
     //check if user is allowed to disabled standard emails
+
+    const workflows = await ctx.prisma.workflow.findMany({
+      where: {
+        activeOn: {
+          some: {
+            eventTypeId: input.id,
+          },
+        },
+        trigger: WorkflowTriggerEvents.NEW_EVENT,
+      },
+      include: {
+        steps: true,
+      },
+    });
+
     if (input.metadata?.disableStandardEmails.confirmation?.host) {
       if (
         !workflows.find(

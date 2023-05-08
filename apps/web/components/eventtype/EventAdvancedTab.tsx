@@ -353,10 +353,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             render={({ field: { value, onChange } }) => (
               <>
                 <SettingsToggle
-                  title={t("Disable standard confirmation emails for attendees")}
-                  description={t(
-                    "This event type is active on at least one workflow that sends an email to the attendee when the event is booked."
-                  )}
+                  title={t("disable_attendees_confirmation_emails")}
+                  description={t("disable_attendees_confirmation_emails_description")}
                   checked={value || false}
                   onCheckedChange={(e) => {
                     formMethods.setValue("metadata.disableStandardEmails.confirmation.attendee", e);
@@ -378,10 +376,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             render={({ field: { value, onChange } }) => (
               <>
                 <SettingsToggle
-                  title={t("Disable standard confirmation emails for host")}
-                  description={t(
-                    "This event type is active on at least one workflow that sends an email to the host when the event is booked."
-                  )}
+                  title={t("disable_host_confirmation_emails")}
+                  description={t("disable_host_confirmation_emails_description")}
                   checked={value || false}
                   onCheckedChange={(e) => {
                     formMethods.setValue("metadata.disableStandardEmails.confirmation.host", e);

@@ -1808,5 +1808,9 @@
   "pop_up_element_click": "Pop up via element click",
   "open_dialog_with_element_click": "Open your Cal dialog when someone clicks an element.",
   "need_help_embedding": "Need help? See our guides for embedding Cal on Wix, Squarespace, or WordPress, check our common questions, or explore advanced embed options.",
-  "book_my_cal": "Book my Cal"
+  "book_my_cal": "Book my Cal",
+  "disable_attendees_confirmation_emails": "Disable standard confirmation emails for attendees",
+  "disable_attendees_confirmation_emails_description": "This event type is active on at least one workflow that sends an email to the attendees when the event is booked.",
+  "disable_host_confirmation_emails": "Disable standard confirmation emails for host",
+  "disable_host_confirmation_emails_description": "This event type is active on at least one workflow that sends an email to the host when the event is booked."
 }
