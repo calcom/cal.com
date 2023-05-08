@@ -116,6 +116,8 @@ export default function WorkflowDetailsPage(props: Props) {
     form.setValue("steps", steps);
   };
 
+  const additionalComponent = { MultiValue };
+
   return (
     <>
       <div className="z-1 my-8 sm:my-0 md:flex">
@@ -149,6 +151,7 @@ export default function WorkflowDetailsPage(props: Props) {
                   closeMenuOnSelect={false}
                   hideSelectedOptions={false}
                   isLoading={isLoading}
+                  components={additionalComponent}
                 />
               );
             }}
@@ -229,3 +232,9 @@ export default function WorkflowDetailsPage(props: Props) {
     </>
   );
 }
+
+const MultiValue = ({ index, getValue }: { index: number; getValue: any }) => {
+  const { t } = useLocale();
+
+  return <>{!index && <div>{t("nr_event_type", { count: getValue().length })}</div>}</>;
+};

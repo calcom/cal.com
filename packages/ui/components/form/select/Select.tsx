@@ -1,26 +1,23 @@
 import { useId } from "@radix-ui/react-id";
 import * as React from "react";
-import type { GroupBase, Props, SingleValue, MultiValue, OptionProps } from "react-select";
+import type { MultiValue } from "react-select";
+import type { GroupBase, Props, SingleValue } from "react-select";
 import ReactSelect from "react-select";
+import type { SelectComponents } from "react-select/dist/declarations/src/components";
+import RSMultiValue from "react-select/dist/declarations/src/components/MultiValue";
 
 import cx from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Label } from "../inputs/Label";
+import { CheckboxComponent } from "./components";
 import { getReactSelectProps } from "./selectTheme";
-import { SelectComponents } from "react-select/dist/declarations/src/components";
 
 export type SelectProps<
   Option,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 > = Props<Option, IsMulti, Group> & { variant?: "default" | "checkbox" };
-
-type InputOptionProps = 
-{
-  Option?: React.ComponentType<OptionProps<Option, boolean, GroupBase<Option>>>;
-  inputProps: OptionProps<Option, boolean, GroupBase<Option>>;
-};
 
 export const Select = <
   Option,
@@ -42,23 +39,25 @@ export const Select = <
     multiValue?: string;
     menu?: string;
     menuList?: string;
-  }}) => {
+  };
+}) => {
   const { classNames, className, innerClassNames, ...restProps } = props;
-  const additonalComponents = { MultiValue };
+  const additonalComponents = { RSMultiValue };
   const isMultiSelectCheckbox = variant === "checkbox" && isMulti;
 
-  const componentProps = isMultiSelectCheckbox ? {
-    ...additonalComponents,
-    Option: (props: InputOptionProps["inputProps"]) => (
-      <InputOption inputProps={props} Option={components?.Option as InputOptionProps["Option"]} />
-    )
-  } : components
   const reactSelectProps = React.useMemo(() => {
+    const componentProps = isMultiSelectCheckbox
+      ? {
+          ...components,
+          Option: CheckboxComponent,
+        }
+      : components;
+
     return getReactSelectProps<Option, IsMulti, Group>({
-      components: componentProps as Partial<SelectComponents<Option, IsMulti, Group>> || {},
+      components: (componentProps as Partial<SelectComponents<Option, IsMulti, Group>>) || {},
       menuPlacement,
     });
-  }, [components, menuPlacement]);
+  }, [components, menuPlacement, isMultiSelectCheckbox]);
 
   // Annoyingly if we update styles here we have to update timezone select too
   // We cant create a generate function for this as we can't force state changes - onSelect styles dont change for example
@@ -224,41 +223,3 @@ export function SelectWithValidation<
     </div>
   );
 }
-
-export type Option = {
-  value: string;
-  label: string;
-};
-
-const InputOption: React.FC<InputOptionProps> = ({
-  Option,
-  inputProps
-}) => {
-  const { isDisabled, isFocused, isSelected, children, innerProps, className, ...rest } = inputProps;
-  const props = {
-    ...innerProps,
-  };
-
-  return (
-    Option ? <Option
-      {...rest}
-      isDisabled={isDisabled}
-      isFocused={isFocused}
-      isSelected={isSelected}
-      innerProps={props}>
-      <input
-        type="checkbox"
-        className="text-primary-600 focus:ring-primary-500 border-default h-4 w-4 rounded ltr:mr-2 rtl:ml-2"
-        checked={isSelected}
-        readOnly
-      />
-      {children}
-    </Option> : <></>
-  );
-};
-
-const MultiValue = ({ index, getValue }: { index: number; getValue: any }) => {
-  const { t } = useLocale();
-
-  return <>{!index && <div>{t("nr_event_type", { count: getValue().length })}</div>}</>;
-};
