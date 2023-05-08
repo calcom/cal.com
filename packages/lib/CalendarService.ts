@@ -276,7 +276,7 @@ export default abstract class BaseCalendarService implements Calendar {
     }
   }
 
-  getUserTimezone = async (userId: number): string => {
+  getUserTimezoneFromDB = async (userId: number): string => {
     const prisma = await import("@calcom/prisma").then((mod) => mod.default);
     const user = await prisma.user.findUnique({
       where: {
@@ -286,14 +286,14 @@ export default abstract class BaseCalendarService implements Calendar {
         timeZone: true,
       },
     });
-    return user?.timeZone;
+    return user?.timeZone || "Europe/London";
   };
 
-  getFirstUserId = (selectedCalendars: IntegrationCalendar[]): number | null => {
+  getUserId = (selectedCalendars: IntegrationCalendar[]): number | null => {
     if (selectedCalendars.length === 0) {
       return null;
     }
-    return selectedCalendars[0].userId;
+    return selectedCalendars[0].userId || null;
   };
 
   isValidFormat = (url: string): boolean => {
@@ -320,8 +320,8 @@ export default abstract class BaseCalendarService implements Calendar {
       headers: this.headers,
     });
 
-    const firstUserId = this.getFirstUserId(selectedCalendars);
-    const userTimeZone = firstUserId ? await this.getUserTimezone(firstUserId) : "Europe/London";
+    const firstUserId = this.getUserId(selectedCalendars);
+    const userTimeZone = firstUserId ? await this.getUserTimezoneFromDB(firstUserId) : "Europe/London";
     const events: { start: string; end: string }[] = [];
     objects.forEach((object) => {
       if (object.data == null || JSON.stringify(object.data) == "{}") return;
