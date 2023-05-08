@@ -157,7 +157,10 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
   ];
 
   // offsetStart toggle is client-side only, opened by default if offsetStart is set
-  const offsetStartValue = formMethods.getValues("offsetStart");
+  const offsetStartValue = useWatch({
+    control: formMethods.control,
+    name: "offsetStart",
+  });
   const [offsetToggle, setOffsetToggle] = useState(() => offsetStartValue > 0);
 
   // Preview how the offset will affect start times
