@@ -276,6 +276,12 @@ export default abstract class BaseCalendarService implements Calendar {
     }
   }
 
+  /**
+   * getUserTimezoneFromDB() retrieves the timezone of a user from the database.
+   *
+   * @param {number} userId - The user's unique identifier.
+   * @returns {Promise<string | undefined>} - A Promise that resolves to the user's timezone or "Europe/London" as a default value if the timezone is not found.
+   */
   getUserTimezoneFromDB = async (userId: number): Promise<string | undefined> => {
     const prisma = await import("@calcom/prisma").then((mod) => mod.default);
     const user = await prisma.user.findUnique({
@@ -289,6 +295,12 @@ export default abstract class BaseCalendarService implements Calendar {
     return user?.timeZone || "Europe/London";
   };
 
+  /**
+   * getUserId() extracts the user ID from the first calendar in an array of IntegrationCalendars.
+   *
+   * @param {IntegrationCalendar[]} selectedCalendars - An array of IntegrationCalendars.
+   * @returns {number | null} - The user ID associated with the first calendar in the array, or null if the array is empty or the user ID is not found.
+   */
   getUserId = (selectedCalendars: IntegrationCalendar[]): number | null => {
     if (selectedCalendars.length === 0) {
       return null;
@@ -320,8 +332,9 @@ export default abstract class BaseCalendarService implements Calendar {
       headers: this.headers,
     });
 
-    const firstUserId = this.getUserId(selectedCalendars);
-    const userTimeZone = firstUserId ? await this.getUserTimezoneFromDB(firstUserId) : "Europe/London";
+    const userId = this.getUserId(selectedCalendars);
+    // we use the userId from selectedCalendars to fetch the user's timeZone from the database primarily for all-day events without any timezone information
+    const userTimeZone = userId ? await this.getUserTimezoneFromDB(userId) : "Europe/London";
     const events: { start: string; end: string }[] = [];
     objects.forEach((object) => {
       if (object.data == null || JSON.stringify(object.data) == "{}") return;
