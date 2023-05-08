@@ -230,7 +230,19 @@ const BookingPage = ({
     }),
     {}
   );
+
   const reserveSlot = () => {
+    // If it is a seats event and it is not the last attendee then do not reserve
+    if (eventType.seatsPerTimeSlot) {
+      // Check to see if this is the last attendee
+      if (booking) {
+        const seatsLeft = eventType.seatsPerTimeSlot - booking.attendees.length;
+        if (seatsLeft < 1) return null;
+      } else {
+        // If there is no booking yet then don't reserve the slot
+        return null;
+      }
+    }
     if (queryDuration) {
       reserveSlotMutation.mutate({
         eventTypeId: eventType.id,
