@@ -1957,13 +1957,17 @@ async function handler(
         videoCallUrl = metadata.hangoutLink || defaultLocationUrl || videoCallUrl;
       }
       if (noEmail !== true) {
-        let isHostConfirmationEmailsDisabled = eventType.metadata?.disableStandardEmails?.confirmation?.host;
-        let isAttendeeConfirmationEmailDisabled =
-          eventType.metadata?.disableStandardEmails?.confirmation?.attendee;
+        let isHostConfirmationEmailsDisabled = false;
+        let isAttendeeConfirmationEmailDisabled = false;
 
         const workflows = eventType.workflows.map((workflow) => workflow.workflow);
 
         if (eventType.workflows) {
+          isHostConfirmationEmailsDisabled =
+            eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
+          isAttendeeConfirmationEmailDisabled =
+            eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
+
           if (isHostConfirmationEmailsDisabled) {
             isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
           }
