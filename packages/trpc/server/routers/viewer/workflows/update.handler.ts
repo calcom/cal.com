@@ -531,7 +531,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               user: true,
             },
           });
-          bookingsForReminders.forEach(async (booking) => {
+          for (const booking of bookingsForReminders) {
             const bookingInfo = {
               uid: booking.uid,
               attendees: booking.attendees.map((attendee) => {
@@ -610,7 +610,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 userWorkflow.teamId
               );
             }
-          });
+          }
         }
       }
     });

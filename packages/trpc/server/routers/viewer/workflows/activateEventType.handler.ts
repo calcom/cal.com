@@ -1,5 +1,5 @@
-import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
-import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
+import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
+import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -119,8 +119,103 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       eventTypeId,
     });
   } else {
-    // activate workflow and schedule reminders
-    // todo
+    // activate workflow and schedule reminders for existing bookings
+
+    // const bookingsForReminders = await prisma.booking.findMany({
+    //   where: {
+    //     eventTypeId: eventTypeId,
+    //     status: BookingStatus.ACCEPTED,
+    //     startTime: {
+    //       gte: new Date(),
+    //     },
+    //   },
+    //   include: {
+    //     attendees: true,
+    //     eventType: true,
+    //     user: true,
+    //   },
+    // });
+
+    // for (const booking of bookingsForReminders) {
+    //     const bookingInfo = {
+    //       uid: booking.uid,
+    //       attendees: booking.attendees.map((attendee) => {
+    //         return {
+    //           name: attendee.name,
+    //           email: attendee.email,
+    //           timeZone: attendee.timeZone,
+    //           language: { locale: attendee.locale || "" },
+    //         };
+    //       }),
+    //       organizer: booking.user
+    //         ? {
+    //             name: booking.user.name || "",
+    //             email: booking.user.email,
+    //             timeZone: booking.user.timeZone,
+    //             language: { locale: booking.user.locale || "" },
+    //           }
+    //         : { name: "", email: "", timeZone: "", language: { locale: "" } },
+    //       startTime: booking.startTime.toISOString(),
+    //       endTime: booking.endTime.toISOString(),
+    //       title: booking.title,
+    //       language: { locale: booking?.user?.locale || "" },
+    //       eventType: {
+    //         slug: booking.eventType?.slug,
+    //       },
+    //     };
+    //   for (const step of eventTypeWorkflow.steps) {
+
+    //     if (
+    //       step.action === WorkflowActions.EMAIL_ATTENDEE ||
+    //       step.action === WorkflowActions.EMAIL_HOST
+    //     ) {
+    //       //todo: sendto all attendees
+    //       let sendTo = "";
+
+    //       switch (step.action) {
+    //         case WorkflowActions.EMAIL_HOST:
+    //           sendTo = bookingInfo.organizer?.email;
+    //           break;
+    //         case WorkflowActions.EMAIL_ATTENDEE:
+    //           sendTo = bookingInfo.attendees[0].email;
+    //           break;
+    //       }
+
+    //       await scheduleEmailReminder(
+    //         bookingInfo,
+    //         eventTypeWorkflow.trigger,
+    //         step.action,
+    //         {
+    //           time: eventTypeWorkflow.time,
+    //           timeUnit: eventTypeWorkflow.timeUnit,
+    //         },
+    //         sendTo,
+    //         step.emailSubject || "",
+    //         step.reminderBody || "",
+    //         step.id,
+    //         step.template,
+    //         step.sender || SENDER_NAME
+    //       );
+    //     } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
+    //       await scheduleSMSReminder(
+    //         bookingInfo,
+    //         step.sendTo,
+    //         eventTypeWorkflow.trigger,
+    //         step.action,
+    //         {
+    //           time: eventTypeWorkflow.time,
+    //           timeUnit: eventTypeWorkflow.,
+    //         },
+    //         step.reminderBody || "",
+    //         step.id,
+    //         step.template,
+    //         step.sender || SENDER_ID,
+    //         booking.userId,
+    //         eventTypeWorkflow.teamId
+    //       );
+    //     }
+    //   }
+    // }
 
     await prisma.workflowsOnEventTypes.create({
       data: {
