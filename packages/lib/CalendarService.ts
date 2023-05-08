@@ -276,7 +276,7 @@ export default abstract class BaseCalendarService implements Calendar {
     }
   }
 
-  getUserTimezoneFromDB = async (userId: number): string => {
+  getUserTimezoneFromDB = async (userId: number): Promise<string | undefined> => {
     const prisma = await import("@calcom/prisma").then((mod) => mod.default);
     const user = await prisma.user.findUnique({
       where: {
