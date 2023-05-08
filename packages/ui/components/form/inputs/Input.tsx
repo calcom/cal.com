@@ -12,10 +12,10 @@ import { Eye, EyeOff, X } from "../../icon";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
-type InputProps = JSX.IntrinsicElements["input"] & { isFullWidth?: boolean };
+type InputProps = JSX.IntrinsicElements["input"] & { isFullWidth?: boolean; isStandaloneField?: boolean };
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { isFullWidth = true, ...props },
+  { isFullWidth = true, isStandaloneField = true, ...props },
   ref
 ) {
   return (
@@ -23,7 +23,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       {...props}
       ref={ref}
       className={classNames(
-        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default min-h-9 disabled:bg-subtle mb-2 block rounded-md border py-2 px-3 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
+        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default min-h-9 disabled:bg-subtle mb-2 block rounded-md border py-2 px-3 text-sm leading-4 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
         isFullWidth && "w-full",
         props.className
       )}
@@ -33,7 +33,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 
 export function InputLeading(props: JSX.IntrinsicElements["div"]) {
   return (
-    <span className="bg-muted border-default text-subtle inline-flex flex-shrink-0 items-center rounded-l-sm border px-3 ltr:border-r-0 rtl:border-l-0 sm:text-sm">
+    <span className="bg-muted border-default text-subtle inline-flex flex-shrink-0 items-center rounded-l-sm border px-3 ltr:border-r-0 rtl:border-l-0 sm:text-sm sm:leading-4">
       {props.children}
     </span>
   );
@@ -68,13 +68,13 @@ type AddonProps = {
 const Addon = ({ isFilled, children, className, error }: AddonProps) => (
   <div
     className={classNames(
-      "addon-wrapper border-default min-h-9 border px-3",
+      "addon-wrapper border-default h-9 border px-3",
       isFilled && "bg-subtle",
       className
     )}>
     <div
       className={classNames(
-        "min-h-9 flex flex-col justify-center text-sm",
+        "flex h-9 flex-col justify-center text-sm",
         error ? "text-error" : "text-default"
       )}>
       <span className="flex whitespace-nowrap">{children}</span>
@@ -140,6 +140,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             type={type}
             placeholder={placeholder}
             isFullWidth={inputIsFullWidth}
+            isStandaloneField={false}
             className={classNames(
               className,
               "disabled:bg-muted disabled:hover:border-subtle disabled:cursor-not-allowed",
@@ -162,10 +163,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           {addOnSuffix && (
             <Addon
               isFilled={addOnFilled}
-              className={classNames(
-                "ltr:rounded-r-md ltr:border-l-0 rtl:rounded-l-md rtl:border-r-0",
-                addOnClassname
-              )}>
+              className={classNames("ltr:rounded-r-md rtl:rounded-l-md", addOnClassname)}>
               {addOnSuffix}
             </Addon>
           )}
@@ -231,10 +229,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
         addOnFilled={false}
         addOnSuffix={
           <Tooltip content={textLabel}>
-            <button
-              className="text-emphasis absolute bottom-0 h-9 ltr:right-3 rtl:left-3"
-              type="button"
-              onClick={() => toggleIsPasswordVisible()}>
+            <button className="text-emphasis h-9" type="button" onClick={() => toggleIsPasswordVisible()}>
               {isPasswordVisible ? (
                 <EyeOff className="h-4 stroke-[2.5px]" />
               ) : (
@@ -285,7 +280,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default mb-2 block w-full rounded-md border py-2 px-3 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
+        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default mb-2 block w-full rounded-md border py-2 px-3 text-sm leading-4 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
         props.className
       )}
     />
@@ -352,10 +347,6 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
           event.preventDefault();
           event.stopPropagation();
 
-          if (form.formState?.errors?.apiError) {
-            form.clearErrors("root");
-          }
-
           form
             .handleSubmit(handleSubmit)(event)
             .catch((err) => {
@@ -376,7 +367,7 @@ export const Form = forwardRef(PlainForm) as <T extends FieldValues>(
 
 export function FieldsetLegend(props: JSX.IntrinsicElements["legend"]) {
   return (
-    <legend {...props} className={classNames("text-default text-sm font-medium", props.className)}>
+    <legend {...props} className={classNames("text-default text-sm font-medium leading-4", props.className)}>
       {props.children}
     </legend>
   );

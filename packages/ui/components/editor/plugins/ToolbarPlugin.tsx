@@ -64,7 +64,7 @@ function FloatingLinkEditor({ editor }: { editor: LexicalEditor }) {
   const mouseDownRef = useRef(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [linkUrl, setLinkUrl] = useState("");
-  const [isEditMode, setEditMode] = useState(false);
+  const [isEditMode, setEditMode] = useState(true);
   const [lastSelection, setLastSelection] = useState<RangeSelection | NodeSelection | GridSelection | null>(
     null
   );
@@ -459,9 +459,6 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               StartIcon={Bold}
               onClick={() => {
                 editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
-                if (isItalic) {
-                  editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
-                }
               }}
               className={isBold ? "bg-subtle" : ""}
             />
@@ -474,9 +471,6 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               StartIcon={Italic}
               onClick={() => {
                 editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
-                if (isItalic) {
-                  editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
-                }
               }}
               className={isItalic ? "bg-subtle" : ""}
             />

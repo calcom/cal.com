@@ -1,4 +1,3 @@
-import { BookingStatus } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
@@ -24,9 +23,11 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getBookingWithResponses } from "@calcom/features/bookings/lib/get-booking";
 import {
   SystemField,
   getBookingFieldsWithSystemFields,
+  SMS_REMINDER_NUMBER_FIELD,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -36,7 +37,6 @@ import {
   formatToLocalizedTimezone,
 } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import { getBookingWithResponses } from "@calcom/lib/getBooking";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -46,6 +46,7 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Button, EmailInput, HeadSeo, Badge, useCalcomTheme } from "@calcom/ui";
@@ -308,7 +309,7 @@ export default function Success(props: SuccessProps) {
         <div className="mt-2 ml-4 -mb-4">
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
-            className="hover:bg-subtle text-subtle dark:hover:text-inverted hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
+            className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
             <ChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
           </Link>
         </div>
@@ -487,7 +488,8 @@ export default function Success(props: SuccessProps) {
                       // We show rescheduleReason at the top
                       if (!field) return null;
                       const isSystemField = SystemField.safeParse(field.name);
-                      if (isSystemField.success) return null;
+                      // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
+                      if (isSystemField.success && field.name !== SMS_REMINDER_NUMBER_FIELD) return null;
 
                       const label = field.label || t(field.defaultLabel || "");
 
@@ -891,16 +893,31 @@ const getEventTypesFromDB = async (id: number) => {
   };
 };
 
-const handleSeatsEventTypeOnBooking = (
+const handleSeatsEventTypeOnBooking = async (
   eventType: {
     seatsPerTimeSlot?: number | null;
     seatsShowAttendees: boolean | null;
     [x: string | number | symbol]: unknown;
   },
   bookingInfo: Partial<
-    Prisma.BookingGetPayload<{ include: { attendees: { select: { name: true; email: true } } } }>
+    Prisma.BookingGetPayload<{
+      include: {
+        attendees: { select: { name: true; email: true } };
+        seatsReferences: { select: { referenceUid: true } };
+        user: {
+          select: {
+            id: true;
+            name: true;
+            email: true;
+            username: true;
+            timeZone: true;
+          };
+        };
+      };
+    }>
   >,
-  email: string
+  seatReferenceUid?: string,
+  userId?: number
 ) => {
   if (eventType?.seatsPerTimeSlot !== null) {
     // @TODO: right now bookings with seats doesn't save every description that its entered by every user
@@ -908,12 +925,34 @@ const handleSeatsEventTypeOnBooking = (
   } else {
     return;
   }
+  // @TODO: If handling teams, we need to do more check ups for this.
+  if (bookingInfo?.user?.id === userId) {
+    return;
+  }
+
   if (!eventType.seatsShowAttendees) {
-    const attendee = bookingInfo?.attendees?.find((a) => {
-      return a.email === email;
+    const seatAttendee = await prisma.bookingSeat.findFirst({
+      where: {
+        referenceUid: seatReferenceUid,
+      },
+      include: {
+        attendee: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
     });
 
-    bookingInfo["attendees"] = attendee ? [attendee] : [];
+    if (seatAttendee) {
+      const attendee = bookingInfo?.attendees?.find((a) => {
+        return a.email === seatAttendee.attendee?.email;
+      });
+      bookingInfo["attendees"] = attendee ? [attendee] : [];
+    } else {
+      bookingInfo["attendees"] = [];
+    }
   }
   return bookingInfo;
 };
@@ -931,7 +970,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const parsedQuery = querySchema.safeParse(context.query);
 
   if (!parsedQuery.success) return { notFound: true };
-  const { uid, email, eventTypeSlug, cancel, isSuccessBookingPage } = parsedQuery.data;
+  const { uid, eventTypeSlug, seatReferenceUid } = parsedQuery.data;
 
   const bookingInfoRaw = await prisma.booking.findFirst({
     where: {
@@ -1037,8 +1076,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
 
-  if (bookingInfo !== null && email && eventType.seatsPerTimeSlot) {
-    handleSeatsEventTypeOnBooking(eventType, bookingInfo, email);
+  if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
+    await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, session?.user.id);
   }
 
   const payment = await prisma.payment.findFirst({

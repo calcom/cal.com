@@ -8,7 +8,7 @@ datasource db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["views"]
+  previewFeatures = ["views", "jsonProtocol"]
 }
 
 generator zod {
@@ -16,6 +16,10 @@ generator zod {
   output        = "./zod"
   imports       = "./zod-utils"
   relationModel = "default"
+}
+
+generator enums {
+  provider = "ts-node --transpile-only ./enum-generator"
 }
 
 enum SchedulingType {
