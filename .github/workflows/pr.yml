@@ -1,12 +1,13 @@
 name: PR Update
 
 on:
-  pull_request_target:
+  pull_request:
     branches:
       - main
     paths-ignore:
       - "**.md"
       - ".github/CODEOWNERS"
+  merge_group:
   workflow_dispatch:
 
 concurrency:
