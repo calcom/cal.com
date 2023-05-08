@@ -52,8 +52,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
   const validateUniqueInvite = (value: string) => {
     return !(
-      props.members.some((member) => member?.username === value.toLowerCase()) ||
-      props.members.some((member) => member?.email === value.toLowerCase())
+      props.members.some((member) => member?.username === value) ||
+      props.members.some((member) => member?.email === value)
     );
   };
 
@@ -96,7 +96,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     name="inviteUser"
                     placeholder="email@example.com"
                     required
-                    onChange={(e) => onChange(e.target.value.trim())}
+                    onChange={(e) => onChange(e.target.value.trim().toLowerCase())}
                   />
                   {error && <span className="text-sm text-red-800">{error.message}</span>}
                 </>
