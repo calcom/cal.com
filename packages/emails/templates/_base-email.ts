@@ -20,6 +20,7 @@ export default class BaseEmail {
     return "";
   }
 
+  /** @deprecated use `getFormattedRecipientTime` */
   protected getRecipientTime(time: string): Dayjs;
   protected getRecipientTime(time: string, format: string): string;
   protected getRecipientTime(time: string, format?: string) {

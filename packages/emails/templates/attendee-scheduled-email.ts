@@ -6,6 +6,7 @@ import { RRule } from "rrule";
 
 import dayjs from "@calcom/dayjs";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
@@ -122,16 +123,32 @@ ${getRichDescription(this.calEvent)}
     return this.calEvent.attendees[0].timeZone;
   }
 
+  protected getLocale(): string {
+    return this.calEvent.attendees[0].language.locale;
+  }
+
   protected getInviteeStart(format: string) {
-    return this.getRecipientTime(this.calEvent.startTime, format);
+    return this.getFormattedRecipientTime({
+      time: this.calEvent.startTime,
+      format,
+      locale: this.getLocale(),
+      timeZone: this.getTimezone(),
+    });
   }
 
   protected getInviteeEnd(format: string) {
-    return this.getRecipientTime(this.calEvent.endTime, format);
+    return this.getFormattedRecipientTime({
+      time: this.calEvent.endTime,
+      format,
+      locale: this.getLocale(),
+      timeZone: this.getTimezone(),
+    });
   }
 
   public getFormattedDate() {
-    return `${this.getInviteeStart("h:mma")} - ${this.getInviteeEnd("h:mma")}, ${this.t(
+    const inviteeTimeFormat = this.calEvent.organizer.timeFormat || TimeFormat.TWELVE_HOUR;
+
+    return `${this.getInviteeStart(inviteeTimeFormat)} - ${this.getInviteeEnd(inviteeTimeFormat)}, ${this.t(
       this.getInviteeStart("dddd").toLowerCase()
     )}, ${this.t(this.getInviteeStart("MMMM").toLowerCase())} ${this.getInviteeStart("D, YYYY")}`;
   }

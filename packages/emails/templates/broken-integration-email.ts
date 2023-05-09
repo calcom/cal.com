@@ -2,6 +2,7 @@ import type { TFunction } from "next-i18next";
 
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { APP_NAME } from "@calcom/lib/constants";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { renderEmail } from "..";
@@ -61,17 +62,34 @@ ${callToAction}
     return this.calEvent.organizer.timeZone;
   }
 
+  protected getLocale(): string {
+    return this.calEvent.organizer.language.locale;
+  }
+
   protected getOrganizerStart(format: string) {
-    return this.getRecipientTime(this.calEvent.startTime, format);
+    return this.getFormattedRecipientTime({
+      time: this.calEvent.startTime,
+      format,
+      locale: this.getLocale(),
+      timeZone: this.getTimezone(),
+    });
   }
 
   protected getOrganizerEnd(format: string) {
-    return this.getRecipientTime(this.calEvent.endTime, format);
+    return this.getFormattedRecipientTime({
+      time: this.calEvent.endTime,
+      format,
+      locale: this.getLocale(),
+      timeZone: this.getTimezone(),
+    });
   }
 
   protected getFormattedDate() {
-    return `${this.getOrganizerStart("h:mma")} - ${this.getOrganizerEnd("h:mma")}, ${this.t(
-      this.getOrganizerStart("dddd").toLowerCase()
-    )}, ${this.t(this.getOrganizerStart("MMMM").toLowerCase())} ${this.getOrganizerStart("D, YYYY")}`;
+    const organizerTimeFormat = this.calEvent.organizer.timeFormat || TimeFormat.TWELVE_HOUR;
+    return `${this.getOrganizerStart(organizerTimeFormat)} - ${this.getOrganizerEnd(
+      organizerTimeFormat
+    )}, ${this.t(this.getOrganizerStart("dddd").toLowerCase())}, ${this.t(
+      this.getOrganizerStart("MMMM").toLowerCase()
+    )} ${this.getOrganizerStart("D, YYYY")}`;
   }
 }

@@ -136,7 +136,7 @@ ${callToAction}
 
   protected getOrganizerEnd(format: string) {
     return this.getFormattedRecipientTime({
-      time: this.calEvent.startTime,
+      time: this.calEvent.endTime,
       format,
       locale: this.getLocale(),
       timeZone: this.getTimezone(),
