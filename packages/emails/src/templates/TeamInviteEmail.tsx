@@ -49,7 +49,13 @@ export const TeamInviteEmail = (
           marginTop: "32px",
           lineHeightStep: "24px",
         }}>
-        <>{props.language("email_no_user_invite_subheading", { invitedBy: props.from, appName: APP_NAME })}</>
+        <>
+          {props.language("email_user_invite_subheading", {
+            invitedBy: props.from,
+            appName: APP_NAME,
+            teamName: props.teamName,
+          })}
+        </>
       </p>
       <div style={{ display: "flex", justifyContent: "center" }}>
         <CallToAction

@@ -68,6 +68,15 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
     },
   ];
 
+  if (props.hasPendingInvites) {
+    headers.unshift(
+      props.hasPendingInvites && {
+        title: `${t("email_no_user_invite_heading", { appName: APP_NAME })}`,
+        subtitle: [], // TODO: come up with some subtitle text here
+      }
+    );
+  }
+
   const goToIndex = (index: number) => {
     const newStep = steps[index];
     router.push(
@@ -181,6 +190,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       allowDynamicBooking: true,
       defaultScheduleId: true,
       completedOnboarding: true,
+      teams: {
+        select: {
+          accepted: true,
+          team: {
+            select: {
+              id: true,
+              name: true,
+              logo: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -199,6 +220,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         ...user,
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },
+      hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,
     },
   };
 };

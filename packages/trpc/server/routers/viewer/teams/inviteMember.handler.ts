@@ -37,10 +37,10 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
 
   if (!team) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
 
+  // A user can exist even if they have not completed onboarding
   const invitee = await prisma.user.findFirst({
     where: {
       OR: [{ username: input.usernameOrEmail }, { email: input.usernameOrEmail }],
-      completedOnboarding: true, // Only change the flow for users that have completed onboarding -> otherwise they will be redirected to the onboarding flow and have a differnt email displayed
     },
   });
 
@@ -113,13 +113,22 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     }
     // inform user of membership by email
     if (input.sendEmailInvitation && ctx?.user?.name && team?.name) {
+      /**
+       * Here we want to redirect to a differnt place if onboarding has been completed or not. This prevents the flash of going to teams -> Then to onboarding - also show a differnt email template.
+       */
+      const inviteTeamOptions = {
+        joinLink: invitee.completedOnboarding
+          ? `${WEBAPP_URL}/settings/teams`
+          : `${WEBAPP_URL}/getting-started`,
+        isCalcomMember: !!invitee.completedOnboarding,
+      };
+
       await sendTeamInviteEmail({
         language: translation,
         from: ctx.user.name,
         to: sendTo,
         teamName: team.name,
-        joinLink: WEBAPP_URL + "/settings/teams", // TODO: The reason we get the flash of unaothrised is when the session doesnt exist. we still navigate you to /settings/teams
-        isCalcomMember: true,
+        ...inviteTeamOptions,
       });
     }
   }
