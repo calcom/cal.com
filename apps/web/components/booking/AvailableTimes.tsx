@@ -53,6 +53,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   const { rescheduleUid } = router.query;
 
   const [brand, setBrand] = useState("#292929");
+  const [isSlotReservationPending, setIsSlotReservationPending] = useState(false);
+
+  const didSlotReservationFail = reserveSlotMutation.isError;
 
   useEffect(() => {
     setBrand(getComputedStyle(document.documentElement).getPropertyValue("--brand-color").trim());
@@ -67,13 +70,22 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     [isMobile]
   );
 
+  useEffect(() => {
+    if (didSlotReservationFail) {
+      setIsSlotReservationPending(false);
+    }
+  }, [didSlotReservationFail]);
+
   const reserveSlot = (slot: Slot) => {
-    reserveSlotMutation.mutate({
-      slotUtcStartDate: slot.time,
-      eventTypeId,
-      slotUtcEndDate: dayjs(slot.time).utc().add(duration, "minutes").format(),
-      bookingAttendees: bookingAttendees || undefined,
-    });
+    if (!isSlotReservationPending) {
+      setIsSlotReservationPending(true);
+      reserveSlotMutation.mutate({
+        slotUtcStartDate: slot.time,
+        eventTypeId,
+        slotUtcEndDate: dayjs(slot.time).utc().add(duration, "minutes").format(),
+        bookingAttendees: bookingAttendees || undefined,
+      });
+    }
   };
 
   return (
@@ -161,7 +173,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                         prefetch={false}
                         className={classNames(
                           " bg-default dark:bg-muted border-default hover:bg-subtle hover:border-brand-default text-emphasis mb-2 block rounded-md border py-2 text-sm font-medium",
-                          brand === "#fff" || brand === "#ffffff" ? "" : ""
+                          brand === "#fff" || brand === "#ffffff" ? "" : "",
+                          isSlotReservationPending ? "pointer-events-none opacity-50" : ""
                         )}
                         onClick={() => reserveSlot(slot)}
                         data-testid="time">
