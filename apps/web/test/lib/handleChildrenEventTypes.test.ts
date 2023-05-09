@@ -95,7 +95,8 @@ describe("handleChildrenEventTypes", () => {
     it("Adds new users", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      const { schedulingType, id, teamId, timeZone, scheduleId, users, ...evType } = mockFindFirstEventType({
+      // eslint-disable-next-line
+      const { schedulingType, id, teamId, timeZone, users, ...evType } = mockFindFirstEventType({
         id: 123,
         metadata: { managedEventConfig: {} },
         locations: [],
@@ -130,6 +131,7 @@ describe("handleChildrenEventTypes", () => {
     it("Updates old users", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
+      // eslint-disable-next-line
       const { schedulingType, id, teamId, timeZone, locations, parentId, userId, scheduleId, ...evType } =
         mockFindFirstEventType({
           metadata: { managedEventConfig: {} },
@@ -214,7 +216,8 @@ describe("handleChildrenEventTypes", () => {
     it("Deletes existent event types for new users added", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      const { schedulingType, id, teamId, timeZone, scheduleId, users, ...evType } = mockFindFirstEventType({
+      // eslint-disable-next-line
+      const { schedulingType, id, teamId, timeZone, users, ...evType } = mockFindFirstEventType({
         id: 123,
         metadata: { managedEventConfig: {} },
         locations: [],
@@ -250,6 +253,7 @@ describe("handleChildrenEventTypes", () => {
     it("Deletes existent event types for old users updated", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
+      // eslint-disable-next-line
       const { schedulingType, id, teamId, timeZone, users, locations, parentId, userId, ...evType } =
         mockFindFirstEventType({
           metadata: { managedEventConfig: {} },
