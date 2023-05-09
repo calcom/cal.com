@@ -1,4 +1,4 @@
-import { CalendarSwitch } from "./CalendarSwitch";
+import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 
 interface IConnectedCalendarItem {
   name: string;
