@@ -304,8 +304,7 @@ export const createEvent = async (
 export const updateEvent = async (
   credential: CredentialWithAppName,
   calEvent: CalendarEvent,
-  bookingRefUid: string | null,
-  externalCalendarId: string | null
+  bookingRefUid: string | null
 ): Promise<EventResult<NewCalendarEventType>> => {
   const uid = getUid(calEvent);
   const calendar = await getCalendar(credential);
@@ -319,7 +318,7 @@ export const updateEvent = async (
   const updatedResult =
     calendar && bookingRefUid
       ? await calendar
-          .updateEvent(bookingRefUid, calEvent, externalCalendarId)
+          .updateEvent(bookingRefUid, calEvent)
           .then((event) => {
             success = true;
             return event;

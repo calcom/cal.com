@@ -454,24 +454,20 @@ export default class EventManager {
       if (!calendarReference) {
         return [];
       }
-      const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = calendarReference;
-
-      if (!bookingExternalCalendarId) {
-        throw new Error("externalCalendarId");
-      }
+      const { uid: bookingRefUid } = calendarReference;
 
       let result = [];
       if (calendarReference.credentialId) {
         credential = this.calendarCredentials.filter(
           (credential) => credential.id === calendarReference?.credentialId
         )[0];
-        result.push(updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId));
+        result.push(updateEvent(credential, event, bookingRefUid));
       } else {
         const credentials = this.calendarCredentials.filter(
           (credential) => credential.type === calendarReference?.type
         );
         for (const credential of credentials) {
-          result.push(updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId));
+          result.push(updateEvent(credential, event, bookingRefUid));
         }
       }
 
@@ -506,9 +502,8 @@ export default class EventManager {
                   originalEvent: event,
                 };
               }
-            const { externalCalendarId: bookingExternalCalendarId, meetingId: bookingRefUid } =
-              calendarReference;
-            return await updateEvent(cred, event, bookingRefUid ?? null, bookingExternalCalendarId ?? null);
+            const { meetingId: bookingRefUid } = calendarReference;
+            return await updateEvent(cred, event, bookingRefUid ?? null);
           })
       );
 
