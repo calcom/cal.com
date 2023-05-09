@@ -414,7 +414,7 @@ const CopyTimes = ({
                       if (e.target.checked && !selected.includes(weekdayIndex)) {
                         setSelected(selected.concat([weekdayIndex]));
                       } else if (!e.target.checked && selected.includes(weekdayIndex)) {
-                        setSelected(selected.slice(selected.indexOf(weekdayIndex), 1));
+                        setSelected(selected.filter(item => item !== weekdayIndex));
                       }
                     }}
                     type="checkbox"
