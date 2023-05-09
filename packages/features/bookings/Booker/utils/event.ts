@@ -6,6 +6,11 @@ import { trpc } from "@calcom/trpc/react";
 import { useTimePreferences } from "../../lib/timePreferences";
 import { useBookerStore } from "../store";
 
+interface TUseEvent {
+  username?: string;
+  eventSlug?: string;
+}
+
 /**
  * Wrapper hook around the trpc query that fetches
  * the event curently viewed in the booker. It will get
@@ -14,9 +19,11 @@ import { useBookerStore } from "../store";
  * Using this hook means you only need to use one hook, instead
  * of combining multiple conditional hooks.
  */
-export const useEvent = () => {
-  const [username, eventSlug] = useBookerStore((state) => [state.username, state.eventSlug], shallow);
+export const useEvent = (props: TUseEvent) => {
+  const [username_, eventSlug_] = useBookerStore((state) => [state.username, state.eventSlug], shallow);
 
+  const username = props?.username ?? username_;
+  const eventSlug = props?.eventSlug ?? eventSlug_;
   return trpc.viewer.public.event.useQuery(
     { username: username ?? "", eventSlug: eventSlug ?? "" },
     { refetchOnWindowFocus: false, enabled: Boolean(username) && Boolean(eventSlug) }
