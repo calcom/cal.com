@@ -279,14 +279,14 @@ export default abstract class BaseCalendarService implements Calendar {
   /**
    * getUserTimezoneFromDB() retrieves the timezone of a user from the database.
    *
-   * @param {number} userId - The user's unique identifier.
+   * @param {number} id - The user's unique identifier.
    * @returns {Promise<string | undefined>} - A Promise that resolves to the user's timezone or "Europe/London" as a default value if the timezone is not found.
    */
-  getUserTimezoneFromDB = async (userId: number): Promise<string | undefined> => {
+  getUserTimezoneFromDB = async (id: number): Promise<string | undefined> => {
     const prisma = await import("@calcom/prisma").then((mod) => mod.default);
     const user = await prisma.user.findUnique({
       where: {
-        id: userId,
+        id,
       },
       select: {
         timeZone: true,
