@@ -230,12 +230,14 @@ const BookingPage = ({
     }),
     {}
   );
+
   const reserveSlot = () => {
     if (queryDuration) {
       reserveSlotMutation.mutate({
         eventTypeId: eventType.id,
         slotUtcStartDate: dayjs(queryDate).utc().format(),
         slotUtcEndDate: dayjs(queryDate).utc().add(parseInt(queryDuration), "minutes").format(),
+        bookingAttendees: currentSlotBooking ? currentSlotBooking.attendees.length : undefined,
       });
     }
   };
