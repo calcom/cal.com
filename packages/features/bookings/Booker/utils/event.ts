@@ -19,7 +19,7 @@ interface TUseEvent {
  * Using this hook means you only need to use one hook, instead
  * of combining multiple conditional hooks.
  */
-export const useEvent = (props: TUseEvent) => {
+export const useEvent = (props?: TUseEvent) => {
   const [username_, eventSlug_] = useBookerStore((state) => [state.username, state.eventSlug], shallow);
 
   const username = props?.username ?? username_;
