@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { UseMutationResult } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/router";
-import { useMemo } from "react";
+import { useMemo, useRef, useEffect } from "react";
 import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import type { TFunction } from "react-i18next";
@@ -61,6 +61,8 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const router = useRouter();
   const { t, i18n } = useLocale();
   const { timezone } = useTimePreferences();
+
+  const errorRef = useRef<HTMLDivElement | null>(null);
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const rescheduleBooking = useBookerStore((state) => state.rescheduleBooking);
   const eventSlug = useBookerStore((state) => state.eventSlug);
@@ -71,6 +73,16 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const isRescheduling = !!rescheduleUid && !!rescheduleBooking;
   const event = useEvent();
   const eventType = event.data;
+
+  console.log({ ref: errorRef.current });
+
+  useEffect(() => {
+    if (errorRef.current) {
+      errorRef.current?.scrollIntoView({
+        behavior: "smooth",
+      });
+    }
+  }, [errorRef]);
 
   const defaultValues = useMemo(() => {
     if (!eventType?.bookingFields) {
@@ -282,7 +294,23 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
           locations={eventType.locations}
           rescheduleUid={rescheduleUid || undefined}
         />
-
+        {(createBookingMutation.isError ||
+          createRecurringBookingMutation.isError ||
+          bookingForm.formState.errors["globalError"]) && (
+          <div data-testid="booking-fail" ref={errorRef}>
+            <Alert
+              className="mt-2"
+              severity="info"
+              title={rescheduleUid ? t("reschedule_fail") : t("booking_fail")}
+              message={getError(
+                bookingForm.formState.errors["globalError"],
+                createBookingMutation,
+                createRecurringBookingMutation,
+                t
+              )}
+            />
+          </div>
+        )}
         <div className="modalsticky mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
           {!!onCancel && (
             <Button color="minimal" type="button" onClick={onCancel}>
@@ -298,23 +326,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
           </Button>
         </div>
       </Form>
-      {(createBookingMutation.isError ||
-        createRecurringBookingMutation.isError ||
-        bookingForm.formState.errors["globalError"]) && (
-        <div data-testid="booking-fail">
-          <Alert
-            className="mt-2"
-            severity="info"
-            title={rescheduleUid ? t("reschedule_fail") : t("booking_fail")}
-            message={getError(
-              bookingForm.formState.errors["globalError"],
-              createBookingMutation,
-              createRecurringBookingMutation,
-              t
-            )}
-          />
-        </div>
-      )}
     </div>
   );
 };
