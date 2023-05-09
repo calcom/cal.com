@@ -19,7 +19,6 @@ interface ReserveSlotOptions {
   input: TReserveSlotInputSchema;
 }
 export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => {
-  console.log("🚀 ~ file: reserveSlot.handler.ts:22 ~ reserveSlotHandler ~ input:", input);
   const { prisma, req, res } = ctx;
   const uid = req?.cookies?.uid || uuid();
   const { slotUtcStartDate, slotUtcEndDate, eventTypeId, bookingAttendees } = input;
