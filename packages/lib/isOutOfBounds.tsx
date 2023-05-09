@@ -1,7 +1,7 @@
 import type { EventType } from "@prisma/client";
-import { PeriodType } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
+import { PeriodType } from "@calcom/prisma/enums";
 
 export class BookingDateInPastError extends Error {
   constructor(message = "Attempting to book a meeting in the past.") {

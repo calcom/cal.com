@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { WorkflowActions } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
@@ -9,6 +8,7 @@ import { z } from "zod";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { WorkflowActions } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,

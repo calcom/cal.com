@@ -17,6 +17,7 @@
     "eslint-plugin-prettier": "^4.2.1"
   },
   "devDependencies": {
+    "@savvywombat/tailwindcss-grid-areas": "^3.0.0",
     "@tailwindcss/forms": "^0.5.2",
     "@tailwindcss/line-clamp": "^0.4.0",
     "@tailwindcss/typography": "^0.5.4",

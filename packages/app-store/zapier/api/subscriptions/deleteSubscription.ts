@@ -1,10 +1,10 @@
-import { WebhookTriggerEvents } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 const querySchema = z.object({
   apiKey: z.string(),

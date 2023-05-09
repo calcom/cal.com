@@ -1,12 +1,13 @@
 import { expect } from "@playwright/test";
 import type { Prisma } from "@prisma/client";
-import { BookingStatus } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
+import { testBothBookers } from "./lib/new-booker";
 import {
   bookTimeSlot,
   createNewSeatedEventType,
@@ -46,7 +47,7 @@ async function createUserWithSeatedEventAndAttendees(
   return { user, eventType, booking };
 }
 
-test.describe("Booking with Seats", () => {
+testBothBookers.describe("Booking with Seats", (bookerVariant) => {
   test("User can create a seated event (2 seats as example)", async ({ users, page }) => {
     const user = await users.create({ name: "Seated event" });
     await user.login();
@@ -64,11 +65,17 @@ test.describe("Booking with Seats", () => {
     });
     await page.goto(`/${user.username}/${slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
-    await page.waitForNavigation({
-      url(url) {
+
+    // Kept in if statement here, since it's only temporary
+    // until the old booker isn't used anymore, and I wanted
+    // to change the test as little as possible.
+    // eslint-disable-next-line playwright/no-conditional-in-test
+    if (bookerVariant === "old-booker") {
+      await page.waitForURL((url) => {
         return url.pathname.endsWith("/book");
-      },
-    });
+      });
+    }
+
     const bookingUrl = page.url();
     await test.step("Attendee #1 can book a seated event time slot", async () => {
       await page.goto(bookingUrl);
@@ -93,7 +100,7 @@ test.describe("Booking with Seats", () => {
   // TODO: Make E2E test: All attendees canceling should delete the booking for the User
   // todo("All attendees canceling should delete the booking for the User");
 
-  test.describe("Reschedule for booking with seats", () => {
+  testBothBookers.describe("Reschedule for booking with seats", () => {
     test("Should reschedule booking with seats", async ({ page, users, bookings }) => {
       const { booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
         { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
@@ -183,7 +190,7 @@ test.describe("Booking with Seats", () => {
 
       await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-      await page.waitForNavigation({ url: /.*booking/ });
+      await page.waitForURL(/.*booking/);
 
       await page.goto(`/reschedule/${references[1].referenceUid}`);
 
@@ -191,6 +198,7 @@ test.describe("Booking with Seats", () => {
 
       await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
+      // Using waitForUrl here fails the assertion `expect(oldBooking?.status).toBe(BookingStatus.CANCELLED);` probably because waitForUrl is considered complete before waitForNavigation and till that time the booking is not cancelled
       await page.waitForNavigation({ url: /.*booking/ });
 
       // Should expect old booking to be cancelled

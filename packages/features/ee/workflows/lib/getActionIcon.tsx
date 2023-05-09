@@ -1,6 +1,7 @@
 import type { WorkflowStep } from "@prisma/client";
 
 import { classNames } from "@calcom/lib";
+import { WorkflowActions } from "@calcom/prisma/enums";
 import { Zap, Smartphone, Mail, Bell } from "@calcom/ui/components/icon";
 import { isSMSOrWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 
