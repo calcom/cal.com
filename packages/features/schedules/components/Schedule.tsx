@@ -383,6 +383,23 @@ const CopyTimes = ({
       <div className="p-2">
         <p className="h6 text-emphasis pb-3 pl-1 text-xs font-medium uppercase">{t("copy_times_to")}</p>
         <ol className="space-y-2">
+        <li key="select all">
+                <label className="text-default flex w-full items-center justify-between">
+                  <span className="px-1">{'select_all'}</span>
+                  <input
+                    value={'select_all'}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelected([0,1,2,3,4,5,6]);
+                      } else if (!e.target.checked) {
+                        setSelected([]);
+                      }
+                    }}
+                    type="checkbox"
+                    className="border-default bg-default text-emphasis disabled:text-muted focus:ring-emphasis dark:checked:bg-muted focus:bg-default dark:checked:focus:bg-default dark:checked:hover:bg-subtle dark:checked:hover:text-inverted inline-block rounded-[4px]"
+                  />
+                </label>
+            </li>
           {weekdayNames(i18n.language, weekStart).map((weekday, num) => {
             const weekdayIndex = (num + weekStart) % 7;
             return (
