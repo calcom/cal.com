@@ -40,6 +40,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   const invitee = await prisma.user.findFirst({
     where: {
       OR: [{ username: input.usernameOrEmail }, { email: input.usernameOrEmail }],
+      completedOnboarding: true, // Only change the flow for users that have completed onboarding -> otherwise they will be redirected to the onboarding flow and have a differnt email displayed
     },
   });
 
