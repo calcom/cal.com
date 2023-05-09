@@ -212,7 +212,7 @@ export default function Availability() {
                 aria-label={t("delete")}
                 className="hidden sm:inline"
                 disabled={schedule?.isLastSchedule}
-                tooltip={t("requires_at_least_one_schedule")}
+                tooltip={t("delete")}
               />
             </DialogTrigger>
             <ConfirmationDialogContent
