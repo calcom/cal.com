@@ -1010,7 +1010,6 @@
   "event_cancelled_trigger": "når begivenheden er aflyst",
   "new_event_trigger": "når ny begivenhed er booket",
   "email_host_action": "send e-mail til vært",
-  "email_attendee_action": "send e-mail til deltager",
   "sms_attendee_action": "Send SMS til deltager",
   "sms_number_action": "send SMS til et specifikt nummer",
   "workflows": "Workflows",

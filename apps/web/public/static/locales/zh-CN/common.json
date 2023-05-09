@@ -1038,7 +1038,6 @@
   "event_cancelled_trigger": "取消活动时",
   "new_event_trigger": "预约新活动时",
   "email_host_action": "向主持人发送电子邮件",
-  "email_attendee_action": "向参与者发送电子邮件",
   "sms_attendee_action": "向参与者发送短信",
   "sms_number_action": "向特定号码发送短信",
   "workflows": "工作流程",
