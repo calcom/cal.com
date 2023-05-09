@@ -178,7 +178,7 @@ const CalendarsView = () => {
                         </div>
                         <div className="border-subtle w-full border-t">
                           <p className="text-subtle px-2 pt-4 text-sm">{t("toggle_calendars_conflict")}</p>
-                          <ul className="space-y-2 p-4">
+                          <ul className="space-y-4 p-4">
                             {item.calendars.map((cal) => (
                               <CalendarSwitch
                                 key={cal.externalId}

@@ -106,7 +106,7 @@ function ConnectedCalendarsList(props: Props) {
                       {!fromOnboarding && (
                         <>
                           <p className="text-subtle px-5 pt-4 text-sm">{t("toggle_calendars_conflict")}</p>
-                          <ul className="space-y-2 px-5 py-4">
+                          <ul className="space-y-4 px-5 py-4">
                             {item.calendars.map((cal) => (
                               <CalendarSwitch
                                 key={cal.externalId}
