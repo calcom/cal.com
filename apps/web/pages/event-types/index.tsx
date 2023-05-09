@@ -487,17 +487,19 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                       {t("duplicate")}
                                     </DropdownItem>
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem className="outline-none">
-                                    <EmbedButton
-                                      as={DropdownItem}
-                                      type="button"
-                                      StartIcon={Code}
-                                      className="w-full rounded-none"
-                                      embedUrl={encodeURIComponent(embedLink)}>
-                                      {t("embed")}
-                                    </EmbedButton>
-                                  </DropdownMenuItem>
                                 </>
+                              )}
+                              {!isManagedEventType && isChildrenManagedEventType && (
+                                <DropdownMenuItem className="outline-none">
+                                  <EmbedButton
+                                    as={DropdownItem}
+                                    type="button"
+                                    StartIcon={Code}
+                                    className="w-full rounded-none"
+                                    embedUrl={encodeURIComponent(embedLink)}>
+                                    {t("embed")}
+                                  </EmbedButton>
+                                </DropdownMenuItem>
                               )}
                               {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
                               {(group.metadata?.readOnly === false || group.metadata.readOnly === null) &&
@@ -533,27 +535,32 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     </DropdownMenuTrigger>
                     <DropdownMenuPortal>
                       <DropdownMenuContent>
-                        <DropdownMenuItem className="outline-none">
-                          <DropdownItem
-                            href={calLink}
-                            target="_blank"
-                            StartIcon={ExternalLink}
-                            className="w-full rounded-none">
-                            {t("preview")}
-                          </DropdownItem>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="outline-none">
-                          <DropdownItem
-                            data-testid={"event-type-duplicate-" + type.id}
-                            onClick={() => {
-                              navigator.clipboard.writeText(calLink);
-                              showToast(t("link_copied"), "success");
-                            }}
-                            StartIcon={Clipboard}
-                            className="w-full rounded-none text-left">
-                            {t("copy_link")}
-                          </DropdownItem>
-                        </DropdownMenuItem>
+                        {!isManagedEventType && (
+                          <>
+                            <DropdownMenuItem className="outline-none">
+                              <DropdownItem
+                                href={calLink}
+                                target="_blank"
+                                StartIcon={ExternalLink}
+                                className="w-full rounded-none">
+                                {t("preview")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem className="outline-none">
+                              <DropdownItem
+                                data-testid={"event-type-duplicate-" + type.id}
+                                onClick={() => {
+                                  navigator.clipboard.writeText(calLink);
+                                  showToast(t("link_copied"), "success");
+                                }}
+                                StartIcon={Clipboard}
+                                className="w-full rounded-none text-left">
+                                {t("copy_link")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+                          </>
+                        )}
                         {isNativeShare ? (
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
@@ -582,14 +589,16 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             {t("edit")}
                           </DropdownItem>
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="outline-none">
-                          <DropdownItem
-                            onClick={() => openDuplicateModal(type, group)}
-                            StartIcon={Copy}
-                            data-testid={"event-type-duplicate-" + type.id}>
-                            {t("duplicate")}
-                          </DropdownItem>
-                        </DropdownMenuItem>
+                        {!isManagedEventType && !isChildrenManagedEventType && (
+                          <DropdownMenuItem className="outline-none">
+                            <DropdownItem
+                              onClick={() => openDuplicateModal(type, group)}
+                              StartIcon={Copy}
+                              data-testid={"event-type-duplicate-" + type.id}>
+                              {t("duplicate")}
+                            </DropdownItem>
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="outline-none">
                           <DropdownItem
