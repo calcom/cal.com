@@ -196,6 +196,12 @@ export default async function getEventTypeById({
                     select: {
                       id: true,
                       title: true,
+                      parentId: true,
+                      _count: {
+                        select: {
+                          children: true,
+                        },
+                      },
                     },
                   },
                 },
