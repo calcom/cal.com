@@ -6,6 +6,10 @@ import {
   scheduleEmailReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import {
+  deleteScheduledWhatsappReminder,
+  scheduleWhatsappReminder
+} from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager"
+import {
   deleteScheduledSMSReminder,
   scheduleSMSReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
@@ -282,6 +286,23 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 user.id,
                 userWorkflow.teamId
               );
+            } else if (step.action === WorkflowActions.WHATSAPP_NUMBER) {
+              await scheduleWhatsappReminder(
+                bookingInfo,
+                step.sendTo || "",
+                trigger,
+                step.action,
+                {
+                  time,
+                  timeUnit,
+                },
+                step.reminderBody || "",
+                step.id || 0,
+                step.template,
+                step.sender || SENDER_ID,
+                user.id,
+                userWorkflow.teamId
+              );
             }
           });
         }
@@ -318,6 +339,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
           } else if (reminder.method === WorkflowMethods.SMS) {
             deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+          } else if (reminder.method === WorkflowMethods.WHATSAPP) {
+            deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
           }
         });
       }
@@ -480,6 +503,23 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               user.id,
               userWorkflow.teamId
             );
+          } else if (newStep.action === WorkflowActions.WHATSAPP_NUMBER) {
+            await scheduleWhatsappReminder(
+              bookingInfo,
+              newStep.sendTo || "",
+              trigger,
+              newStep.action,
+              {
+                time,
+                timeUnit,
+              },
+              newStep.reminderBody || "",
+              newStep.id || 0,
+              newStep.template,
+              newStep.sender || SENDER_ID,
+              user.id,
+              userWorkflow.teamId
+            );
           }
         });
       }
@@ -597,6 +637,23 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               await scheduleSMSReminder(
                 bookingInfo,
                 step.sendTo,
+                trigger,
+                step.action,
+                {
+                  time,
+                  timeUnit,
+                },
+                step.reminderBody || "",
+                createdStep.id,
+                step.template,
+                step.sender || SENDER_ID,
+                user.id,
+                userWorkflow.teamId
+              );
+            } else if (step.action === WorkflowActions.WHATSAPP_NUMBER) {
+              await scheduleWhatsappReminder(
+                bookingInfo,
+                step.sendTo || "",
                 trigger,
                 step.action,
                 {
