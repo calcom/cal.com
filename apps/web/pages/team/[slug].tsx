@@ -26,7 +26,7 @@ import Team from "@components/team/screens/Team";
 import { ssrInit } from "@server/lib/ssr";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
-function TeamPage({ team, isUnpublished }: TeamPageProps) {
+function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
   useTheme(team.theme);
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
@@ -100,7 +100,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
         title={teamName}
         description={teamName}
         meeting={{
-          title: team?.bio || "",
+          title: markdownStrippedBio,
           profile: { name: `${team.name}`, image: getPlaceholderAvatar(team.logo, team.name) },
         }}
       />
@@ -156,6 +156,8 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
+  const strip = (await import("strip-markdown")).default;
+  const { remark } = await import("remark");
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
 
   const team = await getTeamWithMembers(undefined, slug);
@@ -196,10 +198,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return { ...member, safeBio: markdownToSafeHTML(member.bio || "") };
   });
 
+  const markdownStrippedBio = await (
+    await remark()
+      .use(strip)
+      .process(team.bio ?? "")
+  ).toString();
+
   return {
     props: {
       team: { ...team, safeBio, members },
       trpcState: ssr.dehydrate(),
+      markdownStrippedBio,
     },
   } as const;
 };

@@ -37,7 +37,16 @@ import PageWrapper from "@components/PageWrapper";
 import { ssrInit } from "@server/lib/ssr";
 
 export default function User(props: inferSSRProps<typeof getServerSideProps> & EmbedProps) {
-  const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
+  const {
+    users,
+    profile,
+    eventTypes,
+    isDynamicGroup,
+    dynamicNames,
+    dynamicUsernames,
+    isSingleUser,
+    markdownStrippedBio,
+  } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(user.theme);
   const { t } = useLocale();
@@ -107,11 +116,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
     <>
       <HeadSeo
         title={isDynamicGroup ? dynamicNames.join(", ") : nameOrUsername}
-        description={
-          isDynamicGroup ? `Book events with ${dynamicUsernames.join(", ")}` : (user.bio as string) || ""
-        }
+        description={isDynamicGroup ? `Book events with ${dynamicUsernames.join(", ")}` : markdownStrippedBio}
         meeting={{
-          title: isDynamicGroup ? "" : `${user.bio}`,
+          title: isDynamicGroup ? "" : markdownStrippedBio,
           profile: { name: `${profile.name}`, image: null },
           users: isDynamicGroup
             ? dynamicUsernames.map((username, index) => ({ username, name: dynamicNames[index] }))
@@ -246,7 +253,8 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const crypto = await import("crypto");
-
+  const strip = (await import("strip-markdown")).default;
+  const { remark } = await import("remark");
   const usernameList = getUsernameList(context.query.user as string);
   const dataFetchStart = Date.now();
   const usersWithoutAvatar = await prisma.user.findMany({
@@ -342,6 +350,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
+  const markdownStrippedBio = await (
+    await remark()
+      .use(strip)
+      .process(user.bio ?? "")
+  ).toString();
   return {
     props: {
       users,
@@ -361,6 +374,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       dynamicNames,
       dynamicUsernames,
       isSingleUser,
+      markdownStrippedBio,
     },
   };
 };
