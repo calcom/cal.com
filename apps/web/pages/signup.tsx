@@ -4,8 +4,10 @@ import { useRouter } from "next/router";
 import type { CSSProperties } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,7 +18,6 @@ import { Alert, Button, EmailField, HeadSeo, PasswordField, TextField } from "@c
 
 import PageWrapper from "@components/PageWrapper";
 
-import { asStringOrNull } from "../lib/asStringOrNull";
 import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
 import { ssrInit } from "../server/lib/ssr";
 
@@ -28,7 +29,7 @@ type FormValues = {
   apiError: string;
 };
 
-export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof getServerSideProps>) {
+export default function Signup({ prepopulateFormValues, token }: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
@@ -136,21 +137,23 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
                   />
                 </div>
                 <div className="flex space-x-2 rtl:space-x-reverse">
-                  <Button type="submit" loading={isSubmitting} className="w-7/12 justify-center">
+                  <Button type="submit" loading={isSubmitting} className="w-full justify-center">
                     {t("create_account")}
                   </Button>
-                  <Button
-                    color="secondary"
-                    className="w-5/12 justify-center"
-                    onClick={() =>
-                      signIn("Cal.com", {
-                        callbackUrl: router.query.callbackUrl
-                          ? `${WEBAPP_URL}/${router.query.callbackUrl}`
-                          : `${WEBAPP_URL}/getting-started`,
-                      })
-                    }>
-                    {t("login_instead")}
-                  </Button>
+                  {!token && (
+                    <Button
+                      color="secondary"
+                      className="w-full justify-center"
+                      onClick={() =>
+                        signIn("Cal.com", {
+                          callbackUrl: router.query.callbackUrl
+                            ? `${WEBAPP_URL}/${router.query.callbackUrl}`
+                            : `${WEBAPP_URL}/getting-started`,
+                        })
+                      }>
+                      {t("login_instead")}
+                    </Button>
+                  )}
                 </div>
               </form>
             </FormProvider>
@@ -163,7 +166,7 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const ssr = await ssrInit(ctx);
-  const token = asStringOrNull(ctx.query.token);
+  const token = z.string().optional().parse(ctx.query.token);
 
   const props = {
     isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
@@ -221,11 +224,22 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     };
   }
 
+  const guessUsernameFromEmail = (email: string) => {
+    const [username] = email.split("@");
+    return username;
+  };
+
+  const { available, suggestion } = await checkPremiumUsername(
+    guessUsernameFromEmail(verificationToken.identifier)
+  ); // We dont care about premium here as this signup page is only used on selfhosted
+
   return {
     props: {
       ...props,
+      token,
       prepopulateFormValues: {
         email: verificationToken.identifier,
+        username: available ? guessUsernameFromEmail(verificationToken.identifier) : suggestion,
       },
     },
   };

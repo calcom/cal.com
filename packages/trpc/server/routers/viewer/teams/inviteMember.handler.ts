@@ -82,7 +82,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         from: ctx.user.name,
         to: input.usernameOrEmail,
         teamName: team.name,
-        joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/teams`,
+        joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`, // we know that the user has not completed onboarding yet, so we can redirect them to the onboarding flow
         isCalcomMember: false,
       });
     }
@@ -118,7 +118,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         from: ctx.user.name,
         to: sendTo,
         teamName: team.name,
-        joinLink: WEBAPP_URL + "/settings/teams",
+        joinLink: WEBAPP_URL + "/settings/teams", // TODO: The reason we get the flash of unaothrised is when the session doesnt exist. we still navigate you to /settings/teams
         isCalcomMember: true,
       });
     }
