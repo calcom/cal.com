@@ -25,7 +25,7 @@ const OptionWithIcon = ({ icon, label }: { icon?: string; label: string }) => {
           src={icon}
           alt="cover"
           // invert all the icons except app icons
-          className={cx("h-3.5 w-3.5", icon && !icon.startsWith("/api") && "dark:invert")}
+          className={cx("h-3.5 w-3.5", icon && !icon.startsWith("/app-store") && "dark:invert")}
         />
       )}
       <span className={classNames("text-sm font-medium")}>{label}</span>
