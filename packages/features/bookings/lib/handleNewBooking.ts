@@ -1018,9 +1018,17 @@ async function handler(
           message?: string;
         })
       | null = null;
-    const booking = await prisma.booking.findUniqueOrThrow({
+    const booking = await prisma.booking.findFirst({
       where: {
-        uid: rescheduleUid || reqBody.bookingUid,
+        OR: [
+          {
+            uid: rescheduleUid || reqBody.bookingUid,
+          },
+          {
+            eventTypeId: eventType.id,
+            startTime: evt.startTime,
+          },
+        ],
       },
       select: {
         uid: true,
@@ -1033,6 +1041,11 @@ async function handler(
         status: true,
       },
     });
+
+    if (!booking) {
+      throw new HttpError({ statusCode: 404, message: "Could not find booking" });
+    }
+
     // See if attendee is already signed up for timeslot
     if (
       booking.attendees.find((attendee) => attendee.email === invitee[0].email) &&
