@@ -49,6 +49,7 @@ const customTemplate = (
     .replaceAll("{ATTENDEE_NAME}", variables.attendeeName || "") //old variable names
     .replaceAll("{EVENT_DATE}", translatedDate)
     .replaceAll("{EVENT_TIME}", variables.eventDate?.format("H:mmA") || "")
+    .replaceAll("{START_TIME}", variables.eventDate?.format("H:mmA") || "")
     .replaceAll("{EVENT_END_TIME}", variables.eventEndTime?.format("H:mmA") || "")
     .replaceAll("{LOCATION}", locationString)
     .replaceAll("{ADDITIONAL_NOTES}", variables.additionalNotes || "")
@@ -64,7 +65,11 @@ const customTemplate = (
 
   // event date/time with formatting
   customInputvariables?.forEach((variable) => {
-    if (variable.startsWith("EVENT_DATE_") || variable.startsWith("EVENT_TIME_")) {
+    if (
+      variable.startsWith("EVENT_DATE_") ||
+      variable.startsWith("EVENT_TIME_") ||
+      variable.startsWith("START_TIME_")
+    ) {
       const dateFormat = variable.substring(11, text.length);
       const formattedDate = variables.eventDate?.format(dateFormat);
       dynamicText = dynamicText.replace(`{${variable}}`, formattedDate || "");
