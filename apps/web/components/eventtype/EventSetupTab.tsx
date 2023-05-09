@@ -466,6 +466,7 @@ export const EventSetupTab = (
             defaultValue={eventType.length ?? 15}
             {...formMethods.register("length")}
             addOnSuffix={<>{t("minutes")}</>}
+            min={1}
           />
         )}
         {!lengthLockedProps.disabled && (
