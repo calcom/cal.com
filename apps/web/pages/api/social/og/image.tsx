@@ -4,7 +4,6 @@ import type { SatoriOptions } from "satori";
 import { z } from "zod";
 
 import { Meeting, App, Generic } from "@calcom/lib/OgImages";
-import { md } from "@calcom/lib/markdownIt";
 
 const calFont = fetch(new URL("../../../../public/fonts/cal.ttf", import.meta.url)).then((res) =>
   res.arrayBuffer()
@@ -75,12 +74,10 @@ export default async function handler(req: NextApiRequest) {
         imageType,
       });
 
-      const title_ = md.render(title).replace(/(<([^>]+)>)/gi, "");
-
       const img = new ImageResponse(
         (
           <Meeting
-            title={title_}
+            title={title}
             profile={{ name: meetingProfileName, image: meetingImage }}
             users={names.map((name, index) => ({ name, username: usernames[index] }))}
           />
