@@ -68,14 +68,16 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
     },
   ];
 
-  if (props.hasPendingInvites) {
-    headers.unshift(
-      props.hasPendingInvites && {
-        title: `${t("email_no_user_invite_heading", { appName: APP_NAME })}`,
-        subtitle: [], // TODO: come up with some subtitle text here
-      }
-    );
-  }
+  // TODO: Add this in when we have solved the ability to move to tokens accept invite and note invitedto
+  // Ability to accept other pending invites if any (low priority)
+  // if (props.hasPendingInvites) {
+  //   headers.unshift(
+  //     props.hasPendingInvites && {
+  //       title: `${t("email_no_user_invite_heading", { appName: APP_NAME })}`,
+  //       subtitle: [], // TODO: come up with some subtitle text here
+  //     }
+  //   );
+  // }
 
   const goToIndex = (index: number) => {
     const newStep = steps[index];

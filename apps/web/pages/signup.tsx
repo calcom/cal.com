@@ -9,7 +9,7 @@ import { z } from "zod";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
@@ -229,9 +229,14 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     return username;
   };
 
-  const { available, suggestion } = await checkPremiumUsername(
-    guessUsernameFromEmail(verificationToken.identifier)
-  ); // We dont care about premium here as this signup page is only used on selfhosted
+  let username = guessUsernameFromEmail(verificationToken.identifier);
+
+  if (!IS_SELF_HOSTED) {
+    // Im not sure we actually hit this because of next redirects signup to website repo - but just in case this is pretty cool :)
+    const { available, suggestion } = await checkPremiumUsername(username);
+
+    username = available ? username : suggestion || username;
+  }
 
   return {
     props: {
@@ -239,7 +244,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       token,
       prepopulateFormValues: {
         email: verificationToken.identifier,
-        username: available ? guessUsernameFromEmail(verificationToken.identifier) : suggestion,
+        username,
       },
     },
   };
