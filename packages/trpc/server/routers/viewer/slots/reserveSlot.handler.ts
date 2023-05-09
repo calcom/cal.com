@@ -52,7 +52,6 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
 
   if (eventType && shouldReserveSlot) {
     try {
-      console.log("This triggers");
       await Promise.all(
         eventType.users.map((user) =>
           prisma.selectedSlots.upsert({
