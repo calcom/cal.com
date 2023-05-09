@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState, useRef } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
@@ -138,6 +138,14 @@ function useRedirectToOnboardingIfNeeded() {
 
 const Layout = (props: LayoutProps) => {
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
+  const bannerRef = useRef<HTMLDivElement | null>(null);
+  const [bannersHeight, setBannersHeight] = useState(0);
+
+  useEffect(() => {
+    if (bannerRef.current) {
+      setBannersHeight(bannerRef.current.offsetHeight);
+    }
+  }, [bannerRef]);
 
   return (
     <>
@@ -154,13 +162,13 @@ const Layout = (props: LayoutProps) => {
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
       <div className="flex min-h-screen flex-col">
-        <div className="divide-y divide-black">
+        <div ref={bannerRef} className="divide-y divide-black">
           <TeamsUpgradeBanner />
           <ImpersonatingBanner />
           <AdminPasswordBanner />
         </div>
         <div className="flex flex-1" data-testid="dashboard-shell">
-          {props.SidebarContainer || <SideBarContainer />}
+          {props.SidebarContainer || <SideBarContainer bannersHeight={bannersHeight} />}
           <div className="flex w-0 flex-1 flex-col">
             <MainContainer {...props} />
           </div>
@@ -731,7 +739,15 @@ const MobileNavigationMoreItem: React.FC<{
   );
 };
 
-function SideBarContainer() {
+type SideBarContainerProps = {
+  bannersHeight: number;
+};
+
+type SideBarProps = {
+  bannersHeight: number;
+};
+
+function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
   const { status } = useSession();
   const router = useRouter();
 
@@ -740,13 +756,15 @@ function SideBarContainer() {
   // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
   if (status !== "loading" && status !== "authenticated") return null;
   if (router.route.startsWith("/v2/settings/")) return null;
-  return <SideBar />;
+  return <SideBar bannersHeight={bannersHeight} />;
 }
 
-function SideBar() {
+function SideBar({ bannersHeight }: SideBarProps) {
   return (
     <div className="relative">
-      <aside className="desktop-transparent bg-muted border-muted top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-4">
+      <aside
+        style={{ maxHeight: `calc(100vh - ${bannersHeight}px)` }}
+        className="desktop-transparent bg-muted border-muted top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-4">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-6 ">
           <header className="items-center justify-between md:hidden lg:flex">
             <Link href="/event-types" className="px-2">
