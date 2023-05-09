@@ -57,30 +57,40 @@ export function buildDateRanges({
   start: Dayjs;
   end: Dayjs;
 }[] {
-  const items = availability
-    .filter((item) => !!item.days.length)
-    .flatMap((item) => processWorkingHours({ item, timeZone, dateFrom, dateTo }))
-    .concat(
-      availability.filter((item) => !!item.date).flatMap((item) => processDateOverride({ item, timeZone }))
-    );
-  return mergeByDate(items);
+  const groupedWorkingHours = groupByDate(
+    availability
+      .filter((item) => !!item.days.length)
+      .flatMap((item) => processWorkingHours({ item, timeZone, dateFrom, dateTo }))
+  );
+  const groupedDateOverrides = groupByDate(
+    availability.filter((item) => !!item.date).flatMap((item) => processDateOverride({ item, timeZone }))
+  );
+
+  return Object.values({
+    ...groupedWorkingHours,
+    ...groupedDateOverrides,
+  }).flat();
 }
 
-export function mergeByDate(ranges: DateRange[]) {
+export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {
   const results = ranges.reduce(
     (
       previousValue: {
-        [date: string]: DateRange;
+        [date: string]: DateRange[];
       },
       currentValue
     ) => {
-      previousValue[currentValue.start.format("YYYY-mm-dd")] = currentValue;
+      const dateString = currentValue.start.format("YYYY-mm-dd");
+      previousValue[dateString] =
+        typeof previousValue[dateString] === "undefined"
+          ? [currentValue]
+          : [...previousValue[dateString], currentValue];
       return previousValue;
     },
     {}
   );
 
-  return Object.values(results);
+  return results;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
