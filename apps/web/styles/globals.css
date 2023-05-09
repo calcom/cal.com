@@ -84,8 +84,8 @@
   /* Brand shenanigans
       -> These will be computed for the users theme at runtime.
     */
-  --cal-brand: #111827;
-  --cal-brand-emphasis: #101010;
+  --cal-brand: white;
+  --cal-brand-emphasis: #e1e1e1;
   --cal-brand-text: black;
 }
 

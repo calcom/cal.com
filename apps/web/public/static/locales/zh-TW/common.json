@@ -1038,7 +1038,6 @@
   "event_cancelled_trigger": "活動取消時",
   "new_event_trigger": "預約新活動時",
   "email_host_action": "傳送電子郵件給主辦者",
-  "email_attendee_action": "傳送電子郵件給與會者",
   "sms_attendee_action": "傳送簡訊給與會者",
   "sms_number_action": "傳送簡訊至特定號碼",
   "workflows": "工作流程",

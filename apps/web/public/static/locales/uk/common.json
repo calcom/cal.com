@@ -1038,7 +1038,6 @@
   "event_cancelled_trigger": "у момент скасування заходу",
   "new_event_trigger": "у момент бронювання нового заходу",
   "email_host_action": "надсилати електронний лист ведучому",
-  "email_attendee_action": "надсилати електронний лист учаснику",
   "sms_attendee_action": "надсилати SMS учаснику",
   "sms_number_action": "надсилати SMS на певний номер",
   "workflows": "Робочі процеси",
