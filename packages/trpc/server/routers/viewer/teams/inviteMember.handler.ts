@@ -113,15 +113,29 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     }
     // inform user of membership by email
     if (input.sendEmailInvitation && ctx?.user?.name && team?.name) {
+      const inviteTeamOptions = {
+        joinLink: `${WEBAPP_URL}/settings/teams`,
+        isCalcomMember: true,
+      };
       /**
        * Here we want to redirect to a differnt place if onboarding has been completed or not. This prevents the flash of going to teams -> Then to onboarding - also show a differnt email template.
+       * This only changes if the user is a CAL user and has not completed onboarding and has no password
        */
-      const inviteTeamOptions = {
-        joinLink: invitee.completedOnboarding
-          ? `${WEBAPP_URL}/settings/teams`
-          : `${WEBAPP_URL}/getting-started`,
-        isCalcomMember: !!invitee.completedOnboarding,
-      };
+      if (!invitee.completedOnboarding && !invitee.password && invitee.identityProvider === "CAL") {
+        const token = randomBytes(32).toString("hex");
+        await prisma.verificationToken.create({
+          data: {
+            identifier: input.usernameOrEmail,
+            token,
+            expires: new Date(new Date().setHours(168)), // +1 week
+          },
+        });
+
+        inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
+        inviteTeamOptions.isCalcomMember = false;
+      }
+
+      console.log({ inviteTeamOptions });
 
       await sendTeamInviteEmail({
         language: translation,
