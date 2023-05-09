@@ -28,6 +28,20 @@ export default class BaseEmail {
     return date;
   }
 
+  protected getFormattedRecipientTime({
+    time,
+    format,
+    locale,
+    timeZone,
+  }: {
+    time: string;
+    format: string;
+    locale: string;
+    timeZone: string;
+  }) {
+    return dayjs(time).tz(timeZone).locale(locale).format(format);
+  }
+
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {};
   }
@@ -52,9 +66,10 @@ export default class BaseEmail {
       ...(parseSubject.success && { subject: decodeHTML(parseSubject.data) }),
     };
 
-    new Promise((resolve, reject) =>      
-        createTransport(this.getMailerOptions().transport)
-        .sendMail(payloadWithUnEscapedSubject, (_err, info) => {
+    new Promise((resolve, reject) =>
+      createTransport(this.getMailerOptions().transport).sendMail(
+        payloadWithUnEscapedSubject,
+        (_err, info) => {
           if (_err) {
             const err = getErrorFromUnknown(_err);
             this.printNodeMailerError(err);
@@ -62,7 +77,8 @@ export default class BaseEmail {
           } else {
             resolve(info);
           }
-        })
+        }
+      )
     ).catch((e) => console.error("sendEmail", e));
     return new Promise((resolve) => resolve("send mail async"));
   }
