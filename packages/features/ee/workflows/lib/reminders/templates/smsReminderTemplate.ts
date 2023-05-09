@@ -14,7 +14,7 @@ const smsReminderTemplate = (
   if (isEditingMode) {
     eventName = "{EVENT_NAME}";
     timeZone = "{TIMEZONE}";
-    startTime = "{START_TIME_h:mmA}";
+    startTime = "{EVENT_TIME_h:mmA}";
 
     eventDate = "{EVENT_DATE_YYYY MMM D}";
     attendee = action === WorkflowActions.SMS_ATTENDEE ? "{ORGANIZER}" : "{ATTENDEE}";

@@ -135,7 +135,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             // Sizes for fullscreen layouts:
             layout !== "small_calendar" && "[--booker-meta-width:340px] lg:[--booker-meta-width:424px]",
             // Other styles
-            layout === "small_calendar" && "border-subtle mt-20 min-h-[450px] rounded-md border",
+            layout === "small_calendar" && "border-subtle min-h-[450px] rounded-md border",
             layout !== "small_calendar" && "h-auto min-h-screen w-screen",
             "transition-[width,max-width] duration-300"
           )}>

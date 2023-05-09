@@ -102,11 +102,17 @@ const config: PlaywrightTestConfig = {
       name: "@calcom/embed-core",
       testDir: "./packages/embeds/embed-core/",
       testMatch: /.*\.(e2e|test)\.tsx?/,
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
       use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3100/" },
     },
     {
       name: "@calcom/embed-react",
       testDir: "./packages/embeds/embed-react/",
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
       testMatch: /.*\.(e2e|test)\.tsx?/,
       use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3101/" },
     },
@@ -114,12 +120,18 @@ const config: PlaywrightTestConfig = {
       name: "@calcom/embed-core--firefox",
       testDir: "./packages/embeds/",
       testMatch: /.*\.e2e\.tsx?/,
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
       use: { ...devices["Desktop Firefox"] },
     },
     {
       name: "@calcom/embed-core--webkit",
       testDir: "./packages/embeds/",
       testMatch: /.*\.e2e\.tsx?/,
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
       use: { ...devices["Desktop Safari"] },
     },
   ],
