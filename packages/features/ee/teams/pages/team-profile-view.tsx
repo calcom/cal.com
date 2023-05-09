@@ -54,7 +54,7 @@ const ProfileView = () => {
   const utils = trpc.useContext();
   const session = useSession();
   const [firstRender, setFirstRender] = useState(true);
-  
+
   useLayoutEffect(() => {
     document.body.focus();
   }, []);
