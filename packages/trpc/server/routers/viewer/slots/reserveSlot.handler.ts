@@ -9,6 +9,10 @@ import type { PrismaClient } from "@calcom/prisma/client";
 import { TRPCError } from "@trpc/server";
 
 import type { TReserveSlotInputSchema } from "./reserveSlot.schema";
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import sendPayload, { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { CalendarEvent } from "@calcom/types/Calendar";
 
 interface ReserveSlotOptions {
   ctx: {
@@ -25,7 +29,19 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
   const releaseAt = dayjs.utc().add(parseInt(MINUTES_TO_BOOK), "minutes").format();
   const eventType = await prisma.eventType.findUnique({
     where: { id: eventTypeId },
-    select: { users: { select: { id: true } }, seatsPerTimeSlot: true },
+    select: {
+      id: true,
+      users: { select: { id: true } },
+      userId: true,
+      seatsPerTimeSlot: true,
+      requiresConfirmation: true,
+      title: true,
+      eventName: true,
+      currency: true,
+      length: true,
+      description: true,
+      price: true,
+    },
   });
 
   if (!eventType) {
@@ -78,6 +94,57 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
         message: "Event type not found",
         code: "NOT_FOUND",
       });
+    }
+    // if the event needs confirmation we will send BOOKING REQUESTED Event
+    if (eventType.requiresConfirmation) {
+      const eventTypeInfo: EventTypeInfo = {
+        eventTitle: eventType.title,
+        eventDescription: eventType.description,
+        requiresConfirmation: eventType.requiresConfirmation || null,
+        price: eventType.price,
+        currency: eventType.currency,
+        length: eventType.length,
+      };
+
+      
+      // figure out the organizer first
+      
+      let evt: CalendarEvent = {
+        type: eventType.title,
+        title: eventType.eventName ?? "Nameless", //this needs to be either forced in english, or fetched for each attendee and organizer separately
+        description: eventType.description,
+        startTime: dayjs(slotUtcStartDate).utc().format(),
+        endTime: dayjs(slotUtcEndDate).utc().format(),
+        organizer: {
+          name: "Nameless", //organizerUser.name || "Nameless",
+          email: "Email-less", //organizerUser.email || "Email-less",
+          timeZone: "organizerUser.timeZone",
+          language: { translate: {tOrganizer}, locale: organizerUser.locale ?? "en" },
+          timeFormat: organizerUser.timeFormat === 24 ? TimeFormat.TWENTY_FOUR_HOUR : TimeFormat.TWELVE_HOUR,
+        },
+        attendees: attendeesList,
+      };
+      
+      const subscribersBookingRequested = await getWebhooks({
+        userId: "booking.userId" || 0,
+        eventTypeId,
+        triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+      });
+
+      const promises = subscribersBookingRequested.map((sub) =>
+        sendPayload(sub.secret, WebhookTriggerEvents.BOOKING_CREATED, new Date().toISOString(), sub, {
+          ...evt,
+          ...eventTypeInfo,
+          eventTypeId,
+          status: "ACCEPTED",
+        }).catch((e) => {
+          console.error(
+            `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}`,
+            e
+          );
+        })
+      );
+      await Promise.all(promises)
     }
   }
   res?.setHeader("Set-Cookie", serialize("uid", uid, { path: "/", sameSite: "lax" }));
