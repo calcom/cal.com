@@ -16,10 +16,12 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, showToast, useCalcomTheme } from "@calcom/ui";
 
 import FormInputFields from "../../components/FormInputFields";
+import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 import { processRoute } from "../../lib/processRoute";
 import type { Response, Route } from "../../types/types";
 
+type Props = inferSSRProps<typeof getServerSideProps>;
 const useBrandColors = ({
   brandColor,
   darkBrandColor,
@@ -34,7 +36,7 @@ const useBrandColors = ({
   useCalcomTheme(brandTheme);
 };
 
-function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getServerSideProps>) {
+function RoutingForm({ form, profile, ...restProps }: Props) {
   const [customPageMessage, setCustomPageMessage] = useState<Route["action"]["value"]>("");
   const formFillerIdRef = useRef(uuidv4());
   const isEmbed = useIsEmbed(restProps.isEmbed);
@@ -48,7 +50,7 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
   // - like a network error
   // - or he abandoned booking flow in between
   const formFillerId = formFillerIdRef.current;
-  const decidedActionRef = useRef<Route["action"]>();
+  const decidedActionRef = useRef<{ action: Route["action"]; response: Response }>();
   const router = useRouter();
 
   const onSubmit = (response: Response) => {
@@ -65,7 +67,10 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
       formFillerId,
       response: response,
     });
-    decidedActionRef.current = decidedAction;
+    decidedActionRef.current = {
+      action: decidedAction,
+      response,
+    };
   };
 
   useEffect(() => {
@@ -75,18 +80,24 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
 
   const responseMutation = trpc.viewer.appRoutingForms.public.response.useMutation({
     onSuccess: () => {
-      const decidedAction = decidedActionRef.current;
-      if (!decidedAction) {
+      const decidedActionWithResponse = decidedActionRef.current;
+      if (!decidedActionWithResponse) {
         return;
       }
+      const fields = form.fields;
+      if (!fields) {
+        throw new Error("Routing Form fields must exist here");
+      }
+      const allURLSearchParams = getAllUrlSearchParams(decidedActionWithResponse.response, fields);
+      const decidedAction = decidedActionWithResponse.action;
 
       //TODO: Maybe take action after successful mutation
       if (decidedAction.type === "customPageMessage") {
         setCustomPageMessage(decidedAction.value);
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
-        router.push(`/${decidedAction.value}`);
+        router.push(`/${decidedAction.value}?${allURLSearchParams}`);
       } else if (decidedAction.type === "externalRedirectUrl") {
-        window.parent.location.href = decidedAction.value;
+        window.parent.location.href = `${decidedAction.value}?${allURLSearchParams}`;
       }
       // showToast("Form submitted successfully! Redirecting now ...", "success");
     },
@@ -102,6 +113,13 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
   });
 
   const [response, setResponse] = useState<Response>({});
+
+  form.fields?.forEach((field) => {
+    response[field.id] = response[field.id] || {
+      value: router.query[getFieldIdentifier(field)],
+      label: field.label,
+    };
+  }, {});
 
   const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -159,6 +177,53 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
       </div>
     </div>
   );
+}
+
+function getAllUrlSearchParams(response: Response, fields: NonNullable<Props["form"]["fields"]>) {
+  const paramsFromResponse: Record<string, string | string[]> = {};
+  const paramsFromCurrentUrl: Record<string, string | string[]> = {};
+
+  // Build query params from response
+  Object.entries(response).forEach(([key, fieldResponse]) => {
+    const foundField = fields.find((f) => f.id === key);
+    if (!foundField) {
+      // If for some reason, the field isn't there, let's just
+      return;
+    }
+    paramsFromResponse[getFieldIdentifier(foundField) as keyof typeof paramsFromResponse] =
+      fieldResponse.value;
+  });
+
+  // Build query params from current URL. It excludes route params
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  for (const [name, value] of new URLSearchParams(window.location.search).entries()) {
+    const target = paramsFromCurrentUrl[name];
+    if (target instanceof Array) {
+      target.push(value);
+    } else {
+      paramsFromCurrentUrl[name] = [value];
+    }
+  }
+
+  const allQueryParams: Record<string, string | string[]> = {
+    ...paramsFromResponse,
+    // Make sure that all params initially provided are passed as is.
+    // In case of conflict b/w paramsFromResponse and pageParams, pageParams should win.
+    ...paramsFromCurrentUrl,
+  };
+
+  const allQueryURLSearchParams = new URLSearchParams();
+
+  // Make serializable URLSearchParams instance
+  Object.entries(allQueryParams).forEach(([param, value]) => {
+    const valueArray = value instanceof Array ? value : [value];
+    valueArray.forEach((v) => {
+      allQueryURLSearchParams.append(param, v);
+    });
+  });
+
+  return allQueryURLSearchParams;
 }
 
 export default function RoutingLink(props: inferSSRProps<typeof getServerSideProps>) {

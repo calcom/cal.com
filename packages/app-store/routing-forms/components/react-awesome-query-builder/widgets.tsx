@@ -157,7 +157,7 @@ const MultiSelectWidget = ({
     };
   });
 
-  const defaultValue = selectItems.filter((item) => value?.includes(item.value));
+  const validValue = selectItems.filter((item) => value?.includes(item.value));
 
   return (
     <Select
@@ -165,7 +165,7 @@ const MultiSelectWidget = ({
       onChange={(items) => {
         setValue(items?.map((item) => item.value));
       }}
-      defaultValue={defaultValue}
+      value={validValue}
       isMulti={true}
       isDisabled={remainingProps.readOnly}
       options={selectItems}
