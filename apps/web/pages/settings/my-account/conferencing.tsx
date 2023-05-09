@@ -24,7 +24,7 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
-import { AlertCircle, MoreHorizontal, Trash, Video } from "@calcom/ui/components/icon";
+import { AlertCircle, MoreHorizontal, Trash, Video, Plus } from "@calcom/ui/components/icon";
 
 import AppListCard from "@components/AppListCard";
 import PageWrapper from "@components/PageWrapper";
@@ -38,6 +38,18 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
         <SkeletonText className="h-8 w-full" />
       </div>
     </SkeletonContainer>
+  );
+};
+
+const AddConferencingButton = () => {
+  const { t } = useLocale();
+
+  return (
+    <>
+      <Button color="secondary" StartIcon={Plus} href="/apps/categories/video">
+        {t("add_conferencing_app")}
+      </Button>
+    </>
   );
 };
 
@@ -91,7 +103,11 @@ const ConferencingLayout = () => {
 
   return (
     <div className="bg-default w-full sm:mx-0 xl:mt-0">
-      <Meta title={t("conferencing")} description={t("conferencing_description")} />
+      <Meta
+        title={t("conferencing")}
+        description={t("conferencing_description")}
+        CTA={<AddConferencingButton />}
+      />
       <List>
         {apps?.items &&
           apps.items
