@@ -990,7 +990,6 @@
   "event_cancelled_trigger": "når hendelsen er avlyst",
   "new_event_trigger": "når en ny hendelse er booket",
   "email_host_action": "send e-post til vert",
-  "email_attendee_action": "send e-post til deltakeren",
   "sms_attendee_action": "send SMS til deltakeren",
   "sms_number_action": "send SMS til et bestemt nummer",
   "workflows": "Arbeidsflyter",

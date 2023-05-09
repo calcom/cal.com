@@ -33,6 +33,10 @@ import {
 } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import {
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
@@ -1014,9 +1018,17 @@ async function handler(
           message?: string;
         })
       | null = null;
-    const booking = await prisma.booking.findUniqueOrThrow({
+    const booking = await prisma.booking.findFirst({
       where: {
-        uid: rescheduleUid || reqBody.bookingUid,
+        OR: [
+          {
+            uid: rescheduleUid || reqBody.bookingUid,
+          },
+          {
+            eventTypeId: eventType.id,
+            startTime: evt.startTime,
+          },
+        ],
       },
       select: {
         uid: true,
@@ -1029,6 +1041,11 @@ async function handler(
         status: true,
       },
     });
+
+    if (!booking) {
+      throw new HttpError({ statusCode: 404, message: "Could not find booking" });
+    }
+
     // See if attendee is already signed up for timeslot
     if (
       booking.attendees.find((attendee) => attendee.email === invitee[0].email) &&
@@ -1953,6 +1970,26 @@ async function handler(
         videoCallUrl = metadata.hangoutLink || defaultLocationUrl || videoCallUrl;
       }
       if (noEmail !== true) {
+        let isHostConfirmationEmailsDisabled = false;
+        let isAttendeeConfirmationEmailDisabled = false;
+
+        const workflows = eventType.workflows.map((workflow) => workflow.workflow);
+
+        if (eventType.workflows) {
+          isHostConfirmationEmailsDisabled =
+            eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
+          isAttendeeConfirmationEmailDisabled =
+            eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
+
+          if (isHostConfirmationEmailsDisabled) {
+            isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
+          }
+
+          if (isAttendeeConfirmationEmailDisabled) {
+            isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
+          }
+        }
+
         await sendScheduledEmails(
           {
             ...evt,
@@ -1960,7 +1997,9 @@ async function handler(
             additionalNotes,
             customInputs,
           },
-          eventNameObject
+          eventNameObject,
+          isHostConfirmationEmailsDisabled,
+          isAttendeeConfirmationEmailDisabled
         );
       }
     }

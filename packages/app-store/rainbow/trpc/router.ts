@@ -1,4 +1,5 @@
-import { router, publicProcedure } from "@calcom/trpc/server/trpc";
+import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
+import { router } from "@calcom/trpc/server/trpc";
 
 import { ZBalanceInputSchema, ZBalanceOutputSchema } from "./balance.schema";
 import { ZContractInputSchema, ZContractOutputSchema } from "./contract.schema";

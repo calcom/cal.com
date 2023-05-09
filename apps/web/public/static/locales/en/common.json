@@ -1039,7 +1039,7 @@
   "event_cancelled_trigger": "when event is cancelled",
   "new_event_trigger": "when new event is booked",
   "email_host_action": "send email to host",
-  "email_attendee_action": "send email to attendee",
+  "email_attendee_action": "send email to attendees",
   "sms_attendee_action": "send SMS to attendee",
   "sms_number_action": "send SMS to a specific number",
   "workflows": "Workflows",
@@ -1248,6 +1248,7 @@
   "calendars_description": "Configure how your event types interact with your calendars",
   "appearance_description": "Manage settings for your booking appearance",
   "conferencing_description": "Add your favourite video conferencing apps for your meetings",
+  "add_conferencing_app": "Add Conferencing App",
   "password_description": "Manage settings for your account passwords",
   "2fa_description": "Manage settings for your account passwords",
   "we_just_need_basic_info": "We just need some basic info to get your profile setup.",
@@ -1808,5 +1809,9 @@
   "pop_up_element_click": "Pop up via element click",
   "open_dialog_with_element_click": "Open your Cal dialog when someone clicks an element.",
   "need_help_embedding": "Need help? See our guides for embedding Cal on Wix, Squarespace, or WordPress, check our common questions, or explore advanced embed options.",
-  "book_my_cal": "Book my Cal"
+  "book_my_cal": "Book my Cal",
+  "disable_attendees_confirmation_emails": "Disable default confirmation emails for attendees",
+  "disable_attendees_confirmation_emails_description": "At least one workflow is active on this event type that sends an email to the attendees when the event is booked.",
+  "disable_host_confirmation_emails": "Disable default confirmation emails for host",
+  "disable_host_confirmation_emails_description": "At least one workflow is active on this event type that sends an email to the host when the event is booked."
 }
