@@ -184,7 +184,7 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
       value: item.value,
     };
   });
-  const defaultValue = selectItems.find((item) => item.value === value);
+  const validValue = selectItems.find((item) => item.value === value);
 
   return (
     <Select
@@ -196,7 +196,7 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
         setValue(item.value);
       }}
       isDisabled={remainingProps.readOnly}
-      defaultValue={defaultValue}
+      value={validValue}
       options={selectItems}
       {...remainingProps}
     />

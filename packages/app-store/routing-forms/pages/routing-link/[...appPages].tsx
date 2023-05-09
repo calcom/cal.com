@@ -50,9 +50,8 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   // - like a network error
   // - or he abandoned booking flow in between
   const formFillerId = formFillerIdRef.current;
-  const decidedActionRef = useRef<{ action: Route["action"]; response: Response }>();
+  const decidedActionWithResponseRef = useRef<{ action: Route["action"]; response: Response }>();
   const router = useRouter();
-
   const onSubmit = (response: Response) => {
     const decidedAction = processRoute({ form, response });
 
@@ -67,7 +66,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       formFillerId,
       response: response,
     });
-    decidedActionRef.current = {
+    decidedActionWithResponseRef.current = {
       action: decidedAction,
       response,
     };
@@ -80,7 +79,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
   const responseMutation = trpc.viewer.appRoutingForms.public.response.useMutation({
     onSuccess: () => {
-      const decidedActionWithResponse = decidedActionRef.current;
+      const decidedActionWithResponse = decidedActionWithResponseRef.current;
       if (!decidedActionWithResponse) {
         return;
       }
@@ -88,7 +87,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       if (!fields) {
         throw new Error("Routing Form fields must exist here");
       }
-      const allURLSearchParams = getAllUrlSearchParams(decidedActionWithResponse.response, fields);
+      const allURLSearchParams = getUrlSearchParamsToForward(decidedActionWithResponse.response, fields);
       const decidedAction = decidedActionWithResponse.action;
 
       //TODO: Maybe take action after successful mutation
@@ -179,7 +178,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   );
 }
 
-function getAllUrlSearchParams(response: Response, fields: NonNullable<Props["form"]["fields"]>) {
+function getUrlSearchParamsToForward(response: Response, fields: NonNullable<Props["form"]["fields"]>) {
   const paramsFromResponse: Record<string, string | string[]> = {};
   const paramsFromCurrentUrl: Record<string, string | string[]> = {};
 
