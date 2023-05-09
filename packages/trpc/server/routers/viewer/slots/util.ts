@@ -214,6 +214,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     usersWithCredentials.map(async (currentUser) => {
       const {
         busy,
+        available,
         workingHours,
         dateOverrides,
         currentSeats: _currentSeats,
@@ -238,6 +239,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
         workingHours,
         dateOverrides,
         busy,
+        available,
         user: currentUser,
       };
     })
