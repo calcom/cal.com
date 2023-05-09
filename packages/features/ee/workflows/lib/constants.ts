@@ -26,7 +26,6 @@ export const WORKFLOW_TEMPLATES = [
 ] as const;
 
 export const WHATSAPP_WORKFLOW_TEMPLATES = [
-  WorkflowTemplates.CUSTOM,
   WorkflowTemplates.REMINDER,
   WorkflowTemplates.CANCELLED,
   WorkflowTemplates.COMPLETED,

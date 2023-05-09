@@ -634,7 +634,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   render={() => {
                     return (
                       <Select
-                        isDisabled={isWhatsappAction(step.action)}
                         isSearchable={false}
                         className="text-sm"
                         onChange={(val) => {
