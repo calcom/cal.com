@@ -12,7 +12,7 @@
     "@calcom/ui": "*",
     "@lexical/react": "^0.5.0",
     "dompurify": "^2.4.1",
-    "framer-motion": "^10.12.3",
+    "framer-motion": "^10.12.8",
     "lexical": "^0.5.0",
     "react-sticky-box": "^2.0.4",
     "zustand": "^4.3.2"
