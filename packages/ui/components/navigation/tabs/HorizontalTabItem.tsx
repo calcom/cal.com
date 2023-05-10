@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
 import type { ComponentProps } from "react";
 
 import classNames from "@calcom/lib/classNames";
@@ -18,13 +17,9 @@ export type HorizontalTabItemProps = {
   icon?: SVGComponent;
   avatar?: string;
 };
-
 const HorizontalTabItem = function ({ name, href, linkProps, avatar, ...props }: HorizontalTabItemProps) {
   const { t, isLocaleReady } = useLocale();
-  const { asPath } = useRouter();
-
-  const isCurrent = asPath === href;
-
+  const isCurrent = pathname === href;
   return (
     <Link
       key={name}
@@ -58,5 +53,4 @@ const HorizontalTabItem = function ({ name, href, linkProps, avatar, ...props }:
     </Link>
   );
 };
-
 export default HorizontalTabItem;

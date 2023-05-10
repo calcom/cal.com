@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
@@ -12,19 +12,16 @@ import { Check, X } from "@calcom/ui/components/icon";
 const formSchema = z.object({
   api_key: z.string(),
 });
-
 export default function CloseComSetup() {
   const { t } = useLocale();
   const router = useRouter();
   const [testPassed, setTestPassed] = useState<boolean | undefined>(undefined);
   const [testLoading, setTestLoading] = useState<boolean>(false);
-
   const form = useForm<{
     api_key: string;
   }>({
     resolver: zodResolver(formSchema),
   });
-
   useEffect(() => {
     const timer = setTimeout(() => {
       if (testPassed === false) {
@@ -33,7 +30,6 @@ export default function CloseComSetup() {
     }, 3000);
     return () => clearTimeout(timer);
   }, [testPassed]);
-
   return (
     <div className="bg-emphasis flex h-screen">
       <div className="bg-default m-auto rounded p-5 md:w-[520px] md:p-10">
@@ -72,7 +68,6 @@ export default function CloseComSetup() {
                     },
                   });
                   const json = await res.json();
-
                   if (res.ok) {
                     router.push(json.url);
                   } else {
@@ -128,7 +123,6 @@ export default function CloseComSetup() {
                           "Content-Type": "application/json",
                         },
                       });
-
                       if (res.status === 200) {
                         setTestPassed(true);
                       } else {

@@ -1,5 +1,3 @@
-import { useRouter } from "next/router";
-
 import { useIntercom } from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
@@ -16,7 +14,6 @@ interface CtaRowProps {
   children: React.ReactNode;
   className?: string;
 }
-
 const CtaRow = ({ title, description, className, children }: CtaRowProps) => {
   return (
     <>
@@ -31,18 +28,14 @@ const CtaRow = ({ title, description, className, children }: CtaRowProps) => {
     </>
   );
 };
-
 const BillingView = () => {
   const { t } = useLocale();
   const { open } = useIntercom();
-  const router = useRouter();
-  const returnTo = router.asPath;
+  const returnTo = pathname;
   const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
-
   const onContactSupportClick = async () => {
     await open();
   };
-
   return (
     <>
       <Meta title={t("billing")} description={t("manage_billing_description")} />
@@ -64,8 +57,6 @@ const BillingView = () => {
     </>
   );
 };
-
 BillingView.getLayout = getLayout;
 BillingView.PageWrapper = PageWrapper;
-
 export default BillingView;

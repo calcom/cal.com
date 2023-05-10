@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -24,7 +24,6 @@ type Props = {
   allRemainingBookings: boolean;
   seatReferenceUid?: string;
 };
-
 export default function CancelBooking(props: Props) {
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const { t } = useLocale();
@@ -33,7 +32,6 @@ export default function CancelBooking(props: Props) {
   const [loading, setLoading] = useState(false);
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
-
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
       node.scrollIntoView({ behavior: "smooth" });
@@ -78,9 +76,7 @@ export default function CancelBooking(props: Props) {
                 data-testid="cancel"
                 onClick={async () => {
                   setLoading(true);
-
                   telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
-
                   const res = await fetch("/api/cancel", {
                     body: JSON.stringify({
                       uid: booking?.uid,
@@ -94,9 +90,8 @@ export default function CancelBooking(props: Props) {
                     },
                     method: "DELETE",
                   });
-
                   if (res.status >= 200 && res.status < 300) {
-                    await router.replace(router.asPath);
+                    await router.replace(pathname);
                   } else {
                     setLoading(false);
                     setError(

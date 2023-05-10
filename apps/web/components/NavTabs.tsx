@@ -1,7 +1,8 @@
 import { noop } from "lodash";
 import type { LinkProps } from "next/link";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { FC, MouseEventHandler } from "react";
 import { Fragment } from "react";
 
@@ -24,8 +25,8 @@ export interface NavTabProps {
   }[];
   linkProps?: Omit<LinkProps, "href">;
 }
-
 const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { t } = useLocale();
   return (
@@ -42,24 +43,22 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
           let isCurrent;
           if (tab.href) {
             href = tab.href;
-            isCurrent = router.asPath === tab.href;
+            isCurrent = pathname === tab.href;
           } else if (tab.tabName) {
             href = "";
-            isCurrent = router.query.tabName === tab.tabName;
+            isCurrent = searchParams?.get("tabName") === tab.tabName;
           }
-
           const onClick: MouseEventHandler = tab.tabName
             ? (e) => {
                 e.preventDefault();
                 router.push({
                   query: {
-                    ...router.query,
+                    ...Object.fromEntries(searchParams ?? new URLSearchParams()),
                     tabName: tab.tabName,
                   },
                 });
               }
             : noop;
-
           const Component = tab.adminRequired ? PermissionContainer : Fragment;
           const className = tab.className || "";
           return (
@@ -95,5 +94,4 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
     </>
   );
 };
-
 export default NavTabs;

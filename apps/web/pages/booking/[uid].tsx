@@ -4,7 +4,8 @@ import { createEvent } from "ics";
 import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { RRule } from "rrule";
 import { z } from "zod";
@@ -74,14 +75,11 @@ const useBrandColors = ({
   });
   useCalcomTheme(brandTheme);
 };
-
 type SuccessProps = inferSSRProps<typeof getServerSideProps>;
-
 const stringToBoolean = z
   .string()
   .optional()
   .transform((val) => val === "true");
-
 const querySchema = z.object({
   uid: z.string(),
   email: z.string().optional(),
@@ -94,8 +92,8 @@ const querySchema = z.object({
   formerTime: z.string().optional(),
   seatReferenceUid: z.string().optional(),
 });
-
 export default function Success(props: SuccessProps) {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
   const {
@@ -106,43 +104,33 @@ export default function Success(props: SuccessProps) {
     formerTime,
     email,
     seatReferenceUid,
-  } = querySchema.parse(router.query);
-
+  } = querySchema.parse(...Object.fromEntries(searchParams ?? new URLSearchParams()));
   const attendeeTimeZone = props?.bookingInfo?.attendees.find(
     (attendee) => attendee.email === email
   )?.timeZone;
   const tz = isSuccessBookingPage && attendeeTimeZone ? attendeeTimeZone : props.tz ? props.tz : timeZone();
-
   const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
-
   const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
     props?.bookingInfo?.metadata || {}
   )?.videoCallUrl;
-
   const status = props.bookingInfo?.status;
   const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = props.bookingInfo.cancellationReason || props.bookingInfo.rejectionReason;
-
   const attendeeName =
     typeof props?.bookingInfo?.attendees?.[0]?.name === "string"
       ? props?.bookingInfo?.attendees?.[0]?.name
       : "Nameless";
-
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const { data: session } = useSession();
-
   const [date, setDate] = useState(dayjs.utc(props.bookingInfo.startTime));
   const { eventType, bookingInfo } = props;
-
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const isEmbed = useIsEmbed();
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
-
   function setIsCancellationMode(value: boolean) {
-    const query_ = { ...router.query };
-
+    const query_ = { ...Object.fromEntries(searchParams ?? new URLSearchParams()) };
     if (value) {
       query_.cancel = "true";
     } else {
@@ -150,17 +138,15 @@ export default function Success(props: SuccessProps) {
         delete query_.cancel;
       }
     }
-
     router.replace(
       {
-        pathname: router.pathname,
+        pathname: pathname,
         query: { ...query_ },
       },
       undefined,
       { scroll: false }
     );
   }
-
   const eventNameObject = {
     attendeeName,
     eventType: props.eventType.title,
@@ -170,10 +156,8 @@ export default function Success(props: SuccessProps) {
     bookingFields: bookingInfo.responses,
     t,
   };
-
   const giphyAppData = getEventTypeAppData(eventType, "giphy");
   const giphyImage = giphyAppData?.thankYouPage;
-
   const eventName = getEventName(eventNameObject, true);
   // Confirmation can be needed in two cases as of now
   // - Event Type has require confirmation option enabled always
@@ -181,21 +165,18 @@ export default function Success(props: SuccessProps) {
   // - It's a paid event and payment is pending.
   const needsConfirmation = bookingInfo.status === BookingStatus.PENDING && eventType.requiresConfirmation;
   const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
-
   const isCancelled =
     status === "CANCELLED" ||
     status === "REJECTED" ||
     (!!seatReferenceUid &&
       !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid));
-
   // const telemetry = useTelemetry();
   /*  useEffect(() => {
-    if (top !== window) {
-      //page_view will be collected automatically by _middleware.ts
-      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/booking"));
-    }
-  }, [telemetry]); */
-
+      if (top !== window) {
+        //page_view will be collected automatically by _middleware.ts
+        telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/booking"));
+      }
+    }, [telemetry]); */
   useEffect(() => {
     const users = eventType.users;
     if (!sdkActionManager) return;
@@ -217,19 +198,18 @@ export default function Success(props: SuccessProps) {
     setIs24h(!!getIs24hClockFromLocalStorage());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventType, needsConfirmation]);
-
   useEffect(() => {
     setCalculatedDuration(
       dayjs(props.bookingInfo.endTime).diff(dayjs(props.bookingInfo.startTime), "minutes")
     );
   }, []);
-
   function eventLink(): string {
-    const optional: { location?: string } = {};
+    const optional: {
+      location?: string;
+    } = {};
     if (locationVideoCallUrl) {
       optional["location"] = locationVideoCallUrl;
     }
-
     const event = createEvent({
       start: [
         date.toDate().getUTCFullYear(),
@@ -247,14 +227,11 @@ export default function Success(props: SuccessProps) {
       },
       ...optional,
     });
-
     if (event.error) {
       throw event.error;
     }
-
     return encodeURIComponent(event.value ? event.value : false);
   }
-
   function getTitle(): string {
     const titleSuffix = props.recurringBookings ? "_recurring" : "";
     if (isCancelled) {
@@ -270,7 +247,6 @@ export default function Success(props: SuccessProps) {
     }
     return t("emailed_you_and_attendees" + titleSuffix);
   }
-
   // This is a weird case where the same route can be opened in booking flow as a success page or as a booking detail page from the app
   // As Booking Page it has to support configured theme, but as booking detail page it should not do any change. Let Shell.tsx handle it.
   useTheme(isSuccessBookingPage ? props.profile.theme : undefined);
@@ -281,15 +257,12 @@ export default function Success(props: SuccessProps) {
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
-
   const locationToDisplay = getSuccessPageLocationMessage(
     locationVideoCallUrl ? locationVideoCallUrl : location,
     t,
     bookingInfo.status
   );
-
   const providerName = guessEventLocationType(location)?.label;
-
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {!isEmbed && (
@@ -490,9 +463,7 @@ export default function Success(props: SuccessProps) {
                       const isSystemField = SystemField.safeParse(field.name);
                       // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
                       if (isSystemField.success && field.name !== SMS_REMINDER_NUMBER_FIELD) return null;
-
                       const label = field.label || t(field.defaultLabel || "");
-
                       return (
                         <>
                           <div className="text-emphasis mt-4 font-medium">{label}</div>
@@ -679,7 +650,9 @@ export default function Success(props: SuccessProps) {
                         onSubmit={(e) => {
                           e.preventDefault();
                           const target = e.target as typeof e.target & {
-                            email: { value: string };
+                            email: {
+                              value: string;
+                            };
                           };
                           router.push(`https://cal.com/signup?email=${target.email.value}`);
                         }}
@@ -710,10 +683,8 @@ export default function Success(props: SuccessProps) {
     </div>
   );
 }
-
 Success.isBookingPage = true;
 Success.PageWrapper = PageWrapper;
-
 type RecurringBookingsProps = {
   eventType: SuccessProps["eventType"];
   recurringBookings: SuccessProps["recurringBookings"];
@@ -724,7 +695,6 @@ type RecurringBookingsProps = {
   isCancelled: boolean;
   tz: string;
 };
-
 export function RecurringBookings({
   eventType,
   recurringBookings,
@@ -743,9 +713,7 @@ export function RecurringBookings({
   const recurringBookingsSorted = recurringBookings
     ? recurringBookings.sort((a: ConfigType, b: ConfigType) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
     : null;
-
   if (!duration) return null;
-
   if (recurringBookingsSorted && allRemainingBookings) {
     return (
       <>
@@ -796,7 +764,6 @@ export function RecurringBookings({
       </>
     );
   }
-
   return (
     <div className={classNames(isCancelled ? "line-through" : "")}>
       {formatToLocalizedDate(date, language, "full", tz)}
@@ -807,7 +774,6 @@ export function RecurringBookings({
     </div>
   );
 }
-
 const getEventTypesFromDB = async (id: number) => {
   const userSelect = {
     id: true,
@@ -878,13 +844,10 @@ const getEventTypesFromDB = async (id: number) => {
       periodEndDate: true,
     },
   });
-
   if (!eventType) {
     return eventType;
   }
-
   const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
-
   return {
     isDynamic: false,
     ...eventType,
@@ -892,7 +855,6 @@ const getEventTypesFromDB = async (id: number) => {
     metadata,
   };
 };
-
 const handleSeatsEventTypeOnBooking = async (
   eventType: {
     seatsPerTimeSlot?: number | null;
@@ -902,8 +864,17 @@ const handleSeatsEventTypeOnBooking = async (
   bookingInfo: Partial<
     Prisma.BookingGetPayload<{
       include: {
-        attendees: { select: { name: true; email: true } };
-        seatsReferences: { select: { referenceUid: true } };
+        attendees: {
+          select: {
+            name: true;
+            email: true;
+          };
+        };
+        seatsReferences: {
+          select: {
+            referenceUid: true;
+          };
+        };
         user: {
           select: {
             id: true;
@@ -929,7 +900,6 @@ const handleSeatsEventTypeOnBooking = async (
   if (bookingInfo?.user?.id === userId) {
     return;
   }
-
   if (!eventType.seatsShowAttendees) {
     const seatAttendee = await prisma.bookingSeat.findFirst({
       where: {
@@ -944,7 +914,6 @@ const handleSeatsEventTypeOnBooking = async (
         },
       },
     });
-
     if (seatAttendee) {
       const attendee = bookingInfo?.attendees?.find((a) => {
         return a.email === seatAttendee.attendee?.email;
@@ -956,22 +925,17 @@ const handleSeatsEventTypeOnBooking = async (
   }
   return bookingInfo;
 };
-
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const session = await getServerSession(context);
   let tz: string | null = null;
-
   if (session) {
     const user = await ssr.viewer.me.fetch();
     tz = user.timeZone;
   }
-
   const parsedQuery = querySchema.safeParse(context.query);
-
   if (!parsedQuery.success) return { notFound: true };
   const { uid, eventTypeSlug, seatReferenceUid } = parsedQuery.data;
-
   const bookingInfoRaw = await prisma.booking.findFirst({
     where: {
       uid: await maybeGetBookingUidFromSeat(prisma, uid),
@@ -1028,7 +992,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       notFound: true,
     };
   }
-
   const eventTypeRaw = !bookingInfoRaw.eventTypeId
     ? getDefaultEvent(eventTypeSlug || "")
     : await getEventTypesFromDB(bookingInfoRaw.eventTypeId);
@@ -1037,17 +1000,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       notFound: true,
     };
   }
-
   const bookingInfo = getBookingWithResponses(bookingInfoRaw);
   // @NOTE: had to do this because Server side cant return [Object objects]
   // probably fixable with json.stringify -> json.parse
   bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
   bookingInfo["endTime"] = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
-
   eventTypeRaw.users = !!eventTypeRaw.hosts?.length
     ? eventTypeRaw.hosts.map((host) => host.user)
     : eventTypeRaw.users;
-
   if (!eventTypeRaw.users.length) {
     if (!eventTypeRaw.owner)
       return {
@@ -1057,7 +1017,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...eventTypeRaw.owner,
     });
   }
-
   const eventType = {
     ...eventTypeRaw,
     periodStartDate: eventTypeRaw.periodStartDate?.toString() ?? null,
@@ -1066,7 +1025,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
   };
-
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,
     email: eventType.team ? null : eventType.users[0].email || null,
@@ -1075,11 +1033,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
-
   if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
     await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, session?.user.id);
   }
-
   const payment = await prisma.payment.findFirst({
     where: {
       bookingId: bookingInfo.id,
@@ -1089,7 +1045,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       refunded: true,
     },
   });
-
   return {
     props: {
       hideBranding: eventType.team ? eventType.team.hideBranding : eventType.users[0].hideBranding,
@@ -1104,7 +1059,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   };
 }
-
 async function getRecurringBookings(recurringEventId: string | null) {
   if (!recurringEventId) return null;
   const recurringBookings = await prisma.booking.findMany({

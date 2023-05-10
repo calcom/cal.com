@@ -1,4 +1,5 @@
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
 import { useState, useEffect } from "react";
 
@@ -8,7 +9,6 @@ import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
 
 type Theme = "dark" | "light";
-
 export type UiConfig = {
   hideEventTypeDetails?: boolean;
   theme?: Theme | "auto";
@@ -16,10 +16,8 @@ export type UiConfig = {
   //TODO: Extract from tailwind the list of all custom variables and support them in auto-completion as well as runtime validation. Followup with listing all variables in Embed Snippet Generator UI.
   cssVarsPerTheme?: Record<Theme, Record<string, string>>;
 };
-
 type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
 type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonStylesConfig>>;
-
 const embedStore = {
   // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
   styles: {} as EmbedStyles | undefined,
@@ -36,7 +34,6 @@ const embedStore = {
   uiConfig: undefined as Omit<UiConfig, "styles" | "theme"> | undefined,
   setUiConfig: undefined as ((arg0: UiConfig) => void) | undefined,
 };
-
 declare global {
   interface Window {
     CalEmbed: {
@@ -51,10 +48,8 @@ declare global {
     getEmbedTheme: () => "dark" | "light" | null;
   }
 }
-
 let isSafariBrowser = false;
 const isBrowser = typeof window !== "undefined";
-
 if (isBrowser) {
   window.CalEmbed = window?.CalEmbed || {};
   window.CalEmbed.embedStore = embedStore;
@@ -64,7 +59,6 @@ if (isBrowser) {
     log("Safari Detected: Using setTimeout instead of rAF");
   }
 }
-
 function runAsap(fn: (...arg: unknown[]) => void) {
   if (isSafariBrowser) {
     // https://adpiler.com/blog/the-full-solution-why-do-animations-run-slower-in-safari/
@@ -72,11 +66,9 @@ function runAsap(fn: (...arg: unknown[]) => void) {
   }
   return requestAnimationFrame(fn);
 }
-
 function log(...args: unknown[]) {
   if (isBrowser) {
     const namespace = getNamespace();
-
     const searchParams = new URL(document.URL).searchParams;
     const logQueue = (window.CalEmbed.__logQueue = window.CalEmbed.__logQueue || []);
     args.push({
@@ -90,7 +82,6 @@ function log(...args: unknown[]) {
     }
   }
 }
-
 // Only allow certain styles to be modified so that when we make any changes to HTML, we know what all embed styles might be impacted.
 // Keep this list to minimum, only adding those styles which are really needed.
 interface EmbedStyles {
@@ -107,7 +98,6 @@ interface EmbedNonStylesConfig {
     brandColor?: string;
   };
 }
-
 const setEmbedStyles = (stylesConfig: EmbedStyles) => {
   embedStore.styles = stylesConfig;
   for (const [, setEmbedStyle] of Object.entries(embedStore.reactStylesStateSetters)) {
@@ -119,7 +109,6 @@ const setEmbedStyles = (stylesConfig: EmbedStyles) => {
     });
   }
 };
-
 const setEmbedNonStyles = (stylesConfig: EmbedNonStylesConfig) => {
   embedStore.nonStyles = stylesConfig;
   for (const [, setEmbedStyle] of Object.entries(embedStore.reactStylesStateSetters)) {
@@ -131,7 +120,6 @@ const setEmbedNonStyles = (stylesConfig: EmbedNonStylesConfig) => {
     });
   }
 };
-
 const registerNewSetter = (
   registration:
     | {
@@ -157,20 +145,18 @@ const registerNewSetter = (
     embedStore.reactNonStylesStateSetters[registration.elementName as keyof EmbedNonStylesConfig] =
       registration.setState;
     registration.setState(embedStore.nonStyles || {});
-
     return () => {
       delete embedStore.reactNonStylesStateSetters[registration.elementName];
     };
   }
 };
-
 function isValidNamespace(ns: string | null | undefined) {
   return typeof ns !== "undefined" && ns !== null;
 }
-
 export const useEmbedTheme = () => {
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const [theme, setTheme] = useState(embedStore.theme || (router.query.theme as string));
+  const [theme, setTheme] = useState(embedStore.theme || (searchParams?.get("theme") as string));
   useEffect(() => {
     router.events.on("routeChangeComplete", () => {
       sdkActionManager?.fire("__routeChanged", {});
@@ -179,17 +165,14 @@ export const useEmbedTheme = () => {
   embedStore.setTheme = setTheme;
   return theme === "auto" ? null : theme;
 };
-
 export const useEmbedUiConfig = () => {
   const [uiConfig, setUiConfig] = useState(embedStore.uiConfig || {});
   embedStore.setUiConfig = setUiConfig;
   return uiConfig;
 };
-
 // TODO: Make it usable as an attribute directly instead of styles value. It would allow us to go beyond styles e.g. for debugging we can add a special attribute indentifying the element on which UI config has been applied
 export const useEmbedStyles = (elementName: keyof EmbedStyles) => {
   const [, setStyles] = useState<EmbedStyles>({});
-
   useEffect(() => {
     return registerNewSetter({ elementName, setState: setStyles, styles: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -198,37 +181,30 @@ export const useEmbedStyles = (elementName: keyof EmbedStyles) => {
   // Always read the data from global embedStore so that even across components, the same data is used.
   return styles[elementName] || {};
 };
-
 export const useEmbedNonStylesConfig = (elementName: keyof EmbedNonStylesConfig) => {
   const [, setNonStyles] = useState({} as EmbedNonStylesConfig);
-
   useEffect(() => {
     return registerNewSetter({ elementName, setState: setNonStyles, styles: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   // Always read the data from global embedStore so that even across components, the same data is used.
   const nonStyles = embedStore.nonStyles || {};
   return nonStyles[elementName] || {};
 };
-
 export const useIsBackgroundTransparent = () => {
   let isBackgroundTransparent = false;
   // TODO: Background should be read as ui.background and not ui.body.background
   const bodyEmbedStyles = useEmbedStyles("body");
-
   if (bodyEmbedStyles.background === "transparent") {
     isBackgroundTransparent = true;
   }
   return isBackgroundTransparent;
 };
-
 export const useBrandColors = () => {
   // TODO: Branding shouldn't be part of ui.styles. It should exist as ui.branding.
   const brandingColors = useEmbedNonStylesConfig("branding") as EmbedNonStylesConfig["branding"];
   return brandingColors || {};
 };
-
 function getNamespace() {
   if (isValidNamespace(embedStore.namespace)) {
     // Persist this so that even if query params changed, we know that it is an embed.
@@ -240,7 +216,6 @@ function getNamespace() {
     return namespace;
   }
 }
-
 function getEmbedType() {
   if (embedStore.embedType) {
     return embedStore.embedType;
@@ -251,7 +226,6 @@ function getEmbedType() {
     return embedType;
   }
 }
-
 export const useIsEmbed = (embedSsr?: boolean) => {
   const [isEmbed, setIsEmbed] = useState(embedSsr);
   useEffect(() => {
@@ -266,7 +240,6 @@ export const useIsEmbed = (embedSsr?: boolean) => {
   }, []);
   return isEmbed;
 };
-
 export const useEmbedType = () => {
   const [state, setState] = useState<string | null | undefined>(null);
   useEffect(() => {
@@ -274,47 +247,38 @@ export const useEmbedType = () => {
   }, []);
   return state;
 };
-
 function unhideBody() {
   document.body.style.visibility = "visible";
 }
-
 // It is a map of methods that can be called by parent using doInIframe({method: "methodName", arg: "argument"})
 const methods = {
   ui: function style(uiConfig: UiConfig) {
     // TODO: Create automatic logger for all methods. Useful for debugging.
     log("Method: ui called", uiConfig);
     const stylesConfig = uiConfig.styles;
-
     if (stylesConfig) {
       console.warn(
         "Cal.com Embed: `styles` prop is deprecated. Use `cssVarsPerTheme` instead to achieve the same effect"
       );
     }
-
     // body can't be styled using React state hook as it is generated by _document.tsx which doesn't support hooks.
     if (stylesConfig?.body?.background) {
       document.body.style.background = stylesConfig.body.background as string;
     }
-
     if (uiConfig.theme) {
       embedStore.theme = uiConfig.theme as UiConfig["theme"];
       if (embedStore.setTheme) {
         embedStore.setTheme(uiConfig.theme);
       }
     }
-
     // Set the value here so that if setUiConfig state isn't available and later it's defined,it uses this value
     embedStore.uiConfig = uiConfig;
-
     if (uiConfig.cssVarsPerTheme) {
       window.CalEmbed.applyCssVars(uiConfig.cssVarsPerTheme);
     }
-
     if (embedStore.setUiConfig) {
       embedStore.setUiConfig(uiConfig);
     }
-
     setEmbedStyles(stylesConfig || {});
     setEmbedNonStyles(stylesConfig || {});
   },
@@ -333,14 +297,10 @@ const methods = {
     });
   },
 };
-
 export type InterfaceWithParent = {
-  // Ensure that only one argument is read by the method
   [key in keyof typeof methods]: (firstAndOnlyArg: Parameters<(typeof methods)[key]>[number]) => void;
 };
-
 export const interfaceWithParent: InterfaceWithParent = methods;
-
 const messageParent = (data: CustomEvent["detail"]) => {
   parent.postMessage(
     {
@@ -350,7 +310,6 @@ const messageParent = (data: CustomEvent["detail"]) => {
     "*"
   );
 };
-
 function keepParentInformedAboutDimensionChanges() {
   let knownIframeHeight: number | null = null;
   let knownIframeWidth: number | null = null;
@@ -383,11 +342,9 @@ function keepParentInformedAboutDimensionChanges() {
       document.documentElement;
     const documentScrollHeight = document.documentElement.scrollHeight;
     const documentScrollWidth = document.documentElement.scrollWidth;
-
     if (!(mainElement instanceof HTMLElement)) {
       throw new Error("Main element should be an HTMLElement");
     }
-
     const mainElementStyles = getComputedStyle(mainElement);
     // Use, .height as that gives more accurate value in floating point. Also, do a ceil on the total sum so that whatever happens there is enough iframe size to avoid scroll.
     const contentHeight = Math.ceil(
@@ -400,7 +357,6 @@ function keepParentInformedAboutDimensionChanges() {
         parseFloat(mainElementStyles.marginLeft) +
         parseFloat(mainElementStyles.marginRight)
     );
-
     // During first render let iframe tell parent that how much is the expected height to avoid scroll.
     // Parent would set the same value as the height of iframe which would prevent scroll.
     // On subsequent renders, consider html height as the height of the iframe. If we don't do this, then if iframe get's bigger in height, it would never shrink
@@ -428,7 +384,6 @@ function keepParentInformedAboutDimensionChanges() {
     runAsap(informAboutScroll);
   });
 }
-
 if (isBrowser) {
   log("Embed SDK loaded", { isEmbed: window?.isEmbed?.() || false });
   // Exposes certain global variables/fns that are used by the app to get interface with the embed.
@@ -443,13 +398,11 @@ if (isBrowser) {
     if (top === window) {
       unhideBody();
     }
-
     sdkActionManager?.on("*", (e) => {
       const detail = e.detail;
       log(detail);
       messageParent(detail);
     });
-
     window.addEventListener("message", (e) => {
       const data: Message = e.data;
       if (!data) {
@@ -460,7 +413,6 @@ if (isBrowser) {
         interfaceWithParent[method]?.(data.arg as never);
       }
     });
-
     document.addEventListener("click", (e) => {
       if (!e.target || !(e.target instanceof Node)) {
         return;
@@ -473,7 +425,6 @@ if (isBrowser) {
         sdkActionManager?.fire("__closeIframe", {});
       }
     });
-
     if (!pageStatus || pageStatus == "200") {
       keepParentInformedAboutDimensionChanges();
       sdkActionManager?.fire("__iframeReady", {});

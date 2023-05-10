@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
@@ -48,7 +48,6 @@ interface Props {
   hideDropdown: boolean;
   setHideDropdown: (value: boolean) => void;
 }
-
 export default function TeamListItem(props: Props) {
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
@@ -72,31 +71,25 @@ export default function TeamListItem(props: Props) {
       showToast(error.message, "error");
     },
   });
-
   const acceptOrLeaveMutation = trpc.viewer.teams.acceptOrLeave.useMutation({
     onSuccess: () => {
       utils.viewer.teams.list.invalidate();
       utils.viewer.teams.listInvites.invalidate();
     },
   });
-
   function acceptOrLeave(accept: boolean) {
     acceptOrLeaveMutation.mutate({
       teamId: team?.id as number,
       accept,
     });
   }
-
   const acceptInvite = () => acceptOrLeave(true);
   const declineInvite = () => acceptOrLeave(false);
-
   const isOwner = props.team.role === MembershipRole.OWNER;
   const isInvitee = !props.team.accepted;
   const isAdmin = props.team.role === MembershipRole.OWNER || props.team.role === MembershipRole.ADMIN;
   const { hideDropdown, setHideDropdown } = props;
-
   if (!team) return <></>;
-
   const teamInfo = (
     <div className="item-center flex px-5 py-5">
       <Avatar
@@ -113,7 +106,6 @@ export default function TeamListItem(props: Props) {
       </div>
     </div>
   );
-
   return (
     <li className="">
       <MemberInvitationModal
@@ -305,7 +297,6 @@ export default function TeamListItem(props: Props) {
     </li>
   );
 }
-
 const TeamPublishButton = ({ teamId }: { teamId: number }) => {
   const { t } = useLocale();
   const router = useRouter();
@@ -317,7 +308,6 @@ const TeamPublishButton = ({ teamId }: { teamId: number }) => {
       showToast(error.message, "error");
     },
   });
-
   return (
     <DropdownMenuItem>
       <DropdownItem

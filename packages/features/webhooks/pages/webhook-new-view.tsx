@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,14 +17,13 @@ const NewWebhookView = () => {
     { variant: "other", onlyInstalled: true },
     {
       suspense: true,
-      enabled: router.isReady,
+      enabled: true,
     }
   );
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
     suspense: true,
-    enabled: router.isReady,
+    enabled: true,
   });
-
   const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
     async onSuccess() {
       showToast(t("webhook_created_successfully"), "success");
@@ -35,23 +34,19 @@ const NewWebhookView = () => {
       showToast(`${error.message}`, "error");
     },
   });
-
   const subscriberUrlReserved = (subscriberUrl: string, id?: string): boolean => {
     return !!webhooks?.find(
       (webhook) => webhook.subscriberUrl === subscriberUrl && (!id || webhook.id !== id)
     );
   };
-
   const onCreateWebhook = async (values: WebhookFormSubmitData) => {
     if (subscriberUrlReserved(values.subscriberUrl, values.id)) {
       showToast(t("webhook_subscriber_url_reserved"), "error");
       return;
     }
-
     if (!values.payloadTemplate) {
       values.payloadTemplate = null;
     }
-
     createWebhookMutation.mutate({
       subscriberUrl: values.subscriberUrl,
       eventTriggers: values.eventTriggers,
@@ -60,9 +55,7 @@ const NewWebhookView = () => {
       secret: values.secret,
     });
   };
-
   if (isLoading) return <SkeletonContainer />;
-
   return (
     <>
       <Meta
@@ -75,7 +68,5 @@ const NewWebhookView = () => {
     </>
   );
 };
-
 NewWebhookView.getLayout = getLayout;
-
 export default NewWebhookView;

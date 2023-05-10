@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -39,17 +39,13 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
     </SkeletonContainer>
   );
 };
-
 interface GeneralViewProps {
   localeProp: string;
   user: RouterOutputs["viewer"]["me"];
 }
-
 const WithQuery = withQuery(trpc.viewer.public.i18n, undefined, { trpc: { context: { skipBatch: true } } });
-
 const GeneralQueryView = () => {
   const { t } = useLocale();
-
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
   if (isLoading) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
   if (!user) {
@@ -62,12 +58,10 @@ const GeneralQueryView = () => {
     />
   );
 };
-
 const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   const router = useRouter();
   const utils = trpc.useContext();
   const { t } = useLocale();
-
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
       // Invalidate our previous i18n cache
@@ -82,19 +76,16 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
       await utils.viewer.public.i18n.invalidate();
     },
   });
-
   const localeOptions = useMemo(() => {
     return (router.locales || []).map((locale) => ({
       value: locale,
       label: new Intl.DisplayNames(locale, { type: "language" }).of(locale) || "",
     }));
   }, [router.locales]);
-
   const timeFormatOptions = [
     { value: 12, label: t("12_hour") },
     { value: 24, label: t("24_hour") },
   ];
-
   const weekStartOptions = [
     { value: "Sunday", label: nameOfDay(localeProp, 0) },
     { value: "Monday", label: nameOfDay(localeProp, 1) },
@@ -104,7 +95,6 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
     { value: "Friday", label: nameOfDay(localeProp, 5) },
     { value: "Saturday", label: nameOfDay(localeProp, 6) },
   ];
-
   const formMethods = useForm({
     defaultValues: {
       locale: {
@@ -147,7 +137,10 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
             <Label className="text-emphasis">
               <>{t("language")}</>
             </Label>
-            <Select<{ label: string; value: string }>
+            <Select<{
+              label: string;
+              value: string;
+            }>
               className="capitalize"
               options={localeOptions}
               value={value}
@@ -219,8 +212,6 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
     </Form>
   );
 };
-
 GeneralQueryView.getLayout = getLayout;
 GeneralQueryView.PageWrapper = PageWrapper;
-
 export default GeneralQueryView;

@@ -1,7 +1,8 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React, { Suspense, useEffect, useState } from "react";
 
@@ -92,22 +93,17 @@ const tabs: VerticalTabItemProps[] = [
     ],
   },
 ];
-
 tabs.find((tab) => {
   // Add "SAML SSO" to the tab
   if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
     tab.children?.push({ name: "saml_config", href: "/settings/security/sso" });
   }
 });
-
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
-
 const useTabs = () => {
   const session = useSession();
-
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
-
   tabs.map((tab) => {
     if (tab.name === "my_account") {
       tab.name = session.data?.user?.name || "my_account";
@@ -116,14 +112,12 @@ const useTabs = () => {
     }
     return tab;
   });
-
   // check if name is in adminRequiredKeys
   return tabs.filter((tab) => {
     if (isAdmin) return true;
     return !adminRequiredKeys.includes(tab.name);
   });
 };
-
 const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
@@ -137,29 +131,29 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
     </Link>
   );
 };
-
 interface SettingsSidebarContainerProps {
   className?: string;
   navigationIsOpenedOnMobile?: boolean;
 }
-
 const SettingsSidebarContainer = ({
   className = "",
   navigationIsOpenedOnMobile,
 }: SettingsSidebarContainerProps) => {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
-  const router = useRouter();
   const tabsWithPermissions = useTabs();
-  const [teamMenuState, setTeamMenuState] =
-    useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
-
+  const [teamMenuState, setTeamMenuState] = useState<
+    {
+      teamId: number | undefined;
+      teamMenuOpen: boolean;
+    }[]
+  >();
   const { data: teams } = trpc.viewer.teams.list.useQuery();
-
   useEffect(() => {
     if (teams) {
       const teamStates = teams?.map((team) => ({
         teamId: team.id,
-        teamMenuOpen: String(team.id) === router.query.id,
+        teamMenuOpen: String(team.id) === searchParams?.get("id"),
       }));
       setTeamMenuState(teamStates);
       setTimeout(() => {
@@ -169,8 +163,7 @@ const SettingsSidebarContainer = ({
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
-  }, [router.query.id, teams]);
-
+  }, [searchParams?.get("id"), teams]);
   return (
     <nav
       className={classNames(
@@ -294,11 +287,11 @@ const SettingsSidebarContainer = ({
                               <>
                                 {/* TODO */}
                                 {/* <VerticalTabItem
-                              name={t("general")}
-                              href={`${WEBAPP_URL}/settings/my-account/appearance`}
-                              textClassNames="px-3 text-emphasis font-medium text-sm"
-                              disableChevron
-                            /> */}
+                                      name={t("general")}
+                                      href={`${WEBAPP_URL}/settings/my-account/appearance`}
+                                      textClassNames="px-3 text-emphasis font-medium text-sm"
+                                      disableChevron
+                                    /> */}
                                 <VerticalTabItem
                                   name={t("appearance")}
                                   href={`/settings/teams/${team.id}/appearance`}
@@ -340,11 +333,9 @@ const SettingsSidebarContainer = ({
     </nav>
   );
 };
-
 const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) => {
   const { t } = useLocale();
   const router = useRouter();
-
   return (
     <>
       <nav className="bg-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b py-2 sm:relative lg:hidden">
@@ -364,35 +355,31 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
     </>
   );
 };
-
 export default function SettingsLayout({
   children,
   ...rest
-}: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
-  const router = useRouter();
+}: {
+  children: React.ReactNode;
+} & ComponentProps<typeof Shell>) {
   const state = useState(false);
   const { t } = useLocale();
   const [sideContainerOpen, setSideContainerOpen] = state;
-
   useEffect(() => {
     const closeSideContainer = () => {
       if (window.innerWidth >= 1024) {
         setSideContainerOpen(false);
       }
     };
-
     window.addEventListener("resize", closeSideContainer);
     return () => {
       window.removeEventListener("resize", closeSideContainer);
     };
   }, []);
-
   useEffect(() => {
     if (sideContainerOpen) {
       setSideContainerOpen(!sideContainerOpen);
     }
-  }, [router.asPath]);
-
+  }, [pathname]);
   return (
     <Shell
       withoutSeo={true}
@@ -428,9 +415,7 @@ export default function SettingsLayout({
     </Shell>
   );
 }
-
 export const getLayout = (page: React.ReactElement) => <SettingsLayout>{page}</SettingsLayout>;
-
 function ShellHeader() {
   const { meta } = useMeta();
   const { t, isLocaleReady } = useLocale();

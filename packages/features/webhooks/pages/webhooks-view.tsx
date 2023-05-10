@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { Suspense } from "react";
 
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
@@ -23,7 +23,6 @@ const WebhooksView = () => {
     </>
   );
 };
-
 const NewWebhookButton = () => {
   const { t, isLocaleReady } = useLocale();
   return (
@@ -36,16 +35,13 @@ const NewWebhookButton = () => {
     </Button>
   );
 };
-
 const WebhooksList = () => {
   const { t } = useLocale();
   const router = useRouter();
-
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
     suspense: true,
-    enabled: router.isReady,
+    enabled: true,
   });
-
   return (
     <>
       {webhooks?.length ? (
@@ -73,7 +69,5 @@ const WebhooksList = () => {
     </>
   );
 };
-
 WebhooksView.getLayout = getLayout;
-
 export default WebhooksView;

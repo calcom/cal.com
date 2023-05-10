@@ -1,6 +1,5 @@
 import type { GetStaticPropsContext } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,17 +14,14 @@ import { ssgInit } from "@server/lib/ssg";
 const querySchema = z.object({
   error: z.string().optional(),
 });
-
 export default function Error() {
   const { t } = useLocale();
-  const router = useRouter();
-  const { error } = querySchema.parse(router.query);
+  const { error } = querySchema.parse(...Object.fromEntries(searchParams ?? new URLSearchParams()));
   const isTokenVerificationError = error?.toLowerCase() === "verification";
   let errorMsg = <SkeletonText />;
-  if (router.isReady) {
+  if (true) {
     errorMsg = isTokenVerificationError ? t("token_invalid_expired") : t("error_during_login");
   }
-
   return (
     <AuthContainer title="" description="">
       <div>
@@ -49,12 +45,9 @@ export default function Error() {
     </AuthContainer>
   );
 }
-
 Error.PageWrapper = PageWrapper;
-
 export const getStaticProps = async (context: GetStaticPropsContext) => {
   const ssr = await ssgInit(context);
-
   return {
     props: {
       trpcState: ssr.dehydrate(),

@@ -3,7 +3,8 @@ import { jwtVerify } from "jose";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -39,7 +40,6 @@ interface LoginValues {
   totpCode: string;
   csrfToken: string;
 }
-
 export default function Login({
   csrfToken,
   isGoogleLoginEnabled,
@@ -48,15 +48,16 @@ export default function Login({
   samlProductID,
   totpEmail,
 }: inferSSRProps<typeof _getServerSideProps> & WithNonceProps) {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
   const methods = useForm<LoginValues>();
-
   const { register, formState } = methods;
   const [twoFactorRequired, setTwoFactorRequired] = useState(!!totpEmail || false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const errorMessages: { [key: string]: string } = {
+  const errorMessages: {
+    [key: string]: string;
+  } = {
     // [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
     // Don't leak information about whether an email is registered or not
     [ErrorCode.IncorrectUsernamePassword]: t("incorrect_username_password"),
@@ -64,28 +65,21 @@ export default function Login({
     [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
-
   const telemetry = useTelemetry();
-
-  let callbackUrl = typeof router.query?.callbackUrl === "string" ? router.query.callbackUrl : "";
-
+  let callbackUrl =
+    typeof searchParams?.get("callbackUrl") === "string" ? searchParams?.get("callbackUrl") : "";
   if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
-
   // If not absolute URL, make it absolute
   if (!/^https?:\/\//.test(callbackUrl)) {
     callbackUrl = `${WEBAPP_URL}/${callbackUrl}`;
   }
-
   const safeCallbackUrl = getSafeRedirectUrl(callbackUrl);
-
   callbackUrl = safeCallbackUrl || "";
-
   const LoginFooter = (
     <a href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
       {t("dont_have_an_account")}
     </a>
   );
-
   const TwoFactorFooter = (
     <Button
       onClick={() => {
@@ -97,7 +91,6 @@ export default function Login({
       {t("go_back")}
     </Button>
   );
-
   const ExternalTotpFooter = (
     <Button
       onClick={() => {
@@ -107,7 +100,6 @@ export default function Login({
       {t("cancel")}
     </Button>
   );
-
   const onSubmit = async (values: LoginValues) => {
     setErrorMessage(null);
     telemetry.event(telemetryEventTypes.login, collectPageParameters());
@@ -124,7 +116,6 @@ export default function Login({
     // fallback if error not found
     else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
   };
-
   return (
     <div
       style={
@@ -159,7 +150,7 @@ export default function Login({
                 <EmailField
                   id="email"
                   label={t("email_address")}
-                  defaultValue={totpEmail || (router.query.email as string)}
+                  defaultValue={totpEmail || (searchParams?.get("email") as string)}
                   placeholder="john.doe@example.com"
                   required
                   {...register("email")}
@@ -228,24 +219,19 @@ export default function Login({
     </div>
   );
 }
-
 // TODO: Once we understand how to retrieve prop types automatically from getServerSideProps, remove this temporary variable
 const _getServerSideProps = async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req, res } = context;
-
   const session = await getServerSession({ req, res });
   const ssr = await ssrInit(context);
-
   const verifyJwt = (jwt: string) => {
     const secret = new TextEncoder().encode(process.env.CALENDSO_ENCRYPTION_KEY);
-
     return jwtVerify(jwt, secret, {
       issuer: WEBSITE_URL,
       audience: `${WEBSITE_URL}/auth/login`,
       algorithms: ["HS256"],
     });
   };
-
   let totpEmail = null;
   if (context.query.totp) {
     try {
@@ -269,7 +255,6 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
       };
     }
   }
-
   if (session) {
     return {
       redirect: {
@@ -278,7 +263,6 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
       },
     };
   }
-
   const userCount = await prisma.user.count();
   if (userCount === 0) {
     // Proceed to new onboarding to create first admin user
@@ -301,8 +285,6 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
     },
   };
 };
-
 Login.isThemeSupported = false;
 Login.PageWrapper = PageWrapper;
-
 export const getServerSideProps = withNonce(_getServerSideProps);

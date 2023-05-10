@@ -1,5 +1,4 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
-import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 
 import { Schedule } from "@calcom/features/schedules";
@@ -14,30 +13,24 @@ interface ISetupAvailabilityProps {
   nextStep: () => void;
   defaultScheduleId?: number | null;
 }
-
 const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const { defaultScheduleId } = props;
-
   const { t } = useLocale();
   const { nextStep } = props;
-
-  const router = useRouter();
   let queryAvailability;
   if (defaultScheduleId) {
     queryAvailability = trpc.viewer.availability.schedule.get.useQuery(
       { scheduleId: defaultScheduleId },
       {
-        enabled: router.isReady,
+        enabled: true,
       }
     );
   }
-
   const availabilityForm = useForm({
     defaultValues: {
       schedule: queryAvailability?.data?.availability || DEFAULT_SCHEDULE,
     },
   });
-
   const mutationOptions = {
     onError: (error: TRPCClientErrorLike<AppRouter>) => {
       throw new Error(error.message);
@@ -87,5 +80,4 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
     </Form>
   );
 };
-
 export { SetupAvailability };

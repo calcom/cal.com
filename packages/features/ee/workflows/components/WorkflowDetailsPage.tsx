@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useMemo, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -27,18 +27,14 @@ interface Props {
   teamId?: number;
   isMixedEventType: boolean;
 }
-
 export default function WorkflowDetailsPage(props: Props) {
   const { form, workflowId, selectedEventTypes, setSelectedEventTypes, teamId, isMixedEventType } = props;
   const { t } = useLocale();
   const router = useRouter();
-
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
   const [reload, setReload] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
   const { data, isLoading } = trpc.viewer.eventTypes.getByViewer.useQuery();
-
   const eventTypeOptions = useMemo(
     () =>
       data?.eventTypeGroups.reduce((options, group) => {
@@ -61,10 +57,8 @@ export default function WorkflowDetailsPage(props: Props) {
       }, [] as Option[]) || [],
     [data]
   );
-
   let allEventTypeOptions = eventTypeOptions;
   const distinctEventTypes = new Set();
-
   if (!teamId && isMixedEventType) {
     allEventTypeOptions = [...eventTypeOptions, ...selectedEventTypes];
     allEventTypeOptions = allEventTypeOptions.filter((option) => {
@@ -73,7 +67,6 @@ export default function WorkflowDetailsPage(props: Props) {
       return !duplicate;
     });
   }
-
   const addAction = (
     action: WorkflowActions,
     sendTo?: string,
@@ -88,9 +81,8 @@ export default function WorkflowDetailsPage(props: Props) {
             return a.id - b.id;
           })[0].id - 1
         : 0;
-
     const step = {
-      id: id > 0 ? 0 : id, //id of new steps always <= 0
+      id: id > 0 ? 0 : id,
       action,
       stepNumber:
         steps && steps.length > 0
@@ -111,7 +103,6 @@ export default function WorkflowDetailsPage(props: Props) {
     steps?.push(step);
     form.setValue("steps", steps);
   };
-
   return (
     <>
       <div className="my-8 sm:my-0 md:flex">

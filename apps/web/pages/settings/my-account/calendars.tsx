@@ -1,6 +1,6 @@
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { Fragment } from "react";
 
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
@@ -45,10 +45,8 @@ const SkeletonLoader = () => {
     </SkeletonContainer>
   );
 };
-
 const AddCalendarButton = () => {
   const { t } = useLocale();
-
   return (
     <>
       <Button color="secondary" StartIcon={Plus} href="/apps/categories/calendar">
@@ -57,13 +55,10 @@ const AddCalendarButton = () => {
     </>
   );
 };
-
 const CalendarsView = () => {
   const { t } = useLocale();
   const router = useRouter();
-
   const utils = trpc.useContext();
-
   const query = trpc.viewer.connectedCalendars.useQuery();
   const mutation = trpc.viewer.setDestinationCalendar.useMutation({
     async onSettled() {
@@ -76,7 +71,6 @@ const CalendarsView = () => {
       showToast(t("unexpected_error_try_again"), "error");
     },
   });
-
   return (
     <>
       <Meta title={t("calendars")} description={t("calendars_description")} CTA={<AddCalendarButton />} />
@@ -229,8 +223,6 @@ const CalendarsView = () => {
     </>
   );
 };
-
 CalendarsView.getLayout = getLayout;
 CalendarsView.PageWrapper = PageWrapper;
-
 export default CalendarsView;

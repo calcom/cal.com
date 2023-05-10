@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
@@ -36,7 +36,6 @@ export const InstallAppButtonWithoutPlanCheck = (
         })}
       </>
     );
-
   return (
     <InstallAppButtonComponent
       render={props.render}
@@ -45,7 +44,6 @@ export const InstallAppButtonWithoutPlanCheck = (
     />
   );
 };
-
 export const InstallAppButton = (
   props: {
     isProOnly?: App["isProOnly"];
@@ -76,20 +74,16 @@ export const InstallAppButton = (
       true
     );
   }, [isLoading, user, router, props.isProOnly]);
-
   if (isLoading) {
     return null;
   }
-
   return (
     <div ref={proProtectionElementRef} className={props.wrapperClassName}>
       <InstallAppButtonWithoutPlanCheck {...props} />
     </div>
   );
 };
-
 export { AppConfiguration } from "./_components/AppConfiguration";
-
 export const AppDependencyComponent = ({
   appName,
   dependencyData,
@@ -98,7 +92,6 @@ export const AppDependencyComponent = ({
   dependencyData: RouterOutputs["viewer"]["appsRouter"]["queryForDependencies"];
 }) => {
   const { t } = useLocale();
-
   return (
     <div
       className={classNames(

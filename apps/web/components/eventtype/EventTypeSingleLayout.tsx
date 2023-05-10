@@ -1,7 +1,7 @@
 import { Webhook as TbWebhook } from "lucide-react";
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -66,7 +66,6 @@ type Props = {
   isUpdateMutationLoading?: boolean;
   availability?: AvailabilityOption;
 };
-
 function getNavigation(props: {
   t: TFunction;
   eventType: Props["eventType"];
@@ -79,7 +78,6 @@ function getNavigation(props: {
     props;
   const duration =
     eventType.metadata?.multipleDuration?.map((duration) => ` ${duration}`) || eventType.length;
-
   return [
     {
       name: "event_setup_tab_title",
@@ -120,7 +118,6 @@ function getNavigation(props: {
     },
   ];
 }
-
 function EventTypeSingleLayout({
   children,
   eventType,
@@ -138,12 +135,10 @@ function EventTypeSingleLayout({
   const { t } = useLocale();
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
   const hasPermsToDelete =
     currentUserMembership?.role !== "MEMBER" ||
     !currentUserMembership ||
     eventType.schedulingType === SchedulingType.MANAGED;
-
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
     onSuccess: async () => {
       await utils.viewer.eventTypes.invalidate();
@@ -161,13 +156,11 @@ function EventTypeSingleLayout({
       }
     },
   });
-
   const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
     eventType,
     t("locked_fields_admin_description"),
     t("locked_fields_member_description")
   );
-
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
     let navigation = getNavigation({
@@ -221,14 +214,11 @@ function EventTypeSingleLayout({
     }
     return navigation;
   }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team, availability]);
-
   const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
     eventType.slug
   }`;
-
   const embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
   const isManagedEvent = eventType.schedulingType === SchedulingType.MANAGED ? "_managed" : "";
-
   return (
     <Shell
       backPath="/event-types"
@@ -427,5 +417,4 @@ function EventTypeSingleLayout({
     </Shell>
   );
 }
-
 export { EventTypeSingleLayout };

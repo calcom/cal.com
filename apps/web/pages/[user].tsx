@@ -2,7 +2,7 @@ import { BadgeCheckIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import { Toaster } from "react-hot-toast";
 
 import {
@@ -37,14 +37,12 @@ import PageWrapper from "@components/PageWrapper";
 import { ssrInit } from "@server/lib/ssr";
 
 export default function User(props: inferSSRProps<typeof getServerSideProps> & EmbedProps) {
+  const searchParams = useSearchParams();
   const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(user.theme);
   const { t } = useLocale();
-  const router = useRouter();
-
   const isBioEmpty = !user.bio || !user.bio.replace("<p><br></p>", "").length;
-
   const groupEventTypes = props.users.some((user) => !user.allowDynamicBooking) ? (
     <div className="space-y-6" data-testid="event-types">
       <div className="overflow-hidden rounded-sm border ">
@@ -85,23 +83,21 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
       ))}
     </ul>
   );
-
   const isEmbed = useIsEmbed(props.isEmbed);
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
-  const query = { ...router.query };
+  const query = { ...Object.fromEntries(searchParams ?? new URLSearchParams()) };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
   const nameOrUsername = user.name || user.username || "";
-
-  /* 
-   const telemetry = useTelemetry();
-   useEffect(() => {
-    if (top !== window) {
-      //page_view will be collected automatically by _middleware.ts
-      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/[user]"));
-    }
-  }, [telemetry, router.asPath]); */
+  /*
+     const telemetry = useTelemetry();
+     useEffect(() => {
+      if (top !== window) {
+        //page_view will be collected automatically by _middleware.ts
+        telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/[user]"));
+      }
+    }, [telemetry, router.asPath]); */
   const isEventListEmpty = eventTypes.length === 0;
   return (
     <>
@@ -196,10 +192,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
     </>
   );
 }
-
 User.isBookingPage = true;
 User.PageWrapper = PageWrapper;
-
 const getEventTypesWithHiddenFromDB = async (userId: number) => {
   return (
     await prisma.eventType.findMany({
@@ -242,11 +236,9 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
   }));
 };
-
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const crypto = await import("crypto");
-
   const usernameList = getUsernameList(context.query.user as string);
   const dataFetchStart = Date.now();
   const usersWithoutAvatar = await prisma.user.findMany({
@@ -269,12 +261,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       allowDynamicBooking: true,
     },
   });
-
   const users = usersWithoutAvatar.map((user) => ({
     ...user,
     avatar: `${WEBAPP_URL}/${user.username}/avatar.png`,
   }));
-
   if (!users.length) {
     return {
       notFound: true,
@@ -283,7 +273,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
   const isDynamicGroup = users.length > 1;
-
   if (isDynamicGroup) {
     // sort and be in the same order as usernameList so first user is the first user in the list
     users.sort((a, b) => {
@@ -292,14 +281,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       return aIndex - bIndex;
     });
   }
-
   const dynamicNames = isDynamicGroup
     ? users.map((user) => {
         return user.name || "";
       })
     : [];
   const [user] = users; //to be used when dealing with single user, not dynamic group
-
   const profile = isDynamicGroup
     ? {
         name: getGroupName(dynamicNames),
@@ -319,29 +306,24 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         brandColor: user.brandColor,
         darkBrandColor: user.darkBrandColor,
       };
-
   const eventTypesWithHidden = isDynamicGroup ? [] : await getEventTypesWithHiddenFromDB(user.id);
   const dataFetchEnd = Date.now();
   if (context.query.log === "1") {
     context.res.setHeader("X-Data-Fetch-Time", `${dataFetchEnd - dataFetchStart}ms`);
   }
   const eventTypesRaw = eventTypesWithHidden.filter((evt) => !evt.hidden);
-
   const eventTypes = eventTypesRaw.map((eventType) => ({
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
     descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
   }));
-
   const isSingleUser = users.length === 1;
   const dynamicUsernames = isDynamicGroup
     ? users.map((user) => {
         return user.username || "";
       })
     : [];
-
   const safeBio = markdownToSafeHTML(user.bio) || "";
-
   return {
     props: {
       users,

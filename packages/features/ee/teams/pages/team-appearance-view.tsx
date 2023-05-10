@@ -1,4 +1,5 @@
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 
 import { APP_NAME } from "@calcom/lib/constants";
@@ -42,7 +43,6 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
     </SkeletonContainer>
   );
 };
-
 interface TeamAppearanceValues {
   hideBranding: boolean;
   hideBookATeamMember: boolean;
@@ -50,12 +50,11 @@ interface TeamAppearanceValues {
   darkBrandColor: string;
   theme: string | null | undefined;
 }
-
 const ProfileView = () => {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
-
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
@@ -65,16 +64,14 @@ const ProfileView = () => {
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
-
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
-    { teamId: Number(router.query.id) },
+    { teamId: Number(searchParams?.get("id")) },
     {
       onError: () => {
         router.push("/settings");
       },
     }
   );
-
   const form = useForm<TeamAppearanceValues>({
     defaultValues: {
       theme: team?.theme,
@@ -83,10 +80,8 @@ const ProfileView = () => {
       hideBranding: team?.hideBranding,
     },
   });
-
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
-
   if (isLoading) {
     return <SkeletonLoader title={t("booking_appearance")} description={t("appearance_team_description")} />;
   }
@@ -238,7 +233,5 @@ const ProfileView = () => {
     </>
   );
 };
-
 ProfileView.getLayout = getLayout;
-
 export default ProfileView;

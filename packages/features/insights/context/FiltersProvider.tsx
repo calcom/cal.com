@@ -1,4 +1,5 @@
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -8,9 +9,16 @@ import type { FilterContextType } from "./provider";
 import { FilterProvider } from "./provider";
 
 export function FiltersProvider({ children }: { children: React.ReactNode }) {
+  const searchParams = useSearchParams();
   // useRouter to get initial values from query params
   const router = useRouter();
-  const { startTime, endTime, teamId, userId, eventTypeId, filter, memberUserId } = router.query;
+  const startTime = searchParams?.get("startTime"),
+    endTime = searchParams?.get("endTime"),
+    teamId = searchParams?.get("teamId"),
+    userId = searchParams?.get("userId"),
+    eventTypeId = searchParams?.get("eventTypeId"),
+    filter = searchParams?.get("filter"),
+    memberUserId = searchParams?.get("memberUserId");
   const querySchema = z.object({
     startTime: z.string().optional(),
     endTime: z.string().optional(),
@@ -20,7 +28,6 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     eventTypeId: z.coerce.number().optional(),
     filter: z.enum(["event-type", "user"]).optional(),
   });
-
   let startTimeParsed,
     endTimeParsed,
     teamIdParsed: number | undefined,
@@ -28,7 +35,6 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     eventTypeIdParsed,
     filterParsed,
     memberUserIdParsed;
-
   const safe = querySchema.safeParse({
     startTime,
     endTime,
@@ -38,7 +44,6 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     filter,
     memberUserId,
   });
-
   if (!safe.success) {
     console.error("Failed to parse query params");
   } else {
@@ -50,7 +55,6 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     filterParsed = safe.data.filter;
     memberUserIdParsed = safe.data.memberUserId;
   }
-
   // TODO: Sync insight filters with URL parameters
   const [selectedTimeView, setSelectedTimeView] =
     useState<FilterContextType["filter"]["selectedTimeView"]>("week");
@@ -76,7 +80,6 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     endTimeParsed ? dayjs(endTimeParsed) : dayjs(),
     "t",
   ]);
-
   return (
     <FilterProvider
       value={{
@@ -97,7 +100,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           const eventTypeId = filter?.[0] === "event-type" ? selectedEventTypeId : undefined;
           router.push({
             query: {
-              ...router.query,
+              ...Object.fromEntries(searchParams ?? new URLSearchParams()),
               filter: filter?.[0],
               userId,
               eventTypeId,
@@ -108,7 +111,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           setDateRange(dateRange);
           router.push({
             query: {
-              ...router.query,
+              ...Object.fromEntries(searchParams ?? new URLSearchParams()),
               startTime: dateRange[0].toISOString(),
               endTime: dateRange[1].toISOString(),
             },
@@ -117,7 +120,9 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
         setSelectedTimeView: (selectedTimeView) => setSelectedTimeView(selectedTimeView),
         setSelectedMemberUserId: (selectedMemberUserId) => {
           setSelectedMemberUserId(selectedMemberUserId);
-          const { userId, eventTypeId, ...rest } = router.query;
+          const userId = searchParams?.get("userId"),
+            eventTypeId = searchParams?.get("eventTypeId"),
+            rest = searchParams?.get("rest");
           router.push({
             query: {
               ...rest,
@@ -130,7 +135,10 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           setSelectedUserId(null);
           setSelectedMemberUserId(null);
           setSelectedEventTypeId(null);
-          const { teamId, eventTypeId, memberUserId, ...rest } = router.query;
+          const teamId = searchParams?.get("teamId"),
+            eventTypeId = searchParams?.get("eventTypeId"),
+            memberUserId = searchParams?.get("memberUserId"),
+            rest = searchParams?.get("rest");
           router.push({
             query: {
               ...rest,
@@ -143,7 +151,10 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           setSelectedTeamId(null);
           setSelectedTeamName(null);
           setSelectedEventTypeId(null);
-          const { teamId, eventTypeId, memberUserId, ...rest } = router.query;
+          const teamId = searchParams?.get("teamId"),
+            eventTypeId = searchParams?.get("eventTypeId"),
+            memberUserId = searchParams?.get("memberUserId"),
+            rest = searchParams?.get("rest");
           router.push({
             query: {
               ...rest,
@@ -156,7 +167,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           setSelectedEventTypeId(selectedEventTypeId);
           router.push({
             query: {
-              ...router.query,
+              ...Object.fromEntries(searchParams ?? new URLSearchParams()),
               eventTypeId: selectedEventTypeId,
             },
           });
@@ -166,11 +177,15 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           setSelectedEventTypeId(null);
           setSelectedMemberUserId(null);
           setSelectedFilter(null);
-          const { teamId, userId, ...rest } = router.query;
-          const query: { teamId?: number; userId?: number } = {};
+          const teamId = searchParams?.get("teamId"),
+            userId = searchParams?.get("userId"),
+            rest = searchParams?.get("rest");
+          const query: {
+            teamId?: number;
+            userId?: number;
+          } = {};
           const parsedTeamId = Number(Array.isArray(teamId) ? teamId[0] : teamId);
           const parsedUserId = Number(Array.isArray(userId) ? userId[0] : userId);
-
           if ((teamId && !userId) || (userId && teamId)) {
             query.teamId = parsedTeamId;
             setSelectedTeamId(parsedTeamId);
@@ -180,7 +195,6 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
             setSelectedUserId(parsedUserId);
             setSelectedTeamId(null);
           }
-
           router.push({
             query,
           });

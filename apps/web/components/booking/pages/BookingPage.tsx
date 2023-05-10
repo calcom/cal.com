@@ -3,7 +3,8 @@ import { useMutation } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useReducer, useState } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
@@ -59,12 +60,10 @@ import type { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import type { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
 const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaster), { ssr: false });
-
 /** These are like 40kb that not every user needs */
 const BookingDescriptionPayment = dynamic(
   () => import("@components/booking/BookingDescriptionPayment")
 ) as unknown as typeof import("@components/booking/BookingDescriptionPayment").default;
-
 const useBrandColors = ({ brandColor, darkBrandColor }: { brandColor?: string; darkBrandColor?: string }) => {
   const brandTheme = useGetBrandingColours({
     lightVal: brandColor,
@@ -72,7 +71,6 @@ const useBrandColors = ({ brandColor, darkBrandColor }: { brandColor?: string; d
   });
   useCalcomTheme(brandTheme);
 };
-
 type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
 const BookingFields = ({
   fields,
@@ -89,7 +87,6 @@ const BookingFields = ({
   const { watch, setValue } = useFormContext();
   const locationResponse = watch("responses.location");
   const currentView = rescheduleUid ? "reschedule" : "";
-
   return (
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
     <div>
@@ -98,20 +95,16 @@ const BookingFields = ({
         // Allowing a system field to be edited might require sending emails to attendees, so we need to be careful
         let readOnly =
           (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
-
         let noLabel = false;
         let hidden = !!field.hidden;
         const fieldViews = field.views;
-
         if (fieldViews && !fieldViews.find((view) => view.id === currentView)) {
           return null;
         }
-
         if (field.name === SystemField.Enum.rescheduleReason) {
           // rescheduleReason is a reschedule specific field and thus should be editable during reschedule
           readOnly = false;
         }
-
         if (field.name === SystemField.Enum.smsReminderNumber) {
           // `smsReminderNumber` and location.optionValue when location.value===phone are the same data point. We should solve it in a better way in the Form Builder itself.
           // I think we should have a way to connect 2 fields together and have them share the same value in Form Builder
@@ -123,12 +116,10 @@ const BookingFields = ({
           // `smsReminderNumber` can be edited during reschedule even though it's a system field
           readOnly = false;
         }
-
         if (field.name === SystemField.Enum.guests) {
           // No matter what user configured for Guests field, we don't show it for dynamic group booking as that doesn't support guests
           hidden = isDynamicGroupBooking ? true : !!field.hidden;
         }
-
         // We don't show `notes` field during reschedule
         if (
           (field.name === SystemField.Enum.notes || field.name === SystemField.Enum.guests) &&
@@ -136,14 +127,12 @@ const BookingFields = ({
         ) {
           return null;
         }
-
         // Dynamically populate location field options
         if (field.name === SystemField.Enum.location && field.type === "radioInput") {
           if (!field.optionsInputs) {
             throw new Error("radioInput must have optionsInputs");
           }
           const optionsInputs = field.optionsInputs;
-
           // TODO: Instead of `getLocationOptionsForSelect` options should be retrieved from dataStore[field.getOptionsAt]. It would make it agnostic of the `name` of the field.
           const options = getLocationOptionsForSelect(locations, t);
           options.forEach((option) => {
@@ -166,10 +155,8 @@ const BookingFields = ({
             }
           }
         }
-
         const label = noLabel ? "" : field.label || t(field.defaultLabel || "");
         const placeholder = field.placeholder || t(field.defaultPlaceholder || "");
-
         return (
           <FormBuilderField
             className="mb-4"
@@ -182,7 +169,6 @@ const BookingFields = ({
     </div>
   );
 };
-
 const routerQuerySchema = z
   .object({
     timeFormat: z.nativeEnum(TimeFormat),
@@ -198,7 +184,6 @@ const routerQuerySchema = z
       }),
   })
   .passthrough();
-
 const BookingPage = ({
   eventType,
   booking,
@@ -210,6 +195,7 @@ const BookingPage = ({
   hashedLink,
   ...restProps
 }: BookingPageProps) => {
+  const searchParams = useSearchParams();
   const removeSelectedSlotMarkMutation = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation();
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const { t, i18n } = useLocale();
@@ -251,15 +237,14 @@ const BookingPage = ({
   ) {
     duration = Number(queryDuration);
   }
-
   useEffect(() => {
     /* if (top !== window) {
-      //page_view will be collected automatically by _middleware.ts
-      telemetry.event(
-        telemetryEventTypes.embedView,
-        collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
-      );
-    } */
+          //page_view will be collected automatically by _middleware.ts
+          telemetry.event(
+            telemetryEventTypes.embedView,
+            collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
+          );
+        } */
     reserveSlot();
     const interval = setInterval(reserveSlot, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
     return () => {
@@ -268,11 +253,9 @@ const BookingPage = ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
       const { uid } = responseData;
-
       if ("paymentUid" in responseData && !!responseData.paymentUid) {
         return await router.push(
           createPaymentLink({
@@ -284,7 +267,6 @@ const BookingPage = ({
           })
         );
       }
-
       const query = {
         isSuccessBookingPage: true,
         email: bookingForm.getValues("responses.email"),
@@ -292,7 +274,6 @@ const BookingPage = ({
         seatReferenceUid: "seatReferenceUid" in responseData ? responseData.seatReferenceUid : null,
         ...(rescheduleUid && booking?.startTime && { formerTime: booking.startTime.toString() }),
       };
-
       return bookingSuccessRedirect({
         router,
         successRedirectUrl: eventType.successRedirectUrl,
@@ -301,7 +282,6 @@ const BookingPage = ({
       });
     },
   });
-
   const recurringMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData = []) => {
       const { uid } = responseData[0] || {};
@@ -320,57 +300,47 @@ const BookingPage = ({
       });
     },
   });
-
   const {
     data: { timeFormat, rescheduleUid, date },
   } = useTypedQuery(routerQuerySchema);
-
   useTheme(profile.theme);
   useBrandColors({
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
   });
-
   const querySchema = getBookingResponsesPartialSchema({
     eventType: {
       bookingFields: getBookingFieldsWithSystemFields(eventType),
     },
     view: rescheduleUid ? "reschedule" : "booking",
   });
-
   const parsedQuery = querySchema.parse({
-    ...router.query,
+    ...Object.fromEntries(searchParams ?? new URLSearchParams()),
     // `guest` because we need to support legacy URL with `guest` query param support
     // `guests` because the `name` of the corresponding bookingField is `guests`
-    guests: router.query.guests || router.query.guest,
+    guests: searchParams?.get("guests") || searchParams?.get("guest"),
   });
-
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
   const locations: LocationObject[] = useMemo(
     () => (eventType.locations as LocationObject[]) || [],
     [eventType.locations]
   );
-
   const [isClientTimezoneAvailable, setIsClientTimezoneAvailable] = useState(false);
   useEffect(() => {
     // THis is to fix hydration error that comes because of different timezone on server and client
     setIsClientTimezoneAvailable(true);
   }, []);
-
   const loggedInIsOwner = eventType?.users[0]?.id === session?.user?.id;
-
   // There should only exists one default userData variable for primaryAttendee.
   const defaultUserValues = {
     email: rescheduleUid ? booking?.attendees[0].email : parsedQuery["email"],
     name: rescheduleUid ? booking?.attendees[0].name : parsedQuery["name"],
   };
-
   const defaultValues = () => {
     if (!rescheduleUid) {
       const defaults = {
         responses: {} as Partial<z.infer<typeof bookingFormSchema>["responses"]>,
       };
-
       const responses = eventType.bookingFields.reduce((responses, field) => {
         return {
           ...responses,
@@ -382,10 +352,8 @@ const BookingPage = ({
         name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name) || "",
         email: defaultUserValues.email || (!loggedInIsOwner && session?.user?.email) || "",
       };
-
       return defaults;
     }
-
     if (!booking || !booking.attendees.length) {
       return {};
     }
@@ -393,11 +361,9 @@ const BookingPage = ({
     if (!primaryAttendee) {
       return {};
     }
-
     const defaults = {
       responses: {} as Partial<z.infer<typeof bookingFormSchema>["responses"]>,
     };
-
     const responses = eventType.bookingFields.reduce((responses, field) => {
       return {
         ...responses,
@@ -411,7 +377,6 @@ const BookingPage = ({
     };
     return defaults;
   };
-
   const bookingFormSchema = z
     .object({
       responses: getBookingResponsesSchema({
@@ -420,17 +385,14 @@ const BookingPage = ({
       }),
     })
     .passthrough();
-
   type BookingFormValues = {
     locationType?: EventLocationType["type"];
     responses: z.infer<typeof bookingFormSchema>["responses"];
   };
-
   const bookingForm = useForm<BookingFormValues>({
     defaultValues: defaultValues(),
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
-
   // Calculate the booking date(s)
   let recurringStrings: string[] = [],
     recurringDates: Date[] = [];
@@ -446,7 +408,6 @@ const BookingPage = ({
       i18n.language
     );
   }
-
   const bookEvent = (bookingValues: BookingFormValues) => {
     telemetry.event(
       top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
@@ -454,18 +415,16 @@ const BookingPage = ({
     );
     // "metadata" is a reserved key to allow for connecting external users without relying on the email address.
     // <...url>&metadata[user_id]=123 will be send as a custom input field as the hidden type.
-
     // @TODO: move to metadata
-    const metadata = Object.keys(router.query)
+    const metadata = Object.keys(...Object.fromEntries(searchParams ?? new URLSearchParams()))
       .filter((key) => key.startsWith("metadata"))
       .reduce(
         (metadata, key) => ({
           ...metadata,
-          [key.substring("metadata[".length, key.length - 1)]: router.query[key],
+          [key.substring("metadata[".length, key.length - 1)]: searchParams[key],
         }),
         {}
       );
-
     if (recurringDates.length) {
       // Identify set of bookings to one intance of recurring event to support batch changes
       const recurringEventId = uuidv4();
@@ -481,7 +440,7 @@ const BookingPage = ({
         timeZone: timeZone(),
         language: i18n.language,
         rescheduleUid,
-        user: router.query.user,
+        user: searchParams?.get("user"),
         metadata,
         hasHashedBookingLink,
         hashedLink,
@@ -498,20 +457,18 @@ const BookingPage = ({
         timeZone: timeZone(),
         language: i18n.language,
         rescheduleUid,
-        bookingUid: (router.query.bookingUid as string) || booking?.uid,
-        user: router.query.user,
+        bookingUid: (searchParams?.get("bookingUid") as string) || booking?.uid,
+        user: searchParams?.get("user"),
         metadata,
         hasHashedBookingLink,
         hashedLink,
         ethSignature: gateState.rainbowToken,
-        seatReferenceUid: router.query.seatReferenceUid as string,
+        seatReferenceUid: searchParams?.get("seatReferenceUid") as string,
       });
     }
   };
-
   const showEventTypeDetails = (isEmbed && !embedUiConfig.hideEventTypeDetails) || !isEmbed;
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
-
   // Define conditional gates here
   const gates = [
     // Rainbow gate is only added if the event has both a `blockchainId` and a `smartContractAddress`
@@ -519,7 +476,6 @@ const BookingPage = ({
       ? ("rainbow" as Gate)
       : undefined,
   ];
-
   return (
     <Gates gates={gates} appData={rainbowAppData} dispatch={gateDispatcher}>
       <Head>
@@ -681,14 +637,11 @@ const BookingPage = ({
     </Gates>
   );
 };
-
 export default BookingPage;
-
 function ErrorMessage({ error }: { error: unknown }) {
   const { t } = useLocale();
   const { query: { rescheduleUid } = {} } = useRouter();
   const router = useRouter();
-
   return (
     <div data-testid="booking-fail" className="mt-2 border-l-4 border-blue-400 bg-blue-50 p-4">
       <div className="flex">

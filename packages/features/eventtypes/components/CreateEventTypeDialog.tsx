@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -39,7 +39,6 @@ export interface EventTypeParent {
   slug?: string | null;
   image?: string | null;
 }
-
 const locationFormSchema = z.array(
   z.object({
     locationType: z.string(),
@@ -52,7 +51,6 @@ const locationFormSchema = z.array(
     locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
   })
 );
-
 const querySchema = z.object({
   eventPage: z.string().optional(),
   teamId: z.union([z.string().transform((val) => +val), z.number()]).optional(),
@@ -66,7 +64,6 @@ const querySchema = z.object({
     .transform((jsonString) => locationFormSchema.parse(JSON.parse(jsonString)))
     .optional(),
 });
-
 export default function CreateEventTypeDialog({
   profileOptions,
 }: {
@@ -80,22 +77,18 @@ export default function CreateEventTypeDialog({
   const { t } = useLocale();
   const router = useRouter();
   const [firstRender, setFirstRender] = useState(true);
-
   const {
     data: { teamId, eventPage: pageSlug },
   } = useTypedQuery(querySchema);
   const teamProfile = profileOptions.find((profile) => profile.teamId === teamId);
-
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     defaultValues: {
       length: 15,
     },
     resolver: zodResolver(createEventTypeInput),
   });
-
   const schedulingTypeWatch = form.watch("schedulingType");
   const isManagedEventType = schedulingTypeWatch === SchedulingType.MANAGED;
-
   useEffect(() => {
     if (isManagedEventType) {
       form.setValue("metadata.managedEventConfig.unlockedFields", unlockedManagedEventTypeProps);
@@ -103,14 +96,11 @@ export default function CreateEventTypeDialog({
       form.setValue("metadata", null);
     }
   }, [schedulingTypeWatch]);
-
   const { register } = form;
-
   const isAdmin =
     teamId !== undefined &&
     (teamProfile?.membershipRole === MembershipRole.OWNER ||
       teamProfile?.membershipRole === MembershipRole.ADMIN);
-
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {
       await router.replace("/event-types/" + eventType.id);
@@ -121,21 +111,17 @@ export default function CreateEventTypeDialog({
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }
-
       if (err.data?.code === "BAD_REQUEST") {
         const message = `${err.data.code}: URL already exists.`;
         showToast(message, "error");
       }
-
       if (err.data?.code === "UNAUTHORIZED") {
         const message = `${err.data.code}: You are not able to create this event`;
         showToast(message, "error");
       }
     },
   });
-
   const flags = useFlagMap();
-
   return (
     <Dialog
       name="new"

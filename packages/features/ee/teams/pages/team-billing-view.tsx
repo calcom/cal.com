@@ -1,5 +1,3 @@
-import { useRouter } from "next/router";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Meta } from "@calcom/ui";
@@ -9,8 +7,7 @@ import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
 const BillingView = () => {
   const { t } = useLocale();
-  const router = useRouter();
-  const returnTo = router.asPath;
+  const returnTo = pathname;
   const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
   return (
     <>
@@ -29,7 +26,5 @@ const BillingView = () => {
     </>
   );
 };
-
 BillingView.getLayout = getLayout;
-
 export default BillingView;

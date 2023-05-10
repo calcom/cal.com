@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useReducer, useState } from "react";
 import z from "zod";
 
@@ -59,12 +59,10 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
   const { type, credentialIds, isGlobal, installed, handleDisconnect } = props;
   const { t } = useLocale();
   const [credentialId] = credentialIds;
-
   const utils = trpc.useContext();
   const handleOpenChange = () => {
     utils.viewer.integrations.invalidate();
   };
-
   if (credentialId || type === "stripe_payment" || isGlobal) {
     return (
       <DropdownMenuItem>
@@ -78,7 +76,6 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
       </DropdownMenuItem>
     );
   }
-
   if (!installed) {
     return (
       <div className="flex items-center truncate">
@@ -86,7 +83,6 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
       </div>
     );
   }
-
   return (
     <InstallAppButton
       type={type}
@@ -99,32 +95,30 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
     />
   );
 }
-
 interface IntegrationsContainerProps {
   variant?: (typeof InstalledAppVariants)[number];
   exclude?: (typeof InstalledAppVariants)[number][];
   handleDisconnect: (credentialId: number) => void;
 }
-
 interface IntegrationsListProps {
   variant?: IntegrationsContainerProps["variant"];
   data: RouterOutputs["viewer"]["integrations"];
   handleDisconnect: (credentialId: number) => void;
 }
-
 const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListProps) => {
   const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
   const utils = trpc.useContext();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
-  const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
-    undefined
-  );
-
+  const [locationType, setLocationType] = useState<
+    | (EventLocationType & {
+        slug: string;
+      })
+    | undefined
+  >(undefined);
   const onSuccessCallback = useCallback(() => {
     setBulkUpdateModal(true);
     showToast("Default app updated successfully", "success");
   }, []);
-
   const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation({
     onSuccess: () => {
       showToast("Default app updated successfully", "success");
@@ -134,7 +128,6 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
       showToast(`Error: ${error.message}`, "error");
     },
   });
-
   const { t } = useLocale();
   return (
     <>
@@ -217,7 +210,6 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
     </>
   );
 };
-
 const IntegrationsContainer = ({
   variant,
   exclude,
@@ -234,7 +226,6 @@ const IntegrationsContainer = ({
     web3: BarChart,
     other: Grid,
   };
-
   return (
     <QueryCell
       query={query}
@@ -283,22 +274,18 @@ const IntegrationsContainer = ({
     />
   );
 };
-
 const querySchema = z.object({
   category: z.enum(InstalledAppVariants),
 });
-
 type querySchemaType = z.infer<typeof querySchema>;
-
 type ModalState = {
   isOpen: boolean;
   credentialId: null | number;
 };
-
 export default function InstalledApps() {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
-  const router = useRouter();
-  const category = router.query.category as querySchemaType["category"];
+  const category = searchParams?.get("category") as querySchemaType["category"];
   const categoryList: querySchemaType["category"][] = [
     "payment",
     "conferencing",
@@ -306,7 +293,6 @@ export default function InstalledApps() {
     "analytics",
     "web3",
   ];
-
   const [data, updateData] = useReducer(
     (data: ModalState, partialData: Partial<ModalState>) => ({ ...data, ...partialData }),
     {
@@ -314,15 +300,12 @@ export default function InstalledApps() {
       credentialId: null,
     }
   );
-
   const handleModelClose = () => {
     updateData({ isOpen: false, credentialId: null });
   };
-
   const handleDisconnect = (credentialId: number) => {
     updateData({ isOpen: true, credentialId });
   };
-
   return (
     <>
       <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
@@ -346,7 +329,6 @@ export default function InstalledApps() {
     </>
   );
 }
-
 // Server side rendering
 export async function getServerSideProps(ctx: AppGetServerSidePropsContext) {
   // get return-to cookie and redirect if needed
@@ -364,14 +346,11 @@ export async function getServerSideProps(ctx: AppGetServerSidePropsContext) {
     }
   }
   const params = querySchema.safeParse(ctx.params);
-
   if (!params.success) return { notFound: true };
-
   return {
     props: {
       category: params.data.category,
     },
   };
 }
-
 InstalledApps.PageWrapper = PageWrapper;

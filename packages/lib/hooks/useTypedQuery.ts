@@ -1,11 +1,12 @@
-import { useRouter } from "next/router";
 import { useCallback, useMemo } from "react";
 import { z } from "zod";
 
-type OptionalKeys<T> = { [K in keyof T]-?: Record<string, unknown> extends Pick<T, K> ? K : never }[keyof T];
-
-type FilteredKeys<T, U> = { [K in keyof T as T[K] extends U ? K : never]: T[K] };
-
+type OptionalKeys<T> = {
+  [K in keyof T]-?: Record<string, unknown> extends Pick<T, K> ? K : never;
+}[keyof T];
+type FilteredKeys<T, U> = {
+  [K in keyof T as T[K] extends U ? K : never]: T[K];
+};
 // Take array as a string and return zod array
 export const queryNumberArray = z
   .string()
@@ -16,14 +17,11 @@ export const queryNumberArray = z
     if (Array.isArray(a)) return a;
     return [a];
   });
-
 // Take array as a string and return zod  number array
-
 // Take string and return return zod string array - comma separated
 export const queryStringArray = z
   .preprocess((a) => z.string().parse(a).split(","), z.string().array())
   .or(z.string().array());
-
 export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
   type Output = z.infer<typeof schema>;
   type FullOutput = Required<Output>;
@@ -31,17 +29,13 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
   type OutputOptionalKeys = OptionalKeys<Output>;
   type ArrayOutput = FilteredKeys<FullOutput, Array<unknown>>;
   type ArrayOutputKeys = keyof ArrayOutput;
-
   const { query: unparsedQuery, ...router } = useRouter();
   const parsedQuerySchema = schema.safeParse(unparsedQuery);
-
   let parsedQuery: Output = useMemo(() => {
     return {} as Output;
   }, []);
-
   if (parsedQuerySchema.success) parsedQuery = parsedQuerySchema.data;
   else if (!parsedQuerySchema.success) console.error(parsedQuerySchema.error);
-
   // Set the query based on schema values
   const setQuery = useCallback(
     function setQuery<J extends OutputKeys>(key: J, value: Output[J]) {
@@ -53,13 +47,11 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
     },
     [parsedQuery, router]
   );
-
   // Delete a key from the query
   function removeByKey(key: OutputOptionalKeys) {
     const { [key]: _, ...newQuery } = parsedQuery;
     router.replace({ query: newQuery as Output }, undefined, { shallow: true });
   }
-
   // push item to existing key
   function pushItemToKey<J extends ArrayOutputKeys>(key: J, value: ArrayOutput[J][number]) {
     const existingValue = parsedQuery[key];
@@ -72,7 +64,6 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
       setQuery(key, [value]);
     }
   }
-
   // Remove item by key and value
   function removeItemByKeyAndValue<J extends ArrayOutputKeys>(key: J, value: ArrayOutput[J][number]) {
     const existingValue = parsedQuery[key];
@@ -85,6 +76,5 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
       removeByKey(key);
     }
   }
-
   return { data: parsedQuery, setQuery, removeByKey, pushItemToKey, removeItemByKeyAndValue };
 }

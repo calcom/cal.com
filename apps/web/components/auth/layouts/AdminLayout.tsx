@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React, { useEffect } from "react";
 
@@ -10,20 +10,19 @@ import { ErrorBoundary } from "@calcom/ui";
 
 export default function AdminLayout({
   children,
-
   ...rest
-}: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
+}: {
+  children: React.ReactNode;
+} & ComponentProps<typeof Shell>) {
   const session = useSession();
   const router = useRouter();
-
   // Force redirect on component level
   useEffect(() => {
     if (session.data && session.data.user.role !== UserPermissionRole.ADMIN) {
       router.replace("/settings/my-account/profile");
     }
   }, [session, router]);
-
-  const isAppsPage = router.asPath.startsWith("/settings/admin/apps");
+  const isAppsPage = pathname?.startsWith("/settings/admin/apps");
   return (
     <SettingsLayout {...rest}>
       <div className="divide-subtle mx-auto flex max-w-4xl flex-row divide-y">
@@ -34,5 +33,4 @@ export default function AdminLayout({
     </SettingsLayout>
   );
 }
-
 export const getLayout = (page: React.ReactElement) => <AdminLayout>{page}</AdminLayout>;

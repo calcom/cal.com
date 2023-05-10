@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -16,20 +16,16 @@ import type { NewTeamFormValues } from "../lib/types";
 const querySchema = z.object({
   returnTo: z.string(),
 });
-
 export const CreateANewTeamForm = () => {
   const { t } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
-  const returnToParsed = querySchema.safeParse(router.query);
+  const returnToParsed = querySchema.safeParse(...Object.fromEntries(searchParams ?? new URLSearchParams()));
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
-
   const returnToParam =
     (returnToParsed.success ? getSafeRedirectUrl(returnToParsed.data.returnTo) : "/settings/teams") ||
     "/settings/teams";
-
   const newTeamFormMethods = useForm<NewTeamFormValues>();
-
   const createTeamMutation = trpc.viewer.teams.create.useMutation({
     onSuccess: (data) => {
       telemetry.event(telemetryEventTypes.team_created);
@@ -43,7 +39,6 @@ export const CreateANewTeamForm = () => {
       }
     },
   });
-
   return (
     <>
       <Form

@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -15,23 +15,19 @@ import { Plus, ArrowRight, Trash2 } from "@calcom/ui/components/icon";
 const querySchema = z.object({
   id: z.string().transform((val) => parseInt(val)),
 });
-
 type TeamMember = RouterOutputs["viewer"]["teams"]["get"]["members"][number];
-
 type FormValues = {
   members: TeamMember[];
 };
-
 const AddNewTeamMembers = () => {
   const session = useSession();
-  const router = useRouter();
-  const { id: teamId } = router.isReady ? querySchema.parse(router.query) : { id: -1 };
-  const teamQuery = trpc.viewer.teams.get.useQuery({ teamId }, { enabled: router.isReady });
+  const { id: teamId } = true
+    ? querySchema.parse(...Object.fromEntries(searchParams ?? new URLSearchParams()))
+    : { id: -1 };
+  const teamQuery = trpc.viewer.teams.get.useQuery({ teamId }, { enabled: true });
   if (session.status === "loading" || !teamQuery.data) return <AddNewTeamMemberSkeleton />;
-
   return <AddNewTeamMembersForm defaultValues={{ members: teamQuery.data.members }} teamId={teamId} />;
 };
-
 export const AddNewTeamMembersForm = ({
   defaultValues,
   teamId,
@@ -68,7 +64,6 @@ export const AddNewTeamMembersForm = ({
       showToast(error.message, "error");
     },
   });
-
   return (
     <>
       <div>
@@ -114,9 +109,7 @@ export const AddNewTeamMembersForm = ({
     </>
   );
 };
-
 export default AddNewTeamMembers;
-
 const AddNewTeamMemberSkeleton = () => {
   return (
     <SkeletonContainer className="border-subtle rounded-md border">
@@ -133,12 +126,10 @@ const AddNewTeamMemberSkeleton = () => {
     </SkeletonContainer>
   );
 };
-
 const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: number }) => {
   const { member, index, teamId } = props;
   const { t } = useLocale();
   const utils = trpc.useContext();
-
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
@@ -149,7 +140,6 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
       showToast(err.message, "error");
     },
   });
-
   return (
     <li
       key={member.email}

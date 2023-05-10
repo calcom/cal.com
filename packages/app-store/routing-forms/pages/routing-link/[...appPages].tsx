@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
@@ -33,7 +33,6 @@ const useBrandColors = ({
   });
   useCalcomTheme(brandTheme);
 };
-
 function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getServerSideProps>) {
   const [customPageMessage, setCustomPageMessage] = useState<Route["action"]["value"]>("");
   const formFillerIdRef = useRef(uuidv4());
@@ -50,16 +49,13 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
   const formFillerId = formFillerIdRef.current;
   const decidedActionRef = useRef<Route["action"]>();
   const router = useRouter();
-
   const onSubmit = (response: Response) => {
     const decidedAction = processRoute({ form, response });
-
     if (!decidedAction) {
       // FIXME: Make sure that when a form is created, there is always a fallback route and then remove this.
       alert("Define atleast 1 route");
       return;
     }
-
     responseMutation.mutate({
       formId: form.id,
       formFillerId,
@@ -67,19 +63,16 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
     });
     decidedActionRef.current = decidedAction;
   };
-
   useEffect(() => {
     // Custom Page doesn't actually change Route, so fake it so that embed can adjust the scroll to make the content visible
     sdkActionManager?.fire("__routeChanged", {});
   }, [customPageMessage]);
-
   const responseMutation = trpc.viewer.appRoutingForms.public.response.useMutation({
     onSuccess: () => {
       const decidedAction = decidedActionRef.current;
       if (!decidedAction) {
         return;
       }
-
       //TODO: Maybe take action after successful mutation
       if (decidedAction.type === "customPageMessage") {
         setCustomPageMessage(decidedAction.value);
@@ -100,16 +93,12 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
       // showToast("Something went wrong", "error");
     },
   });
-
   const [response, setResponse] = useState<Response>({});
-
   const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSubmit(response);
   };
-
   const { t } = useLocale();
-
   return (
     <div>
       <div>
@@ -160,13 +149,10 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
     </div>
   );
 }
-
 export default function RoutingLink(props: inferSSRProps<typeof getServerSideProps>) {
   return <RoutingForm {...props} />;
 }
-
 RoutingLink.isBookingPage = true;
-
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
   prisma: AppPrisma
@@ -184,7 +170,6 @@ export const getServerSideProps = async function getServerSideProps(
     };
   }
   const isEmbed = params.appPages[1] === "embed";
-
   const form = await prisma.app_RoutingForms_Form.findUnique({
     where: {
       id: formId,
@@ -199,13 +184,11 @@ export const getServerSideProps = async function getServerSideProps(
       },
     },
   });
-
   if (!form || form.disabled) {
     return {
       notFound: true,
     };
   }
-
   return {
     props: {
       isEmbed,

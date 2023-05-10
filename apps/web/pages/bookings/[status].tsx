@@ -1,6 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { GetStaticPaths, GetStaticProps } from "next";
-import { useRouter } from "next/router";
 import { Fragment } from "react";
 import { z } from "zod";
 
@@ -24,16 +23,15 @@ import { ssgInit } from "@server/lib/ssg";
 
 type BookingListingStatus = z.infer<typeof filterQuerySchema>["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
-
 type RecurringInfo = {
   recurringEventId: string | null;
   count: number;
   firstDate: Date | null;
-  bookings: { [key: string]: Date[] };
+  bookings: {
+    [key: string]: Date[];
+  };
 };
-
 const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
-
 const descriptionByStatus: Record<BookingListingStatus, string> = {
   upcoming: "upcoming_bookings",
   recurring: "recurring_bookings",
@@ -41,17 +39,15 @@ const descriptionByStatus: Record<BookingListingStatus, string> = {
   cancelled: "cancelled_bookings",
   unconfirmed: "unconfirmed_bookings",
 };
-
 const querySchema = z.object({
   status: z.enum(validStatuses),
 });
-
 export default function Bookings() {
   const { data: filterQuery } = useFilterQuery();
-  const router = useRouter();
-  const { status } = router.isReady ? querySchema.parse(router.query) : { status: "upcoming" as const };
+  const { status } = true
+    ? querySchema.parse(...Object.fromEntries(searchParams ?? new URLSearchParams()))
+    : { status: "upcoming" as const };
   const { t } = useLocale();
-
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
       limit: 10,
@@ -62,21 +58,17 @@ export default function Bookings() {
     },
     {
       // first render has status `undefined`
-      enabled: router.isReady,
+      enabled: true,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
   );
-
   // Animate page (tab) tranistions to look smoothing
-
   const buttonInView = useInViewObserver(() => {
     if (!query.isFetching && query.hasNextPage && query.status === "success") {
       query.fetchNextPage();
     }
   });
-
   const isEmpty = !query.data?.pages[0]?.bookings.length;
-
   const shownBookings: Record<string, BookingOutput[]> = {};
   const filterBookings = (booking: BookingOutput) => {
     if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
@@ -96,9 +88,7 @@ export default function Bookings() {
     }
     return true;
   };
-
   let recurringInfoToday: RecurringInfo | undefined;
-
   const bookingsToday =
     query.data?.pages.map((page) =>
       page.bookings.filter((booking: BookingOutput) => {
@@ -108,9 +98,7 @@ export default function Bookings() {
         return new Date(booking.startTime).toDateString() === new Date().toDateString();
       })
     )[0] || [];
-
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
-
   return (
     <BookingLayout heading={t("bookings")} subtitle={t("bookings_description")}>
       <div className="flex w-full flex-col" ref={animationParentRef}>
@@ -194,15 +182,11 @@ export default function Bookings() {
     </BookingLayout>
   );
 }
-
 Bookings.PageWrapper = PageWrapper;
-
 export const getStaticProps: GetStaticProps = async (ctx) => {
   const params = querySchema.safeParse(ctx.params);
   const ssg = await ssgInit(ctx);
-
   if (!params.success) return { notFound: true };
-
   return {
     props: {
       status: params.data.status,
@@ -210,7 +194,6 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
     },
   };
 };
-
 export const getStaticPaths: GetStaticPaths = () => {
   return {
     paths: validStatuses.map((status) => ({

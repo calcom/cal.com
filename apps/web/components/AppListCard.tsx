@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
@@ -8,8 +8,15 @@ import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { Badge, ListItemText } from "@calcom/ui";
 import { AlertCircle } from "@calcom/ui/components/icon";
 
-type ShouldHighlight = { slug: string; shouldHighlight: true } | { shouldHighlight?: never; slug?: never };
-
+type ShouldHighlight =
+  | {
+      slug: string;
+      shouldHighlight: true;
+    }
+  | {
+      shouldHighlight?: never;
+      slug?: never;
+    };
 type AppListCardProps = {
   logo?: string;
   title: string;
@@ -20,9 +27,7 @@ type AppListCardProps = {
   invalidCredential?: boolean;
   children?: ReactNode;
 } & ShouldHighlight;
-
 const schema = z.object({ hl: z.string().optional() });
-
 export default function AppListCard(props: AppListCardProps) {
   const { t } = useLocale();
   const {
@@ -43,7 +48,6 @@ export default function AppListCard(props: AppListCardProps) {
   const router = useRouter();
   const [highlight, setHighlight] = useState(shouldHighlight && hl === slug);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
   useEffect(() => {
     if (shouldHighlight && highlight) {
       const timer = setTimeout(() => {
@@ -61,7 +65,6 @@ export default function AppListCard(props: AppListCardProps) {
       }
     };
   }, []);
-
   return (
     <div className={`${highlight ? "dark:bg-muted bg-yellow-100" : ""}`}>
       <div className="flex gap-x-3 px-5 py-4">

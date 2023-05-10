@@ -1,5 +1,5 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -20,7 +20,6 @@ type FormData = {
 interface IUserProfileProps {
   user: IOnboardingPageProps["user"];
 }
-
 const UserProfile = (props: IUserProfileProps) => {
   const { user } = props;
   const { t } = useLocale();
@@ -28,7 +27,6 @@ const UserProfile = (props: IUserProfileProps) => {
   const { setValue, handleSubmit, getValues } = useForm<FormData>({
     defaultValues: { bio: user?.bio || "" },
   });
-
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
   const utils = trpc.useContext();
@@ -36,7 +34,6 @@ const UserProfile = (props: IUserProfileProps) => {
   const createEventType = trpc.viewer.eventTypes.create.useMutation();
   const telemetry = useTelemetry();
   const [firstRender, setFirstRender] = useState(true);
-
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (_data, context) => {
       if (context.avatar) {
@@ -54,7 +51,6 @@ const UserProfile = (props: IUserProfileProps) => {
         } catch (error) {
           console.error(error);
         }
-
         await utils.viewer.me.refetch();
         router.push("/");
       }
@@ -65,15 +61,12 @@ const UserProfile = (props: IUserProfileProps) => {
   });
   const onSubmit = handleSubmit((data: { bio: string }) => {
     const { bio } = data;
-
     telemetry.event(telemetryEventTypes.onboardingFinished);
-
     mutation.mutate({
       bio,
       completedOnboarding: true,
     });
   });
-
   async function updateProfileHandler(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const enteredAvatar = avatarRef.current.value;
@@ -81,7 +74,6 @@ const UserProfile = (props: IUserProfileProps) => {
       avatar: enteredAvatar,
     });
   }
-
   const DEFAULT_EVENT_TYPES = [
     {
       title: t("15min_meeting"),
@@ -100,7 +92,6 @@ const UserProfile = (props: IUserProfileProps) => {
       hidden: true,
     },
   ];
-
   return (
     <form onSubmit={onSubmit}>
       <div className="flex flex-row items-center justify-start rtl:justify-end">
@@ -164,5 +155,4 @@ const UserProfile = (props: IUserProfileProps) => {
     </form>
   );
 };
-
 export default UserProfile;

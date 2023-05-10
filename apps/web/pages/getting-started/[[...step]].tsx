@@ -1,7 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
 import { z } from "zod";
 
@@ -21,8 +21,8 @@ import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
 
 export type IOnboardingPageProps = inferSSRProps<typeof getServerSideProps>;
-
 const INITIAL_STEP = "user-settings";
+
 const steps = [
   "user-settings",
   "connected-calendar",
@@ -38,20 +38,16 @@ const stepTransform = (step: (typeof steps)[number]) => {
   }
   return INITIAL_STEP;
 };
-
 const stepRouteSchema = z.object({
   step: z.array(z.enum(steps)).default([INITIAL_STEP]),
 });
 
-// TODO: Refactor how steps work to be contained in one array/object. Currently we have steps,initalsteps,headers etc. These can all be in one place
 const OnboardingPage = (props: IOnboardingPageProps) => {
   const router = useRouter();
   const { user } = props;
   const { t } = useLocale();
-
-  const result = stepRouteSchema.safeParse(router.query);
+  const result = stepRouteSchema.safeParse(...Object.fromEntries(searchParams ?? new URLSearchParams()));
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
-
   const headers = [
     {
       title: `${t("welcome_to_cal_header", { appName: APP_NAME })}`,
@@ -79,7 +75,6 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
       subtitle: [`${t("nearly_there_instructions")}`],
     },
   ];
-
   const goToIndex = (index: number) => {
     const newStep = steps[index];
     router.push(
@@ -89,9 +84,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
       undefined
     );
   };
-
   const currentStepIndex = steps.indexOf(currentStep);
-
   return (
     <div
       className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen"
@@ -104,7 +97,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
           "--cal-brand-subtle": "#9CA3AF",
         } as CSSProperties
       }
-      key={router.asPath}>
+      key={pathname}>
       <Head>
         <title>
           {APP_NAME} - {t("getting_started")}
@@ -163,17 +156,13 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
     </div>
   );
 };
-
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, res } = context;
-
   const crypto = await import("crypto");
   const session = await getServerSession({ req, res });
-
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
-
   const user = await prisma.user.findUnique({
     where: {
       id: session.user.id,
@@ -198,15 +187,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       completedOnboarding: true,
     },
   });
-
   if (!user) {
     throw new Error("User from session not found");
   }
-
   if (user.completedOnboarding) {
     return { redirect: { permanent: false, destination: "/event-types" } };
   }
-
   return {
     props: {
       ...(await serverSideTranslations(context.locale ?? "", ["common"])),
@@ -217,8 +203,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   };
 };
-
 OnboardingPage.isThemeSupported = false;
 OnboardingPage.PageWrapper = PageWrapper;
-
 export default OnboardingPage;

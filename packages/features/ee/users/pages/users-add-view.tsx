@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 import { getParserWithGeneric } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
@@ -16,7 +16,7 @@ const UsersAddView = () => {
     onSuccess: async () => {
       showToast("User added successfully", "success");
       await utils.viewer.users.list.invalidate();
-      router.replace(router.asPath.replace("/add", ""));
+      router.replace(pathname?.replace("/add", ""));
     },
     onError: (err) => {
       console.error(err.message);
@@ -37,7 +37,5 @@ const UsersAddView = () => {
     </LicenseRequired>
   );
 };
-
 UsersAddView.getLayout = getLayout;
-
 export default UsersAddView;

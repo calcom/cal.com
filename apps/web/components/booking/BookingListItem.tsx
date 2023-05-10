@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
@@ -38,14 +38,11 @@ import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
 type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
-
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
-
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
   recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
 };
-
 function BookingListItem(booking: BookingItemProps) {
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
@@ -76,7 +73,6 @@ function BookingListItem(booking: BookingItemProps) {
       utils.viewer.bookings.invalidate();
     },
   });
-
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isPast = new Date(booking.endTime) < new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
@@ -86,9 +82,7 @@ function BookingListItem(booking: BookingItemProps) {
   const isRecurring = booking.recurringEventId !== null;
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
-
   const paymentAppData = getPaymentAppData(booking.eventType);
-
   const bookingConfirm = async (confirm: boolean) => {
     let body = {
       bookingId: booking.id,
@@ -104,14 +98,12 @@ function BookingListItem(booking: BookingItemProps) {
     }
     mutation.mutate(body);
   };
-
   const getSeatReferenceUid = () => {
     if (!booking.seatsReferences[0]) {
       return undefined;
     }
     return booking.seatsReferences[0].referenceUid;
   };
-
   const pendingActions: ActionType[] = [
     {
       id: "reject",
@@ -137,7 +129,6 @@ function BookingListItem(booking: BookingItemProps) {
         ]
       : []),
   ];
-
   const showRecordingActions: ActionType[] = [
     {
       id: "view_recordings",
@@ -148,13 +139,12 @@ function BookingListItem(booking: BookingItemProps) {
       disabled: mutation.isLoading,
     },
   ];
-
   let bookedActions: ActionType[] = [
     {
       id: "cancel",
       label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel"),
       /* When cancelling we need to let the UI and the API know if the intention is to
-         cancel all remaining bookings or just that booking instance. */
+               cancel all remaining bookings or just that booking instance. */
       href: `/booking/${booking.uid}?cancel=true${
         isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
       }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
@@ -193,7 +183,6 @@ function BookingListItem(booking: BookingItemProps) {
       ],
     },
   ];
-
   const chargeCardActions: ActionType[] = [
     {
       id: "charge_card",
@@ -205,15 +194,12 @@ function BookingListItem(booking: BookingItemProps) {
       icon: CreditCard,
     },
   ];
-
   if (isTabRecurring && isRecurring) {
     bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
   }
-
   if (isPast && isPending && !isConfirmed) {
     bookedActions = bookedActions.filter((action) => action.id !== "cancel");
   }
-
   const RequestSentMessage = () => {
     return (
       <Badge startIcon={Send} size="md" variant="gray" data-testid="request_reschedule_sent">
@@ -221,7 +207,6 @@ function BookingListItem(booking: BookingItemProps) {
       </Badge>
     );
   };
-
   const startTime = dayjs(booking.startTime)
     .locale(language)
     .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
@@ -234,8 +219,12 @@ function BookingListItem(booking: BookingItemProps) {
       utils.viewer.bookings.invalidate();
     },
   });
-
-  const saveLocation = (newLocationType: EventLocationType["type"], details: { [key: string]: string }) => {
+  const saveLocation = (
+    newLocationType: EventLocationType["type"],
+    details: {
+      [key: string]: string;
+    }
+  ) => {
     let newLocation = newLocationType as string;
     const eventLocationType = getEventLocationType(newLocationType);
     if (eventLocationType?.organizerInputType) {
@@ -243,13 +232,11 @@ function BookingListItem(booking: BookingItemProps) {
     }
     setLocationMutation.mutate({ bookingId: booking.id, newLocation });
   };
-
   // Getting accepted recurring dates to show
   const recurringDates = booking.recurringInfo?.bookings[BookingStatus.ACCEPTED]
     .concat(booking.recurringInfo?.bookings[BookingStatus.CANCELLED])
     .concat(booking.recurringInfo?.bookings[BookingStatus.PENDING])
     .sort((date1: Date, date2: Date) => date1.getTime() - date2.getTime());
-
   const onClickTableData = () => {
     router.push({
       pathname: `/booking/${booking.uid}`,
@@ -259,14 +246,11 @@ function BookingListItem(booking: BookingItemProps) {
       },
     });
   };
-
   const title = booking.title;
   // To be used after we run query on legacy bookings
   // const showRecordingsButtons = booking.isRecorded && isPast && isConfirmed;
-
   const showRecordingsButtons =
     (booking.location === "integrations:daily" || booking?.location?.trim() === "") && isPast && isConfirmed;
-
   return (
     <>
       <RescheduleDialog
@@ -472,12 +456,10 @@ function BookingListItem(booking: BookingItemProps) {
     </>
   );
 }
-
 interface RecurringBookingsTooltipProps {
   booking: BookingItemProps;
   recurringDates: Date[];
 }
-
 const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookingsTooltipProps) => {
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
@@ -495,7 +477,6 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
         .includes(recurringDate.toDateString())
     );
   }).length;
-
   return (
     (booking.recurringInfo &&
       booking.eventType?.recurringEvent?.freq &&
@@ -543,13 +524,11 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
     null
   );
 };
-
 interface UserProps {
   id: number;
   name: string | null;
   email: string;
 }
-
 const FirstAttendee = ({
   user,
   currentEmail,
@@ -570,12 +549,10 @@ const FirstAttendee = ({
     </a>
   );
 };
-
 type AttendeeProps = {
   name?: string;
   email: string;
 };
-
 const Attendee = ({ email, name }: AttendeeProps) => {
   return (
     <a className="hover:text-blue-500" href={"mailto:" + email} onClick={(e) => e.stopPropagation()}>
@@ -583,7 +560,6 @@ const Attendee = ({ email, name }: AttendeeProps) => {
     </a>
   );
 };
-
 const DisplayAttendees = ({
   attendees,
   user,
@@ -619,5 +595,4 @@ const DisplayAttendees = ({
     </div>
   );
 };
-
 export default BookingListItem;

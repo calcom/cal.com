@@ -2,7 +2,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { WorkflowStep } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -28,19 +29,19 @@ import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableT
 export type FormValues = {
   name: string;
   activeOn: Option[];
-  steps: (WorkflowStep & { senderName: string | null })[];
+  steps: (WorkflowStep & {
+    senderName: string | null;
+  })[];
   trigger: WorkflowTriggerEvents;
   time?: number;
   timeUnit?: TimeUnit;
 };
-
 export function onlyLettersNumbersSpaces(str: string) {
   if (str.length <= 11 && /^[A-Za-z0-9\s]*$/.test(str)) {
     return true;
   }
   return false;
 }
-
 const formSchema = z.object({
   name: z.string(),
   activeOn: z.object({ value: z.string(), label: z.string() }).array(),
@@ -71,28 +72,25 @@ const formSchema = z.object({
     })
     .array(),
 });
-
 const querySchema = z.object({
   workflow: stringOrNumber,
 });
-
 function WorkflowPage() {
+  const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
   const session = useSession();
   const router = useRouter();
-
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
   const [isMixedEventType, setIsMixedEventType] = useState(false); //for old event types before team workflows existed
-
   const form = useForm<FormValues>({
     mode: "onBlur",
     resolver: zodResolver(formSchema),
   });
-
-  const { workflow: workflowId } = router.isReady ? querySchema.parse(router.query) : { workflow: -1 };
+  const { workflow: workflowId } = true
+    ? querySchema.parse(...Object.fromEntries(searchParams ?? new URLSearchParams()))
+    : { workflow: -1 };
   const utils = trpc.useContext();
-
   const {
     data: workflow,
     isError,
@@ -101,21 +99,18 @@ function WorkflowPage() {
   } = trpc.viewer.workflows.get.useQuery(
     { id: +workflowId },
     {
-      enabled: router.isReady && !!workflowId,
+      enabled: true && !!workflowId,
     }
   );
-
   const { data: verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId: workflow?.team?.id },
     {
       enabled: !!workflow?.id,
     }
   );
-
   const readOnly =
     workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
     MembershipRole.MEMBER;
-
   useEffect(() => {
     if (workflow && !isLoading) {
       if (workflow.userId && workflow.activeOn.find((active) => !!active.eventType.teamId)) {
@@ -133,7 +128,6 @@ function WorkflowPage() {
             label: active.eventType.slug,
           }))
         : undefined;
-
       //translate dynamic variables into local language
       const steps = workflow.steps.map((step) => {
         const updatedStep = {
@@ -155,7 +149,6 @@ function WorkflowPage() {
         }
         return updatedStep;
       });
-
       form.setValue("name", workflow.name);
       form.setValue("steps", steps);
       form.setValue("trigger", workflow.trigger);
@@ -165,12 +158,10 @@ function WorkflowPage() {
       setIsAllDataLoaded(true);
     }
   }, [isLoading]);
-
   const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
       if (workflow) {
         utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
-
         showToast(
           t("workflow_updated_successfully", {
             workflowName: workflow.name,
@@ -187,7 +178,6 @@ function WorkflowPage() {
       }
     },
   });
-
   return session.data ? (
     <Form
       form={form}
@@ -195,19 +185,15 @@ function WorkflowPage() {
         let activeOnEventTypeIds: number[] = [];
         let isEmpty = false;
         let isVerified = true;
-
         values.steps.forEach((step) => {
           const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
-
           const isBodyEmpty = !isSMSAction(step.action) && strippedHtml.length <= 1;
-
           if (isBodyEmpty) {
             form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
               type: "custom",
               message: t("fill_this_field"),
             });
           }
-
           if (step.reminderBody) {
             step.reminderBody = translateVariablesToEnglish(step.reminderBody, { locale: i18n.language, t });
           }
@@ -215,21 +201,18 @@ function WorkflowPage() {
             step.emailSubject = translateVariablesToEnglish(step.emailSubject, { locale: i18n.language, t });
           }
           isEmpty = !isEmpty ? isBodyEmpty : isEmpty;
-
           //check if phone number is verified
           if (
             step.action === WorkflowActions.SMS_NUMBER &&
             !verifiedNumbers?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo)
           ) {
             isVerified = false;
-
             form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
               type: "custom",
               message: t("not_verified"),
             });
           }
         });
-
         if (!isEmpty && isVerified) {
           if (values.activeOn) {
             activeOnEventTypeIds = values.activeOn.map((option) => {
@@ -237,7 +220,7 @@ function WorkflowPage() {
             });
           }
           updateMutation.mutate({
-            id: parseInt(router.query.workflow as string, 10),
+            id: parseInt(searchParams?.get("workflow") as string, 10),
             name: values.name,
             activeOn: activeOnEventTypeIds,
             steps: values.steps,
@@ -302,5 +285,4 @@ function WorkflowPage() {
     <></>
   );
 }
-
 export default WorkflowPage;

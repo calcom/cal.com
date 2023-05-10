@@ -1,5 +1,4 @@
 import dynamic from "next/dynamic";
-import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
 import { z } from "zod";
 
@@ -37,7 +36,6 @@ import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
-
 const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaster), { ssr: false });
 /*const SlotPicker = dynamic(() => import("../SlotPicker").then((mod) => mod.SlotPicker), {
   ssr: false,
@@ -46,16 +44,13 @@ const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaste
 const TimezoneDropdown = dynamic(() => import("../TimezoneDropdown").then((mod) => mod.TimezoneDropdown), {
   ssr: false,
 });
-
 const dateQuerySchema = z.object({
   rescheduleUid: z.string().optional().default(""),
   date: z.string().optional().default(""),
   timeZone: z.string().optional().default(""),
   seatReferenceUid: z.string().optional(),
 });
-
 export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
-
 const useBrandColors = ({ brandColor, darkBrandColor }: { brandColor: string; darkBrandColor: string }) => {
   const brandTheme = useGetBrandingColours({
     lightVal: brandColor,
@@ -63,11 +58,9 @@ const useBrandColors = ({ brandColor, darkBrandColor }: { brandColor: string; da
   });
   useCalcomTheme(brandTheme);
 };
-
 const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
-  const router = useRouter();
   const isEmbed = useIsEmbed(restProps.isEmbed);
-  const query = dateQuerySchema.parse(router.query);
+  const query = dateQuerySchema.parse(...Object.fromEntries(searchParams ?? new URLSearchParams()));
   const { rescheduleUid } = query;
   useTheme(profile.theme);
   useBrandColors({
@@ -80,15 +73,12 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const isBackgroundTransparent = useIsBackgroundTransparent();
-
   const [timeZone, setTimeZone] = useState<string>();
   const [timeFormat, setTimeFormat] = useState<TimeFormat>(detectBrowserTimeFormat);
-
   const onTimeFormatChange = (is24Hours: boolean) => {
     setTimeFormat(is24Hours ? TimeFormat.TWENTY_FOUR_HOUR : TimeFormat.TWELVE_HOUR);
     setIs24hClockInLocalStorage(is24Hours);
   };
-
   const [gateState, gateDispatcher] = useReducer(
     (state: GateState, newState: Partial<GateState>) => ({
       ...state,
@@ -96,40 +86,33 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
     }),
     {}
   );
-
   useEffect(() => {
     setTimeZone(localStorageTimeZone() || dayjs.tz.guess());
   }, []);
-
   const [recurringEventCount, setRecurringEventCount] = useState(eventType.recurringEvent?.count);
-
   /*
-  const telemetry = useTelemetry();
-   useEffect(() => {
-    if (top !== window) {
-      //page_view will be collected automatically by _middleware.ts
-      telemetry.event(
-        telemetryEventTypes.embedView,
-        collectPageParameters("/availability", { isTeamBooking: document.URL.includes("team/") })
-      );
-    }
-  }, [telemetry]); */
+    const telemetry = useTelemetry();
+     useEffect(() => {
+      if (top !== window) {
+        //page_view will be collected automatically by _middleware.ts
+        telemetry.event(
+          telemetryEventTypes.embedView,
+          collectPageParameters("/availability", { isTeamBooking: document.URL.includes("team/") })
+        );
+      }
+    }, [telemetry]); */
   const embedUiConfig = useEmbedUiConfig();
   // get dynamic user list here
   const userList = eventType.users ? eventType.users.map((user) => user.username).filter(notEmpty) : [];
-
   const timezoneDropdown = useMemo(
     () => <TimezoneDropdown timeZone={timeZone} onChangeTimeZone={setTimeZone} />,
     [timeZone]
   );
   const paymentAppData = getPaymentAppData(eventType);
-
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
-
   const showEventTypeDetails = (isEmbed && !embedUiConfig.hideEventTypeDetails) || !isEmbed;
-
   // Define conditional gates here
   const gates = [
     // Rainbow gate is only added if the event has both a `blockchainId` and a `smartContractAddress`
@@ -137,7 +120,6 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
       ? ("rainbow" as Gate)
       : undefined,
   ];
-
   const { data: bookingAttendees } = trpc.viewer.bookings.getBookingAttendees.useQuery(
     {
       seatReferenceUid: rescheduleUid,
@@ -146,7 +128,6 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
       enabled: !!(rescheduleUid && eventType.seatsPerTimeSlot),
     }
   );
-
   return (
     <Gates gates={gates} appData={rainbowAppData} dispatch={gateDispatcher}>
       <HeadSeo
@@ -260,18 +241,18 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                     </BookingDescription>
 
                     {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
-                    <div>
-                      <p
-                        className="mt-4 mb-3 text-default"
-                        data-testid="former_time_p_desktop">
-                        {t("former_time")}
-                      </p>
-                      <p className="text-subtle line-through ">
-                        <CalendarIcon className="ltr:mr-[10px] rtl:ml-[10px] -mt-1 inline-block h-4 w-4 text-subtle" />
-                        {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
-                      </p>
-                    </div>
-                  )*/}
+    <div>
+      <p
+        className="mt-4 mb-3 text-default"
+        data-testid="former_time_p_desktop">
+        {t("former_time")}
+      </p>
+      <p className="text-subtle line-through ">
+        <CalendarIcon className="ltr:mr-[10px] rtl:ml-[10px] -mt-1 inline-block h-4 w-4 text-subtle" />
+        {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
+      </p>
+    </div>
+  )*/}
                   </div>
                 )}
                 <SlotPicker
@@ -309,5 +290,4 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
     </Gates>
   );
 };
-
 export default AvailabilityPage;

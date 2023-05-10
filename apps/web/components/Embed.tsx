@@ -1,8 +1,7 @@
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import type { TFunction } from "next-i18next";
-import type { NextRouter } from "next/router";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import type { MutableRefObject, RefObject } from "react";
 import { createRef, forwardRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
@@ -28,13 +27,11 @@ import { Code, Trello, Sun, ArrowLeft } from "@calcom/ui/components/icon";
 
 type EmbedType = "inline" | "floating-popup" | "element-click";
 type EmbedFramework = "react" | "HTML";
-
 const enum Theme {
   auto = "auto",
   light = "light",
   dark = "dark",
 }
-
 type PreviewState = {
   inline: {
     width: string;
@@ -49,14 +46,12 @@ type PreviewState = {
   hideEventTypeDetails: boolean;
 };
 const queryParamsForDialog = ["embedType", "embedTabName", "embedUrl"];
-
 const getDimension = (dimension: string) => {
   if (dimension.match(/^\d+$/)) {
     dimension = `${dimension}%`;
   }
   return dimension;
 };
-
 const goto = (router: NextRouter, searchParams: Record<string, string>) => {
   const newQuery = new URLSearchParams(router.asPath.split("?")[1]);
   Object.keys(searchParams).forEach((key) => {
@@ -66,17 +61,13 @@ const goto = (router: NextRouter, searchParams: Record<string, string>) => {
     shallow: true,
   });
 };
-
 const removeQueryParams = (router: NextRouter, queryParams: string[]) => {
   const params = new URLSearchParams(window.location.search);
-
   queryParams.forEach((param) => {
     params.delete(param);
   });
-
   router.push(`${router.asPath.split("?")[0]}?${params.toString()}`);
 };
-
 /**
  * It allows us to show code with certain reusable blocks indented according to the block variable placement
  * So, if you add a variable ${abc} with indentation of 4 spaces, it will automatically indent all newlines in `abc` with the same indent before constructing the final string
@@ -111,7 +102,6 @@ const code = (partsWithoutBlock: TemplateStringsArray, ...blocksOrVariables: str
   }
   return constructedCode.join("");
 };
-
 const getInstructionString = ({
   apiName,
   instructionName,
@@ -123,7 +113,6 @@ const getInstructionString = ({
 }) => {
   return `${apiName}("${instructionName}", ${JSON.stringify(instructionArg)});`;
 };
-
 const getEmbedUIInstructionString = ({
   apiName,
   theme,
@@ -150,7 +139,6 @@ const getEmbedUIInstructionString = ({
     },
   });
 };
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Codes: Record<string, Record<string, (...args: any[]) => string>> = {
   react: {
@@ -222,7 +210,6 @@ function MyComponent() {
 
 ${uiInstructionCode}`;
     },
-
     "floating-popup": ({
       floatingButtonArg,
       uiInstructionCode,
@@ -239,7 +226,6 @@ ${uiInstructionCode}`;
     },
   },
 };
-
 const getEmbedTypeSpecificString = ({
   embedFramework,
   embedType,
@@ -304,7 +290,6 @@ const getEmbedTypeSpecificString = ({
   }
   return "";
 };
-
 const embeds = (t: TFunction) =>
   (() => {
     return [
@@ -487,7 +472,6 @@ const embeds = (t: TFunction) =>
       },
     ];
   })();
-
 const tabs = [
   {
     name: "HTML",
@@ -496,7 +480,11 @@ const tabs = [
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState }
+      {
+        embedType: EmbedType;
+        calLink: string;
+        previewState: PreviewState;
+      }
     >(function EmbedHtml({ embedType, calLink, previewState }, ref) {
       const { t } = useLocale();
       if (ref instanceof Function || !ref) {
@@ -545,7 +533,11 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState }
+      {
+        embedType: EmbedType;
+        calLink: string;
+        previewState: PreviewState;
+      }
     >(function EmbedReact({ embedType, calLink, previewState }, ref) {
       const { t } = useLocale();
       if (ref instanceof Function || !ref) {
@@ -585,7 +577,11 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
     type: "iframe",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
-      { calLink: string; embedType: EmbedType; previewState: PreviewState }
+      {
+        calLink: string;
+        embedType: EmbedType;
+        previewState: PreviewState;
+      }
     >(function Preview({ calLink, embedType }, ref) {
       if (ref instanceof Function || !ref) {
         return null;
@@ -606,15 +602,22 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
     }),
   },
 ];
-
 function getEmbedSnippetString() {
   // TODO: Import this string from @calcom/embed-snippet
   return `(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar); return; } p(cal, ar); }; })(window, "${EMBED_LIB_URL}", "init");
 Cal("init", {origin:"${WEBAPP_URL}"});
 `;
 }
-
-const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
+const ThemeSelectControl = ({
+  children,
+  ...props
+}: ControlProps<
+  {
+    value: Theme;
+    label: string;
+  },
+  false
+>) => {
   return (
     <components.Control {...props}>
       <Sun className="text-subtle mr-2 h-4 w-4" />
@@ -622,7 +625,6 @@ const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme;
     </components.Control>
   );
 };
-
 const ChooseEmbedTypesDialogContent = () => {
   const { t } = useLocale();
   const router = useRouter();
@@ -658,7 +660,6 @@ const ChooseEmbedTypesDialogContent = () => {
     </DialogContent>
   );
 };
-
 const EmbedTypeCodeAndPreviewDialogContent = ({
   embedType,
   embedUrl,
@@ -666,17 +667,16 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   embedType: EmbedType;
   embedUrl: string;
 }) => {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
-
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const dialogContentRef = useRef<HTMLDivElement>(null);
-
   const s = (href: string) => {
-    const searchParams = new URLSearchParams(router.asPath.split("?")[1] || "");
+    const searchParams = new URLSearchParams(pathname?.split("?")[1] || "");
     const [a, b] = href.split("=");
     searchParams.set(a, b);
-    return `${router.asPath.split("?")[0]}?${searchParams.toString()}`;
+    return `${pathname?.split("?")[0]}?${searchParams.toString()}`;
   };
   const parsedTabs = tabs.map((t) => ({ ...t, href: s(t.href) }));
   const embedCodeRefs: Record<(typeof tabs)[0]["name"], RefObject<HTMLTextAreaElement>> = {};
@@ -685,10 +685,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     .forEach((codeTab) => {
       embedCodeRefs[codeTab.name] = createRef();
     });
-
   const refOfEmbedCodesRefs = useRef(embedCodeRefs);
   const embed = embeds(t).find((embed) => embed.type === embedType);
-
   const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] = useState(true);
   const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
   const [previewState, setPreviewState] = useState({
@@ -704,25 +702,20 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       brandColor: "#000000",
     },
   });
-
   const close = () => {
     removeQueryParams(router, ["dialog", ...queryParamsForDialog]);
   };
-
   // Use embed-code as default tab
-  if (!router.query.embedTabName) {
+  if (!searchParams?.get("embedTabName")) {
     goto(router, {
       embedTabName: "embed-code",
     });
   }
-
   if (!embed || !embedUrl) {
     close();
     return null;
   }
-
   const calLink = decodeURIComponent(embedUrl);
-
   const addToPalette = (update: (typeof previewState)["palette"]) => {
     setPreviewState((previewState) => {
       return {
@@ -734,7 +727,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       };
     });
   };
-
   const previewInstruction = (instruction: { name: string; arg: unknown }) => {
     iframeRef.current?.contentWindow?.postMessage(
       {
@@ -745,7 +737,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       "*"
     );
   };
-
   const inlineEmbedDimensionUpdate = ({ width, height }: { width: string; height: string }) => {
     iframeRef.current?.contentWindow?.postMessage(
       {
@@ -759,7 +750,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       "*"
     );
   };
-
   previewInstruction({
     name: "ui",
     arg: {
@@ -772,7 +762,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       },
     },
   });
-
   if (embedType === "floating-popup") {
     previewInstruction({
       name: "floatingButton",
@@ -784,20 +773,17 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       },
     });
   }
-
   if (embedType === "inline") {
     inlineEmbedDimensionUpdate({
       width: previewState.inline.width,
       height: previewState.inline.height,
     });
   }
-
   const ThemeOptions = [
     { value: Theme.auto, label: "Auto" },
     { value: Theme.dark, label: "Dark Theme" },
     { value: Theme.light, label: "Light Theme" },
   ];
-
   const FloatingPopupPositionOptions = [
     {
       value: "bottom-right",
@@ -808,7 +794,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       label: "Bottom left",
     },
   ];
-
   return (
     <DialogContent
       ref={dialogContentRef}
@@ -849,7 +834,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           onChange={(e) => {
                             setPreviewState((previewState) => {
                               const width = e.target.value || "100%";
-
                               return {
                                 ...previewState,
                                 inline: {
@@ -870,7 +854,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         required
                         onChange={(e) => {
                           const height = e.target.value || "100%";
-
                           setPreviewState((previewState) => {
                             return {
                               ...previewState,
@@ -1083,7 +1066,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               <div
                 key={tab.href}
                 className={classNames(
-                  router.query.embedTabName === tab.href.split("=")[1] ? "flex flex-grow flex-col" : "hidden"
+                  searchParams?.get("embedTabName") === tab.href.split("=")[1]
+                    ? "flex flex-grow flex-col"
+                    : "hidden"
                 )}>
                 <div className="flex h-[55vh] flex-grow flex-col">
                   {tab.type === "code" ? (
@@ -1102,7 +1087,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     />
                   )}
                 </div>
-                <div className={router.query.embedTabName == "embed-preview" ? "block" : "hidden"} />
+                <div className={searchParams?.get("embedTabName") == "embed-preview" ? "block" : "hidden"} />
                 <div className="mt-8 flex flex-row-reverse gap-x-2">
                   {tab.type === "code" ? (
                     <Button
@@ -1128,10 +1113,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     </DialogContent>
   );
 };
-
 export const EmbedDialog = () => {
-  const router = useRouter();
-  const embedUrl: string = router.query.embedUrl as string;
+  const searchParams = useSearchParams();
+  const embedUrl: string = searchParams?.get("embedUrl") as string;
   return (
     <Dialog
       name="embed"
@@ -1139,11 +1123,11 @@ export const EmbedDialog = () => {
       onOpenChange={(open) => {
         if (!open) window.resetEmbedStatus();
       }}>
-      {!router.query.embedType ? (
+      {!searchParams?.get("embedType") ? (
         <ChooseEmbedTypesDialogContent />
       ) : (
         <EmbedTypeCodeAndPreviewDialogContent
-          embedType={router.query.embedType as EmbedType}
+          embedType={searchParams?.get("embedType") as EmbedType}
           embedUrl={embedUrl}
         />
       )}
@@ -1156,7 +1140,6 @@ type EmbedButtonProps<T> = {
   className?: string;
   as?: T;
 };
-
 export const EmbedButton = <T extends React.ElementType>({
   embedUrl,
   children,
@@ -1173,7 +1156,6 @@ export const EmbedButton = <T extends React.ElementType>({
     });
   };
   const Component = as ?? Button;
-
   return (
     <Component
       {...props}

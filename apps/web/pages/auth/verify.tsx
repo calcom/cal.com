@@ -1,7 +1,8 @@
 import { CheckIcon, MailOpenIcon, ExclamationIcon } from "@heroicons/react/outline";
 import { signIn } from "next-auth/react";
 import Head from "next/head";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import * as React from "react";
 import { useEffect, useState, useRef } from "react";
 import z from "zod";
@@ -27,7 +28,6 @@ async function sendVerificationLogin(email: string, username: string) {
       showToast(err, "error");
     });
 }
-
 function useSendFirstVerificationLogin({
   email,
   username,
@@ -46,16 +46,17 @@ function useSendFirstVerificationLogin({
     })();
   }, [email, username]);
 }
-
 const querySchema = z.object({
   stripeCustomerId: z.string().optional(),
   sessionId: z.string().optional(),
   t: z.string().optional(),
 });
-
 export default function Verify() {
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const { t, sessionId, stripeCustomerId } = querySchema.parse(router.query);
+  const { t, sessionId, stripeCustomerId } = querySchema.parse(
+    ...Object.fromEntries(searchParams ?? new URLSearchParams())
+  );
   const [secondsLeft, setSecondsLeft] = useState(30);
   const { data } = trpc.viewer.public.stripeCheckoutSession.useQuery({
     stripeCustomerId,
@@ -87,8 +88,7 @@ export default function Verify() {
       return () => clearInterval(interval);
     }
   }, [secondsLeft]);
-
-  if (!router.isReady || !data) {
+  if (!true || !data) {
     // Loading state
     return <Loader />;
   }
@@ -96,17 +96,15 @@ export default function Verify() {
   if (!valid) {
     throw new Error("Invalid session or customer id");
   }
-
   if (!stripeCustomerId && !sessionId) {
     return <div>Invalid Link</div>;
   }
-
   return (
     <div className="text-inverted bg-black bg-opacity-90 backdrop-blur-md backdrop-grayscale backdrop-filter">
       <Head>
         <title>
           {/* @note: Ternary can look ugly ant his might be extracted later but I think at 3 it's not yet worth
-          it or too hard to read. */}
+      it or too hard to read. */}
           {hasPaymentFailed
             ? "Your payment failed"
             : sessionId
@@ -156,10 +154,10 @@ export default function Verify() {
                 setSecondsLeft(30);
                 // Update query params with t:timestamp, shallow: true doesn't re-render the page
                 router.push(
-                  router.asPath,
+                  pathname,
                   {
                     query: {
-                      ...router.query,
+                      ...Object.fromEntries(searchParams ?? new URLSearchParams()),
                       t: Date.now(),
                     },
                   },
@@ -178,5 +176,4 @@ export default function Verify() {
     </div>
   );
 }
-
 Verify.PageWrapper = PageWrapper;

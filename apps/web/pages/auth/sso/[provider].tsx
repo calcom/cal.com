@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
@@ -24,24 +25,20 @@ import PageWrapper from "@components/PageWrapper";
 import { ssrInit } from "@server/lib/ssr";
 
 export type SSOProviderPageProps = inferSSRProps<typeof getServerSideProps>;
-
 export default function Provider(props: SSOProviderPageProps) {
+  const searchParams = useSearchParams();
   const router = useRouter();
-
   useEffect(() => {
     if (props.provider === "saml") {
-      const email = typeof router.query?.email === "string" ? router.query?.email : null;
-
+      const email = typeof searchParams?.get("email") === "string" ? searchParams?.get("email") : null;
       if (!email) {
         router.push("/auth/error?error=" + "Email not provided");
         return;
       }
-
       if (!props.isSAMLLoginEnabled) {
         router.push("/auth/error?error=" + "SAML login not enabled");
         return;
       }
-
       signIn("saml", {}, { tenant: props.tenant, product: props.product });
     } else {
       signIn(props.provider);
@@ -50,9 +47,7 @@ export default function Provider(props: SSOProviderPageProps) {
   }, []);
   return null;
 }
-
 Provider.PageWrapper = PageWrapper;
-
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   // get query params and typecast them to string
   // (would be even better to assert them instead of typecasting)
@@ -63,12 +58,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!providerParam) {
     throw new Error(`File is not named sso/[provider]`);
   }
-
   const { req, res } = context;
-
   const session = await getServerSession({ req, res });
   const ssr = await ssrInit(context);
-
   if (session) {
     // Validating if username is Premium, while this is true an email its required for stripe user confirmation
     if (usernameParam && session.user.email) {
@@ -89,7 +81,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         }
       }
     }
-
     return {
       redirect: {
         destination: successDestination,
@@ -97,12 +88,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
     };
   }
-
   let error: string | null = null;
-
   let tenant = samlTenantID;
   let product = samlProductID;
-
   if (providerParam === "saml" && hostedCal) {
     if (!emailParam) {
       error = "Email not provided";
@@ -116,7 +104,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       }
     }
   }
-
   if (error) {
     return {
       redirect: {
@@ -125,7 +112,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
     };
   }
-
   return {
     props: {
       trpcState: ssr.dehydrate(),
@@ -138,13 +124,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   };
 };
-
 type GetStripePremiumUsernameUrl = {
   userEmail: string;
   username: string;
   successDestination: string;
 };
-
 const getStripePremiumUsernameUrl = async ({
   userEmail,
   username,
@@ -158,7 +142,6 @@ const getStripePremiumUsernameUrl = async ({
       username,
     },
   });
-
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "subscription",
     payment_method_types: ["card"],
@@ -173,6 +156,5 @@ const getStripePremiumUsernameUrl = async ({
     cancel_url: process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com",
     allow_promotion_codes: true,
   });
-
   return checkoutSession.url;
 };

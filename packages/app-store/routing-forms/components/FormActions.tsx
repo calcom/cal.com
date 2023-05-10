@@ -1,6 +1,6 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
-import type { NextRouter } from "next/router";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createContext, forwardRef, useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Controller } from "react-hook-form";
@@ -37,13 +37,17 @@ import getFieldIdentifier from "../lib/getFieldIdentifier";
 import type { SerializableForm } from "../types/types";
 
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
-
 const newFormModalQuerySchema = z.object({
   action: z.string(),
   target: z.string().optional(),
 });
-
-const openModal = (router: NextRouter, option: { target?: string; action: string }) => {
+const openModal = (
+  router: NextRouter,
+  option: {
+    target?: string;
+    action: string;
+  }
+) => {
   const query = {
     ...router.query,
     dialog: "new-form",
@@ -58,12 +62,11 @@ const openModal = (router: NextRouter, option: { target?: string; action: string
     { shallow: true }
   );
 };
-
 function NewFormDialog({ appUrl }: { appUrl: string }) {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
-
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess: (_data, variables) => {
       router.push(`${appUrl}/form-edit/${variables.id}`);
@@ -75,15 +78,12 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
       utils.viewer.appRoutingForms.forms.invalidate();
     },
   });
-
   const hookForm = useForm<{
     name: string;
     description: string;
     shouldConnect: boolean;
   }>();
-
-  const { action, target } = router.query as z.infer<typeof newFormModalQuerySchema>;
-
+  const { action, target } = searchParams as z.infer<typeof newFormModalQuerySchema>;
   const { register } = hookForm;
   return (
     <Dialog name="new-form" clearQueryParamsOnClose={["target", "action"]}>
@@ -100,7 +100,6 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
           form={hookForm}
           handleSubmit={(values) => {
             const formId = uuidv4();
-
             mutation.mutate({
               id: formId,
               ...values,
@@ -148,9 +147,9 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
     </Dialog>
   );
 }
-
-const dropdownCtx = createContext<{ dropdown: boolean }>({ dropdown: false });
-
+const dropdownCtx = createContext<{
+  dropdown: boolean;
+}>({ dropdown: false });
 export const FormActionsDropdown = ({ form, children }: { form: RoutingForm; children: React.ReactNode }) => {
   const { disabled } = form;
   return (
@@ -170,7 +169,6 @@ export const FormActionsDropdown = ({ form, children }: { form: RoutingForm; chi
     </dropdownCtx.Provider>
   );
 };
-
 function Dialogs({
   appUrl,
   deleteDialogOpen,
@@ -240,7 +238,6 @@ function Dialogs({
     </div>
   );
 }
-
 const actionsCtx = createContext({
   appUrl: "",
   _delete: {
@@ -254,13 +251,11 @@ const actionsCtx = createContext({
     isLoading: false,
   },
 });
-
 export function FormActionsProvider({ appUrl, children }: { appUrl: string; children: React.ReactNode }) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogFormId, setDeleteDialogFormId] = useState<string | null>(null);
   const { t } = useLocale();
   const utils = trpc.useContext();
-
   const toggleMutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onMutate: async ({ id: formId, disabled }) => {
       await utils.viewer.appRoutingForms.forms.cancel();
@@ -268,7 +263,6 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
       if (previousValue) {
         const itemIndex = previousValue.findIndex(({ id }) => id === formId);
         const prevValueTemp = [...previousValue];
-
         if (itemIndex !== -1 && prevValueTemp[itemIndex] && disabled !== undefined) {
           prevValueTemp[itemIndex].disabled = disabled;
         }
@@ -291,7 +285,6 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
       showToast(t("something_went_wrong"), "error");
     },
   });
-
   return (
     <>
       <actionsCtx.Provider
@@ -331,7 +324,6 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
     </>
   );
 }
-
 type FormActionType =
   | "preview"
   | "edit"
@@ -343,7 +335,6 @@ type FormActionType =
   | "download"
   | "copyRedirectUrl"
   | "create";
-
 type FormActionProps<T> = {
   routingForm: RoutingForm | null;
   as?: T;
@@ -354,7 +345,6 @@ type FormActionProps<T> = {
   render?: (props: { routingForm: RoutingForm | null; className?: string; label?: string }) => JSX.Element;
   extraClassNames?: string;
 } & ButtonProps;
-
 export const FormAction = forwardRef(function FormAction<T extends typeof Button>(
   props: FormActionProps<T>,
   forwardedRef: React.ForwardedRef<HTMLAnchorElement | HTMLButtonElement>
@@ -373,16 +363,17 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   const embedLink = `forms/${routingForm?.id}`;
   const formLink = `${CAL_URL}/${embedLink}`;
   let redirectUrl = `${CAL_URL}/router?form=${routingForm?.id}`;
-
   routingForm?.fields?.forEach((field) => {
     redirectUrl += `&${getFieldIdentifier(field)}={Recalled_Response_For_This_Field}`;
   });
-
   const { t } = useLocale();
   const router = useRouter();
   const actionData: Record<
     FormActionType,
-    ButtonProps & { as?: React.ElementType; render?: FormActionProps<unknown>["render"] }
+    ButtonProps & {
+      as?: React.ElementType;
+      render?: FormActionProps<unknown>["render"];
+    }
   > = {
     preview: {
       href: formLink,
@@ -445,21 +436,20 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       loading: toggle.isLoading,
     },
   };
-
   const { as: asFromAction, ...action } = actionData[actionName];
   const as = asFromElement || asFromAction;
   const actionProps = {
     ...action,
     ...(additionalProps as ButtonProps),
-  } as ButtonProps & { render?: FormActionProps<unknown>["render"] };
-
+  } as ButtonProps & {
+    render?: FormActionProps<unknown>["render"];
+  };
   if (actionProps.render) {
     return actionProps.render({
       routingForm,
       ...additionalProps,
     });
   }
-
   const Component = as || Button;
   if (!dropdown) {
     return (

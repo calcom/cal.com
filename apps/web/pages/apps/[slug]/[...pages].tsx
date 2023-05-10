@@ -1,5 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 
 import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
 import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
@@ -20,26 +20,21 @@ type AppPageType = {
   default: ((props: any) => JSX.Element) &
     Pick<AppProps["Component"], "isBookingPage" | "getLayout" | "PageWrapper">;
 };
-
 type Found = {
   notFound: false;
   Component: AppPageType["default"];
   getServerSideProps: AppPageType["getServerSideProps"];
 };
-
 type NotFound = {
   notFound: true;
 };
-
 // TODO: It is a candidate for apps.*.generated.*
 const AppsRouting = {
   "routing-forms": RoutingFormsRoutingConfig,
   typeform: TypeformRoutingConfig,
 };
-
 function getRoute(appName: string, pages: string[]) {
   const routingConfig = AppsRouting[appName as keyof typeof AppsRouting] as Record<string, AppPageType>;
-
   if (!routingConfig) {
     return {
       notFound: true,
@@ -47,7 +42,6 @@ function getRoute(appName: string, pages: string[]) {
   }
   const mainPage = pages[0];
   const appPage = routingConfig[mainPage] as AppPageType;
-
   if (!appPage) {
     return {
       notFound: true,
@@ -55,24 +49,20 @@ function getRoute(appName: string, pages: string[]) {
   }
   return { notFound: false, Component: appPage.default, ...appPage } as Found;
 }
-
 const AppPage: AppPageType["default"] = function AppPage(props) {
+  const searchParams = useSearchParams();
   const appName = props.appName;
-  const router = useRouter();
-  const pages = router.query.pages as string[];
+  const pages = searchParams?.get("pages") as string[];
   const route = getRoute(appName, pages);
-
   const componentProps = {
     ...props,
     pages: pages.slice(1),
   };
-
   if (!route || route.notFound) {
     throw new Error("Route can't be undefined");
   }
   return <route.Component {...componentProps} />;
 };
-
 AppPage.isBookingPage = ({ router }) => {
   const route = getRoute(router.query.slug as string, router.query.pages as string[]);
   if (route.notFound) {
@@ -82,10 +72,8 @@ AppPage.isBookingPage = ({ router }) => {
   if (typeof isBookingPage === "function") {
     return isBookingPage({ router });
   }
-
   return !!isBookingPage;
 };
-
 AppPage.getLayout = (page, router) => {
   const route = getRoute(router.query.slug as string, router.query.pages as string[]);
   if (route.notFound) {
@@ -96,11 +84,8 @@ AppPage.getLayout = (page, router) => {
   }
   return route.Component.getLayout(page, router);
 };
-
 AppPage.PageWrapper = PageWrapper;
-
 export default AppPage;
-
 export async function getServerSideProps(
   context: GetServerSidePropsContext<{
     slug: string;
@@ -127,7 +112,6 @@ export async function getServerSideProps(
     params.appPages = pages.slice(1);
     const session = await getServerSession({ req, res });
     const user = session?.user;
-
     const result = await route.getServerSideProps(
       context as GetServerSidePropsContext<{
         slug: string;

@@ -2,8 +2,7 @@ import type { User } from "@prisma/client";
 import { signOut, useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import type { NextRouter } from "next/router";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import React, { Fragment, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
@@ -73,32 +72,25 @@ import { TeamInviteBadge } from "./TeamInviteBadge";
 const Tips = dynamic(() => import("@calcom/features/tips").then((mod) => mod.Tips), {
   ssr: false,
 });
-
 /* TODO: Migate this */
-
 export const ONBOARDING_INTRODUCED_AT = dayjs("September 1 2021").toISOString();
-
 export const ONBOARDING_NEXT_REDIRECT = {
   redirect: {
     permanent: false,
     destination: "/getting-started",
   },
 } as const;
-
 export const shouldShowOnboarding = (user: Pick<User, "createdDate" | "completedOnboarding">) => {
   return !user.completedOnboarding && dayjs(user.createdDate).isAfter(ONBOARDING_INTRODUCED_AT);
 };
-
 function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
-
   useEffect(() => {
     if (isPublic) {
       return;
     }
-
     if (!loading && !session) {
       router.replace({
         pathname: "/auth/login",
@@ -109,20 +101,16 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, session, isPublic]);
-
   return {
     loading: loading && !session,
     session,
   };
 }
-
 function useRedirectToOnboardingIfNeeded() {
   const router = useRouter();
   const query = useMeQuery();
   const user = query.data;
-
   const isRedirectingToOnboarding = user && shouldShowOnboarding(user);
-
   useEffect(() => {
     if (isRedirectingToOnboarding) {
       router.replace({
@@ -135,10 +123,8 @@ function useRedirectToOnboardingIfNeeded() {
     isRedirectingToOnboarding,
   };
 }
-
 const Layout = (props: LayoutProps) => {
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
-
   return (
     <>
       {!props.withoutSeo && (
@@ -169,9 +155,7 @@ const Layout = (props: LayoutProps) => {
     </>
   );
 };
-
 type DrawerState = [isOpen: boolean, setDrawerOpen: Dispatch<SetStateAction<boolean>>];
-
 type LayoutProps = {
   centered?: boolean;
   title?: string;
@@ -198,7 +182,6 @@ type LayoutProps = {
   smallHeading?: boolean;
   hideHeadingOnMobile?: boolean;
 };
-
 const useBrandColors = () => {
   const { data: user } = useMeQuery();
   const brandTheme = getBrandColours({
@@ -207,7 +190,6 @@ const useBrandColors = () => {
   });
   useCalcomTheme(brandTheme);
 };
-
 const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; children: React.ReactNode }) =>
   withKBar ? (
     <KBarRoot>
@@ -217,7 +199,6 @@ const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; childr
   ) : (
     <>{children}</>
   );
-
 const PublicShell = (props: LayoutProps) => {
   const { status } = useSession();
   return (
@@ -226,7 +207,6 @@ const PublicShell = (props: LayoutProps) => {
     </KBarWrapper>
   );
 };
-
 export default function Shell(props: LayoutProps) {
   // if a page is unauthed and isPublic is true, the redirect does not happen.
   useRedirectToLoginIfUnauthenticated(props.isPublic);
@@ -234,7 +214,6 @@ export default function Shell(props: LayoutProps) {
   // System Theme is automatically supported using ThemeProvider. If we intend to use user theme throughout the app we need to uncomment this.
   // useTheme(profile.theme);
   useBrandColors();
-
   return !props.isPublic ? (
     <KBarWrapper withKBar>
       <Layout {...props} />
@@ -243,7 +222,6 @@ export default function Shell(props: LayoutProps) {
     <PublicShell {...props} />
   );
 }
-
 function UserDropdown({ small }: { small?: boolean }) {
   const { t } = useLocale();
   const query = useMeQuery();
@@ -274,7 +252,6 @@ function UserDropdown({ small }: { small?: boolean }) {
     setHelpOpen(false);
     setMenuOpen(false);
   };
-
   // Prevent rendering dropdown if user isn't available.
   // We don't want to show nameless user.
   if (!user) {
@@ -435,7 +412,6 @@ function UserDropdown({ small }: { small?: boolean }) {
     </Dropdown>
   );
 }
-
 export type NavigationItemType = {
   name: string;
   href: string;
@@ -455,10 +431,8 @@ export type NavigationItemType = {
     router: NextRouter;
   }) => boolean;
 };
-
 const requiredCredentialNavigationItems = ["Routing Forms"];
 const MORE_SEPARATOR_NAME = "more";
-
 const navigation: NavigationItemType[] = [
   {
     name: "event_types_page_title",
@@ -551,7 +525,6 @@ const navigation: NavigationItemType[] = [
     icon: Settings,
   },
 ];
-
 const moreSeparatorIndex = navigation.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
 // We create all needed navigation items for the different use cases
 const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems } = navigation.reduce<
@@ -568,7 +541,6 @@ const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMor
   },
   { desktopNavigationItems: [], mobileNavigationBottomItems: [], mobileNavigationMoreItems: [] }
 );
-
 const Navigation = () => {
   return (
     <nav className="mt-2 flex-1 md:px-2 lg:mt-6 lg:px-0">
@@ -581,7 +553,6 @@ const Navigation = () => {
     </nav>
   );
 };
-
 function useShouldDisplayNavigationItem(item: NavigationItemType) {
   const { status } = useSession();
   const { data: routingForms } = trpc.viewer.appById.useQuery(
@@ -595,11 +566,9 @@ function useShouldDisplayNavigationItem(item: NavigationItemType) {
   if (isKeyInObject(item.name, flags)) return flags[item.name];
   return !requiredCredentialNavigationItems.includes(item.name) || routingForms?.isInstalled;
 }
-
 const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, router }) => {
   return isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
 };
-
 const NavigationItem: React.FC<{
   index?: number;
   item: NavigationItemType;
@@ -611,9 +580,7 @@ const NavigationItem: React.FC<{
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
   const current = isCurrent({ isChild: !!isChild, item, router });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
-
   if (!shouldDisplayNavigationItem) return null;
-
   return (
     <Fragment>
       <Link
@@ -650,16 +617,13 @@ const NavigationItem: React.FC<{
     </Fragment>
   );
 };
-
 function MobileNavigationContainer() {
   const { status } = useSession();
   if (status !== "authenticated") return null;
   return <MobileNavigation />;
 }
-
 const MobileNavigation = () => {
   const isEmbed = useIsEmbed();
-
   return (
     <>
       <nav
@@ -676,7 +640,6 @@ const MobileNavigation = () => {
     </>
   );
 };
-
 const MobileNavigationItem: React.FC<{
   item: NavigationItemType;
   isChild?: boolean;
@@ -687,7 +650,6 @@ const MobileNavigationItem: React.FC<{
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
   const current = isCurrent({ isChild: !!isChild, item, router });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
-
   if (!shouldDisplayNavigationItem) return null;
   return (
     <Link
@@ -707,7 +669,6 @@ const MobileNavigationItem: React.FC<{
     </Link>
   );
 };
-
 const MobileNavigationMoreItem: React.FC<{
   item: NavigationItemType;
   isChild?: boolean;
@@ -715,9 +676,7 @@ const MobileNavigationMoreItem: React.FC<{
   const { item } = props;
   const { t, isLocaleReady } = useLocale();
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
-
   if (!shouldDisplayNavigationItem) return null;
-
   return (
     <li className="border-subtle border-b last:border-b-0" key={item.name}>
       <Link href={item.href} className="hover:bg-subtle flex items-center justify-between p-5">
@@ -730,11 +689,9 @@ const MobileNavigationMoreItem: React.FC<{
     </li>
   );
 };
-
 function SideBarContainer() {
   const { status } = useSession();
   const router = useRouter();
-
   // Make sure that Sidebar is rendered optimistically so that a refresh of pages when logged in have SideBar from the beginning.
   // This improves the experience of refresh on app store pages(when logged in) which are SSG.
   // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
@@ -742,7 +699,6 @@ function SideBarContainer() {
   if (router.route.startsWith("/v2/settings/")) return null;
   return <SideBar />;
 }
-
 function SideBar() {
   return (
     <div className="relative">
@@ -795,11 +751,9 @@ function SideBar() {
     </div>
   );
 }
-
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
   const { isLocaleReady } = useLocale();
-
   return (
     <>
       <div
@@ -863,7 +817,6 @@ export function ShellMain(props: LayoutProps) {
     </>
   );
 }
-
 function MainContainer({
   MobileNavigationContainer: MobileNavigationContainerProp = <MobileNavigationContainer />,
   TopNavContainer: TopNavContainerProp = <TopNavContainer />,
@@ -883,13 +836,11 @@ function MainContainer({
     </main>
   );
 }
-
 function TopNavContainer() {
   const { status } = useSession();
   if (status !== "authenticated") return null;
   return <TopNav />;
 }
-
 function TopNav() {
   const isEmbed = useIsEmbed();
   const { t } = useLocale();
@@ -917,7 +868,6 @@ function TopNav() {
     </>
   );
 }
-
 export const MobileNavigationMoreItems = () => (
   <ul className="border-subtle mt-2 rounded-md border">
     {mobileNavigationMoreItems.map((item) => (

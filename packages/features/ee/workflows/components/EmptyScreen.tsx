@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -11,10 +11,8 @@ type WorkflowExampleType = {
   Icon: SVGComponent;
   text: string;
 };
-
 function WorkflowExample(props: WorkflowExampleType) {
   const { Icon, text } = props;
-
   return (
     <div className="border-subtle mx-2 my-2 max-h-24 max-w-[600px] rounded-md border border-solid p-6">
       <div className="flex ">
@@ -30,7 +28,6 @@ function WorkflowExample(props: WorkflowExampleType) {
     </div>
   );
 }
-
 export default function EmptyScreen(props: {
   profileOptions: {
     label: string | null;
@@ -42,7 +39,6 @@ export default function EmptyScreen(props: {
 }) {
   const { t } = useLocale();
   const router = useRouter();
-
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace("/workflows/" + workflow.id);
@@ -52,14 +48,12 @@ export default function EmptyScreen(props: {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }
-
       if (err.data?.code === "UNAUTHORIZED") {
         const message = `${err.data.code}: You are not authorized to create this workflow`;
         showToast(message, "error");
       }
     },
   });
-
   const workflowsExamples = [
     { icon: Smartphone, text: t("workflow_example_1") },
     { icon: Smartphone, text: t("workflow_example_2") },
@@ -69,11 +63,9 @@ export default function EmptyScreen(props: {
     { icon: Smartphone, text: t("workflow_example_6") },
   ];
   // new workflow example when 'after meetings ends' trigger is implemented: Send custom thank you email to attendee after event (Smile icon),
-
   if (props.isFilteredView) {
     return <ClassicEmptyScreen Icon={Zap} headline={t("no_workflows")} description={t("change_filter")} />;
   }
-
   return (
     <>
       <div className="min-h-80 flex w-full flex-col items-center justify-center rounded-md ">

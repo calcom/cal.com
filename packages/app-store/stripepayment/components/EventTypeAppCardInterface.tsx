@@ -1,4 +1,3 @@
-import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
@@ -11,10 +10,11 @@ import { Alert, TextField, Select } from "@calcom/ui";
 import { paymentOptions } from "../lib/constants";
 import type { appDataSchema } from "../zod";
 
-type Option = { value: string; label: string };
-
+type Option = {
+  value: string;
+  label: string;
+};
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
-  const { asPath } = useRouter();
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
   const currency = getAppData("currency");
@@ -36,7 +36,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       .trim();
   return (
     <AppCard
-      returnTo={WEBAPP_URL + asPath}
+      returnTo={WEBAPP_URL + pathname}
       setAppData={setAppData}
       app={app}
       switchChecked={requirePayment}
@@ -102,5 +102,4 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     </AppCard>
   );
 };
-
 export default EventTypeAppCard;

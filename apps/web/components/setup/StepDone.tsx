@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -11,7 +11,6 @@ const StepDone = (props: {
 }) => {
   const router = useRouter();
   const { t } = useLocale();
-
   return (
     <form
       id={`wizard-step-${props.currentStep}`}
@@ -33,5 +32,4 @@ const StepDone = (props: {
     </form>
   );
 };
-
 export default StepDone;

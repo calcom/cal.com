@@ -1,7 +1,6 @@
 import classNames from "classnames";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -32,17 +31,14 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
   const { t } = useLocale();
   const isEmbed = useIsEmbed();
   const telemetry = useTelemetry();
-  const router = useRouter();
   const teamName = team.name || "Nameless Team";
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
-
   useEffect(() => {
     telemetry.event(
       telemetryEventTypes.pageView,
       collectPageParameters("/team/[slug]", { isTeamBooking: true })
     );
-  }, [telemetry, router.asPath]);
-
+  }, [telemetry, pathname]);
   if (isUnpublished) {
     return (
       <div className="m-8 flex items-center justify-center">
@@ -54,7 +50,6 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
       </div>
     );
   }
-
   const EventTypes = () => (
     <ul className="border-subtle rounded-md border">
       {team.eventTypes.map((type, index) => (
@@ -93,7 +88,6 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
       ))}
     </ul>
   );
-
   return (
     <>
       <HeadSeo
@@ -153,13 +147,10 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
     </>
   );
 }
-
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
-
   const team = await getTeamWithMembers(undefined, slug);
-
   if (!team) {
     const unpublishedTeam = await prisma.team.findFirst({
       where: {
@@ -169,9 +160,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
       },
     });
-
     if (!unpublishedTeam) return { notFound: true } as const;
-
     return {
       props: {
         isUnpublished: true,
@@ -180,7 +169,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
     } as const;
   }
-
   team.eventTypes = team.eventTypes.map((type) => ({
     ...type,
     users: type.users.map((user) => ({
@@ -189,13 +177,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     })),
     descriptionAsSafeHTML: markdownToSafeHTML(type.description),
   }));
-
   const safeBio = markdownToSafeHTML(team.bio) || "";
-
   const members = team.members.map((member) => {
     return { ...member, safeBio: markdownToSafeHTML(member.bio || "") };
   });
-
   return {
     props: {
       team: { ...team, safeBio, members },
@@ -203,8 +188,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   } as const;
 };
-
 TeamPage.isBookingPage = true;
 TeamPage.PageWrapper = PageWrapper;
-
 export default TeamPage;

@@ -3,7 +3,7 @@ import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
 
@@ -17,16 +17,18 @@ import AuthContainer from "@components/ui/AuthContainer";
 export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
   const { t, i18n } = useLocale();
   const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<{ message: string } | null>(null);
+  const [error, setError] = React.useState<{
+    message: string;
+  } | null>(null);
   const [success, setSuccess] = React.useState(false);
   const [email, setEmail] = React.useState("");
   const router = useRouter();
-
   const handleChange = (e: SyntheticEvent) => {
-    const target = e.target as typeof e.target & { value: string };
+    const target = e.target as typeof e.target & {
+      value: string;
+    };
     setEmail(target.value);
   };
-
   const submitForgotPasswordRequest = async ({ email }: { email: string }) => {
     try {
       const res = await fetch("/api/auth/forgot-password", {
@@ -36,7 +38,6 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
           "Content-Type": "application/json",
         },
       });
-
       const json = await res.json();
       if (!res.ok) {
         setError(json);
@@ -45,7 +46,6 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
       } else {
         setSuccess(true);
       }
-
       return json;
     } catch (reason) {
       setError({ message: t("unexpected_error_try_again") });
@@ -53,27 +53,20 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
       setLoading(false);
     }
   };
-
   const debouncedHandleSubmitPasswordRequest = debounce(submitForgotPasswordRequest, 250);
-
   const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
-
     if (!email) {
       return;
     }
-
     if (loading) {
       return;
     }
-
     setLoading(true);
     setError(null);
     setSuccess(false);
-
     await debouncedHandleSubmitPasswordRequest({ email });
   };
-
   const Success = () => {
     return (
       <div className="space-y-6 text-sm leading-normal ">
@@ -86,7 +79,6 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
       </div>
     );
   };
-
   return (
     <AuthContainer
       showLogo
@@ -143,21 +135,16 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
     </AuthContainer>
   );
 }
-
 ForgotPassword.isThemeSupported = false;
 ForgotPassword.PageWrapper = PageWrapper;
-
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, res } = context;
-
   const session = await getServerSession({ req, res });
-
   if (session) {
     res.writeHead(302, { Location: "/" });
     res.end();
     return { props: {} };
   }
-
   return {
     props: {
       csrfToken: await getCsrfToken(context),

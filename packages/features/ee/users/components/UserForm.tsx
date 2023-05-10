@@ -1,5 +1,5 @@
 import { noop } from "lodash";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -10,12 +10,10 @@ import { Button, EmailField, Form, Label, Select, TextField, TimezoneSelect } fr
 import type { UserAdminRouterOutputs } from "../server/trpc-router";
 
 type User = UserAdminRouterOutputs["get"]["user"];
-
 type Option<T extends string | number = string> = {
   value: T;
   label: string;
 };
-
 type OptionValues = {
   locale: Option;
   timeFormat: Option<number>;
@@ -24,9 +22,7 @@ type OptionValues = {
   role: Option;
   identityProvider: Option;
 };
-
 type FormValues = Pick<User, "avatar" | "name" | "username" | "email" | "bio"> & OptionValues;
-
 export const UserForm = ({
   defaultValues,
   localeProp = "en",
@@ -40,19 +36,16 @@ export const UserForm = ({
 }) => {
   const router = useRouter();
   const { t } = useLocale();
-
   const localeOptions = useMemo(() => {
     return (router.locales || []).map((locale) => ({
       value: locale,
       label: new Intl.DisplayNames(locale, { type: "language" }).of(locale) || "",
     }));
   }, [router.locales]);
-
   const timeFormatOptions = [
     { value: 12, label: t("12_hour") },
     { value: 24, label: t("24_hour") },
   ];
-
   const weekStartOptions = [
     { value: "Sunday", label: nameOfDay(localeProp, 0) },
     { value: "Monday", label: nameOfDay(localeProp, 1) },
@@ -62,18 +55,15 @@ export const UserForm = ({
     { value: "Friday", label: nameOfDay(localeProp, 5) },
     { value: "Saturday", label: nameOfDay(localeProp, 6) },
   ];
-
   const userRoleOptions = [
     { value: "USER", label: t("user") },
     { value: "ADMIN", label: t("admin") },
   ];
-
   const identityProviderOptions = [
     { value: "CAL", label: "CAL" },
     { value: "GOOGLE", label: "GOOGLE" },
     { value: "SAML", label: "SAML" },
   ];
-
   const form = useForm<FormValues>({
     defaultValues: {
       avatar: defaultValues?.avatar,
@@ -108,32 +98,31 @@ export const UserForm = ({
       },
     },
   });
-
   return (
     <Form form={form} className="space-y-4" handleSubmit={onSubmit}>
       {/* TODO: Enable Avatar uploader in a follow up */}
       {/*  <div className="flex items-center">
-        <Controller
-          control={form.control}
-          name="avatar"
-          render={({ field: { value } }) => (
-            <>
-              <Avatar alt="" imageSrc={value} gravatarFallbackMd5="fallback" size="lg" />
-              <div className="ml-4">
-                <ImageUploader
-                  target="avatar"
-                  id="avatar-upload"
-                  buttonMsg="Change avatar"
-                  handleAvatarChange={(newAvatar) => {
-                    form.setValue("avatar", newAvatar, { shouldDirty: true });
-                  }}
-                  imageSrc={value || undefined}
-                />
-              </div>
-            </>
-          )}
-        />
-      </div> */}
+            <Controller
+              control={form.control}
+              name="avatar"
+              render={({ field: { value } }) => (
+                <>
+                  <Avatar alt="" imageSrc={value} gravatarFallbackMd5="fallback" size="lg" />
+                  <div className="ml-4">
+                    <ImageUploader
+                      target="avatar"
+                      id="avatar-upload"
+                      buttonMsg="Change avatar"
+                      handleAvatarChange={(newAvatar) => {
+                        form.setValue("avatar", newAvatar, { shouldDirty: true });
+                      }}
+                      imageSrc={value || undefined}
+                    />
+                  </div>
+                </>
+              )}
+            />
+          </div> */}
       <Controller
         name="role"
         control={form.control}
@@ -142,7 +131,10 @@ export const UserForm = ({
             <Label className="text-default font-medium" htmlFor="role">
               {t("role")}
             </Label>
-            <Select<{ label: string; value: string }>
+            <Select<{
+              label: string;
+              value: string;
+            }>
               value={value}
               options={userRoleOptions}
               onChange={onChange}
@@ -158,7 +150,10 @@ export const UserForm = ({
             <Label className="text-default font-medium" htmlFor="identityProvider">
               {t("identity_provider")}
             </Label>
-            <Select<{ label: string; value: string }>
+            <Select<{
+              label: string;
+              value: string;
+            }>
               value={value}
               options={identityProviderOptions}
               onChange={onChange}
@@ -177,7 +172,10 @@ export const UserForm = ({
             <Label className="text-default">
               <>{t("language")}</>
             </Label>
-            <Select<{ label: string; value: string }>
+            <Select<{
+              label: string;
+              value: string;
+            }>
               className="capitalize"
               options={localeOptions}
               value={value}

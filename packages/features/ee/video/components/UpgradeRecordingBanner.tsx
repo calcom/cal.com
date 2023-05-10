@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -8,7 +8,6 @@ import { Users } from "@calcom/ui/components/icon";
 export default function UpgradeRecordingBanner() {
   const { t } = useLocale();
   const router = useRouter();
-
   return (
     <div className="bg-subtle flex items-start gap-2 rounded-md p-4">
       <Users className="dark:bg-gray-90 inline-block h-5 w-5" />

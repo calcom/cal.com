@@ -1,7 +1,7 @@
 import { StarIcon as StarIconSolid } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { debounce, noop } from "lodash";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -20,7 +20,6 @@ import { Check, Edit2, ExternalLink } from "@calcom/ui/components/icon";
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",
 }
-
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
   setCurrentUsername?: (newUsername: string) => void;
@@ -32,7 +31,6 @@ interface ICustomUsernameProps {
   user: Pick<User, "username" | "metadata">;
   readonly?: boolean;
 }
-
 const obtainNewUsernameChangeCondition = ({
   userIsPremium,
   isNewUsernamePremium,
@@ -45,8 +43,8 @@ const obtainNewUsernameChangeCondition = ({
     return UsernameChangeStatusEnum.UPGRADE;
   }
 };
-
 const PremiumTextfield = (props: ICustomUsernameProps) => {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const {
     currentUsername,
@@ -61,8 +59,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
-  const router = useRouter();
-  const { paymentStatus: recentAttemptPaymentStatus } = router.query;
+  const recentAttemptPaymentStatus = searchParams?.get("recentAttemptPaymentStatus");
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
   const { data: stripeCustomer } = trpc.viewer.stripeCustomer.useQuery();
   const isCurrentUsernamePremium =
@@ -78,12 +75,10 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       }, 150),
     [currentUsername]
   );
-
   useEffect(() => {
     // Use the current username or if it's not set, use the one available from stripe
     setInputUsernameValue(currentUsername || stripeCustomer?.username || "");
   }, [setInputUsernameValue, currentUsername, stripeCustomer?.username]);
-
   useEffect(() => {
     if (!inputUsernameValue) {
       debouncedApiCall.cancel();
@@ -91,7 +86,6 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     }
     debouncedApiCall(inputUsernameValue);
   }, [debouncedApiCall, inputUsernameValue]);
-
   const utils = trpc.useContext();
   const updateUsername = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
@@ -105,22 +99,17 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       await utils.viewer.public.i18n.invalidate();
     },
   });
-
   // when current username isn't set - Go to stripe to check what username he wanted to buy and was it a premium and was it paid for
   const paymentRequired = !currentUsername && stripeCustomer?.isPremium;
-
   const usernameChangeCondition = obtainNewUsernameChangeCondition({
     userIsPremium: isCurrentUsernamePremium,
     isNewUsernamePremium: isInputUsernamePremium,
     stripeCustomer,
   });
-
   const usernameFromStripe = stripeCustomer?.username;
-
   const paymentLink = `/api/integrations/stripepayment/subscription?intentUsername=${
     inputUsernameValue || usernameFromStripe
-  }&action=${usernameChangeCondition}&callbackUrl=${router.asPath}`;
-
+  }&action=${usernameChangeCondition}&callbackUrl=${pathname}`;
   const ActionButtons = () => {
     if (paymentRequired) {
       return (
@@ -162,7 +151,6 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     }
     return <></>;
   };
-
   const saveUsername = () => {
     if (usernameChangeCondition !== UsernameChangeStatusEnum.UPGRADE) {
       updateUsername.mutate({
@@ -171,13 +159,11 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       setCurrentUsername(inputUsernameValue);
     }
   };
-
   let paymentMsg = !currentUsername ? (
     <span className="text-xs text-orange-400">
       You need to reserve your premium username for {getPremiumPlanPriceValue()}
     </span>
   ) : null;
-
   if (recentAttemptPaymentStatus && recentAttemptPaymentStatus !== "paid") {
     paymentMsg = (
       <span className="text-sm text-red-500">
@@ -185,7 +171,6 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       </span>
     );
   }
-
   return (
     <div>
       <div className="flex justify-items-center">
@@ -222,7 +207,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             onChange={(event) => {
               event.preventDefault();
               // Reset payment status
-              delete router.query.paymentStatus;
+              delete searchParams?.get("paymentStatus");
               setInputUsernameValue(event.target.value);
             }}
             data-testid="username-input"
@@ -313,5 +298,4 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     </div>
   );
 };
-
 export { PremiumTextfield };

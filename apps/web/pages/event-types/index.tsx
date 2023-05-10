@@ -2,7 +2,8 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { User } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { FC } from "react";
 import { useEffect, useState, memo } from "react";
 import { z } from "zod";
@@ -67,34 +68,27 @@ import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
-
 interface EventTypeListHeadingProps {
   profile: EventTypeGroupProfile;
   membershipCount: number;
   teamId?: number | null;
 }
-
 type EventTypeGroup = EventTypeGroups[number];
 type EventType = EventTypeGroup["eventTypes"][number];
-
 interface EventTypeListProps {
   group: EventTypeGroup;
   groupIndex: number;
   readOnly: boolean;
   types: EventType[];
 }
-
 interface MobileTeamsTabProps {
   eventTypeGroups: EventTypeGroups;
 }
-
 const querySchema = z.object({
   teamId: z.nullable(z.coerce.number()).optional().default(null),
 });
-
 const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   const { eventTypeGroups } = props;
-
   const tabs = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
     href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
@@ -102,7 +96,6 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   }));
   const { data } = useTypedQuery(querySchema);
   const events = eventTypeGroups.filter((item) => item.teamId === data.teamId);
-
   return (
     <div>
       <HorizontalTabs tabs={tabs} />
@@ -117,10 +110,8 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
     </div>
   );
 };
-
 const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGroup; readOnly: boolean }) => {
   const { t } = useLocale();
-
   const content = () => (
     <div>
       <span
@@ -144,7 +135,6 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
       )}
     </div>
   );
-
   return readOnly ? (
     <div className="flex-1 overflow-hidden pr-4 text-sm">
       {content()}
@@ -186,10 +176,9 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
     </Link>
   );
 };
-
 const MemoizedItem = memo(Item);
-
 export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeListProps): JSX.Element => {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
   const [parent] = useAutoAnimate<HTMLUListElement>();
@@ -211,7 +200,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       utils.viewer.eventTypes.invalidate();
     },
   });
-
   const setHiddenMutation = trpc.viewer.eventTypes.update.useMutation({
     onMutate: async ({ id }) => {
       await utils.viewer.eventTypes.getByViewer.cancel();
@@ -244,19 +232,15 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       utils.viewer.eventTypes.invalidate();
     },
   });
-
   async function moveEventType(index: number, increment: 1 | -1) {
     const newList = [...types];
-
     const type = types[index];
     const tmp = types[index + increment];
     if (tmp) {
       newList[index] = tmp;
       newList[index + increment] = type;
     }
-
     await utils.viewer.eventTypes.getByViewer.cancel();
-
     const previousValue = utils.viewer.eventTypes.getByViewer.getData();
     if (previousValue) {
       utils.viewer.eventTypes.getByViewer.setData(undefined, {
@@ -268,21 +252,18 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
         ],
       });
     }
-
     mutation.mutate({
       ids: newList.map((type) => type.id),
     });
   }
-
   async function deleteEventTypeHandler(id: number) {
     const payload = { id };
     deleteMutation.mutate(payload);
   }
-
   // inject selection data into url for correct router history
   const openDuplicateModal = (eventType: EventType, group: EventTypeGroup) => {
     const query = {
-      ...router.query,
+      ...Object.fromEntries(searchParams ?? new URLSearchParams()),
       dialog: "duplicate",
       title: eventType.title,
       description: eventType.description,
@@ -291,17 +272,15 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       length: eventType.length,
       pageSlug: group.profile.slug,
     };
-
     router.push(
       {
-        pathname: router.pathname,
+        pathname: pathname,
         query,
       },
       undefined,
       { shallow: true }
     );
   };
-
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
     onSuccess: () => {
       showToast(t("event_type_deleted_successfully"), "success");
@@ -312,7 +291,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       const previousValue = utils.viewer.eventTypes.getByViewer.getData();
       if (previousValue) {
         const newList = types.filter((item) => item.id !== id);
-
         utils.viewer.eventTypes.getByViewer.setData(undefined, {
           ...previousValue,
           eventTypeGroups: [
@@ -341,15 +319,12 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       utils.viewer.eventTypes.invalidate();
     },
   });
-
   const [isNativeShare, setNativeShare] = useState(true);
-
   useEffect(() => {
     if (!navigator.share) {
       setNativeShare(false);
     }
   }, []);
-
   const firstItem = types[0];
   const lastItem = types[types.length - 1];
   const isManagedEventPrefix = () => {
@@ -657,7 +632,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     </div>
   );
 };
-
 const EventTypeListHeading = ({
   profile,
   membershipCount,
@@ -665,7 +639,6 @@ const EventTypeListHeading = ({
 }: EventTypeListHeadingProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
-
   const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
     onSuccess(data) {
       router.push(data.url);
@@ -674,7 +647,6 @@ const EventTypeListHeading = ({
       showToast(error.message, "error");
     },
   });
-
   return (
     <div className="mb-4 flex items-center space-x-2">
       <Avatar
@@ -716,10 +688,8 @@ const EventTypeListHeading = ({
     </div>
   );
 };
-
 const CreateFirstEventTypeView = () => {
   const { t } = useLocale();
-
   return (
     <EmptyScreen
       Icon={LinkIcon}
@@ -728,14 +698,10 @@ const CreateFirstEventTypeView = () => {
     />
   );
 };
-
 const CTA = () => {
   const { t } = useLocale();
-
   const query = trpc.viewer.eventTypes.getByViewer.useQuery();
-
   if (!query.data) return null;
-
   const profileOptions = query.data.profiles
     .filter((profile) => !profile.readOnly)
     .map((profile) => {
@@ -747,7 +713,6 @@ const CTA = () => {
         slug: profile.slug,
       };
     });
-
   return (
     <CreateButton
       subtitle={t("create_event_on").toUpperCase()}
@@ -756,22 +721,19 @@ const CTA = () => {
     />
   );
 };
-
 const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
-
 const EventTypesPage = () => {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
   const { open } = useIntercom();
   const { query } = router;
   const isMobile = useMediaQuery("(max-width: 768px)");
-
   useEffect(() => {
     if (query?.openIntercom && query?.openIntercom === "true") {
       open();
     }
   }, []);
-
   return (
     <div>
       <HeadSeo
@@ -823,7 +785,7 @@ const EventTypesPage = () => {
               )}
 
               <EmbedDialog />
-              {router.query.dialog === "duplicate" && <DuplicateDialog />}
+              {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
             </>
           )}
         />
@@ -831,7 +793,5 @@ const EventTypesPage = () => {
     </div>
   );
 };
-
 EventTypesPage.PageWrapper = PageWrapper;
-
 export default EventTypesPage;

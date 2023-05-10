@@ -1,5 +1,6 @@
 import { noop } from "lodash";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useState } from "react";
 
@@ -16,7 +17,6 @@ type DefaultStep = {
   isEnabled?: boolean;
   isLoading?: boolean;
 };
-
 function WizardForm<T extends DefaultStep>(props: {
   href: string;
   steps: T[];
@@ -27,19 +27,18 @@ function WizardForm<T extends DefaultStep>(props: {
   finishLabel?: string;
   stepLabel?: React.ComponentProps<typeof Steps>["stepLabel"];
 }) {
+  const searchParams = useSearchParams();
   const { href, steps, nextLabel = "Next", finishLabel = "Finish", prevLabel = "Back", stepLabel } = props;
   const router = useRouter();
-  const step = parseInt((router.query.step as string) || "1");
+  const step = parseInt((searchParams?.get("step") as string) || "1");
   const currentStep = steps[step - 1];
   const setStep = (newStep: number) => {
     router.replace(`${href}?step=${newStep || 1}`, undefined, { shallow: true });
   };
   const [currentStepIsLoading, setCurrentStepIsLoading] = useState(false);
-
   useEffect(() => {
     setCurrentStepIsLoading(false);
   }, [currentStep]);
-
   return (
     <div className="mx-auto mt-4 print:w-full">
       <div className={classNames("overflow-hidden  md:mb-2 md:w-[700px]", props.containerClassname)}>
@@ -85,5 +84,4 @@ function WizardForm<T extends DefaultStep>(props: {
     </div>
   );
 }
-
 export default WizardForm;

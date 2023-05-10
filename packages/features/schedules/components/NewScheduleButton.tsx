@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -26,13 +26,11 @@ export function NewScheduleButton({
 }) {
   const router = useRouter();
   const { t } = useLocale();
-
   const form = useForm<{
     name: string;
   }>();
   const { register } = form;
   const utils = trpc.useContext();
-
   const createMutation = trpc.viewer.availability.schedule.create.useMutation({
     onSuccess: async ({ schedule }) => {
       await router.push(`/availability/${schedule.id}${fromEventType ? "?fromEventType=true" : ""}`);
@@ -54,14 +52,12 @@ export function NewScheduleButton({
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }
-
       if (err.data?.code === "UNAUTHORIZED") {
         const message = `${err.data.code}: You are not able to create this event`;
         showToast(message, "error");
       }
     },
   });
-
   return (
     <Dialog name={name} clearQueryParamsOnClose={["copy-schedule-id"]}>
       <DialogTrigger asChild>

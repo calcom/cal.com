@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { noop } from "lodash";
-import { useRouter } from "next/router";
 import type { FC } from "react";
 import { useReducer, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -35,7 +34,6 @@ import { AlertCircle, Edit } from "@calcom/ui/components/icon";
 import AppListCard from "../../../apps/web/components/AppListCard";
 
 type App = RouterOutputs["viewer"]["appsRouter"]["listLocal"][number];
-
 const IntegrationContainer = ({
   app,
   category,
@@ -48,7 +46,6 @@ const IntegrationContainer = ({
   const { t } = useLocale();
   const utils = trpc.useContext();
   const [disableDialog, setDisableDialog] = useState(false);
-
   const showKeyModal = (fromEnabled?: boolean) => {
     // FIXME: This is preventing the modal from opening for apps that has null keys
     if (app.keys) {
@@ -63,7 +60,6 @@ const IntegrationContainer = ({
       });
     }
   };
-
   const enableAppMutation = trpc.viewer.appsRouter.toggle.useMutation({
     onSuccess: (enabled) => {
       utils.viewer.appsRouter.listLocal.invalidate({ category });
@@ -80,7 +76,6 @@ const IntegrationContainer = ({
       showToast(error.message, "error");
     },
   });
-
   return (
     <li>
       <AppListCard
@@ -125,14 +120,12 @@ const IntegrationContainer = ({
     </li>
   );
 };
-
 const querySchema = z.object({
   category: z
     .nativeEnum({ ...AppCategories, conferencing: "conferencing" })
     .optional()
     .default(AppCategories.calendar),
 });
-
 const AdminAppsList = ({
   baseURL,
   className,
@@ -175,7 +168,6 @@ const AdminAppsList = ({
     </form>
   );
 };
-
 const EditKeysModal: FC<{
   dirName: string;
   slug: string;
@@ -190,11 +182,9 @@ const EditKeysModal: FC<{
   const { t } = useLocale();
   const { dirName, slug, type, isOpen, keys, handleModelClose, fromEnabled, appName } = props;
   const appKeySchema = appKeysSchemas[dirName as keyof typeof appKeysSchemas];
-
   const formMethods = useForm({
     resolver: zodResolver(appKeySchema),
   });
-
   const saveKeysMutation = trpc.viewer.appsRouter.saveKeys.useMutation({
     onSuccess: () => {
       showToast(fromEnabled ? t("app_is_enabled", { appName }) : t("keys_have_been_saved"), "success");
@@ -205,7 +195,6 @@ const EditKeysModal: FC<{
       showToast(error.message, "error");
     },
   });
-
   return (
     <Dialog open={isOpen} onOpenChange={handleModelClose}>
       <DialogContent title={t("edit_keys")} type="creation">
@@ -254,7 +243,6 @@ const EditKeysModal: FC<{
     </Dialog>
   );
 };
-
 interface EditModalState extends Pick<App, "keys"> {
   isOpen: "none" | "editKeys" | "disableKeys";
   dirName: string;
@@ -263,17 +251,13 @@ interface EditModalState extends Pick<App, "keys"> {
   fromEnabled?: boolean;
   appName?: string;
 }
-
 const AdminAppsListContainer = () => {
   const { t } = useLocale();
-  const router = useRouter();
-  const { category } = querySchema.parse(router.query);
-
+  const { category } = querySchema.parse(...Object.fromEntries(searchParams ?? new URLSearchParams()));
   const { data: apps, isLoading } = trpc.viewer.appsRouter.listLocal.useQuery(
     { category },
-    { enabled: router.isReady }
+    { enabled: true }
   );
-
   const [modalState, setModalState] = useReducer(
     (data: EditModalState, partialData: Partial<EditModalState>) => ({ ...data, ...partialData }),
     {
@@ -284,14 +268,10 @@ const AdminAppsListContainer = () => {
       slug: "",
     }
   );
-
   const handleModelClose = () =>
     setModalState({ keys: null, isOpen: "none", dirName: "", slug: "", type: "" });
-
   const handleModelOpen = (data: EditModalState) => setModalState({ ...data });
-
   if (isLoading) return <SkeletonLoader />;
-
   if (!apps) {
     return (
       <EmptyScreen
@@ -301,7 +281,6 @@ const AdminAppsListContainer = () => {
       />
     );
   }
-
   return (
     <>
       <List>
@@ -327,9 +306,7 @@ const AdminAppsListContainer = () => {
     </>
   );
 };
-
 export default AdminAppsList;
-
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer className="w-[30rem] pr-10">

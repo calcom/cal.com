@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import z from "zod";
 
 import { APP_NAME } from "@calcom/lib/constants";
@@ -11,30 +11,28 @@ import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
 
 const querySchema = z.object({ id: z.string() });
-
 const EditWebhook = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
-
   function Component({ webhookId }: { webhookId: string }) {
     const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery(
       { variant: "other", onlyInstalled: true },
       {
         suspense: true,
-        enabled: router.isReady,
+        enabled: true,
       }
     );
     const { data: webhook } = trpc.viewer.webhook.get.useQuery(
       { webhookId },
       {
         suspense: true,
-        enabled: router.isReady,
+        enabled: true,
       }
     );
     const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
       suspense: true,
-      enabled: router.isReady,
+      enabled: true,
     });
     const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
       async onSuccess() {
@@ -46,13 +44,10 @@ const EditWebhook = () => {
         showToast(`${error.message}`, "error");
       },
     });
-
     const subscriberUrlReserved = (subscriberUrl: string, id: string): boolean => {
       return !!webhooks?.find((webhook) => webhook.subscriberUrl === subscriberUrl && webhook.id !== id);
     };
-
     if (isLoading || !webhook) return <SkeletonContainer />;
-
     return (
       <>
         <Meta
@@ -67,15 +62,12 @@ const EditWebhook = () => {
               showToast(t("webhook_subscriber_url_reserved"), "error");
               return;
             }
-
             if (values.changeSecret) {
               values.secret = values.newSecret.length ? values.newSecret : null;
             }
-
             if (!values.payloadTemplate) {
               values.payloadTemplate = null;
             }
-
             editWebhookMutation.mutate({
               id: webhook.id,
               subscriberUrl: values.subscriberUrl,
@@ -90,21 +82,15 @@ const EditWebhook = () => {
       </>
     );
   }
-
-  if (!router.isReady) return null;
-
-  const parsed = querySchema.safeParse(router.query);
-
+  if (!true) return null;
+  const parsed = querySchema.safeParse(...Object.fromEntries(searchParams ?? new URLSearchParams()));
   if (!parsed.success) {
     throw new Error("Invalid query");
   }
-
   // tRPC useQuery needs webhookId to be available and it becomes available only after router.isReady is true
   // It causes this requirement of a new component.
   // I think we should do SSR for this page
   return <Component webhookId={parsed.data.id} />;
 };
-
 EditWebhook.getLayout = getLayout;
-
 export default EditWebhook;

@@ -1,5 +1,5 @@
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
@@ -13,13 +13,11 @@ import PageWrapper from "@components/PageWrapper";
 // Accessible only on self-hosted Cal.com instances.
 export default function Page({ samlTenantID, samlProductID }: inferSSRProps<typeof getServerSideProps>) {
   const router = useRouter();
-
   useEffect(() => {
     if (HOSTED_CAL_FEATURES) {
       router.push("/auth/login");
     }
   }, []);
-
   useEffect(() => {
     // Initiate SAML authentication flow
     signIn(
@@ -30,12 +28,9 @@ export default function Page({ samlTenantID, samlProductID }: inferSSRProps<type
       { tenant: samlTenantID, product: samlProductID }
     );
   }, []);
-
   return null;
 }
-
 Page.PageWrapper = PageWrapper;
-
 export async function getServerSideProps() {
   return {
     props: {

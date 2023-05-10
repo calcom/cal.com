@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -16,11 +16,9 @@ export function TeamsUpgradeBanner() {
       showToast(error.message, "error");
     },
   });
-
   if (!data) return null;
   const [membership] = data;
   if (!membership) return null;
-
   return (
     <TopBanner
       text={t("team_upgrade_banner_description", { teamName: membership.team.name })}

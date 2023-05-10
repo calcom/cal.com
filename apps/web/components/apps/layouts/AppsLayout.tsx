@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React from "react";
 
@@ -13,14 +13,11 @@ type AppsLayoutProps = {
   actions?: (className?: string) => JSX.Element;
   emptyStore?: boolean;
 } & Omit<ComponentProps<typeof Shell>, "actions">;
-
 export default function AppsLayout({ children, actions, emptyStore, ...rest }: AppsLayoutProps) {
   const { t } = useLocale();
   const session = useSession();
   const router = useRouter();
-
   if (session.status === "loading") return <></>;
-
   return (
     <Shell {...rest} actions={actions?.("block")} hideHeadingOnMobile>
       <div className="flex flex-col xl:flex-row">

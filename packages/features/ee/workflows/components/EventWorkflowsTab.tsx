@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -24,11 +24,9 @@ type ItemProps = {
     title: string;
   };
 };
-
 const WorkflowListItem = (props: ItemProps) => {
   const { workflow, eventType } = props;
   const { t } = useLocale();
-
   const [activeEventTypeIds, setActiveEventTypeIds] = useState(
     workflow.activeOn.map((active) => {
       if (active.eventType) {
@@ -36,10 +34,8 @@ const WorkflowListItem = (props: ItemProps) => {
       }
     })
   );
-
   const isActive = activeEventTypeIds.includes(eventType.id);
   const utils = trpc.useContext();
-
   const activateEventTypeMutation = trpc.viewer.workflows.activateEventType.useMutation({
     onSuccess: async () => {
       let offOn = "";
@@ -76,9 +72,7 @@ const WorkflowListItem = (props: ItemProps) => {
       }
     },
   });
-
   const sendTo: Set<string> = new Set();
-
   workflow.steps.forEach((step) => {
     switch (step.action) {
       case WorkflowActions.EMAIL_HOST:
@@ -98,7 +92,6 @@ const WorkflowListItem = (props: ItemProps) => {
         break;
     }
   });
-
   return (
     <div className="border-subtle flex w-full items-center overflow-hidden rounded-md border p-6 px-3 md:p-6">
       <div className="bg-subtle mr-4 flex h-10 w-10 items-center justify-center rounded-full text-xs font-medium">
@@ -152,14 +145,11 @@ const WorkflowListItem = (props: ItemProps) => {
     </div>
   );
 };
-
 type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
-
 type Props = {
   eventType: EventTypeSetup;
   workflows: WorkflowType[];
 };
-
 function EventWorkflowsTab(props: Props) {
   const { workflows, eventType } = props;
   const { t } = useLocale();
@@ -169,7 +159,6 @@ function EventWorkflowsTab(props: Props) {
   });
   const router = useRouter();
   const [sortedWorkflows, setSortedWorkflows] = useState<Array<WorkflowType>>([]);
-
   useEffect(() => {
     if (data?.workflows) {
       const activeWorkflows = workflows.map((workflowOnEventType) => {
@@ -186,7 +175,6 @@ function EventWorkflowsTab(props: Props) {
       setSortedWorkflows(activeWorkflows.concat(disabledWorkflows));
     }
   }, [isLoading]);
-
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace("/workflows/" + workflow.id);
@@ -196,20 +184,17 @@ function EventWorkflowsTab(props: Props) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }
-
       if (err.data?.code === "UNAUTHORIZED") {
         const message = `${err.data.code}: You are not able to create this workflow`;
         showToast(message, "error");
       }
     },
   });
-
   const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
     eventType,
     t("locked_fields_admin_description"),
     t("locked_fields_member_description")
   );
-
   return (
     <LicenseRequired>
       {!isLoading ? (
@@ -262,5 +247,4 @@ function EventWorkflowsTab(props: Props) {
     </LicenseRequired>
   );
 }
-
 export default EventWorkflowsTab;

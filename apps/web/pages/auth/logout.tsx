@@ -1,6 +1,6 @@
 import type { GetServerSidePropsContext } from "next";
 import { signOut, useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -16,7 +16,6 @@ import AuthContainer from "@components/ui/AuthContainer";
 import { ssrInit } from "@server/lib/ssr";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
-
 export function Logout(props: Props) {
   const { status } = useSession();
   if (status === "authenticated") signOut({ redirect: false });
@@ -28,7 +27,6 @@ export function Logout(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.query?.survey]);
   const { t } = useLocale();
-
   return (
     <AuthContainer title={t("logged_out")} description={t("youve_been_logged_out")} showLogo>
       <div className="mb-4">
@@ -50,11 +48,9 @@ export function Logout(props: Props) {
     </AuthContainer>
   );
 }
-
 Logout.isThemeSupported = false;
 Logout.PageWrapper = PageWrapper;
 export default Logout;
-
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   // Deleting old cookie manually, remove this code after all existing cookies have expired
@@ -62,7 +58,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     "Set-Cookie",
     "next-auth.session-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
   );
-
   return {
     props: {
       trpcState: ssr.dehydrate(),

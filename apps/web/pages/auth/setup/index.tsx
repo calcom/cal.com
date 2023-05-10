@@ -1,5 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
@@ -27,7 +27,6 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   const setStep = (newStep: number) => {
     router.replace(`/auth/setup?step=${newStep || 1}`, undefined, { shallow: true });
   };
-
   const steps: React.ComponentProps<typeof WizardForm>["steps"] = [
     {
       title: t("administrator_user"),
@@ -66,7 +65,6 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
       },
     },
   ];
-
   if (!isFreeLicense) {
     steps.push({
       title: t("step_enterprise_license"),
@@ -92,7 +90,6 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
       isEnabled: isEnabledEE,
     });
   }
-
   steps.push({
     title: t("enable_apps"),
     description: t("enable_apps_description"),
@@ -118,7 +115,6 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
       );
     },
   });
-
   return (
     <>
       <Meta title={t("setup")} description={t("setup_description")} />
@@ -135,19 +131,14 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
     </>
   );
 }
-
 Setup.isThemeSupported = false;
 Setup.PageWrapper = PageWrapper;
 export default Setup;
-
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, res } = context;
-
   const ssr = await ssrInit(context);
   const userCount = await prisma.user.count();
-
   const session = await getServerSession({ req, res });
-
   if (session?.user.role && session?.user.role !== UserPermissionRole.ADMIN) {
     return {
       redirect: {
@@ -156,9 +147,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
     };
   }
-
   let deploymentKey = await getDeploymentKey(prisma);
-
   // Check existant CALCOM_LICENSE_KEY env var and acccount for it
   if (!!process.env.CALCOM_LICENSE_KEY && !deploymentKey) {
     await prisma.deployment.upsert({
@@ -174,9 +163,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     });
     deploymentKey = await getDeploymentKey(prisma);
   }
-
   const isFreeLicense = deploymentKey === "";
-
   return {
     props: {
       trpcState: ssr.dehydrate(),

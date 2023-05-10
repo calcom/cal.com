@@ -1,5 +1,4 @@
 import { noop } from "lodash";
-import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
@@ -11,18 +10,18 @@ export default function WizardLayout({
   currentStep = 0,
 }: {
   children: React.ReactNode;
-} & { maxSteps?: number; currentStep?: number }) {
+} & {
+  maxSteps?: number;
+  currentStep?: number;
+}) {
   const [meta, setMeta] = useState({ title: "", subtitle: " " });
-  const router = useRouter();
   const { title, subtitle } = meta;
-
   useEffect(() => {
     setMeta({
       title: window.document.title,
       subtitle: window.document.querySelector('meta[name="description"]')?.getAttribute("content") || "",
     });
-  }, [router.asPath]);
-
+  }, [pathname]);
   return (
     <div
       className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen"
@@ -47,5 +46,4 @@ export default function WizardLayout({
     </div>
   );
 }
-
 export const getLayout = (page: React.ReactElement) => <WizardLayout>{page}</WizardLayout>;

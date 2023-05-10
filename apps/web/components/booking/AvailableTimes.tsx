@@ -1,6 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import type { FC } from "react";
 import { useEffect, useState, useCallback } from "react";
 
@@ -31,7 +31,6 @@ type AvailableTimesProps = {
   ethSignature?: string;
   duration: number;
 };
-
 const AvailableTimes: FC<AvailableTimesProps> = ({
   slots = [],
   isLoading,
@@ -46,14 +45,12 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   ethSignature,
   duration,
 }) => {
+  const searchParams = useSearchParams();
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
   const { t, i18n } = useLocale();
-  const router = useRouter();
-  const { rescheduleUid } = router.query;
-
+  const rescheduleUid = searchParams?.get("rescheduleUid");
   const [brand, setBrand] = useState("#292929");
-
   useEffect(() => {
     setBrand(getComputedStyle(document.documentElement).getPropertyValue("--brand-color").trim());
   }, []);
@@ -66,7 +63,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     },
     [isMobile]
   );
-
   const reserveSlot = (slot: Slot) => {
     reserveSlotMutation.mutate({
       slotUtcStartDate: slot.time,
@@ -75,7 +71,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
       bookingAttendees: bookingAttendees || undefined,
     });
   };
-
   return (
     <div ref={slotPickerRef}>
       {!!date ? (
@@ -110,9 +105,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                   query: Record<string, string | number | string[] | undefined | TimeFormat>;
                 };
                 const bookingUrl: BookingURL = {
-                  pathname: router.pathname.endsWith("/embed") ? "../book" : "book",
+                  pathname: pathname?.endsWith("/embed") ? "../book" : "book",
                   query: {
-                    ...router.query,
+                    ...Object.fromEntries(searchParams ?? new URLSearchParams()),
                     date: dayjs.utc(slot.time).tz(timeZone()).format(),
                     type: eventTypeId,
                     slug: eventTypeSlug,
@@ -122,22 +117,17 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                     ...(ethSignature ? { ethSignature } : {}),
                   },
                 };
-
                 if (rescheduleUid) {
                   bookingUrl.query.rescheduleUid = rescheduleUid as string;
                 }
-
                 // If event already has an attendee add booking id
                 if (slot.bookingUid) {
                   bookingUrl.query.bookingUid = slot.bookingUid;
                 }
-
                 let slotFull, notEnoughSeats;
-
                 if (slot.attendees && seatsPerTimeSlot) slotFull = slot.attendees >= seatsPerTimeSlot;
                 if (slot.attendees && bookingAttendees && seatsPerTimeSlot)
                   notEnoughSeats = slot.attendees + bookingAttendees > seatsPerTimeSlot;
-
                 return (
                   <div data-slot-owner={(slot.userIds || []).join(",")} key={`${dayjs(slot.time).format()}`}>
                     {/* ^ data-slot-owner is helpful in debugging and used to identify the owners of the slot. Owners are the users which have the timeslot in their schedule. It doesn't consider if a user has that timeslot booked */}
@@ -210,7 +200,5 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     </div>
   );
 };
-
 AvailableTimes.displayName = "AvailableTimes";
-
 export default AvailableTimes;

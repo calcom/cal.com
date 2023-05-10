@@ -1,4 +1,5 @@
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -43,15 +44,15 @@ import EditableHeading from "@components/ui/EditableHeading";
 const querySchema = z.object({
   schedule: z.coerce.number().positive().optional(),
 });
-
 type AvailabilityFormValues = {
   name: string;
   schedule: ScheduleType;
-  dateOverrides: { ranges: TimeRange[] }[];
+  dateOverrides: {
+    ranges: TimeRange[];
+  }[];
   timeZone: string;
   isDefault: boolean;
 };
-
 const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
   const { remove, append, update, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
@@ -90,8 +91,8 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
     </div>
   );
 };
-
 export default function Availability() {
+  const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
@@ -99,8 +100,7 @@ export default function Availability() {
   const {
     data: { schedule: scheduleId },
   } = useTypedQuery(querySchema);
-
-  const { fromEventType } = router.query;
+  const fromEventType = searchParams?.get("fromEventType");
   const { timeFormat } = me.data || { timeFormat: null };
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { data: schedule, isLoading } = trpc.viewer.availability.schedule.get.useQuery(
@@ -109,7 +109,6 @@ export default function Availability() {
       enabled: !!scheduleId,
     }
   );
-
   const form = useForm<AvailabilityFormValues>({
     values: schedule && {
       ...schedule,
@@ -142,7 +141,6 @@ export default function Availability() {
       }
     },
   });
-
   const deleteMutation = trpc.viewer.availability.schedule.delete.useMutation({
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -158,7 +156,6 @@ export default function Availability() {
       router.push("/availability");
     },
   });
-
   return (
     <Shell
       backPath={fromEventType ? true : "/availability"}
@@ -349,5 +346,4 @@ export default function Availability() {
     </Shell>
   );
 }
-
 Availability.PageWrapper = PageWrapper;

@@ -10,7 +10,7 @@ import {
   useRegisterActions,
 } from "kbar";
 import type { Action } from "kbar";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
@@ -24,17 +24,14 @@ import { Search, ArrowUp, ArrowDown, CornerDownLeft, Command } from "@calcom/ui/
 type shortcutArrayType = {
   shortcuts?: string[];
 };
-
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroup = EventTypeGroups[number];
-
 const getApps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
   id: slug,
   name,
   section: "Installable Apps",
   keywords: `app ${name}`,
 }));
-
 const useEventTypesAction = () => {
   const router = useRouter();
   const { data } = trpc.viewer.eventTypes.getByViewer.useQuery();
@@ -49,18 +46,13 @@ const useEventTypesAction = () => {
     acc.push(...item);
     return acc;
   }, []);
-
   const actions = eventTypeActions?.length ? eventTypeActions : [];
-
   return useRegisterActions(actions);
 };
-
 export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
-
   // grab link to events
   // quick nested actions would be extremely useful
-
   const actions = useMemo(() => {
     const appStoreActions = getApps.map((item) => ({
       ...item,
@@ -230,10 +222,8 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   return <KBarProvider actions={actions}>{children}</KBarProvider>;
 };
-
 export const KBarContent = () => {
   const { t } = useLocale();
   useEventTypesAction();
@@ -264,7 +254,6 @@ export const KBarContent = () => {
     </KBarPortal>
   );
 };
-
 export const KBarTrigger = () => {
   const { query } = useKBar();
   return query ? (
@@ -280,10 +269,8 @@ export const KBarTrigger = () => {
     </>
   ) : null;
 };
-
 const DisplayShortcuts = (item: shortcutArrayType) => {
   const shortcuts = item.shortcuts;
-
   return (
     <span className="space-x-1">
       {shortcuts?.map((shortcut) => {
@@ -298,11 +285,9 @@ const DisplayShortcuts = (item: shortcutArrayType) => {
     </span>
   );
 };
-
 function RenderResults() {
   const { results } = useMatches();
   const { t } = useLocale();
-
   return (
     <KBarResults
       items={results}

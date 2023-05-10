@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState, useEffect } from "react";
 
@@ -20,15 +20,15 @@ function WorkflowsPage() {
   const { t } = useLocale();
   const session = useSession();
   const router = useRouter();
-  const [checkedFilterItems, setCheckedFilterItems] = useState<{ userId: number | null; teamIds: number[] }>({
+  const [checkedFilterItems, setCheckedFilterItems] = useState<{
+    userId: number | null;
+    teamIds: number[];
+  }>({
     userId: session.data?.user.id || null,
     teamIds: [],
   });
-
   const { data: allWorkflowsData, isLoading } = trpc.viewer.workflows.list.useQuery();
-
   const [filteredWorkflows, setFilteredWorkflows] = useState<WorkflowType[]>([]);
-
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace("/workflows/" + workflow.id);
@@ -38,16 +38,13 @@ function WorkflowsPage() {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }
-
       if (err.data?.code === "UNAUTHORIZED") {
         const message = `${err.data.code}: You are not able to create this workflow`;
         showToast(message, "error");
       }
     },
   });
-
   const query = trpc.viewer.workflows.getByViewer.useQuery();
-
   useEffect(() => {
     const allWorkflows = allWorkflowsData?.workflows;
     if (allWorkflows && allWorkflows.length > 0) {
@@ -62,7 +59,6 @@ function WorkflowsPage() {
       setFilteredWorkflows([]);
     }
   }, [checkedFilterItems, allWorkflowsData]);
-
   useEffect(() => {
     if (session.status !== "loading" && !query.isLoading) {
       if (!query.data) return;
@@ -78,7 +74,6 @@ function WorkflowsPage() {
       });
     }
   }, [session.status, query.isLoading, allWorkflowsData]);
-
   const profileOptions = query?.data?.profiles
     .filter((profile) => !profile.readOnly)
     .map((profile) => {
@@ -89,7 +84,6 @@ function WorkflowsPage() {
         slug: profile.slug,
       };
     });
-
   return (
     <Shell
       heading={t("workflows")}
@@ -153,7 +147,6 @@ function WorkflowsPage() {
     </Shell>
   );
 }
-
 const Filter = (props: {
   profiles: {
     readOnly?: boolean | undefined;
@@ -178,12 +171,9 @@ const Filter = (props: {
   const user = session.data?.user.name || "";
   const userName = session.data?.user.username;
   const userAvatar = WEBAPP_URL + "/" + userName + "/avatar.png";
-
   const teams = props.profiles.filter((profile) => !!profile.teamId);
   const { checked, setChecked } = props;
-
   const [noFilter, setNoFilter] = useState(true);
-
   return (
     <div className={classNames("-mb-2", noFilter ? "w-16" : "w-[100px]")}>
       <AnimatedPopover text={noFilter ? "All" : "Filtered"}>
@@ -215,7 +205,6 @@ const Filter = (props: {
                 }
               } else if (!e.target.checked) {
                 setChecked({ userId: null, teamIds: checked.teamIds });
-
                 setNoFilter(false);
               }
             }}
@@ -249,7 +238,6 @@ const Filter = (props: {
                   const updatedChecked = checked;
                   updatedChecked.teamIds.push(profile.teamId || 0);
                   setChecked({ userId: checked.userId, teamIds: [...updatedChecked.teamIds] });
-
                   if (checked.userId && updatedChecked.teamIds.length === teams.length) {
                     setNoFilter(true);
                   } else {
@@ -261,7 +249,6 @@ const Filter = (props: {
                     const updatedChecked = checked;
                     updatedChecked.teamIds.splice(index, 1);
                     setChecked({ userId: checked.userId, teamIds: [...updatedChecked.teamIds] });
-
                     if (checked.userId && updatedChecked.teamIds.length === teams.length) {
                       setNoFilter(true);
                     } else {
@@ -278,5 +265,4 @@ const Filter = (props: {
     </div>
   );
 };
-
 export default WorkflowsPage;

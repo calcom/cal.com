@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -13,7 +13,6 @@ import { PremiumTextfield } from "./PremiumTextfield";
 import { UsernameTextfield } from "./UsernameTextfield";
 
 export const UsernameAvailability = IS_SELF_HOSTED ? UsernameTextfield : PremiumTextfield;
-
 interface UsernameAvailabilityFieldProps {
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
@@ -24,11 +23,11 @@ export const UsernameAvailabilityField = ({
   onErrorMutation,
   user,
 }: UsernameAvailabilityFieldProps) => {
-  const router = useRouter();
+  const searchParams = useSearchParams();
   const [currentUsernameState, setCurrentUsernameState] = useState(user.username || "");
   const { username: usernameFromQuery, setQuery: setUsernameFromQuery } = useRouterQuery("username");
   const { username: currentUsername, setQuery: setCurrentUsername } =
-    router.query["username"] && user.username === null
+    searchParams["username"] && user.username === null
       ? { username: usernameFromQuery, setQuery: setUsernameFromQuery }
       : { username: currentUsernameState || "", setQuery: setCurrentUsernameState };
   const formMethods = useForm({
@@ -36,7 +35,6 @@ export const UsernameAvailabilityField = ({
       username: currentUsername,
     },
   });
-
   return (
     <Controller
       control={formMethods.control}

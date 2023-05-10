@@ -1,4 +1,5 @@
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,7 +21,6 @@ export interface Option {
   image?: string | null;
   slug: string | null;
 }
-
 interface CreateBtnProps {
   options: Option[];
   createDialog?: () => JSX.Element;
@@ -30,19 +30,16 @@ interface CreateBtnProps {
   isLoading?: boolean;
   disableMobileButton?: boolean;
 }
-
 export function CreateButton(props: CreateBtnProps) {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
-
   const CreateDialog = props.createDialog ? props.createDialog() : null;
-
   const hasTeams = !!props.options.find((option) => option.teamId);
-
   // inject selection data into url for correct router history
   const openModal = (option: Option) => {
     const query = {
-      ...router.query,
+      ...Object.fromEntries(searchParams ?? new URLSearchParams()),
       dialog: "new",
       eventPage: option.slug,
       teamId: option.teamId,
@@ -52,14 +49,13 @@ export function CreateButton(props: CreateBtnProps) {
     }
     router.push(
       {
-        pathname: router.pathname,
+        pathname: pathname,
         query,
       },
       undefined,
       { shallow: true }
     );
   };
-
   return (
     <>
       {!hasTeams ? (
@@ -121,7 +117,7 @@ export function CreateButton(props: CreateBtnProps) {
           </DropdownMenuContent>
         </Dropdown>
       )}
-      {router.query.dialog === "new" && CreateDialog}
+      {searchParams?.get("dialog") === "new" && CreateDialog}
     </>
   );
 }

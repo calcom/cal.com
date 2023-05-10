@@ -1,5 +1,6 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import React, { useState } from "react";
 
@@ -15,11 +16,11 @@ export type DialogProps = React.ComponentProps<(typeof DialogPrimitive)["Root"]>
   clearQueryParamsOnClose?: string[];
 };
 export function Dialog(props: DialogProps) {
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { children, name, ...dialogProps } = props;
   // only used if name is set
   const [open, setOpen] = useState(!!dialogProps.open);
-
   if (name) {
     const clearQueryParamsOnClose = ["dialog", ...(props.clearQueryParamsOnClose || [])];
     dialogProps.onOpenChange = (open) => {
@@ -28,7 +29,7 @@ export function Dialog(props: DialogProps) {
       }
       // toggles "dialog" query param
       if (open) {
-        router.query["dialog"] = name;
+        searchParams["dialog"] = name;
       } else {
         const query = router.query;
         clearQueryParamsOnClose.forEach((queryParam) => {
@@ -36,7 +37,7 @@ export function Dialog(props: DialogProps) {
         });
         router.push(
           {
-            pathname: router.pathname,
+            pathname: pathname,
             query,
           },
           undefined,
@@ -46,7 +47,7 @@ export function Dialog(props: DialogProps) {
       setOpen(open);
     };
     // handles initial state
-    if (!open && router.query["dialog"] === name) {
+    if (!open && searchParams["dialog"] === name) {
       setOpen(true);
     }
     // allow overriding
@@ -54,7 +55,6 @@ export function Dialog(props: DialogProps) {
       dialogProps.open = open;
     }
   }
-
   return <DialogPrimitive.Root {...dialogProps}>{children}</DialogPrimitive.Root>;
 }
 type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content"]> & {
@@ -67,7 +67,6 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
   Icon?: SVGComponent;
   enableOverflow?: boolean;
 };
-
 // enableOverflow:- use this prop whenever content inside DialogContent could overflow and require scrollbar
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
   ({ children, title, Icon, enableOverflow, type = "creation", ...props }, forwardedRef) => {
@@ -115,15 +114,12 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
     );
   }
 );
-
 type DialogHeaderProps = {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
 };
-
 export function DialogHeader(props: DialogHeaderProps) {
   if (!props.title) return null;
-
   return (
     <div className="mb-4">
       <h3 className="leading-20 text-semibold font-cal text-emphasis pb-1 text-xl" id="modal-title">
@@ -133,16 +129,12 @@ export function DialogHeader(props: DialogHeaderProps) {
     </div>
   );
 }
-
 export function DialogFooter(props: { children: ReactNode }) {
   return <div className="mt-7 flex justify-end space-x-2 rtl:space-x-reverse ">{props.children}</div>;
 }
-
 DialogContent.displayName = "DialogContent";
-
 export const DialogTrigger = DialogPrimitive.Trigger;
 // export const DialogClose = DialogPrimitive.Close;
-
 export function DialogClose(
   props: {
     dialogCloseProps?: React.ComponentProps<(typeof DialogPrimitive)["Close"]>;

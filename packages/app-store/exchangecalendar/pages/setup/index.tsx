@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
@@ -18,7 +18,6 @@ interface IFormData {
   exchangeVersion: ExchangeVersion;
   useCompression: boolean;
 }
-
 const schema = z
   .object({
     url: z.string().url(),
@@ -29,7 +28,6 @@ const schema = z
     useCompression: z.boolean().default(false),
   })
   .strict();
-
 export default function ExchangeSetup() {
   const { t } = useLocale();
   const router = useRouter();
@@ -55,7 +53,6 @@ export default function ExchangeSetup() {
     { value: ExchangeVersion.Exchange2015, label: t("exchange_version_2015") },
     { value: ExchangeVersion.Exchange2016, label: t("exchange_version_2016") },
   ];
-
   return (
     <>
       <div className="bg-emphasis flex h-screen">

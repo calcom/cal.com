@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
 import type { ComponentProps } from "react";
 import { Fragment } from "react";
 
@@ -27,7 +26,6 @@ export type VerticalTabItemProps = {
   avatar?: string;
   iconClassName?: string;
 };
-
 const VerticalTabItem = ({
   name,
   href,
@@ -38,8 +36,7 @@ const VerticalTabItem = ({
   ...props
 }: VerticalTabItemProps) => {
   const { t } = useLocale();
-  const { asPath } = useRouter();
-  const isCurrent = asPath.startsWith(href);
+  const isCurrent = pathname?.startsWith(href);
   return (
     <Fragment key={name}>
       {!props.hidden && (
@@ -98,5 +95,4 @@ const VerticalTabItem = ({
     </Fragment>
   );
 };
-
 export default VerticalTabItem;

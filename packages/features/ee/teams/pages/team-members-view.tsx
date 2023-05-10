@@ -1,5 +1,6 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -63,13 +64,13 @@ function MembersList(props: MembersListProps) {
 }
 
 const MembersView = () => {
+  const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
   const router = useRouter();
   const session = useSession();
   const utils = trpc.useContext();
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
-  const teamId = Number(router.query.id);
-
+  const teamId = Number(searchParams?.get("id"));
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
     { teamId },
     {
@@ -78,7 +79,6 @@ const MembersView = () => {
       },
     }
   );
-
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess(data) {
       await utils.viewer.teams.get.invalidate();
@@ -96,12 +96,9 @@ const MembersView = () => {
       showToast(error.message, "error");
     },
   });
-
   const isInviteOpen = !team?.membership.accepted;
-
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
-
   return (
     <>
       <Meta
@@ -177,7 +174,5 @@ const MembersView = () => {
     </>
   );
 };
-
 MembersView.getLayout = getLayout;
-
 export default MembersView;

@@ -7,7 +7,8 @@ import {
 } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { useTheme } from "next-themes";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Trans } from "react-i18next";
 import { configureChains, createClient, useAccount, useSignMessage, WagmiConfig } from "wagmi";
@@ -20,33 +21,27 @@ import { AlertTriangle, Loader } from "@calcom/ui/components/icon";
 import { ETH_MESSAGE, getProviders, SUPPORTED_CHAINS } from "../utils/ethereum";
 
 const { chains, provider } = configureChains(SUPPORTED_CHAINS, getProviders());
-
 const { connectors } = getDefaultWallets({
   appName: "Cal.com",
   chains,
 });
-
 const wagmiClient = createClient({
   autoConnect: true,
   connectors,
   provider,
 });
-
 type RainbowGateProps = {
   children: React.ReactNode;
   setToken: (_: string) => void;
   chainId: number;
   tokenAddress: string;
 };
-
 const RainbowGate: React.FC<RainbowGateProps> = (props) => {
   const { resolvedTheme: theme } = useTheme();
   const [rainbowTheme, setRainbowTheme] = useState(theme === "dark" ? darkTheme() : lightTheme());
-
   useEffect(() => {
     theme === "dark" ? setRainbowTheme(darkTheme()) : setRainbowTheme(lightTheme());
   }, [theme]);
-
   return (
     <WagmiConfig client={wagmiClient}>
       <RainbowKitProvider chains={chains.filter((chain) => chain.id === props.chainId)} theme={rainbowTheme}>
@@ -55,10 +50,10 @@ const RainbowGate: React.FC<RainbowGateProps> = (props) => {
     </WagmiConfig>
   );
 };
-
 // The word "token" is used for two differenct concepts here: `setToken` is the token for
 // the Gate while `useToken` is a hook used to retrieve the Ethereum token.
 const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddress }) => {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const { address } = useAccount();
   const {
@@ -79,13 +74,11 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
       enabled: !!address,
     }
   );
-
   // The token may have already been set in the query params, so we can extract it here
   const router = useRouter();
-  const { ethSignature, ...routerQuery } = router.query;
-
+  const ethSignature = searchParams?.get("ethSignature"),
+    routerQuery = searchParams?.get("routerQuery");
   const isLoading = isContractLoading || isBalanceLoading;
-
   // Any logic here will unlock the gate by setting the token to the user's wallet signature
   useEffect(() => {
     // If the `ethSignature` is found, remove it from the URL bar and propogate back up
@@ -94,20 +87,18 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
       router.replace({ query: { ...routerQuery } });
       setToken(ethSignature as string);
     }
-
     if (balanceData && balanceData.data) {
       if (balanceData.data.hasBalance) {
         if (signedMessage) {
           showToast("Wallet verified.", "success");
           setToken(signedMessage);
-        } else if (router.isReady && !ethSignature) {
+        } else if (true && !ethSignature) {
           signMessage();
         }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.isReady, balanceData, setToken, signedMessage, signMessage]);
-
+  }, [true, balanceData, setToken, signedMessage, signMessage]);
   return (
     <main className="mx-auto max-w-3xl py-24 px-4">
       <div className="rounded-md border border-neutral-200 dark:border-neutral-700 dark:hover:border-neutral-600">
@@ -171,5 +162,4 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
     </main>
   );
 };
-
 export default RainbowGate;

@@ -1,7 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { UseMutationResult } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useMemo, useRef } from "react";
 import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
@@ -34,7 +35,6 @@ import { FormSkeleton } from "./Skeleton";
 type BookEventFormProps = {
   onCancel?: () => void;
 };
-
 const getSuccessPath = ({
   uid,
   email,
@@ -56,8 +56,8 @@ const getSuccessPath = ({
     formerTime: formerTime,
   },
 });
-
 export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { t, i18n } = useLocale();
   const { timezone } = useTimePreferences();
@@ -73,22 +73,18 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const isRescheduling = !!rescheduleUid && !!rescheduleBooking;
   const event = useEvent();
   const eventType = event.data;
-
   const defaultValues = useMemo(() => {
     if (!eventType?.bookingFields) {
       return {};
     }
-
     const defaultUserValues = {
       email: rescheduleUid ? rescheduleBooking?.attendees[0].email : getQueryParam("email") || "",
       name: rescheduleUid ? rescheduleBooking?.attendees[0].name : getQueryParam("name") || "",
     };
-
     if (!isRescheduling) {
       const defaults = {
         responses: {} as Partial<z.infer<typeof bookingFormSchema>["responses"]>,
       };
-
       const responses = eventType.bookingFields.reduce((responses, field) => {
         return {
           ...responses,
@@ -100,10 +96,8 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
         name: defaultUserValues.name,
         email: defaultUserValues.email,
       };
-
       return defaults;
     }
-
     if (!rescheduleBooking || !rescheduleBooking.attendees.length) {
       return {};
     }
@@ -111,11 +105,9 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     if (!primaryAttendee) {
       return {};
     }
-
     const defaults = {
       responses: {} as Partial<z.infer<typeof bookingFormSchema>["responses"]>,
     };
-
     const responses = eventType.bookingFields.reduce((responses, field) => {
       return {
         ...responses,
@@ -129,7 +121,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     };
     return defaults;
   }, [eventType?.bookingFields, isRescheduling, rescheduleBooking, rescheduleUid]);
-
   const bookingFormSchema = z
     .object({
       responses: event?.data
@@ -141,7 +132,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
           z.object({}),
     })
     .passthrough();
-
   type BookingFormValues = {
     locationType?: EventLocationType["type"];
     responses: z.infer<typeof bookingFormSchema>["responses"];
@@ -149,12 +139,10 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     // to set generic error messages on. Needed until RHF has implemented root error keys.
     globalError: undefined;
   };
-
   const bookingForm = useForm<BookingFormValues>({
     defaultValues,
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
-
   const createBookingMutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
       const { uid, paymentUid } = responseData;
@@ -169,12 +157,10 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
           })
         );
       }
-
       if (!uid) {
         console.error("No uid returned from createBookingMutation");
         return;
       }
-
       return await router.push(
         getSuccessPath({
           uid,
@@ -188,20 +174,16 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       );
     },
     onError: () => {
-
       errorRef && errorRef.current?.scrollIntoView({ behavior: "smooth" });
     },
   });
-
   const createRecurringBookingMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData) => {
       const { uid } = responseData[0] || {};
-
       if (!uid) {
         console.error("No uid returned from createRecurringBookingMutation");
         return;
       }
-
       return await router.push(
         getSuccessPath({
           uid,
@@ -212,7 +194,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       );
     },
   });
-
   if (event.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
   if (event.isLoading || !event.data) return <FormSkeleton />;
   if (!timeslot)
@@ -225,17 +206,14 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
         buttonOnClick={onCancel}
       />
     );
-
   const bookEvent = (values: BookingFormValues) => {
     bookingForm.clearErrors();
-
     // It shouldn't be possible that this method is fired without having event data,
     // but since in theory (looking at the types) it is possible, we still handle that case.
     if (!event?.data) {
       bookingForm.setError("globalError", { message: t("error_booking_event") });
       return;
     }
-
     // Ensures that duration is an allowed value, if not it defaults to the
     // default event duration.
     const validDuration =
@@ -244,7 +222,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       event.data.metadata?.multipleDuration.includes(duration)
         ? duration
         : event.data.length;
-
     const bookingInput = {
       values,
       duration: validDuration,
@@ -254,17 +231,16 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       language: i18n.language,
       rescheduleUid: rescheduleUid || undefined,
       username: username || "",
-      metadata: Object.keys(router.query)
+      metadata: Object.keys(...Object.fromEntries(searchParams ?? new URLSearchParams()))
         .filter((key) => key.startsWith("metadata"))
         .reduce(
           (metadata, key) => ({
             ...metadata,
-            [key.substring("metadata[".length, key.length - 1)]: router.query[key],
+            [key.substring("metadata[".length, key.length - 1)]: searchParams[key],
           }),
           {}
         ),
     };
-
     if (event.data?.recurringEvent?.freq && recurringEventCount) {
       createRecurringBookingMutation.mutate(
         mapRecurringBookingToMutationInput(bookingInput, recurringEventCount)
@@ -273,12 +249,13 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       createBookingMutation.mutate(mapBookingToMutationInput(bookingInput));
     }
   };
-
   if (!eventType) {
-    console.warn("No event type found for event", router.query);
+    console.warn(
+      "No event type found for event",
+      ...Object.fromEntries(searchParams ?? new URLSearchParams())
+    );
     return <Alert severity="warning" message={t("error_booking_event")} />;
   }
-
   return (
     <div className="flex h-full flex-col">
       <Form className="flex h-full flex-col" form={bookingForm} handleSubmit={bookEvent} noValidate>
@@ -324,7 +301,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     </div>
   );
 };
-
 const getError = (
   globalError: FieldError | undefined,
   // It feels like an implementation detail to reimplement the types of useMutation here.
@@ -337,9 +313,7 @@ const getError = (
   t: TFunction
 ) => {
   if (globalError) return globalError.message;
-
   const error = bookingMutation.error || recurringBookingMutation.error;
-
   return error instanceof HttpError || error instanceof Error ? (
     <>{t("can_you_try_again")}</>
   ) : (

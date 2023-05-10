@@ -2,7 +2,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState, useLayoutEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -35,7 +36,6 @@ import { ExternalLink, Link as LinkIcon, Trash2, LogOut } from "@calcom/ui/compo
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
-
 const teamProfileFormSchema = z.object({
   name: z.string(),
   slug: z
@@ -47,8 +47,8 @@ const teamProfileFormSchema = z.object({
   logo: z.string(),
   bio: z.string(),
 });
-
 const ProfileView = () => {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
@@ -58,7 +58,6 @@ const ProfileView = () => {
   useLayoutEffect(() => {
     document.body.focus();
   }, []);
-
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
@@ -68,13 +67,11 @@ const ProfileView = () => {
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
-
   const form = useForm({
     resolver: zodResolver(teamProfileFormSchema),
   });
-
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
-    { teamId: Number(router.query.id) },
+    { teamId: Number(searchParams?.get("id")) },
     {
       onError: () => {
         router.push("/settings");
@@ -92,14 +89,10 @@ const ProfileView = () => {
       },
     }
   );
-
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
-
   const permalink = `${WEBAPP_URL}/team/${team?.slug}`;
-
   const isBioEmpty = !team || !team.bio || !team.bio.replace("<p><br></p>", "").length;
-
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
       await utils.viewer.teams.list.invalidate();
@@ -107,7 +100,6 @@ const ProfileView = () => {
       router.push(`${WEBAPP_URL}/teams`);
     },
   });
-
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
@@ -119,7 +111,6 @@ const ProfileView = () => {
       showToast(err.message, "error");
     },
   });
-
   const publishMutation = trpc.viewer.teams.publish.useMutation({
     async onSuccess(data: { url?: string }) {
       if (data.url) {
@@ -130,11 +121,9 @@ const ProfileView = () => {
       showToast(err.message, "error");
     },
   });
-
   function deleteTeam() {
     if (team?.id) deleteTeamMutation.mutate({ teamId: team.id });
   }
-
   function leaveTeam() {
     if (team?.id && session.data)
       removeMemberMutation.mutate({
@@ -142,7 +131,6 @@ const ProfileView = () => {
         memberId: session.data.user.id,
       });
   }
-
   return (
     <>
       <Meta title={t("profile")} description={t("profile_team_description")} />
@@ -324,7 +312,5 @@ const ProfileView = () => {
     </>
   );
 };
-
 ProfileView.getLayout = getLayout;
-
 export default ProfileView;

@@ -1,5 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
@@ -18,14 +19,12 @@ export function useShouldShowArrows() {
     left: false,
     right: false,
   });
-
   useEffect(() => {
     const appCategoryList = ref.current;
     if (appCategoryList && appCategoryList.scrollWidth > appCategoryList.clientWidth) {
       setShowArrowScroll({ left: false, right: true });
     }
   }, []);
-
   const calculateScroll = (e: UIEvent<HTMLUListElement>) => {
     setShowArrowScroll({
       left: e.currentTarget.scrollLeft > 0,
@@ -34,22 +33,20 @@ export function useShouldShowArrows() {
         Math.floor(e.currentTarget.scrollLeft),
     });
   };
-
   return { ref, calculateScroll, leftVisible: showArrowScroll.left, rightVisible: showArrowScroll.right };
 }
-
 type AllAppsPropsType = {
-  apps: (App & { credentials?: Credential[] })[];
+  apps: (App & {
+    credentials?: Credential[];
+  })[];
   searchText?: string;
   categories: string[];
 };
-
 interface CategoryTabProps {
   selectedCategory: string | null;
   categories: string[];
   searchText?: string;
 }
-
 function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabProps) {
   const { t } = useLocale();
   const router = useRouter();
@@ -59,7 +56,6 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
       ref.current.scrollLeft -= 100;
     }
   };
-
   const handleRight = () => {
     if (ref.current) {
       ref.current.scrollLeft += 100;
@@ -90,7 +86,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
         ref={ref}>
         <li
           onClick={() => {
-            router.replace(router.asPath.split("?")[0], undefined, { shallow: true });
+            router.replace(pathname?.split("?")[0], undefined, { shallow: true });
           }}
           className={classNames(
             selectedCategory === null ? "bg-emphasis text-default" : "bg-muted text-emphasis",
@@ -103,9 +99,9 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
             key={pos}
             onClick={() => {
               if (selectedCategory === cat) {
-                router.replace(router.asPath.split("?")[0], undefined, { shallow: true });
+                router.replace(pathname?.split("?")[0], undefined, { shallow: true });
               } else {
-                router.replace(router.asPath.split("?")[0] + `?category=${cat}`, undefined, {
+                router.replace(pathname?.split("?")[0] + `?category=${cat}`, undefined, {
                   shallow: true,
                 });
               }
@@ -129,25 +125,21 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
     </div>
   );
 }
-
 export function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
-  const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [appsContainerRef, enableAnimation] = useAutoAnimate<HTMLDivElement>();
-
   if (searchText) {
     enableAnimation && enableAnimation(false);
   }
-
   useEffect(() => {
     const queryCategory =
-      typeof router.query.category === "string" && categories.includes(router.query.category)
-        ? router.query.category
+      typeof searchParams?.get("category") === "string" && categories.includes(searchParams?.get("category"))
+        ? searchParams?.get("category")
         : null;
     setSelectedCategory(queryCategory);
-  }, [router.query.category]);
-
+  }, [searchParams?.get("category")]);
   const filteredApps = apps
     .filter((app) =>
       selectedCategory !== null
@@ -162,7 +154,6 @@ export function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
       else if (a.name > b.name) return 1;
       return 0;
     });
-
   return (
     <div>
       <CategoryTab selectedCategory={selectedCategory} searchText={searchText} categories={categories} />

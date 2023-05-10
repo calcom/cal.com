@@ -1,4 +1,5 @@
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
@@ -11,11 +12,10 @@ import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import SSOConfiguration from "../components/SSOConfiguration";
 
 const SAMLSSO = () => {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
-
-  const teamId = Number(router.query.id);
-
+  const teamId = Number(searchParams?.get("id"));
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
     { teamId },
     {
@@ -24,22 +24,18 @@ const SAMLSSO = () => {
       },
     }
   );
-
   useEffect(() => {
     if (!HOSTED_CAL_FEATURES) {
       router.push("/404");
     }
   }, []);
-
   if (isLoading) {
     return <SkeletonLoader />;
   }
-
   if (!team) {
     router.push("/404");
     return;
   }
-
   return (
     <div className="bg-default w-full sm:mx-0 xl:mt-0">
       <Meta title={t("sso_configuration")} description={t("sso_configuration_description")} />
@@ -47,7 +43,5 @@ const SAMLSSO = () => {
     </div>
   );
 };
-
 SAMLSSO.getLayout = getLayout;
-
 export default SAMLSSO;

@@ -1,6 +1,6 @@
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
@@ -27,12 +27,10 @@ type FormValues = {
   passwordcheck: string;
   apiError: string;
 };
-
 export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof getServerSideProps>) {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
-  const router = useRouter();
   const telemetry = useTelemetry();
-
   const methods = useForm<FormValues>({
     defaultValues: prepopulateFormValues,
   });
@@ -40,14 +38,12 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
     register,
     formState: { errors, isSubmitting },
   } = methods;
-
   const handleErrors = async (resp: Response) => {
     if (!resp.ok) {
       const err = await resp.json();
       throw new Error(err.message);
     }
   };
-
   const signUp: SubmitHandler<FormValues> = async (data) => {
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
@@ -63,8 +59,8 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
         await signIn<"credentials">("credentials", {
           ...data,
-          callbackUrl: router.query.callbackUrl
-            ? `${WEBAPP_URL}/${router.query.callbackUrl}`
+          callbackUrl: searchParams?.get("callbackUrl")
+            ? `${WEBAPP_URL}/${searchParams?.get("callbackUrl")}`
             : `${WEBAPP_URL}/getting-started`,
         });
       })
@@ -72,7 +68,6 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
         methods.setError("apiError", { message: err.message });
       });
   };
-
   return (
     <LicenseRequired>
       <div
@@ -101,7 +96,6 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
                 onSubmit={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
-
                   if (methods.formState?.errors?.apiError) {
                     methods.clearErrors("apiError");
                   }
@@ -144,8 +138,8 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
                     className="w-5/12 justify-center"
                     onClick={() =>
                       signIn("Cal.com", {
-                        callbackUrl: router.query.callbackUrl
-                          ? `${WEBAPP_URL}/${router.query.callbackUrl}`
+                        callbackUrl: searchParams?.get("callbackUrl")
+                          ? `${WEBAPP_URL}/${searchParams?.get("callbackUrl")}`
                           : `${WEBAPP_URL}/getting-started`,
                       })
                     }>
@@ -160,43 +154,36 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
     </LicenseRequired>
   );
 }
-
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const ssr = await ssrInit(ctx);
   const token = asStringOrNull(ctx.query.token);
-
   const props = {
     isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
     isSAMLLoginEnabled,
     trpcState: ssr.dehydrate(),
     prepopulateFormValues: undefined,
   };
-
   if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
     return {
       notFound: true,
     };
   }
-
   // no token given, treat as a normal signup without verification token
   if (!token) {
     return {
       props: JSON.parse(JSON.stringify(props)),
     };
   }
-
   const verificationToken = await prisma.verificationToken.findUnique({
     where: {
       token,
     },
   });
-
   if (!verificationToken || verificationToken.expires < new Date()) {
     return {
       notFound: true,
     };
   }
-
   const existingUser = await prisma.user.findFirst({
     where: {
       AND: [
@@ -211,7 +198,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       ],
     },
   });
-
   if (existingUser) {
     return {
       redirect: {
@@ -220,7 +206,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       },
     };
   }
-
   return {
     props: {
       ...props,
@@ -230,6 +215,5 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     },
   };
 };
-
 Signup.isThemeSupported = false;
 Signup.PageWrapper = PageWrapper;

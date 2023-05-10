@@ -1,6 +1,5 @@
 import type { EventType } from "@prisma/client";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import type { z } from "zod";
 
@@ -16,12 +15,10 @@ import { trpc } from "@calcom/trpc/react";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
 const AvailableTimes = dynamic(() => import("@components/booking/AvailableTimes"));
-
 const getRefetchInterval = (refetchCount: number): number => {
   const intervals = [3000, 3000, 5000, 10000, 20000, 30000] as const;
   return intervals[refetchCount] || intervals[intervals.length - 1];
 };
-
 const useSlots = ({
   eventTypeId,
   eventTypeSlug,
@@ -65,11 +62,9 @@ const useSlots = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchStatus, data]);
-
   // The very first time isPaused is set if auto-fetch is disabled, so isPaused should also be considered a loading state.
   return { slots: data?.slots || {}, isLoading: isLoading || isPaused };
 };
-
 export const SlotPicker = ({
   eventType,
   timeFormat,
@@ -83,7 +78,9 @@ export const SlotPicker = ({
   ethSignature,
 }: {
   eventType: Pick<
-    EventType & { metadata: z.infer<typeof EventTypeMetaDataSchema> },
+    EventType & {
+      metadata: z.infer<typeof EventTypeMetaDataSchema>;
+    },
     "id" | "schedulingType" | "slug" | "length" | "metadata"
   >;
   timeFormat: TimeFormat;
@@ -101,15 +98,11 @@ export const SlotPicker = ({
   let { duration = eventType.length.toString() } = useRouterQuery("duration");
   const { date, setQuery: setDate } = useRouterQuery("date");
   const { month, setQuery: setMonth } = useRouterQuery("month");
-  const router = useRouter();
-
   if (!eventType.metadata?.multipleDuration) {
     duration = eventType.length.toString();
   }
-
   useEffect(() => {
-    if (!router.isReady) return;
-
+    if (!true) return;
     // Etc/GMT is not actually a timeZone, so handle this select option explicitly to prevent a hard crash.
     if (timeZone === "Etc/GMT") {
       setBrowsingDate(dayjs.utc(month).set("date", 1).set("hour", 0).set("minute", 0).set("second", 0));
@@ -126,8 +119,7 @@ export const SlotPicker = ({
         setSelectedDate(dayjs.tz(date, timeZone));
       }
     }
-  }, [router.isReady, month, date, duration, timeZone]);
-
+  }, [true, month, date, duration, timeZone]);
   const { i18n, isLocaleReady } = useLocale();
   const { slots: monthSlots, isLoading } = useSlots({
     eventTypeId: eventType.id,
@@ -149,7 +141,6 @@ export const SlotPicker = ({
     /** Prevent refetching is we already have this data from month slots */
     enabled: !!selectedDate,
   });
-
   /** Hide skeleton if we have the slot loaded in the month query */
   const isLoadingSelectedDateSlots = (() => {
     if (!selectedDate) return _isLoadingSelectedDateSlots;
@@ -157,7 +148,6 @@ export const SlotPicker = ({
     if (!!monthSlots[selectedDate.format("YYYY-MM-DD")]) return false;
     return false;
   })();
-
   return (
     <>
       <DatePicker

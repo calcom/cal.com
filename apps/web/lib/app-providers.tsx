@@ -5,8 +5,6 @@ import type { SSRConfig } from "next-i18next";
 import { appWithTranslation } from "next-i18next";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
-import type { NextRouter } from "next/router";
-import { useRouter } from "next/router";
 import type { ComponentProps, PropsWithChildren, ReactNode } from "react";
 
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
@@ -21,10 +19,11 @@ import type { WithNonceProps } from "@lib/withNonce";
 
 import { useViewerI18n } from "@components/I18nLanguageHandler";
 
-const I18nextAdapter = appWithTranslation<NextJsAppProps<SSRConfig> & { children: React.ReactNode }>(
-  ({ children }) => <>{children}</>
-);
-
+const I18nextAdapter = appWithTranslation<
+  NextJsAppProps<SSRConfig> & {
+    children: React.ReactNode;
+  }
+>(({ children }) => <>{children}</>);
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = Omit<NextAppProps<WithNonceProps & Record<string, unknown>>, "Component"> & {
   Component: NextAppProps["Component"] & {
@@ -34,15 +33,12 @@ export type AppProps = Omit<NextAppProps<WithNonceProps & Record<string, unknown
     getLayout?: (page: React.ReactElement, router: NextRouter) => ReactNode;
     PageWrapper?: (props: AppProps) => JSX.Element;
   };
-
   /** Will be defined only is there was an error */
   err?: Error;
 };
-
 type AppPropsWithChildren = AppProps & {
   children: ReactNode;
 };
-
 const CustomI18nextProvider = (props: AppPropsWithChildren) => {
   /**
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
@@ -51,7 +47,6 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
   const { i18n, locale } = useViewerI18n().data ?? {
     locale: "en",
   };
-
   const passedProps = {
     ...props,
     pageProps: {
@@ -62,7 +57,6 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
   } as unknown as ComponentProps<typeof I18nextAdapter>;
   return <I18nextAdapter {...passedProps} />;
 };
-
 const enum ThemeSupport {
   // e.g. Login Page
   None = "none",
@@ -71,7 +65,6 @@ const enum ThemeSupport {
   // Booking Pages(including Routing Forms)
   Booking = "userConfigured",
 }
-
 const CalcomThemeProvider = (
   props: PropsWithChildren<
     WithNonceProps & {
@@ -87,24 +80,20 @@ const CalcomThemeProvider = (
     if (typeof props.isBookingPage === "function") {
       return props.isBookingPage({ router: router });
     }
-
     return props.isBookingPage;
   })();
-
   const themeSupport = isBookingPage
     ? ThemeSupport.Booking
     : // if isThemeSupported is explicitly false, we don't use theme there
     props.isThemeSupported === false
     ? ThemeSupport.None
     : ThemeSupport.App;
-
   const forcedTheme = themeSupport === ThemeSupport.None ? "light" : undefined;
   // Use namespace of embed to ensure same namespaced embed are displayed with same theme. This allows different embeds on the same website to be themed differently
   // One such example is our Embeds Demo and Testing page at http://localhost:3100
   // Having `getEmbedNamespace` defined on window before react initializes the app, ensures that embedNamespace is available on the first mount and can be used as part of storageKey
   const embedNamespace = typeof window !== "undefined" ? window.getEmbedNamespace() : null;
   const isEmbedMode = typeof embedNamespace === "string";
-
   const storageKey = isEmbedMode
     ? `embed-theme-${embedNamespace}`
     : themeSupport === ThemeSupport.App
@@ -112,7 +101,6 @@ const CalcomThemeProvider = (
     : themeSupport === ThemeSupport.Booking
     ? "booking-theme"
     : undefined;
-
   return (
     <ThemeProvider
       nonce={props.nonce}
@@ -139,17 +127,14 @@ const CalcomThemeProvider = (
     </ThemeProvider>
   );
 };
-
 function FeatureFlagsProvider({ children }: { children: React.ReactNode }) {
   const flags = useFlags();
   return <FeatureProvider value={flags}>{children}</FeatureProvider>;
 }
-
 const AppProviders = (props: AppPropsWithChildren) => {
   const session = trpc.viewer.public.session.useQuery().data;
   // No need to have intercom on public pages - Good for Page Performance
   const isPublicPage = usePublicPage();
-
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
       <SessionProvider session={session || undefined}>
@@ -169,16 +154,13 @@ const AppProviders = (props: AppPropsWithChildren) => {
       </SessionProvider>
     </EventCollectionProvider>
   );
-
   if (isPublicPage) {
     return RemainingProviders;
   }
-
   return (
     <DynamicHelpscoutProvider>
       <DynamicIntercomProvider>{RemainingProviders}</DynamicIntercomProvider>
     </DynamicHelpscoutProvider>
   );
 };
-
 export default AppProviders;
