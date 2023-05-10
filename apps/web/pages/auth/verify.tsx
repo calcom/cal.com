@@ -118,11 +118,7 @@ export default function Verify() {
         <div className="m-10 flex max-w-2xl flex-col items-start border border-white p-12 text-left">
           <div className="rounded-full border border-white p-3">
             {hasPaymentFailed ? (
-              <AlertTriangle
-                fill="rgb(250 204 21)"
-                color="white"
-                className="text-inverted h-5 w-5 flex-shrink-0 p-0.5 font-extralight"
-              />
+              <AlertTriangle className="text-inverted h-5 w-5 flex-shrink-0 p-0.5 font-extralight" />
             ) : sessionId ? (
               <Check className="text-inverted h-5 w-5 flex-shrink-0 p-0.5 font-extralight" />
             ) : (

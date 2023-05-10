@@ -2,9 +2,7 @@ import classNames from "classnames";
 import { noop } from "lodash";
 import type { ReactNode } from "react";
 
-import { X } from "@calcom/ui/components/icon";
-
-import { AlertTriangle, Info } from "../icon";
+import { X, AlertTriangle, Info } from "@calcom/ui/components/icon";
 
 export type TopBannerProps = {
   text: string;

@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import type { ReactNode } from "react";
 
-import { CheckCircle2, AlertTriangle, Info, XCircle } from "@calcom/ui/components/icon";
+import { CheckCircle2, Info, XCircle, AlertTriangle } from "@calcom/ui/components/icon";
 
 export interface AlertProps {
   title?: ReactNode;
@@ -32,36 +32,31 @@ export function Alert(props: AlertProps) {
         <div className="flex-shrink-0">
           {severity === "error" && (
             <XCircle
-              fill="rgb(248 113 113)"
-              color="white"
-              className={classNames("h-5 w-5", iconClassName)}
+              className={classNames("h-5 w-5 fill-red-400 text-white", iconClassName)}
               aria-hidden="true"
             />
           )}
           {severity === "warning" && (
             <AlertTriangle
-              color="white"
-              fill="rgb(250 204 21)"
-              className={classNames("h-5 w-5", iconClassName)}
+              className={classNames("h-5 w-5 fill-yellow-400 text-white", iconClassName)}
               aria-hidden="true"
             />
           )}
           {severity === "info" && (
             <Info
-              color="white"
-              fill="rgb(56 189 248)"
-              className={classNames("h-5 w-5 text-sky-400", iconClassName)}
+              className={classNames("h-5 w-5 fill-sky-400 text-white", iconClassName)}
               aria-hidden="true"
             />
           )}
           {severity === "neutral" && (
-            <Info className={classNames("h-5 w-5", iconClassName)} aria-hidden="true" />
+            <Info
+              className={classNames("fill-default h-5 w-5 text-white", iconClassName)}
+              aria-hidden="true"
+            />
           )}
           {severity === "success" && (
             <CheckCircle2
-              color="white"
-              fill="#9CA3AF"
-              className={classNames("h-5 w-5", iconClassName)}
+              className={classNames("fill-muted h-5 w-5 text-white", iconClassName)}
               aria-hidden="true"
             />
           )}
