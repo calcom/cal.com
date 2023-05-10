@@ -94,7 +94,6 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
     });
   });
 
-  // TODO: Make E2E test: Attendee #1 should be able to cancel his booking
   // TODO: Make E2E test: Attendee #1 should be able to reschedule his booking
   // todo("Attendee #1 should be able to reschedule his booking");
   // TODO: Make E2E test: All attendees canceling should delete the booking for the User
