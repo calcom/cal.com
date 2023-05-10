@@ -27,6 +27,7 @@ type WebhookDataType = CalendarEvent &
     rescheduleEndTime?: string;
     triggerEvent: string;
     createdAt: string;
+    downloadLink?: string;
   };
 
 function getZapierPayload(data: CalendarEvent & EventTypeInfo & { status?: string }): string {
