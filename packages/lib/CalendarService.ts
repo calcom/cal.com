@@ -282,7 +282,7 @@ export default abstract class BaseCalendarService implements Calendar {
    * @param {number} id - The user's unique identifier.
    * @returns {Promise<string | undefined>} - A Promise that resolves to the user's timezone or "Europe/London" as a default value if the timezone is not found.
    */
-  getUserTimezoneFromDB = async (id: number): Promise<string> => {
+  getUserTimezoneFromDB = async (id: number): Promise<string | undefined> => {
     const prisma = await import("@calcom/prisma").then((mod) => mod.default);
     const user = await prisma.user.findUnique({
       where: {
@@ -292,7 +292,7 @@ export default abstract class BaseCalendarService implements Calendar {
         timeZone: true,
       },
     });
-    return user?.timeZone || "Europe/London";
+    return user?.timeZone;
   };
 
   /**
@@ -381,6 +381,8 @@ export default abstract class BaseCalendarService implements Calendar {
               // Adds try-catch to ensure the code proceeds when Apple Calendar provides non-standard TZIDs
               console.log("error in adding vtimezone", e);
             }
+          } else {
+            console.error("No timezone found");
           }
         }
         const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
