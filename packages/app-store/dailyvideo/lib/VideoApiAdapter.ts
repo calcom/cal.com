@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { handleErrorsJson } from "@calcom/lib/errors";
+import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import { getRecordingsResponseSchema, getAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -108,8 +109,17 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     // added a 1 hour buffer for room expiration
     const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 60;
     const { scale_plan: scalePlan } = await getDailyAppKeys();
-
-    if (scalePlan === "true") {
+    const hasTeamPlan = await prisma.membership.findFirst({
+      where: {
+        userId: event.organizer.id,
+        team: {
+          slug: {
+            not: null,
+          },
+        },
+      },
+    });
+    if (scalePlan === "true" && !!hasTeamPlan === true) {
       return {
         privacy: "public",
         properties: {

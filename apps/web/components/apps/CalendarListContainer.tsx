@@ -1,9 +1,9 @@
-import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { Fragment } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
+import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -12,12 +12,10 @@ import {
   Button,
   EmptyScreen,
   List,
-  showToast,
   AppSkeletonLoader as SkeletonLoader,
-  Switch,
   ShellSubHeading,
 } from "@calcom/ui";
-import { ArrowLeft, Calendar, Plus } from "@calcom/ui/components/icon";
+import { Calendar, Plus } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -30,83 +28,6 @@ type Props = {
   fromOnboarding?: boolean;
   destinationCalendarId?: string;
 };
-
-function CalendarSwitch(props: {
-  type: string;
-  externalId: string;
-  title: string;
-  defaultSelected: boolean;
-  destination?: boolean;
-}) {
-  const { t } = useLocale();
-  const utils = trpc.useContext();
-
-  const mutation = useMutation<
-    unknown,
-    unknown,
-    {
-      isOn: boolean;
-    }
-  >(
-    async ({ isOn }) => {
-      const body = {
-        integration: props.type,
-        externalId: props.externalId,
-      };
-      if (isOn) {
-        const res = await fetch("/api/availability/calendar", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
-        if (!res.ok) {
-          throw new Error("Something went wrong");
-        }
-      } else {
-        const res = await fetch("/api/availability/calendar", {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
-
-        if (!res.ok) {
-          throw new Error("Something went wrong");
-        }
-      }
-    },
-    {
-      async onSettled() {
-        await utils.viewer.integrations.invalidate();
-      },
-      onError() {
-        showToast(`Something went wrong when toggling "${props.title}""`, "error");
-      },
-    }
-  );
-  return (
-    <div className="flex flex-col py-1 sm:flex-row">
-      <Switch
-        key={props.externalId}
-        name="enabled"
-        label={props.title}
-        defaultChecked={props.defaultSelected}
-        onCheckedChange={(isOn: boolean) => {
-          mutation.mutate({ isOn });
-        }}
-      />
-      {!!props.destination && (
-        <span className="bg-subtle text-default ml-8 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-normal sm:ml-4">
-          <ArrowLeft className="h-4 w-4" />
-          {t("adding_events_to")}
-        </span>
-      )}
-    </div>
-  );
-}
 
 function CalendarList(props: Props) {
   const { t } = useLocale();
@@ -185,14 +106,15 @@ function ConnectedCalendarsList(props: Props) {
                       {!fromOnboarding && (
                         <>
                           <p className="text-subtle px-5 pt-4 text-sm">{t("toggle_calendars_conflict")}</p>
-                          <ul className="space-y-2 px-5 py-4">
+                          <ul className="space-y-4 px-5 py-4">
                             {item.calendars.map((cal) => (
                               <CalendarSwitch
                                 key={cal.externalId}
                                 externalId={cal.externalId}
                                 title={cal.name || "Nameless calendar"}
+                                name={cal.name || "Nameless calendar"}
                                 type={item.integration.type}
-                                defaultSelected={cal.isSelected}
+                                isChecked={cal.isSelected}
                                 destination={cal.externalId === props.destinationCalendarId}
                               />
                             ))}
