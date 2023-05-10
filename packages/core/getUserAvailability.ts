@@ -230,16 +230,18 @@ export async function getUserAvailability(
   const dateRanges = buildDateRanges({ availability, timeZone, dateFrom, dateTo });
 
   return {
-    freeBusy: getFreeBusy(
-      dateRanges,
-      bufferedBusyTimes.map((busy) => ({
-        start: dayjs(busy.start),
-        end: dayjs(busy.end),
-      }))
-    ),
+    // freeBusy: getFreeBusy(
+    //   dateRanges,
+    //   bufferedBusyTimes.map((busy) => ({
+    //     start: dayjs(busy.start),
+    //     end: dayjs(busy.end),
+    //   }))
+    // ),
+    busy: bufferedBusyTimes, // not needed
+    freeBusy: dateRanges, // todo: remove bufferedBusyTimes from dateRanges
     timeZone,
-    workingHours,
-    dateOverrides,
+    workingHours, // not needed
+    dateOverrides, // not needed
     currentSeats,
   };
 }

@@ -53,10 +53,7 @@ export function buildDateRanges({
   availability: Availability[];
   dateFrom: Dayjs;
   dateTo: Dayjs;
-}): {
-  start: Dayjs;
-  end: Dayjs;
-}[] {
+}): DateRange[] {
   const groupedWorkingHours = groupByDate(
     availability
       .filter((item) => !!item.days.length)
@@ -93,9 +90,51 @@ export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {
   return results;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function intersect(ranges: DateRange[]) {
-  return [];
+export function intersect(
+  usersAvailability: {
+    ranges: DateRange[];
+  }[]
+): DateRange[] {
+  // Get the ranges of the first user
+  let commonAvailability = usersAvailability[0].ranges;
+
+  // For each of the remaining users, find the intersection of their ranges with the current common availability
+  for (let i = 1; i < usersAvailability.length; i++) {
+    const userRanges = usersAvailability[i].ranges;
+
+    const intersectedRanges: {
+      start: Dayjs;
+      end: Dayjs;
+    }[] = [];
+
+    commonAvailability.forEach((commonRange) => {
+      userRanges.forEach((userRange) => {
+        const intersection = getIntersection(commonRange, userRange);
+        if (intersection !== null) {
+          // If the current common range intersects with the user range, add the intersected time range to the new array
+          intersectedRanges.push(intersection);
+        }
+      });
+    });
+
+    commonAvailability = intersectedRanges;
+  }
+
+  // If the common availability is empty, there is no time when all users are available
+  if (commonAvailability.length === 0) {
+    return [];
+  }
+
+  return commonAvailability;
+}
+
+function getIntersection(range1: DateRange, range2: DateRange) {
+  const start = range1.start.isAfter(range2.start) ? range1.start : range2.start;
+  const end = range1.end.isBefore(range2.end) ? range1.end : range2.end;
+  if (start.isBefore(end)) {
+    return { start, end };
+  }
+  return null;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -2,7 +2,7 @@ import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
 
 import { getAggregateWorkingHours } from "@calcom/core/getAggregateWorkingHours";
-import type { CurrentSeats } from "@calcom/core/getUserAvailability";
+import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -214,7 +214,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     usersWithCredentials.map(async (currentUser) => {
       const {
         busy,
-        available,
+        freeBusy,
         workingHours,
         dateOverrides,
         currentSeats: _currentSeats,
@@ -236,10 +236,10 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
 
       return {
         timeZone,
+        freeBusy,
         workingHours,
         dateOverrides,
         busy,
-        available,
         user: currentUser,
       };
     })
@@ -253,6 +253,9 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     eventLength: eventType.length,
     currentSeats,
   };
+
+  // aggregate availability of users for team events => final available times which consider working hours, date overrides and busy times
+  const availableTimes = getAggregatedAvailability(userAvailability, eventType.schedulingType);
 
   const isTimeWithinBounds = (_time: Parameters<typeof isTimeOutOfBounds>[0]) =>
     !isTimeOutOfBounds(_time, {
