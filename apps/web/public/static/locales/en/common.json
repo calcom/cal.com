@@ -1618,7 +1618,7 @@
   "delete_sso_configuration_confirmation": "Yes, delete {{connectionType}} configuration",
   "delete_sso_configuration_confirmation_description": "Are you sure you want to delete the {{connectionType}} configuration? Your team members who use {{connectionType}} login will no longer be able to access Cal.com.",
   "organizer_timezone": "Organizer timezone",
-  "email_no_user_cta": "Join your team",
+  "email_no_user_cta": "Create your account",
   "email_user_cta": "View Invitation",
   "email_no_user_invite_heading": "You’ve been invited to join a team on {{appName}}",
   "email_no_user_invite_subheading": "{{invitedBy}} has invited you to join their team on {{appName}}. {{appName}} is the event-juggling scheduler that enables you and your team to schedule meetings without the email tennis.",
@@ -1809,5 +1809,6 @@
   "pop_up_element_click": "Pop up via element click",
   "open_dialog_with_element_click": "Open your Cal dialog when someone clicks an element.",
   "need_help_embedding": "Need help? See our guides for embedding Cal on Wix, Squarespace, or WordPress, check our common questions, or explore advanced embed options.",
-  "book_my_cal": "Book my Cal"
+  "book_my_cal": "Book my Cal",
+  "email_not_cal_member_cta": "Join your team"
 }
