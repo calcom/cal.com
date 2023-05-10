@@ -114,10 +114,8 @@ async function bookEventOnThisPage(page: Page) {
   await bookTimeSlot(page);
 
   // Make sure we're navigated to the success page
-  await page.waitForNavigation({
-    url(url) {
-      return url.pathname.startsWith("/booking");
-    },
+  await page.waitForURL((url) => {
+    return url.pathname.startsWith("/booking");
   });
   await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 }
@@ -156,10 +154,8 @@ export const createNewEventType = async (page: Page, args: { eventTitle: string 
   await page.fill("[name=length]", "10");
   await page.click("[type=submit]");
 
-  await page.waitForNavigation({
-    url(url) {
-      return url.pathname !== "/event-types";
-    },
+  await page.waitForURL((url) => {
+    return url.pathname !== "/event-types";
   });
 };
 

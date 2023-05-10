@@ -1,10 +1,10 @@
-import { SchedulingType } from "@prisma/client";
 import type { FC, ReactNode } from "react";
 import { useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { Badge } from "@calcom/ui";
 import { CheckSquare, Clock } from "@calcom/ui/components/icon";
 

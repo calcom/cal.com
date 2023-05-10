@@ -1038,7 +1038,6 @@
   "event_cancelled_trigger": "när händelsen ställs in",
   "new_event_trigger": "när ny händelse bokas",
   "email_host_action": "skicka e-post till värd",
-  "email_attendee_action": "skicka e-post till deltagare",
   "sms_attendee_action": "skicka SMS till deltagare",
   "sms_number_action": "skicka SMS till ett specifikt nummer",
   "workflows": "Arbetsflöden",

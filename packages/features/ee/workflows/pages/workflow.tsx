@@ -1,12 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { WorkflowStep } from "@prisma/client";
-import {
-  TimeUnit,
-  WorkflowActions,
-  WorkflowTemplates,
-  WorkflowTriggerEvents,
-  MembershipRole,
-} from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -19,6 +12,8 @@ import { classNames } from "@calcom/lib";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import { TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+import { WorkflowTriggerEvents, MembershipRole } from "@calcom/prisma/enums";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";

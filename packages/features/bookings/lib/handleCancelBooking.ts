@@ -1,5 +1,4 @@
 import type { Prisma, WebhookTriggerEvents, WorkflowReminder } from "@prisma/client";
-import { BookingStatus, MembershipRole, WorkflowMethods } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import appStore from "@calcom/app-store";
@@ -22,8 +21,10 @@ import { HttpError } from "@calcom/lib/http-error";
 import { handleRefundError } from "@calcom/lib/payment/handleRefundError";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { BookingStatus, MembershipRole, WorkflowMethods } from "@calcom/prisma/enums";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 async function getBookingToDelete(id: number | undefined, uid: string | undefined) {
   return await prisma.booking.findUnique({
@@ -591,14 +592,16 @@ async function handler(req: CustomRequest) {
     }
 
     // Posible to refactor TODO:
-    const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore];
+    const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore]();
     if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
       console.warn(`payment App service of type ${paymentApp} is not implemented`);
       return null;
     }
 
-    const PaymentService = paymentApp.lib.PaymentService;
-    const paymentInstance = new PaymentService(paymentAppCredential);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const PaymentService = paymentApp.lib.PaymentService as unknown as any;
+    const paymentInstance = new PaymentService(paymentAppCredential) as IAbstractPaymentService;
+
     try {
       await paymentInstance.refund(successPayment.id);
     } catch (error) {
