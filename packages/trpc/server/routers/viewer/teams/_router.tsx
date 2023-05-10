@@ -11,6 +11,7 @@ import { ZInviteMemberInputSchema } from "./inviteMember.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { ZPublishInputSchema } from "./publish.schema";
 import { ZRemoveMemberInputSchema } from "./removeMember.schema";
+import { ZSearchInputSchema } from "./search.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
 
@@ -32,6 +33,7 @@ type TeamsRouterHandlerCache = {
   listMembers?: typeof import("./listMembers.handler").listMembersHandler;
   hasTeamPlan?: typeof import("./hasTeamPlan.handler").hasTeamPlanHandler;
   listInvites?: typeof import("./listInvites.handler").listInvitesHandler;
+  search?: typeof import("./search.handler").searchHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: TeamsRouterHandlerCache = {};
@@ -333,5 +335,18 @@ export const viewerTeamsRouter = router({
     return UNSTABLE_HANDLER_CACHE.listInvites({
       ctx,
     });
+  }),
+
+  search: authedProcedure.input(ZSearchInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.search) {
+      UNSTABLE_HANDLER_CACHE.search = await import("./search.handler").then((mod) => mod.searchHandler);
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.search) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.search({ input, ctx });
   }),
 });
