@@ -1,4 +1,4 @@
 tasks:
-  - init: yarn && cp .env.example .env && my_secret=$(openssl rand -base64 32) && my_encryption_key=$(openssl rand -base64 24) && sed -i -e "s/^NEXTAUTH_SECRET=.*/NEXTAUTH_SECRET=$my_secret/" -e "s/^CALENDSO_ENCRYPTION_KEY=.*/CALENDSO_ENCRYPTION_KEY=$my_encryption_key/" .env
+  - init: yarn && cp .env.example .env && my_secret=$(openssl rand -base64 32) && my_encryption_key=$(openssl rand -base64 24) && sed -i -e "s|^NEXTAUTH_SECRET=.*|NEXTAUTH_SECRET=$my_secret|" -e "s|^CALENDSO_ENCRYPTION_KEY=.*|CALENDSO_ENCRYPTION_KEY=$my_encryption_key|" .env
     command: yarn dx
 
