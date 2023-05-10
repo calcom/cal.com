@@ -111,7 +111,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
           {!isBioEmpty && (
             <>
               <div
-                className=" text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                className="  text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600 break-words"
                 dangerouslySetInnerHTML={{ __html: team.safeBio }}
               />
             </>
