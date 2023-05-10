@@ -388,6 +388,7 @@ const CopyTimes = ({
                   <span className="px-1">{t('select_all')}</span>
                   <input
                     value={t('select_all')}
+                    checked={selected.length === 7}
                     onChange={(e) => {
                       if (e.target.checked) {
                         setSelected([0,1,2,3,4,5,6]);
@@ -407,8 +408,8 @@ const CopyTimes = ({
                 <label className="text-default flex w-full items-center justify-between">
                   <span className="px-1">{weekday}</span>
                   <input
-                    value={weekdayIndex}
-                    defaultChecked={disabled === weekdayIndex}
+                    value={weekdayIndex}                  
+                    checked={selected.includes(weekdayIndex) || disabled === weekdayIndex}
                     disabled={disabled === weekdayIndex}
                     onChange={(e) => {
                       if (e.target.checked && !selected.includes(weekdayIndex)) {
