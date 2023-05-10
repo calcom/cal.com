@@ -1038,7 +1038,6 @@
   "event_cancelled_trigger": "이벤트 취소 시",
   "new_event_trigger": "새 이벤트 예약 시",
   "email_host_action": "호스트에게 이메일 발송",
-  "email_attendee_action": "참석자에게 이메일 발송",
   "sms_attendee_action": "참석자에게 SMS 발송",
   "sms_number_action": "특정 번호로 SMS 발송",
   "workflows": "워크플로",
