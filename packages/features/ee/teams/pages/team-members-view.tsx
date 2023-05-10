@@ -1,13 +1,15 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, Fragment, useTransition } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Meta, TextField, showToast } from "@calcom/ui";
+import { Button, Meta, SkeletonLoader, TextField, showToast } from "@calcom/ui";
 import { Plus } from "@calcom/ui/components/icon";
+
+import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
@@ -19,45 +21,71 @@ type Team = RouterOutputs["viewer"]["teams"]["get"];
 
 interface MembersListProps {
   team: Team | undefined;
+  teamId: number;
 }
 
-const checkIfExist = (comp: string, query: string) =>
-  comp.toLowerCase().replace(/\s+/g, "").includes(query.toLowerCase().replace(/\s+/g, ""));
-
 function MembersList(props: MembersListProps) {
-  const { team } = props;
+  const { team, teamId } = props;
   const { t } = useLocale();
   const [query, setQuery] = useState<string>("");
+  const [isPending, startTransition] = useTransition();
+  const { data, isFetching, hasNextPage, status, fetchNextPage, isFetchingNextPage, isPaused } =
+    trpc.viewer.teams.search.useInfiniteQuery(
+      {
+        teamId,
+        limit: 7,
+        search: query,
+      },
+      {
+        enabled: !isNaN(teamId) && typeof teamId === "number",
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+      }
+    );
 
-  const members = team?.members;
-  const membersList = members
-    ? members && query === ""
-      ? members
-      : members.filter((member) => {
-          const email = member.email ? checkIfExist(member.email, query) : false;
-          const username = member.username ? checkIfExist(member.username, query) : false;
-          const name = member.name ? checkIfExist(member.name, query) : false;
+  const buttonInView = useInViewObserver(() => {
+    if (!isFetching && hasNextPage && status === "success") {
+      fetchNextPage();
+    }
+  });
+  const isEmpty = !data?.pages[0]?.members.length;
 
-          return email || username || name;
-        })
-    : undefined;
   return (
     <div className="flex flex-col gap-y-3">
       <TextField
         type="search"
         autoComplete="false"
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) =>
+          startTransition(() => {
+            setQuery(e.target.value);
+          })
+        }
         value={query}
         defaultValue=""
         placeholder={`${t("search")}...`}
       />
-      {membersList?.length && team ? (
+
+      {(status === "loading" || isPaused) && <SkeletonLoader />}
+
+      {!isEmpty && team ? (
         <ul className="divide-subtle border-subtle divide-y rounded-md border ">
-          {membersList.map((member) => {
-            return <MemberListItem key={member.id} team={team} member={member} />;
-          })}
+          {data.pages.map((group, i) => (
+            <Fragment key={i}>
+              {group.members.map((member) => {
+                return <MemberListItem key={member.id} team={team} member={member} />;
+              })}
+            </Fragment>
+          ))}
         </ul>
       ) : null}
+      <div className="flex items-center justify-center" ref={buttonInView}>
+        <Button
+          color="minimal"
+          loading={isFetchingNextPage || isPending}
+          disabled={!hasNextPage}
+          onClick={() => fetchNextPage()}>
+          {hasNextPage ? t("load_more_results") : t("no_more_results")}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -73,6 +101,7 @@ const MembersView = () => {
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
     { teamId },
     {
+      enabled: !isNaN(teamId) && typeof teamId === "number",
       onError: () => {
         router.push("/settings");
       },
@@ -118,9 +147,7 @@ const MembersView = () => {
               data-testid="new-member-button">
               {t("add")}
             </Button>
-          ) : (
-            <></>
-          )
+          ) : null
         }
       />
       {!isLoading && (
@@ -144,7 +171,7 @@ const MembersView = () => {
                 )}
               </>
             )}
-            <MembersList team={team} />
+            <MembersList teamId={teamId} team={team} />
             <hr className="border-subtle my-8" />
 
             {team && session.data && (
