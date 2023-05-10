@@ -120,7 +120,7 @@ export const getDescription = (calEvent: CalendarEvent) => {
     `;
 };
 export const getLocation = (calEvent: CalendarEvent) => {
-  const meetingUrl = getVideoCallUrl(calEvent);
+  const meetingUrl = getVideoCallUrlFromCalEvent(calEvent);
   if (meetingUrl) {
     return meetingUrl;
   }
@@ -150,7 +150,7 @@ export const getUid = (calEvent: CalendarEvent): string => {
 };
 
 const getSeatReferenceId = (calEvent: CalendarEvent): string => {
-  return calEvent.attendeeSeatId ? `seatReferenceUid=${calEvent.attendeeSeatId}` : "";
+  return calEvent.attendeeSeatId ? calEvent.attendeeSeatId : "";
 };
 
 export const getManageLink = (calEvent: CalendarEvent) => {
@@ -161,12 +161,12 @@ ${WEBAPP_URL + "/booking/" + getUid(calEvent) + "?changes=true"}
 };
 
 export const getCancelLink = (calEvent: CalendarEvent): string => {
-  return (
-    WEBAPP_URL +
-    `/booking/${getUid(
-      calEvent
-    )}?cancel=true&allRemainingBookings=${!!calEvent.recurringEvent}&${getSeatReferenceId}`
-  );
+  const cancelLink = new URL(WEBAPP_URL + `/booking/${getUid(calEvent)}`);
+  cancelLink.searchParams.append("cancel", "true");
+  cancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
+  const seatReferenceUid = getSeatReferenceId(calEvent);
+  if (seatReferenceUid) cancelLink.searchParams.append("seatReferenceUid", seatReferenceUid);
+  return cancelLink.toString();
 };
 
 export const getRescheduleLink = (calEvent: CalendarEvent): string => {
@@ -220,7 +220,7 @@ export const getPublicVideoCallUrl = (calEvent: CalendarEvent): string => {
   return WEBAPP_URL + "/video/" + getUid(calEvent);
 };
 
-export const getVideoCallUrl = (calEvent: CalendarEvent): string => {
+export const getVideoCallUrlFromCalEvent = (calEvent: CalendarEvent): string => {
   if (calEvent.videoCallData) {
     if (isDailyVideoCall(calEvent)) {
       return getPublicVideoCallUrl(calEvent);

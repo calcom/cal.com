@@ -5,7 +5,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 import { CreateButton, showToast, EmptyScreen as ClassicEmptyScreen } from "@calcom/ui";
-import { FiSmartphone, FiMail, FiZap } from "@calcom/ui/components/icon";
+import { Smartphone, Mail, Zap } from "@calcom/ui/components/icon";
 
 type WorkflowExampleType = {
   Icon: SVGComponent;
@@ -61,24 +61,24 @@ export default function EmptyScreen(props: {
   });
 
   const workflowsExamples = [
-    { icon: FiSmartphone, text: t("workflow_example_1") },
-    { icon: FiSmartphone, text: t("workflow_example_2") },
-    { icon: FiMail, text: t("workflow_example_3") },
-    { icon: FiMail, text: t("workflow_example_4") },
-    { icon: FiMail, text: t("workflow_example_5") },
-    { icon: FiSmartphone, text: t("workflow_example_6") },
+    { icon: Smartphone, text: t("workflow_example_1") },
+    { icon: Smartphone, text: t("workflow_example_2") },
+    { icon: Mail, text: t("workflow_example_3") },
+    { icon: Mail, text: t("workflow_example_4") },
+    { icon: Mail, text: t("workflow_example_5") },
+    { icon: Smartphone, text: t("workflow_example_6") },
   ];
-  // new workflow example when 'after meetings ends' trigger is implemented: Send custom thank you email to attendee after event (FiSmile icon),
+  // new workflow example when 'after meetings ends' trigger is implemented: Send custom thank you email to attendee after event (Smile icon),
 
   if (props.isFilteredView) {
-    return <ClassicEmptyScreen Icon={FiZap} headline={t("no_workflows")} description={t("change_filter")} />;
+    return <ClassicEmptyScreen Icon={Zap} headline={t("no_workflows")} description={t("change_filter")} />;
   }
 
   return (
     <>
       <div className="min-h-80 flex w-full flex-col items-center justify-center rounded-md ">
         <div className="bg-emphasis flex h-[72px] w-[72px] items-center justify-center rounded-full">
-          <FiZap className="dark:text-default inline-block h-10 w-10 stroke-[1.3px]" />
+          <Zap className="dark:text-default inline-block h-10 w-10 stroke-[1.3px]" />
         </div>
         <div className="max-w-[420px] text-center">
           <h2 className="text-semibold font-cal mt-6 text-xl dark:text-gray-300">{t("workflows")}</h2>

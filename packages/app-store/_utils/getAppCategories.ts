@@ -1,5 +1,5 @@
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { FiCalendar, FiVideo, FiCreditCard, FiShare2, FiBarChart, FiGrid } from "@calcom/ui/components/icon";
+import { Calendar, Video, CreditCard, Share2, BarChart, Grid } from "@calcom/ui/components/icon";
 
 function getHref(baseURL: string, category: string, useQueryParam: boolean) {
   const baseUrlParsed = new URL(baseURL, WEBAPP_URL);
@@ -12,37 +12,37 @@ const getAppCategories = (baseURL: string, useQueryParam: boolean) => {
     {
       name: "calendar",
       href: getHref(baseURL, "calendar", useQueryParam),
-      icon: FiCalendar,
+      icon: Calendar,
     },
     {
       name: "conferencing",
       href: getHref(baseURL, "conferencing", useQueryParam),
-      icon: FiVideo,
+      icon: Video,
     },
     {
       name: "payment",
       href: getHref(baseURL, "payment", useQueryParam),
-      icon: FiCreditCard,
+      icon: CreditCard,
     },
     {
       name: "automation",
       href: getHref(baseURL, "automation", useQueryParam),
-      icon: FiShare2,
+      icon: Share2,
     },
     {
       name: "analytics",
       href: getHref(baseURL, "analytics", useQueryParam),
-      icon: FiBarChart,
+      icon: BarChart,
     },
     {
       name: "web3",
       href: getHref(baseURL, "web3", useQueryParam),
-      icon: FiBarChart,
+      icon: BarChart,
     },
     {
       name: "other",
       href: getHref(baseURL, "other", useQueryParam),
-      icon: FiGrid,
+      icon: Grid,
     },
   ];
 };

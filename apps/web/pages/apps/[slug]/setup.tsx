@@ -4,6 +4,9 @@ import { useRouter } from "next/router";
 
 import { AppSetupPage } from "@calcom/app-store/_pages/setup";
 import { getStaticProps } from "@calcom/app-store/_pages/setup/_getStaticProps";
+import { HeadSeo } from "@calcom/ui";
+
+import PageWrapper from "@components/PageWrapper";
 
 export default function SetupInformation(props: InferGetStaticPropsType<typeof getStaticProps>) {
   const router = useRouter();
@@ -23,8 +26,16 @@ export default function SetupInformation(props: InferGetStaticPropsType<typeof g
     });
   }
 
-  return <AppSetupPage slug={slug} {...props} />;
+  return (
+    <>
+      {/* So that the set up page does not get indexed by search engines */}
+      <HeadSeo nextSeoProps={{ noindex: true, nofollow: true }} title={`${slug} | Cal.com`} description="" />
+      <AppSetupPage slug={slug} {...props} />
+    </>
+  );
 }
+
+SetupInformation.PageWrapper = PageWrapper;
 
 export const getStaticPaths: GetStaticPaths = async () => {
   return {

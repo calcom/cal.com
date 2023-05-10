@@ -17,7 +17,7 @@ import {
   Tooltip,
   Badge,
 } from "@calcom/ui";
-import { FiEdit2, FiLink, FiMoreHorizontal, FiTrash2 } from "@calcom/ui/components/icon";
+import { Edit2, Link as LinkIcon, MoreHorizontal, Trash2 } from "@calcom/ui/components/icon";
 
 import { getActionIcon } from "../lib/getActionIcon";
 import { DeleteDialog } from "./DeleteDialog";
@@ -116,13 +116,13 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                                   <p key={key}>{activeOn.eventType.title}</p>
                                 ))}>
                                 <div>
-                                  <FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                  <LinkIcon className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                                   {t("active_on_event_types", { count: workflow.activeOn.length })}
                                 </div>
                               </Tooltip>
                             ) : (
                               <div>
-                                <FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                <LinkIcon className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                                 {t("no_active_event_types")}
                               </div>
                             )}
@@ -147,7 +147,7 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                             type="button"
                             color="secondary"
                             variant="icon"
-                            StartIcon={FiEdit2}
+                            StartIcon={Edit2}
                             disabled={workflow.readOnly}
                             onClick={async () => await router.replace("/workflows/" + workflow.id)}
                           />
@@ -161,7 +161,7 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                             color="secondary"
                             variant="icon"
                             disabled={workflow.readOnly}
-                            StartIcon={FiTrash2}
+                            StartIcon={Trash2}
                           />
                         </Tooltip>
                       </ButtonGroup>
@@ -170,18 +170,13 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                       <div className="block sm:hidden">
                         <Dropdown>
                           <DropdownMenuTrigger asChild>
-                            <Button
-                              type="button"
-                              color="minimal"
-                              variant="icon"
-                              StartIcon={FiMoreHorizontal}
-                            />
+                            <Button type="button" color="minimal" variant="icon" StartIcon={MoreHorizontal} />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
                             <DropdownMenuItem>
                               <DropdownItem
                                 type="button"
-                                StartIcon={FiEdit2}
+                                StartIcon={Edit2}
                                 onClick={async () => await router.replace("/workflows/" + workflow.id)}>
                                 {t("edit")}
                               </DropdownItem>
@@ -190,7 +185,7 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                               <DropdownItem
                                 type="button"
                                 color="destructive"
-                                StartIcon={FiTrash2}
+                                StartIcon={Trash2}
                                 onClick={() => {
                                   setDeleteDialogOpen(true);
                                   setwWorkflowToDeleteId(workflow.id);

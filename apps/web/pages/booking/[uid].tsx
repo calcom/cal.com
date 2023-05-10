@@ -1,4 +1,3 @@
-import { BookingStatus } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
@@ -23,9 +22,12 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getBookingWithResponses } from "@calcom/features/bookings/lib/get-booking";
 import {
   SystemField,
   getBookingFieldsWithSystemFields,
+  SMS_REMINDER_NUMBER_FIELD,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -35,25 +37,25 @@ import {
   formatToLocalizedTimezone,
 } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import { getBookingWithResponses } from "@calcom/lib/getBooking";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Button, EmailInput, HeadSeo, Badge, useCalcomTheme } from "@calcom/ui";
-import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
+import { X, ExternalLink, ChevronLeft, Check, Calendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import PageWrapper from "@components/PageWrapper";
 import CancelBooking from "@components/booking/CancelBooking";
 import EventReservationSchema from "@components/schemas/EventReservationSchema";
 
@@ -106,10 +108,10 @@ export default function Success(props: SuccessProps) {
     seatReferenceUid,
   } = querySchema.parse(router.query);
 
-  const tz =
-    (isSuccessBookingPage
-      ? props.bookingInfo.attendees.find((attendee) => attendee.email === email)?.timeZone
-      : props.bookingInfo.eventType?.timeZone || props.bookingInfo.user?.timeZone) || timeZone();
+  const attendeeTimeZone = props?.bookingInfo?.attendees.find(
+    (attendee) => attendee.email === email
+  )?.timeZone;
+  const tz = isSuccessBookingPage && attendeeTimeZone ? attendeeTimeZone : props.tz ? props.tz : timeZone();
 
   const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
 
@@ -177,7 +179,7 @@ export default function Success(props: SuccessProps) {
   // - Event Type has require confirmation option enabled always
   // - EventType has conditionally enabled confirmation option based on how far the booking is scheduled.
   // - It's a paid event and payment is pending.
-  const needsConfirmation = bookingInfo.status === BookingStatus.PENDING;
+  const needsConfirmation = bookingInfo.status === BookingStatus.PENDING && eventType.requiresConfirmation;
   const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
 
   const isCancelled =
@@ -186,13 +188,13 @@ export default function Success(props: SuccessProps) {
     (!!seatReferenceUid &&
       !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid));
 
-  const telemetry = useTelemetry();
-  useEffect(() => {
+  // const telemetry = useTelemetry();
+  /*  useEffect(() => {
     if (top !== window) {
       //page_view will be collected automatically by _middleware.ts
       telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/booking"));
     }
-  }, [telemetry]);
+  }, [telemetry]); */
 
   useEffect(() => {
     const users = eventType.users;
@@ -269,7 +271,9 @@ export default function Success(props: SuccessProps) {
     return t("emailed_you_and_attendees" + titleSuffix);
   }
 
-  useTheme(isSuccessBookingPage ? props.profile.theme : "light");
+  // This is a weird case where the same route can be opened in booking flow as a success page or as a booking detail page from the app
+  // As Booking Page it has to support configured theme, but as booking detail page it should not do any change. Let Shell.tsx handle it.
+  useTheme(isSuccessBookingPage ? props.profile.theme : undefined);
   useBrandColors({
     brandColor: props.profile.brandColor,
     darkBrandColor: props.profile.darkBrandColor,
@@ -305,8 +309,8 @@ export default function Success(props: SuccessProps) {
         <div className="mt-2 ml-4 -mb-4">
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
-            className="hover:bg-subtle text-subtle dark:hover:text-inverted hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
-            <FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
+            className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
+            <ChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
           </Link>
         </div>
       )}
@@ -325,7 +329,7 @@ export default function Success(props: SuccessProps) {
               <div
                 className={classNames(
                   "main inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
-                  isBackgroundTransparent ? "" : " bg-default dark:bg-muted border-subtle",
+                  !isBackgroundTransparent && " bg-default dark:bg-muted border-booker border-booker-width",
                   "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
@@ -347,10 +351,10 @@ export default function Success(props: SuccessProps) {
                     <img src={giphyImage} alt="Gif from Giphy" />
                   )}
                   {!giphyImage && !needsConfirmation && !isCancelled && (
-                    <FiCheck className="h-5 w-5 text-green-600" />
+                    <Check className="h-5 w-5 text-green-600" />
                   )}
-                  {needsConfirmation && !isCancelled && <FiCalendar className="text-emphasis h-5 w-5" />}
-                  {isCancelled && <FiX className="h-5 w-5 text-red-600" />}
+                  {needsConfirmation && !isCancelled && <Calendar className="text-emphasis h-5 w-5" />}
+                  {isCancelled && <X className="h-5 w-5 text-red-600" />}
                 </div>
                 <div className="mt-6 mb-8 text-center last:mb-0">
                   <h3
@@ -458,7 +462,7 @@ export default function Success(props: SuccessProps) {
                               className="text-default flex items-center gap-2 underline"
                               rel="noreferrer">
                               {providerName || "Link"}
-                              <FiExternalLink className="text-default inline h-4 w-4" />
+                              <ExternalLink className="text-default inline h-4 w-4" />
                             </a>
                           ) : (
                             locationToDisplay
@@ -484,7 +488,8 @@ export default function Success(props: SuccessProps) {
                       // We show rescheduleReason at the top
                       if (!field) return null;
                       const isSystemField = SystemField.safeParse(field.name);
-                      if (isSystemField.success) return null;
+                      // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
+                      if (isSystemField.success && field.name !== SMS_REMINDER_NUMBER_FIELD) return null;
 
                       const label = field.label || t(field.defaultLabel || "");
 
@@ -706,6 +711,9 @@ export default function Success(props: SuccessProps) {
   );
 }
 
+Success.isBookingPage = true;
+Success.PageWrapper = PageWrapper;
+
 type RecurringBookingsProps = {
   eventType: SuccessProps["eventType"];
   recurringBookings: SuccessProps["recurringBookings"];
@@ -885,16 +893,31 @@ const getEventTypesFromDB = async (id: number) => {
   };
 };
 
-const handleSeatsEventTypeOnBooking = (
+const handleSeatsEventTypeOnBooking = async (
   eventType: {
     seatsPerTimeSlot?: number | null;
     seatsShowAttendees: boolean | null;
     [x: string | number | symbol]: unknown;
   },
   bookingInfo: Partial<
-    Prisma.BookingGetPayload<{ include: { attendees: { select: { name: true; email: true } } } }>
+    Prisma.BookingGetPayload<{
+      include: {
+        attendees: { select: { name: true; email: true } };
+        seatsReferences: { select: { referenceUid: true } };
+        user: {
+          select: {
+            id: true;
+            name: true;
+            email: true;
+            username: true;
+            timeZone: true;
+          };
+        };
+      };
+    }>
   >,
-  email: string
+  seatReferenceUid?: string,
+  userId?: number
 ) => {
   if (eventType?.seatsPerTimeSlot !== null) {
     // @TODO: right now bookings with seats doesn't save every description that its entered by every user
@@ -902,21 +925,52 @@ const handleSeatsEventTypeOnBooking = (
   } else {
     return;
   }
+  // @TODO: If handling teams, we need to do more check ups for this.
+  if (bookingInfo?.user?.id === userId) {
+    return;
+  }
+
   if (!eventType.seatsShowAttendees) {
-    const attendee = bookingInfo?.attendees?.find((a) => {
-      return a.email === email;
+    const seatAttendee = await prisma.bookingSeat.findFirst({
+      where: {
+        referenceUid: seatReferenceUid,
+      },
+      include: {
+        attendee: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
     });
 
-    bookingInfo["attendees"] = attendee ? [attendee] : [];
+    if (seatAttendee) {
+      const attendee = bookingInfo?.attendees?.find((a) => {
+        return a.email === seatAttendee.attendee?.email;
+      });
+      bookingInfo["attendees"] = attendee ? [attendee] : [];
+    } else {
+      bookingInfo["attendees"] = [];
+    }
   }
   return bookingInfo;
 };
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
+  const session = await getServerSession(context);
+  let tz: string | null = null;
+
+  if (session) {
+    const user = await ssr.viewer.me.fetch();
+    tz = user.timeZone;
+  }
+
   const parsedQuery = querySchema.safeParse(context.query);
+
   if (!parsedQuery.success) return { notFound: true };
-  const { uid, email, eventTypeSlug, cancel, isSuccessBookingPage } = parsedQuery.data;
+  const { uid, eventTypeSlug, seatReferenceUid } = parsedQuery.data;
 
   const bookingInfoRaw = await prisma.booking.findFirst({
     where: {
@@ -1022,8 +1076,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
 
-  if (bookingInfo !== null && email && eventType.seatsPerTimeSlot) {
-    handleSeatsEventTypeOnBooking(eventType, bookingInfo, email);
+  if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
+    await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, session?.user.id);
   }
 
   const payment = await prisma.payment.findFirst({
@@ -1046,6 +1100,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
       paymentStatus: payment,
+      ...(tz && { tz }),
     },
   };
 }

@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { Fragment } from "react";
 
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
+import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
@@ -24,11 +25,11 @@ import {
   SkeletonText,
   showToast,
 } from "@calcom/ui";
-import { FiPlus, FiCalendar } from "@calcom/ui/components/icon";
+import { Plus, Calendar } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
-import { CalendarSwitch } from "@components/settings/CalendarSwitch";
+import PageWrapper from "@components/PageWrapper";
 
 const SkeletonLoader = () => {
   return (
@@ -50,7 +51,7 @@ const AddCalendarButton = () => {
 
   return (
     <>
-      <Button color="secondary" StartIcon={FiPlus} href="/apps/categories/calendar">
+      <Button color="secondary" StartIcon={Plus} href="/apps/categories/calendar">
         {t("add_calendar")}
       </Button>
     </>
@@ -87,7 +88,7 @@ const CalendarsView = () => {
             <div>
               <div className="bg-muted border-subtle mt-4 flex space-x-4 rounded-md p-2 sm:mx-0 sm:p-10 md:border md:p-6 xl:mt-0">
                 <div className=" bg-default border-subtle flex h-9 w-9 items-center justify-center rounded-md border-2 p-[6px]">
-                  <FiCalendar className="text-default h-6 w-6" />
+                  <Calendar className="text-default h-6 w-6" />
                 </div>
 
                 <div className="flex w-full flex-col space-y-3">
@@ -177,15 +178,17 @@ const CalendarsView = () => {
                         </div>
                         <div className="border-subtle w-full border-t">
                           <p className="text-subtle px-2 pt-4 text-sm">{t("toggle_calendars_conflict")}</p>
-                          <ul className="space-y-2 p-4">
+                          <ul className="space-y-4 p-4">
                             {item.calendars.map((cal) => (
                               <CalendarSwitch
                                 key={cal.externalId}
                                 externalId={cal.externalId}
                                 title={cal.name || "Nameless calendar"}
+                                name={cal.name || "Nameless calendar"}
                                 type={item.integration.type}
-                                isSelected={cal.isSelected}
-                                defaultSelected={cal.externalId === data?.destinationCalendar?.externalId}
+                                isChecked={
+                                  cal.isSelected || cal.externalId === data?.destinationCalendar?.externalId
+                                }
                               />
                             ))}
                           </ul>
@@ -198,7 +201,7 @@ const CalendarsView = () => {
             </div>
           ) : (
             <EmptyScreen
-              Icon={FiCalendar}
+              Icon={Calendar}
               headline={t("no_calendar_installed")}
               description={t("no_calendar_installed_description")}
               buttonText={t("add_a_calendar")}
@@ -228,5 +231,6 @@ const CalendarsView = () => {
 };
 
 CalendarsView.getLayout = getLayout;
+CalendarsView.PageWrapper = PageWrapper;
 
 export default CalendarsView;

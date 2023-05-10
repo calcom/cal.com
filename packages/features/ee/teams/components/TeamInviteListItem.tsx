@@ -1,8 +1,7 @@
-import type { MembershipRole } from "@prisma/client";
-
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
@@ -13,7 +12,7 @@ import {
   DropdownItem,
   DropdownMenuTrigger,
 } from "@calcom/ui";
-import { FiSlash, FiCheck, FiMoreHorizontal, FiX } from "@calcom/ui/components/icon";
+import { Slash, Check, MoreHorizontal, X } from "@calcom/ui/components/icon";
 
 interface Props {
   team: {
@@ -93,7 +92,7 @@ export default function TeamInviteListItem(props: Props) {
                 variant="icon"
                 color="secondary"
                 onClick={declineInvite}
-                StartIcon={FiSlash}
+                StartIcon={Slash}
               />
               <Button
                 type="button"
@@ -101,22 +100,22 @@ export default function TeamInviteListItem(props: Props) {
                 variant="icon"
                 color="secondary"
                 onClick={acceptInvite}
-                StartIcon={FiCheck}
+                StartIcon={Check}
               />
             </div>
             <div className="block sm:hidden">
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" color="minimal" variant="icon" StartIcon={FiMoreHorizontal} />
+                  <Button type="button" color="minimal" variant="icon" StartIcon={MoreHorizontal} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem>
-                    <DropdownItem type="button" StartIcon={FiCheck} onClick={acceptInvite}>
+                    <DropdownItem type="button" StartIcon={Check} onClick={acceptInvite}>
                       {t("accept")}
                     </DropdownItem>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <DropdownItem color="destructive" type="button" StartIcon={FiX} onClick={declineInvite}>
+                    <DropdownItem color="destructive" type="button" StartIcon={X} onClick={declineInvite}>
                       {t("reject")}
                     </DropdownItem>
                   </DropdownMenuItem>

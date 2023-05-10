@@ -20,6 +20,19 @@ function App() {
         action: "*",
         callback,
       });
+
+      api("ui", {
+        cssVarsPerTheme: {
+          light: {
+            "cal-border-booker": "red",
+            "cal-border-booker-width": "20px",
+          },
+          dark: {
+            "cal-border-booker": "red",
+            "cal-border-booker-width": "5px",
+          },
+        },
+      });
     });
     return () => {
       api.then((api) => {

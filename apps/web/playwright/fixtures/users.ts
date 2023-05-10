@@ -1,11 +1,12 @@
 import type { Page, WorkerInfo } from "@playwright/test";
 import type Prisma from "@prisma/client";
-import { MembershipRole, Prisma as PrismaType } from "@prisma/client";
+import { Prisma as PrismaType } from "@prisma/client";
 import { hashSync as hash } from "bcryptjs";
 
 import dayjs from "@calcom/dayjs";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import type { TimeZoneEnum } from "./types";
 
@@ -268,6 +269,9 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     routingForms: user.routingForms,
     self,
     login: async () => login({ ...(await self()), password: user.username }, store.page),
+    logout: async () => {
+      await page.goto("/auth/logout");
+    },
     getPaymentCredential: async () => getPaymentCredential(store.page),
     // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
     debug: async (message: string | Record<string, JSONValue>) => {
@@ -333,9 +337,8 @@ export async function login(
   await passwordLocator.fill(user.password ?? user.username!);
   await signInLocator.click();
 
-  // 2 seconds of delay to give the session enough time for a clean load
-  // eslint-disable-next-line playwright/no-wait-for-timeout
-  await page.waitForTimeout(2000);
+  // Moving away from waiting 2 seconds, as it is not a reliable way to expect session to be started
+  await page.waitForLoadState("networkidle");
 }
 
 export async function getPaymentCredential(page: Page) {
@@ -343,12 +346,12 @@ export async function getPaymentCredential(page: Page) {
 
   /** We start the Stripe flow */
   await Promise.all([
-    page.waitForNavigation({ url: "https://connect.stripe.com/oauth/v2/authorize?*" }),
+    page.waitForURL("https://connect.stripe.com/oauth/v2/authorize?*"),
     page.click('[data-testid="install-app-button"]'),
   ]);
 
   await Promise.all([
-    page.waitForNavigation({ url: "/apps/installed/payment?hl=stripe" }),
+    page.waitForURL("/apps/installed/payment?hl=stripe"),
     /** We skip filling Stripe forms (testing mode only) */
     page.click('[id="skip-account-app"]'),
   ]);

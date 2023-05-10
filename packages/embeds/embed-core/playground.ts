@@ -4,14 +4,7 @@ type A = GlobalCalWithoutNs;
 const Cal = window.Cal as GlobalCal;
 const callback = function (e) {
   const detail = e.detail;
-  const namespace = detail.namespace || "default";
-
-  if (detail.type === "linkReady") {
-    document.querySelector(`#cal-booking-place-${namespace} .loader`).remove();
-  } else if (detail.type === "linkFailed") {
-    document.querySelector(`#cal-booking-place-${namespace} .loader`).remove();
-  }
-  document.querySelector(`#cal-booking-place-${namespace} .last-action`).innerHTML = JSON.stringify(e.detail);
+  console.log("Event: ", e.type, detail);
 };
 
 const searchParams = new URL(document.URL).searchParams;

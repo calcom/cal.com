@@ -1,7 +1,7 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Dialog, DialogContent, showToast, DialogFooter, DialogClose } from "@calcom/ui";
-import { FiAlertCircle } from "@calcom/ui/components/icon";
+import { AlertCircle } from "@calcom/ui/components/icon";
 
 interface DisconnectIntegrationModalProps {
   credentialId: number | null;
@@ -36,7 +36,7 @@ export default function DisconnectIntegrationModal({
         title={t("remove_app")}
         description={t("are_you_sure_you_want_to_remove_this_app")}
         type="confirmation"
-        Icon={FiAlertCircle}>
+        Icon={AlertCircle}>
         <DialogFooter>
           <DialogClose onClick={handleModelClose} />
           <DialogClose

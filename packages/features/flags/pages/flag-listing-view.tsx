@@ -2,7 +2,7 @@ import { Suspense } from "react";
 
 import NoSSR from "@calcom/core/components/NoSSR";
 import { Meta } from "@calcom/ui";
-import { FiLoader } from "@calcom/ui/components/icon";
+import { Loader } from "@calcom/ui/components/icon";
 
 import { FlagAdminList } from "../components/FlagAdminList";
 
@@ -11,7 +11,7 @@ export const FlagListingView = () => {
     <>
       <Meta title="Feature Flags" description="Here you can toggle your Cal.com instance features." />
       <NoSSR>
-        <Suspense fallback={<FiLoader />}>
+        <Suspense fallback={<Loader />}>
           <FlagAdminList />
         </Suspense>
       </NoSSR>

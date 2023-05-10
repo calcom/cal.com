@@ -1,10 +1,10 @@
 ---
 items:
-  - /api/app-store/closecom/1.jpg
-  - /api/app-store/closecom/2.jpg
-  - /api/app-store/closecom/3.jpg
-  - /api/app-store/closecom/4.jpg
-  - /api/app-store/closecom/5.jpg
+  - 1.jpg
+  - 2.jpg
+  - 3.jpg
+  - 4.jpg
+  - 5.jpg
 ---
 
 - Close is a modern CRM with build-in sales communication tools for email, phone, SMS, and meetings.

@@ -1,6 +1,6 @@
+import type { LucideIcon as IconType } from "lucide-react";
 import type { ReactNode } from "react";
 import React from "react";
-import type { IconType } from "react-icons";
 
 import { classNames } from "@calcom/lib";
 import type { SVGComponent } from "@calcom/types/SVGComponent";

@@ -9,6 +9,7 @@ import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } fr
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import PageWrapper from "@components/PageWrapper";
 import BookingPage from "@components/booking/pages/BookingPage";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -18,6 +19,9 @@ export type HashLinkPageProps = inferSSRProps<typeof getServerSideProps>;
 export default function Book(props: HashLinkPageProps) {
   return <BookingPage {...props} />;
 }
+
+Book.isBookingPage = true;
+Book.PageWrapper = PageWrapper;
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);

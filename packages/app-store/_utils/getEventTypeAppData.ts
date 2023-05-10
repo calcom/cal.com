@@ -15,7 +15,13 @@ export const getEventTypeAppData = <T extends EventTypeAppsList>(
   const appMetadata = metadata?.apps && metadata.apps[appId];
   if (appMetadata) {
     const allowDataGet = forcedGet ? true : appMetadata.enabled;
-    return allowDataGet ? appMetadata : null;
+    return allowDataGet
+      ? {
+          ...appMetadata,
+          // trackingId is legacy way to store value for TRACKING_ID. So, we need to support both.
+          TRACKING_ID: appMetadata.TRACKING_ID || appMetadata.trackingId,
+        }
+      : null;
   }
 
   // Backward compatibility for existing event types.
@@ -23,7 +29,7 @@ export const getEventTypeAppData = <T extends EventTypeAppsList>(
   // Migration isn't being done right now, to allow a revert if needed
   const legacyAppsData = {
     stripe: {
-      enabled: eventType.price > 0,
+      enabled: !!eventType.price,
       // Price default is 0 in DB. So, it would always be non nullish.
       price: eventType.price,
       // Currency default is "usd" in DB.So, it would also be available always

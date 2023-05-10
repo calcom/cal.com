@@ -8,13 +8,14 @@ import z from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, EmailField, Form, PasswordField, SelectField, Switch, TextField } from "@calcom/ui";
 
-import { ExchangeAuthentication } from "../../enums";
+import { ExchangeAuthentication, ExchangeVersion } from "../../enums";
 
 interface IFormData {
   url: string;
   username: string;
   password: string;
   authenticationMethod: ExchangeAuthentication;
+  exchangeVersion: ExchangeVersion;
   useCompression: boolean;
 }
 
@@ -24,6 +25,7 @@ const schema = z
     username: z.string().email(),
     password: z.string(),
     authenticationMethod: z.number().default(ExchangeAuthentication.STANDARD),
+    exchangeVersion: z.number().default(ExchangeVersion.Exchange2016),
     useCompression: z.boolean().default(false),
   })
   .strict();
@@ -33,13 +35,27 @@ export default function ExchangeSetup() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState("");
   const form = useForm<IFormData>({
-    defaultValues: { authenticationMethod: ExchangeAuthentication.STANDARD },
+    defaultValues: {
+      authenticationMethod: ExchangeAuthentication.STANDARD,
+      exchangeVersion: ExchangeVersion.Exchange2016,
+    },
     resolver: zodResolver(schema),
   });
   const authenticationMethods = [
     { value: ExchangeAuthentication.STANDARD, label: t("exchange_authentication_standard") },
     { value: ExchangeAuthentication.NTLM, label: t("exchange_authentication_ntlm") },
   ];
+  const exchangeVersions = [
+    { value: ExchangeVersion.Exchange2007_SP1, label: t("exchange_version_2007_SP1") },
+    { value: ExchangeVersion.Exchange2010, label: t("exchange_version_2010") },
+    { value: ExchangeVersion.Exchange2010_SP1, label: t("exchange_version_2010_SP1") },
+    { value: ExchangeVersion.Exchange2010_SP2, label: t("exchange_version_2010_SP2") },
+    { value: ExchangeVersion.Exchange2013, label: t("exchange_version_2013") },
+    { value: ExchangeVersion.Exchange2013_SP1, label: t("exchange_version_2013_SP1") },
+    { value: ExchangeVersion.Exchange2015, label: t("exchange_version_2015") },
+    { value: ExchangeVersion.Exchange2016, label: t("exchange_version_2016") },
+  ];
+
   return (
     <>
       <div className="bg-emphasis flex h-screen">
@@ -107,6 +123,21 @@ export default function ExchangeSetup() {
                           onChange={async (authentication) => {
                             onChange(authentication?.value);
                             form.setValue("authenticationMethod", authentication!.value);
+                          }}
+                        />
+                      )}
+                    />
+                    <Controller
+                      name="exchangeVersion"
+                      control={form.control}
+                      render={({ field: { onChange } }) => (
+                        <SelectField
+                          label={t("exchange_version")}
+                          options={exchangeVersions}
+                          defaultValue={exchangeVersions[7]}
+                          onChange={async (version) => {
+                            onChange(version?.value);
+                            form.setValue("exchangeVersion", version!.value);
                           }}
                         />
                       )}

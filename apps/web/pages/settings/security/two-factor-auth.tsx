@@ -5,6 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge, Meta, Switch, SkeletonButton, SkeletonContainer, SkeletonText, Alert } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
 import DisableTwoFactorModal from "@components/settings/DisableTwoFactorModal";
 import EnableTwoFactorModal from "@components/settings/EnableTwoFactorModal";
 
@@ -45,10 +46,10 @@ const TwoFactorAuthView = () => {
             user?.twoFactorEnabled ? setDisableModalOpen(true) : setEnableModalOpen(true)
           }
         />
-        <div>
+        <div className="!mx-4">
           <div className="flex">
             <p className="text-default font-semibold">{t("two_factor_auth")}</p>
-            <Badge className="ml-2 text-xs" variant={user?.twoFactorEnabled ? "success" : "gray"}>
+            <Badge className="mx-2 text-xs" variant={user?.twoFactorEnabled ? "success" : "gray"}>
               {user?.twoFactorEnabled ? t("enabled") : t("disabled")}
             </Badge>
           </div>
@@ -84,5 +85,6 @@ const TwoFactorAuthView = () => {
 };
 
 TwoFactorAuthView.getLayout = getLayout;
+TwoFactorAuthView.PageWrapper = PageWrapper;
 
 export default TwoFactorAuthView;

@@ -1,5 +1,4 @@
-import type { WebhookTriggerEvents, WorkflowReminder, Prisma } from "@prisma/client";
-import { BookingStatus, MembershipRole, WorkflowMethods } from "@prisma/client";
+import type { Prisma, WebhookTriggerEvents, WorkflowReminder } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import appStore from "@calcom/app-store";
@@ -22,8 +21,10 @@ import { HttpError } from "@calcom/lib/http-error";
 import { handleRefundError } from "@calcom/lib/payment/handleRefundError";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { BookingStatus, MembershipRole, WorkflowMethods } from "@calcom/prisma/enums";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 async function getBookingToDelete(id: number | undefined, uid: string | undefined) {
   return await prisma.booking.findUnique({
@@ -38,7 +39,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       user: {
         select: {
           id: true,
-          credentials: true,
+          credentials: true, // Not leaking at the moment, be careful with
           email: true,
           timeZone: true,
           name: true,
@@ -58,6 +59,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       paid: true,
       eventType: {
         select: {
+          slug: true,
           owner: true,
           teamId: true,
           recurringEvent: true,
@@ -331,11 +333,15 @@ async function handler(req: CustomRequest) {
 
   //Workflows - schedule reminders
   if (bookingToDelete.eventType?.workflows) {
-    await sendCancelledReminders(
-      bookingToDelete.eventType?.workflows,
-      bookingToDelete.smsReminderNumber,
-      evt
-    );
+    await sendCancelledReminders({
+      workflows: bookingToDelete.eventType?.workflows,
+      smsReminderNumber: bookingToDelete.smsReminderNumber,
+      evt: {
+        ...evt,
+        ...{ eventType: { slug: bookingToDelete.eventType.slug } },
+      },
+      hideBranding: !!bookingToDelete.eventType.owner?.hideBranding,
+    });
   }
 
   let updatedBookings: {
@@ -586,14 +592,16 @@ async function handler(req: CustomRequest) {
     }
 
     // Posible to refactor TODO:
-    const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore];
+    const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore]();
     if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
       console.warn(`payment App service of type ${paymentApp} is not implemented`);
       return null;
     }
 
-    const PaymentService = paymentApp.lib.PaymentService;
-    const paymentInstance = new PaymentService(paymentAppCredential);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const PaymentService = paymentApp.lib.PaymentService as unknown as any;
+    const paymentInstance = new PaymentService(paymentAppCredential) as IAbstractPaymentService;
+
     try {
       await paymentInstance.refund(successPayment.id);
     } catch (error) {

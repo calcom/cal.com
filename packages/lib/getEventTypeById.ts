@@ -10,6 +10,7 @@ import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -35,7 +36,6 @@ export default async function getEventTypeById({
     name: true,
     username: true,
     id: true,
-    avatar: true,
     email: true,
     locale: true,
     defaultScheduleId: true,
@@ -114,7 +114,14 @@ export default async function getEventTypeById({
             select: {
               role: true,
               user: {
-                select: userSelect,
+                select: {
+                  ...userSelect,
+                  eventTypes: {
+                    select: {
+                      slug: true,
+                    },
+                  },
+                },
               },
             },
           },
@@ -127,6 +134,7 @@ export default async function getEventTypeById({
       schedule: {
         select: {
           id: true,
+          name: true,
         },
       },
       hosts: {
@@ -137,6 +145,20 @@ export default async function getEventTypeById({
       },
       userId: true,
       price: true,
+      children: {
+        select: {
+          owner: {
+            select: {
+              name: true,
+              username: true,
+              email: true,
+              id: true,
+            },
+          },
+          hidden: true,
+          slug: true,
+        },
+      },
       destinationCalendar: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
@@ -235,12 +257,31 @@ export default async function getEventTypeById({
   const eventType = {
     ...restEventType,
     schedule: rawEventType.schedule?.id || rawEventType.users[0]?.defaultScheduleId || null,
+    scheduleName: rawEventType.schedule?.name || null,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     bookingLimits: parseBookingLimit(restEventType.bookingLimits),
     durationLimits: parseDurationLimit(restEventType.durationLimits),
     locations: locations as unknown as LocationObject[],
     metadata: parsedMetaData,
     customInputs: parsedCustomInputs,
+    users: rawEventType.users,
+    children: restEventType.children.flatMap((ch) =>
+      ch.owner !== null
+        ? {
+            ...ch,
+            owner: {
+              ...ch.owner,
+              email: ch.owner.email,
+              name: ch.owner.name ?? "",
+              username: ch.owner.username ?? "",
+              membership:
+                restEventType.team?.members.find((tm) => tm.user.id === ch.owner?.id)?.role ||
+                MembershipRole.MEMBER,
+            },
+            created: true,
+          }
+        : []
+    ),
   };
 
   // backwards compat
@@ -263,12 +304,33 @@ export default async function getEventTypeById({
     }
     eventType.users.push(fallbackUser);
   }
+
+  const eventTypeUsers: ((typeof eventType.users)[number] & { avatar: string })[] = eventType.users.map(
+    (user) => ({
+      ...user,
+      avatar: `${CAL_URL}/${user.username}/avatar.png`,
+    })
+  );
+
   const currentUser = eventType.users.find((u) => u.id === userId);
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const integrations = await getEnabledApps(credentials);
   const locationOptions = getLocationGroupedOptions(integrations, t);
+  if (eventType.schedulingType === SchedulingType.MANAGED) {
+    locationOptions.splice(0, 0, {
+      label: t("default"),
+      options: [
+        {
+          label: t("members_default_location"),
+          value: "",
+          icon: "/user-check.svg",
+        },
+      ],
+    });
+  }
 
   const eventTypeObject = Object.assign({}, eventType, {
+    users: eventTypeUsers,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
     bookingFields: getBookingFieldsWithSystemFields(eventType),
@@ -276,13 +338,15 @@ export default async function getEventTypeById({
 
   const teamMembers = eventTypeObject.team
     ? eventTypeObject.team.members.map((member) => {
-        const user = member.user;
-        user.avatar = `${CAL_URL}/${user.username}/avatar.png`;
-        return user;
+        const user: typeof member.user & { avatar: string } = {
+          ...member.user,
+          avatar: `${CAL_URL}/${member.user.username}/avatar.png`,
+        };
+        return { ...user, eventTypes: user.eventTypes.map((evTy) => evTy.slug), membership: member.role };
       })
     : [];
 
-  // Find the current users memebership so we can check role to enable/disable deletion.
+  // Find the current users membership so we can check role to enable/disable deletion.
   // Sets to null if no membership is found - this must mean we are in a none team event type
   const currentUserMembership = eventTypeObject.team?.members.find((el) => el.user.id === userId) ?? null;
 

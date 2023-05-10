@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownItem,
 } from "@calcom/ui";
-import { FiPlus } from "@calcom/ui/components/icon";
+import { Plus } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -40,7 +40,7 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
         return (
           <Dropdown modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button StartIcon={FiPlus} color="secondary" {...(isLoading && { loading: isLoading })}>
+              <Button StartIcon={Plus} color="secondary" {...(isLoading && { loading: isLoading })}>
                 {t("add")}
               </Button>
             </DropdownMenuTrigger>
@@ -48,7 +48,7 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
               {options.map((data) => (
                 <DropdownMenuItem key={data.slug} className="focus:outline-none">
                   {data.slug === "add-new" ? (
-                    <DropdownItem StartIcon={FiPlus} color="minimal" href="/apps/categories/calendar">
+                    <DropdownItem StartIcon={Plus} color="minimal" href="/apps/categories/calendar">
                       {t("install_new_calendar_app")}
                     </DropdownItem>
                   ) : (

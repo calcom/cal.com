@@ -1,9 +1,10 @@
 import type { Prisma } from "@prisma/client";
-import crypto from "crypto";
+import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { authedProcedure, isAuthed, router } from "@calcom/trpc/server/trpc";
+import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
+import { router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
@@ -13,7 +14,9 @@ const UserBelongsToTeamInput = z.object({
   teamId: z.coerce.number().optional().nullable(),
 });
 
-const userBelongsToTeamMiddleware = isAuthed.unstable_pipe(async ({ ctx, next, rawInput }) => {
+//const userBelongsToTeamMiddleware = isAuthed.unstable_pipe();
+
+const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, rawInput }) => {
   const parse = UserBelongsToTeamInput.safeParse(rawInput);
   if (!parse.success) {
     throw new TRPCError({ code: "BAD_REQUEST" });
@@ -40,8 +43,6 @@ const userBelongsToTeamMiddleware = isAuthed.unstable_pipe(async ({ ctx, next, r
 
   return next();
 });
-
-const userBelongsToTeamProcedure = authedProcedure.use(userBelongsToTeamMiddleware);
 
 const UserSelect = {
   id: true,
@@ -93,7 +94,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      let whereConditional: Prisma.BookingWhereInput = {};
+      let whereConditional: Prisma.BookingTimeStatusWhereInput = {};
 
       if (eventTypeId) {
         whereConditional["eventTypeId"] = eventTypeId;
@@ -102,9 +103,7 @@ export const insightsRouter = router({
         whereConditional["userId"] = memberUserId;
       }
       if (userId) {
-        whereConditional["eventType"] = {
-          teamId: null,
-        };
+        whereConditional["teamId"] = null;
         whereConditional["userId"] = userId;
       }
 
@@ -122,14 +121,13 @@ export const insightsRouter = router({
           ...whereConditional,
           OR: [
             {
-              eventType: {
-                teamId: teamId,
-              },
+              teamId,
             },
             {
               userId: {
                 in: userIdsFromTeam,
               },
+              teamId: null,
             },
           ],
         };
@@ -161,9 +159,7 @@ export const insightsRouter = router({
           gte: lastPeriodStartDate.toDate(),
           lte: lastPeriodEndDate.toDate(),
         },
-        eventType: {
-          teamId: teamId,
-        },
+        teamId: teamId,
       });
 
       const lastPeriodBaseBookingIds = lastPeriodBaseBookings.map((b) => b.id);
@@ -246,7 +242,7 @@ export const insightsRouter = router({
 
       const timeView = inputTimeView;
 
-      let whereConditional: Prisma.BookingWhereInput = {};
+      let whereConditional: Prisma.BookingTimeStatusWhereInput = {};
 
       if (teamId) {
         const usersFromTeam = await ctx.prisma.membership.findMany({
@@ -262,14 +258,13 @@ export const insightsRouter = router({
         whereConditional = {
           OR: [
             {
-              eventType: {
-                teamId,
-              },
+              teamId,
             },
             {
               userId: {
                 in: userIdsFromTeams,
               },
+              teamId: null,
             },
           ],
         };
@@ -291,9 +286,7 @@ export const insightsRouter = router({
       if (selfUserId && !!whereConditional) {
         // In this delete we are deleting the teamId filter
         whereConditional["userId"] = selfUserId;
-        whereConditional["eventType"] = {
-          teamId: null,
-        };
+        whereConditional["teamId"] = null;
       }
 
       // Get timeline data
@@ -382,7 +375,7 @@ export const insightsRouter = router({
         return [];
       }
 
-      let bookingWhere: Prisma.BookingWhereInput = {
+      let bookingWhere: Prisma.BookingTimeStatusWhereInput = {
         createdAt: {
           gte: dayjs(startDate).startOf("day").toDate(),
           lte: dayjs(endDate).endOf("day").toDate(),
@@ -403,14 +396,13 @@ export const insightsRouter = router({
           ...bookingWhere,
           OR: [
             {
-              eventType: {
-                teamId,
-              },
+              teamId,
             },
             {
               userId: {
                 in: userIdsFromTeams,
               },
+              teamId: null,
             },
           ],
         };
@@ -419,16 +411,14 @@ export const insightsRouter = router({
       if (userId) {
         bookingWhere.userId = userId;
         // Don't take bookings from any team
-        bookingWhere.eventType = {
-          teamId: null,
-        };
+        bookingWhere.teamId = null;
       }
 
       if (memberUserId) {
         bookingWhere.userId = memberUserId;
       }
 
-      const bookingsFromSelected = await ctx.prisma.booking.groupBy({
+      const bookingsFromSelected = await ctx.prisma.bookingTimeStatus.groupBy({
         by: ["eventTypeId"],
         where: bookingWhere,
         _count: {
@@ -545,14 +535,14 @@ export const insightsRouter = router({
       const startDate = dayjs(startDateString);
       const endDate = dayjs(endDateString);
 
-      let whereConditional: Prisma.BookingWhereInput = {
+      let whereConditional: Prisma.BookingTimeStatusWhereInput = {
         createdAt: {
           gte: dayjs(startDate).startOf("day").toDate(),
           lte: dayjs(endDate).endOf("day").toDate(),
         },
       };
       if (userId) {
-        delete whereConditional.eventType;
+        delete whereConditional.teamId;
         whereConditional["userId"] = userId;
       }
 
@@ -571,14 +561,13 @@ export const insightsRouter = router({
           ...whereConditional,
           OR: [
             {
-              eventType: {
-                teamId,
-              },
+              teamId,
             },
             {
               userId: {
                 in: userIdsFromTeams,
               },
+              teamId: null,
             },
           ],
         };
@@ -587,9 +576,7 @@ export const insightsRouter = router({
       if (memberUserId) {
         whereConditional = {
           userId: memberUserId,
-          eventType: {
-            teamId,
-          },
+          teamId,
         };
       }
 
@@ -614,7 +601,10 @@ export const insightsRouter = router({
         const startDate = dayjs(date).startOf(startOfEndOf);
         const endDate = dayjs(date).endOf(startOfEndOf);
 
-        const bookingsInTimeRange = await ctx.prisma.booking.findMany({
+        const bookingsInTimeRange = await ctx.prisma.bookingTimeStatus.findMany({
+          select: {
+            eventLength: true,
+          },
           where: {
             ...whereConditional,
             createdAt: {
@@ -622,14 +612,11 @@ export const insightsRouter = router({
               lte: endDate.toDate(),
             },
           },
-          include: {
-            eventType: true,
-          },
         });
 
         const avgDuration =
           bookingsInTimeRange.reduce((acc, booking) => {
-            const duration = booking.eventType?.length || 0;
+            const duration = booking.eventLength || 0;
             return acc + duration;
           }, 0) / bookingsInTimeRange.length;
 
@@ -654,20 +641,18 @@ export const insightsRouter = router({
         return [];
       }
       const user = ctx.user;
-      const eventTypeWhere: Prisma.EventTypeWhereInput = {
-        teamId: teamId,
-      };
-      if (eventTypeId) {
-        eventTypeWhere["id"] = eventTypeId;
-      }
 
-      const bookingWhere: Prisma.BookingWhereInput = {
-        eventType: eventTypeWhere,
+      const bookingWhere: Prisma.BookingTimeStatusWhereInput = {
+        teamId,
         createdAt: {
           gte: dayjs(startDate).startOf("day").toDate(),
           lte: dayjs(endDate).endOf("day").toDate(),
         },
       };
+
+      if (eventTypeId) {
+        bookingWhere.eventTypeId = eventTypeId;
+      }
 
       if (teamId) {
         const usersFromTeam = await ctx.prisma.membership.findMany({
@@ -679,22 +664,22 @@ export const insightsRouter = router({
           },
         });
         const userIdsFromTeams = usersFromTeam.map((u) => u.userId);
-        delete bookingWhere.eventType;
+        delete bookingWhere.eventTypeId;
+        delete bookingWhere.teamId;
         bookingWhere["OR"] = [
           {
-            eventType: {
-              teamId,
-            },
+            teamId,
           },
           {
             userId: {
               in: userIdsFromTeams,
             },
+            teamId: null,
           },
         ];
       }
 
-      const bookingsFromTeam = await ctx.prisma.booking.groupBy({
+      const bookingsFromTeam = await ctx.prisma.bookingTimeStatus.groupBy({
         by: ["userId"],
         where: bookingWhere,
         _count: {
@@ -731,7 +716,7 @@ export const insightsRouter = router({
         return {
           userId: booking.userId,
           user: userHashMap.get(booking.userId),
-          emailMd5: crypto.createHash("md5").update(user?.email).digest("hex"),
+          emailMd5: md5(user?.email),
           count: booking._count.id,
         };
       });
@@ -753,15 +738,9 @@ export const insightsRouter = router({
         return [];
       }
       const user = ctx.user;
-      const eventTypeWhere: Prisma.EventTypeWhereInput = {
-        teamId: teamId,
-      };
-      if (eventTypeId) {
-        eventTypeWhere["id"] = eventTypeId;
-      }
 
-      const bookingWhere: Prisma.BookingWhereInput = {
-        eventType: eventTypeWhere,
+      const bookingWhere: Prisma.BookingTimeStatusWhereInput = {
+        eventTypeId,
         createdAt: {
           gte: dayjs(startDate).startOf("day").toDate(),
           lte: dayjs(endDate).endOf("day").toDate(),
@@ -778,22 +757,20 @@ export const insightsRouter = router({
           },
         });
         const userIdsFromTeams = usersFromTeam.map((u) => u.userId);
-        delete bookingWhere.eventType;
         bookingWhere["OR"] = [
           {
-            eventType: {
-              teamId,
-            },
+            teamId,
           },
           {
             userId: {
               in: userIdsFromTeams,
             },
+            teamId: null,
           },
         ];
       }
 
-      const bookingsFromTeam = await ctx.prisma.booking.groupBy({
+      const bookingsFromTeam = await ctx.prisma.bookingTimeStatus.groupBy({
         by: ["userId"],
         where: bookingWhere,
         _count: {
@@ -830,7 +807,7 @@ export const insightsRouter = router({
         return {
           userId: booking.userId,
           user: userHashMap.get(booking.userId),
-          emailMd5: crypto.createHash("md5").update(user?.email).digest("hex"),
+          emailMd5: md5(user?.email),
           count: booking._count.id,
         };
       });

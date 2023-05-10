@@ -9,7 +9,7 @@ import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmailField, EmptyScreen, Label, PasswordField, TextField } from "@calcom/ui";
-import { FiUserCheck } from "@calcom/ui/components/icon";
+import { UserCheck } from "@calcom/ui/components/icon";
 
 export const AdminUserContainer = (props: React.ComponentProps<typeof AdminUser> & { userCount: number }) => {
   const { t } = useLocale();
@@ -24,7 +24,7 @@ export const AdminUserContainer = (props: React.ComponentProps<typeof AdminUser>
           props.onSuccess();
         }}>
         <EmptyScreen
-          Icon={FiUserCheck}
+          Icon={UserCheck}
           headline={t("admin_user_created")}
           description={t("admin_user_created_description")}
         />

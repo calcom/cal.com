@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef } from "react";
 
+import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -10,7 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-import { FiAlertCircle, FiArrowRight, FiCheck } from "@calcom/ui/components/icon";
+import { AlertCircle, ArrowRight, Check } from "@calcom/ui/components/icon";
 
 import { InstallAppButtonMap } from "./apps.browser.generated";
 import type { InstallAppButtonProps } from "./types";
@@ -20,10 +21,21 @@ export const InstallAppButtonWithoutPlanCheck = (
     type: App["type"];
   } & InstallAppButtonProps
 ) => {
+  const mutation = useAddAppMutation(null);
   const key = deriveAppDictKeyFromType(props.type, InstallAppButtonMap);
   const InstallAppButtonComponent = InstallAppButtonMap[key as keyof typeof InstallAppButtonMap];
   if (!InstallAppButtonComponent)
-    return <>{props.render({ useDefaultComponent: true, disabled: props.disableInstall })}</>;
+    return (
+      <>
+        {props.render({
+          useDefaultComponent: true,
+          disabled: props.disableInstall,
+          onClick: () => {
+            mutation.mutate({ type: props.type });
+          },
+        })}
+      </>
+    );
 
   return (
     <InstallAppButtonComponent
@@ -99,7 +111,7 @@ export const AppDependencyComponent = ({
             <div className="items-start space-x-2.5">
               <div className="flex items-start">
                 <div>
-                  <FiCheck className="mt-1 mr-2 font-semibold" />
+                  <Check className="mt-1 mr-2 font-semibold" />
                 </div>
                 <div>
                   <span className="font-semibold">
@@ -122,7 +134,7 @@ export const AppDependencyComponent = ({
             <div className="items-start space-x-2.5">
               <div className="text-info flex items-start">
                 <div>
-                  <FiAlertCircle className="mt-1 mr-2 font-semibold" />
+                  <AlertCircle className="mt-1 mr-2 font-semibold" />
                 </div>
                 <div>
                   <span className="font-semibold">
@@ -138,7 +150,7 @@ export const AppDependencyComponent = ({
                           <span className="mr-1">
                             {t("connect_app", { dependencyName: dependency.name })}
                           </span>
-                          <FiArrowRight />
+                          <ArrowRight />
                         </Link>
                       </>
                     </div>

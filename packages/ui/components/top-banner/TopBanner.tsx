@@ -3,7 +3,7 @@ import classNames from "classnames";
 import { noop } from "lodash";
 import type { ReactNode } from "react";
 
-import { FiAlertTriangle, FiInfo } from "../icon";
+import { AlertTriangle, Info } from "../icon";
 
 export type TopBannerProps = {
   text: string;
@@ -30,10 +30,10 @@ export function TopBanner(props: TopBannerProps) {
       <div className="flex flex-1 flex-col items-start justify-center gap-2 p-1 lg:flex-row lg:items-center">
         <p className="text-emphasis flex flex-col items-start justify-center gap-2 text-left font-sans text-sm font-medium leading-4 lg:flex-row lg:items-center">
           {variant === "error" && (
-            <FiAlertTriangle className="text-emphasis h-4 w-4 stroke-[2.5px]" aria-hidden="true" />
+            <AlertTriangle className="text-emphasis h-4 w-4 stroke-[2.5px]" aria-hidden="true" />
           )}
           {variant === "warning" && (
-            <FiInfo className="text-emphasis h-4 w-4 stroke-[2.5px]" aria-hidden="true" />
+            <Info className="text-emphasis h-4 w-4 stroke-[2.5px]" aria-hidden="true" />
           )}
           {text}
         </p>

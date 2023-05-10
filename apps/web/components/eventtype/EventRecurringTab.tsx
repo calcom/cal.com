@@ -11,7 +11,7 @@ export const EventRecurringTab = ({ eventType }: Pick<EventTypeSetupProps, "even
 
   return (
     <div className="">
-      <RecurringEventController paymentEnabled={requirePayment} recurringEvent={eventType.recurringEvent} />
+      <RecurringEventController paymentEnabled={requirePayment} eventType={eventType} />
     </div>
   );
 };

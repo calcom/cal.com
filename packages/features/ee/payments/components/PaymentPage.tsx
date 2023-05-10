@@ -1,13 +1,9 @@
-import { Elements } from "@stripe/react-stripe-js";
 import classNames from "classnames";
 import Head from "next/head";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
-import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
-import getStripe from "@calcom/app-store/stripepayment/lib/client";
-import type { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
@@ -16,13 +12,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
-import { FiCreditCard } from "@calcom/ui/components/icon";
+import { CreditCard } from "@calcom/ui/components/icon";
 
 import type { PaymentPageProps } from "../pages/payment";
 import PaymentComponent from "./Payment";
 
 const PaymentPage: FC<PaymentPageProps> = (props) => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
   const [timezone, setTimezone] = useState<string | null>(null);
@@ -65,9 +61,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="mx-auto max-w-3xl py-24">
-        <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div className="fixed inset-0 z-50 overflow-y-auto scroll-auto">
           <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
+            <div className="inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
               <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
                 &#8203;
               </span>
@@ -81,7 +77,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="bg-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-                    <FiCreditCard className="h-8 w-8 text-green-600" />
+                    <CreditCard className="h-8 w-8 text-green-600" />
                   </div>
 
                   <div className="mt-3 text-center sm:mt-5">
@@ -110,13 +106,10 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         {props.payment.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
                       </div>
                       <div className="col-span-2 mb-6 font-semibold">
-                        <IntlProvider locale="en">
-                          <FormattedNumber
-                            value={paymentAppData.price / 100.0}
-                            style="currency"
-                            currency={paymentAppData?.currency?.toUpperCase()}
-                          />
-                        </IntlProvider>
+                        {new Intl.NumberFormat(i18n.language, {
+                          style: "currency",
+                          currency: paymentAppData.currency,
+                        }).format(paymentAppData.price / 100.0)}
                       </div>
                     </div>
                   </div>
@@ -126,17 +119,14 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                     <div className="text-default mt-4 text-center dark:text-gray-300">{t("paid")}</div>
                   )}
                   {props.payment.appId === "stripe" && !props.payment.success && (
-                    <Elements
-                      stripe={getStripe((props.payment.data as StripePaymentData).stripe_publishable_key)}>
-                      <PaymentComponent
-                        payment={props.payment}
-                        eventType={props.eventType}
-                        user={props.user}
-                        location={props.booking.location}
-                        bookingId={props.booking.id}
-                        bookingUid={props.booking.uid}
-                      />
-                    </Elements>
+                    <PaymentComponent
+                      payment={props.payment}
+                      eventType={props.eventType}
+                      user={props.user}
+                      location={props.booking.location}
+                      bookingId={props.booking.id}
+                      bookingUid={props.booking.uid}
+                    />
                   )}
                   {props.payment.refunded && (
                     <div className="text-default mt-4 text-center dark:text-gray-300">{t("refunded")}</div>

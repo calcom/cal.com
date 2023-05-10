@@ -1,6 +1,6 @@
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Badge, List, ListItem, ListItemText, ListItemTitle, Switch } from "@calcom/ui";
+import { Badge, List, ListItem, ListItemText, ListItemTitle, Switch, showToast } from "@calcom/ui";
 
 export const FlagAdminList = () => {
   const [data] = trpc.viewer.features.list.useSuspenseQuery();
@@ -12,7 +12,7 @@ export const FlagAdminList = () => {
             <ListItemTitle component="h3">
               {flag.slug}
               &nbsp;&nbsp;
-              <Badge variant="green">{flag.type}</Badge>
+              <Badge variant="green">{flag.type?.replace("_", " ")}</Badge>
             </ListItemTitle>
             <ListItemText component="p">{flag.description}</ListItemText>
           </div>
@@ -34,6 +34,7 @@ const FlagToggle = (props: { flag: Flag }) => {
   const utils = trpc.useContext();
   const mutation = trpc.viewer.features.toggle.useMutation({
     onSuccess: () => {
+      showToast("Flags successfully updated", "success");
       utils.viewer.features.list.invalidate();
       utils.viewer.features.map.invalidate();
     },

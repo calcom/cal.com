@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import type { Booking, EventType, Prisma, Webhook } from "@prisma/client";
-import { BookingStatus } from "@prisma/client";
 
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
 
 export const buildVideoCallData = (callData?: Partial<VideoCallData>): VideoCallData => {
@@ -57,6 +57,7 @@ export const buildBooking = (booking?: Partial<Booking>): Booking => {
     scheduledJobs: [],
     metadata: null,
     responses: null,
+    isRecorded: false,
     ...booking,
   };
 };
@@ -98,7 +99,8 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     slotInterval: null,
     metadata: null,
     successRedirectUrl: null,
-    bookingFields: null,
+    bookingFields: [],
+    parentId: null,
     ...eventType,
   };
 };

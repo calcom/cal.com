@@ -1,9 +1,10 @@
 import { expect } from "@playwright/test";
-import { BookingStatus } from "@prisma/client";
 
 import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
+import { testBothBookers } from "./lib/new-booker";
 import { selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 const IS_STRIPE_ENABLED = !!(
@@ -16,7 +17,7 @@ test.describe.configure({ mode: "parallel" });
 
 test.afterEach(({ users }) => users.deleteAll());
 
-test.describe("Reschedule Tests", async () => {
+testBothBookers.describe("Reschedule Tests", async () => {
   test("Should do a booking request reschedule from /bookings", async ({ page, users, bookings }) => {
     const user = await users.create();
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -148,10 +149,8 @@ test.describe("Reschedule Tests", async () => {
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-    await page.waitForNavigation({
-      url(url) {
-        return url.pathname.indexOf("/payment") > -1;
-      },
+    await page.waitForURL((url) => {
+      return url.pathname.indexOf("/payment") > -1;
     });
 
     await expect(page).toHaveURL(/.*payment/);

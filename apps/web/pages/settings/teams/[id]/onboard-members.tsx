@@ -3,6 +3,7 @@ import Head from "next/head";
 import AddNewTeamMembers from "@calcom/features/ee/teams/components/AddNewTeamMembers";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
+import PageWrapper from "@components/PageWrapper";
 import WizardLayout from "@components/layouts/WizardLayout";
 
 const OnboardTeamMembersPage = () => {
@@ -23,5 +24,7 @@ OnboardTeamMembersPage.getLayout = (page: React.ReactElement) => (
     {page}
   </WizardLayout>
 );
+
+OnboardTeamMembersPage.PageWrapper = PageWrapper;
 
 export default OnboardTeamMembersPage;

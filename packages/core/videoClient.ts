@@ -23,7 +23,7 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
 
   for (const cred of withCredentials) {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
-    const app = await appStore[appName as keyof typeof appStore];
+    const app = await appStore[appName as keyof typeof appStore]();
 
     if (app && "lib" in app && "VideoApiAdapter" in app.lib) {
       const makeVideoApiAdapter = app.lib.VideoApiAdapter as VideoApiAdapterFactory;

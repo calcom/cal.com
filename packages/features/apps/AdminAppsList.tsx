@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AppCategories } from "@prisma/client";
 import { noop } from "lodash";
 import { useRouter } from "next/router";
 import type { FC } from "react";
@@ -11,6 +10,7 @@ import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavi
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { classNames as cs } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { AppCategories } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -30,7 +30,7 @@ import {
   TextField,
   Switch,
 } from "@calcom/ui";
-import { FiAlertCircle, FiEdit } from "@calcom/ui/components/icon";
+import { AlertCircle, Edit } from "@calcom/ui/components/icon";
 
 import AppListCard from "../../../apps/web/components/AppListCard";
 
@@ -92,7 +92,7 @@ const IntegrationContainer = ({
           <div className="flex items-center justify-self-end">
             {app.keys && (
               <Button color="secondary" className="mr-2" onClick={() => showKeyModal()}>
-                <FiEdit />
+                <Edit />
               </Button>
             )}
 
@@ -104,7 +104,7 @@ const IntegrationContainer = ({
                 } else if (app.keys) {
                   showKeyModal(true);
                 } else {
-                  enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
+                  enableAppMutation.mutate({ slug: app.slug, enabled: !app.enabled });
                 }
               }}
             />
@@ -117,7 +117,7 @@ const IntegrationContainer = ({
           title={t("disable_app")}
           variety="danger"
           onConfirm={() => {
-            enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
+            enableAppMutation.mutate({ slug: app.slug, enabled: !app.enabled });
           }}>
           {t("disable_app_description")}
         </ConfirmationDialogContent>
@@ -295,7 +295,7 @@ const AdminAppsListContainer = () => {
   if (!apps) {
     return (
       <EmptyScreen
-        Icon={FiAlertCircle}
+        Icon={AlertCircle}
         headline={t("no_available_apps")}
         description={t("no_available_apps_description")}
       />

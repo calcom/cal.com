@@ -1,6 +1,11 @@
 import { faker } from "@faker-js/faker";
 
-import { getLocation, getPublicVideoCallUrl, getVideoCallPassword, getVideoCallUrl } from "../CalEventParser";
+import {
+  getLocation,
+  getPublicVideoCallUrl,
+  getVideoCallPassword,
+  getVideoCallUrlFromCalEvent,
+} from "../CalEventParser";
 import { buildCalendarEvent, buildVideoCallData } from "./builder";
 
 jest.mock("@calcom/lib/constants", () => ({
@@ -20,7 +25,7 @@ describe("getLocation", () => {
       }),
     });
 
-    expect(getLocation(calEvent)).toEqual(getVideoCallUrl(calEvent));
+    expect(getLocation(calEvent)).toEqual(getVideoCallUrlFromCalEvent(calEvent));
   });
   it("should return an integration provider name from event", () => {
     const provideName = "Cal.com";
@@ -49,7 +54,7 @@ describe("getVideoCallUrl", () => {
       }),
     });
 
-    expect(getVideoCallUrl(calEvent)).toEqual(getPublicVideoCallUrl(calEvent));
+    expect(getVideoCallUrlFromCalEvent(calEvent)).toEqual(getPublicVideoCallUrl(calEvent));
   });
 });
 

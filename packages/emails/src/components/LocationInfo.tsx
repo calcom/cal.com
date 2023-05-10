@@ -1,7 +1,7 @@
 import type { TFunction } from "next-i18next";
 
 import { guessEventLocationType } from "@calcom/app-store/locations";
-import { getVideoCallUrl } from "@calcom/lib/CalEventParser";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -19,7 +19,7 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
   let meetingUrl = location?.search(/^https?:/) !== -1 ? location : undefined;
 
   if (props.calEvent) {
-    meetingUrl = getVideoCallUrl(props.calEvent) || meetingUrl;
+    meetingUrl = getVideoCallUrlFromCalEvent(props.calEvent) || meetingUrl;
   }
 
   const isPhone = location?.startsWith("+");

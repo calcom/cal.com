@@ -183,12 +183,14 @@ const useGetBrandingColours = ({
       "cal-brand-emphasis": lightColourMap["400"],
       "cal-brand-subtle": lightColourMap["200"],
       "cal-brand-text": getWCAGContrastColor(lightColourMap["500"]),
+      "cal-brand-accent": getWCAGContrastColor(lightColourMap["500"]),
     },
     dark: {
       "cal-brand": darkColourMap["500"],
       "cal-brand-emphasis": darkColourMap["600"],
       "cal-brand-subtle": darkColourMap["800"],
       "cal-brand-text": getWCAGContrastColor(darkColourMap["500"]),
+      "cal-brand-accent": getWCAGContrastColor(darkColourMap["500"]),
     },
   };
   return theme;

@@ -5,7 +5,7 @@ import type { CSSProperties } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 
-import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,6 +13,8 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import prisma from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert, Button, EmailField, HeadSeo, PasswordField, TextField } from "@calcom/ui";
+
+import PageWrapper from "@components/PageWrapper";
 
 import { asStringOrNull } from "../lib/asStringOrNull";
 import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
@@ -95,7 +97,17 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-default mx-2 px-4 py-8 shadow sm:rounded-lg sm:px-10">
             <FormProvider {...methods}>
-              <form onSubmit={methods.handleSubmit(signUp)} className="bg-default space-y-6">
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+
+                  if (methods.formState?.errors?.apiError) {
+                    methods.clearErrors("apiError");
+                  }
+                  methods.handleSubmit(signUp)(event);
+                }}
+                className="bg-default space-y-6">
                 {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
                 <div className="space-y-2">
                   <TextField
@@ -220,3 +232,4 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 };
 
 Signup.isThemeSupported = false;
+Signup.PageWrapper = PageWrapper;

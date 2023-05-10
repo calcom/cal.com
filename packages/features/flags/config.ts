@@ -9,4 +9,5 @@ export type AppFlags = {
   webhooks: boolean;
   workflows: boolean;
   "v2-booking-page": boolean;
+  "managed-event-types": boolean;
 };

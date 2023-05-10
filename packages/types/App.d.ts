@@ -2,8 +2,6 @@ import type { Prisma } from "@prisma/client";
 
 import type { Tag } from "@calcom/app-store/types";
 
-import type { Optional } from "./utils";
-
 type CommonProperties = {
   default?: false;
   type: string;
@@ -70,11 +68,6 @@ export interface App {
   name: string;
   /** A brief description, usually found in the app's package.json */
   description: string;
-  /**
-   * @deprecated logo is used instead
-   * The icon to display in /apps/installed
-   */
-  imageSrc?: string;
   /** TODO determine if we should use this instead of category */
   variant:
     | "calendar"
@@ -156,4 +149,4 @@ export type AppFrontendPayload = Omit<App, "key"> & {
   }[];
 };
 
-export type AppMeta = Optional<App, "rating" | "trending" | "reviews" | "verified">;
+export type AppMeta = App;

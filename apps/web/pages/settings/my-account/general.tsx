@@ -22,6 +22,8 @@ import {
 
 import { withQuery } from "@lib/QueryCell";
 
+import PageWrapper from "@components/PageWrapper";
+
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
@@ -219,5 +221,6 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
 };
 
 GeneralQueryView.getLayout = getLayout;
+GeneralQueryView.PageWrapper = PageWrapper;
 
 export default GeneralQueryView;

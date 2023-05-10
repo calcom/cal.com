@@ -63,3 +63,4 @@ export const IS_STRIPE_ENABLED = !!(
 /** Self hosted shouldn't checkout when creating teams unless required */
 export const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && (!IS_SELF_HOSTED || HOSTED_CAL_FEATURES);
 export const FULL_NAME_LENGTH_MAX_LIMIT = 50;
+export const MINUTES_TO_BOOK = process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5";

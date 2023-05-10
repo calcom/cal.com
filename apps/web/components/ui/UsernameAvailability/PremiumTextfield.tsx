@@ -15,7 +15,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Button, Dialog, DialogClose, DialogContent, Input, Label } from "@calcom/ui";
-import { FiCheck, FiEdit2, FiExternalLink } from "@calcom/ui/components/icon";
+import { Check, Edit2, ExternalLink } from "@calcom/ui/components/icon";
 
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",
@@ -195,7 +195,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         <span
           className={classNames(
             isInputUsernamePremium ? "border border-orange-400 " : "",
-            "border-default bg-muted text-subtle hidden h-9 items-center rounded-l-md border border-r-0 border-r-gray-300 px-3 text-sm md:inline-flex"
+            "border-default bg-muted text-subtle hidden h-9 items-center rounded-l-md border border-r-0 px-3 text-sm md:inline-flex"
           )}>
           {process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/
         </span>
@@ -215,7 +215,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 : "border focus:border",
               markAsError
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500  focus:border-red-500 focus:outline-none"
-                : "border-l-gray-300",
+                : "border-l-default",
               disabled ? "bg-subtle text-muted focus:border-0" : ""
             )}
             value={inputUsernameValue}
@@ -234,8 +234,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 isInputUsernamePremium ? "text-orange-400" : "",
                 usernameIsAvailable ? "" : ""
               )}>
-              {isInputUsernamePremium ? <StarIconSolid className="mt-[2px] w-6" /> : <></>}
-              {!isInputUsernamePremium && usernameIsAvailable ? <FiCheck className="mt-2 w-6" /> : <></>}
+              {isInputUsernamePremium ? <StarIconSolid className="mt-[2px] h-4 w-4" /> : <></>}
+              {!isInputUsernamePremium && usernameIsAvailable ? <Check className="mt-2 h-4 w-4" /> : <></>}
             </span>
           </div>
         </div>
@@ -251,7 +251,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
       <Dialog open={openDialogSaveUsername}>
         <DialogContent
-          Icon={FiEdit2}
+          Icon={Edit2}
           title={t("confirm_username_change_dialog_title")}
           description={
             <>
@@ -288,7 +288,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 data-testid="go-to-billing"
                 href={paymentLink}>
                 <>
-                  {t("go_to_stripe_billing")} <FiExternalLink className="ml-1 h-4 w-4" />
+                  {t("go_to_stripe_billing")} <ExternalLink className="ml-1 h-4 w-4" />
                 </>
               </Button>
             )}

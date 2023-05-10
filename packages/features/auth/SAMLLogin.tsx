@@ -7,7 +7,7 @@ import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
-import { FiLock } from "@calcom/ui/components/icon";
+import { Lock } from "@calcom/ui/components/icon";
 
 interface Props {
   samlTenantID: string;
@@ -34,7 +34,7 @@ export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Prop
 
   return (
     <Button
-      StartIcon={FiLock}
+      StartIcon={Lock}
       color="secondary"
       data-testid="saml"
       className="flex w-full justify-center"

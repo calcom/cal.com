@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
-import { FiSunrise, FiSunset } from "@calcom/ui/components/icon";
+import { Sunrise, Sunset } from "@calcom/ui/components/icon";
 
 import type { appDataSchema } from "../zod";
 
@@ -28,8 +28,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchChecked={enabled}>
       <div className="mt-2 text-sm">
         <div className="flex">
-          <span className="ltr:mr-2 rtl:ml-2">{isSunrise ? <FiSunrise /> : <FiSunset />}</span>I am an AppCard
-          for Event with Title: {eventType.title}
+          <span className="ltr:mr-2 rtl:ml-2">{isSunrise ? <Sunrise /> : <Sunset />}</span>I am an AppCard for
+          Event with Title: {eventType.title}
         </div>{" "}
         <div className="mt-2">
           Edit <span className="italic">packages/app-store/{app.slug}/EventTypeAppCardInterface.tsx</span> to

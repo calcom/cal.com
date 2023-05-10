@@ -66,7 +66,7 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
         }
       } catch (error) {
         showToast(t("unexpected_error_try_again"), "error");
-        // @TODO: notify sentry
+        // @TODO: notify
       }
       setIsLoading(false);
     },

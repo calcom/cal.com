@@ -103,59 +103,6 @@ paths:
       summary: Reset a user's password
       tags:
         - Authentication
-  "/api/availability/{user}?dateFrom={dateFrom}&dateTo={dateTo}":
-    get:
-      description: "Gets the busy times for a particular user, by username."
-      summary: Gets the busy times for a user
-      tags:
-        - Availability
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                description: ""
-                minItems: 1
-                uniqueItems: true
-                x-examples:
-                  example-1:
-                    - start: "Fri, 03 Sep 2021 17:00:00 GMT"
-                      end: "Fri, 03 Sep 2021 17:40:00 GMT"
-                items:
-                  type: object
-                  properties:
-                    start:
-                      type: string
-                      minLength: 1
-                    end:
-                      type: string
-                      minLength: 1
-                  required:
-                    - start
-                    - end
-        "500":
-          description: Internal Server Error
-    parameters:
-      - schema:
-          type: string
-        name: user
-        in: path
-        required: true
-        description: The username of who you want to check availability for
-      - schema:
-          type: string
-        name: dateFrom
-        in: path
-        required: true
-        description: The timestamp of which time you want to get busy times from
-      - schema:
-          type: string
-        name: dateTo
-        in: path
-        required: true
-        description: The timestamp of which time you want to get busy times until
   /api/availability/calendar:
     get:
       description: Gets the user's selected calendars.

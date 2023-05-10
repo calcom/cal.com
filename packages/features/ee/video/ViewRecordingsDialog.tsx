@@ -1,8 +1,8 @@
 import { useState, Suspense } from "react";
 
 import dayjs from "@calcom/dayjs";
-import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
-import useHasPaidPlan from "@calcom/lib/hooks/useHasPaidPlan";
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RecordingItemSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -17,7 +17,7 @@ import {
   UpgradeTeamsBadge,
 } from "@calcom/ui";
 import { Button } from "@calcom/ui";
-import { FiDownload } from "@calcom/ui/components/icon";
+import { Download } from "@calcom/ui/components/icon";
 
 import RecordingListSkeleton from "./components/RecordingListSkeleton";
 
@@ -98,7 +98,7 @@ const useRecordingDownload = () => {
   };
 };
 
-const ViewRecordingsList = ({ roomName, hasPaidPlan }: { roomName: string; hasPaidPlan: boolean }) => {
+const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTeamPlan: boolean }) => {
   const { t } = useLocale();
   const { setRecordingId, isFetching, recordingId } = useRecordingDownload();
 
@@ -129,9 +129,9 @@ const ViewRecordingsList = ({ roomName, hasPaidPlan }: { roomName: string; hasPa
                   </h1>
                   <p className="text-subtle text-sm font-normal">{convertSecondsToMs(recording.duration)}</p>
                 </div>
-                {hasPaidPlan ? (
+                {hasTeamPlan ? (
                   <Button
-                    StartIcon={FiDownload}
+                    StartIcon={Download}
                     className="ml-4 lg:ml-0"
                     loading={isFetching && recordingId === recording.id}
                     onClick={() => handleDownloadClick(recording.id)}>
@@ -157,7 +157,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
   const { t, i18n } = useLocale();
   const { isOpenDialog, setIsOpenDialog, booking, timeFormat } = props;
 
-  const { hasPaidPlan, isLoading: isTeamPlanStatusLoading } = useHasPaidPlan();
+  const { hasTeamPlan, isLoading: isTeamPlanStatusLoading } = useHasTeamPlan();
 
   const roomName =
     booking?.references?.find((reference: PartialReference) => reference.type === "daily_video")?.meetingId ??
@@ -182,7 +182,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
               <RecordingListSkeleton />
             ) : (
               <Suspense fallback={<RecordingListSkeleton />}>
-                <ViewRecordingsList hasPaidPlan={!!hasPaidPlan} roomName={roomName} />
+                <ViewRecordingsList hasTeamPlan={!!hasTeamPlan} roomName={roomName} />
               </Suspense>
             )}
           </LicenseRequired>

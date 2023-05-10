@@ -117,9 +117,10 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
         setSelectedTimeView: (selectedTimeView) => setSelectedTimeView(selectedTimeView),
         setSelectedMemberUserId: (selectedMemberUserId) => {
           setSelectedMemberUserId(selectedMemberUserId);
+          const { userId, eventTypeId, ...rest } = router.query;
           router.push({
             query: {
-              ...router.query,
+              ...rest,
               memberUserId: selectedMemberUserId,
             },
           });
@@ -127,8 +128,10 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
         setSelectedTeamId: (selectedTeamId) => {
           setSelectedTeamId(selectedTeamId);
           setSelectedUserId(null);
+          setSelectedMemberUserId(null);
+          setSelectedEventTypeId(null);
           const { teamId, eventTypeId, memberUserId, ...rest } = router.query;
-          router.replace({
+          router.push({
             query: {
               ...rest,
               teamId: selectedTeamId,
@@ -139,8 +142,9 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           setSelectedUserId(selectedUserId);
           setSelectedTeamId(null);
           setSelectedTeamName(null);
+          setSelectedEventTypeId(null);
           const { teamId, eventTypeId, memberUserId, ...rest } = router.query;
-          router.replace({
+          router.push({
             query: {
               ...rest,
               userId: selectedUserId,

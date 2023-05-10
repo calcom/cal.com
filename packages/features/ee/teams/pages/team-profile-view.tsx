@@ -1,9 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
-import { MembershipRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useState, useLayoutEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -13,6 +13,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import objectKeys from "@calcom/lib/objectKeys";
 import turndown from "@calcom/lib/turndownService";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
@@ -29,7 +30,7 @@ import {
   TextField,
   Editor,
 } from "@calcom/ui";
-import { FiExternalLink, FiLink, FiTrash2, FiLogOut } from "@calcom/ui/components/icon";
+import { ExternalLink, Link as LinkIcon, Trash2, LogOut } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
@@ -52,6 +53,11 @@ const ProfileView = () => {
   const router = useRouter();
   const utils = trpc.useContext();
   const session = useSession();
+  const [firstRender, setFirstRender] = useState(true);
+
+  useLayoutEffect(() => {
+    document.body.focus();
+  }, []);
 
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
@@ -106,6 +112,7 @@ const ProfileView = () => {
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.teams.list.invalidate();
+      await utils.viewer.eventTypes.invalidate();
       showToast(t("success"), "success");
     },
     async onError(err) {
@@ -224,6 +231,8 @@ const ProfileView = () => {
                   setText={(value: string) => form.setValue("bio", turndown(value))}
                   excludedToolbarItems={["blockType"]}
                   disableLists
+                  firstRender={firstRender}
+                  setFirstRender={setFirstRender}
                 />
               </div>
               <p className="text-default mt-2 text-sm">{t("team_description")}</p>
@@ -263,10 +272,10 @@ const ProfileView = () => {
               </div>
               <div className="">
                 <Link href={permalink} passHref={true} target="_blank">
-                  <LinkIconButton Icon={FiExternalLink}>{t("preview")}</LinkIconButton>
+                  <LinkIconButton Icon={ExternalLink}>{t("preview")}</LinkIconButton>
                 </Link>
                 <LinkIconButton
-                  Icon={FiLink}
+                  Icon={LinkIcon}
                   onClick={() => {
                     navigator.clipboard.writeText(permalink);
                     showToast("Copied to clipboard", "success");
@@ -282,7 +291,7 @@ const ProfileView = () => {
           {team?.membership.role === "OWNER" ? (
             <Dialog>
               <DialogTrigger asChild>
-                <Button color="destructive" className="border" StartIcon={FiTrash2}>
+                <Button color="destructive" className="border" StartIcon={Trash2}>
                   {t("disband_team")}
                 </Button>
               </DialogTrigger>
@@ -297,7 +306,7 @@ const ProfileView = () => {
           ) : (
             <Dialog>
               <DialogTrigger asChild>
-                <Button color="destructive" className="border" StartIcon={FiLogOut}>
+                <Button color="destructive" className="border" StartIcon={LogOut}>
                   {t("leave_team")}
                 </Button>
               </DialogTrigger>

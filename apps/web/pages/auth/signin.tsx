@@ -4,6 +4,8 @@ import { getProviders, signIn, getCsrfToken } from "next-auth/react";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { Button } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
+
 type Provider = {
   name: string;
   id: string;
@@ -22,6 +24,8 @@ function signin({ providers }: { providers: Provider[] }) {
     </div>
   );
 }
+
+signin.PageWrapper = PageWrapper;
 
 export default signin;
 

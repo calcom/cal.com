@@ -11,7 +11,7 @@ import {
   DialogTrigger,
   Label,
 } from "@calcom/ui";
-import { FiClipboard } from "@calcom/ui/components/icon";
+import { Clipboard } from "@calcom/ui/components/icon";
 
 export default function ConnectionInfo({
   teamId,
@@ -99,7 +99,7 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: strin
               }}
               type="button"
               className="rounded-l-none py-[19px] text-base ">
-              <FiClipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
+              <Clipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
               {t("copy")}
             </Button>
           </Tooltip>
@@ -121,7 +121,7 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: strin
               }}
               type="button"
               className="rounded-l-none py-[19px] text-base ">
-              <FiClipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
+              <Clipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
               {t("copy")}
             </Button>
           </Tooltip>
@@ -157,7 +157,7 @@ const OIDCInfo = ({ callbackUrl }: { callbackUrl: string | null }) => {
               }}
               type="button"
               className="rounded-l-none py-[19px] text-base ">
-              <FiClipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
+              <Clipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
               {t("copy")}
             </Button>
           </Tooltip>

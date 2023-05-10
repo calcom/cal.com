@@ -5,7 +5,7 @@ import { classNames } from "@calcom/lib";
 import type { BadgeProps } from "../..";
 import { Badge } from "../..";
 import { Divider } from "../divider";
-import { FiArrowDown, FiArrowUp, FiTrash } from "../icon";
+import { ArrowDown, ArrowUp, Trash } from "../icon";
 
 type Action = { check: () => boolean; fn: () => void };
 export default function FormCard({
@@ -39,7 +39,7 @@ export default function FormCard({
             type="button"
             className="bg-default text-muted hover:text-emphasis invisible absolute left-0 -ml-[13px] -mt-10 flex h-6 w-6 scale-0 items-center   justify-center rounded-md border p-1 transition-all hover:border-transparent  hover:shadow group-hover:visible group-hover:scale-100 "
             onClick={() => moveUp?.fn()}>
-            <FiArrowUp />
+            <ArrowUp />
           </button>
         ) : null}
         {moveDown?.check() ? (
@@ -47,7 +47,7 @@ export default function FormCard({
             type="button"
             className="bg-default text-muted hover:text-emphasis invisible absolute left-0 -ml-[13px] -mt-2  flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
             onClick={() => moveDown?.fn()}>
-            <FiArrowDown />
+            <ArrowDown />
           </button>
         ) : null}
       </div>
@@ -68,7 +68,7 @@ export default function FormCard({
                 deleteField?.fn();
               }}
               color="secondary">
-              <FiTrash className="text-muted h-4 w-4" />
+              <Trash className="text-muted h-4 w-4" />
             </button>
           ) : null}
         </div>

@@ -6,7 +6,7 @@ import { Toaster } from "react-hot-toast";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast, Tooltip } from "@calcom/ui";
-import { FiClipboard } from "@calcom/ui/components/icon";
+import { Clipboard } from "@calcom/ui/components/icon";
 
 export interface IZapierSetupProps {
   inviteLink: string;
@@ -57,7 +57,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
               {!newApiKey ? (
                 <>
                   <div className="mt-1 text-xl">{t("generate_api_key")}:</div>
-                  <Button onClick={() => createApiKey()} className="mt-4 mb-4">
+                  <Button color="primary" onClick={() => createApiKey()} className="mt-4 mb-4">
                     {t("generate_api_key")}
                   </Button>
                 </>
@@ -76,7 +76,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                         }}
                         type="button"
                         className="mt-4 text-base sm:mt-0 sm:rounded-l-none">
-                        <FiClipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
+                        <Clipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
                         {t("copy")}
                       </Button>
                     </Tooltip>

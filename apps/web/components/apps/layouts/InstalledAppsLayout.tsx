@@ -6,38 +6,38 @@ import type { InstalledAppVariants } from "@calcom/app-store/utils";
 import Shell from "@calcom/features/shell/Shell";
 import { trpc } from "@calcom/trpc/react";
 import type { HorizontalTabItemProps, VerticalTabItemProps } from "@calcom/ui";
-import { FiBarChart, FiCalendar, FiCreditCard, FiGrid, FiShare2, FiVideo } from "@calcom/ui/components/icon";
+import { BarChart, Calendar, CreditCard, Grid, Share2, Video } from "@calcom/ui/components/icon";
 
 const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
   {
     name: "calendar",
     href: "/apps/installed/calendar",
-    icon: FiCalendar,
+    icon: Calendar,
   },
   {
     name: "conferencing",
     href: "/apps/installed/conferencing",
-    icon: FiVideo,
+    icon: Video,
   },
   {
     name: "payment",
     href: "/apps/installed/payment",
-    icon: FiCreditCard,
+    icon: CreditCard,
   },
   {
     name: "automation",
     href: "/apps/installed/automation",
-    icon: FiShare2,
+    icon: Share2,
   },
   {
     name: "analytics",
     href: "/apps/installed/analytics",
-    icon: FiBarChart,
+    icon: BarChart,
   },
   {
     name: "other",
     href: "/apps/installed/other",
-    icon: FiGrid,
+    icon: Grid,
   },
 ];
 
@@ -57,7 +57,7 @@ export default function InstalledAppsLayout({
   }
 
   return (
-    <Shell {...rest}>
+    <Shell {...rest} hideHeadingOnMobile>
       <AppCategoryNavigation baseURL="/apps/installed" containerClassname="min-w-0 w-full">
         {children}
       </AppCategoryNavigation>

@@ -1,4 +1,4 @@
-import { SchedulingType } from "@prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { z } from "zod";
 import * as imports from "../../zod-utils";
 // TODO: figure out why EventTypeModel is being called even if it's not imported here, causing a circular dependency
@@ -13,6 +13,7 @@ export const createEventTypeInput = z.object({
   teamId: z.number().int().nullish(),
   schedulingType: z.nativeEnum(SchedulingType).nullish(),
   locations: imports.eventTypeLocations,
+  metadata: imports.EventTypeMetaDataSchema.optional(),
 })
   .partial({ hidden: true, locations: true })
   .refine((data) => (data.teamId ? data.teamId && data.schedulingType : true), {

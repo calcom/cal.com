@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { AnimatedPopover, Avatar } from "@calcom/ui";
-import { FiLayers, FiUser } from "@calcom/ui/components/icon";
+import { Layers, User } from "@calcom/ui/components/icon";
 
 import { useFilterQuery } from "../lib/useFilterQuery";
 
@@ -24,7 +24,7 @@ export const TeamsMemberFilter = () => {
     <AnimatedPopover text={teamNames && teamNames.length > 0 ? `${teamNames.join(", ")}` : dropdownTitle}>
       <div className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] hover:cursor-pointer">
         <div className="text-default flex h-6 w-6 items-center justify-center ltr:mr-2 rtl:ml-2">
-          <FiLayers className="h-5 w-5" />
+          <Layers className="h-5 w-5" />
         </div>
         <label
           htmlFor="allBookings"
@@ -45,7 +45,7 @@ export const TeamsMemberFilter = () => {
       </div>
       <div className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] hover:cursor-pointer">
         <div className="text-default flex h-6 w-6 items-center justify-center ltr:mr-2 rtl:ml-2">
-          <FiUser className="h-5 w-5" />
+          <User className="h-5 w-5" />
         </div>
         <label
           htmlFor="yourBookings"

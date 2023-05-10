@@ -4,6 +4,8 @@ import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 
+import PageWrapper from "@components/PageWrapper";
+
 export default function MaintenancePage() {
   const { t, isLocaleReady } = useLocale();
   if (!isLocaleReady) return null;
@@ -25,3 +27,5 @@ export default function MaintenancePage() {
     </div>
   );
 }
+
+MaintenancePage.PageWrapper = PageWrapper;

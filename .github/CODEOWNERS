@@ -5,7 +5,8 @@
 # the repo. Unless a later match takes precedence,
 # @global-owner1 and @global-owner2 will be requested for
 # review when someone opens a pull request.
-*           @calcom/reviewers
+# ⬇️ Removed so we can manually trigger checks
+# *           @calcom/reviewers
 
 .github/    @calcom/core
 .husky/     @calcom/core

@@ -3,7 +3,7 @@ import { useWatch } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge, Button, showToast } from "@calcom/ui";
-import { FiActivity } from "@calcom/ui/components/icon";
+import { Activity } from "@calcom/ui/components/icon";
 
 export default function WebhookTestDisclosure() {
   const subscriberUrl: string = useWatch({ name: "subscriberUrl" });
@@ -26,7 +26,7 @@ export default function WebhookTestDisclosure() {
           type="button"
           color="secondary"
           disabled={mutation.isLoading || !subscriberUrl}
-          StartIcon={FiActivity}
+          StartIcon={Activity}
           onClick={() => mutation.mutate({ url: subscriberUrl, type: "PING", payloadTemplate })}>
           {t("ping_test")}
         </Button>
