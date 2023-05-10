@@ -134,13 +134,12 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
                     <Button
                       color="secondary"
                       className="w-full justify-center"
-                      onClick={() =>
-                        signIn("Cal.com", {
-                          callbackUrl: router.query.callbackUrl
-                            ? `${WEBAPP_URL}/${router.query.callbackUrl}`
-                            : `${WEBAPP_URL}/getting-started`,
-                        })
-                      }>
+                      onClick={() => {
+                        const callbackUrl = router.query.callbackUrl
+                          ? router.query.callbackUrl
+                          : `${WEBAPP_URL}/getting-started`;
+                        router.push(`/auth/login?callbackUrl=${callbackUrl}`);
+                      }}>
                       {t("login_instead")}
                     </Button>
                   )}
