@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const appKeysSchema = z.object({
-  jitsiHost: z.string().default("https://meet.jit.si/cal"),
+  jitsiHost: z.string().optional(),
 });
 
 export const appDataSchema = z.object({});

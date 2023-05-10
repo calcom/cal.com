@@ -4,6 +4,7 @@ import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import { metadata } from "../_metadata";
 
 const JitsiVideoApiAdapter = (): VideoApiAdapter => {
   return {
@@ -11,15 +12,15 @@ const JitsiVideoApiAdapter = (): VideoApiAdapter => {
       return Promise.resolve([]);
     },
     createMeeting: async (): Promise<VideoCallData> => {
-      const appKeys = await getAppKeysFromSlug("jitsivideo");
+      const appKeys = await getAppKeysFromSlug(metadata.slug);
 
-      //Default Values
       const meetingID = uuidv4();
-      let hostUrl = "https://meet.jit.si/cal";
 
-      if (typeof appKeys.jitsiHost === "string") hostUrl = appKeys.jitsiHost!;
+      // Default Value
+      const hostUrl = appKeys.jitsiHost || "https://meet.jit.si/cal";
+
       return Promise.resolve({
-        type: "jitsi_video",
+        type: metadata.type,
         id: meetingID,
         password: "",
         url: hostUrl + "/" + meetingID,
