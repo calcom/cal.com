@@ -74,7 +74,6 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       eventTypeId,
     },
   });
-
   if (isActive) {
     await prisma.workflowsOnEventTypes.deleteMany({
       where: {
@@ -94,14 +93,10 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         eventTypeId,
       },
     });
-
-    if (
-      eventTypeWorkflow.steps.some((step) => {
-        return step.action === WorkflowActions.SMS_ATTENDEE;
-      })
-    ) {
+    const requiresAttendeeNumber = (action: WorkflowActions) => action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE;
+    if (eventTypeWorkflow.steps.some((step) => requiresAttendeeNumber(step.action))) {
       const isSmsReminderNumberRequired = eventTypeWorkflow.steps.some((step) => {
-        return step.action === WorkflowActions.SMS_ATTENDEE && step.numberRequired;
+        return requiresAttendeeNumber(step.action) && step.numberRequired;
       });
       await upsertSmsReminderFieldForBooking({
         workflowId,

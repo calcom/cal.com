@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import { isSMSAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { isSMSOrWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import {
   deleteScheduledEmailReminder,
   scheduleEmailReminder,
@@ -174,6 +174,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
     } else if (reminder.method === WorkflowMethods.SMS) {
       deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+    } else if (reminder.method === WorkflowMethods.WHATSAPP) {
+      deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId)
     }
   });
 
@@ -355,8 +357,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       if (
         !userWorkflow.teamId &&
         !userWorkflow.user?.teams.length &&
-        !isSMSAction(oldStep.action) &&
-        isSMSAction(newStep.action) &&
+        !isSMSOrWhatsappAction(oldStep.action) &&
+        isSMSOrWhatsappAction(newStep.action) &&
         !IS_SELF_HOSTED
       ) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -528,7 +530,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   //added steps
   const addedSteps = steps.map((s) => {
     if (s.id <= 0) {
-      if (!userWorkflow.user?.teams.length && isSMSAction(s.action) && !IS_SELF_HOSTED) {
+      if (!userWorkflow.user?.teams.length && isSMSOrWhatsappAction(s.action) && !IS_SELF_HOSTED) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
       const { id: _stepId, ...stepToAdd } = s;
@@ -650,10 +652,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 user.id,
                 userWorkflow.teamId
               );
-            } else if (step.action === WorkflowActions.WHATSAPP_NUMBER) {
+            } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
               await scheduleWhatsappReminder(
                 bookingInfo,
-                step.sendTo || "",
+                step.sendTo,
                 trigger,
                 step.action,
                 {
@@ -714,7 +716,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   // Remove or add booking field for sms reminder number
   const smsReminderNumberNeeded =
-    activeOn.length && steps.some((step) => step.action === WorkflowActions.SMS_ATTENDEE);
+    activeOn.length && steps.some((step) => step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.WHATSAPP_ATTENDEE);
 
   for (const removedEventType of removedEventTypes) {
     await removeSmsReminderFieldForBooking({
@@ -728,7 +730,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       await upsertSmsReminderFieldForBooking({
         workflowId: id,
         isSmsReminderNumberRequired: steps.some(
-          (s) => s.action === WorkflowActions.SMS_ATTENDEE && s.numberRequired
+          (s) => (s.action === WorkflowActions.SMS_ATTENDEE || s.action === WorkflowActions.WHATSAPP_ATTENDEE) && s.numberRequired
         ),
         eventTypeId,
       });
