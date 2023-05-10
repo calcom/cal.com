@@ -385,9 +385,9 @@ const CopyTimes = ({
         <ol className="space-y-2">
         <li key="select all">
                 <label className="text-default flex w-full items-center justify-between">
-                  <span className="px-1">{'select_all'}</span>
+                  <span className="px-1">{t('select_all')}</span>
                   <input
-                    value={'select_all'}
+                    value={t('select_all')}
                     onChange={(e) => {
                       if (e.target.checked) {
                         setSelected([0,1,2,3,4,5,6]);
