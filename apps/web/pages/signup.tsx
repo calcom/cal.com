@@ -25,7 +25,6 @@ type FormValues = {
   username: string;
   email: string;
   password: string;
-  passwordcheck: string;
   apiError: string;
 };
 
@@ -77,7 +76,7 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
   return (
     <LicenseRequired>
       <div
-        className="bg-muted flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8"
+        className="bg-muted flex min-h-screen flex-col justify-center "
         style={
           {
             "--cal-brand": "#111827",
@@ -96,7 +95,7 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
           </h2>
         </div>
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-default mx-2 px-4 py-8 shadow sm:rounded-lg sm:px-10">
+          <div className="bg-default mx-2 p-6 shadow sm:rounded-lg lg:p-8">
             <FormProvider {...methods}>
               <form
                 onSubmit={(event) => {
@@ -110,7 +109,7 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
                 }}
                 className="bg-default space-y-6">
                 {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <TextField
                     addOnLeading={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/`}
                     {...register("username")}
@@ -127,13 +126,6 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
                     }}
                     {...register("password")}
                     className="border-default mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
-                  />
-                  <PasswordField
-                    label={t("confirm_password")}
-                    {...register("passwordcheck", {
-                      validate: (value) =>
-                        value === methods.watch("password") || (t("error_password_mismatch") as string),
-                    })}
                   />
                 </div>
                 <div className="flex space-x-2 rtl:space-x-reverse">
