@@ -11,6 +11,10 @@ import { getEventName } from "@calcom/core/event";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import {
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import { classNames } from "@calcom/lib";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
@@ -42,6 +46,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
 
   const bookingFields: Prisma.JsonObject = {};
+
+  const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
 
   eventType.bookingFields.forEach(({ name }) => {
     bookingFields[name] = name + " input";
@@ -338,7 +344,51 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </>
         )}
       />
-
+      {allowDisablingAttendeeConfirmationEmails(workflows) && (
+        <>
+          <hr className="border-subtle" />
+          <Controller
+            name="metadata.disableStandardEmails.confirmation.attendee"
+            control={formMethods.control}
+            render={({ field: { value, onChange } }) => (
+              <>
+                <SettingsToggle
+                  title={t("disable_attendees_confirmation_emails")}
+                  description={t("disable_attendees_confirmation_emails_description")}
+                  checked={value || false}
+                  onCheckedChange={(e) => {
+                    formMethods.setValue("metadata.disableStandardEmails.confirmation.attendee", e);
+                    onChange(e);
+                  }}
+                />
+              </>
+            )}
+          />
+        </>
+      )}
+      {allowDisablingHostConfirmationEmails(workflows) && (
+        <>
+          <hr className="border-subtle" />
+          <Controller
+            name="metadata.disableStandardEmails.confirmation.host"
+            control={formMethods.control}
+            defaultValue={!!eventType.seatsPerTimeSlot}
+            render={({ field: { value, onChange } }) => (
+              <>
+                <SettingsToggle
+                  title={t("disable_host_confirmation_emails")}
+                  description={t("disable_host_confirmation_emails_description")}
+                  checked={value || false}
+                  onCheckedChange={(e) => {
+                    formMethods.setValue("metadata.disableStandardEmails.confirmation.host", e);
+                    onChange(e);
+                  }}
+                />
+              </>
+            )}
+          />
+        </>
+      )}
       {showEventNameTip && (
         <CustomEventTypeModal
           close={closeEventNameTip}

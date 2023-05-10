@@ -1038,7 +1038,6 @@
   "event_cancelled_trigger": "gdy wydarzenie zostanie odwołane",
   "new_event_trigger": "gdy nowe wydarzenie zostanie zarezerwowane",
   "email_host_action": "wyślij wiadomość e-mail do hosta",
-  "email_attendee_action": "wyślij wiadomość e-mail do uczestnika",
   "sms_attendee_action": "wyślij SMS do uczestnika",
   "sms_number_action": "wyślij wiadomość SMS na określony numer",
   "workflows": "Przepływy pracy",
