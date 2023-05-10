@@ -2,7 +2,7 @@
  * This file contains the root router of your tRPC-backend
  */
 import { router } from "../trpc";
-import { viewerRouter } from "./viewer";
+import { viewerRouter } from "./viewer/_router";
 
 /**
  * Create your application's root router

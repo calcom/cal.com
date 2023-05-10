@@ -1,8 +1,9 @@
 import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
-import { WorkflowActions, WorkflowTriggerEvents } from "@prisma/client";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
 
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { WorkflowActions } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { scheduleEmailReminder } from "./emailReminderManager";
@@ -76,16 +77,19 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
             step.action === WorkflowActions.EMAIL_ATTENDEE ||
             step.action === WorkflowActions.EMAIL_HOST
           ) {
-            let sendTo = "";
+            let sendTo: string[] = [];
 
             switch (step.action) {
               case WorkflowActions.EMAIL_HOST:
-                sendTo = evt.organizer?.email || "";
+                sendTo = [evt.organizer?.email || ""];
                 break;
               case WorkflowActions.EMAIL_ATTENDEE:
-                sendTo = !!emailAttendeeSendToOverride
-                  ? emailAttendeeSendToOverride
-                  : evt.attendees?.[0]?.email || "";
+                const attendees = !!emailAttendeeSendToOverride
+                  ? [emailAttendeeSendToOverride]
+                  : evt.attendees?.map((attendee) => attendee.email);
+
+                sendTo = attendees;
+
                 break;
             }
 

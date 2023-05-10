@@ -29,7 +29,7 @@ export const getEventTypeAppData = <T extends EventTypeAppsList>(
   // Migration isn't being done right now, to allow a revert if needed
   const legacyAppsData = {
     stripe: {
-      enabled: eventType.price > 0,
+      enabled: !!eventType.price,
       // Price default is 0 in DB. So, it would always be non nullish.
       price: eventType.price,
       // Currency default is "usd" in DB.So, it would also be available always

@@ -45,7 +45,7 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
       {numTruncatedAvatars > 0 && (
         <li
           className={classNames(
-            "bg-darkgray-300 relative -mr-[4px] mb-1 inline-flex justify-center overflow-hidden rounded-full",
+            "bg-inverted relative -mr-[4px] mb-1 inline-flex justify-center overflow-hidden rounded-full",
             props.size === "sm" ? "min-w-6 h-6" : "min-w-16 h-16"
           )}>
           <span

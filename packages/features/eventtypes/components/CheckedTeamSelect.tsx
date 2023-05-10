@@ -44,14 +44,16 @@ export const CheckedTeamSelect = ({
       />
       {/* This class name conditional looks a bit odd but it allows a seemless transition when using autoanimate
        - Slides down from the top instead of just teleporting in from nowhere*/}
-      <ul className={classNames("mt-3 rounded-md", value.length >= 1 && "border")} ref={animationRef}>
+      <ul
+        className={classNames("mt-3 rounded-md", value.length >= 1 && "border-subtle border")}
+        ref={animationRef}>
         {value.map((option, index) => (
           <li key={option.value} className={`flex py-2 px-3 ${index === value.length - 1 ? "" : "border-b"}`}>
             <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
-            <p className="text-emphasis my-auto ml-3 text-sm">{option.label}</p>
+            <p className="text-emphasis ms-3 my-auto text-sm">{option.label}</p>
             <X
               onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
-              className="my-auto ml-auto"
+              className="my-auto ml-auto h-4 w-4"
             />
           </li>
         ))}

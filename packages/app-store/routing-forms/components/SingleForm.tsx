@@ -66,8 +66,10 @@ const Actions = ({
 
   return (
     <div className="flex items-center">
-      <FormAction className="self-center" data-testid="toggle-form" action="toggle" routingForm={form} />
-      <VerticalDivider />
+      <div className="hidden items-center sm:inline-flex">
+        <FormAction className="self-center" data-testid="toggle-form" action="toggle" routingForm={form} />
+        <VerticalDivider />
+      </div>
       <ButtonGroup combined containerProps={{ className: "hidden md:inline-flex items-center" }}>
         <Tooltip content={t("preview")}>
           <FormAction
@@ -186,7 +188,7 @@ const Actions = ({
               {t("Copy Typeform Redirect Url")}
             </FormAction>
           ) : null}
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator className="hidden sm:block" />
           <FormAction
             action="_delete"
             routingForm={form}
@@ -196,6 +198,16 @@ const Actions = ({
             StartIcon={Trash}>
             {t("delete")}
           </FormAction>
+          <div className="block sm:hidden">
+            <DropdownMenuSeparator />
+            <FormAction
+              data-testid="toggle-form"
+              action="toggle"
+              routingForm={form}
+              label="Disable Form"
+              extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4"
+            />
+          </div>
         </FormActionsDropdown>
       </div>
       <VerticalDivider />
@@ -272,8 +284,8 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
             subtitle={form.description || ""}
             backPath={`/${appUrl}/forms`}
             CTA={<Actions form={form} mutation={mutation} />}>
-            <div className="-mx-4 px-4 sm:px-6 md:-mx-8 md:px-8">
-              <div className="flex flex-col items-center md:flex-row md:items-start">
+            <div className="-mx-4 mt-4 px-4 sm:px-6 md:-mx-8 md:mt-0 md:px-8">
+              <div className="flex flex-col items-center items-baseline md:flex-row md:items-start">
                 <div className="lg:min-w-72 lg:max-w-72 mb-6 md:mr-6">
                   <TextField
                     type="text"

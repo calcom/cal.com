@@ -2,7 +2,7 @@ import NoSSR from "@calcom/core/components/NoSSR";
 import { Button, Meta } from "@calcom/ui";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
-import LicenseRequired from "../../common/components/v2/LicenseRequired";
+import LicenseRequired from "../../common/components/LicenseRequired";
 import { UsersTable } from "../components/UsersTable";
 
 const DeploymentUsersListPage = () => {

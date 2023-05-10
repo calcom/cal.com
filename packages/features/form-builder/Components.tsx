@@ -255,7 +255,7 @@ export const Components: Record<BookingFieldType, Component> = {
                     }
                     setValue(newValue);
                   }}
-                  className="dark:bg-darkgray-300 border-subtle border-default text-emphasis h-4 w-4 rounded focus:ring-black ltr:mr-2 rtl:ml-2"
+                  className="dark:bg-darkgray-300 border-subtle text-emphasis h-4 w-4 rounded focus:ring-black ltr:mr-2 rtl:ml-2"
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
@@ -314,7 +314,7 @@ export const Components: Record<BookingFieldType, Component> = {
                         type="radio"
                         disabled={readOnly}
                         name={name}
-                        className="dark:bg-darkgray-300 border-subtle border-default text-emphasis h-4 w-4 focus:ring-black ltr:mr-2 rtl:ml-2"
+                        className="dark:bg-darkgray-300 border-subtle text-emphasis h-4 w-4 focus:ring-black ltr:mr-2 rtl:ml-2"
                         value={option.value}
                         onChange={(e) => {
                           setValue({

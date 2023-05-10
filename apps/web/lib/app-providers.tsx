@@ -19,6 +19,8 @@ import { MetaProvider } from "@calcom/ui";
 import usePublicPage from "@lib/hooks/usePublicPage";
 import type { WithNonceProps } from "@lib/withNonce";
 
+import { useViewerI18n } from "@components/I18nLanguageHandler";
+
 const I18nextAdapter = appWithTranslation<NextJsAppProps<SSRConfig> & { children: React.ReactNode }>(
   ({ children }) => <>{children}</>
 );
@@ -46,9 +48,7 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
    * We intend to not cache i18n query
    **/
-  const { i18n, locale } = trpc.viewer.public.i18n.useQuery(undefined, {
-    trpc: { context: { skipBatch: true } },
-  }).data ?? {
+  const { i18n, locale } = useViewerI18n().data ?? {
     locale: "en",
   };
 
@@ -155,6 +155,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
       <SessionProvider session={session || undefined}>
         <CustomI18nextProvider {...props}>
           <TooltipProvider>
+            {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
             <CalcomThemeProvider
               nonce={props.pageProps.nonce}
               isThemeSupported={props.Component.isThemeSupported}

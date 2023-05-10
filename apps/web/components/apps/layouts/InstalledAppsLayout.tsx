@@ -57,7 +57,7 @@ export default function InstalledAppsLayout({
   }
 
   return (
-    <Shell {...rest}>
+    <Shell {...rest} hideHeadingOnMobile>
       <AppCategoryNavigation baseURL="/apps/installed" containerClassname="min-w-0 w-full">
         {children}
       </AppCategoryNavigation>

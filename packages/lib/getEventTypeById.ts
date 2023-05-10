@@ -1,6 +1,4 @@
 import type { PrismaClient } from "@prisma/client";
-import { MembershipRole } from "@prisma/client";
-import { SchedulingType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import type { StripeData } from "@calcom/app-store/stripepayment/lib/server";
@@ -12,6 +10,7 @@ import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -37,7 +36,6 @@ export default async function getEventTypeById({
     name: true,
     username: true,
     id: true,
-    avatar: true,
     email: true,
     locale: true,
     defaultScheduleId: true,
@@ -306,6 +304,14 @@ export default async function getEventTypeById({
     }
     eventType.users.push(fallbackUser);
   }
+
+  const eventTypeUsers: ((typeof eventType.users)[number] & { avatar: string })[] = eventType.users.map(
+    (user) => ({
+      ...user,
+      avatar: `${CAL_URL}/${user.username}/avatar.png`,
+    })
+  );
+
   const currentUser = eventType.users.find((u) => u.id === userId);
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const integrations = await getEnabledApps(credentials);
@@ -324,6 +330,7 @@ export default async function getEventTypeById({
   }
 
   const eventTypeObject = Object.assign({}, eventType, {
+    users: eventTypeUsers,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
     bookingFields: getBookingFieldsWithSystemFields(eventType),
@@ -331,13 +338,15 @@ export default async function getEventTypeById({
 
   const teamMembers = eventTypeObject.team
     ? eventTypeObject.team.members.map((member) => {
-        const user = member.user;
-        user.avatar = `${CAL_URL}/${user.username}/avatar.png`;
+        const user: typeof member.user & { avatar: string } = {
+          ...member.user,
+          avatar: `${CAL_URL}/${member.user.username}/avatar.png`,
+        };
         return { ...user, eventTypes: user.eventTypes.map((evTy) => evTy.slug), membership: member.role };
       })
     : [];
 
-  // Find the current users memebership so we can check role to enable/disable deletion.
+  // Find the current users membership so we can check role to enable/disable deletion.
   // Sets to null if no membership is found - this must mean we are in a none team event type
   const currentUserMembership = eventTypeObject.team?.members.find((el) => el.user.id === userId) ?? null;
 

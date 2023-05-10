@@ -46,7 +46,7 @@ export default function SettingsShell({
   ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   return (
-    <Shell {...rest}>
+    <Shell {...rest} hideHeadingOnMobile>
       <div className="sm:mx-auto">
         <NavTabs tabs={tabs} />
       </div>

@@ -17,6 +17,7 @@
     "eslint-plugin-prettier": "^4.2.1"
   },
   "devDependencies": {
+    "@savvywombat/tailwindcss-grid-areas": "^3.0.0",
     "@tailwindcss/forms": "^0.5.2",
     "@tailwindcss/line-clamp": "^0.4.0",
     "@tailwindcss/typography": "^0.5.4",
@@ -25,6 +26,7 @@
     "@typescript-eslint/parser": "^5.52.0",
     "eslint": "^8.34.0",
     "eslint-plugin-unused-imports": "^2.0.0",
+    "eslint-plugin-you-dont-need-lodash-underscore": "^6.12.0",
     "prettier": "^2.8.6",
     "prettier-plugin-tailwindcss": "^0.2.5",
     "tailwind-scrollbar": "^2.0.1",

@@ -1,11 +1,12 @@
 import type { Page, WorkerInfo } from "@playwright/test";
 import type Prisma from "@prisma/client";
-import { MembershipRole, Prisma as PrismaType } from "@prisma/client";
+import { Prisma as PrismaType } from "@prisma/client";
 import { hashSync as hash } from "bcryptjs";
 
 import dayjs from "@calcom/dayjs";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import type { TimeZoneEnum } from "./types";
 
@@ -345,12 +346,12 @@ export async function getPaymentCredential(page: Page) {
 
   /** We start the Stripe flow */
   await Promise.all([
-    page.waitForNavigation({ url: "https://connect.stripe.com/oauth/v2/authorize?*" }),
+    page.waitForURL("https://connect.stripe.com/oauth/v2/authorize?*"),
     page.click('[data-testid="install-app-button"]'),
   ]);
 
   await Promise.all([
-    page.waitForNavigation({ url: "/apps/installed/payment?hl=stripe" }),
+    page.waitForURL("/apps/installed/payment?hl=stripe"),
     /** We skip filling Stripe forms (testing mode only) */
     page.click('[id="skip-account-app"]'),
   ]);

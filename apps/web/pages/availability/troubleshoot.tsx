@@ -122,7 +122,7 @@ export default function Troubleshoot() {
   const { t } = useLocale();
   return (
     <div>
-      <Shell heading={t("troubleshoot")} subtitle={t("troubleshoot_description")}>
+      <Shell heading={t("troubleshoot")} hideHeadingOnMobile subtitle={t("troubleshoot_description")}>
         {!isLoading && data && <AvailabilityView user={data} />}
       </Shell>
     </div>

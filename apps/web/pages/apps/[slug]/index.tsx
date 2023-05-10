@@ -6,6 +6,7 @@ import path from "path";
 import { z } from "zod";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
+import { getAppAssetFullPath } from "@calcom/app-store/getAppAssetFullPath";
 import prisma from "@calcom/prisma";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -108,9 +109,11 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   const { content, data } = sourceSchema.parse({ content: result.content, data: result.data });
   if (data.items) {
     data.items = data.items.map((item) => {
-      if (typeof item === "string" && !item.includes("/api/app-store")) {
-        // Make relative paths absolute
-        return `/api/app-store/${appDirname}/${item}`;
+      if (typeof item === "string") {
+        return getAppAssetFullPath(item, {
+          dirName: singleApp.dirName,
+          isTemplate: singleApp.isTemplate,
+        });
       }
       return item;
     });

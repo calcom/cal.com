@@ -150,7 +150,7 @@ export const getUid = (calEvent: CalendarEvent): string => {
 };
 
 const getSeatReferenceId = (calEvent: CalendarEvent): string => {
-  return calEvent.attendeeSeatId ? `seatReferenceUid=${calEvent.attendeeSeatId}` : "";
+  return calEvent.attendeeSeatId ? calEvent.attendeeSeatId : "";
 };
 
 export const getManageLink = (calEvent: CalendarEvent) => {
@@ -161,12 +161,12 @@ ${WEBAPP_URL + "/booking/" + getUid(calEvent) + "?changes=true"}
 };
 
 export const getCancelLink = (calEvent: CalendarEvent): string => {
-  return (
-    WEBAPP_URL +
-    `/booking/${getUid(
-      calEvent
-    )}?cancel=true&allRemainingBookings=${!!calEvent.recurringEvent}&${getSeatReferenceId}`
-  );
+  const cancelLink = new URL(WEBAPP_URL + `/booking/${getUid(calEvent)}`);
+  cancelLink.searchParams.append("cancel", "true");
+  cancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
+  const seatReferenceUid = getSeatReferenceId(calEvent);
+  if (seatReferenceUid) cancelLink.searchParams.append("seatReferenceUid", seatReferenceUid);
+  return cancelLink.toString();
 };
 
 export const getRescheduleLink = (calEvent: CalendarEvent): string => {

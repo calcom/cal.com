@@ -1,4 +1,3 @@
-import { SchedulingType } from "@prisma/client";
 import type { EventTypeSetup, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -10,6 +9,7 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Badge, Button, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
@@ -154,12 +154,11 @@ const EventTypeScheduleDetails = ({
 
 const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
-  const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } =
-    useLockedFieldsManager(
-      eventType,
-      t("locked_fields_admin_description"),
-      t("locked_fields_member_description")
-    );
+  const { shouldLockIndicator, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
+    eventType,
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
+  );
   const { watch } = useFormContext<FormValues>();
   const watchSchedule = watch("schedule");
   const formMethods = useFormContext<FormValues>();
@@ -205,6 +204,8 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
       const value = options.find((option) =>
         scheduleId
           ? option.value === scheduleId
+          : isManagedEventType
+          ? option.value === 0
           : option.value === schedules.find((schedule) => schedule.isDefault)?.id
       );
 

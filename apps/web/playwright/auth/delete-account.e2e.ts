@@ -19,7 +19,10 @@ test("Can delete user account", async ({ page, users }) => {
   const $passwordField = page.locator("[data-testid=password]");
   await $passwordField.fill(user.username);
 
-  await Promise.all([page.waitForNavigation({ url: "/auth/logout" }), page.click("text=Delete my account")]);
+  await Promise.all([
+    page.waitForURL((url) => url.pathname === "/auth/logout"),
+    page.click("text=Delete my account"),
+  ]);
 
   await expect(page.locator(`[id="modal-title"]`)).toHaveText("You've been logged out");
 });

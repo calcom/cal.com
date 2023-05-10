@@ -1,7 +1,6 @@
 const https = require("https");
 
 async function applyLabelFromLinkedIssueToPR(pr, token) {
-  
   // Get the labels from issues linked to the PR
   const query = `
     query GetLinkedIssues($owner: String!, $repo: String!, $prNumber: Int!) {
@@ -38,7 +37,7 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
     headers: {
       "Content-Type": "application/json",
       "Content-Length": graphqlData.length,
-      "Authorization": "Bearer " + token,
+      Authorization: "Bearer " + token,
       "User-Agent": "Node.js",
     },
   };
@@ -52,14 +51,7 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
         responseBody += chunk;
       });
       response.on("end", () => {
-        resolve(
-          JSON.parse(responseBody)
-            ?.data
-            ?.repository
-            ?.pullRequest
-            ?.closingIssuesReferences
-            ?.nodes
-        );
+        resolve(JSON.parse(responseBody)?.data?.repository?.pullRequest?.closingIssuesReferences?.nodes);
       });
     });
 
@@ -96,7 +88,7 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
       headers: {
         "Content-Type": "application/json",
         "Content-Length": labelsData.length,
-        "Authorization": "Bearer " + token,
+        Authorization: "Bearer " + token,
         "User-Agent": "Node.js",
       },
     };
@@ -126,11 +118,9 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
       console.log(`Error labelling PR: ${labelResult.message}`);
       continue;
     }
-    
+
     console.log(
-      `Applied labels: ${labels.join(", ")} to PR #${
-        pr.number
-      } from linked issue #${issue.number}`
+      `Applied labels: ${labels.join(", ")} to PR #${pr.number} from linked issue #${issue.number}`
     );
   }
 }

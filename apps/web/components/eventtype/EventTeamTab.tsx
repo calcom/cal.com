@@ -1,4 +1,3 @@
-import { SchedulingType } from "@prisma/client";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useRef } from "react";
 import type { ComponentProps } from "react";
@@ -10,6 +9,7 @@ import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTea
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { Label, Select } from "@calcom/ui";
 
 interface IUserToValue {
