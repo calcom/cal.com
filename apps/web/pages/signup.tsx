@@ -125,6 +125,7 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
                       className: "block text-sm font-medium text-default",
                     }}
                     {...register("password")}
+                    hintErrors={["caplow", "min", "num"]}
                     className="border-default mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                   />
                 </div>
