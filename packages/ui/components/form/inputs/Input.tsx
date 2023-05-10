@@ -23,7 +23,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       {...props}
       ref={ref}
       className={classNames(
-        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default min-h-9 disabled:bg-subtle mb-2 block rounded-md border py-2 px-3 text-sm leading-4 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
+        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle mb-2 block h-9 rounded-md border py-2 px-3 text-sm leading-4 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
         isFullWidth && "w-full",
         props.className
       )}
@@ -68,7 +68,7 @@ type AddonProps = {
 const Addon = ({ isFilled, children, className, error }: AddonProps) => (
   <div
     className={classNames(
-      "addon-wrapper border-default h-9 border px-3",
+      "addon-wrapper border-default [input:hover_+_&]:border-emphasis [input:hover_+_&]:border-l-default [&:has(+_input:hover)]:border-emphasis [&:has(+_input:hover)]:border-r-default h-9 border px-3",
       isFilled && "bg-subtle",
       className
     )}>
@@ -144,8 +144,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             className={classNames(
               className,
               "disabled:bg-muted disabled:hover:border-subtle disabled:cursor-not-allowed",
-              addOnLeading && "rounded-l-none",
-              addOnSuffix && "rounded-r-none",
+              addOnLeading && "rounded-l-none border-l-0",
+              addOnSuffix && "rounded-r-none border-r-0",
               type === "search" && "pr-8",
               "!my-0 !ring-0"
             )}
