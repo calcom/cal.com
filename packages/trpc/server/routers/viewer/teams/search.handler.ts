@@ -14,7 +14,7 @@ type SearchHandlerOptions = {
 };
 
 export async function searchHandler({ input, ctx }: SearchHandlerOptions) {
-  const { cursor, limit: limit_, teamId } = input;
+  const { cursor, limit: limit_, teamId, search } = input;
   const limit = limit_ ?? 10;
 
   const items = await ctx.prisma.membership.findMany({
@@ -32,8 +32,34 @@ export async function searchHandler({ input, ctx }: SearchHandlerOptions) {
           bio: true,
         },
       },
+      teamId: true,
+      userId: true,
     },
-    where: { teamId },
+    where: {
+      teamId,
+      ...(search &&
+        search !== "" && {
+          user: {
+            OR: [
+              {
+                email: {
+                  contains: search,
+                },
+              },
+              {
+                name: {
+                  contains: search,
+                },
+              },
+              {
+                username: {
+                  contains: search,
+                },
+              },
+            ],
+          },
+        }),
+    },
     cursor: cursor
       ? {
           userId_teamId: {
