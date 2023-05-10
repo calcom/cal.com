@@ -13,6 +13,9 @@ const NewWebhookView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
+
+  const teamId = router.query.teamId ? +router.query.teamId : undefined;
+
   const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery(
     { variant: "other", onlyInstalled: true },
     {
@@ -58,6 +61,7 @@ const NewWebhookView = () => {
       active: values.active,
       payloadTemplate: values.payloadTemplate,
       secret: values.secret,
+      teamId,
     });
   };
 

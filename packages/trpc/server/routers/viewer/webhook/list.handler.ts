@@ -15,7 +15,7 @@ type ListOptions = {
 export const listHandler = async ({ ctx, input }: ListOptions) => {
   const where: Prisma.WebhookWhereInput = {
     /* Don't mixup zapier webhooks with normal ones */
-    AND: [{ appId: !input?.appId ? null : input.appId }],
+    AND: [{ appId: !input?.appId ? null : input.appId }, { teamId: !input?.teamId ? null : input.teamId }],
   };
   if (Array.isArray(where.AND)) {
     if (input?.eventTypeId) {
