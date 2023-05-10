@@ -8,7 +8,7 @@ import classNames from "@calcom/lib/classNames";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
-import { HeadSeo, ToggleGroup, useCalcomTheme } from "@calcom/ui";
+import { ToggleGroup, useCalcomTheme } from "@calcom/ui";
 import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
@@ -37,16 +37,15 @@ const useBrandColors = ({ brandColor, darkBrandColor }: { brandColor?: string; d
   useCalcomTheme(brandTheme);
 };
 
-const BookerComponent = ({ username, eventSlug, month, rescheduleBooking, hideBranding }: BookerProps) => {
+const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: BookerProps) => {
   const { t } = useLocale();
-  const { data: event, isLoading } = useEvent({ eventSlug, username });
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const timeslotsRef = useRef<HTMLDivElement>(null);
   const StickyOnDesktop = isMobile ? "div" : StickyBox;
   const rescheduleUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
-
+  const event = useEvent();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -60,15 +59,15 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking, hideBr
   const animationScope = useBookerResizeAnimation(layout, bookerState);
 
   useBrandColors({
-    brandColor: event?.profile.brandColor,
-    darkBrandColor: event?.profile.darkBrandColor,
+    brandColor: event.data?.profile.brandColor,
+    darkBrandColor: event.data?.profile.darkBrandColor,
   });
 
   useInitializeBookerStore({
     username,
     eventSlug,
     month,
-    eventId: event?.id,
+    eventId: event?.data?.id,
     rescheduleUid,
     rescheduleBooking,
   });
@@ -82,11 +81,11 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking, hideBr
   }, [isMobile, setLayout, layout]);
 
   useEffect(() => {
-    if (isLoading) return setBookerState("loading");
+    if (event.isLoading) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
     return setBookerState("booking");
-  }, [selectedDate, selectedTimeslot, setBookerState, isLoading]);
+  }, [event, selectedDate, selectedTimeslot, setBookerState]);
 
   useEffect(() => {
     if (layout === "mobile") {
@@ -94,35 +93,12 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking, hideBr
     }
   }, [layout]);
 
-  const profileName = event?.profile?.name ?? "";
-  const profileImage = event?.profile?.image;
-  const title = event?.title ?? "";
   return (
     <>
       {/*
         If we would render this on mobile, it would unset the mobile variant,
         since that's not a valid option, so it would set the layout to null.
       */}
-
-      <HeadSeo
-        title={`${rescheduleUid ? t("reschedule") : ""} ${title} | ${profileName}`}
-        description={`${rescheduleUid ? t("reschedule") : ""} ${title}`}
-        meeting={{
-          title: title,
-          profile: { name: profileName, image: profileImage },
-          users: [
-            ...(event?.users || []).map((user) => ({
-              name: `${user.name}`,
-              username: `${user.username}`,
-            })),
-          ],
-        }}
-        nextSeoProps={{
-          nofollow: event?.hidden,
-          noindex: event?.hidden,
-        }}
-        isBrandingHidden={hideBranding}
-      />
       {!isMobile && (
         <div className="[&>div]:bg-muted fixed top-2 right-3 z-10">
           <ToggleGroup
@@ -224,7 +200,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking, hideBr
               <AvailableTimeSlots
                 extraDays={extraDays}
                 limitHeight={layout === "small_calendar"}
-                seatsPerTimeslot={event?.seatsPerTimeSlot}
+                seatsPerTimeslot={event.data?.seatsPerTimeSlot}
               />
             </BookerSection>
           </AnimatePresence>

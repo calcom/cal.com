@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
+import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingByUidOrRescheduleUid } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
@@ -16,6 +17,7 @@ type PageProps = inferSSRProps<typeof getServerSideProps>;
 export default function Type({ slug, user, booking, away }: PageProps) {
   return (
     <main className="flex h-full min-h-[100dvh] items-center justify-center">
+      <BookerSeo username={user} eventSlug={slug} rescheduleUid={booking?.uid} />
       <Booker username={user} eventSlug={slug} rescheduleBooking={booking} isAway={away} />
     </main>
   );
