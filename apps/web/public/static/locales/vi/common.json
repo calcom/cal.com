@@ -1038,7 +1038,6 @@
   "event_cancelled_trigger": "khi sự kiện bị huỷ",
   "new_event_trigger": "khi sự kiện mới được đặt lịch hẹn",
   "email_host_action": "gửi email đến chủ sự kiện",
-  "email_attendee_action": "gửi email đến người tham gia",
   "sms_attendee_action": "gửi SMS đến người tham gia",
   "sms_number_action": "gửi SMS đến một số cụ thể",
   "workflows": "Tiến độ công việc",
