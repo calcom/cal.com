@@ -14,21 +14,24 @@ export const webhookProcedure = authedProcedure
 
     // A webhook is either linked to Event Type or to a user.
     if (eventTypeId) {
-      const team = await prisma.team.findFirst({
+      const eventType = await prisma.eventType.findFirst({
         where: {
-          eventTypes: {
-            some: {
-              id: eventTypeId,
+          id: eventTypeId,
+        },
+        include: {
+          team: {
+            include: {
+              members: true,
             },
           },
         },
-        include: {
-          members: true,
-        },
       });
 
-      // Team should be available and the user should be a member of the team
-      if (!team?.members.some((membership) => membership.userId === ctx.user.id)) {
+      if (
+        eventType &&
+        eventType.userId !== ctx.user.id &&
+        !eventType.team?.members.some((membership) => membership.userId === ctx.user.id)
+      ) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
         });

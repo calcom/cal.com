@@ -7,16 +7,12 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
 import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
-import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
 import { Plus, Lock } from "@calcom/ui/components/icon";
 
-export const EventTeamWebhooksTab = ({
-  eventType,
-  team,
-}: Pick<EventTypeSetupProps, "eventType" | "team">) => {
+export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t } = useLocale();
 
   const utils = trpc.useContext();
@@ -102,7 +98,7 @@ export const EventTeamWebhooksTab = ({
 
   return (
     <div>
-      {team && webhooks && !isLoading && (
+      {webhooks && !isLoading && (
         <>
           <div>
             <div>
@@ -139,7 +135,7 @@ export const EventTeamWebhooksTab = ({
                   <EmptyScreen
                     Icon={TbWebhook}
                     headline={t("create_your_first_webhook")}
-                    description={t("create_your_first_team_webhook_description", { appName: APP_NAME })}
+                    description={t("first_event_type_webhook_description")}
                     buttonRaw={
                       isChildrenManagedEventType && !isManagedEventType ? (
                         <Button StartIcon={Lock} color="secondary" disabled>
@@ -170,7 +166,7 @@ export const EventTeamWebhooksTab = ({
           </Dialog>
           {/* Edit webhook dialog */}
           <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
-            <DialogContent title={t("edit_webhook")}>
+            <DialogContent enableOverflow title={t("edit_webhook")}>
               <WebhookForm
                 webhook={webhookToEdit}
                 apps={installedApps?.items.map((app) => app.slug)}
