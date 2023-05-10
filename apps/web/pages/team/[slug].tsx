@@ -12,6 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
+import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { Avatar, AvatarGroup, Button, EmptyScreen, HeadSeo } from "@calcom/ui";
@@ -198,11 +199,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return { ...member, safeBio: markdownToSafeHTML(member.bio || "") };
   });
 
-  const markdownStrippedBio = await (
-    await remark()
-      .use(strip)
-      .process(team.bio ?? "")
-  ).toString();
+  const markdownStrippedBio = stripMarkdown(member?.bio || "");
 
   return {
     props: {

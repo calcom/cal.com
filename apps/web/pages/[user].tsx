@@ -23,6 +23,7 @@ import defaultEvents, {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -350,11 +351,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
-  const markdownStrippedBio = await (
-    await remark()
-      .use(strip)
-      .process(user.bio ?? "")
-  ).toString();
+  const markdownStrippedBio = stripMarkdown(user?.bio || "");
   return {
     props: {
       users,
