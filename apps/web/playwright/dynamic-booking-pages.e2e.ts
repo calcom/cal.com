@@ -31,19 +31,15 @@ test.skip("dynamic booking", async ({ page, users }) => {
     await page.goto("/bookings/upcoming");
     await page.locator('[data-testid="edit_booking"]').nth(0).click();
     await page.locator('[data-testid="reschedule"]').click();
-    await page.waitForNavigation({
-      url: (url) => {
-        const bookingId = url.searchParams.get("rescheduleUid");
-        return !!bookingId;
-      },
+    await page.waitForURL((url) => {
+      const bookingId = url.searchParams.get("rescheduleUid");
+      return !!bookingId;
     });
     await selectSecondAvailableTimeSlotNextMonth(page);
     // --- fill form
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
-    await page.waitForNavigation({
-      url(url) {
-        return url.pathname.startsWith("/booking");
-      },
+    await page.waitForURL((url) => {
+      return url.pathname.startsWith("/booking");
     });
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
@@ -51,10 +47,8 @@ test.skip("dynamic booking", async ({ page, users }) => {
   await test.step("Can cancel the recently created booking", async () => {
     await page.goto("/bookings/upcoming");
     await page.locator('[data-testid="cancel"]').first().click();
-    await page.waitForNavigation({
-      url: (url) => {
-        return url.pathname.startsWith("/booking");
-      },
+    await page.waitForURL((url) => {
+      return url.pathname.startsWith("/booking");
     });
     await page.locator('[data-testid="cancel"]').click();
 

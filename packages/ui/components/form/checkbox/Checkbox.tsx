@@ -46,7 +46,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                 ),
               },
               <>
-                <div className="flex h-5 items-end">
+                <div className="flex h-5 items-center">
                   <input
                     {...rest}
                     ref={ref}

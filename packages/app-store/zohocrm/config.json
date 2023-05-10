@@ -3,7 +3,6 @@
   "name": "ZohoCRM",
   "slug": "zohocrm",
   "type": "zohocrm_other_calendar",
-  "imageSrc": "icon.png",
   "logo": "icon.png",
   "url": "https://cal.com/apps/zohocrm",
   "variant": "other",

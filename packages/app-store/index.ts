@@ -15,6 +15,7 @@ const appStore = {
   plausible: import("./plausible"),
   salesforce: import("./salesforce"),
   zohocrm: import("./zohocrm"),
+  "zoho-bigin": import("./zoho-bigin"),
   sendgrid: import("./sendgrid"),
   stripepayment: import("./stripepayment"),
   tandemvideo: import("./tandemvideo"),

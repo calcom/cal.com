@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import crypto from "crypto";
+import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -715,7 +715,7 @@ export const insightsRouter = router({
         return {
           userId: booking.userId,
           user: userHashMap.get(booking.userId),
-          emailMd5: crypto.createHash("md5").update(user?.email).digest("hex"),
+          emailMd5: md5(user?.email),
           count: booking._count.id,
         };
       });
@@ -806,7 +806,7 @@ export const insightsRouter = router({
         return {
           userId: booking.userId,
           user: userHashMap.get(booking.userId),
-          emailMd5: crypto.createHash("md5").update(user?.email).digest("hex"),
+          emailMd5: md5(user?.email),
           count: booking._count.id,
         };
       });

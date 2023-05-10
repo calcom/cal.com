@@ -263,7 +263,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
   );
 }
 
-VideoMeetingInfo.PageWrapper = PageWrapper;
+JoinCall.PageWrapper = PageWrapper;
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req, res } = context;

@@ -1,6 +1,7 @@
-import type { AppCategories, Payment, Prisma } from "@prisma/client";
+import type { Payment, Prisma } from "@prisma/client";
 
 import appStore from "@calcom/app-store";
+import type { AppCategories } from "@calcom/prisma/enums";
 
 const deletePayment = async (
   paymentId: Payment["id"],
