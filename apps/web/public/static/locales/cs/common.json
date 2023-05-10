@@ -1038,7 +1038,6 @@
   "event_cancelled_trigger": "při zrušení události",
   "new_event_trigger": "při rezervaci nové události",
   "email_host_action": "odeslání e-mailu hostiteli",
-  "email_attendee_action": "odeslání e-mailu účastníkovi",
   "sms_attendee_action": "odeslání SMS účastníkovi",
   "sms_number_action": "odeslání SMS na konkrétní číslo",
   "workflows": "Pracovní postupy",
