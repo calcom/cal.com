@@ -5,7 +5,8 @@ import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
 import { _UserModel as User } from "@calcom/prisma/zod";
 import type { inferRouterOutputs } from "@calcom/trpc";
 import { TRPCError } from "@calcom/trpc";
-import { authedAdminProcedure, middleware, router } from "@calcom/trpc/server/trpc";
+import { authedAdminProcedure } from "@calcom/trpc/server/procedures/authedProcedure";
+import { router } from "@calcom/trpc/server/trpc";
 
 export type UserAdminRouter = typeof userAdminRouter;
 export type UserAdminRouterOutputs = inferRouterOutputs<UserAdminRouter>;
@@ -51,7 +52,9 @@ function exclude<UserType, Key extends keyof UserType>(user: UserType, keys: Key
 }
 
 /** Reusable logic that checks for admin permissions and if the requested user exists */
-const authedAdminWithUserMiddleware = middleware(async ({ ctx, next, rawInput }) => {
+//const authedAdminWithUserMiddleware = middleware();
+
+const authedAdminProcedureWithRequestedUser = authedAdminProcedure.use(async ({ ctx, next, rawInput }) => {
   const { prisma } = ctx;
   const parsed = userIdSchema.safeParse(rawInput);
   if (!parsed.success) throw new TRPCError({ code: "BAD_REQUEST", message: "User id is required" });
@@ -67,8 +70,6 @@ const authedAdminWithUserMiddleware = middleware(async ({ ctx, next, rawInput })
     },
   });
 });
-
-const authedAdminProcedureWithRequestedUser = authedAdminProcedure.use(authedAdminWithUserMiddleware);
 
 export const userAdminRouter = router({
   get: authedAdminProcedureWithRequestedUser.input(userIdSchema).query(async ({ ctx }) => {
