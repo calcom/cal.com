@@ -218,7 +218,7 @@ const RemoveTimeButton = ({
     <Button
       type="button"
       variant="icon"
-      color="minimal"
+      color="destructive"
       StartIcon={Trash}
       onClick={() => remove(index)}
       className={className}
