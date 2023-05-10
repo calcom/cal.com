@@ -41,6 +41,16 @@ export const EventTypeMetaDataSchema = z
     apps: z.object(appDataSchemas).partial().optional(),
     additionalNotesRequired: z.boolean().optional(),
     disableSuccessPage: z.boolean().optional(),
+    disableStandardEmails: z
+      .object({
+        confirmation: z
+          .object({
+            host: z.boolean().optional(),
+            attendee: z.boolean().optional(),
+          })
+          .optional(),
+      })
+      .optional(),
     managedEventConfig: z
       .object({
         unlockedFields: z.custom<{ [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true }>().optional(),
@@ -517,7 +527,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   periodCountCalendarDays: true,
   bookingLimits: true,
   slotInterval: true,
-  schedule: true,
+  scheduleId: true,
   workflows: true,
   bookingFields: true,
   durationLimits: true,
@@ -526,5 +536,5 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
 // All properties that are defined as unlocked based on all managed props
 // Eventually this is going to be just a default and the user can change the config through the UI
 export const unlockedManagedEventTypeProps = {
-  ...pick(allManagedEventTypeProps, ["locations", "schedule", "destinationCalendar"]),
+  ...pick(allManagedEventTypeProps, ["locations", "scheduleId", "destinationCalendar"]),
 };

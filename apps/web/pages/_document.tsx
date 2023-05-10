@@ -23,6 +23,7 @@ class MyDocument extends Document<Props> {
       // If x-csp not set by gSSP, then it's initialPropsOnly
       setHeader(ctx, "x-csp", "initialPropsOnly");
     }
+
     const asPath = ctx.asPath || "";
     // Use a dummy URL as default so that URL parsing works for relative URLs as well. We care about searchParams and pathname only
     const parsedUrl = new URL(asPath, "https://dummyurl");
