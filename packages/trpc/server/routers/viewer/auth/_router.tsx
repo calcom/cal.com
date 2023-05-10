@@ -1,4 +1,5 @@
-import { router, authedProcedure } from "../../../trpc";
+import authedProcedure from "../../../procedures/authedProcedure";
+import { router } from "../../../trpc";
 import { ZChangePasswordInputSchema } from "./changePassword.schema";
 import { ZVerifyPasswordInputSchema } from "./verifyPassword.schema";
 

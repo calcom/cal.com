@@ -1,14 +1,9 @@
-import type { Session } from "next-auth";
-
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 
 import type { TStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
 import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
 
 type StripeCheckoutSessionOptions = {
-  ctx: {
-    session: Session | null;
-  };
   input: TStripeCheckoutSessionInputSchema;
 };
 
