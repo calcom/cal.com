@@ -1039,6 +1039,7 @@
   "event_cancelled_trigger": "lorsque l'événement est annulé",
   "new_event_trigger": "lorsqu'un nouvel événement est réservé",
   "email_host_action": "envoyer un e-mail à l'hôte",
+  "email_attendee_action": "envoyer un e-mail aux participants",
   "sms_attendee_action": "envoyer un SMS au participant",
   "sms_number_action": "envoyer un SMS à un numéro spécifique",
   "workflows": "Workflows",
@@ -1247,6 +1248,7 @@
   "calendars_description": "Configurez la manière dont vos types d'événements interagissent avec vos calendriers.",
   "appearance_description": "Gérez les paramètres d'apparence de vos réservations.",
   "conferencing_description": "Ajoutez vos applications de visioconférence préférées pour vos rendez-vous.",
+  "add_conferencing_app": "Ajouter une application de conférence",
   "password_description": "Gérez les paramètres pour les mots de passe de votre compte.",
   "2fa_description": "Gérez les paramètres pour les mots de passe de votre compte.",
   "we_just_need_basic_info": "Nous avons juste besoin de quelques informations de base pour configurer votre profil.",
@@ -1799,5 +1801,12 @@
   "payment_app_commission": "Exiger un paiement ({{paymentFeePercentage}} % + {{fee, currency}} de commission par transaction)",
   "email_invite_team": "{{email}} a été invité",
   "error_collecting_card": "Erreur lors de la collecte de la carte",
-  "image_size_limit_exceed": "L'image téléchargée ne doit pas dépasser 5 Mo"
+  "image_size_limit_exceed": "L'image téléchargée ne doit pas dépasser 5 Mo",
+  "inline_embed": "Intégration en ligne",
+  "load_inline_content": "Charge votre type d'événement directement en ligne avec le contenu de votre site web.",
+  "floating_pop_up_button": "Bouton pop-up flottant",
+  "disable_attendees_confirmation_emails": "Désactiver les e-mails de confirmation par défaut pour les participants",
+  "disable_attendees_confirmation_emails_description": "Au moins un workflow est actif sur ce type d'événement qui envoie un e-mail aux participants lorsque l'événement est réservé.",
+  "disable_host_confirmation_emails": "Désactiver les e-mails de confirmation par défaut pour l'hôte",
+  "disable_host_confirmation_emails_description": "Au moins un workflow est actif sur ce type d'événement qui envoie un e-mail à l'hôte lorsque l'événement est réservé."
 }
