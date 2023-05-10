@@ -1038,7 +1038,6 @@
   "event_cancelled_trigger": "wanneer de gebeurtenis is geannuleerd",
   "new_event_trigger": "wanneer een nieuwe gebeurtenis is geboekt",
   "email_host_action": "e-mail naar organisator versturen",
-  "email_attendee_action": "e-mail naar deelnemer versturen",
   "sms_attendee_action": "sms naar deelnemer versturen",
   "sms_number_action": "sms naar een specifiek nummer sturen",
   "workflows": "Werkstromen",

@@ -15,7 +15,7 @@ type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type({ slug, user, booking, away }: PageProps) {
   return (
-    <main className="flex justify-center">
+    <main className="flex h-full min-h-[100dvh] items-center justify-center">
       <Booker username={user} eventSlug={slug} rescheduleBooking={booking} isAway={away} />
     </main>
   );

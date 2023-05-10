@@ -2,7 +2,7 @@ import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import { authedProcedure } from "../../../trpc";
+import authedProcedure from "../../../procedures/authedProcedure";
 import { webhookIdAndEventTypeIdSchema } from "./types";
 
 export const webhookProcedure = authedProcedure
