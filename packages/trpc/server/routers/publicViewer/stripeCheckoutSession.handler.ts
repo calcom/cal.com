@@ -10,11 +10,9 @@ type StripeCheckoutSessionOptions = {
 export const stripeCheckoutSessionHandler = async ({ input }: StripeCheckoutSessionOptions) => {
   const { checkoutSessionId, stripeCustomerId } = input;
 
-  // TODO: Move the following data checks to superRefine
-  const validationResult = ZStripeCheckoutSessionInputSchema.safeParse(input);
-  if (!validationResult.success) {
-    throw new Error(validationResult.error.message);
-  }
+  // Moved the following data checks to superRefine
+  const validationResult = ZStripeCheckoutSessionInputSchema.parse(input);
+
   let customerId: string;
   let isPremiumUsername = false;
   let hasPaymentFailed = false;
