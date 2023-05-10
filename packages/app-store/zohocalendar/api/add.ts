@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
-import { z } from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
@@ -8,11 +7,7 @@ import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { encodeOAuthState } from "../../_utils/encodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import config from "../config.json";
-
-const zohoKeysSchema = z.object({
-  client_id: z.string(),
-  client_secret: z.string(),
-});
+import { appKeysSchema as zohoKeysSchema } from "../zod";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const appKeys = await getAppKeysFromSlug(config.slug);

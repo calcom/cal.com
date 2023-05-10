@@ -11,6 +11,7 @@ import prisma from "@calcom/prisma";
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import config from "../config.json";
 import type { ZohoAuthCredentials } from "../types/ZohoCalendar";
 
 const log = logger.getChildLogger({ prefix: [`[[zohocalendar/api/callback]`] });
@@ -33,14 +34,14 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
-  const appKeys = await getAppKeysFromSlug("zoho-calendar");
+  const appKeys = await getAppKeysFromSlug(config.slug);
   const { client_id, client_secret } = zohoKeysSchema.parse(appKeys);
 
   const params = {
     client_id,
     grant_type: "authorization_code",
     client_secret,
-    redirect_uri: WEBAPP_URL + "/api/integrations/zohocalendar/callback",
+    redirect_uri: `${WEBAPP_URL}/api/integrations/${config.slug}/callback`,
     code,
   };
 
@@ -69,15 +70,15 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   await prisma.credential.create({
     data: {
-      type: "zoho_calendar",
+      type: config.type,
       key,
       userId: req.session.user.id,
-      appId: "zoho-calendar",
+      appId: config.slug,
     },
   });
 
   res.redirect(
-    getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "calendar", slug: "zoho-calendar" })
+    getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: config.variant, slug: config.slug })
   );
 }
 
