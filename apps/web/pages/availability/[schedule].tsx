@@ -188,7 +188,7 @@ export default function Availability() {
       }
       CTA={
         <div className="flex items-center justify-end">
-          <div className="hidden items-center rounded-md px-2 sm:flex sm:hover:bg-gray-100">
+          <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 sm:flex">
             <Skeleton as={Label} htmlFor="hiddenSwitch" className="mt-2 cursor-pointer self-center pr-2 ">
               {t("set_to_default")}
             </Skeleton>

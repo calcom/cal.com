@@ -1,4 +1,5 @@
-import { authedAdminProcedure, authedProcedure, router } from "../../../trpc";
+import authedProcedure, { authedAdminProcedure } from "../../../procedures/authedProcedure";
+import { router } from "../../../trpc";
 import { ZGetEventTypeAppsInputSchema } from "./getEventTypeApps.schema";
 import { ZListLocalInputSchema } from "./listLocal.schema";
 import { ZQueryForDependenciesInputSchema } from "./queryForDependencies.schema";

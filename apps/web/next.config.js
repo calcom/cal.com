@@ -105,7 +105,6 @@ const nextConfig = {
     "@calcom/trpc",
     "@calcom/ui",
     "lucide-react",
-    "react-timezone-select",
   ],
   modularizeImports: {
     "@calcom/ui/components/icon": {
