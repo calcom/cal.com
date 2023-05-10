@@ -228,6 +228,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
           afterEventBuffer: eventType.afterEventBuffer,
           beforeEventBuffer: eventType.beforeEventBuffer,
           duration: input.duration || 0,
+          rescheduleUid: input.rescheduleUid,
         },
         { user: currentUser, eventType, currentSeats }
       );

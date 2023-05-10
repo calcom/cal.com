@@ -20,6 +20,7 @@ export const getScheduleSchema = z
       .string()
       .optional()
       .transform((val) => val && parseInt(val)),
+    rescheduleUid: z.string().optional(),
   })
   .refine(
     (data) => !!data.eventTypeId || !!data.usernameList,

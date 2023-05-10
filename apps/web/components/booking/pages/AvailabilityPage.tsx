@@ -297,6 +297,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                   bookingAttendees={bookingAttendees || undefined}
                   recurringEventCount={recurringEventCount}
                   ethSignature={gateState.rainbowToken}
+                  rescheduleUid={rescheduleUid}
                 />
               </div>
             </div>

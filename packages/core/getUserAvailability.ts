@@ -27,6 +27,7 @@ const availabilitySchema = z
     beforeEventBuffer: z.number().optional(),
     duration: z.number().optional(),
     withSource: z.boolean().optional(),
+    rescheduleUid: z.string().optional()
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
@@ -112,6 +113,7 @@ export async function getUserAvailability(
     afterEventBuffer?: number;
     beforeEventBuffer?: number;
     duration?: number;
+    rescheduleUid?: string
   },
   initialData?: {
     user?: User;
@@ -119,7 +121,7 @@ export async function getUserAvailability(
     currentSeats?: CurrentSeats;
   }
 ) {
-  const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer, beforeEventBuffer, duration } =
+  const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer, beforeEventBuffer, duration, rescheduleUid } =
     availabilitySchema.parse(query);
 
   if (!dateFrom.isValid() || !dateTo.isValid()) {
@@ -153,6 +155,7 @@ export async function getUserAvailability(
     beforeEventBuffer,
     afterEventBuffer,
     selectedCalendars: user.selectedCalendars,
+    rescheduleUid
   });
 
   let bufferedBusyTimes: EventBusyDetails[] = busyTimes.map((a) => ({
