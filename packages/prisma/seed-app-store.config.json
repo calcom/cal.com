@@ -239,5 +239,12 @@
     "slug": "sylapsvideo",
     "type": "sylaps_video",
     "isTemplate": false
+  },
+  {
+    "dirName": "paypal",
+    "categories": ["payment"],
+    "slug": "paypal",
+    "type": "paypal_payment",
+    "isTemplate": false
   }
 ]

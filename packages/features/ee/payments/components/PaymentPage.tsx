@@ -4,6 +4,7 @@ import type { FC } from "react";
 import { useEffect, useState } from "react";
 
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
+import { PaypalPaymentComponent } from "@calcom/app-store/paypal/components/PaypalPaymentComponent";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
@@ -127,6 +128,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       bookingId={props.booking.id}
                       bookingUid={props.booking.uid}
                     />
+                  )}
+                  {props.payment.appId === "paypal" && !props.payment.success && (
+                    <PaypalPaymentComponent payment={props.payment} />
                   )}
                   {props.payment.refunded && (
                     <div className="text-default mt-4 text-center dark:text-gray-300">{t("refunded")}</div>

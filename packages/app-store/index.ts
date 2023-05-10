@@ -17,6 +17,7 @@ const appStore = {
   zohocrm: import("./zohocrm"),
   sendgrid: import("./sendgrid"),
   stripepayment: import("./stripepayment"),
+  paypal: import("./paypal"),
   tandemvideo: import("./tandemvideo"),
   vital: import("./vital"),
   zoomvideo: import("./zoomvideo"),
