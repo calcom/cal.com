@@ -167,6 +167,9 @@ const Layout = (props: LayoutProps) => {
           <ImpersonatingBanner />
           <AdminPasswordBanner />
         </div>
+        <div ref={bannerRef} className="bg-orange-400 px-4 py-2 text-center text-white">
+          The password requirements for your account have changed. Update password.
+        </div>
         <div className="flex flex-1" data-testid="dashboard-shell">
           {props.SidebarContainer || <SideBarContainer bannersHeight={bannersHeight} />}
           <div className="flex w-0 flex-1 flex-col">
@@ -763,7 +766,7 @@ function SideBar({ bannersHeight }: SideBarProps) {
   return (
     <div className="relative">
       <aside
-        style={{ maxHeight: `calc(100vh - ${bannersHeight}px)` }}
+        style={{ paddingBottom: `${bannersHeight}px` }}
         className="desktop-transparent bg-muted border-muted top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-4">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-6 ">
           <header className="items-center justify-between md:hidden lg:flex">
