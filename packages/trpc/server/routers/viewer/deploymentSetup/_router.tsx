@@ -1,4 +1,5 @@
-import { router, authedAdminProcedure } from "../../../trpc";
+import { authedAdminProcedure } from "../../../procedures/authedProcedure";
+import { router } from "../../../trpc";
 import { ZUpdateInputSchema } from "./update.schema";
 
 type DeploymentSetupRouterHandlerCache = {

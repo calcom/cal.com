@@ -37,6 +37,7 @@ const ENDPOINTS = [
   "viewer",
   "webhook",
   "workflows",
+  "appsRouter",
 ] as const;
 export type Endpoint = (typeof ENDPOINTS)[number];
 
@@ -59,7 +60,6 @@ const resolveEndpoint = (links: any) => {
       endpoint = parts[1] as keyof typeof links;
       path = parts.splice(2, parts.length - 2).join(".");
     }
-
     return links[endpoint]({ ...ctx, op: { ...ctx.op, path } });
   };
 };

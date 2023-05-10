@@ -4174,7 +4174,7 @@ __metadata:
     "@lexical/react": ^0.5.0
     "@testing-library/react-hooks": ^8.0.1
     dompurify: ^2.4.1
-    framer-motion: ^10.12.3
+    framer-motion: ^10.12.8
     lexical: ^0.5.0
     mockdate: ^3.0.5
     react-sticky-box: ^2.0.4
@@ -21719,9 +21719,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"framer-motion@npm:^10.12.3":
-  version: 10.12.3
-  resolution: "framer-motion@npm:10.12.3"
+"framer-motion@npm:^10.12.8":
+  version: 10.12.8
+  resolution: "framer-motion@npm:10.12.8"
   dependencies:
     "@emotion/is-prop-valid": ^0.8.2
     tslib: ^2.4.0
@@ -21736,7 +21736,7 @@ __metadata:
       optional: true
     react-dom:
       optional: true
-  checksum: c292da47b5bcb313e3db2ffe19e61b3c76bf59f4a45dc72f62a3d9b33f58533d420aced47d5e9eb06be20be97651c937ae91aebb93d8bad6d0412c2768715956
+  checksum: 2e21e06eed99967e816c27101cc4d438048d9c7c36d318acfdb4f3d14eee593b022696303a9416032caf735f6817cdc6b287a7ed004b21d07f67c7cbe534edfe
   languageName: node
   linkType: hard
 
