@@ -9,6 +9,7 @@ import { appKeysSchema as giphy_zod_ts } from "./giphy/zod";
 import { appKeysSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
 import { appKeysSchema as gtm_zod_ts } from "./gtm/zod";
 import { appKeysSchema as hubspot_zod_ts } from "./hubspot/zod";
+import { appKeysSchema as jitsivideo_zod_ts } from "./jitsivideo/zod";
 import { appKeysSchema as larkcalendar_zod_ts } from "./larkcalendar/zod";
 import { appKeysSchema as metapixel_zod_ts } from "./metapixel/zod";
 import { appKeysSchema as office365calendar_zod_ts } from "./office365calendar/zod";
@@ -37,6 +38,7 @@ export const appKeysSchemas = {
   googlecalendar: googlecalendar_zod_ts,
   gtm: gtm_zod_ts,
   hubspot: hubspot_zod_ts,
+  jitsivideo: jitsivideo_zod_ts,
   larkcalendar: larkcalendar_zod_ts,
   metapixel: metapixel_zod_ts,
   office365calendar: office365calendar_zod_ts,

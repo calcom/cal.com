@@ -367,6 +367,7 @@
   "create_webhook": "Create Webhook",
   "booking_cancelled": "Booking Cancelled",
   "booking_rescheduled": "Booking Rescheduled",
+  "recording_ready":"Recording Download Link Ready",
   "booking_created": "Booking Created",
   "meeting_ended": "Meeting Ended",
   "form_submitted": "Form Submitted",
