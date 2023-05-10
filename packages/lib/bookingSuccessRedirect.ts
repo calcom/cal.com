@@ -1,4 +1,4 @@
-import type { NextRouter } from "next/router";
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context";
 
 import type { Booking, EventType } from ".prisma/client";
 
@@ -11,7 +11,7 @@ export const bookingSuccessRedirect = async ({
   successRedirectUrl: EventType["successRedirectUrl"];
   bookingUid: Booking["uid"] | undefined;
   query: Record<string, string | null | undefined | boolean>;
-  router: NextRouter;
+  router: AppRouterInstance;
 }) => {
   if (successRedirectUrl) {
     const url = new URL(successRedirectUrl);
@@ -26,8 +26,9 @@ export const bookingSuccessRedirect = async ({
     window.parent.location.href = url.toString();
     return;
   }
-  return router.push({
-    pathname: `/booking/${bookingUid}`,
-    query,
-  });
+
+  // @ts-expect-error query has non-string values
+  const urlSearchParams = new URLSearchParams(query ?? undefined);
+
+  return router.push(`/booking/${bookingUid}?${urlSearchParams.toString()}`);
 };

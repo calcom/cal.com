@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ComponentProps } from "react";
 
 import classNames from "@calcom/lib/classNames";
@@ -18,6 +19,7 @@ export type HorizontalTabItemProps = {
   avatar?: string;
 };
 const HorizontalTabItem = function ({ name, href, linkProps, avatar, ...props }: HorizontalTabItemProps) {
+  const pathname = usePathname();
   const { t, isLocaleReady } = useLocale();
   const isCurrent = pathname === href;
   return (

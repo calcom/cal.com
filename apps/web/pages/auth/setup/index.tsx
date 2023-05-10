@@ -25,7 +25,7 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   const isFreeLicense = value === "FREE";
   const [isEnabledEE, setIsEnabledEE] = useState(!props.isFreeLicense);
   const setStep = (newStep: number) => {
-    router.replace(`/auth/setup?step=${newStep || 1}`, undefined, { shallow: true });
+    router.replace(`/auth/setup?step=${newStep || 1}`);
   };
   const steps: React.ComponentProps<typeof WizardForm>["steps"] = [
     {

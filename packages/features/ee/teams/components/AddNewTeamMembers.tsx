@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -21,8 +21,9 @@ type FormValues = {
 };
 const AddNewTeamMembers = () => {
   const session = useSession();
+  const searchParams = useSearchParams();
   const { id: teamId } = true
-    ? querySchema.parse(...Object.fromEntries(searchParams ?? new URLSearchParams()))
+    ? querySchema.parse(Object.fromEntries(searchParams ?? new URLSearchParams()))
     : { id: -1 };
   const teamQuery = trpc.viewer.teams.get.useQuery({ teamId }, { enabled: true });
   if (session.status === "loading" || !teamQuery.data) return <AddNewTeamMemberSkeleton />;

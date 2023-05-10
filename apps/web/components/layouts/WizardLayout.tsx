@@ -21,7 +21,7 @@ export default function WizardLayout({
       title: window.document.title,
       subtitle: window.document.querySelector('meta[name="description"]')?.getAttribute("content") || "",
     });
-  }, [pathname]);
+  }, []);
   return (
     <div
       className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen"

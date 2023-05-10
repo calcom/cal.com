@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React, { useEffect } from "react";
 
@@ -16,6 +16,7 @@ export default function AdminLayout({
 } & ComponentProps<typeof Shell>) {
   const session = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   // Force redirect on component level
   useEffect(() => {
     if (session.data && session.data.user.role !== UserPermissionRole.ADMIN) {

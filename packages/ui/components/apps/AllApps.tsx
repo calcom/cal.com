@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -48,6 +48,7 @@ interface CategoryTabProps {
   searchText?: string;
 }
 function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabProps) {
+  const pathname = usePathname();
   const { t } = useLocale();
   const router = useRouter();
   const { ref, calculateScroll, leftVisible, rightVisible } = useShouldShowArrows();
@@ -86,7 +87,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
         ref={ref}>
         <li
           onClick={() => {
-            router.replace(pathname?.split("?")[0], undefined, { shallow: true });
+            router.replace(pathname?.split("?")[0]);
           }}
           className={classNames(
             selectedCategory === null ? "bg-emphasis text-default" : "bg-muted text-emphasis",
@@ -99,11 +100,9 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
             key={pos}
             onClick={() => {
               if (selectedCategory === cat) {
-                router.replace(pathname?.split("?")[0], undefined, { shallow: true });
+                router.replace(pathname?.split("?")[0]);
               } else {
-                router.replace(pathname?.split("?")[0] + `?category=${cat}`, undefined, {
-                  shallow: true,
-                });
+                router.replace(pathname?.split("?")[0] + `?category=${cat}`);
               }
             }}
             className={classNames(
@@ -135,11 +134,12 @@ export function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
   }
   useEffect(() => {
     const queryCategory =
-      typeof searchParams?.get("category") === "string" && categories.includes(searchParams?.get("category"))
+      typeof searchParams?.get("category") === "string" &&
+      categories.includes(searchParams?.get("category") ?? "")
         ? searchParams?.get("category")
         : null;
     setSelectedCategory(queryCategory);
-  }, [searchParams?.get("category")]);
+  }, [categories, searchParams]);
   const filteredApps = apps
     .filter((app) =>
       selectedCategory !== null

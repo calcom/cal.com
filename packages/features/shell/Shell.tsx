@@ -1,8 +1,9 @@
 import type { User } from "@prisma/client";
 import { signOut, useSession } from "next-auth/react";
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import React, { Fragment, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
@@ -92,12 +93,11 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
       return;
     }
     if (!loading && !session) {
-      router.replace({
-        pathname: "/auth/login",
-        query: {
-          callbackUrl: `${WEBAPP_URL}${location.pathname}${location.search}`,
-        },
+      const urlSearchParams = new URLSearchParams({
+        callbackUrl: `${WEBAPP_URL}${location.pathname}${location.search}`,
       });
+
+      router.replace(`/auth/login?${urlSearchParams.toString()}`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, session, isPublic]);
@@ -113,9 +113,7 @@ function useRedirectToOnboardingIfNeeded() {
   const isRedirectingToOnboarding = user && shouldShowOnboarding(user);
   useEffect(() => {
     if (isRedirectingToOnboarding) {
-      router.replace({
-        pathname: "/getting-started",
-      });
+      router.replace("/getting-started");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRedirectingToOnboarding]);
@@ -428,7 +426,8 @@ export type NavigationItemType = {
   }: {
     item: NavigationItemType;
     isChild?: boolean;
-    router: NextRouter;
+    router: AppRouterInstance;
+    pathname: string | null;
   }) => boolean;
 };
 const requiredCredentialNavigationItems = ["Routing Forms"];
@@ -444,9 +443,9 @@ const navigation: NavigationItemType[] = [
     href: "/bookings/upcoming",
     icon: Calendar,
     badge: <UnconfirmedBookingBadge />,
-    isCurrent: ({ router }) => {
-      const path = router.asPath.split("?")[0];
-      return path.startsWith("/bookings");
+    isCurrent: ({ pathname }) => {
+      const path = pathname?.split("?")[0];
+      return path?.startsWith("/bookings") ?? false;
     },
   },
   {
@@ -465,33 +464,36 @@ const navigation: NavigationItemType[] = [
     name: "apps",
     href: "/apps",
     icon: Grid,
-    isCurrent: ({ router, item }) => {
-      const path = router.asPath.split("?")[0];
+    isCurrent: ({ item, pathname }) => {
+      const path = pathname?.split("?")[0];
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
       return (
-        (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("routing-forms/")
+        ((path?.startsWith(item.href) || path?.startsWith("/v2" + item.href)) &&
+          !path?.includes("routing-forms/")) ??
+        false
       );
     },
     child: [
       {
         name: "app_store",
         href: "/apps",
-        isCurrent: ({ router, item }) => {
-          const path = router.asPath.split("?")[0];
+        isCurrent: ({ item, pathname }) => {
+          const path = pathname?.split("?")[0];
           // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
           return (
-            (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) &&
-            !path.includes("routing-forms/") &&
-            !path.includes("/installed")
+            ((path?.startsWith(item.href) || path?.startsWith("/v2" + item.href)) &&
+              !path?.includes("routing-forms/") &&
+              !path?.includes("/installed")) ??
+            false
           );
         },
       },
       {
         name: "installed_apps",
         href: "/apps/installed/calendar",
-        isCurrent: ({ router }) => {
-          const path = router.asPath;
-          return path.startsWith("/apps/installed/") || path.startsWith("/v2/apps/installed/");
+        isCurrent: ({ pathname }) => {
+          const path = pathname;
+          return path?.startsWith("/apps/installed/") ?? path?.startsWith("/v2/apps/installed/") ?? false;
         },
       },
     ],
@@ -505,8 +507,8 @@ const navigation: NavigationItemType[] = [
     name: "Routing Forms",
     href: "/apps/routing-forms/forms",
     icon: FileText,
-    isCurrent: ({ router }) => {
-      return router.asPath.startsWith("/apps/routing-forms/");
+    isCurrent: ({ pathname }) => {
+      return pathname?.startsWith("/apps/routing-forms/") ?? false;
     },
   },
   {
@@ -566,8 +568,8 @@ function useShouldDisplayNavigationItem(item: NavigationItemType) {
   if (isKeyInObject(item.name, flags)) return flags[item.name];
   return !requiredCredentialNavigationItems.includes(item.name) || routingForms?.isInstalled;
 }
-const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, router }) => {
-  return isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, pathname }) => {
+  return isChild ? item.href === pathname : pathname?.startsWith(item.href) ?? false;
 };
 const NavigationItem: React.FC<{
   index?: number;
@@ -577,8 +579,9 @@ const NavigationItem: React.FC<{
   const { item, isChild } = props;
   const { t, isLocaleReady } = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
-  const current = isCurrent({ isChild: !!isChild, item, router });
+  const current = isCurrent({ isChild: !!isChild, item, router, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
   if (!shouldDisplayNavigationItem) return null;
   return (
@@ -612,7 +615,7 @@ const NavigationItem: React.FC<{
         )}
       </Link>
       {item.child &&
-        isCurrent({ router, isChild, item }) &&
+        isCurrent({ router, pathname, isChild, item }) &&
         item.child.map((item, index) => <NavigationItem index={index} key={item.name} item={item} isChild />)}
     </Fragment>
   );
@@ -646,9 +649,10 @@ const MobileNavigationItem: React.FC<{
 }> = (props) => {
   const { item, isChild } = props;
   const router = useRouter();
+  const pathname = usePathname();
   const { t, isLocaleReady } = useLocale();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
-  const current = isCurrent({ isChild: !!isChild, item, router });
+  const current = isCurrent({ isChild: !!isChild, item, router, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
   if (!shouldDisplayNavigationItem) return null;
   return (
@@ -691,12 +695,13 @@ const MobileNavigationMoreItem: React.FC<{
 };
 function SideBarContainer() {
   const { status } = useSession();
-  const router = useRouter();
+  const pathname = usePathname();
+
   // Make sure that Sidebar is rendered optimistically so that a refresh of pages when logged in have SideBar from the beginning.
   // This improves the experience of refresh on app store pages(when logged in) which are SSG.
   // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
   if (status !== "loading" && status !== "authenticated") return null;
-  if (router.route.startsWith("/v2/settings/")) return null;
+  if (pathname?.startsWith("/v2/settings/")) return null;
   return <SideBar />;
 }
 function SideBar() {

@@ -1,5 +1,7 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
-import { useSearchParams } from "next/navigation";
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context";
+import { useSearchParams, usePathname } from "next/navigation";
+import type { ReadonlyURLSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { createContext, forwardRef, useContext, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -42,26 +44,24 @@ const newFormModalQuerySchema = z.object({
   target: z.string().optional(),
 });
 const openModal = (
-  router: NextRouter,
+  router: AppRouterInstance,
+  pathname: string | null,
+  searchParams: ReadonlyURLSearchParams | null,
   option: {
     target?: string;
     action: string;
   }
 ) => {
-  const query = {
-    ...router.query,
-    dialog: "new-form",
-    ...option,
-  };
-  router.push(
-    {
-      pathname: router.pathname,
-      query,
-    },
-    undefined,
-    { shallow: true }
-  );
+  const query = new URLSearchParams(searchParams ?? undefined);
+  query.set("dialog", "new-form");
+
+  if (option.target) {
+    query.set("target", option.target);
+  }
+
+  router.push(`${pathname}?${query.toString()}`);
 };
+
 function NewFormDialog({ appUrl }: { appUrl: string }) {
   const searchParams = useSearchParams();
   const { t } = useLocale();
@@ -83,7 +83,9 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
     description: string;
     shouldConnect: boolean;
   }>();
-  const { action, target } = searchParams as z.infer<typeof newFormModalQuerySchema>;
+  const action = searchParams?.get("action");
+  const target = searchParams?.get("target");
+
   const { register } = hookForm;
   return (
     <Dialog name="new-form" clearQueryParamsOnClose={["target", "action"]}>
@@ -368,6 +370,9 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   });
   const { t } = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const actionData: Record<
     FormActionType,
     ButtonProps & {
@@ -385,7 +390,8 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       },
     },
     duplicate: {
-      onClick: () => openModal(router, { action: "duplicate", target: routingForm?.id }),
+      onClick: () =>
+        openModal(router, pathname, searchParams, { action: "duplicate", target: routingForm?.id }),
     },
     embed: {
       as: EmbedButton,
@@ -404,7 +410,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       loading: _delete.isLoading,
     },
     create: {
-      onClick: () => openModal(router, { action: "new" }),
+      onClick: () => openModal(router, pathname, searchParams, { action: "new" }),
     },
     copyRedirectUrl: {
       onClick: () => {

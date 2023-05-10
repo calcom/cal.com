@@ -4,7 +4,7 @@ import { createEvent } from "ics";
 import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { RRule } from "rrule";
@@ -96,6 +96,7 @@ export default function Success(props: SuccessProps) {
   const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
   const {
     allRemainingBookings,
     isSuccessBookingPage,
@@ -104,7 +105,7 @@ export default function Success(props: SuccessProps) {
     formerTime,
     email,
     seatReferenceUid,
-  } = querySchema.parse(...Object.fromEntries(searchParams ?? new URLSearchParams()));
+  } = querySchema.parse(Object.fromEntries(searchParams ?? new URLSearchParams()));
   const attendeeTimeZone = props?.bookingInfo?.attendees.find(
     (attendee) => attendee.email === email
   )?.timeZone;
@@ -130,22 +131,14 @@ export default function Success(props: SuccessProps) {
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
   function setIsCancellationMode(value: boolean) {
-    const query_ = { ...Object.fromEntries(searchParams ?? new URLSearchParams()) };
+    const urlSearchParams = new URLSearchParams(searchParams ?? undefined);
+
     if (value) {
-      query_.cancel = "true";
+      urlSearchParams.set("cancel", "true");
     } else {
-      if (query_.cancel) {
-        delete query_.cancel;
-      }
+      urlSearchParams.delete("cancel");
     }
-    router.replace(
-      {
-        pathname: pathname,
-        query: { ...query_ },
-      },
-      undefined,
-      { scroll: false }
-    );
+    router.replace(`${pathname}?${urlSearchParams.toString()}`);
   }
   const eventNameObject = {
     attendeeName,

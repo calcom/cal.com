@@ -24,6 +24,6 @@ export function useToggleQuery(name: string) {
   return {
     hrefOn,
     hrefOff,
-    isOn: searchParams[name] === "1",
+    isOn: searchParams?.get(name) === "1",
   };
 }

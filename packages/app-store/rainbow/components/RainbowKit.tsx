@@ -84,7 +84,7 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
     // If the `ethSignature` is found, remove it from the URL bar and propogate back up
     if (ethSignature !== undefined) {
       // Remove the `ethSignature` param but keep all others
-      router.replace({ query: { ...routerQuery } });
+      router.replace(`?${routerQuery}`);
       setToken(ethSignature as string);
     }
     if (balanceData && balanceData.data) {

@@ -1,7 +1,8 @@
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import type { TFunction } from "next-i18next";
-import { useSearchParams } from "next/navigation";
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { MutableRefObject, RefObject } from "react";
 import { createRef, forwardRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
@@ -52,21 +53,19 @@ const getDimension = (dimension: string) => {
   }
   return dimension;
 };
-const goto = (router: NextRouter, searchParams: Record<string, string>) => {
-  const newQuery = new URLSearchParams(router.asPath.split("?")[1]);
+const goto = (router: AppRouterInstance, pathname: string | null, searchParams: Record<string, string>) => {
+  const newQuery = new URLSearchParams(pathname?.split("?")[1] ?? "");
   Object.keys(searchParams).forEach((key) => {
     newQuery.set(key, searchParams[key]);
   });
-  router.push(`${router.asPath.split("?")[0]}?${newQuery.toString()}`, undefined, {
-    shallow: true,
-  });
+  router.push(`${pathname?.split("?")[0] ?? ""}?${newQuery.toString()}`);
 };
-const removeQueryParams = (router: NextRouter, queryParams: string[]) => {
+const removeQueryParams = (router: AppRouterInstance, pathname: string | null, queryParams: string[]) => {
   const params = new URLSearchParams(window.location.search);
   queryParams.forEach((param) => {
     params.delete(param);
   });
-  router.push(`${router.asPath.split("?")[0]}?${params.toString()}`);
+  router.push(`${pathname?.split("?")[0] ?? ""}?${params.toString()}`);
 };
 /**
  * It allows us to show code with certain reusable blocks indented according to the block variable placement
@@ -627,6 +626,7 @@ const ThemeSelectControl = ({
 };
 const ChooseEmbedTypesDialogContent = () => {
   const { t } = useLocale();
+  const pathname = usePathname();
   const router = useRouter();
   return (
     <DialogContent className="rounded-lg p-10" type="creation" size="lg">
@@ -645,7 +645,7 @@ const ChooseEmbedTypesDialogContent = () => {
             key={index}
             data-testid={embed.type}
             onClick={() => {
-              goto(router, {
+              goto(router, pathname, {
                 embedType: embed.type,
               });
             }}>
@@ -670,6 +670,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const dialogContentRef = useRef<HTMLDivElement>(null);
   const s = (href: string) => {
@@ -703,11 +704,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     },
   });
   const close = () => {
-    removeQueryParams(router, ["dialog", ...queryParamsForDialog]);
+    removeQueryParams(router, pathname, ["dialog", ...queryParamsForDialog]);
   };
   // Use embed-code as default tab
   if (!searchParams?.get("embedTabName")) {
-    goto(router, {
+    goto(router, pathname, {
       embedTabName: "embed-code",
     });
   }
@@ -808,7 +809,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             <button
               className="h-6 w-6"
               onClick={() => {
-                removeQueryParams(router, ["embedType", "embedTabName"]);
+                removeQueryParams(router, pathname, ["embedType", "embedTabName"]);
               }}>
               <ArrowLeft className="mr-4 w-4" />
             </button>
@@ -1148,9 +1149,10 @@ export const EmbedButton = <T extends React.ElementType>({
   ...props
 }: EmbedButtonProps<T> & React.ComponentPropsWithoutRef<T>) => {
   const router = useRouter();
+  const pathname = usePathname();
   className = classNames("hidden lg:inline-flex", className);
   const openEmbedModal = () => {
-    goto(router, {
+    goto(router, pathname, {
       dialog: "embed",
       embedUrl,
     });

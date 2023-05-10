@@ -5,6 +5,10 @@ import type { SSRConfig } from "next-i18next";
 import { appWithTranslation } from "next-i18next";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context";
+import type { ReadonlyURLSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { ComponentProps, PropsWithChildren, ReactNode } from "react";
 
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
@@ -25,16 +29,26 @@ const I18nextAdapter = appWithTranslation<
   }
 >(({ children }) => <>{children}</>);
 // Workaround for https://github.com/vercel/next.js/issues/8592
-export type AppProps = Omit<NextAppProps<WithNonceProps & Record<string, unknown>>, "Component"> & {
+export type AppProps = Omit<
+  NextAppProps<WithNonceProps & Record<string, unknown>>,
+  "Component" | "router"
+> & {
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
     isThemeSupported?: boolean;
-    isBookingPage?: boolean | ((arg: { router: NextRouter }) => boolean);
-    getLayout?: (page: React.ReactElement, router: NextRouter) => ReactNode;
+    isBookingPage?:
+      | boolean
+      | ((arg: { router: AppRouterInstance; searchParams: ReadonlyURLSearchParams | null }) => boolean);
+    getLayout?: (
+      page: React.ReactElement,
+      router: AppRouterInstance,
+      searchParams: ReadonlyURLSearchParams | null
+    ) => ReactNode;
     PageWrapper?: (props: AppProps) => JSX.Element;
   };
   /** Will be defined only is there was an error */
   err?: Error;
+  router: AppRouterInstance;
 };
 type AppPropsWithChildren = AppProps & {
   children: ReactNode;
@@ -68,7 +82,9 @@ const enum ThemeSupport {
 const CalcomThemeProvider = (
   props: PropsWithChildren<
     WithNonceProps & {
-      isBookingPage?: boolean | ((arg: { router: NextRouter }) => boolean);
+      isBookingPage?:
+        | boolean
+        | ((arg: { router: AppRouterInstance; searchParams: ReadonlyURLSearchParams | null }) => boolean);
       isThemeSupported?: boolean;
     }
   >
@@ -76,9 +92,10 @@ const CalcomThemeProvider = (
   // We now support the inverse of how we handled it in the past. Setting this to false will disable theme.
   // undefined or true means we use system theme
   const router = useRouter();
+  const searchParams = useSearchParams();
   const isBookingPage = (() => {
     if (typeof props.isBookingPage === "function") {
-      return props.isBookingPage({ router: router });
+      return props.isBookingPage({ router, searchParams });
     }
     return props.isBookingPage;
   })();

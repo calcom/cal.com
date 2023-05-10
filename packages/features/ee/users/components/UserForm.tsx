@@ -1,6 +1,5 @@
 import { noop } from "lodash";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -36,12 +35,13 @@ export const UserForm = ({
 }) => {
   const router = useRouter();
   const { t } = useLocale();
-  const localeOptions = useMemo(() => {
-    return (router.locales || []).map((locale) => ({
-      value: locale,
-      label: new Intl.DisplayNames(locale, { type: "language" }).of(locale) || "",
-    }));
-  }, [router.locales]);
+  // TODO locales are removed in the app router
+  // const localeOptions = useMemo(() => {
+  //   return (router.locales || []).map((locale) => ({
+  //     value: locale,
+  //     label: new Intl.DisplayNames(locale, { type: "language" }).of(locale) || "",
+  //   }));
+  // }, [router.locales]);
   const timeFormatOptions = [
     { value: 12, label: t("12_hour") },
     { value: 24, label: t("24_hour") },
@@ -72,8 +72,8 @@ export const UserForm = ({
       email: defaultValues?.email,
       bio: defaultValues?.bio,
       locale: {
-        value: defaultValues?.locale || localeOptions[0].value,
-        label: localeOptions.find((option) => option.value === localeProp)?.label || "",
+        value: defaultValues?.locale ?? "",
+        label: "",
       },
       timeFormat: {
         value: defaultValues?.timeFormat || 12,
@@ -177,7 +177,7 @@ export const UserForm = ({
               value: string;
             }>
               className="capitalize"
-              options={localeOptions}
+              options={[]}
               value={value}
               onChange={onChange}
             />

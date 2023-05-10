@@ -54,7 +54,7 @@ export default function AppListCard(props: AppListCardProps) {
         setHighlight(false);
         const url = new URL(window.location.href);
         url.searchParams.delete("hl");
-        router.replace(url.pathname, undefined, { shallow: true });
+        router.replace(url.pathname);
       }, 3000);
       timeoutRef.current = timer;
     }

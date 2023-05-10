@@ -27,7 +27,7 @@ export const UsernameAvailabilityField = ({
   const [currentUsernameState, setCurrentUsernameState] = useState(user.username || "");
   const { username: usernameFromQuery, setQuery: setUsernameFromQuery } = useRouterQuery("username");
   const { username: currentUsername, setQuery: setCurrentUsername } =
-    searchParams["username"] && user.username === null
+    searchParams?.get("username") && user.username === null
       ? { username: usernameFromQuery, setQuery: setUsernameFromQuery }
       : { username: currentUsernameState || "", setQuery: setCurrentUsernameState };
   const formMethods = useForm({

@@ -1,3 +1,5 @@
+import { usePathname } from "next/navigation";
+
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Meta } from "@calcom/ui";
@@ -7,6 +9,7 @@ import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
 const BillingView = () => {
   const { t } = useLocale();
+  const pathname = usePathname();
   const returnTo = pathname;
   const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
   return (

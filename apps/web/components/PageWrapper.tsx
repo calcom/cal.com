@@ -1,6 +1,7 @@
 import { DefaultSeo } from "next-seo";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
+import { usePathname, useSearchParams } from "next/navigation";
 import Script from "next/script";
 
 import "@calcom/embed-core/src/embed-iframe";
@@ -26,12 +27,14 @@ const calFont = localFont({
 });
 
 function PageWrapper(props: AppProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { Component, pageProps, err, router } = props;
   let pageStatus = "200";
 
-  if (router.pathname === "/404") {
+  if (pathname === "/404") {
     pageStatus = "404";
-  } else if (router.pathname === "/500") {
+  } else if (pathname === "/500") {
     pageStatus = "500";
   }
 
@@ -73,7 +76,8 @@ function PageWrapper(props: AppProps) {
         ) : (
           <Component {...pageProps} err={err} />
         ),
-        router
+        router,
+        searchParams
       )}
     </AppProviders>
   );

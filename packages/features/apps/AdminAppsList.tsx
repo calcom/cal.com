@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { noop } from "lodash";
+import { useSearchParams } from "next/navigation";
 import type { FC } from "react";
 import { useReducer, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -253,7 +254,8 @@ interface EditModalState extends Pick<App, "keys"> {
 }
 const AdminAppsListContainer = () => {
   const { t } = useLocale();
-  const { category } = querySchema.parse(...Object.fromEntries(searchParams ?? new URLSearchParams()));
+  const searchParams = useSearchParams();
+  const { category } = querySchema.parse(Object.fromEntries(searchParams ?? new URLSearchParams()));
   const { data: apps, isLoading } = trpc.viewer.appsRouter.listLocal.useQuery(
     { category },
     { enabled: true }

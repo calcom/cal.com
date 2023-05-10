@@ -1,5 +1,3 @@
-import { useRouter } from "next/navigation";
-import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -59,7 +57,6 @@ const GeneralQueryView = () => {
   );
 };
 const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
-  const router = useRouter();
   const utils = trpc.useContext();
   const { t } = useLocale();
   const mutation = trpc.viewer.updateProfile.useMutation({
@@ -76,12 +73,12 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
       await utils.viewer.public.i18n.invalidate();
     },
   });
-  const localeOptions = useMemo(() => {
-    return (router.locales || []).map((locale) => ({
-      value: locale,
-      label: new Intl.DisplayNames(locale, { type: "language" }).of(locale) || "",
-    }));
-  }, [router.locales]);
+  // const localeOptions = useMemo(() => {
+  //   return (router.locales || []).map((locale) => ({
+  //     value: locale,
+  //     label: new Intl.DisplayNames(locale, { type: "language" }).of(locale) || "",
+  //   }));
+  // }, [router.locales]);
   const timeFormatOptions = [
     { value: 12, label: t("12_hour") },
     { value: 24, label: t("24_hour") },
@@ -99,7 +96,8 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
     defaultValues: {
       locale: {
         value: localeProp || "",
-        label: localeOptions.find((option) => option.value === localeProp)?.label || "",
+        // label: localeOptions.find((option) => option.value === localeProp)?.label || "",
+        label: "",
       },
       timeZone: user.timeZone || "",
       timeFormat: {
@@ -142,7 +140,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
               value: string;
             }>
               className="capitalize"
-              options={localeOptions}
+              options={[]}
               value={value}
               onChange={onChange}
             />

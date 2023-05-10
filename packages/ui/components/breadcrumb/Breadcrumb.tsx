@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Children, Fragment, useEffect, useState } from "react";
 
 type BreadcrumbProps = {
@@ -38,6 +39,7 @@ export const BreadcrumbItem = ({ children, href, listProps }: BreadcrumbItemProp
   );
 };
 export const BreadcrumbContainer = () => {
+  const pathname = usePathname();
   const [, setBreadcrumbs] = useState<
     {
       href: string;

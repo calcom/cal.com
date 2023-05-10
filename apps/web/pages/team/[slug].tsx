@@ -38,7 +38,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
       telemetryEventTypes.pageView,
       collectPageParameters("/team/[slug]", { isTeamBooking: true })
     );
-  }, [telemetry, pathname]);
+  }, [telemetry]);
   if (isUnpublished) {
     return (
       <div className="m-8 flex items-center justify-center">

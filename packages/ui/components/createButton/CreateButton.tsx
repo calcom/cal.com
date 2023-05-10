@@ -1,4 +1,4 @@
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -31,6 +31,7 @@ interface CreateBtnProps {
   disableMobileButton?: boolean;
 }
 export function CreateButton(props: CreateBtnProps) {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
@@ -38,23 +39,19 @@ export function CreateButton(props: CreateBtnProps) {
   const hasTeams = !!props.options.find((option) => option.teamId);
   // inject selection data into url for correct router history
   const openModal = (option: Option) => {
-    const query = {
-      ...Object.fromEntries(searchParams ?? new URLSearchParams()),
-      dialog: "new",
-      eventPage: option.slug,
-      teamId: option.teamId,
-    };
-    if (!option.teamId) {
-      delete query.teamId;
+    const query = new URLSearchParams(searchParams);
+
+    query.set("dialog", "new");
+
+    if (option.slug) {
+      query.set("eventPage", option.slug);
     }
-    router.push(
-      {
-        pathname: pathname,
-        query,
-      },
-      undefined,
-      { shallow: true }
-    );
+
+    if (option.teamId !== null && option.teamId !== undefined) {
+      query.set("teamId", String(option.teamId));
+    }
+
+    router.push(`${pathname}?${query.toString()}`);
   };
   return (
     <>

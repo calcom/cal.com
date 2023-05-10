@@ -1,5 +1,6 @@
 import type { GetStaticPropsContext } from "next";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,7 +17,8 @@ const querySchema = z.object({
 });
 export default function Error() {
   const { t } = useLocale();
-  const { error } = querySchema.parse(...Object.fromEntries(searchParams ?? new URLSearchParams()));
+  const searchParams = useSearchParams();
+  const { error } = querySchema.parse(Object.fromEntries(searchParams ?? new URLSearchParams()));
   const isTokenVerificationError = error?.toLowerCase() === "verification";
   let errorMsg = <SkeletonText />;
   if (true) {

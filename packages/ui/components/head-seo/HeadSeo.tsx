@@ -1,6 +1,7 @@
 import { merge } from "lodash";
 import type { NextSeoProps } from "next-seo";
 import { NextSeo } from "next-seo";
+import { usePathname } from "next/navigation";
 
 import type { AppImageProps, MeetingImageProps } from "@calcom/lib/OgImages";
 import { constructAppImage, constructGenericImage, constructMeetingImage } from "@calcom/lib/OgImages";
@@ -67,6 +68,7 @@ const buildSeoMeta = (pageProps: {
   };
 };
 export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
+  const path = usePathname();
   // The below code sets the defaultUrl for our canonical tags
   // Get the current URL from the window object
   const url = getBrowserInfo()?.url;

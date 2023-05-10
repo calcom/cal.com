@@ -238,13 +238,12 @@ function BookingListItem(booking: BookingItemProps) {
     .concat(booking.recurringInfo?.bookings[BookingStatus.PENDING])
     .sort((date1: Date, date2: Date) => date1.getTime() - date2.getTime());
   const onClickTableData = () => {
-    router.push({
-      pathname: `/booking/${booking.uid}`,
-      query: {
-        allRemainingBookings: isTabRecurring,
-        email: booking.attendees[0] ? booking.attendees[0].email : undefined,
-      },
+    const urlSearchParams = new URLSearchParams({
+      allRemainingBookings: String(isTabRecurring),
+      email: booking.attendees[0] ? booking.attendees[0].email : "",
     });
+
+    router.push(`/booking/${booking.uid}?${urlSearchParams.toString()}`);
   };
   const title = booking.title;
   // To be used after we run query on legacy bookings

@@ -1,5 +1,5 @@
 import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -12,6 +12,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
   // useRouter to get initial values from query params
   const router = useRouter();
+  const pathname = usePathname();
   const startTime = searchParams?.get("startTime"),
     endTime = searchParams?.get("endTime"),
     teamId = searchParams?.get("teamId"),
@@ -98,106 +99,125 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           const userId =
             filter?.[0] === "user" ? selectedMemberUserId : selectedUserId ? selectedUserId : undefined;
           const eventTypeId = filter?.[0] === "event-type" ? selectedEventTypeId : undefined;
-          router.push({
-            query: {
-              ...Object.fromEntries(searchParams ?? new URLSearchParams()),
-              filter: filter?.[0],
-              userId,
-              eventTypeId,
-            },
-          });
+
+          const urlSearchParams = new URLSearchParams(searchParams ?? undefined);
+
+          if (filter?.[0] !== null && filter?.[0] !== undefined) {
+            urlSearchParams.set("filter", filter?.[0]);
+          }
+
+          if (userId) {
+            urlSearchParams.set("userId", String(userId));
+          }
+
+          if (eventTypeId) {
+            urlSearchParams.set("eventTypeId", String(eventTypeId));
+          }
+
+          router.push(`${pathname}?${urlSearchParams.toString()}`);
         },
         setDateRange: (dateRange) => {
+          const urlSearchParams = new URLSearchParams(searchParams ?? undefined);
+
+          urlSearchParams.set("startTime", dateRange[0].toISOString());
+          urlSearchParams.set("endTime", dateRange[1].toISOString());
+
           setDateRange(dateRange);
-          router.push({
-            query: {
-              ...Object.fromEntries(searchParams ?? new URLSearchParams()),
-              startTime: dateRange[0].toISOString(),
-              endTime: dateRange[1].toISOString(),
-            },
-          });
+          router.push(`${pathname}?${urlSearchParams.toString()}`);
         },
         setSelectedTimeView: (selectedTimeView) => setSelectedTimeView(selectedTimeView),
         setSelectedMemberUserId: (selectedMemberUserId) => {
+          const urlSearchParams = new URLSearchParams(searchParams ?? undefined);
+
+          urlSearchParams.delete("userId");
+          urlSearchParams.delete("eventTypeId");
+
+          if (selectedMemberUserId) {
+            urlSearchParams.set("memberUserId", String(selectedMemberUserId));
+          } else {
+            urlSearchParams.delete("memberUserId");
+          }
+
           setSelectedMemberUserId(selectedMemberUserId);
-          const userId = searchParams?.get("userId"),
-            eventTypeId = searchParams?.get("eventTypeId"),
-            rest = searchParams?.get("rest");
-          router.push({
-            query: {
-              ...rest,
-              memberUserId: selectedMemberUserId,
-            },
-          });
+
+          router.push(`${pathname}?${urlSearchParams.toString()}`);
         },
         setSelectedTeamId: (selectedTeamId) => {
           setSelectedTeamId(selectedTeamId);
           setSelectedUserId(null);
           setSelectedMemberUserId(null);
           setSelectedEventTypeId(null);
-          const teamId = searchParams?.get("teamId"),
-            eventTypeId = searchParams?.get("eventTypeId"),
-            memberUserId = searchParams?.get("memberUserId"),
-            rest = searchParams?.get("rest");
-          router.push({
-            query: {
-              ...rest,
-              teamId: selectedTeamId,
-            },
-          });
+
+          const urlSearchParams = new URLSearchParams(searchParams ?? undefined);
+          // TODO should we remove userId
+          if (selectedTeamId) {
+            urlSearchParams.set("teamId", String(selectedTeamId));
+          } else {
+            urlSearchParams.delete("teamId");
+          }
+
+          urlSearchParams.delete("eventTypeId");
+          urlSearchParams.delete("memberUserId");
+
+          router.push(`${pathname}?${urlSearchParams.toString()}`);
         },
         setSelectedUserId: (selectedUserId) => {
           setSelectedUserId(selectedUserId);
           setSelectedTeamId(null);
           setSelectedTeamName(null);
           setSelectedEventTypeId(null);
-          const teamId = searchParams?.get("teamId"),
-            eventTypeId = searchParams?.get("eventTypeId"),
-            memberUserId = searchParams?.get("memberUserId"),
-            rest = searchParams?.get("rest");
-          router.push({
-            query: {
-              ...rest,
-              userId: selectedUserId,
-            },
-          });
+
+          const urlSearchParams = new URLSearchParams(searchParams ?? undefined);
+          urlSearchParams.delete("teamId");
+          urlSearchParams.delete("eventTypeId");
+          urlSearchParams.delete("memberUserId");
+
+          if (selectedUserId) {
+            urlSearchParams.set("userId", String(selectedUserId));
+          } else {
+            urlSearchParams.delete("userId");
+          }
+
+          router.push(`${pathname}?${urlSearchParams.toString()}`);
         },
         setSelectedTeamName: (selectedTeamName) => setSelectedTeamName(selectedTeamName),
         setSelectedEventTypeId: (selectedEventTypeId) => {
           setSelectedEventTypeId(selectedEventTypeId);
-          router.push({
-            query: {
-              ...Object.fromEntries(searchParams ?? new URLSearchParams()),
-              eventTypeId: selectedEventTypeId,
-            },
-          });
+
+          const urlSearchParams = new URLSearchParams(searchParams ?? undefined);
+
+          if (selectedEventTypeId) {
+            urlSearchParams.set("eventTypeId", String(selectedEventTypeId));
+          } else {
+            urlSearchParams.delete("eventTypeId");
+          }
+
+          router.push(`${pathname}?${urlSearchParams.toString()}`);
         },
         clearFilters: () => {
           setSelectedTeamName(null);
           setSelectedEventTypeId(null);
           setSelectedMemberUserId(null);
           setSelectedFilter(null);
-          const teamId = searchParams?.get("teamId"),
-            userId = searchParams?.get("userId"),
-            rest = searchParams?.get("rest");
-          const query: {
-            teamId?: number;
-            userId?: number;
-          } = {};
-          const parsedTeamId = Number(Array.isArray(teamId) ? teamId[0] : teamId);
-          const parsedUserId = Number(Array.isArray(userId) ? userId[0] : userId);
+
+          const teamId = searchParams?.get("teamId");
+          const userId = searchParams?.get("userId");
+
+          const urlSearchParams = new URLSearchParams();
+
           if ((teamId && !userId) || (userId && teamId)) {
-            query.teamId = parsedTeamId;
-            setSelectedTeamId(parsedTeamId);
+            urlSearchParams.set("teamId", teamId);
+
+            setSelectedTeamId(Number(teamId));
             setSelectedUserId(null);
           } else if (userId && !teamId) {
-            query.userId = parsedUserId;
-            setSelectedUserId(parsedUserId);
+            urlSearchParams.set("userId", userId);
+
+            setSelectedUserId(Number(userId));
             setSelectedTeamId(null);
           }
-          router.push({
-            query,
-          });
+
+          router.push(`${pathname}?${urlSearchParams.toString()}`);
         },
       }}>
       {children}

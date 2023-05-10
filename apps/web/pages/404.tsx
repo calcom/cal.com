@@ -1,5 +1,6 @@
 import type { GetStaticPropsContext } from "next";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
@@ -13,7 +14,8 @@ import { ssgInit } from "@server/lib/ssg";
 
 export default function Custom404() {
   const { t } = useLocale();
-  const [username] = pathname?.replace("%20", "-").split(/[?#]/);
+  const pathname = usePathname();
+  const [username] = pathname?.replace("%20", "-").split(/[?#]/) ?? [];
   const links = [
     {
       title: t("documentation"),

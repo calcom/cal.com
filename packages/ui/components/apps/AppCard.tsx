@@ -1,4 +1,4 @@
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
@@ -20,6 +20,7 @@ interface AppCardProps {
 export function AppCard({ app, credentials, searchText }: AppCardProps) {
   const { t } = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       // Refresh SSR page content without actual reload

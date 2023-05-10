@@ -1,4 +1,4 @@
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -19,8 +19,9 @@ const querySchema = z.object({
 export const CreateANewTeamForm = () => {
   const { t } = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const telemetry = useTelemetry();
-  const returnToParsed = querySchema.safeParse(...Object.fromEntries(searchParams ?? new URLSearchParams()));
+  const returnToParsed = querySchema.safeParse(Object.fromEntries(searchParams ?? new URLSearchParams()));
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const returnToParam =
     (returnToParsed.success ? getSafeRedirectUrl(returnToParsed.data.returnTo) : "/settings/teams") ||

@@ -33,7 +33,7 @@ function WizardForm<T extends DefaultStep>(props: {
   const step = parseInt((searchParams?.get("step") as string) || "1");
   const currentStep = steps[step - 1];
   const setStep = (newStep: number) => {
-    router.replace(`${href}?step=${newStep || 1}`, undefined, { shallow: true });
+    router.replace(`${href}?step=${newStep || 1}`);
   };
   const [currentStepIsLoading, setCurrentStepIsLoading] = useState(false);
   useEffect(() => {

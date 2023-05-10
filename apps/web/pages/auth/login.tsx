@@ -67,7 +67,7 @@ export default function Login({
   };
   const telemetry = useTelemetry();
   let callbackUrl =
-    typeof searchParams?.get("callbackUrl") === "string" ? searchParams?.get("callbackUrl") : "";
+    typeof searchParams?.get("callbackUrl") === "string" ? searchParams?.get("callbackUrl") ?? "" : "";
   if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
   // If not absolute URL, make it absolute
   if (!/^https?:\/\//.test(callbackUrl)) {

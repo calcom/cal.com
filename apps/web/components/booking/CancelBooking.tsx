@@ -1,4 +1,4 @@
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -28,6 +28,7 @@ export default function CancelBooking(props: Props) {
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const { t } = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
   const { booking, allRemainingBookings, seatReferenceUid } = props;
   const [loading, setLoading] = useState(false);
   const telemetry = useTelemetry();
@@ -90,8 +91,8 @@ export default function CancelBooking(props: Props) {
                     },
                     method: "DELETE",
                   });
-                  if (res.status >= 200 && res.status < 300) {
-                    await router.replace(pathname);
+                  if (res.status >= 200 && res.status < 300 && pathname) {
+                    router.replace(pathname);
                   } else {
                     setLoading(false);
                     setError(

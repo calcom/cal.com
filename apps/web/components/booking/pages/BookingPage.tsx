@@ -257,7 +257,7 @@ const BookingPage = ({
     onSuccess: async (responseData) => {
       const { uid } = responseData;
       if ("paymentUid" in responseData && !!responseData.paymentUid) {
-        return await router.push(
+        return router.push(
           createPaymentLink({
             paymentUid: responseData.paymentUid,
             date,
@@ -416,12 +416,12 @@ const BookingPage = ({
     // "metadata" is a reserved key to allow for connecting external users without relying on the email address.
     // <...url>&metadata[user_id]=123 will be send as a custom input field as the hidden type.
     // @TODO: move to metadata
-    const metadata = Object.keys(...Object.fromEntries(searchParams ?? new URLSearchParams()))
+    const metadata = Object.keys(Object.fromEntries(searchParams ?? new URLSearchParams()))
       .filter((key) => key.startsWith("metadata"))
       .reduce(
         (metadata, key) => ({
           ...metadata,
-          [key.substring("metadata[".length, key.length - 1)]: searchParams[key],
+          [key.substring("metadata[".length, key.length - 1)]: searchParams?.get(key),
         }),
         {}
       );
@@ -440,7 +440,7 @@ const BookingPage = ({
         timeZone: timeZone(),
         language: i18n.language,
         rescheduleUid,
-        user: searchParams?.get("user"),
+        user: searchParams?.getAll("user"),
         metadata,
         hasHashedBookingLink,
         hashedLink,
@@ -458,7 +458,7 @@ const BookingPage = ({
         language: i18n.language,
         rescheduleUid,
         bookingUid: (searchParams?.get("bookingUid") as string) || booking?.uid,
-        user: searchParams?.get("user"),
+        user: searchParams?.getAll("user"),
         metadata,
         hasHashedBookingLink,
         hashedLink,
@@ -640,7 +640,8 @@ const BookingPage = ({
 export default BookingPage;
 function ErrorMessage({ error }: { error: unknown }) {
   const { t } = useLocale();
-  const { query: { rescheduleUid } = {} } = useRouter();
+  const searchParams = useSearchParams();
+  const rescheduleUid = searchParams?.get("rescheduleUid");
   const router = useRouter();
   return (
     <div data-testid="booking-fail" className="mt-2 border-l-4 border-blue-400 bg-blue-50 p-4">

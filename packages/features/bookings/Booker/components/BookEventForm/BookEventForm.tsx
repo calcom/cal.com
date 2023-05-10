@@ -47,15 +47,16 @@ const getSuccessPath = ({
   slug: string;
   formerTime?: string;
   isRecurring: boolean;
-}) => ({
-  pathname: `/booking/${uid}`,
-  query: {
-    [isRecurring ? "allRemainingBookings" : "isSuccessBookingPage"]: true,
+}): string => {
+  const urlSearchParams = new URLSearchParams({
+    [isRecurring ? "allRemainingBookings" : "isSuccessBookingPage"]: "true",
     email: email,
     eventTypeSlug: slug,
-    formerTime: formerTime,
-  },
-});
+    formerTime: formerTime ?? "",
+  });
+
+  return `/booking/${uid}?${urlSearchParams.toString()}`;
+};
 export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -231,12 +232,12 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       language: i18n.language,
       rescheduleUid: rescheduleUid || undefined,
       username: username || "",
-      metadata: Object.keys(...Object.fromEntries(searchParams ?? new URLSearchParams()))
+      metadata: Object.keys(Object.fromEntries(searchParams ?? new URLSearchParams()))
         .filter((key) => key.startsWith("metadata"))
         .reduce(
           (metadata, key) => ({
             ...metadata,
-            [key.substring("metadata[".length, key.length - 1)]: searchParams[key],
+            [key.substring("metadata[".length, key.length - 1)]: searchParams?.get(key),
           }),
           {}
         ),
@@ -250,10 +251,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     }
   };
   if (!eventType) {
-    console.warn(
-      "No event type found for event",
-      ...Object.fromEntries(searchParams ?? new URLSearchParams())
-    );
+    console.warn("No event type found for event", Object.fromEntries(searchParams ?? new URLSearchParams()));
     return <Alert severity="warning" message={t("error_booking_event")} />;
   }
   return (

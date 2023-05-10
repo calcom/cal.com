@@ -1,4 +1,5 @@
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useReducer, useState } from "react";
 import { z } from "zod";
 
@@ -59,8 +60,9 @@ const useBrandColors = ({ brandColor, darkBrandColor }: { brandColor: string; da
   useCalcomTheme(brandTheme);
 };
 const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
+  const searchParams = useSearchParams();
   const isEmbed = useIsEmbed(restProps.isEmbed);
-  const query = dateQuerySchema.parse(...Object.fromEntries(searchParams ?? new URLSearchParams()));
+  const query = dateQuerySchema.parse(Object.fromEntries(searchParams ?? new URLSearchParams()));
   const { rescheduleUid } = query;
   useTheme(profile.theme);
   useBrandColors({

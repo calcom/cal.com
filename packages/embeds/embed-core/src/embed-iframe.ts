@@ -1,5 +1,4 @@
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import type { CSSProperties } from "react";
 import { useState, useEffect } from "react";
 
@@ -154,14 +153,13 @@ function isValidNamespace(ns: string | null | undefined) {
   return typeof ns !== "undefined" && ns !== null;
 }
 export const useEmbedTheme = () => {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const router = useRouter();
+
   const [theme, setTheme] = useState(embedStore.theme || (searchParams?.get("theme") as string));
   useEffect(() => {
-    router.events.on("routeChangeComplete", () => {
-      sdkActionManager?.fire("__routeChanged", {});
-    });
-  }, [router.events]);
+    sdkActionManager?.fire("__routeChanged", {});
+  }, [pathname, searchParams]);
   embedStore.setTheme = setTheme;
   return theme === "auto" ? null : theme;
 };

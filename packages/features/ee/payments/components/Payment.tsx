@@ -2,7 +2,7 @@ import type { Payment } from "@prisma/client";
 import { useElements, useStripe, PaymentElement, Elements } from "@stripe/react-stripe-js";
 import type stripejs from "@stripe/stripe-js";
 import type { StripeElementLocale } from "@stripe/stripe-js";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
 
@@ -58,7 +58,7 @@ const PaymentForm = (props: Props) => {
   }, [elements, i18n.language]);
   const handleSubmit = async (ev: SyntheticEvent) => {
     ev.preventDefault();
-    if (!stripe || !elements || !true) return;
+    if (!stripe || !elements || !searchParams) return;
     setState({ status: "processing" });
     let payload;
     const params: {

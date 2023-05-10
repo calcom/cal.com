@@ -1,3 +1,4 @@
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { z } from "zod";
 
@@ -29,8 +30,12 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
   type OutputOptionalKeys = OptionalKeys<Output>;
   type ArrayOutput = FilteredKeys<FullOutput, Array<unknown>>;
   type ArrayOutputKeys = keyof ArrayOutput;
-  const { query: unparsedQuery, ...router } = useRouter();
-  const parsedQuerySchema = schema.safeParse(unparsedQuery);
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // const { query: unparsedQuery, ...router } = useRouter();
+  const parsedQuerySchema = schema.safeParse(searchParams?.toString() ?? "");
   let parsedQuery: Output = useMemo(() => {
     return {} as Output;
   }, []);
@@ -43,14 +48,17 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
       const { [key]: _, ...newQuery } = parsedQuery;
       const newValue = { ...newQuery, [key]: value };
       const search = new URLSearchParams(newValue as any).toString();
-      router.replace({ query: search }, undefined, { shallow: true });
+      router.replace(`?${search}`);
     },
     [parsedQuery, router]
   );
   // Delete a key from the query
   function removeByKey(key: OutputOptionalKeys) {
     const { [key]: _, ...newQuery } = parsedQuery;
-    router.replace({ query: newQuery as Output }, undefined, { shallow: true });
+
+    const urlSearchParams = new URLSearchParams(newQuery);
+
+    router.replace(`?${urlSearchParams.toString()}`);
   }
   // push item to existing key
   function pushItemToKey<J extends ArrayOutputKeys>(key: J, value: ArrayOutput[J][number]) {

@@ -18,12 +18,11 @@ export default function SetupInformation(props: InferGetStaticPropsType<typeof g
     return <div className="bg-emphasis absolute z-50 flex h-screen w-full items-center" />;
   }
   if (status === "unauthenticated") {
-    router.replace({
-      pathname: "/auth/login",
-      query: {
-        callbackUrl: `/apps/${slug}/setup`,
-      },
+    const urlSearchParams = new URLSearchParams({
+      callbackUrl: `/apps/${slug}/setup`,
     });
+
+    router.replace(`/auth/login?${urlSearchParams.toString()}`);
   }
   return (
     <>

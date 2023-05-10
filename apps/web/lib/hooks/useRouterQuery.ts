@@ -4,22 +4,17 @@ import { useRouter } from "next/navigation";
 export default function useRouterQuery<T extends string>(name: T) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const existingQueryParams = pathname?.split("?")[1];
-  const urlParams = new URLSearchParams(existingQueryParams);
-  const query = Object.fromEntries(urlParams);
+
   const setQuery = (newValue: string | number | null | undefined) => {
-    router.replace(
-      { query: { ...Object.fromEntries(searchParams ?? new URLSearchParams()), [name]: newValue } },
-      undefined,
-      { shallow: true }
-    );
-    router.replace(
-      { query: { ...Object.fromEntries(searchParams ?? new URLSearchParams()), ...query, [name]: newValue } },
-      undefined,
-      { shallow: true }
-    );
+    const urlSearchParams = new URLSearchParams(searchParams ?? undefined);
+    if (newValue !== undefined && newValue !== null) {
+      urlSearchParams.set(name, String(newValue));
+    }
+
+    router.replace(`?${urlSearchParams.toString()}`);
   };
-  return { [name]: query[name], setQuery } as {
+
+  return { [name]: searchParams?.get(name), setQuery } as {
     [K in T]: string | undefined;
   } & {
     setQuery: typeof setQuery;

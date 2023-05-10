@@ -1,3 +1,5 @@
+import { usePathname } from "next/navigation";
+
 import { useIntercom } from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
@@ -31,6 +33,7 @@ const CtaRow = ({ title, description, className, children }: CtaRowProps) => {
 const BillingView = () => {
   const { t } = useLocale();
   const { open } = useIntercom();
+  const pathname = usePathname();
   const returnTo = pathname;
   const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
   const onContactSupportClick = async () => {
