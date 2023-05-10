@@ -1,8 +1,12 @@
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "..", "..", ".env") });
+
+const WEBAPP_PREFIX_PATH = process.env.NEXT_PUBLIC_WEBAPP_PREFIX_PATH?.startsWith("/")
+  ? process.env.NEXT_PUBLIC_WEBAPP_PREFIX_PATH
+  : "";
+
 process.env.EMBED_PUBLIC_VERCEL_URL = process.env.VERCEL_URL;
-process.env.EMBED_PUBLIC_WEBAPP_URL =
-  process.env.NEXT_PUBLIC_WEBAPP_URL + process.env.NEXT_PUBLIC_WEBAPP_PREFIX_PATH;
+process.env.EMBED_PUBLIC_WEBAPP_URL = process.env.NEXT_PUBLIC_WEBAPP_URL + WEBAPP_PREFIX_PATH;
 process.env.EMBED_PUBLIC_EMBED_LIB_URL = process.env.NEXT_PUBLIC_EMBED_LIB_URL;
 process.env.EMBED_PUBLIC_EMBED_FINGER_PRINT = process.env.NEXT_PUBLIC_EMBED_FINGER_PRINT;
 
