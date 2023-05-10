@@ -1038,7 +1038,6 @@
   "event_cancelled_trigger": "متى تم إلغاء هذا الحدث",
   "new_event_trigger": "متى تم حجز الحدث الجديد",
   "email_host_action": "إرسال رسالة إلكترونية إلى المضيف",
-  "email_attendee_action": "إرسال رسالة إلكترونية إلى واحد من الحضور",
   "sms_attendee_action": "إرسال رسالة نصية قصيرة إلى واحد من الحضور",
   "sms_number_action": "إرسال رسالة نصية قصيرة إلى رقم محدد",
   "workflows": "سير العمل",
