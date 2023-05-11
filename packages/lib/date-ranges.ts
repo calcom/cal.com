@@ -19,11 +19,8 @@ export function processWorkingHours({
   dateTo: Dayjs;
 }) {
   const results = [];
-  for (
-    const date = dateFrom.tz(timeZone), endDate = dateTo.tz(timeZone);
-    date.isBefore(endDate);
-    date.add(1, "day")
-  ) {
+  const endDate = dateTo.tz(timeZone);
+  for (let date = dateFrom.tz(timeZone); date.isBefore(endDate); date = date.add(1, "day")) {
     if (!item.days.includes(date.day())) {
       continue;
     }
