@@ -367,6 +367,7 @@
   "create_webhook": "Créer un Webhook",
   "booking_cancelled": "Réservation annulée",
   "booking_rescheduled": "Réservation replanifiée",
+  "recording_ready": "Lien de téléchargement d'enregistrement prêt",
   "booking_created": "Réservation créée",
   "meeting_ended": "Rendez-vous terminé",
   "form_submitted": "Formulaire envoyé",
