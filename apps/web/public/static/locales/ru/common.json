@@ -1038,7 +1038,6 @@
   "event_cancelled_trigger": "когда событие отменено",
   "new_event_trigger": "когда будет забронировано новое событие",
   "email_host_action": "отправить письмо организатору",
-  "email_attendee_action": "отправить письмо участнику",
   "sms_attendee_action": "отправить SMS-сообщение участнику",
   "sms_number_action": "отправка SMS-сообщение на указанный номер",
   "workflows": "Рабочие процессы",

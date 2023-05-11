@@ -1038,7 +1038,6 @@
   "event_cancelled_trigger": "kada je događaj otkazan",
   "new_event_trigger": "kada je zakazan novi događaj",
   "email_host_action": "pošalji imejl domaćinu",
-  "email_attendee_action": "pošalji imejl polazniku",
   "sms_attendee_action": "pošalji SMS polazniku",
   "sms_number_action": "pošalji SMS na određeni broj",
   "workflows": "Radni tokovi",

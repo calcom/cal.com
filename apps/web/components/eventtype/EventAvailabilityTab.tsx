@@ -119,7 +119,7 @@ const EventTypeScheduleDetails = ({
                         {format(dayRange.startTime, timeFormat === 12)}
                       </span>
                       <span className="ms-4">-</span>
-                      <div className="ml-6">{format(dayRange.endTime, timeFormat === 12)}</div>
+                      <div className="ml-6 sm:w-28">{format(dayRange.endTime, timeFormat === 12)}</div>
                     </div>
                   ))}
                 </div>
@@ -154,12 +154,11 @@ const EventTypeScheduleDetails = ({
 
 const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
-  const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } =
-    useLockedFieldsManager(
-      eventType,
-      t("locked_fields_admin_description"),
-      t("locked_fields_member_description")
-    );
+  const { shouldLockIndicator, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
+    eventType,
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
+  );
   const { watch } = useFormContext<FormValues>();
   const watchSchedule = watch("schedule");
   const formMethods = useFormContext<FormValues>();
@@ -205,6 +204,8 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
       const value = options.find((option) =>
         scheduleId
           ? option.value === scheduleId
+          : isManagedEventType
+          ? option.value === 0
           : option.value === schedules.find((schedule) => schedule.isDefault)?.id
       );
 
