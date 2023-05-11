@@ -7,7 +7,6 @@ export type DateRange = {
   end: Dayjs;
 };
 
-// processWorkingHours seems to work
 export function processWorkingHours({
   item,
   timeZone,
