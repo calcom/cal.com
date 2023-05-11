@@ -1,3 +1,4 @@
+import { cacheHeader } from "pretty-cache-header";
 import { z } from "zod";
 
 import * as trpcNext from "@calcom/trpc/server/adapters/next";
@@ -60,7 +61,7 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false) {
         const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
         const cacheRules = {
           session: `no-cache`,
-          i18n: `no-cache`,
+          i18n: cacheHeader({ public: true, maxAge: "1d", staleWhileRevalidate: "1d" }),
           // Revalidation time here should be 1 second, per https://github.com/calcom/cal.com/pull/6823#issuecomment-1423215321
           "slots.getSchedule": `no-cache`, // FIXME
           cityTimezones: `max-age=${ONE_DAY_IN_SECONDS}, stale-while-revalidate`,
