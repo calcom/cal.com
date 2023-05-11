@@ -8,13 +8,12 @@ import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/componen
 import BookingLayout from "@calcom/features/bookings/layout/BookingLayout";
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
+import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
-
-import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import PageWrapper from "@components/PageWrapper";
 import BookingListItem from "@components/booking/BookingListItem";
