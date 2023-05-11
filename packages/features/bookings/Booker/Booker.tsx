@@ -19,7 +19,7 @@ import { EventMeta } from "./components/EventMeta";
 import { LargeCalendar } from "./components/LargeCalendar";
 import { LargeViewHeader } from "./components/LargeViewHeader";
 import { BookerSection } from "./components/Section";
-import { fadeInLeft, useBookerResizeAnimation } from "./config";
+import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
 import { useEvent } from "./utils/event";
@@ -128,11 +128,8 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
         <div
           ref={animationScope}
           className={classNames(
-            // Size settings are abstracted on their own lines purely for readbility.
-            "[--booker-main-width:480px] [--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
-            layout === "small_calendar" && "[--booker-meta-width:240px] lg:[--booker-meta-width:280px]",
-            layout !== "small_calendar" && "[--booker-meta-width:340px] lg:[--booker-meta-width:424px]",
-            // Other styles
+            // Sets booker size css variables for the size of all the columns.
+            ...getBookerSizeClassNames(layout, bookerState),
             "bg-muted grid max-w-full auto-rows-fr items-start overflow-clip dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
             layout === "small_calendar" && "border-subtle rounded-md border"
           )}>
