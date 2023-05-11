@@ -200,7 +200,7 @@ export const FormBuilder = function FormBuilder({
                         onCheckedChange={(checked) => {
                           update(index, { ...field, hidden: !checked });
                         }}
-                        classNames={{ container: "p-2 hover:bg-gray-100 rounded" }}
+                        classNames={{ container: "p-2 sm:hover:bg-muted rounded" }}
                         tooltip={t("show_on_booking_page")}
                       />
                     )}
@@ -589,7 +589,7 @@ function VariantFields({
           onCheckedChange={(checked) => {
             fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
           }}
-          classNames={{ container: "p-2 mt-2 hover:bg-gray-100 rounded" }}
+          classNames={{ container: "p-2 mt-2 sm:hover:bg-muted rounded" }}
           tooltip={t("Toggle Variant")}
         />
       ) : (
