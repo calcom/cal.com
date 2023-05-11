@@ -135,7 +135,28 @@ function getIntersection(range1: DateRange, range2: DateRange) {
   return null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// first version
 export function subtract(aRanges: DateRange[], bRanges: DateRange[]) {
-  return [];
+  const freeTimes: DateRange[] = [];
+
+  for (const { start: dateStart, end: dateEnd } of aRanges) {
+    let currentStart: Dayjs = dateStart;
+
+    const overlappingBusyTimes = bRanges.filter(
+      ({ start, end }) => start.isBefore(dateEnd) && end.isAfter(dateStart)
+    );
+
+    for (const { start: busyStart, end: busyEnd } of overlappingBusyTimes) {
+      if (busyStart.isAfter(currentStart)) {
+        freeTimes.push({ start: currentStart, end: busyStart });
+      }
+      currentStart = busyEnd.isAfter(currentStart) ? busyEnd : currentStart;
+    }
+
+    if (dateEnd.isAfter(currentStart)) {
+      freeTimes.push({ start: currentStart, end: dateEnd });
+    }
+  }
+
+  return freeTimes;
 }
