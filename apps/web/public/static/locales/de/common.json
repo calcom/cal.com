@@ -1038,7 +1038,6 @@
   "event_cancelled_trigger": "wenn das Ereignis abgesagt wird",
   "new_event_trigger": "wenn ein neer Termin gebucht wird",
   "email_host_action": "E-Mail an den Veranstalter senden",
-  "email_attendee_action": "E-Mail an Teilnehmende senden",
   "sms_attendee_action": "SMS an Teilnehmende senden",
   "sms_number_action": "SMS an eine bestimmte Nummer senden",
   "workflows": "Workflows",

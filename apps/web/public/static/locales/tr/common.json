@@ -1038,7 +1038,6 @@
   "event_cancelled_trigger": "etkinlik iptal edildiğinde",
   "new_event_trigger": "yeni bir etkinlik için rezervasyon yapıldığında",
   "email_host_action": "organizatöre e-posta gönder",
-  "email_attendee_action": "katılımcıya e-posta gönder",
   "sms_attendee_action": "katılımcıya SMS gönder",
   "sms_number_action": "belirli bir numaraya SMS gönder",
   "workflows": "İş akışları",

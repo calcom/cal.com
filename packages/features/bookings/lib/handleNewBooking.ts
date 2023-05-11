@@ -1,5 +1,5 @@
 import type { App, Attendee, Credential, EventTypeCustomInput } from "@prisma/client";
-import { BookingStatus, SchedulingType, WebhookTriggerEvents, WorkflowMethods, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { cloneDeep } from "lodash";
@@ -33,6 +33,10 @@ import {
 } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import {
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
@@ -53,6 +57,7 @@ import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/Syn
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { userSelect } from "@calcom/prisma";
 import type { BookingReference } from "@calcom/prisma/client";
+import { BookingStatus, SchedulingType, WebhookTriggerEvents, WorkflowMethods } from "@calcom/prisma/enums";
 import { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod-utils";
 import {
   bookingCreateBodySchemaForApi,
@@ -64,7 +69,7 @@ import {
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import type { WorkingHours } from "@calcom/types/schedule";
+import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
 
 import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import sendPayload from "../../webhooks/lib/sendPayload";
@@ -117,10 +122,14 @@ const isWithinAvailableHours = (
   timeSlot: { start: ConfigType; end: ConfigType },
   {
     workingHours,
+    dateOverrides,
     organizerTimeZone,
+    inviteeTimeZone,
   }: {
     workingHours: WorkingHours[];
+    dateOverrides: DateOverride[];
     organizerTimeZone: string;
+    inviteeTimeZone: string;
   }
 ) => {
   const timeSlotStart = dayjs(timeSlot.start).utc();
@@ -144,6 +153,22 @@ const isWithinAvailableHours = (
       return true;
     }
   }
+
+  // check if it is a date override
+  for (const dateOverride of dateOverrides) {
+    const utcOffSet = dayjs(dateOverride.start).tz(inviteeTimeZone).utcOffset();
+
+    const slotStart = dayjs(timeSlotStart).add(utcOffSet, "minute");
+    const slotEnd = dayjs(timeSlotEnd).add(utcOffSet, "minute");
+
+    if (
+      slotStart.isBetween(dateOverride.start, dateOverride.end) &&
+      slotEnd.isBetween(dateOverride.start, dateOverride.end)
+    ) {
+      return true;
+    }
+  }
+
   log.error(
     `NAUF: isWithinAvailableHours ${JSON.stringify({ ...timeSlot, organizerTimeZone, workingHours })}`
   );
@@ -302,7 +327,11 @@ async function ensureAvailableUsers(
   const availableUsers: IsFixedAwareUser[] = [];
   /** Let's start checking for availability */
   for (const user of eventType.users) {
-    const { busy: bufferedBusyTimes, workingHours } = await getUserAvailability(
+    const {
+      busy: bufferedBusyTimes,
+      workingHours,
+      dateOverrides,
+    } = await getUserAvailability(
       {
         userId: user.id,
         eventTypeId: eventType.id,
@@ -317,7 +346,9 @@ async function ensureAvailableUsers(
         { start: input.dateFrom, end: input.dateTo },
         {
           workingHours,
+          dateOverrides,
           organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || user.timeZone,
+          inviteeTimeZone: input.timeZone,
         }
       )
     ) {
@@ -987,9 +1018,17 @@ async function handler(
           message?: string;
         })
       | null = null;
-    const booking = await prisma.booking.findUniqueOrThrow({
+    const booking = await prisma.booking.findFirst({
       where: {
-        uid: rescheduleUid || reqBody.bookingUid,
+        OR: [
+          {
+            uid: rescheduleUid || reqBody.bookingUid,
+          },
+          {
+            eventTypeId: eventType.id,
+            startTime: evt.startTime,
+          },
+        ],
       },
       select: {
         uid: true,
@@ -1002,6 +1041,11 @@ async function handler(
         status: true,
       },
     });
+
+    if (!booking) {
+      throw new HttpError({ statusCode: 404, message: "Could not find booking" });
+    }
+
     // See if attendee is already signed up for timeslot
     if (
       booking.attendees.find((attendee) => attendee.email === invitee[0].email) &&
@@ -1926,6 +1970,26 @@ async function handler(
         videoCallUrl = metadata.hangoutLink || defaultLocationUrl || videoCallUrl;
       }
       if (noEmail !== true) {
+        let isHostConfirmationEmailsDisabled = false;
+        let isAttendeeConfirmationEmailDisabled = false;
+
+        const workflows = eventType.workflows.map((workflow) => workflow.workflow);
+
+        if (eventType.workflows) {
+          isHostConfirmationEmailsDisabled =
+            eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
+          isAttendeeConfirmationEmailDisabled =
+            eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
+
+          if (isHostConfirmationEmailsDisabled) {
+            isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
+          }
+
+          if (isAttendeeConfirmationEmailDisabled) {
+            isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
+          }
+        }
+
         await sendScheduledEmails(
           {
             ...evt,
@@ -1933,7 +1997,9 @@ async function handler(
             additionalNotes,
             customInputs,
           },
-          eventNameObject
+          eventNameObject,
+          isHostConfirmationEmailsDisabled,
+          isAttendeeConfirmationEmailDisabled
         );
       }
     }

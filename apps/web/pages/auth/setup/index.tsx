@@ -1,4 +1,3 @@
-import { UserPermissionRole } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -8,6 +7,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Meta, WizardForm } from "@calcom/ui";
 

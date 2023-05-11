@@ -1,4 +1,3 @@
-import { SchedulingType } from "@prisma/client";
 import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
 
@@ -14,6 +13,7 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import getTimeSlots from "@calcom/lib/slots";
 import { availabilityUserSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
