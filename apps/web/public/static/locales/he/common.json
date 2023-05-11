@@ -1014,7 +1014,6 @@
   "event_cancelled_trigger": "כאשר אירוע מבוטל",
   "new_event_trigger": "כאשר אירוע חדש מוזמן",
   "email_host_action": "שלח מייל למארח",
-  "email_attendee_action": "שלח מייל למשתתף",
   "sms_attendee_action": "שלח SMS למשתתף",
   "sms_number_action": "שלח SMS למספר מסוים",
   "workflows": "תהליכים",
