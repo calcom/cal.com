@@ -66,18 +66,20 @@ export const EventMeta = () => {
             <EventDetails event={event} />
             <EventMetaBlock
               className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
-              contentClassName="relative"
+              contentClassName="relative max-w-[90%]"
               icon={Globe}>
               {bookerState === "booking" ? (
                 <>{timezone}</>
               ) : (
-                <span className="current-timezone before:bg-subtle -mt-[2px] flex h-6 items-center justify-center before:absolute before:inset-0 before:left-[-30px] before:top-[-3px] before:bottom-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity">
+                <span className="min-w-32 current-timezone before:bg-subtle -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:left-[-30px] before:top-[-3px] before:bottom-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity">
                   <TimezoneSelect
                     menuPosition="fixed"
                     classNames={{
-                      control: () => "!min-h-0 p-0 border-0 bg-transparent focus-within:ring-0",
+                      control: () => "!min-h-0 p-0 w-full border-0 bg-transparent focus-within:ring-0",
                       menu: () => "!w-64 max-w-[90vw]",
                       singleValue: () => "text-text py-1",
+                      indicatorsContainer: () => "ml-auto",
+                      container: () => "max-w-full",
                     }}
                     value={timezone}
                     onChange={(tz) => setTimezone(tz.value)}
