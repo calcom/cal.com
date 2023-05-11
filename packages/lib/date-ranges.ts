@@ -136,27 +136,27 @@ function getIntersection(range1: DateRange, range2: DateRange) {
 }
 
 // first version
-export function subtract(aRanges: DateRange[], bRanges: DateRange[]) {
-  const freeTimes: DateRange[] = [];
+export function subtract(sourceRanges: DateRange[], excludedRanges: DateRange[]) {
+  const result: DateRange[] = [];
 
-  for (const { start: dateStart, end: dateEnd } of aRanges) {
-    let currentStart: Dayjs = dateStart;
+  for (const { start: sourceStart, end: sourceEnd } of sourceRanges) {
+    let currentStart = sourceStart;
 
-    const overlappingBusyTimes = bRanges.filter(
-      ({ start, end }) => start.isBefore(dateEnd) && end.isAfter(dateStart)
+    const overlappingRanges = excludedRanges.filter(
+      ({ start, end }) => start.isBefore(sourceEnd) && end.isAfter(sourceStart)
     );
 
-    for (const { start: busyStart, end: busyEnd } of overlappingBusyTimes) {
-      if (busyStart.isAfter(currentStart)) {
-        freeTimes.push({ start: currentStart, end: busyStart });
+    for (const { start: excludedStart, end: excludedEnd } of overlappingRanges) {
+      if (excludedStart.isAfter(currentStart)) {
+        result.push({ start: currentStart, end: excludedStart });
       }
-      currentStart = busyEnd.isAfter(currentStart) ? busyEnd : currentStart;
+      currentStart = excludedEnd.isAfter(currentStart) ? excludedEnd : currentStart;
     }
 
-    if (dateEnd.isAfter(currentStart)) {
-      freeTimes.push({ start: currentStart, end: dateEnd });
+    if (sourceEnd.isAfter(currentStart)) {
+      result.push({ start: currentStart, end: sourceEnd });
     }
   }
 
-  return freeTimes;
+  return result;
 }
