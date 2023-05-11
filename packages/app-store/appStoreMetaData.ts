@@ -18,7 +18,6 @@ for (const [key, value] of Object.entries(rawAppStoreMetadata)) {
     appData: null,
     dirName,
     __template: "",
-    dirName: "dirName" in value ? value.dirName : value.slug,
     ...value,
   } as AppStoreMetaData[keyof AppStoreMetaData]);
   metadata.logo = getAppAssetFullPath(metadata.logo, {
