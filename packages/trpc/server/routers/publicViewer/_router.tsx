@@ -61,7 +61,7 @@ export const publicViewerRouter = router({
       throw new Error("Failed to load handler");
     }
 
-    return UNSTABLE_HANDLER_CACHE.locale(ctx);
+    return UNSTABLE_HANDLER_CACHE.locale({ ctx });
   }),
 
   countryCode: publicProcedure.query(async ({ ctx }) => {
