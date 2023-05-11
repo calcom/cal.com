@@ -58,7 +58,6 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
         )}
         disabled={!hasAnyInstalledVideoApps}
         onClick={() => nextStep()}>
-        {hasAnyInstalledVideoApps}
         {t("next_step_text")}
         <ArrowRightIcon className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </button>
