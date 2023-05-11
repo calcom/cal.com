@@ -62,7 +62,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
       <h3 className="text-emphasis font-medium leading-6">
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
-          <span className="inline-block">
+          <span className="inline-block align-middle">
             <Info className="h-4 w-4" />
           </span>
         </Tooltip>
@@ -188,7 +188,7 @@ export default function Availability() {
       }
       CTA={
         <div className="flex items-center justify-end">
-          <div className="hidden items-center rounded-md px-2 sm:flex sm:hover:bg-gray-100">
+          <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 sm:flex">
             <Skeleton as={Label} htmlFor="hiddenSwitch" className="mt-2 cursor-pointer self-center pr-2 ">
               {t("set_to_default")}
             </Skeleton>

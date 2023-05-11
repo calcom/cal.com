@@ -4,6 +4,8 @@ import { HexColorInput, HexColorPicker } from "react-colorful";
 
 import cx from "@calcom/lib/classNames";
 import { fallBackHex, isValidHexCode } from "@calcom/lib/getBrandColours";
+import { Button } from "@calcom/ui";
+import { RotateCcw } from "@calcom/ui/components/icon";
 
 export type ColorPickerProps = {
   defaultValue: string;
@@ -11,12 +13,18 @@ export type ColorPickerProps = {
   container?: HTMLElement;
   popoverAlign?: React.ComponentProps<typeof Popover.Content>["align"];
   className?: string;
+  resetDefaultValue?: string;
 };
 
 const ColorPicker = (props: ColorPickerProps) => {
   const init = !isValidHexCode(props.defaultValue)
     ? fallBackHex(props.defaultValue, false)
     : props.defaultValue;
+  const resetDefaultValue =
+    props.resetDefaultValue &&
+    (!isValidHexCode(props.resetDefaultValue)
+      ? fallBackHex(props.resetDefaultValue, false)
+      : props.resetDefaultValue);
   const [color, setColor] = useState(init);
 
   return (
@@ -57,6 +65,22 @@ const ColorPicker = (props: ColorPickerProps) => {
         }}
         type="text"
       />
+      {resetDefaultValue && color != resetDefaultValue && (
+        <div className="px-1">
+          <Button
+            color={resetDefaultValue == "#292929" ? "primary" : "secondary"}
+            target="_blank"
+            variant="icon"
+            rel="noreferrer"
+            StartIcon={RotateCcw}
+            tooltip="Reset to default"
+            onClick={() => {
+              setColor(fallBackHex(resetDefaultValue, false));
+              props.onChange(resetDefaultValue);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

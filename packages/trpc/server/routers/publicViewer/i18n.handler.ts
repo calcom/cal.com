@@ -1,8 +1,14 @@
+import type { NextApiRequest, NextApiResponse } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-import { getUserFromSession } from "@calcom/trpc/server/trpc";
+import type { WithLocale } from "../../createContext";
 
-import type { CreateInnerContextOptions } from "../../createContext";
+type I18nOptions = {
+  ctx: WithLocale & {
+    req: NextApiRequest | undefined;
+    res: NextApiResponse | undefined;
+  };
+};
 
 export const i18nHandler = async (locale: string) => {
   const i18n = await serverSideTranslations(locale, ["common", "vital"]);
@@ -12,10 +18,8 @@ export const i18nHandler = async (locale: string) => {
   };
 };
 
-export const localeHandler = async (ctx: CreateInnerContextOptions) => {
-  const user = await getUserFromSession({ session: ctx.session });
-
-  const locale = user?.locale || ctx.locale;
+export const localeHandler = async ({ ctx }: I18nOptions) => {
+  const { locale } = ctx;
 
   return { locale };
 };

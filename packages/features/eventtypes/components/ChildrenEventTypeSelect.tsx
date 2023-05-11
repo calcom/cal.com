@@ -47,7 +47,6 @@ export const ChildrenEventTypeSelect = ({
         }}
         name={props.name}
         placeholder={t("select")}
-        isSearchable={false}
         options={options}
         value={value}
         isMulti
