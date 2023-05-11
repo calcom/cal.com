@@ -516,7 +516,6 @@ const appRoutingForms = router({
           // Duplicate just routes and fields
           // We don't want name, description and responses to be copied
           routes = routesParsed.data || [];
-          // FIXME: Deleted fields shouldn't come in duplicate
           fields = fieldsParsed.data ? fieldsParsed.data.filter((f) => !f.deleted) : [];
         }
         return { routes, fields };
