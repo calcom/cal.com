@@ -254,8 +254,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const crypto = await import("crypto");
-  const strip = (await import("strip-markdown")).default;
-  const { remark } = await import("remark");
+
   const usernameList = getUsernameList(context.query.user as string);
   const dataFetchStart = Date.now();
   const usersWithoutAvatar = await prisma.user.findMany({

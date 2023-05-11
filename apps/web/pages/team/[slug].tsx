@@ -157,8 +157,6 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
-  const strip = (await import("strip-markdown")).default;
-  const { remark } = await import("remark");
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
 
   const team = await getTeamWithMembers(undefined, slug);
@@ -199,7 +197,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return { ...member, safeBio: markdownToSafeHTML(member.bio || "") };
   });
 
-  const markdownStrippedBio = stripMarkdown(member?.bio || "");
+  const markdownStrippedBio = stripMarkdown(team?.bio || "");
 
   return {
     props: {
