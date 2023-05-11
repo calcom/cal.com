@@ -460,6 +460,10 @@ following
 9. Click the "Save" button at the bottom footer.
 10. You're good to go. Now you can see any booking in Cal.com created as a meeting in HubSpot for your contacts.
 
+### Obtaining Webex Client ID and Secret
+
+[See Webex Readme](./packages/app-store/webex/)
+
 ### Obtaining ZohoCRM Client ID and Secret
 
 1. Open [Zoho API Console](https://api-console.zoho.com/) and sign into your account, or create a new one.
