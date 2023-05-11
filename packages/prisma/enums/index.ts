@@ -56,8 +56,7 @@ export const EventTypeCustomInputType = {
   PHONE: "PHONE",
 } as const;
 
-export type EventTypeCustomInputType =
-  (typeof EventTypeCustomInputType)[keyof typeof EventTypeCustomInputType];
+export type EventTypeCustomInputType = (typeof EventTypeCustomInputType)[keyof typeof EventTypeCustomInputType];
 
 export const ReminderType = {
   PENDING_BOOKING_CONFIRMATION: "PENDING_BOOKING_CONFIRMATION",
@@ -78,6 +77,7 @@ export const WebhookTriggerEvents = {
   BOOKING_CANCELLED: "BOOKING_CANCELLED",
   FORM_SUBMITTED: "FORM_SUBMITTED",
   MEETING_ENDED: "MEETING_ENDED",
+  RECORDING_READY: "RECORDING_READY",
 } as const;
 
 export type WebhookTriggerEvents = (typeof WebhookTriggerEvents)[keyof typeof WebhookTriggerEvents];

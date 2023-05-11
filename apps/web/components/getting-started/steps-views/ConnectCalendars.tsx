@@ -33,7 +33,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
         firstCalendar.integration.title &&
         firstCalendar.integration.logo && (
           <>
-            <List className="bg-default border-subtle rounded-md border p-0 dark:bg-black">
+            <List className="bg-default border-subtle rounded-md border p-0 dark:bg-black ">
               <ConnectedCalendarItem
                 key={firstCalendar.integration.title}
                 name={firstCalendar.integration.title}
