@@ -328,3 +328,5 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
     }
   }
 };
+
+export default formMutationHandler;
