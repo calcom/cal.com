@@ -237,6 +237,8 @@
   "set_availability": "Définissez vos disponibilités",
   "continue_without_calendar": "Continuer sans calendrier",
   "connect_your_calendar": "Connectez votre calendrier",
+  "connect_your_video_app": "Connectez vos applications vidéo",
+  "connect_your_video_app_instructions": "Connectez vos applications vidéo pour les utiliser sur vos types d'événements.",
   "connect_your_calendar_instructions": "Connectez votre calendrier pour vérifier automatiquement vos disponibilités ainsi que les nouveaux événements lorsqu'ils sont planifiés.",
   "set_up_later": "Configurer plus tard",
   "current_time": "Heure actuelle",
