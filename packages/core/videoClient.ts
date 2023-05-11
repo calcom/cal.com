@@ -142,6 +142,7 @@ const updateMeeting = async (
 const deleteMeeting = async (credential: CredentialPayload, uid: string): Promise<unknown> => {
   if (credential) {
     const videoAdapter = (await getVideoAdapters([credential]))[0];
+    logger.debug("videoAdapter inside deleteMeeting", { credential, uid });
     // There are certain video apps with no video adapter defined. e.g. riverby,whereby
     if (videoAdapter) {
       return videoAdapter.deleteMeeting(uid);

@@ -1,12 +1,12 @@
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { SkeletonAvatar, SkeletonText, SkeletonButton, List } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import { List } from "@calcom/ui";
 
-import { CalendarItem } from "../components/CalendarItem";
+import { AppConnectionItem } from "../components/AppConnectionItem";
 import { ConnectedCalendarItem } from "../components/ConnectedCalendarItem";
 import { CreateEventsOnCalendarSelect } from "../components/CreateEventsOnCalendarSelect";
+import { StepConnectionLoader } from "../components/StepConnectionLoader";
 
 interface IConnectCalendarsProps {
   nextStep: () => void;
@@ -32,7 +32,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
         firstCalendar.integration.title &&
         firstCalendar.integration.logo && (
           <>
-            <List className="bg-default border-subtle rounded-md border p-0 dark:bg-black">
+            <List className="bg-default border-subtle rounded-md border p-0 dark:bg-black ">
               <ConnectedCalendarItem
                 key={firstCalendar.integration.title}
                 name={firstCalendar.integration.title}
@@ -59,7 +59,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
             queryIntegrations.data.items.map((item) => (
               <li key={item.title}>
                 {item.title && item.logo && (
-                  <CalendarItem
+                  <AppConnectionItem
                     type={item.type}
                     title={item.title}
                     description={item.description}
@@ -71,19 +71,8 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
         </List>
       )}
 
-      {queryIntegrations.isLoading && (
-        <ul className="bg-default divide-subtle border-subtle divide-y rounded-md border p-0 dark:bg-black">
-          {[0, 0, 0, 0].map((_item, index) => {
-            return (
-              <li className="flex w-full flex-row justify-center border-b-0 py-6" key={index}>
-                <SkeletonAvatar className="mx-6 h-8 w-8 px-4" />
-                <SkeletonText className="ml-1 mr-4 mt-3 h-5 w-full" />
-                <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      {queryIntegrations.isLoading && <StepConnectionLoader />}
+
       <button
         type="button"
         data-testid="save-calendar-button"
