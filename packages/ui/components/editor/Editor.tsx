@@ -3,7 +3,6 @@ import { AutoLinkNode, LinkNode } from "@lexical/link";
 import { ListItemNode, ListNode } from "@lexical/list";
 import { TRANSFORMERS } from "@lexical/markdown";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import LexicalErrorBoundary from "@lexical/react/LexicalErrorBoundary";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
@@ -64,25 +63,6 @@ const editorConfig = {
   ],
 };
 
-const KeyListener = () => {
-  const [editor] = useLexicalComposerContext();
-
-  useEffect(() => {
-    const removeRemoveListener = editor.registerCommand(
-      KEY_TAB_COMMAND,
-      (event: KeyboardEvent) => {
-        return true;
-      },
-      COMMAND_PRIORITY_LOW
-    );
-
-    return () => {
-      removeRemoveListener();
-    };
-  }, [editor]);
-  return null;
-};
-
 export const Editor = (props: TextEditorProps) => {
   const editable = props.editable ?? true;
   return (
@@ -120,7 +100,6 @@ export const Editor = (props: TextEditorProps) => {
                   : TRANSFORMERS
               }
             />
-            <KeyListener />
           </div>
         </div>
       </LexicalComposer>
