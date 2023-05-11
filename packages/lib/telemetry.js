@@ -1,12 +1,36 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import type { CollectOpts, EventHandler } from "next-collect";
-import { useCollector } from "next-collect/client";
-// Importing types so we're not directly importing next/server
-import type { NextRequest, NextResponse } from "next/server";
+/**
+ * @typedef {import("next").NextApiRequest} NextApiRequest
+ * @typedef {import("next").NextApiResponse} NextApiResponse
+ * @typedef {import("next-collect").CollectOpts} CollectOpts
+ * @typedef {import("next-collect").EventHandler} EventHandler
+ * @typedef {import("next/server").NextRequest} NextRequest
+ * @typedef {import("next/server").NextResponse} NextResponse
+ */
+const useCollector = require("next-collect/client");
 
-import { CONSOLE_URL } from "./constants";
+const CONSOLE_URL = require("./constants");
 
-export const telemetryEventTypes = {
+/**
+ * @type {{
+ *   pageView: string;
+ *   apiCall: string;
+ *   bookingConfirmed: string;
+ *   bookingCancelled: string;
+ *   importSubmitted: string;
+ *   login: string;
+ *   embedView: string;
+ *   embedBookingConfirmed: string;
+ *   onboardingFinished: string;
+ *   onboardingStarted: string;
+ *   signup: string;
+ *   team_created: string;
+ *   website: {
+ *     pageView: string;
+ *   };
+ *   slugReplacementAction: string;
+ * }}
+ */
+const telemetryEventTypes = {
   pageView: "page_view",
   apiCall: "api_call",
   bookingConfirmed: "booking_confirmed",
@@ -25,10 +49,12 @@ export const telemetryEventTypes = {
   slugReplacementAction: "slug_replacement_action",
 };
 
-export function collectPageParameters(
-  route?: string,
-  extraData: Record<string, unknown> = {}
-): Record<string, unknown> {
+/**
+ * @param {string} [route]
+ * @param {Record<string, unknown>} [extraData]
+ * @returns {Record<string, unknown>}
+ */
+function collectPageParameters(route, extraData = {}) {
   const host = document.location.host;
   const docPath = route ?? "";
   return {
@@ -39,7 +65,10 @@ export function collectPageParameters(
   };
 }
 
-const reportUsage: EventHandler = async (event, { fetch }) => {
+/**
+ * @type {EventHandler}
+ */
+const reportUsage = async (event, { fetch }) => {
   const ets = telemetryEventTypes;
   if ([ets.bookingConfirmed, ets.embedBookingConfirmed].includes(event.eventType)) {
     const key = process.env.CALCOM_LICENSE_KEY;
@@ -55,7 +84,10 @@ const reportUsage: EventHandler = async (event, { fetch }) => {
   }
 };
 
-export const nextCollectBasicSettings: CollectOpts = {
+/**
+ * @type {CollectOpts}
+ */
+const nextCollectBasicSettings = {
   drivers: [
     process.env.CALCOM_LICENSE_KEY && process.env.NEXT_PUBLIC_IS_E2E !== "1" ? reportUsage : undefined,
     process.env.CALCOM_TELEMETRY_DISABLED === "1" || process.env.NEXT_PUBLIC_IS_E2E === "1"
@@ -85,17 +117,19 @@ export const nextCollectBasicSettings: CollectOpts = {
   ],
 };
 
-export const extendEventData = (
-  req: NextRequest | NextApiRequest,
-  res: NextResponse | NextApiResponse,
-  original: any
-) => {
+/**
+ * @param {NextRequest | NextApiRequest} req
+ * @param {NextResponse | NextApiResponse} res
+ * @param {any} original
+ * @returns {Record<string, unknown>}
+ */
+const extendEventData = (req, res, original) => {
   const onVercel =
     typeof req.headers?.get === "function"
       ? !!req.headers.get("x-vercel-id")
-      : !!(req.headers as any)?.["x-vercel-id"];
+      : !!req.headers?.["x-vercel-id"];
   const pageUrl = original?.page_url || req.url || undefined;
-  const cookies = req.cookies as { [key: string]: any };
+  const cookies = req.cookies;
   return {
     title: "",
     ipAddress: "",
@@ -113,4 +147,15 @@ export const extendEventData = (
   };
 };
 
-export const useTelemetry = useCollector;
+/**
+ * @type {typeof useCollector}
+ */
+const useTelemetry = useCollector;
+
+module.exports = {
+  telemetryEventTypes,
+  collectPageParameters,
+  nextCollectBasicSettings,
+  extendEventData,
+  useTelemetry,
+};

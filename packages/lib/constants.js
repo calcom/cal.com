@@ -1,0 +1,98 @@
+const VERCEL_URL = process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : "";
+const RAILWAY_STATIC_URL = process.env.RAILWAY_STATIC_URL ? `https://${process.env.RAILWAY_STATIC_URL}` : "";
+const HEROKU_URL = process.env.HEROKU_APP_NAME ? `https://${process.env.HEROKU_APP_NAME}.herokuapp.com` : "";
+const RENDER_URL = process.env.RENDER_EXTERNAL_URL ? `https://${process.env.RENDER_EXTERNAL_URL}` : "";
+const WEBAPP_URL =
+  process.env.NEXT_PUBLIC_WEBAPP_URL ||
+  VERCEL_URL ||
+  RAILWAY_STATIC_URL ||
+  HEROKU_URL ||
+  RENDER_URL ||
+  "http://localhost:3000";
+/** @deprecated use `WEBAPP_URL` */
+const BASE_URL = WEBAPP_URL;
+const WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.com";
+const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Cal.com";
+const SUPPORT_MAIL_ADDRESS = process.env.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS || "help@cal.com";
+const COMPANY_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME || "Cal.com, Inc.";
+const SENDER_ID = process.env.NEXT_PUBLIC_SENDER_ID || "Cal";
+const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "Cal.com";
+
+// This is the URL from which all Cal Links and their assets are served.
+// Use website URL to make links shorter(cal.com and not app.cal.com)
+// As website isn't setup for preview environments, use the webapp url instead
+const CAL_URL = new URL(WEBAPP_URL).hostname.endsWith(".vercel.app") ? WEBAPP_URL : WEBSITE_URL;
+
+const CONSOLE_URL =
+  new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || process.env.NODE_ENV !== "production"
+    ? `https://console.cal.dev`
+    : `https://console.cal.com`;
+const IS_SELF_HOSTED = !(
+  new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || new URL(WEBAPP_URL).hostname.endsWith(".cal.com")
+);
+const EMBED_LIB_URL = process.env.NEXT_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+const TRIAL_LIMIT_DAYS = 14;
+
+const HOSTED_CAL_FEATURES = process.env.NEXT_PUBLIC_HOSTED_CAL_FEATURES || !IS_SELF_HOSTED;
+
+/** @deprecated use `WEBAPP_URL` */
+const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || `https://${process.env.VERCEL_URL}`;
+const LOGO = "/calcom-logo-white-word.svg";
+const LOGO_ICON = "/cal-com-icon-white.svg";
+const ROADMAP = "https://cal.com/roadmap";
+const DESKTOP_APP_LINK = "https://cal.com/download";
+const JOIN_SLACK = "https://cal.com/slack";
+const POWERED_BY_URL = `${WEBSITE_URL}/?utm_source=embed&utm_medium=powered-by-button`;
+const DOCS_URL = "https://cal.com/docs";
+const DEVELOPER_DOCS = "https://developer.cal.com";
+const SEO_IMG_DEFAULT = `${WEBSITE_URL}/og-image.png`;
+// The Dynamic OG Image is passed through Next's Image API to further optimize it.
+// This results in a 80% smaller image 🤯. It is however important that for the query
+// parameters you pass to the /api/social/og/image endpoint, you wrap them in encodeURIComponent
+// as well, otherwise the URL won't be valid.
+const SEO_IMG_OGIMG = `${CAL_URL}/_next/image?w=1200&q=100&url=${encodeURIComponent("/api/social/og/image")}`;
+const SEO_IMG_OGIMG_VIDEO = `${WEBSITE_URL}/video-og-image.png`;
+const IS_STRIPE_ENABLED = !!(
+  process.env.STRIPE_CLIENT_ID &&
+  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
+  process.env.STRIPE_PRIVATE_KEY
+);
+/** Self hosted shouldn't checkout when creating teams unless required */
+const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && (!IS_SELF_HOSTED || HOSTED_CAL_FEATURES);
+const FULL_NAME_LENGTH_MAX_LIMIT = 50;
+const MINUTES_TO_BOOK = process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5";
+
+module.exports = {
+  WEBAPP_URL,
+  BASE_URL,
+  WEBSITE_URL,
+  APP_NAME,
+  SUPPORT_MAIL_ADDRESS,
+  COMPANY_NAME,
+  SENDER_ID,
+  SENDER_NAME,
+  CAL_URL,
+  CONSOLE_URL,
+  IS_SELF_HOSTED,
+  EMBED_LIB_URL,
+  IS_PRODUCTION,
+  TRIAL_LIMIT_DAYS,
+  HOSTED_CAL_FEATURES,
+  NEXT_PUBLIC_BASE_URL,
+  LOGO,
+  LOGO_ICON,
+  ROADMAP,
+  DESKTOP_APP_LINK,
+  JOIN_SLACK,
+  POWERED_BY_URL,
+  DOCS_URL,
+  DEVELOPER_DOCS,
+  SEO_IMG_DEFAULT,
+  SEO_IMG_OGIMG,
+  SEO_IMG_OGIMG_VIDEO,
+  IS_STRIPE_ENABLED,
+  IS_TEAM_BILLING_ENABLED,
+  FULL_NAME_LENGTH_MAX_LIMIT,
+  MINUTES_TO_BOOK,
+};
