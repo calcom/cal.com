@@ -239,15 +239,7 @@ async function handler(req: CustomRequest) {
         if (credential) {
           if (lastAttendee) {
             if (reference.type.includes("_video")) {
-              const videoCredential = await prisma.credential.findFirst({
-                where: {
-                  type: reference.type,
-                  userId: bookingToDelete.userId,
-                },
-              });
-              if (videoCredential) {
-                integrationsToDelete.push(deleteMeeting(videoCredential, reference.uid));
-              }
+              integrationsToDelete.push(deleteMeeting(credential, reference.uid));
             }
             if (reference.type.includes("_calendar")) {
               const calendar = await getCalendar(credential);
@@ -504,9 +496,11 @@ async function handler(req: CustomRequest) {
 
   // If the video reference has a credentialId find the specific credential
   if (bookingVideoReference && bookingVideoReference.credentialId) {
-    const { credentialId, uid, type } = bookingVideoReference;
-    if (credentialId && type) {
-      const videoCredential = bookingToDelete.user.credentials.find((credential) => credential.type === type);
+    const { credentialId, uid } = bookingVideoReference;
+    if (credentialId) {
+      const videoCredential = bookingToDelete.user.credentials.find(
+        (credential) => credential.id === credentialId
+      );
 
       if (videoCredential) {
         apiDeletes.push(deleteMeeting(videoCredential, uid));
