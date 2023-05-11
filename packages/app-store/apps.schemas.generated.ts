@@ -9,6 +9,7 @@ import { appDataSchema as giphy_zod_ts } from "./giphy/zod";
 import { appDataSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
 import { appDataSchema as gtm_zod_ts } from "./gtm/zod";
 import { appDataSchema as hubspot_zod_ts } from "./hubspot/zod";
+import { appDataSchema as jitsivideo_zod_ts } from "./jitsivideo/zod";
 import { appDataSchema as larkcalendar_zod_ts } from "./larkcalendar/zod";
 import { appDataSchema as metapixel_zod_ts } from "./metapixel/zod";
 import { appDataSchema as office365calendar_zod_ts } from "./office365calendar/zod";
@@ -25,6 +26,7 @@ import { appDataSchema as event_type_app_card_zod_ts } from "./templates/event-t
 import { appDataSchema as vital_zod_ts } from "./vital/zod";
 import { appDataSchema as wordpress_zod_ts } from "./wordpress/zod";
 import { appDataSchema as zapier_zod_ts } from "./zapier/zod";
+import { appDataSchema as zoho_bigin_zod_ts } from "./zoho-bigin/zod";
 import { appDataSchema as zohocrm_zod_ts } from "./zohocrm/zod";
 import { appDataSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 
@@ -36,6 +38,7 @@ export const appDataSchemas = {
   googlecalendar: googlecalendar_zod_ts,
   gtm: gtm_zod_ts,
   hubspot: hubspot_zod_ts,
+  jitsivideo: jitsivideo_zod_ts,
   larkcalendar: larkcalendar_zod_ts,
   metapixel: metapixel_zod_ts,
   office365calendar: office365calendar_zod_ts,
@@ -52,6 +55,7 @@ export const appDataSchemas = {
   vital: vital_zod_ts,
   wordpress: wordpress_zod_ts,
   zapier: zapier_zod_ts,
+  "zoho-bigin": zoho_bigin_zod_ts,
   zohocrm: zohocrm_zod_ts,
   zoomvideo: zoomvideo_zod_ts,
 };

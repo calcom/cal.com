@@ -1247,6 +1247,7 @@
   "calendars_description": "配置您的活动类型与日历的交互方式",
   "appearance_description": "管理预约页面外观的设置",
   "conferencing_description": "为您的会议添加最喜欢的视频会议应用",
+  "add_conferencing_app": "添加会议应用",
   "password_description": "管理账户密码的设置",
   "2fa_description": "管理账户密码的设置",
   "we_just_need_basic_info": "我们只需要一些基本信息来设置您的个人资料。",
@@ -1783,5 +1784,9 @@
   "seats_and_no_show_fee_error": "当前无法启用位置和收取失约费",
   "complete_your_booking": "完成您的预约",
   "complete_your_booking_subject": "完成您的预约: {{date}} 的 {{title}}",
-  "email_invite_team": "{{email}} 已被邀请"
+  "email_invite_team": "{{email}} 已被邀请",
+  "disable_attendees_confirmation_emails": "禁用参与者的默认确认电子邮件",
+  "disable_attendees_confirmation_emails_description": "该活动类型中至少有一个工作流程处于活动状态，当该活动被预约时，将向参与者发送电子邮件。",
+  "disable_host_confirmation_emails": "禁用主持人的默认确认电子邮件",
+  "disable_host_confirmation_emails_description": "该活动类型中至少有一个工作流程处于活动状态，当该活动被预约时，将向主持人发送电子邮件。"
 }
