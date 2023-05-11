@@ -2,14 +2,13 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState, Fragment, useTransition } from "react";
 
+import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Meta, SkeletonLoader, TextField, showToast } from "@calcom/ui";
 import { Plus } from "@calcom/ui/components/icon";
-
-import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
@@ -33,7 +32,7 @@ function MembersList(props: MembersListProps) {
     trpc.viewer.teams.search.useInfiniteQuery(
       {
         teamId,
-        limit: 7,
+        limit: 10,
         search: query,
       },
       {
@@ -49,6 +48,7 @@ function MembersList(props: MembersListProps) {
   });
   const isEmpty = !data?.pages[0]?.members.length;
 
+  const isLoading = status === "loading" || isPaused;
   return (
     <div className="flex flex-col gap-y-3">
       <TextField
@@ -64,7 +64,7 @@ function MembersList(props: MembersListProps) {
         placeholder={`${t("search")}...`}
       />
 
-      {(status === "loading" || isPaused) && <SkeletonLoader />}
+      {isLoading && <SkeletonLoader />}
 
       {!isEmpty && team ? (
         <ul className="divide-subtle border-subtle divide-y rounded-md border ">
@@ -77,14 +77,16 @@ function MembersList(props: MembersListProps) {
           ))}
         </ul>
       ) : null}
-      <div className="flex items-center justify-center" ref={buttonInView}>
-        <Button
-          color="minimal"
-          loading={isFetchingNextPage || isPending}
-          disabled={!hasNextPage}
-          onClick={() => fetchNextPage()}>
-          {hasNextPage ? t("load_more_results") : t("no_more_results")}
-        </Button>
+      <div className="flex items-center justify-center" ref={buttonInView.ref}>
+        {!isLoading && (
+          <Button
+            color="minimal"
+            loading={isFetchingNextPage}
+            disabled={!hasNextPage || isPending}
+            onClick={() => fetchNextPage()}>
+            {hasNextPage ? t("load_more_results") : t("no_more_results")}
+          </Button>
+        )}
       </div>
     </div>
   );
@@ -110,7 +112,8 @@ const MembersView = () => {
 
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess(data) {
-      await utils.viewer.teams.get.invalidate();
+      await utils.viewer.teams.search.invalidate();
+      utils.viewer.teams.get.invalidate();
       setShowMemberInvitationModal(false);
       if (data.sendEmailInvitation) {
         showToast(
