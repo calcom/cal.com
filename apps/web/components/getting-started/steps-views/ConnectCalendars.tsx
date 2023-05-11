@@ -5,7 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { SkeletonAvatar, SkeletonText, SkeletonButton, List } from "@calcom/ui";
 
-import { CalendarItem } from "../components/CalendarItem";
+import { AppConnectionItem } from "../components/AppConnectionItem";
 import { ConnectedCalendarItem } from "../components/ConnectedCalendarItem";
 import { CreateEventsOnCalendarSelect } from "../components/CreateEventsOnCalendarSelect";
 
@@ -60,7 +60,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
             queryIntegrations.data.items.map((item) => (
               <li key={item.title}>
                 {item.title && item.logo && (
-                  <CalendarItem
+                  <AppConnectionItem
                     type={item.type}
                     title={item.title}
                     description={item.description}

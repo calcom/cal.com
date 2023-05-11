@@ -46,7 +46,6 @@ const stepRouteSchema = z.object({
 // TODO: Refactor how steps work to be contained in one array/object. Currently we have steps,initalsteps,headers etc. These can all be in one place
 const OnboardingPage = (props: IOnboardingPageProps) => {
   const router = useRouter();
-
   const { user } = props;
   const { t } = useLocale();
 
@@ -66,7 +65,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
     {
       title: `${t("connect_your_video_app")}`,
       subtitle: [`${t("connect_your_video_app_instructions")}`],
-      skipText: `${t("connect_video_app_later")}`,
+      skipText: `${t("set_up_later")}`,
     },
     {
       title: `${t("set_availability")}`,
