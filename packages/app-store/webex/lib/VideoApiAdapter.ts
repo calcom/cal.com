@@ -22,134 +22,13 @@ export type WebexEventResult = z.infer<typeof webexEventResultSchema>;
 
 /** @link https://developer.webex.com/docs/api/v1/meetings/create-a-meeting */
 export const webexMeetingSchema = z.object({
-  id: z.string(),
-  meetingNumber: z.string(),
-  title: z.string(),
-  agenda: z.string(),
-  password: z.string(),
-  phoneAndVideoSystemPassword: z.string(),
-  meetingType: z.enum(["meetingSeries", "scheduledMeeting", "meeting"]),
-  state: z.enum(["active", "scheduled", "ready", "lobby", "inProgress", "ended", "missed", "expired"]),
-  adhoc: z.boolean(),
-  timezone: z.string(),
   start: z.date(),
   end: z.date(),
-  recurrence: z.string(),
-  hostUserId: z.string(),
-  hostDisplayName: z.string(),
-  hostEmail: z.string().email(),
-  hostKey: z.string(),
-  siteUrl: z.string(),
-  webLink: z.string(),
-  sipAddress: z.string(),
-  dialInIpAddress: z.string(),
-  roomId: z.string(),
-  enabledAutoRecordMeeting: z.boolean(),
-  allowAnyUserToBeCoHost: z.boolean(),
-  enabledJoinBeforeHost: z.boolean(),
-  enableConnectAudioBeforeHost: z.boolean(),
-  joinBeforeHostMinutes: z.number(),
-  excludePassword: z.boolean(),
-  publicMeeting: z.boolean(),
-  reminderTime: z.number(),
-  unlockedMeetingJoinSecurity: z.enum(["allowJoin", "allowJoinWithLobby", "blockFromJoin"]),
-  sessionTypeId: z.number(),
-  scheduledType: z.enum(["meeting", "webinar", "personalMeetingRoom"]),
-  enabledWebcastView: z.boolean(),
-  panelistPassword: z.string(),
-  phoneAndVideoSystemPanelistPassword: z.string(),
-  enableAutomaticLock: z.boolean(),
-  automaticLockMinutes: z.number(),
-  allowFirstUserToBeCoHost: z.boolean(),
-  allowAuthenticatedDevices: z.boolean(),
-  telephony: z.object({
-    accessCode: z.string(),
-    callInNumbers: z.array(
-      z.object({
-        label: z.string(),
-        callInNumber: z.string(),
-        tollType: z.enum(["toll", "tollFree"]),
-      })
-    ),
-    links: z.array(z.object({ rel: z.string(), href: z.string(), method: z.string() })),
-  }),
-  meetingOptions: z.object({
-    enabledChat: z.boolean(),
-    enabledVideo: z.boolean(),
-    enabledPolling: z.boolean(),
-    enabledNote: z.boolean(),
-    noteType: z.enum(["allowAll", "allowOne"]),
-    enabledClosedCaptions: z.boolean(),
-    enabledFileTransfer: z.boolean(),
-    enabledUCFRichMedia: z.boolean(),
-  }),
-  attendeePrivileges: z.object({
-    enabledShareContent: z.boolean(),
-    enabledSaveDocument: z.boolean(),
-    enabledPrintDocument: z.boolean(),
-    enabledAnnotate: z.boolean(),
-    enabledViewParticipantList: z.boolean(),
-    enabledViewThumbnails: z.boolean(),
-    enabledRemoteControl: z.boolean(),
-    enabledViewAnyDocument: z.boolean(),
-    enabledViewAnyPage: z.boolean(),
-    enabledContactOperatorPrivately: z.boolean(),
-    enabledChatHost: z.boolean(),
-    enabledChatPresenter: z.boolean(),
-    enabledChatOtherParticipants: z.boolean(),
-  }),
-  registration: z.object({
-    autoAcceptRequest: z.boolean(),
-    requireFirstName: z.boolean(),
-    requireLastName: z.boolean(),
-    requireEmail: z.boolean(),
-    requireJobTitle: z.boolean(),
-    requireCompanyName: z.boolean(),
-    requireAddress1: z.boolean(),
-    requireAddress2: z.boolean(),
-    requireCity: z.boolean(),
-    requireState: z.boolean(),
-    requireZipCode: z.boolean(),
-    requireCountryRegion: z.boolean(),
-    requireWorkPhone: z.boolean(),
-    requireFax: z.boolean(),
-    maxRegisterNum: z.number(),
-  }),
-  integrationTags: z.array(z.string()),
-  simultaneousInterpretation: z.object({
-    enabled: z.boolean(),
-    interpreters: z.array(
-      z.object({
-        id: z.string(),
-        languageCode1: z.string(),
-        languageCode2: z.string(),
-        email: z.string().email(),
-        displayName: z.string(),
-      })
-    ),
-  }),
-  trackingCodes: z.array(z.object({ name: z.string(), value: z.string() })),
-  audioConnectionOptions: z.object({
-    audioConnectionType: z.string(),
-    enabledTollFreeCallIn: z.boolean(),
-    enabledGlobalCallIn: z.boolean(),
-    enabledAudienceCallBack: z.boolean(),
-    entryAndExitTone: z.string(),
-    allowHostToUnmuteParticipants: z.boolean(),
-    allowAttendeeToUnmuteSelf: z.boolean(),
-    muteAttendeeUponEntry: z.boolean(),
-  }),
 });
 
 /** @link https://developer.webex.com/docs/api/v1/meetings/list-meetings */
 export const webexMeetingsSchema = z.object({
-  items: z.array(
-    webexMeetingSchema.extend({
-      meetingSeriesId: z.string(),
-      isModified: z.boolean(),
-      enabledBreakoutSessions: z.boolean(),
-    })
-  ),
+  items: z.array(webexMeetingSchema),
 });
 
 /** @link https://developer.webex.com/docs/integrations#getting-an-access-token */
@@ -226,9 +105,7 @@ const webexAuth = (credential: CredentialPayload) => {
     getToken: async () => {
       let credentialKey: WebexToken | null = null;
       try {
-        console.log("received credential", credential.key);
         credentialKey = webexTokenSchema.parse(credential.key);
-        console.log("parsed credential", credentialKey);
       } catch (error) {
         return Promise.reject("Webex credential keys parsing error");
       }
@@ -244,12 +121,9 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
   //TODO implement translateEvent for recurring events
   const translateEvent = (event: CalendarEvent) => {
     //To convert the Cal's CalendarEvent type to a webex meeting type
-    console.log("event received in translateEvent", event);
     /** @link https://developer.webex.com/docs/api/v1/meetings/create-a-meeting */
     //Required params - title, start, end
-    //There are a ton of other options, what do we want to support?
 
-    console.log("calculated start", dayjs(event.startTime).utc().format());
     return {
       title: event.title,
       start: dayjs(event.startTime).utc().format(),
@@ -287,7 +161,7 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       try {
         const responseBody = await fetchWebexApi("meetings");
 
-        const data = webexMeetingsSchema.parse(responseBody);
+        const data = webexMeetingsSchema.passthrough().parse(responseBody);
         return data.items.map((meeting) => ({
           start: meeting.start,
           end: meeting.end,
@@ -337,9 +211,16 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
     deleteMeeting: async (uid: string): Promise<void> => {
       /** @link https://developer.webex.com/docs/api/v1/meetings/delete-a-meeting */
       try {
-        await fetchWebexApi(`meetings/${uid}`, {
+        const response = await fetchWebexApi(`meetings/${uid}`, {
           method: "DELETE",
         });
+        console.log("Webex delete meeting response", response);
+        if (response.error) {
+          if (response.error === "invalid_grant") {
+            await invalidateCredential(credential.id);
+            return Promise.reject(new Error("Invalid grant for Cal.com webex app"));
+          }
+        }
         return Promise.resolve();
       } catch (err) {
         return Promise.reject(new Error("Failed to delete meeting"));
