@@ -19,6 +19,10 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
   });
   const { t } = useLocale();
 
+  const hasAnyInstalledVideoApps = queryConnectedVideoApps?.items.some(
+    (item) => item.credentialIds.length > 0
+  );
+
   return (
     <>
       {!isLoading && (
@@ -62,6 +66,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
         className={classNames(
           "text-inverted mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm"
         )}
+        disabled={hasAnyInstalledVideoApps}
         onClick={() => nextStep()}>
         {t("next_step_text")}
         <ArrowRightIcon className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
