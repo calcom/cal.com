@@ -1,3 +1,4 @@
+import localeMiddleware from "../../middlewares/localeMiddleware";
 import sessionMiddleware from "../../middlewares/sessionMiddleware";
 import publicProcedure from "../../procedures/publicProcedure";
 import { router } from "../../trpc";
@@ -50,7 +51,7 @@ export const publicViewerRouter = router({
     return UNSTABLE_HANDLER_CACHE.i18n(input.locale);
   }),
 
-  locale: publicProcedure.query(async ({ ctx }) => {
+  locale: publicProcedure.use(localeMiddleware).query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.locale) {
       UNSTABLE_HANDLER_CACHE.locale = await import("./i18n.handler").then((mod) => mod.localeHandler);
     }
