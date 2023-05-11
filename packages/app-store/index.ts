@@ -29,6 +29,7 @@ const appStore = {
   facetime: () => import("./facetime"),
   sylapsvideo: () => import("./sylapsvideo"),
   zohocalendar: () => import("./zohocalendar"),
+  "zoho-bigin": () => import("./zoho-bigin"),
 };
 
 export default appStore;
