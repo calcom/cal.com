@@ -1,3 +1,4 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { HeadSeo } from "@calcom/ui";
 
@@ -10,6 +11,7 @@ interface BookerSeoProps {
 
 export const BookerSeo = (props: BookerSeoProps) => {
   const { eventSlug, username, rescheduleUid, hideBranding } = props;
+  const { t } = useLocale();
   const { data: event } = trpc.viewer.public.event.useQuery(
     { username, eventSlug },
     { refetchOnWindowFocus: false }
