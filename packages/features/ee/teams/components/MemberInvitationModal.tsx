@@ -96,7 +96,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     name="inviteUser"
                     placeholder="email@example.com"
                     required
-                    onChange={onChange}
+                    onChange={(e) => onChange(e.target.value.trim().toLowerCase())}
                   />
                   {error && <span className="text-sm text-red-800">{error.message}</span>}
                 </>
