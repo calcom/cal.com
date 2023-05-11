@@ -17,7 +17,7 @@ type ActivateEventTypeOptions = {
 export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventTypeOptions) => {
   const { eventTypeId, workflowId } = input;
 
-  // Check that vent type belong to the user or team
+  // Check that event type belong to the user or team
   const userEventType = await prisma.eventType.findFirst({
     where: {
       id: eventTypeId,
@@ -37,6 +37,9 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
           },
         },
       ],
+    },
+    include: {
+      children: true,
     },
   });
 
@@ -79,7 +82,9 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
     await prisma.workflowsOnEventTypes.deleteMany({
       where: {
         workflowId,
-        eventTypeId,
+        eventTypeId: userEventType.children.length
+          ? { in: [eventTypeId].concat(userEventType.children.map((ch) => ch.id)) }
+          : eventTypeId,
       },
     });
 
@@ -88,11 +93,13 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       eventTypeId,
     });
   } else {
-    await prisma.workflowsOnEventTypes.create({
-      data: {
-        workflowId,
-        eventTypeId,
-      },
+    await prisma.workflowsOnEventTypes.createMany({
+      data: [
+        {
+          workflowId,
+          eventTypeId,
+        },
+      ].concat(userEventType.children.map((ch) => ({ workflowId, eventTypeId: ch.id }))),
     });
 
     if (
@@ -103,10 +110,12 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       const isSmsReminderNumberRequired = eventTypeWorkflow.steps.some((step) => {
         return step.action === WorkflowActions.SMS_ATTENDEE && step.numberRequired;
       });
-      await upsertSmsReminderFieldForBooking({
-        workflowId,
-        isSmsReminderNumberRequired,
-        eventTypeId,
+      [eventTypeId].concat(userEventType.children.map((ch) => ch.id)).map(async (evTyId) => {
+        await upsertSmsReminderFieldForBooking({
+          workflowId,
+          isSmsReminderNumberRequired,
+          eventTypeId: evTyId,
+        });
       });
     }
   }
