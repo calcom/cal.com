@@ -52,7 +52,7 @@ export function TimezoneSelect({
       classNames={{
         ...timezoneClassNames,
         input: (state) =>
-          classNames("text-emphasis", timezoneClassNames?.input && timezoneClassNames.input(state)),
+          classNames("text-emphasis h-6", timezoneClassNames?.input && timezoneClassNames.input(state)),
         option: (state) =>
           classNames(
             "bg-default flex cursor-pointer justify-between py-2.5 px-3 rounded-none text-default ",
@@ -106,6 +106,7 @@ export function TimezoneSelect({
             timezoneClassNames?.indicatorsContainer && timezoneClassNames.indicatorsContainer(state)
           ),
         multiValueRemove: () => "text-default py-auto ml-2",
+        noOptionsMessage: () => "h-12 py-2 flex items-center justify-center",
       }}
     />
   );
