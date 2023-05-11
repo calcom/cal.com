@@ -213,6 +213,13 @@
     "isTemplate": false
   },
   {
+    "dirName": "webex",
+    "categories": ["video"],
+    "slug": "webex",
+    "type": "webex_video",
+    "isTemplate": false
+  },
+  {
     "dirName": "cron",
     "categories": ["calendar"],
     "slug": "cron",
