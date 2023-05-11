@@ -21,6 +21,7 @@ const appStore = {
   vital: () => import("./vital"),
   zoomvideo: () => import("./zoomvideo"),
   wipemycalother: () => import("./wipemycalother"),
+  webexvideo: () => import("./webex"),
   giphy: () => import("./giphy"),
   zapier: () => import("./zapier"),
   exchange2013calendar: () => import("./exchange2013calendar"),

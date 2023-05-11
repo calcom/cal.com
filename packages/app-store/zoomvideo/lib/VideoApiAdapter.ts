@@ -20,7 +20,7 @@ const zoomEventResultSchema = z.object({
 
 export type ZoomEventResult = z.infer<typeof zoomEventResultSchema>;
 
-// @TODO: add link to the docs
+/** @link https://marketplace.zoom.us/docs/api-reference/zoom-api/methods/#operation/meetings */
 export const zoomMeetingsSchema = z.object({
   next_page_token: z.string(),
   page_count: z.number(),
