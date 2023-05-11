@@ -33,7 +33,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
               document.cookie = `return-to=${window.location.href};path=/;max-age=3600;SameSite=Lax`;
               buttonProps && buttonProps.onClick && buttonProps?.onClick(event);
             }}>
-            {installed ? "Installed" : t("connect")}
+            {installed ? t("installed") : t("connect")}
           </Button>
         )}
       />
