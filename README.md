@@ -1,3 +1,102 @@
+# Optify-specific Setup Instructions
+
+## Repositories
+
+Clone this repository into the folder of your choosing.
+
+```bash
+git clone git@github.com:Optify-code/opal.git
+```
+
+Clone the Opal API repo into the `apps/api` folder:
+
+```bash
+git clone git@github.com:Optify-code/opal-api.gi1t apps/api
+```
+
+
+## Environment Variables
+
+Create `.env` from the sample:
+
+```bash
+cp .env.example .env
+```
+
+Set the `CALCOM_LICENSE_KEY` to the default developer key:
+
+```env
+CALCOM_LICENSE_KEY=59c0bed7-8b21-4280-8514-e022fbfc24c7
+```
+
+Configure the database, e.g.:
+
+```env
+DATABASE_URL="postgresql://<user>:<password>@localhost:5432/calendso"
+```
+
+Use `openssl rand -base64 32` to generate values for `NEXTAUTH_SECRET` and `CALENDSO_ENCRYPTION_KEY`
+
+Create `./prisma/.env` containing the `DATABASE_URL` line from the root `.env`
+
+## Dependencies
+
+Use `asdf` to install the correct Node version from `.tool-versions` and then confirm that it's correct:
+
+```bash
+asdf install
+node -v
+```
+
+Install `node_modules` dependencies:
+
+```bash
+yarn install
+```
+
+
+## Database
+
+Run the DB migrations:
+
+```bash
+yarn workspace @calcom/prisma db-migrate
+```
+
+Start Prisma Studio:
+
+```bash
+yarn db-studio
+```
+
+It should open at whatever port the server starts on, i.e., [http://localhost:5555/](http://localhost:5555/)
+
+Open the `User` model. You should see a user called `admin`.
+
+Generate a password using bcrypt. E.g., [https://bcrypt-generator.com/](https://bcrypt-generator.com/)
+
+Update the `admin` user's password with the one that you generated and click the button to save changes.
+
+## Run the Dev Server
+
+You are now ready to run the dev server and API:
+
+```bash
+yarn dev:api
+```
+
+Note: You may experience an issue where the default port is already taken. If this happens, stop the server, try killing the existing process on the target port, and then start the server again. E.g.:
+
+```bash
+kill $(lsof -t -i:3000)
+```
+
+## README.md
+
+The original documentation follows.
+
+---
+
 <!-- PROJECT LOGO -->
 <p align="center">
   <a href="https://github.com/calcom/cal.com">

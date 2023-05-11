@@ -68,6 +68,7 @@ tsconfig.tsbuildinfo
 # Prisma generated files
 packages/prisma/zod/*.ts
 packages/prisma/enums
+packages/prisma/.env
 
 # Builds
 dist
