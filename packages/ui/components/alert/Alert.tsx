@@ -1,6 +1,7 @@
 import { CheckCircleIcon, ExclamationIcon, InformationCircleIcon, XCircleIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import type { ReactNode } from "react";
+import { forwardRef } from "react";
 
 import { Info } from "../icon";
 
@@ -15,11 +16,12 @@ export interface AlertProps {
   // @TODO: Success and info shouldn't exist as per design?
   severity: "success" | "warning" | "error" | "info" | "neutral";
 }
-export function Alert(props: AlertProps) {
+export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
   const { severity, iconClassName } = props;
 
   return (
     <div
+      ref={ref}
       className={classNames(
         "rounded-md border border-opacity-20 p-3",
         props.className,
@@ -62,4 +64,6 @@ export function Alert(props: AlertProps) {
       </div>
     </div>
   );
-}
+});
+
+Alert.displayName = "Alert";
