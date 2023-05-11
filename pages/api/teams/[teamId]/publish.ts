@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
-import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { publishHandler } from "@calcom/trpc/server/routers/viewer/teams/publish.handler";
 
@@ -15,24 +15,9 @@ import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
 import authMiddleware, { checkPermissions } from "./_auth-middleware";
 
 const patchHandler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { isAdmin } = req;
   await checkPermissions(req, { in: [MembershipRole.OWNER, MembershipRole.ADMIN] });
-
-  /** We shape the session as required by tRPC rounter */
-  async function sessionGetter() {
-    return {
-      user: {
-        id: req.userId,
-        username: "" /* Not used in this context */,
-        role: isAdmin ? UserPermissionRole.ADMIN : UserPermissionRole.USER,
-      },
-      hasValidLicense: true,
-      expires: "" /* Not used in this context */,
-    };
-  }
-
   /** @see https://trpc.io/docs/server-side-calls */
-  const ctx = await createContext({ req, res }, sessionGetter);
+  const ctx = await createContext({ req, res });
   const user = ctx.user;
   if (!user) {
     throw new Error("Internal Error.");
