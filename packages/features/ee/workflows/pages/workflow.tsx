@@ -123,7 +123,7 @@ function WorkflowPage() {
       }
       setSelectedEventTypes(
         workflow.activeOn.flatMap((active) => {
-          if (active.eventType.parentId) return [];
+          if (workflow.teamId && active.eventType.parentId) return [];
           return {
             value: String(active.eventType.id),
             label: active.eventType.title,
