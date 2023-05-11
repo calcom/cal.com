@@ -151,10 +151,6 @@ const TestData = {
   },
 };
 
-const ctx = {
-  prisma: prismaMock,
-};
-
 type App = {
   slug: string;
   dirName: string;
@@ -744,16 +740,13 @@ describe("getSchedule", () => {
 
       createBookingScenario(scenarioData);
 
-      const schedule = await getSchedule(
-        {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-        },
-        ctx
-      );
+      const schedule = await getSchedule({
+        eventTypeId: 1,
+        eventTypeSlug: "",
+        startTime: `${plus1DateString}T18:30:00.000Z`,
+        endTime: `${plus2DateString}T18:29:59.999Z`,
+        timeZone: Timezones["+5:30"],
+      });
 
       expect(schedule).toHaveTimeSlots(
         [
