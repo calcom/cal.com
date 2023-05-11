@@ -7,6 +7,7 @@ export type DateRange = {
   end: Dayjs;
 };
 
+// processWorkingHours seems to work
 export function processWorkingHours({
   item,
   timeZone,
@@ -66,6 +67,7 @@ export function buildDateRanges({
   }).flat();
 }
 
+//group by date is not yet working correctly
 export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {
   const results = ranges.reduce(
     (
@@ -74,7 +76,7 @@ export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {
       },
       currentValue
     ) => {
-      const dateString = currentValue.start.format("YYYY-mm-dd");
+      const dateString = currentValue.start.format("YYYY-MM-DD");
       previousValue[dateString] =
         typeof previousValue[dateString] === "undefined"
           ? [currentValue]
