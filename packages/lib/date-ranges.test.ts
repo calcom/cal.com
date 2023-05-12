@@ -39,10 +39,7 @@ describe("processDateOverrides", () => {
     // 2023-06-12T20:00:00-04:00 (America/New_York)
     const timeZone = "America/New_York";
 
-    const dateFrom = dayjs("2023-06-13T00:00:00Z");
-    const dateTo = dayjs("2023-06-15T00:00:00Z");
-
-    const result = processDateOverride({ item, timeZone, dateFrom, dateTo });
+    const result = processDateOverride({ item, timeZone });
 
     expect(result).toEqual({
       start: dayjs("2023-06-13T00:00:00Z").tz(timeZone),
