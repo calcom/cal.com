@@ -18,7 +18,7 @@ describe("processWorkingHours", () => {
 
     expect(results.length).toBe(2); // There should be two working days between the range
     expect(results[0]).toEqual({
-      start: dayjs("2023-06-13T00:00:00Z").tz(timeZone),
+      start: dayjs("2023-06-12T12:00:00Z").tz(timeZone),
       end: dayjs("2023-06-12T21:00:00Z").tz(timeZone),
     });
     expect(results[1]).toEqual({
@@ -41,10 +41,8 @@ describe("processDateOverrides", () => {
 
     const result = processDateOverride({ item, timeZone });
 
-    expect(result).toEqual({
-      start: dayjs("2023-06-13T00:00:00Z").tz(timeZone),
-      end: dayjs("2023-06-12T21:00:00Z").tz(timeZone),
-    });
+    expect(result.start.format()).toEqual(dayjs("2023-06-12T12:00:00Z").tz(timeZone).format());
+    expect(result.end.format()).toEqual(dayjs("2023-06-12T21:00:00Z").tz(timeZone).format());
   });
 });
 
@@ -70,14 +68,9 @@ describe("buildDateRanges", () => {
 
     const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
 
-    expect(results.length).toBe(2);
+    expect(results.length).toBe(1);
 
     expect(results[0]).toEqual({
-      start: dayjs.tz("2023-06-12T12:00:00").tz(timeZone),
-      end: dayjs("2023-06-12T21:00:00Z").tz(timeZone),
-    });
-
-    expect(results[1]).toEqual({
       start: dayjs("2023-06-13T14:00:00Z").tz(timeZone),
       end: dayjs("2023-06-13T19:00:00Z").tz(timeZone),
     });

@@ -35,7 +35,7 @@ export function processWorkingHours({
 }
 
 export function processDateOverride({ item, timeZone }: { item: DateOverride; timeZone: string }) {
-  const date = dayjs.tz(item.date, timeZone);
+  const date = dayjs.utc(item.date).tz(timeZone, true);
   return {
     start: date.hour(item.startTime.getUTCHours()).minute(item.startTime.getUTCMinutes()).second(0),
     end: date.hour(item.endTime.getUTCHours()).minute(item.endTime.getUTCMinutes()).second(0),
