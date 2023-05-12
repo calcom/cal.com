@@ -237,6 +237,8 @@
   "set_availability": "Set your availability",
   "continue_without_calendar": "Continue without calendar",
   "connect_your_calendar": "Connect your calendar",
+  "connect_your_video_app":"Connect your video apps",
+  "connect_your_video_app_instructions":"Connect your video apps to use them on your event types.",
   "connect_your_calendar_instructions": "Connect your calendar to automatically check for busy times and new events as they’re scheduled.",
   "set_up_later": "Set up later",
   "current_time": "Current time",
