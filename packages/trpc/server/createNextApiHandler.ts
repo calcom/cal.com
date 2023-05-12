@@ -1,12 +1,14 @@
 import { z } from "zod";
-import type { AnyRouter } from "@trpc/server";
+
 import * as trpcNext from "@calcom/trpc/server/adapters/next";
 import { createContext as createTrpcContext } from "@calcom/trpc/server/createContext";
+
+import type { AnyRouter } from "@trpc/server";
 
 /**
  * Creates an API handler executed by Next.js.
  */
-export function createNextApiHandler(router: AnyRouter, isPublic: boolean = false) {
+export function createNextApiHandler(router: AnyRouter, isPublic = false) {
   return trpcNext.createNextApiHandler({
     router,
     /**
@@ -57,11 +59,11 @@ export function createNextApiHandler(router: AnyRouter, isPublic: boolean = fals
       if (isPublic && paths) {
         const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
         const cacheRules = {
-          "session": `no-cache`,
-          "i18n": `no-cache`,
+          session: `no-cache`,
+          i18n: `no-cache`,
           // Revalidation time here should be 1 second, per https://github.com/calcom/cal.com/pull/6823#issuecomment-1423215321
           "slots.getSchedule": `no-cache`, // FIXME
-          "cityTimezones": `max-age=${ONE_DAY_IN_SECONDS}, stale-while-revalidate`,
+          cityTimezones: `max-age=${ONE_DAY_IN_SECONDS}, stale-while-revalidate`,
         } as const;
 
         const matchedPath = paths.find((v) => v in cacheRules) as keyof typeof cacheRules;
@@ -71,4 +73,4 @@ export function createNextApiHandler(router: AnyRouter, isPublic: boolean = fals
       return defaultHeaders;
     },
   });
-};
+}

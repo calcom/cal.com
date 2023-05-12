@@ -1038,7 +1038,6 @@
   "event_cancelled_trigger": "când se anulează evenimentul",
   "new_event_trigger": "când este rezervat noul eveniment",
   "email_host_action": "trimiteți e-mail la gazdă",
-  "email_attendee_action": "trimiteți e-mail la participant",
   "sms_attendee_action": "trimiteți SMS la participant",
   "sms_number_action": "trimiteți SMS la un anumit număr",
   "workflows": "Fluxuri de lucru",

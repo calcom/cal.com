@@ -1038,7 +1038,6 @@
   "event_cancelled_trigger": "イベントキャンセル時に",
   "new_event_trigger": "新しいイベント予約時に",
   "email_host_action": "ホストにメールを送信",
-  "email_attendee_action": "出席者にメールを送信",
   "sms_attendee_action": "出席者に SMS を送信",
   "sms_number_action": "特定の番号に SMS を送信",
   "workflows": "ワークフロー",
