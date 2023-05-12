@@ -1,4 +1,3 @@
-import { IdentityProvider } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { authenticator } from "otplib";
 import qrcode from "qrcode";
@@ -8,6 +7,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import prisma from "@calcom/prisma";
+import { IdentityProvider } from "@calcom/prisma/enums";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {

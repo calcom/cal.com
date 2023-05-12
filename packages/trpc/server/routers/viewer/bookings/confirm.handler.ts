@@ -1,4 +1,4 @@
-import { BookingStatus, MembershipRole, Prisma, SchedulingType } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import appStore from "@calcom/app-store";
 import { sendDeclinedEmails } from "@calcom/emails";
@@ -7,7 +7,9 @@ import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirma
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
+import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import { TRPCError } from "@trpc/server";
 
@@ -273,14 +275,15 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           }
 
           // Posible to refactor TODO:
-          const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore];
+          const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore]();
           if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
             console.warn(`payment App service of type ${paymentApp} is not implemented`);
             return null;
           }
 
-          const PaymentService = paymentApp.lib.PaymentService;
-          const paymentInstance = new PaymentService(paymentAppCredential);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const PaymentService = paymentApp.lib.PaymentService as any;
+          const paymentInstance = new PaymentService(paymentAppCredential) as IAbstractPaymentService;
           const paymentData = await paymentInstance.refund(successPayment.id);
           if (!paymentData.refunded) {
             throw new Error("Payment could not be refunded");

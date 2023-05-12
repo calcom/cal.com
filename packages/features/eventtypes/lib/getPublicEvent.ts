@@ -59,6 +59,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
     },
   },
   owner: true,
+  hidden: true,
 });
 
 export const getPublicEvent = async (username: string, eventSlug: string, prisma: PrismaClient) => {
@@ -174,7 +175,8 @@ function getProfileFromEvent(event: Event) {
     username,
     name: profile.name,
     weekStart,
-    image: `${WEBAPP_URL}${basePath}/avatar.png`,
+    image: team ? undefined : `${WEBAPP_URL}${basePath}/avatar.png`,
+    logo: !team ? undefined : team.logo,
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
   };

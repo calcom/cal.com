@@ -1,4 +1,3 @@
-import { BookingStatus } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -13,6 +12,7 @@ import { formatTime } from "@calcom/lib/date-fns";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { ActionType } from "@calcom/ui";

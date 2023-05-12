@@ -5,8 +5,22 @@ import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
-export async function getAppWithMetadata(app: { dirName: string }) {
-  const appMetadata: App | null = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata] as App;
+/**
+ * Get App metdata either using dirName or slug
+ */
+export async function getAppWithMetadata(app: { dirName: string } | { slug: string }) {
+  let appMetadata: App | null;
+
+  if ("dirName" in app) {
+    appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata] as App;
+  } else {
+    const foundEntry = Object.entries(appStoreMetadata).find(([, meta]) => {
+      return meta.slug === app.slug;
+    });
+    if (!foundEntry) return null;
+    appMetadata = foundEntry[1] as App;
+  }
+
   if (!appMetadata) return null;
   // Let's not leak api keys to the front end
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

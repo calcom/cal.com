@@ -1,4 +1,3 @@
-import { AppCategories, BookingStatus } from "@prisma/client";
 import z from "zod";
 
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
@@ -12,6 +11,7 @@ import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
+import { AppCategories, BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 

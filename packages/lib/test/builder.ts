@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import type { Booking, EventType, Prisma, Webhook } from "@prisma/client";
-import { BookingStatus } from "@prisma/client";
 
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
 
 export const buildVideoCallData = (callData?: Partial<VideoCallData>): VideoCallData => {

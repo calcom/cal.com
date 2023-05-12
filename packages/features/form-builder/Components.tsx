@@ -6,7 +6,6 @@ import type {
   TextLikeComponentProps,
   SelectLikeComponentProps,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingFieldType } from "@calcom/prisma/zod-utils";
 import {
@@ -153,10 +152,7 @@ export const Components: Record<BookingFieldType, Component> = {
                         value[index] = e.target.value;
                         setValue(value);
                       }}
-                      className={classNames(inputClassName, "border-r-0")}
-                      addOnClassname={classNames(
-                        "border-default border block border-l-0 disabled:bg-emphasis disabled:hover:cursor-not-allowed bg-transparent disabled:text-subtle border-subtle "
-                      )}
+                      className={inputClassName}
                       placeholder={placeholder}
                       label={<></>}
                       required
@@ -170,7 +166,7 @@ export const Components: Record<BookingFieldType, Component> = {
                                 value.splice(index, 1);
                                 setValue(value);
                               }}>
-                              <X className="text-default" />
+                              <X width={12} className="text-default" />
                             </button>
                           </Tooltip>
                         ) : null

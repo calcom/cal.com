@@ -169,6 +169,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
   control?: Control<TFieldValues>;
 }) => {
   const { t } = useLocale();
+  const { getValues } = useFormContext();
 
   const { remove, fields, append } = useFieldArray({
     control,
@@ -191,12 +192,12 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 StartIcon={Plus}
                 onClick={() => {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  const nextRange: any = getNextRange(fields[fields.length - 1]);
+                  const nextRange: any = getNextRange(getValues(`${name}.${fields.length - 1}`));
                   if (nextRange) append(nextRange);
                 }}
               />
             )}
-            {index !== 0 && <RemoveTimeButton index={index} remove={remove} className="text-default mx-2" />}
+            {index !== 0 && <RemoveTimeButton index={index} remove={remove} className="text-default mx-2 border-none" />}
           </div>
         </Fragment>
       ))}
@@ -217,7 +218,7 @@ const RemoveTimeButton = ({
     <Button
       type="button"
       variant="icon"
-      color="minimal"
+      color="destructive"
       StartIcon={Trash}
       onClick={() => remove(index)}
       className={className}

@@ -1,6 +1,4 @@
 import type { PrismaClient } from "@prisma/client";
-import { MembershipRole } from "@prisma/client";
-import { SchedulingType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import type { StripeData } from "@calcom/app-store/stripepayment/lib/server";
@@ -12,6 +10,7 @@ import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
