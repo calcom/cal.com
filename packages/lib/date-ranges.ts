@@ -7,20 +7,23 @@ export type DateRange = {
   end: Dayjs;
 };
 
+export type DateOverride = Pick<Availability, "date" | "startTime" | "endTime">;
+export type WorkingHours = Pick<Availability, "days" | "startTime" | "endTime">;
+
+type ProcessorParams = {
+  timeZone?: string;
+  dateFrom: Dayjs;
+  dateTo: Dayjs;
+};
+
 export function processWorkingHours({
   item,
   timeZone,
   dateFrom,
   dateTo,
-}: {
-  item: Availability;
-  timeZone: string;
-  dateFrom: Dayjs;
-  dateTo: Dayjs;
-}) {
+}: ProcessorParams & { item: WorkingHours }) {
   const results = [];
-  const endDate = dateTo.tz(timeZone);
-  for (let date = dateFrom.tz(timeZone); date.isBefore(endDate); date = date.add(1, "day")) {
+  for (let date = dateFrom.tz(timeZone); date.isBefore(dateTo); date = date.add(1, "day")) {
     if (!item.days.includes(date.day())) {
       continue;
     }
@@ -32,7 +35,7 @@ export function processWorkingHours({
   return results;
 }
 
-export function processDateOverride({ item, timeZone }: { item: Availability; timeZone: string }) {
+export function processDateOverride({ item, timeZone }: ProcessorParams & { item: DateOverride }) {
   const date = dayjs.tz(item.date, timeZone);
   return {
     start: date.hour(item.startTime.getUTCHours()).minute(item.startTime.getUTCMinutes()).second(0),
@@ -47,23 +50,33 @@ export function buildDateRanges({
   dateTo /* `` dateTo */,
 }: {
   timeZone: string;
-  availability: Availability[];
+  availability: (DateOverride | WorkingHours)[];
   dateFrom: Dayjs;
   dateTo: Dayjs;
 }): DateRange[] {
   const groupedWorkingHours = groupByDate(
-    availability
-      .filter((item) => !!item.days.length)
-      .flatMap((item) => processWorkingHours({ item, timeZone, dateFrom, dateTo }))
+    availability.reduce((processed: DateRange[], item) => {
+      if ("days" in item) {
+        processed = processed.concat(processWorkingHours({ item, dateFrom, dateTo }));
+      }
+      return processed;
+    }, [])
   );
   const groupedDateOverrides = groupByDate(
-    availability.filter((item) => !!item.date).flatMap((item) => processDateOverride({ item, timeZone }))
+    availability.reduce((processed: DateRange[], item) => {
+      if ("date" in item) {
+        processed.push(processDateOverride({ item, timeZone, dateFrom, dateTo }));
+      }
+      return processed;
+    }, [])
   );
 
-  return Object.values({
+  const dateRanges = Object.values({
     ...groupedWorkingHours,
     ...groupedDateOverrides,
   }).flat();
+
+  return intersect([dateRanges, [{ start: dateFrom, end: dateTo }]]);
 }
 
 //group by date is not yet working correctly
@@ -88,17 +101,13 @@ export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {
   return results;
 }
 
-export function intersect(
-  usersAvailability: {
-    ranges: DateRange[];
-  }[]
-): DateRange[] {
+export function intersect(ranges: DateRange[][]): DateRange[] {
   // Get the ranges of the first user
-  let commonAvailability = usersAvailability[0].ranges;
+  let commonAvailability = ranges[0];
 
   // For each of the remaining users, find the intersection of their ranges with the current common availability
-  for (let i = 1; i < usersAvailability.length; i++) {
-    const userRanges = usersAvailability[i].ranges;
+  for (let i = 1; i < ranges.length; i++) {
+    const userRanges = ranges[i];
 
     const intersectedRanges: {
       start: Dayjs;
