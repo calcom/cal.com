@@ -276,6 +276,9 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
       }
       return { previousValue };
     },
+    onSuccess: () => {
+      showToast(t("form_updated_successfully"), "success");
+    },
     onSettled: (routingForm) => {
       utils.viewer.appRoutingForms.forms.invalidate();
       if (routingForm) {
