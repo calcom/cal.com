@@ -11,6 +11,7 @@ type AppsRouterHandlerCache = {
   toggle?: typeof import("./toggle.handler").toggleHandler;
   saveKeys?: typeof import("./saveKeys.handler").saveKeysHandler;
   checkForGCal?: typeof import("./checkForGCal.handler").checkForGCalHandler;
+  checkForGWorkspace?: typeof import("./checkForGWorkspace.handler").checkForGWorkspace;
   updateAppCredentials?: typeof import("./updateAppCredentials.handler").updateAppCredentialsHandler;
   queryForDependencies?: typeof import("./queryForDependencies.handler").queryForDependenciesHandler;
 };
@@ -124,4 +125,20 @@ export const appsRouter = router({
         input,
       });
     }),
+  checkForGWorkspace: authedAdminProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.checkForGWorkspace) {
+      UNSTABLE_HANDLER_CACHE.checkForGWorkspace = await import("./checkForGWorkspace.handler").then(
+        (mod) => mod.checkForGWorkspace
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.checkForGWorkspace) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.checkForGWorkspace({
+      ctx,
+    });
+  }),
 });
