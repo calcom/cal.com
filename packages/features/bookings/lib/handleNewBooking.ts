@@ -1940,7 +1940,11 @@ async function handler(
             originalEvent: results[0].originalEvent,
           };
 
-          const googleCalResult = results.find((result) => result.type === "google_calendar");
+          // Find index of google_calendar inside createManager.referencesToCreate
+          const googleCalIndex = createManager.referencesToCreate.findIndex(
+            (ref) => ref.type === "google_calendar"
+          );
+          const googleCalResult = results[googleCalIndex];
 
           if (!googleCalResult) {
             results.push({
@@ -1954,6 +1958,20 @@ async function handler(
             results.push({
               ...googleMeetResult,
               success: true,
+            });
+
+            // Add google_meet to referencesToCreate in the same index as google_calendar
+            createManager.referencesToCreate[googleCalIndex] = {
+              ...createManager.referencesToCreate[googleCalIndex],
+              meetingUrl: googleCalResult.createdEvent.hangoutLink,
+            };
+
+            // Also create a new referenceToCreate with type video for google_meet
+            createManager.referencesToCreate.push({
+              type: "google_meet_video",
+              meetingUrl: googleCalResult.createdEvent.hangoutLink,
+              uid: googleCalResult.uid,
+              credentialId: createManager.referencesToCreate[googleCalIndex].credentialId,
             });
           } else if (googleCalResult && !googleCalResult.createdEvent?.hangoutLink) {
             results.push({

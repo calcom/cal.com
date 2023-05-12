@@ -46,7 +46,8 @@ class MyDocument extends Document<Props> {
           <link rel="manifest" href="/site.webmanifest" />
           <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
           <meta name="msapplication-TileColor" content="#ff0000" />
-          <meta name="theme-color" content="var(--cal-bg)" />
+          <meta name="theme-color" media="(prefers-color-scheme: light)" content="white" />
+          <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1C1C1C" />
         </Head>
 
         <body
