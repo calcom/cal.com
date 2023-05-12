@@ -90,6 +90,28 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
   },
 };
 
+export const getBookerSizeClassNames = (layout: BookerLayout, bookerState: BookerState) => {
+  return [
+    // Size settings are abstracted on their own lines purely for readbility.
+    // General sizes, used always
+    "[--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
+    // Small calendar defaults
+    layout === "small_calendar" && "[--booker-meta-width:240px]",
+    // Meta column get's wider in booking view to fit the full date on a single row in case
+    // of a multi occurance event. Also makes form less wide, which also looks better.
+    layout === "small_calendar" &&
+      bookerState === "booking" &&
+      "[--booker-main-width:420px] lg:[--booker-meta-width:340px]",
+    // Smaller meta when not in booking view.
+    layout === "small_calendar" &&
+      bookerState !== "booking" &&
+      "[--booker-main-width:480px] lg:[--booker-meta-width:280px]",
+    // Fullscreen view settings.
+    layout !== "small_calendar" &&
+      "[--booker-main-width:480px] [--booker-meta-width:340px] lg:[--booker-meta-width:424px]",
+  ];
+};
+
 /**
  * This hook returns a ref that should be set on the booker element.
  * Based on that ref this hook animates the size of the booker element with framer motion.

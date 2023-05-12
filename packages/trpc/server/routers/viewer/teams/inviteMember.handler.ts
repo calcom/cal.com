@@ -37,6 +37,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
 
   if (!team) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
 
+  // A user can exist even if they have not completed onboarding
   const invitee = await prisma.user.findFirst({
     where: {
       OR: [{ username: input.usernameOrEmail }, { email: input.usernameOrEmail }],
@@ -81,7 +82,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         from: ctx.user.name,
         to: input.usernameOrEmail,
         teamName: team.name,
-        joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/teams`,
+        joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`, // we know that the user has not completed onboarding yet, so we can redirect them to the onboarding flow
         isCalcomMember: false,
       });
     }
@@ -112,13 +113,35 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     }
     // inform user of membership by email
     if (input.sendEmailInvitation && ctx?.user?.name && team?.name) {
+      const inviteTeamOptions = {
+        joinLink: `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`,
+        isCalcomMember: true,
+      };
+      /**
+       * Here we want to redirect to a differnt place if onboarding has been completed or not. This prevents the flash of going to teams -> Then to onboarding - also show a differnt email template.
+       * This only changes if the user is a CAL user and has not completed onboarding and has no password
+       */
+      if (!invitee.completedOnboarding && !invitee.password && invitee.identityProvider === "CAL") {
+        const token = randomBytes(32).toString("hex");
+        await prisma.verificationToken.create({
+          data: {
+            identifier: input.usernameOrEmail,
+            token,
+            expires: new Date(new Date().setHours(168)), // +1 week
+          },
+        });
+
+        inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
+        inviteTeamOptions.isCalcomMember = false;
+      }
+
+
       await sendTeamInviteEmail({
         language: translation,
         from: ctx.user.name,
         to: sendTo,
         teamName: team.name,
-        joinLink: WEBAPP_URL + "/settings/teams",
-        isCalcomMember: true,
+        ...inviteTeamOptions,
       });
     }
   }
