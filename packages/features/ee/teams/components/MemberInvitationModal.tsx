@@ -42,6 +42,14 @@ export interface NewMemberForm {
 
 type ModalMode = "INDIVIDUAL" | "BULK";
 
+function gotoUrl(url: string, newTab?: boolean) {
+  if (newTab) {
+    window.open(url, "_blank");
+    return;
+  }
+  window.location.href = url;
+}
+
 const GoogleIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
     <g clip-path="url(#clip0_4178_176214)">
@@ -61,6 +69,7 @@ const GoogleIcon = () => (
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
   const [modalImportMode, setModalInputMode] = useState<ModalMode>("INDIVIDUAL");
+  const [googleWorkspaceLoading, setGoogleWorkspaceLoading] = useState(false);
   const options: MembershipRoleOption[] = useMemo(() => {
     return [
       { value: MembershipRole.MEMBER, label: t("member") },
@@ -125,7 +134,10 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 control={newMemberFormMethods.control}
                 rules={{
                   required: t("enter_email_or_username"),
-                  validate: (value) => validateUniqueInvite(value) || t("member_already_invited"),
+                  validate: (value) => {
+                    if (typeof value === "string")
+                      return validateUniqueInvite(value) || t("member_already_invited");
+                  },
                 }}
                 render={({ field: { onChange }, fieldState: { error } }) => (
                   <>
@@ -183,7 +195,21 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 <Button
                   type="button"
                   color="secondary"
+                  loading={googleWorkspaceLoading}
                   StartIcon={GoogleIcon}
+                  onClick={async () => {
+                    setGoogleWorkspaceLoading(true);
+                    const res = await fetch(`/api/teams/googleworkspace/add`);
+
+                    if (!res.ok) {
+                      const errorBody = await res.json();
+                      throw new Error(errorBody.message || "Something went wrong");
+                    }
+                    setGoogleWorkspaceLoading(false);
+
+                    const json = await res.json();
+                    gotoUrl(json.url, json.newTab);
+                  }}
                   className="justify-center gap-2">
                   Import via Google Workspace
                 </Button>
