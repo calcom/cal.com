@@ -18,6 +18,7 @@ import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { handleRefundError } from "@calcom/lib/payment/handleRefundError";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
@@ -503,6 +504,7 @@ async function handler(req: CustomRequest) {
       );
 
       if (videoCredential) {
+        logger.debug("videoCredential inside cancel booking handler", videoCredential);
         apiDeletes.push(deleteMeeting(videoCredential, uid));
       }
     }

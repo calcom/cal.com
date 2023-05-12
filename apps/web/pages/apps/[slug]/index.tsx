@@ -2,6 +2,7 @@ import fs from "fs";
 import matter from "gray-matter";
 import MarkdownIt from "markdown-it";
 import type { GetStaticPaths, GetStaticPropsContext } from "next";
+import Link from "next/link";
 import path from "path";
 import { z } from "zod";
 
@@ -33,7 +34,26 @@ const sourceSchema = z.object({
   }),
 });
 
-function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
+function SingleAppPage(props: inferSSRProps<typeof getStaticProps>) {
+  // If it's not production environment, it would be a better idea to inform that the App is disabled.
+  if (props.isAppDisabled) {
+    if (process.env.NODE_ENV !== "production") {
+      // TODO: Improve disabled App UI. This is just a placeholder.
+      return (
+        <div className="p-2">
+          This App seems to be disabled. If you are an admin, you can enable this app from{" "}
+          <Link href="/settings/admin/apps" className="cursor-pointer text-blue-500 underline">
+            here
+          </Link>
+        </div>
+      );
+    }
+
+    // Disabled App should give 404 any ways in production.
+    return null;
+  }
+
+  const { source, data } = props;
   return (
     <App
       name={data.name}
@@ -80,29 +100,43 @@ export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
 export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   if (typeof ctx.params?.slug !== "string") return { notFound: true };
 
-  const app = await prisma.app.findUnique({
+  const appMeta = await getAppWithMetadata({
+    slug: ctx.params?.slug,
+  });
+
+  const appFromDb = await prisma.app.findUnique({
     where: { slug: ctx.params.slug.toLowerCase() },
   });
 
-  if (!app) return { notFound: true };
+  const isAppAvailableInFileSystem = appMeta;
+  const isAppDisabled = isAppAvailableInFileSystem && (!appFromDb || !appFromDb.enabled);
 
-  const singleApp = await getAppWithMetadata(app);
+  if (process.env.NODE_ENV !== "production" && isAppDisabled) {
+    return {
+      props: {
+        isAppDisabled: true as const,
+        data: {
+          ...appMeta,
+        },
+      },
+    };
+  }
 
-  if (!singleApp) return { notFound: true };
+  if (!appFromDb || !appMeta || isAppDisabled) return { notFound: true };
 
-  const isTemplate = singleApp.isTemplate;
-  const appDirname = path.join(isTemplate ? "templates" : "", app.dirName);
+  const isTemplate = appMeta.isTemplate;
+  const appDirname = path.join(isTemplate ? "templates" : "", appFromDb.dirName);
   const README_PATH = path.join(process.cwd(), "..", "..", `packages/app-store/${appDirname}/DESCRIPTION.md`);
   const postFilePath = path.join(README_PATH);
   let source = "";
 
   try {
     source = fs.readFileSync(postFilePath).toString();
-    source = source.replace(/{DESCRIPTION}/g, singleApp.description);
+    source = source.replace(/{DESCRIPTION}/g, appMeta.description);
   } catch (error) {
     /* If the app doesn't have a README we fallback to the package description */
     console.log(`No DESCRIPTION.md provided for: ${appDirname}`);
-    source = singleApp.description;
+    source = appMeta.description;
   }
 
   const result = matter(source);
@@ -111,8 +145,8 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
     data.items = data.items.map((item) => {
       if (typeof item === "string") {
         return getAppAssetFullPath(item, {
-          dirName: singleApp.dirName,
-          isTemplate: singleApp.isTemplate,
+          dirName: appMeta.dirName,
+          isTemplate: appMeta.isTemplate,
         });
       }
       return item;
@@ -120,8 +154,9 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   }
   return {
     props: {
+      isAppDisabled: false as const,
       source: { content, data },
-      data: singleApp,
+      data: appMeta,
     },
   };
 };
