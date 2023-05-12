@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import type { GetStaticPropsContext, InferGetStaticPropsType } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
