@@ -1,0 +1,25 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Webex",
+  "title": "Webex",
+  "slug": "webex",
+  "type": "webex_video",
+  "imageSrc": "/icon.ico",
+  "logo": "/icon.ico",
+  "url": "https://cal.com/apps/webex",
+  "variant": "conferencing",
+  "categories": ["video"],
+  "publisher": "Cal.com, Inc.",
+  "email": "support@cal.com",
+  "description": "Create meetings with Cisco Webex",
+  "appData": {
+    "location": {
+      "linkType": "dynamic",
+      "type": "integrations:webex_video",
+      "label": "Webex"
+    }
+  },
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "basic"
+}
