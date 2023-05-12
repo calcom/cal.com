@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { Suspense } from "react";
 
@@ -51,6 +52,7 @@ const NewWebhookButton = ({
   btnText?: string;
 }) => {
   const { t, isLocaleReady } = useLocale();
+  const router = useRouter();
 
   if (!profiles || profiles.length < 2) {
     return (
@@ -85,11 +87,10 @@ const NewWebhookButton = ({
                   size="sm"
                   {...props}
                 />
-              )}
-              onClick={() => console.log("redirect to new webhooks page")}>
-              {" "}
-              {/*improve this code */}
-              <span>{profile.name}</span>
+              )}>
+              <Link href={`webhooks/new${profile.teamId ? `?teamId=${profile.teamId}` : ""}`}>
+                {profile.name}
+              </Link>
             </DropdownItem>
           </DropdownMenuItem>
         ))}
