@@ -36,16 +36,21 @@ const sourceSchema = z.object({
 
 function SingleAppPage(props: inferSSRProps<typeof getStaticProps>) {
   // If it's not production environment, it would be a better idea to inform that the App is disabled.
-  if (process.env.NODE_ENV !== "production" && props.isAppDisabled) {
-    // TODO: Improve disabled App UI. This is just a placeholder.
-    return (
-      <div className="p-2">
-        This App seems to be disabled. If you are an admin, you can enable this app from{" "}
-        <Link href="/settings/admin/apps" className="cursor-pointer text-blue-500 underline">
-          here
-        </Link>
-      </div>
-    );
+  if (props.isAppDisabled) {
+    if (process.env.NODE_ENV !== "production") {
+      // TODO: Improve disabled App UI. This is just a placeholder.
+      return (
+        <div className="p-2">
+          This App seems to be disabled. If you are an admin, you can enable this app from{" "}
+          <Link href="/settings/admin/apps" className="cursor-pointer text-blue-500 underline">
+            here
+          </Link>
+        </div>
+      );
+    }
+
+    // Disabled App should give 404 any ways in production.
+    return null;
   }
 
   const { source, data } = props;
