@@ -10,18 +10,17 @@ export type DateRange = {
 export type DateOverride = Pick<Availability, "date" | "startTime" | "endTime">;
 export type WorkingHours = Pick<Availability, "days" | "startTime" | "endTime">;
 
-type ProcessorParams = {
-  timeZone?: string;
-  dateFrom: Dayjs;
-  dateTo: Dayjs;
-};
-
 export function processWorkingHours({
   item,
   timeZone,
   dateFrom,
   dateTo,
-}: ProcessorParams & { item: WorkingHours }) {
+}: {
+  item: WorkingHours;
+  timeZone: string;
+  dateFrom: Dayjs;
+  dateTo: Dayjs;
+}) {
   const results = [];
   for (let date = dateFrom.tz(timeZone); date.isBefore(dateTo); date = date.add(1, "day")) {
     if (!item.days.includes(date.day())) {
@@ -35,7 +34,7 @@ export function processWorkingHours({
   return results;
 }
 
-export function processDateOverride({ item, timeZone }: ProcessorParams & { item: DateOverride }) {
+export function processDateOverride({ item, timeZone }: { item: DateOverride; timeZone: string }) {
   const date = dayjs.tz(item.date, timeZone);
   return {
     start: date.hour(item.startTime.getUTCHours()).minute(item.startTime.getUTCMinutes()).second(0),
@@ -57,7 +56,7 @@ export function buildDateRanges({
   const groupedWorkingHours = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
       if ("days" in item) {
-        processed = processed.concat(processWorkingHours({ item, dateFrom, dateTo }));
+        processed = processed.concat(processWorkingHours({ item, timeZone, dateFrom, dateTo }));
       }
       return processed;
     }, [])
@@ -65,7 +64,7 @@ export function buildDateRanges({
   const groupedDateOverrides = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
       if ("date" in item) {
-        processed.push(processDateOverride({ item, timeZone, dateFrom, dateTo }));
+        processed.push(processDateOverride({ item, timeZone }));
       }
       return processed;
     }, [])
