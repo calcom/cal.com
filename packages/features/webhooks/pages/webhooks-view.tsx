@@ -95,7 +95,7 @@ const NewWebhookButton = ({
               StartIcon={(props) => (
                 <Avatar
                   alt={profile.slug || ""}
-                  imageSrc={profile.image} // todo: fallback is missing
+                  imageSrc={profile.image || `${WEBAPP_URL}/${profile.name}/avatar.png`}
                   size="sm"
                   {...props}
                 />
@@ -126,16 +126,15 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
           {webhookGroups.length > 0 ? (
             <>
               {webhookGroups && webhookGroups?.length > 0 ? (
-                webhookGroups.map((group, index) => (
+                webhookGroups.map((group) => (
                   <>
                     {hasTeams && (
                       <div className="items-centers flex ">
                         <Avatar
                           alt={group.profile.image || ""}
-                          imageSrc={group.profile.image}
+                          imageSrc={group.profile.image || `${WEBAPP_URL}/${group.profile.name}/avatar.png`}
                           size="md"
                           className="inline-flex justify-center"
-                          //todo: fallback is missing
                         />
                         <div className="text-emphasis ml-2 flex flex-grow items-center font-bold">
                           {group.profile.name || ""}
