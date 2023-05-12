@@ -492,7 +492,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                   </DropdownMenuItem>
                                 </>
                               )}
-                              {!isManagedEventType && isChildrenManagedEventType && (
+                              {!isManagedEventType && (
                                 <DropdownMenuItem className="outline-none">
                                   <EmbedButton
                                     as={DropdownItem}
