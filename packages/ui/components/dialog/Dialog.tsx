@@ -61,7 +61,7 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
   size?: "xl" | "lg" | "md";
   type?: "creation" | "confirmation";
   title?: string;
-  description?: string | JSX.Element | undefined;
+  description?: string | JSX.Element | null;
   closeText?: string;
   actionDisabled?: boolean;
   Icon?: SVGComponent;

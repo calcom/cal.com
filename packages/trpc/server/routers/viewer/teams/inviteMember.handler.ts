@@ -37,91 +37,99 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
 
   if (!team) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
 
-  const invitee = await prisma.user.findFirst({
-    where: {
-      OR: [{ username: input.usernameOrEmail }, { email: input.usernameOrEmail }],
-    },
-  });
+  const emailsToInvite = Array.isArray(input.usernameOrEmail)
+    ? input.usernameOrEmail
+    : [input.usernameOrEmail];
 
-  if (!invitee) {
-    // liberal email match
+  emailsToInvite.forEach(async (usernameOrEmail) => {
+    const invitee = await prisma.user.findFirst({
+      where: {
+        OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
+      },
+    });
 
-    if (!isEmail(input.usernameOrEmail))
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: `Invite failed because there is no corresponding user for ${input.usernameOrEmail}`,
-      });
+    if (!invitee) {
+      // liberal email match
 
-    // valid email given, create User and add to team
-    await prisma.user.create({
-      data: {
-        email: input.usernameOrEmail,
-        invitedTo: input.teamId,
-        teams: {
-          create: {
-            teamId: input.teamId,
-            role: input.role as MembershipRole,
+      if (!isEmail(usernameOrEmail))
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Invite failed because there is no corresponding user for ${input.usernameOrEmail}`,
+        });
+
+      // valid email given, create User and add to team
+      await prisma.user.create({
+        data: {
+          email: usernameOrEmail,
+          invitedTo: input.teamId,
+          teams: {
+            create: {
+              teamId: input.teamId,
+              role: input.role as MembershipRole,
+            },
           },
         },
-      },
-    });
-
-    const token: string = randomBytes(32).toString("hex");
-
-    await prisma.verificationToken.create({
-      data: {
-        identifier: input.usernameOrEmail,
-        token,
-        expires: new Date(new Date().setHours(168)), // +1 week
-      },
-    });
-    if (ctx?.user?.name && team?.name) {
-      await sendTeamInviteEmail({
-        language: translation,
-        from: ctx.user.name,
-        to: input.usernameOrEmail,
-        teamName: team.name,
-        joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/teams`,
-        isCalcomMember: false,
       });
-    }
-  } else {
-    // create provisional membership
-    try {
-      await prisma.membership.create({
+
+      const token: string = randomBytes(32).toString("hex");
+
+      await prisma.verificationToken.create({
         data: {
-          teamId: input.teamId,
-          userId: invitee.id,
-          role: input.role as MembershipRole,
+          identifier: usernameOrEmail,
+          token,
+          expires: new Date(new Date().setHours(168)), // +1 week
         },
       });
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === "P2002") {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "This user is a member of this team / has a pending invitation.",
-          });
-        }
-      } else throw e;
-    }
+      if (ctx?.user?.name && team?.name) {
+        await sendTeamInviteEmail({
+          language: translation,
+          from: ctx.user.name,
+          to: usernameOrEmail,
+          teamName: team.name,
+          joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/teams`,
+          isCalcomMember: false,
+        });
+      }
+    } else {
+      // create provisional membership
+      try {
+        await prisma.membership.create({
+          data: {
+            teamId: input.teamId,
+            userId: invitee.id,
+            role: input.role as MembershipRole,
+          },
+        });
+      } catch (e) {
+        if (e instanceof Prisma.PrismaClientKnownRequestError) {
+          if (e.code === "P2002") {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "This user is a member of this team / has a pending invitation.",
+            });
+          }
+        } else throw e;
+      }
 
-    let sendTo = input.usernameOrEmail;
-    if (!isEmail(input.usernameOrEmail)) {
-      sendTo = invitee.email;
+      let sendTo = input.usernameOrEmail;
+      if (!isEmail(input.usernameOrEmail)) {
+        sendTo = invitee.email;
+      }
+
+      // inform user of membership by email
+      if (input.sendEmailInvitation && ctx?.user?.name && team?.name) {
+        await sendTeamInviteEmail({
+          language: translation,
+          from: ctx.user.name,
+          to: sendTo,
+          teamName: team.name,
+          joinLink: WEBAPP_URL + "/settings/teams",
+          isCalcomMember: true,
+        });
+      }
     }
-    // inform user of membership by email
-    if (input.sendEmailInvitation && ctx?.user?.name && team?.name) {
-      await sendTeamInviteEmail({
-        language: translation,
-        from: ctx.user.name,
-        to: sendTo,
-        teamName: team.name,
-        joinLink: WEBAPP_URL + "/settings/teams",
-        isCalcomMember: true,
-      });
-    }
-  }
-  if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(input.teamId);
+    if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(input.teamId);
+  });
+
   return input;
 };

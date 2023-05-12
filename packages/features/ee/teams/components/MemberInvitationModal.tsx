@@ -35,7 +35,7 @@ type MembershipRoleOption = {
 };
 
 export interface NewMemberForm {
-  emailOrUsername: string;
+  emailOrUsername: string | string[];
   role: MembershipRole;
   sendInviteEmail: boolean;
 }
@@ -88,14 +88,14 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         type="creation"
         title={t("invite_team_member")}
         description={
-          IS_TEAM_BILLING_ENABLED && (
+          IS_TEAM_BILLING_ENABLED ? (
             <span className="text-subtle text-sm leading-tight">
               <Trans i18nKey="invite_new_member_description">
                 Note: This will <span className="text-emphasis font-medium">cost an extra seat ($15/m)</span>{" "}
                 on your subscription.
               </Trans>
             </span>
-          )
+          ) : null
         }>
         <div>
           <Label className="sr-only" htmlFor="role">
@@ -145,12 +145,35 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             {/* Bulk Invite */}
             {modalImportMode === "BULK" && (
               <div className="bg-muted flex flex-col rounded-md p-4">
-                <TextAreaField
-                  name="emails"
-                  label="Invite via email"
-                  rows={4}
-                  placeholder="john@doe.com, alex@smith.com"
+                <Controller
+                  name="emailOrUsername"
+                  control={newMemberFormMethods.control}
+                  rules={{
+                    required: t("enter_email_or_username"),
+                  }}
+                  render={({ field: { onChange }, fieldState: { error } }) => (
+                    <>
+                      {/* TODO: Make this a fancy email input that styles on a successful email. */}
+                      <TextAreaField
+                        name="emails"
+                        label="Invite via email"
+                        rows={4}
+                        autoCorrect="off"
+                        placeholder="john@doe.com, alex@smith.com"
+                        required
+                        onChange={(e) => {
+                          const emails = e.target.value
+                            .split(",")
+                            .map((email) => email.trim().toLocaleLowerCase());
+
+                          return onChange(emails);
+                        }}
+                      />
+                      {error && <span className="text-sm text-red-800">{error.message}</span>}
+                    </>
+                  )}
                 />
+
                 <div className="mt-1 mb-3 flex w-full items-center justify-center">
                   <hr className="border-subtle border-1 h-px w-full" />
                   <span className="bg-muted text-subtle px-2 py-1 leading-none">Or</span>
