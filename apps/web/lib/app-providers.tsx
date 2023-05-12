@@ -19,6 +19,8 @@ import { MetaProvider } from "@calcom/ui";
 import usePublicPage from "@lib/hooks/usePublicPage";
 import type { WithNonceProps } from "@lib/withNonce";
 
+import { useViewerI18n } from "@components/I18nLanguageHandler";
+
 const I18nextAdapter = appWithTranslation<NextJsAppProps<SSRConfig> & { children: React.ReactNode }>(
   ({ children }) => <>{children}</>
 );
@@ -46,9 +48,7 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
    * We intend to not cache i18n query
    **/
-  const { i18n, locale } = trpc.viewer.public.i18n.useQuery(undefined, {
-    trpc: { context: { skipBatch: true } },
-  }).data ?? {
+  const { i18n, locale } = useViewerI18n().data ?? {
     locale: "en",
   };
 

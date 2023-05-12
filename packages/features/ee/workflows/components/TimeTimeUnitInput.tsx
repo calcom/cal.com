@@ -39,7 +39,7 @@ export const TimeTimeUnitInput = (props: Props) => {
           addOnSuffix={
             <Dropdown>
               <DropdownMenuTrigger asChild>
-                <button className="flex">
+                <button className="flex items-center">
                   <div className="mr-1 w-3/4">
                     {timeUnit ? t(`${timeUnit.toLowerCase()}_timeUnit`) : "undefined"}{" "}
                   </div>

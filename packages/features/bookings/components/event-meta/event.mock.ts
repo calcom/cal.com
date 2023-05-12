@@ -1,4 +1,4 @@
-import { RouterOutputs } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 
 export const mockEvent: RouterOutputs["viewer"]["public"]["event"] = {
   id: 1,

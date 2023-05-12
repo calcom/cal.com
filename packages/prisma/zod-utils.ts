@@ -1,5 +1,4 @@
 import type { Prisma } from "@prisma/client";
-import { EventTypeCustomInputType } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
 import { pick } from "lodash";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
@@ -18,6 +17,7 @@ import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import dayjs from "@calcom/dayjs";
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
 import { slugify } from "@calcom/lib/slugify";
+import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 
 // Let's not import 118kb just to get an enum
 export enum Frequency {
@@ -41,6 +41,16 @@ export const EventTypeMetaDataSchema = z
     apps: z.object(appDataSchemas).partial().optional(),
     additionalNotesRequired: z.boolean().optional(),
     disableSuccessPage: z.boolean().optional(),
+    disableStandardEmails: z
+      .object({
+        confirmation: z
+          .object({
+            host: z.boolean().optional(),
+            attendee: z.boolean().optional(),
+          })
+          .optional(),
+      })
+      .optional(),
     managedEventConfig: z
       .object({
         unlockedFields: z.custom<{ [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true }>().optional(),
@@ -517,7 +527,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   periodCountCalendarDays: true,
   bookingLimits: true,
   slotInterval: true,
-  schedule: true,
+  scheduleId: true,
   workflows: true,
   bookingFields: true,
   durationLimits: true,
@@ -526,5 +536,5 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
 // All properties that are defined as unlocked based on all managed props
 // Eventually this is going to be just a default and the user can change the config through the UI
 export const unlockedManagedEventTypeProps = {
-  ...pick(allManagedEventTypeProps, ["locations", "schedule", "destinationCalendar"]),
+  ...pick(allManagedEventTypeProps, ["locations", "scheduleId", "destinationCalendar"]),
 };

@@ -1,4 +1,3 @@
-import { BookingStatus } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
@@ -28,6 +27,7 @@ import { getBookingWithResponses } from "@calcom/features/bookings/lib/get-booki
 import {
   SystemField,
   getBookingFieldsWithSystemFields,
+  SMS_REMINDER_NUMBER_FIELD,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -46,6 +46,7 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Button, EmailInput, HeadSeo, Badge, useCalcomTheme } from "@calcom/ui";
@@ -308,7 +309,7 @@ export default function Success(props: SuccessProps) {
         <div className="mt-2 ml-4 -mb-4">
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
-            className="hover:bg-subtle text-subtle dark:hover:text-inverted hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
+            className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
             <ChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
           </Link>
         </div>
@@ -487,7 +488,8 @@ export default function Success(props: SuccessProps) {
                       // We show rescheduleReason at the top
                       if (!field) return null;
                       const isSystemField = SystemField.safeParse(field.name);
-                      if (isSystemField.success) return null;
+                      // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
+                      if (isSystemField.success && field.name !== SMS_REMINDER_NUMBER_FIELD) return null;
 
                       const label = field.label || t(field.defaultLabel || "");
 

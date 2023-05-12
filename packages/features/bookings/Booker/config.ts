@@ -1,4 +1,6 @@
-import type { TargetAndTransition } from "framer-motion";
+import { cubicBezier, useAnimate } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
+import { useEffect } from "react";
 
 import type { BookerLayout, BookerState } from "./types";
 
@@ -26,7 +28,7 @@ export const fadeInUp = {
 
 type ResizeAnimationConfig = {
   [key in BookerLayout]: {
-    [key in BookerState | "default"]?: TargetAndTransition;
+    [key in BookerState | "default"]?: React.CSSProperties;
   };
 };
 
@@ -45,6 +47,7 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
   mobile: {
     default: {
       width: "100%",
+      minHeight: "0px",
       gridTemplateAreas: `
           "meta"
           "main"
@@ -56,27 +59,108 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
   small_calendar: {
     default: {
       width: "calc(var(--booker-meta-width) + var(--booker-main-width))",
+      minHeight: "450px",
+      height: "auto",
       gridTemplateAreas: `"meta main"`,
       gridTemplateColumns: "var(--booker-meta-width) var(--booker-main-width)",
     },
     selecting_time: {
       width: "calc(var(--booker-meta-width) + var(--booker-main-width) + var(--booker-timeslots-width))",
+      minHeight: "450px",
+      height: "auto",
       gridTemplateAreas: `"meta main timeslots"`,
-      gridTemplateColumns: "var(--booker-meta-width) var(--booker-main-width) var(--booker-timeslots-width)",
+      gridTemplateColumns: "var(--booker-meta-width) 1fr var(--booker-timeslots-width)",
     },
   },
   large_calendar: {
     default: {
-      width: "100%",
+      width: "100vw",
+      height: "100vh",
       gridTemplateAreas: `"meta main"`,
       gridTemplateColumns: "var(--booker-meta-width) 1fr",
     },
   },
   large_timeslots: {
     default: {
-      width: "100%",
+      width: "100vw",
+      height: "100vh",
       gridTemplateAreas: `"meta main"`,
       gridTemplateColumns: "var(--booker-meta-width) 1fr",
     },
   },
+};
+
+export const getBookerSizeClassNames = (layout: BookerLayout, bookerState: BookerState) => {
+  return [
+    // Size settings are abstracted on their own lines purely for readbility.
+    // General sizes, used always
+    "[--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
+    // Small calendar defaults
+    layout === "small_calendar" && "[--booker-meta-width:240px]",
+    // Meta column get's wider in booking view to fit the full date on a single row in case
+    // of a multi occurance event. Also makes form less wide, which also looks better.
+    layout === "small_calendar" &&
+      bookerState === "booking" &&
+      "[--booker-main-width:420px] lg:[--booker-meta-width:340px]",
+    // Smaller meta when not in booking view.
+    layout === "small_calendar" &&
+      bookerState !== "booking" &&
+      "[--booker-main-width:480px] lg:[--booker-meta-width:280px]",
+    // Fullscreen view settings.
+    layout !== "small_calendar" &&
+      "[--booker-main-width:480px] [--booker-meta-width:340px] lg:[--booker-meta-width:424px]",
+  ];
+};
+
+/**
+ * This hook returns a ref that should be set on the booker element.
+ * Based on that ref this hook animates the size of the booker element with framer motion.
+ * It also takes into account the prefers-reduced-motion setting, to not animate when that's set.
+ */
+export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerState) => {
+  const prefersReducedMotion = useReducedMotion();
+  const [animationScope, animate] = useAnimate();
+
+  useEffect(() => {
+    const animationConfig = resizeAnimationConfig[layout][state] || resizeAnimationConfig[layout].default;
+
+    const animatedProperties = {
+      height: animationConfig?.height || "auto",
+    };
+
+    const nonAnimatedProperties = {
+      // Width is animated by the css class instead of via framer motion,
+      // because css is better at animating the calcs, framer motion might
+      // make some mistakes in that.
+      width: animationConfig?.width || "auto",
+      gridTemplateAreas: animationConfig?.gridTemplateAreas,
+      gridTemplateColumns: animationConfig?.gridTemplateColumns,
+      minHeight: animationConfig?.minHeight,
+    };
+
+    // We don't animate if users has set prefers-reduced-motion,
+    // or when the layout is mobile.
+    if (prefersReducedMotion || layout === "mobile") {
+      animate(
+        animationScope.current,
+        {
+          ...animatedProperties,
+          ...nonAnimatedProperties,
+        },
+        {
+          duration: 0,
+        }
+      );
+    } else {
+      animate(animationScope.current, nonAnimatedProperties, {
+        duration: 0,
+      });
+      animate(animationScope.current, animatedProperties, {
+        duration: 0.5,
+        ease: cubicBezier(0.4, 0, 0.2, 1),
+      });
+    }
+  }, [animate, animationScope, layout, prefersReducedMotion, state]);
+
+  return animationScope;
 };

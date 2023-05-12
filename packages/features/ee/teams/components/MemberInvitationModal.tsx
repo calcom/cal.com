@@ -1,4 +1,3 @@
-import type { MembershipRole } from "@prisma/client";
 import { Trans } from "next-i18next";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -6,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { classNames } from "@calcom/lib";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import {
   Button,
@@ -121,7 +121,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     name="inviteUser"
                     placeholder="email@example.com"
                     required
-                    onChange={onChange}
+                    onChange={(e) => onChange(e.target.value.trim().toLowerCase())}
                   />
                   {error && <span className="text-sm text-red-800">{error.message}</span>}
                 </>

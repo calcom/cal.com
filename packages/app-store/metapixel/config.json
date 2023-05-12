@@ -5,9 +5,7 @@
   "logo": "icon.svg",
   "url": "https://developers.facebook.com/docs/metapixel/",
   "variant": "analytics",
-  "categories": [
-    "analytics"
-  ],
+  "categories": ["analytics"],
   "publisher": "regexyl",
   "email": "info@regexyl.com",
   "description": "Add Meta Pixel to your bookings page to measure, optimize and build audiences for your ad campaigns.",
