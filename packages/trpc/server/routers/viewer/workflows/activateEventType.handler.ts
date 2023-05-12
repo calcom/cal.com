@@ -121,15 +121,15 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
     await prisma.workflowsOnEventTypes.deleteMany({
       where: {
         workflowId,
-        eventTypeId: userEventType.children.length
-          ? { in: [eventTypeId].concat(userEventType.children.map((ch) => ch.id)) }
-          : eventTypeId,
+        eventTypeId: { in: [eventTypeId].concat(userEventType.children.map((ch) => ch.id)) },
       },
     });
 
-    await removeSmsReminderFieldForBooking({
-      workflowId,
-      eventTypeId,
+    [eventTypeId].concat(userEventType.children.map((ch) => ch.id)).map(async (chId) => {
+      await removeSmsReminderFieldForBooking({
+        workflowId,
+        eventTypeId: chId,
+      });
     });
   } else {
     // activate workflow and schedule reminders for existing bookings
