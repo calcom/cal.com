@@ -4,9 +4,9 @@ import SelectInput from "ink-select-input";
 import TextInput from "ink-text-input";
 import React, { useEffect, useState } from "react";
 
-import { AppMeta } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
-import { getSlugFromAppName, BaseAppFork, Seed, generateAppFiles, getAppDirPath } from "../core";
+import { getSlugFromAppName, BaseAppFork, generateAppFiles, getAppDirPath } from "../core";
 import { getApp } from "../utils/getApp";
 import Templates from "../utils/templates";
 import Label from "./Label";
@@ -148,8 +148,6 @@ export const AppForm = ({
           oldSlug: givenSlug,
         });
 
-        await Seed.update({ slug, category: category, oldSlug: givenSlug, isTemplate });
-
         await generateAppFiles();
 
         // FIXME: Even after CLI showing this message, it is stuck doing work before exiting
@@ -242,6 +240,10 @@ export const AppForm = ({
                 <Text color="green">Publisher Email: </Text>
                 <Text>{email}</Text>
               </Box>
+              <Text bold>
+                Next Step: Enable the app from http://localhost:3000/settings/admin/apps as admin user (Email:
+                admin@example.com, Pass: ADMINadmin2022!)
+              </Text>
             </Box>
           </Box>
         )}
