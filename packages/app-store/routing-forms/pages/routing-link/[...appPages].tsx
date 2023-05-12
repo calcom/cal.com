@@ -45,13 +45,17 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
   });
+
+  const [response, setResponse] = usePrefilledResponse(form);
+
   // TODO: We might want to prevent spam from a single user by having same formFillerId across pageviews
   // But technically, a user can fill form multiple times due to any number of reasons and we currently can't differentiate b/w that.
   // - like a network error
   // - or he abandoned booking flow in between
   const formFillerId = formFillerIdRef.current;
-  const decidedActionWithResponseRef = useRef<{ action: Route["action"]; response: Response }>();
+  const decidedActionWithFormResponseRef = useRef<{ action: Route["action"]; response: Response }>();
   const router = useRouter();
+
   const onSubmit = (response: Response) => {
     const decidedAction = processRoute({ form, response });
 
@@ -66,7 +70,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       formFillerId,
       response: response,
     });
-    decidedActionWithResponseRef.current = {
+    decidedActionWithFormResponseRef.current = {
       action: decidedAction,
       response,
     };
@@ -79,16 +83,16 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
   const responseMutation = trpc.viewer.appRoutingForms.public.response.useMutation({
     onSuccess: () => {
-      const decidedActionWithResponse = decidedActionWithResponseRef.current;
-      if (!decidedActionWithResponse) {
+      const decidedActionWithFormResponse = decidedActionWithFormResponseRef.current;
+      if (!decidedActionWithFormResponse) {
         return;
       }
       const fields = form.fields;
       if (!fields) {
         throw new Error("Routing Form fields must exist here");
       }
-      const allURLSearchParams = getUrlSearchParamsToForward(decidedActionWithResponse.response, fields);
-      const decidedAction = decidedActionWithResponse.action;
+      const allURLSearchParams = getUrlSearchParamsToForward(decidedActionWithFormResponse.response, fields);
+      const decidedAction = decidedActionWithFormResponse.action;
 
       //TODO: Maybe take action after successful mutation
       if (decidedAction.type === "customPageMessage") {
@@ -98,6 +102,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       } else if (decidedAction.type === "externalRedirectUrl") {
         window.parent.location.href = `${decidedAction.value}?${allURLSearchParams}`;
       }
+      // We don't want to show this message as it doesn't look good in Embed.
       // showToast("Form submitted successfully! Redirecting now ...", "success");
     },
     onError: (e) => {
@@ -107,18 +112,10 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       if (e?.data?.code === "CONFLICT") {
         return void showToast("Form already submitted", "error");
       }
+      // We don't want to show this error as it doesn't look good in Embed.
       // showToast("Something went wrong", "error");
     },
   });
-
-  const [response, setResponse] = useState<Response>({});
-
-  form.fields?.forEach((field) => {
-    response[field.id] = response[field.id] || {
-      value: router.query[getFieldIdentifier(field)],
-      label: field.label,
-    };
-  }, {});
 
   const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -281,4 +278,20 @@ export const getServerSideProps = async function getServerSideProps(
       form: await getSerializableForm(form),
     },
   };
+};
+
+const usePrefilledResponse = (form: Props["form"]) => {
+  const router = useRouter();
+
+  const prefillResponse: Response = {};
+
+  // Prefill the form from query params
+  form.fields?.forEach((field) => {
+    prefillResponse[field.id] = {
+      value: router.query[getFieldIdentifier(field)] || "",
+      label: field.label,
+    };
+  });
+  const [response, setResponse] = useState<Response>(prefillResponse);
+  return [response, setResponse] as const;
 };
