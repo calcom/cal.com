@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import type { WebhooksByViewer } from "@calcom/trpc/server/routers/viewer/webhook/getByViewer.handler";
 import {
   Button,
   Meta,
@@ -24,12 +25,23 @@ import { WebhookListItem, WebhookListSkeleton } from "../components";
 
 const WebhooksView = () => {
   const { t } = useLocale();
+  const router = useRouter();
+
+  const { data } = trpc.viewer.webhook.getByViewer.useQuery(undefined, {
+    suspense: true,
+    enabled: router.isReady,
+  });
+
   return (
     <>
-      <Meta title="Webhooks" description={t("webhooks_description", { appName: APP_NAME })} />
+      <Meta
+        title="Webhooks"
+        description={t("webhooks_description", { appName: APP_NAME })}
+        CTA={data && data.webhookGroups.length > 0 ? <NewWebhookButton profiles={data.profiles} /> : <></>}
+      />
       <div>
         <Suspense fallback={<WebhookListSkeleton />}>
-          <WebhooksList />
+          {data && <WebhooksList webhooksByViewer={data} />}
         </Suspense>
       </div>
     </>
@@ -52,12 +64,11 @@ const NewWebhookButton = ({
   btnText?: string;
 }) => {
   const { t, isLocaleReady } = useLocale();
-  const router = useRouter();
 
   if (!profiles || profiles.length < 2) {
     return (
       <Button
-        color="secondary"
+        color="primary"
         data-testid="new_webhook"
         StartIcon={Plus}
         href={`${WEBAPP_URL}/settings/developer/webhooks/new${!!teamId ? `?teamId=${teamId}` : ""}`}>
@@ -68,14 +79,11 @@ const NewWebhookButton = ({
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
-        <Button color="secondary" StartIcon={Plus}>
+        <Button color="primary" StartIcon={Plus}>
           {isLocaleReady ? t("new") : <SkeletonText className="h-4 w-24" />}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent sideOffset={14} align="end">
-        {/* <DropdownMenuLabel>
-        <div className="w-48 text-xs text-left">{props.subtitle}</div>
-      </DropdownMenuLabel> */}
         {profiles.map((profile, idx) => (
           <DropdownMenuItem key={profile.slug}>
             <DropdownItem
@@ -99,29 +107,22 @@ const NewWebhookButton = ({
   );
 };
 
-const WebhooksList = () => {
+const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer }) => {
   const { t } = useLocale();
   const router = useRouter();
 
-  const { data, isLoading } = trpc.viewer.webhook.getByViewer.useQuery(undefined, {
-    suspense: true,
-    enabled: router.isReady,
-  });
+  const { profiles, webhookGroups } = webhooksByViewer;
 
-  const hasTeams = data?.profiles && data?.profiles?.length > 1;
-
-  if (isLoading) {
-    <WebhookListSkeleton />;
-  }
+  const hasTeams = profiles && profiles.length > 1;
 
   return (
     <>
-      {data && (
+      {webhookGroups && (
         <>
-          {data.webhookGroups.length > 0 ? (
+          {webhookGroups.length > 0 ? (
             <>
-              {data.webhookGroups && data.webhookGroups?.length > 0 ? (
-                data.webhookGroups.map((group, index) => (
+              {webhookGroups && webhookGroups?.length > 0 ? (
+                webhookGroups.map((group, index) => (
                   <>
                     {hasTeams && (
                       <div className="items-centers flex ">
@@ -135,12 +136,8 @@ const WebhooksList = () => {
                         <div className="text-emphasis ml-2 flex flex-grow items-center font-bold">
                           {group.profile.name || ""}
                         </div>
-                        <div className="text-emphasis ml-auto font-bold">
-                          <NewWebhookButton teamId={group.teamId} />
-                        </div>
                       </div>
                     )}
-
                     <div className="flex flex-col" key={group.profile.slug}>
                       <div className="border-subtle mt-3 mb-8 rounded-md border">
                         {group.webhooks.map((webhook, index) => (
@@ -155,19 +152,16 @@ const WebhooksList = () => {
                         ))}
                       </div>
                     </div>
-                    {!hasTeams && <NewWebhookButton btnText={t("new_webhook")} />}
                   </>
                 ))
               ) : (
-                <div className="flex flex-col" key={data.webhookGroups[0].profile.slug}>
-                  test
+                <div className="flex flex-col" key={webhookGroups[0].profile.slug}>
                   <div className="border-subtle mt-6 mb-8 rounded-md border">
-                    <NewWebhookButton />
-                    {data?.webhookGroups[0].webhooks.map((webhook, index) => (
+                    {webhookGroups[0].webhooks.map((webhook, index) => (
                       <WebhookListItem
                         key={webhook.id}
                         webhook={webhook}
-                        lastItem={data.webhookGroups[0].webhooks.length === index + 1}
+                        lastItem={webhookGroups[0].webhooks.length === index + 1}
                         onEditWebhook={() =>
                           router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id} `)
                         }
@@ -182,7 +176,7 @@ const WebhooksList = () => {
               Icon={LinkIcon}
               headline={t("create_your_first_webhook")}
               description={t("create_your_first_webhook_description", { appName: APP_NAME })}
-              buttonRaw={<NewWebhookButton profiles={data.profiles} />}
+              buttonRaw={<NewWebhookButton profiles={profiles} />}
             />
           )}
         </>
