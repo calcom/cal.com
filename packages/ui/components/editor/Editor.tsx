@@ -4,6 +4,7 @@ import { ListItemNode, ListNode } from "@lexical/list";
 import { TRANSFORMERS } from "@lexical/markdown";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
+import LexicalErrorBoundary from "@lexical/react/LexicalErrorBoundary";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
@@ -90,6 +91,7 @@ export const Editor = (props: TextEditorProps) => {
                 />
               }
               placeholder={<div className="text-muted -mt-11 p-3 text-sm">{props.placeholder || ""}</div>}
+              ErrorBoundary={LexicalErrorBoundary}
             />
             <ListPlugin />
             <LinkPlugin />
