@@ -34,3 +34,5 @@ export const formQueryHandler = async ({ ctx, input }: FormsHandlerOptions) => {
 
   return await getSerializableForm(form);
 };
+
+export default formQueryHandler;
