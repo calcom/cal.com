@@ -16,6 +16,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownItem,
+  DropdownMenuLabel,
 } from "@calcom/ui";
 import { Avatar } from "@calcom/ui";
 import { Plus, Link as LinkIcon } from "@calcom/ui/components/icon";
@@ -84,6 +85,9 @@ const NewWebhookButton = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent sideOffset={14} align="end">
+        <DropdownMenuLabel>
+          <div className="text-xs">{t("create_for").toUpperCase()}</div>
+        </DropdownMenuLabel>
         {profiles.map((profile, idx) => (
           <DropdownMenuItem key={profile.slug}>
             <DropdownItem
