@@ -38,6 +38,7 @@ const WebhooksView = () => {
 const NewWebhookButton = ({
   teamId,
   profiles,
+  btnText,
 }: {
   teamId?: number | null;
   profiles?: {
@@ -47,6 +48,7 @@ const NewWebhookButton = ({
     image?: string | undefined;
     teamId: number | null | undefined;
   }[];
+  btnText?: string;
 }) => {
   const { t, isLocaleReady } = useLocale();
 
@@ -57,7 +59,7 @@ const NewWebhookButton = ({
         data-testid="new_webhook"
         StartIcon={Plus}
         href={`${WEBAPP_URL}/settings/developer/webhooks/new${!!teamId ? `?teamId=${teamId}` : ""}`}>
-        {isLocaleReady ? t("new") : <SkeletonText className="h-4 w-24" />}
+        {isLocaleReady ? btnText || t("new") : <SkeletonText className="h-4 w-24" />}
       </Button>
     );
   }
@@ -104,7 +106,9 @@ const WebhooksList = () => {
     suspense: true,
     enabled: router.isReady,
   });
-  data?.profiles;
+
+  const hasTeams = data?.profiles && data?.profiles?.length > 1;
+
   if (isLoading) {
     <WebhookListSkeleton />;
   }
@@ -118,21 +122,23 @@ const WebhooksList = () => {
               {data.webhookGroups && data.webhookGroups?.length > 0 ? (
                 data.webhookGroups.map((group, index) => (
                   <>
-                    <div className="items-centers flex ">
-                      <Avatar
-                        alt={group.profile.image || ""}
-                        imageSrc={group.profile.image}
-                        size="md"
-                        className="inline-flex justify-center"
-                        //todo: fallback is missing
-                      />
-                      <div className="text-emphasis ml-2 flex flex-grow items-center font-bold">
-                        {group.profile.name || ""}
+                    {hasTeams && (
+                      <div className="items-centers flex ">
+                        <Avatar
+                          alt={group.profile.image || ""}
+                          imageSrc={group.profile.image}
+                          size="md"
+                          className="inline-flex justify-center"
+                          //todo: fallback is missing
+                        />
+                        <div className="text-emphasis ml-2 flex flex-grow items-center font-bold">
+                          {group.profile.name || ""}
+                        </div>
+                        <div className="text-emphasis ml-auto font-bold">
+                          <NewWebhookButton teamId={group.teamId} />
+                        </div>
                       </div>
-                      <div className="text-emphasis ml-auto font-bold">
-                        <NewWebhookButton teamId={group.teamId} />
-                      </div>
-                    </div>
+                    )}
 
                     <div className="flex flex-col" key={group.profile.slug}>
                       <div className="border-subtle mt-3 mb-8 rounded-md border">
@@ -148,6 +154,7 @@ const WebhooksList = () => {
                         ))}
                       </div>
                     </div>
+                    {!hasTeams && <NewWebhookButton btnText={t("new_webhook")} />}
                   </>
                 ))
               ) : (

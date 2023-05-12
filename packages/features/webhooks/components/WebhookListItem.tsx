@@ -38,14 +38,14 @@ export default function WebhookListItem(props: {
   const { webhook } = props;
   const deleteWebhook = trpc.viewer.webhook.delete.useMutation({
     async onSuccess() {
-      await utils.viewer.webhook.list.invalidate();
+      await utils.viewer.webhook.getByViewer.invalidate();
       showToast(t("webhook_removed_successfully"), "success");
     },
   });
   const toggleWebhook = trpc.viewer.webhook.edit.useMutation({
     async onSuccess(data) {
       console.log("data", data);
-      await utils.viewer.webhook.list.invalidate();
+      await utils.viewer.webhook.getByViewer.invalidate();
       // TODO: Better success message
       showToast(t(data?.active ? "enabled" : "disabled"), "success");
     },

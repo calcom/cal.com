@@ -519,8 +519,6 @@ model Webhook {
   secret          String?
 
   @@unique([userId, subscriberUrl])
-  @@unique([eventTypeId, subscriberUrl])
-  @@unique([teamId, subscriberUrl])
 }
 
 model Impersonations {
