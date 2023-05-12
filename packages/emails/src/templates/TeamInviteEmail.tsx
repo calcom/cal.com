@@ -49,11 +49,17 @@ export const TeamInviteEmail = (
           marginTop: "32px",
           lineHeightStep: "24px",
         }}>
-        <>{props.language("email_no_user_invite_subheading", { invitedBy: props.from, appName: APP_NAME })}</>
+        <>
+          {props.language("email_user_invite_subheading", {
+            invitedBy: props.from,
+            appName: APP_NAME,
+            teamName: props.teamName,
+          })}
+        </>
       </p>
       <div style={{ display: "flex", justifyContent: "center" }}>
         <CallToAction
-          label={props.language(props.isCalcomMember ? "email_user_cta" : "email_no_user_cta")}
+          label={props.language(props.isCalcomMember ? "email_user_cta" : "email_not_cal_member_cta")}
           href={props.joinLink}
           endIconName="linkIcon"
         />
