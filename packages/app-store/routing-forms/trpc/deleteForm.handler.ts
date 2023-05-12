@@ -41,3 +41,5 @@ export const deleteFormHandler = async ({ ctx, input }: DeleteFormHandlerOptions
     },
   });
 };
+
+export default deleteFormHandler;
