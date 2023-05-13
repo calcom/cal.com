@@ -68,9 +68,11 @@ export const listLocalHandler = async ({ ctx, input }: ListLocalOptions) => {
     // it is important to avoid string to string comparisons as much as we can
     if (keysSchema !== undefined) {
       // TODO: Why don't we parse with schema here? Not doing it makes default() not work in schema.
-      Object.values(keysSchema.keyof()._def.values).reduce((keysObject, key) => {
+      Object.values(keysSchema.keyof()._def.values).forEach(key => {
         keys[key as string] = "";
-        return keysObject;
+      });
+    }
+        return keysSchema;
       }, {} as Record<string, string>);
     }
 
