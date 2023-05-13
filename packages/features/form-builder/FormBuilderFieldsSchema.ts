@@ -15,6 +15,7 @@ const fieldTypeEnum = z.enum([
   "radio",
   "radioInput",
   "boolean",
+  "fileUpload",
 ]);
 
 export const EditableSchema = z.enum([

@@ -130,6 +130,11 @@ export const FormBuilder = function FormBuilder({
       value: "boolean",
       isTextType: false,
     },
+    fileUpload: {
+      label: "File",
+      value: "fileUpload",
+      isTextType: false,
+    },
   };
   const FieldTypes = Object.values(FieldTypesMap);
 
@@ -413,6 +418,7 @@ export const FormBuilder = function FormBuilder({
                   fieldIndex: -1,
                 });
               }}>
+              select field broww
               <SelectField
                 defaultValue={FieldTypes[3]} // "text" as defaultValue
                 id="test-field-type"
@@ -457,7 +463,6 @@ export const FormBuilder = function FormBuilder({
                   placeholder={t(fieldForm.getValues("defaultPlaceholder") || "")}
                 />
               ) : null}
-
               {fieldType?.needsOptions ? (
                 <Controller
                   name="options"
@@ -569,6 +574,7 @@ export const ComponentForField = ({
       select: typeof val === "string",
       text: typeof val === "string",
       textList: val instanceof Array && val.every((v) => typeof v === "string"),
+      fileUpload: typeof val === "object", // `File` is not available in NodeJS
     } as const;
     if (!propsTypeConditionMap[propsType]) throw new Error(`Unknown propsType ${propsType}`);
     return propsTypeConditionMap[propsType];
@@ -680,6 +686,21 @@ export const ComponentForField = ({
         />
       </WithLabel>
     ) : null;
+  }
+
+  if (componentConfig.propsType === "fileUpload") {
+    return (
+      <WithLabel field={field} readOnly={readOnly}>
+        <componentConfig.factory
+          placeholder={field.placeholder}
+          label={field.label}
+          name={field.name}
+          readOnly={readOnly}
+          value={value}
+          setValue={setValue as (arg: typeof value) => void}
+        />
+      </WithLabel>
+    );
   }
 
   throw new Error(`Field ${field.name} does not have a valid propsType`);

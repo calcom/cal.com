@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
+import { uploadFiles } from "@calcom/app-store/file-upload--amazon-s3-/lib/utils";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
@@ -409,7 +410,10 @@ const BookingPage = ({
     );
   }
 
-  const bookEvent = (booking: BookingFormValues) => {
+  const bookEvent = async (booking: BookingFormValues) => {
+    // Upload files and replace the file objects with the file URLs in booking responses
+    booking.responses = await uploadFiles(booking.responses, eventType);
+
     telemetry.event(
       top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
       { isTeamBooking: document.URL.includes("team/") }
@@ -496,7 +500,7 @@ const BookingPage = ({
               })}{" "}
           | {APP_NAME}
         </title>
-        <link rel="icon" href="/favico.ico" />
+        <link rel="icon" href="/favicon.ico" />
       </Head>
       <BookingPageTagManager eventType={eventType} />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
@@ -599,13 +603,14 @@ const BookingPage = ({
             )}
             <div className={classNames("p-6", showEventTypeDetails ? "sm:w-1/2" : "w-full")}>
               <Form form={bookingForm} noValidate handleSubmit={bookEvent}>
+                before: BookingFields component
                 <BookingFields
                   isDynamicGroupBooking={isDynamicGroupBooking}
                   fields={eventType.bookingFields}
                   locations={locations}
                   rescheduleUid={rescheduleUid}
                 />
-
+                after
                 <div
                   className={classNames(
                     "flex justify-end space-x-2 rtl:space-x-reverse",

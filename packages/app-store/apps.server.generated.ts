@@ -15,6 +15,7 @@ export const apiHandlers = {
   exchangecalendar: import("./exchangecalendar/api"),
   facetime: import("./facetime/api"),
   fathom: import("./fathom/api"),
+  "file-upload--amazon-s3-": import("./file-upload--amazon-s3-/api"),
   ga4: import("./ga4/api"),
   giphy: import("./giphy/api"),
   googlecalendar: import("./googlecalendar/api"),

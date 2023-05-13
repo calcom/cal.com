@@ -1,0 +1,17 @@
+{
+  "name": "File Upload (Amazon S3)",
+  "slug": "file-upload--amazon-s3-",
+  "type": "file-upload--amazon-s3-_other",
+  "imageSrc": "icon.svg",
+  "logo": "icon.svg",
+  "url": "https://example.com/link",
+  "variant": "other",
+  "categories": ["other"],
+  "publisher": "miguelnietoa",
+  "email": "support@cal.com",
+  "description": "Ask users to upload a file while booking which will be added to your Amazon S3 Bucket",
+  "extendsFeature": "EventType",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "event-type-app-card"
+}

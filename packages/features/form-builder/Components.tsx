@@ -1,10 +1,12 @@
 import { useEffect } from "react";
 import type { z } from "zod";
 
+import UploadFileAmazonS3 from "@calcom/app-store/file-upload--amazon-s3-/components/UploadFileAmazonS3";
 import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import type {
   TextLikeComponentProps,
   SelectLikeComponentProps,
+  CommonProps,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -52,6 +54,10 @@ type Component =
       >(
         props: TProps
       ) => JSX.Element;
+    }
+  | {
+      propsType: "fileUpload";
+      factory: <TProps extends CommonProps>(props: TProps) => JSX.Element;
     };
 
 // TODO: Share FormBuilder components across react-query-awesome-builder(for Routing Forms) widgets.
@@ -378,6 +384,12 @@ export const Components: Record<BookingFieldType, Component> = {
           <Label className="-mt-px block text-sm font-medium text-gray-700 dark:text-white">{label}</Label>
         </div>
       );
+    },
+  },
+  fileUpload: {
+    propsType: "fileUpload",
+    factory: ({ readOnly, label, value, setValue }) => {
+      return <UploadFileAmazonS3 label={label} value={value} setValue={setValue} readOnly={readOnly} />;
     },
   },
 } as const;

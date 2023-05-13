@@ -174,6 +174,12 @@ function preprocess<T extends z.ZodType>({
           return;
         }
 
+        if (bookingField.type === "fileUpload") {
+          if (isRequired && !value)
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
+          return;
+        }
+
         throw new Error(`Can't parse unknown booking field type: ${bookingField.type}`);
       });
     })

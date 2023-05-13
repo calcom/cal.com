@@ -4,6 +4,7 @@
 **/
 import { appDataSchema as dailyvideo_zod_ts } from "./dailyvideo/zod";
 import { appDataSchema as fathom_zod_ts } from "./fathom/zod";
+import { appDataSchema as file_upload__amazon_s3__zod_ts } from "./file-upload--amazon-s3-/zod";
 import { appDataSchema as ga4_zod_ts } from "./ga4/zod";
 import { appDataSchema as giphy_zod_ts } from "./giphy/zod";
 import { appDataSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
@@ -28,6 +29,7 @@ import { appDataSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 export const appDataSchemas = {
   dailyvideo: dailyvideo_zod_ts,
   fathom: fathom_zod_ts,
+  "file-upload--amazon-s3-": file_upload__amazon_s3__zod_ts,
   ga4: ga4_zod_ts,
   giphy: giphy_zod_ts,
   googlecalendar: googlecalendar_zod_ts,

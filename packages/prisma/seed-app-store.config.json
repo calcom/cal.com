@@ -211,5 +211,12 @@
     "slug": "cron",
     "type": "cron_other",
     "isTemplate": false
+  },
+  {
+    "dirName": "file-upload--amazon-s3-",
+    "categories": ["other"],
+    "slug": "file-upload--amazon-s3-",
+    "type": "file-upload--amazon-s3-_other",
+    "isTemplate": false
   }
 ]
