@@ -230,12 +230,14 @@ const BookingPage = ({
     }),
     {}
   );
+
   const reserveSlot = () => {
     if (queryDuration) {
       reserveSlotMutation.mutate({
         eventTypeId: eventType.id,
         slotUtcStartDate: dayjs(queryDate).utc().format(),
         slotUtcEndDate: dayjs(queryDate).utc().add(parseInt(queryDuration), "minutes").format(),
+        bookingAttendees: currentSlotBooking ? currentSlotBooking.attendees.length : undefined,
       });
     }
   };
@@ -550,7 +552,7 @@ const BookingPage = ({
           )}>
           <div className="sm:flex">
             {showEventTypeDetails && (
-              <div className="sm:border-subtle  text-default flex flex-col px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6">
+              <div className="sm:border-subtle text-default flex flex-col px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
                   <BookingDescriptionPayment eventType={eventType} t={t} i18n={i18n} />
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
