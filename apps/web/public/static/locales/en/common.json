@@ -1800,5 +1800,13 @@
   "payment_app_commission": "Require payment ({{paymentFeePercentage}}% + {{fee, currency}} commission per transaction)",
   "email_invite_team": "{{email}} has been invited",
   "error_collecting_card": "Error collecting card",
-  "image_size_limit_exceed": "Uploaded image shouldn't exceed 5mb size limit"
+  "image_size_limit_exceed": "Uploaded image shouldn't exceed 5mb size limit",
+  "inline_embed": "Inline Embed",
+  "load_inline_content": "Loads your event type directly inline with your other website content.",
+  "floating_pop_up_button": "Floating pop-up button",
+  "floating_button_trigger_modal": "Puts a floating button on your site that triggers a modal with your event type.",
+  "pop_up_element_click": "Pop up via element click",
+  "open_dialog_with_element_click": "Open your Cal dialog when someone clicks an element.",
+  "need_help_embedding": "Need help? See our guides for embedding Cal on Wix, Squarespace, or WordPress, check our common questions, or explore advanced embed options.",
+  "book_my_cal": "Book my Cal"
 }

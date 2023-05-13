@@ -1,8 +1,7 @@
-import { BookingStatus } from "@prisma/client";
-
 import { parseRecurringEvent } from "@calcom/lib";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Prisma, PrismaClient } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";

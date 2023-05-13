@@ -51,7 +51,7 @@ export const Select = <
         dropdownIndicator: () => "text-default",
         control: (state) =>
           cx(
-            "bg-default border-default !min-h-9 text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-2 focus-within:ring-emphasis hover:border-emphasis rounded-md border ",
+            "bg-default border-default !min-h-9 h-9 text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-2 focus-within:ring-emphasis hover:border-emphasis rounded-md border ",
             state.isMulti
               ? variant === "checkbox"
                 ? "px-3 py-2"
@@ -59,7 +59,7 @@ export const Select = <
                 ? "p-1"
                 : "px-3 py-2"
               : "py-2 px-3",
-            props.isDisabled && "bg-gray-100",
+            props.isDisabled && "bg-muted",
             props.classNames?.control
           ),
         singleValue: () => cx("text-emphasis placeholder:text-muted", props.classNames?.singleValue),

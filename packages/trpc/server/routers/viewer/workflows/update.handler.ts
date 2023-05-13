@@ -1,5 +1,4 @@
 import type { Prisma } from "@prisma/client";
-import { BookingStatus, WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@prisma/client";
 
 import { isSMSAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import {
@@ -12,6 +11,7 @@ import {
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import type { PrismaClient } from "@calcom/prisma/client";
+import { BookingStatus, WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";

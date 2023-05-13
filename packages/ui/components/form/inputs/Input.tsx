@@ -23,7 +23,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       {...props}
       ref={ref}
       className={classNames(
-        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default min-h-9 disabled:bg-subtle mb-2 block rounded-md border py-2 px-3 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
+        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default min-h-9 disabled:bg-subtle mb-2 block rounded-md border py-2 px-3 text-sm leading-4 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
         isFullWidth && "w-full",
         props.className
       )}
@@ -33,7 +33,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 
 export function InputLeading(props: JSX.IntrinsicElements["div"]) {
   return (
-    <span className="bg-muted border-default text-subtle inline-flex flex-shrink-0 items-center rounded-l-sm border px-3 ltr:border-r-0 rtl:border-l-0 sm:text-sm">
+    <span className="bg-muted border-default text-subtle inline-flex flex-shrink-0 items-center rounded-l-sm border px-3 ltr:border-r-0 rtl:border-l-0 sm:text-sm sm:leading-4">
       {props.children}
     </span>
   );
@@ -68,13 +68,13 @@ type AddonProps = {
 const Addon = ({ isFilled, children, className, error }: AddonProps) => (
   <div
     className={classNames(
-      "addon-wrapper border-default min-h-9 border px-3",
+      "addon-wrapper border-default h-9 border px-3",
       isFilled && "bg-subtle",
       className
     )}>
     <div
       className={classNames(
-        "min-h-9 flex flex-col justify-center text-sm",
+        "flex h-9 flex-col justify-center text-sm",
         error ? "text-error" : "text-default"
       )}>
       <span className="flex whitespace-nowrap">{children}</span>
@@ -280,7 +280,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default mb-2 block w-full rounded-md border py-2 px-3 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
+        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default mb-2 block w-full rounded-md border py-2 px-3 text-sm leading-4 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
         props.className
       )}
     />
@@ -367,7 +367,7 @@ export const Form = forwardRef(PlainForm) as <T extends FieldValues>(
 
 export function FieldsetLegend(props: JSX.IntrinsicElements["legend"]) {
   return (
-    <legend {...props} className={classNames("text-default text-sm font-medium", props.className)}>
+    <legend {...props} className={classNames("text-default text-sm font-medium leading-4", props.className)}>
       {props.children}
     </legend>
   );

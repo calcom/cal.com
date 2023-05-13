@@ -1,11 +1,12 @@
-import { MembershipRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Meta, showToast } from "@calcom/ui";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { Button, Meta, TextField, showToast } from "@calcom/ui";
 import { Plus } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
@@ -13,6 +14,53 @@ import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import MemberInvitationModal from "../components/MemberInvitationModal";
 import MemberListItem from "../components/MemberListItem";
 import TeamInviteList from "../components/TeamInviteList";
+
+type Team = RouterOutputs["viewer"]["teams"]["get"];
+
+interface MembersListProps {
+  team: Team | undefined;
+}
+
+const checkIfExist = (comp: string, query: string) =>
+  comp.toLowerCase().replace(/\s+/g, "").includes(query.toLowerCase().replace(/\s+/g, ""));
+
+function MembersList(props: MembersListProps) {
+  const { team } = props;
+  const { t } = useLocale();
+  const [query, setQuery] = useState<string>("");
+
+  const members = team?.members;
+  const membersList = members
+    ? members && query === ""
+      ? members
+      : members.filter((member) => {
+          const email = member.email ? checkIfExist(member.email, query) : false;
+          const username = member.username ? checkIfExist(member.username, query) : false;
+          const name = member.name ? checkIfExist(member.name, query) : false;
+
+          return email || username || name;
+        })
+    : undefined;
+  return (
+    <div className="flex flex-col gap-y-3">
+      <TextField
+        type="search"
+        autoComplete="false"
+        onChange={(e) => setQuery(e.target.value)}
+        value={query}
+        defaultValue=""
+        placeholder={`${t("search")}...`}
+      />
+      {membersList?.length && team ? (
+        <ul className="divide-subtle border-subtle divide-y rounded-md border ">
+          {membersList.map((member) => {
+            return <MemberListItem key={member.id} team={team} member={member} />;
+          })}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
 
 const MembersView = () => {
   const { t, i18n } = useLocale();
@@ -96,13 +144,7 @@ const MembersView = () => {
                 )}
               </>
             )}
-            <div>
-              <ul className="divide-subtle border-subtle divide-y rounded-md border ">
-                {team?.members.map((member) => {
-                  return <MemberListItem key={member.id} team={team} member={member} />;
-                })}
-              </ul>
-            </div>
+            <MembersList team={team} />
             <hr className="border-subtle my-8" />
 
             {team && session.data && (

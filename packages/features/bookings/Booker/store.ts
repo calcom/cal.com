@@ -101,7 +101,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setLayout: (layout: BookerLayout) => {
     // If we switch to a large layout and don't have a date selected yet,
     // we selected it here, so week title is rendered properly.
-    if (["large_calendar", "large_timeslots"].includes(get().layout) && !get().selectedDate) {
+    if (["large_calendar", "large_timeslots"].includes(layout) && !get().selectedDate) {
       set({ selectedDate: dayjs().format("YYYY-MM-DD") });
     }
     return set({ layout });

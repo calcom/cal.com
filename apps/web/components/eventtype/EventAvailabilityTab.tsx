@@ -1,4 +1,3 @@
-import { SchedulingType } from "@prisma/client";
 import type { EventTypeSetup, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -10,6 +9,7 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Badge, Button, Select, SettingsToggle, SkeletonText } from "@calcom/ui";

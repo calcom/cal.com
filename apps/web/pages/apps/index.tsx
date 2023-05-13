@@ -6,7 +6,7 @@ import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { AppCategories } from "@calcom/prisma/client";
+import type { AppCategories } from "@calcom/prisma/enums";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { HorizontalTabItemProps } from "@calcom/ui";
 import { AllApps, AppStoreCategories, HorizontalTabs, TextField, PopularAppsSlider } from "@calcom/ui";

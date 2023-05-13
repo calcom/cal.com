@@ -1,4 +1,4 @@
-import { BookingStatus, MembershipRole, Prisma, SchedulingType } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import appStore from "@calcom/app-store";
 import { sendDeclinedEmails } from "@calcom/emails";
@@ -7,6 +7,7 @@ import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirma
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
+import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";

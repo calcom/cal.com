@@ -1,10 +1,11 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
-import { Prisma, WebhookTriggerEvents } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
 import { authedProcedure, publicProcedure, router } from "@calcom/trpc/server/trpc";

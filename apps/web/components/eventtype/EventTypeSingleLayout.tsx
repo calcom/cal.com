@@ -1,4 +1,3 @@
-import { SchedulingType } from "@prisma/client";
 import { Webhook as TbWebhook } from "lucide-react";
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
@@ -13,6 +12,7 @@ import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
   Button,
@@ -238,7 +238,7 @@ function EventTypeSingleLayout({
         <div className="flex items-center justify-end">
           {!eventType.metadata.managedEventConfig && (
             <>
-              <div className="sm:hover:bg-subtle hidden items-center rounded-md px-2 lg:flex">
+              <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 lg:flex">
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"
