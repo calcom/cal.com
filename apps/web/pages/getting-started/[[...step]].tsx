@@ -86,7 +86,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
   //   headers.unshift(
   //     props.hasPendingInvites && {
   //       title: `${t("email_no_user_invite_heading", { appName: APP_NAME })}`,
-  //       subtitle: [], // TODO: come up with some subtitle text here
+  //       subtitle: `${t("email_no_user_invite_heading", { pendingInvites : props.numberOfInvites })}`, // TODO: come up with some subtitle text here
   //     }
   //   );
   // }

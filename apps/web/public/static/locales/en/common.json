@@ -1625,6 +1625,7 @@
   "email_no_user_cta": "Create your account",
   "email_user_cta": "View Invitation",
   "email_no_user_invite_heading": "You’ve been invited to join a team on {{appName}}",
+  "email_pending_invites_subtitle": "You have {{pendingInvites}} pending invites",
   "email_no_user_invite_subheading": "{{invitedBy}} has invited you to join their team on {{appName}}. {{appName}} is the event-juggling scheduler that enables you and your team to schedule meetings without the email tennis.",
   "email_user_invite_subheading": "{{invitedBy}} has invited you to join their team `{{teamName}}` on {{appName}}. {{appName}} is the event-juggling scheduler that enables you and your team to schedule meetings without the email tennis.",
   "email_no_user_invite_steps_intro": "We’ll walk you through a few short steps and you’ll be enjoying stress free scheduling with your team in no time.",
