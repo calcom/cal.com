@@ -3,7 +3,8 @@ import MockDate from "mockdate";
 
 import dayjs from "@calcom/dayjs";
 import { MINUTES_DAY_END, MINUTES_DAY_START } from "@calcom/lib/availability";
-import getSlots from "@calcom/lib/slots";
+
+import getSlots from "./slots";
 
 MockDate.set("2021-06-20T11:59:59Z");
 
