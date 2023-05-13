@@ -82,7 +82,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         ],
         type: "fileUpload",
       };
-      // todo: add it to eventType.bookingFields array and save it through the mutation
+
       const newBookingFields = [...eventType.bookingFields, newBookingField];
       updateMutation.mutate({ bookingFields: newBookingFields, id: eventType.id });
     } else {

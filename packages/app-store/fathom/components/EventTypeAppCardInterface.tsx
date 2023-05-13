@@ -31,7 +31,6 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           setAppData("trackingId", e.target.value);
         }}
       />
-      Hello here
     </AppCard>
   );
 };

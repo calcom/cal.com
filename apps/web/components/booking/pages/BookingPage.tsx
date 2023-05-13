@@ -603,14 +603,13 @@ const BookingPage = ({
             )}
             <div className={classNames("p-6", showEventTypeDetails ? "sm:w-1/2" : "w-full")}>
               <Form form={bookingForm} noValidate handleSubmit={bookEvent}>
-                before: BookingFields component
                 <BookingFields
                   isDynamicGroupBooking={isDynamicGroupBooking}
                   fields={eventType.bookingFields}
                   locations={locations}
                   rescheduleUid={rescheduleUid}
                 />
-                after
+
                 <div
                   className={classNames(
                     "flex justify-end space-x-2 rtl:space-x-reverse",
