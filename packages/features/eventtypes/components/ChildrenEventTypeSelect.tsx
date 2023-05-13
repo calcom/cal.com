@@ -24,6 +24,7 @@ export type ChildrenEventType = {
   hidden: boolean;
 };
 
+// TODO: This isnt just a select... rename this component in the future took me ages to find the component i was looking for
 export const ChildrenEventTypeSelect = ({
   options = [],
   value = [],
@@ -87,7 +88,11 @@ export const ChildrenEventTypeSelect = ({
                   </small>
                 </div>
                 <div className="flex flex-row items-center gap-2">
-                  {children.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
+                  {children.hidden && (
+                    <Badge variant="gray" className="hidden sm:block">
+                      {t("hidden")}
+                    </Badge>
+                  )}
                   <Tooltip content={t("show_eventtype_on_profile")}>
                     <div className="self-center rounded-md p-2">
                       <Switch

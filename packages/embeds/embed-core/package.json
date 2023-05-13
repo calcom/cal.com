@@ -1,6 +1,6 @@
 {
   "name": "@calcom/embed-core",
-  "version": "1.1.3",
+  "version": "1.1.5",
   "description": "This is the vanilla JS core script that embeds Cal Link",
   "main": "./dist/embed/embed.js",
   "types": "./dist/index.d.ts",
@@ -29,8 +29,7 @@
     "embed-tests": "yarn playwright test --config=playwright/config/playwright.config.ts",
     "embed-tests-quick": "QUICK=true yarn embed-tests",
     "embed-tests-update-snapshots:ci": "yarn embed-tests-quick --update-snapshots",
-    "prepare": "NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn build",
-    "publish-prod:patch": "yarn publish --access public --patch",
+    "prepack": "NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf ../../../apps/web/public/embed"
   },
   "files": [
