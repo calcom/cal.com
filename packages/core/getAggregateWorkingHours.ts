@@ -1,5 +1,4 @@
-import { SchedulingType } from "@prisma/client";
-
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { WorkingHours } from "@calcom/types/schedule";
 
 /**

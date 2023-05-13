@@ -1,5 +1,6 @@
-import { MembershipRole } from "@prisma/client";
 import { z } from "zod";
+
+import { MembershipRole } from "@calcom/prisma/enums";
 
 export const ZChangeMemberRoleInputSchema = z.object({
   teamId: z.number(),

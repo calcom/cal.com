@@ -14,10 +14,14 @@ export default function useTheme(themeToSet?: Maybe<string>) {
   const embedTheme = useEmbedTheme();
 
   useEffect(() => {
-    // If themeToSet is not provided the purpose is to just return the current the current values
-    if (!themeToSet) return;
+    // If themeToSet is not provided the app intends to not apply a specific theme
+    if (!themeToSet) {
+      // But if embedTheme is set then the Embed API intends to apply that theme or it wants "system" theme which is the default
+      setTheme(embedTheme || "system");
+      return;
+    }
 
-    // Embed theme takes precedence over theme configured in app. This allows embeds to be themed differently
+    // Embed theme takes precedence over theme configured in app. If embedTheme isn't set that is it's in 'Auto' mode, then it would use the theme configured in appearance.
     const finalThemeToSet = embedTheme || themeToSet;
 
     if (!finalThemeToSet || finalThemeToSet === activeTheme) return;
@@ -25,6 +29,7 @@ export default function useTheme(themeToSet?: Maybe<string>) {
     setTheme(finalThemeToSet);
     // We must not add `activeTheme` to the dependency list as it can cause an infinite loop b/w dark and theme switches
     // because there might be another booking page with conflicting theme.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [themeToSet, setTheme, embedTheme]);
   return {
     resolvedTheme,

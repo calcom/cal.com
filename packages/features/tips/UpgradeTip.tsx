@@ -38,7 +38,7 @@ export function UpgradeTip({
         <picture className="absolute min-h-[295px] w-full rounded-lg object-cover">
           <source srcSet={`${background}-dark.jpg`} media="(prefers-color-scheme: dark)" />
           <img
-            className="absolute min-h-[295px] w-full rounded-lg object-cover"
+            className="absolute min-h-[295px] w-full rounded-lg object-cover object-left md:object-center"
             src={`${background}.jpg`}
             loading="lazy"
             alt={title}

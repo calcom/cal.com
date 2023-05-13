@@ -1,4 +1,4 @@
-import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@prisma/client";
+import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 
 export const WORKFLOW_TRIGGER_EVENTS = [
   WorkflowTriggerEvents.BEFORE_EVENT,
