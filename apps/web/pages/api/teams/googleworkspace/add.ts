@@ -1,7 +1,6 @@
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { encodeOAuthState } from "@calcom/app-store/_utils/encodeOAuthState";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
@@ -28,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       scope: scopes,
 
       prompt: "consent",
-      state: encodeOAuthState(req),
+      state: JSON.stringify({ teamId: req.query.teamId }),
     });
 
     res.status(200).json({ url: authUrl });

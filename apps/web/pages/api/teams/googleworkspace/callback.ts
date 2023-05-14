@@ -1,5 +1,6 @@
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -10,6 +11,10 @@ import prisma from "@calcom/prisma";
 let client_id = "";
 let client_secret = "";
 
+const stateSchema = z.object({
+  teamId: z.string(),
+});
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession({ req, res });
 
@@ -17,7 +22,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
-  const { code } = req.query;
+  const { code, state } = req.query;
+  const parsedState = stateSchema.parse(JSON.parse(state as string));
+  const { teamId } = parsedState;
 
   if (code && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
@@ -47,7 +54,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
+  if (!teamId) {
+    res.redirect(getSafeRedirectUrl(WEBAPP_URL + "/settings") ?? `${WEBAPP_URL}/teams`);
+  }
+
   res.redirect(
-    getSafeRedirectUrl(WEBAPP_URL + "/settings/teams/1/?inviteModal=true&bulk=true") ?? `${WEBAPP_URL}/teams`
+    getSafeRedirectUrl(WEBAPP_URL + `/settings/teams/${teamId}/members?inviteModal=true&bulk=true`) ??
+      `${WEBAPP_URL}/teams`
   );
 }

@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { useState } from "react";
 import type { PropsWithChildren } from "react";
 
@@ -29,6 +30,8 @@ function gotoUrl(url: string, newTab?: boolean) {
 }
 
 export function GoogleWorkspaceInviteButton(props: PropsWithChildren) {
+  const router = useRouter();
+  const teamId = Number(router.query.id);
   const [googleWorkspaceLoading, setGoogleWorkspaceLoading] = useState(false);
   const { data: hasExistingWorkspaceConnection, isLoading } =
     trpc.viewer.appsRouter.checkForGWorkspace.useQuery();
@@ -52,7 +55,10 @@ export function GoogleWorkspaceInviteButton(props: PropsWithChildren) {
       StartIcon={GoogleIcon}
       onClick={async () => {
         setGoogleWorkspaceLoading(true);
-        const res = await fetch(`/api/teams/googleworkspace/add`);
+        const params = new URLSearchParams({
+          teamId: teamId.toString(),
+        });
+        const res = await fetch(`/api/teams/googleworkspace/add?${params}`);
 
         if (!res.ok) {
           const errorBody = await res.json();
