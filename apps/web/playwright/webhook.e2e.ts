@@ -135,7 +135,7 @@ test.describe("BOOKING_CREATED", async () => {
 
     webhookReceiver.close();
   });
-})
+});
 
 test.describe("BOOKING_REJECTED", async () => {
   test("can book an event that requires confirmation and then that booking can be rejected by organizer", async ({
@@ -174,8 +174,8 @@ test.describe("BOOKING_REJECTED", async () => {
 
     await page.goto("/bookings/unconfirmed");
     await page.click('[data-testid="reject"]');
-    await page.click('[data-testid="rejection-confirm"]')
-    await page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm"))
+    await page.click('[data-testid="rejection-confirm"]');
+    await page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm"));
 
     // --- check that webhook was called
     await waitFor(() => {
@@ -262,7 +262,7 @@ test.describe("BOOKING_REJECTED", async () => {
 
     webhookReceiver.close();
   });
-})
+});
 
 test.describe("BOOKING_REQUESTED", async () => {
   test("can book an event that requires confirmation and get a booking requested event", async ({
@@ -376,11 +376,11 @@ test.describe("BOOKING_REQUESTED", async () => {
         currency: "usd",
         length: 30,
         bookingId: "[redacted/dynamic]",
-        status: "ACCEPTED",
+        status: "PENDING",
         additionalInformation: "[redacted/dynamic]",
       },
     });
 
     webhookReceiver.close();
   });
-})
+});

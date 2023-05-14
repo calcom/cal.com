@@ -443,51 +443,51 @@ function getBookingData({
   });
   const bookingDataSchema = isNotAnApiCall
     ? extendedBookingCreateBody.merge(
-      z.object({
-        responses: responsesSchema,
-      })
-    )
-    : bookingCreateBodySchemaForApi
-      .merge(
         z.object({
-          responses: responsesSchema.optional(),
+          responses: responsesSchema,
         })
       )
-      .superRefine((val, ctx) => {
-        if (val.responses && val.customInputs) {
-          ctx.addIssue({
-            code: "custom",
-            message:
-              "Don't use both customInputs and responses. `customInputs` is only there for legacy support.",
-          });
-          return;
-        }
-        const legacyProps = Object.keys(bookingCreateSchemaLegacyPropsForApi.shape);
-
-        if (val.responses) {
-          const unwantedProps: string[] = [];
-          legacyProps.forEach((legacyProp) => {
-            if (val[legacyProp as keyof typeof val]) {
-              unwantedProps.push(legacyProp);
-            }
-          });
-          if (unwantedProps.length) {
+    : bookingCreateBodySchemaForApi
+        .merge(
+          z.object({
+            responses: responsesSchema.optional(),
+          })
+        )
+        .superRefine((val, ctx) => {
+          if (val.responses && val.customInputs) {
             ctx.addIssue({
               code: "custom",
-              message: `Legacy Props: ${unwantedProps.join(",")}. They can't be used with \`responses\``,
+              message:
+                "Don't use both customInputs and responses. `customInputs` is only there for legacy support.",
             });
             return;
           }
-        } else if (val.customInputs) {
-          const { success } = bookingCreateSchemaLegacyPropsForApi.safeParse(val);
-          if (!success) {
-            ctx.addIssue({
-              code: "custom",
-              message: `With \`customInputs\` you must specify legacy props ${legacyProps.join(",")}`,
+          const legacyProps = Object.keys(bookingCreateSchemaLegacyPropsForApi.shape);
+
+          if (val.responses) {
+            const unwantedProps: string[] = [];
+            legacyProps.forEach((legacyProp) => {
+              if (val[legacyProp as keyof typeof val]) {
+                unwantedProps.push(legacyProp);
+              }
             });
+            if (unwantedProps.length) {
+              ctx.addIssue({
+                code: "custom",
+                message: `Legacy Props: ${unwantedProps.join(",")}. They can't be used with \`responses\``,
+              });
+              return;
+            }
+          } else if (val.customInputs) {
+            const { success } = bookingCreateSchemaLegacyPropsForApi.safeParse(val);
+            if (!success) {
+              ctx.addIssue({
+                code: "custom",
+                message: `With \`customInputs\` you must specify legacy props ${legacyProps.join(",")}`,
+              });
+            }
           }
-        }
-      });
+        });
 
   const reqBody = bookingDataSchema.parse(req.body);
   if ("customInputs" in reqBody) {
@@ -569,8 +569,8 @@ async function handler(
   }: {
     isNotAnApiCall?: boolean;
   } = {
-      isNotAnApiCall: false,
-    }
+    isNotAnApiCall: false,
+  }
 ) {
   const { userId } = req;
 
@@ -657,23 +657,23 @@ async function handler(
   const loadUsers = async () =>
     !eventTypeId
       ? await prisma.user.findMany({
-        where: {
-          username: {
-            in: dynamicUserList,
+          where: {
+            username: {
+              in: dynamicUserList,
+            },
           },
-        },
-        select: {
-          ...userSelect.select,
-          credentials: true, // Don't leak to client
-          metadata: true,
-        },
-      })
+          select: {
+            ...userSelect.select,
+            credentials: true, // Don't leak to client
+            metadata: true,
+          },
+        })
       : !!eventType.hosts?.length
-        ? eventType.hosts.map(({ user, isFixed }) => ({
+      ? eventType.hosts.map(({ user, isFixed }) => ({
           ...user,
           isFixed,
         }))
-        : eventType.users;
+      : eventType.users;
   // loadUsers allows type inferring
   let users: (Awaited<ReturnType<typeof loadUsers>>[number] & {
     isFixed?: boolean;
@@ -844,16 +844,16 @@ async function handler(
   const teamMemberPromises =
     users.length > 1
       ? users.slice(1).map(async function (user) {
-        return {
-          email: user.email || "",
-          name: user.name || "",
-          timeZone: user.timeZone,
-          language: {
-            translate: await getTranslation(user.locale ?? "en", "common"),
-            locale: user.locale ?? "en",
-          },
-        };
-      })
+          return {
+            email: user.email || "",
+            name: user.name || "",
+            timeZone: user.timeZone,
+            language: {
+              translate: await getTranslation(user.locale ?? "en", "common"),
+              locale: user.locale ?? "en",
+            },
+          };
+        })
       : [];
 
   const teamMembers = await Promise.all(teamMemberPromises);
@@ -1012,11 +1012,11 @@ async function handler(
   const handleSeats = async () => {
     let resultBooking:
       | (Partial<Booking> & {
-        appsStatus?: AppsStatus[];
-        seatReferenceUid?: string;
-        paymentUid?: string;
-        message?: string;
-      })
+          appsStatus?: AppsStatus[];
+          seatReferenceUid?: string;
+          paymentUid?: string;
+          message?: string;
+        })
       | null = null;
     const booking = await prisma.booking.findFirst({
       where: {
@@ -1230,8 +1230,8 @@ async function handler(
           if (
             !eventType.seatsPerTimeSlot ||
             attendeesToMove.length +
-            newTimeSlotBooking.attendees.filter((attendee) => attendee.bookingSeat).length >
-            eventType.seatsPerTimeSlot
+              newTimeSlotBooking.attendees.filter((attendee) => attendee.bookingSeat).length >
+              eventType.seatsPerTimeSlot
           ) {
             throw new HttpError({ statusCode: 409, message: "Booking does not have enough available seats" });
           }
@@ -1603,10 +1603,10 @@ async function handler(
     const eventTypeRel = !eventTypeId
       ? {}
       : {
-        connect: {
-          id: eventTypeId,
-        },
-      };
+          connect: {
+            id: eventTypeId,
+          },
+        };
 
     const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
     const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
@@ -1666,8 +1666,8 @@ async function handler(
       },
       destinationCalendar: evt.destinationCalendar
         ? {
-          connect: { id: evt.destinationCalendar.id },
-        }
+            connect: { id: evt.destinationCalendar.id },
+          }
         : undefined,
     };
 
@@ -2086,8 +2086,8 @@ async function handler(
 
   const metadata = videoCallUrl
     ? {
-      videoCallUrl: getVideoCallUrlFromCalEvent(evt),
-    }
+        videoCallUrl: getVideoCallUrlFromCalEvent(evt),
+      }
     : undefined;
   if (isConfirmedByDefault) {
     const eventTrigger: WebhookTriggerEvents = rescheduleUid
@@ -2163,7 +2163,7 @@ async function handler(
       log.error("Error while sending webhook", error);
     }
   } else if (eventType.requiresConfirmation) {
-    // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook 
+    // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
     const subscriberOptions = {
       userId: organizerUser.id,
@@ -2224,7 +2224,7 @@ async function handler(
             : undefined,
           metadata: { ...metadata, ...reqBody.metadata },
           eventTypeId,
-          status: "ACCEPTED",
+          status: "PENDING",
           smsReminderNumber: booking?.smsReminderNumber || undefined,
         }).catch((e) => {
           console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
