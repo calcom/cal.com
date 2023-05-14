@@ -237,14 +237,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               step.action === WorkflowActions.EMAIL_ATTENDEE /*||
                   step.action === WorkflowActions.EMAIL_ADDRESS*/
             ) {
-              let sendTo = "";
+              let sendTo: string[] = [];
 
               switch (step.action) {
                 case WorkflowActions.EMAIL_HOST:
-                  sendTo = bookingInfo.organizer?.email;
+                  sendTo = [bookingInfo.organizer?.email];
                   break;
                 case WorkflowActions.EMAIL_ATTENDEE:
-                  sendTo = bookingInfo.attendees[0].email;
+                  sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
                   break;
                 /*case WorkflowActions.EMAIL_ADDRESS:
                       sendTo = step.sendTo || "";*/
@@ -435,14 +435,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             newStep.action === WorkflowActions.EMAIL_ATTENDEE /*||
                 newStep.action === WorkflowActions.EMAIL_ADDRESS*/
           ) {
-            let sendTo = "";
+            let sendTo: string[] = [];
 
             switch (newStep.action) {
               case WorkflowActions.EMAIL_HOST:
-                sendTo = bookingInfo.organizer?.email;
+                sendTo = [bookingInfo.organizer?.email];
                 break;
               case WorkflowActions.EMAIL_ATTENDEE:
-                sendTo = bookingInfo.attendees[0].email;
+                sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
                 break;
               /*case WorkflowActions.EMAIL_ADDRESS:
                     sendTo = newStep.sendTo || "";*/
@@ -532,7 +532,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               user: true,
             },
           });
-          bookingsForReminders.forEach(async (booking) => {
+          for (const booking of bookingsForReminders) {
             const bookingInfo = {
               uid: booking.uid,
               attendees: booking.attendees.map((attendee) => {
@@ -565,14 +565,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               step.action === WorkflowActions.EMAIL_HOST /*||
                   step.action === WorkflowActions.EMAIL_ADDRESS*/
             ) {
-              let sendTo = "";
+              let sendTo: string[] = [];
 
               switch (step.action) {
                 case WorkflowActions.EMAIL_HOST:
-                  sendTo = bookingInfo.organizer?.email;
+                  sendTo = [bookingInfo.organizer?.email];
                   break;
                 case WorkflowActions.EMAIL_ATTENDEE:
-                  sendTo = bookingInfo.attendees[0].email;
+                  sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
                   break;
                 /*case WorkflowActions.EMAIL_ADDRESS:
                       sendTo = step.sendTo || "";*/
@@ -611,7 +611,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 userWorkflow.teamId
               );
             }
-          });
+          }
         }
       }
     });

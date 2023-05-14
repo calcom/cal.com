@@ -59,6 +59,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
     },
   },
   owner: true,
+  hidden: true,
 });
 
 export const getPublicEvent = async (username: string, eventSlug: string, prisma: PrismaClient) => {

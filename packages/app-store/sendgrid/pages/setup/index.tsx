@@ -84,7 +84,7 @@ export default function SendgridSetup() {
                         onBlur={onBlur}
                         disabled={testPassed === true}
                         name="api_key"
-                        placeholder="api_xyz..."
+                        placeholder="SG.xxxxxx..."
                         onChange={async (e) => {
                           onChange(e.target.value);
                           form.setValue("api_key", e.target.value);
