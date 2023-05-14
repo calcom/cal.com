@@ -79,7 +79,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
     },
   });
-  console.log("activeOnEventTypes", JSON.stringify(activeOnEventTypes));
 
   const activeOnWithChildren = activeOnEventTypes
     .map((eventType) => [eventType.id].concat(eventType.children.map((child) => child.id)))
