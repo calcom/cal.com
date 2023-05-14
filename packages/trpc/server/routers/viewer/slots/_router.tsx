@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { router, publicProcedure } from "../../../trpc";
+import publicProcedure from "../../../procedures/publicProcedure";
+import { router } from "../../../trpc";
 import { ZGetScheduleInputSchema } from "./getSchedule.schema";
 import { ZReserveSlotInputSchema } from "./reserveSlot.schema";
 
