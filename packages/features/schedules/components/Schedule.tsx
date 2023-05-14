@@ -215,6 +215,7 @@ const RemoveTimeButton = ({
   remove: UseFieldArrayRemove;
   className?: string;
 }) => {
+  const { t } = useLocale();
   return (
     <Button
       type="button"
@@ -223,6 +224,7 @@ const RemoveTimeButton = ({
       StartIcon={Trash}
       onClick={() => remove(index)}
       className={className}
+      tooltip={t("delete")}
     />
   );
 };
