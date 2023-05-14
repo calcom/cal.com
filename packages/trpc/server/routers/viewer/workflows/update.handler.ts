@@ -64,14 +64,46 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
+  const activeOnEventTypes = await ctx.prisma.eventType.findMany({
+    where: {
+      id: {
+        in: activeOn,
+      },
+    },
+    select: {
+      id: true,
+      children: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+  console.log("activeOnEventTypes", JSON.stringify(activeOnEventTypes));
+
+  const activeOnWithChildren = activeOnEventTypes
+    .map((eventType) => [eventType.id].concat(eventType.children.map((child) => child.id)))
+    .flat();
+
   const oldActiveOnEventTypes = await ctx.prisma.workflowsOnEventTypes.findMany({
     where: {
       workflowId: id,
     },
     select: {
       eventTypeId: true,
+      eventType: {
+        include: {
+          children: true,
+        },
+      },
     },
   });
+
+  const oldActiveOnEventTypeIds = oldActiveOnEventTypes
+    .map((eventTypeRel) =>
+      [eventTypeRel.eventType.id].concat(eventTypeRel.eventType.children.map((child) => child.id))
+    )
+    .flat();
 
   const newActiveEventTypes = activeOn.filter((eventType) => {
     if (
@@ -119,32 +151,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  const activeOnEventTypes = await ctx.prisma.eventType.findMany({
-    where: {
-      id: {
-        in: activeOn,
-      },
-    },
-    select: {
-      id: true,
-      children: {
-        select: {
-          id: true,
-        },
-      },
-    },
-  });
-
   //remove all scheduled Email and SMS reminders for eventTypes that are not active any more
-  const removedEventTypes = oldActiveOnEventTypes
-    .map((eventType) => {
-      return eventType.eventTypeId;
-    })
-    .filter((eventType) => {
-      if (!activeOn.includes(eventType)) {
-        return eventType;
-      }
-    });
+  const removedEventTypes = oldActiveOnEventTypeIds.filter((eventTypeId) => {
+    if (!activeOnWithChildren.includes(eventTypeId)) {
+      return eventTypeId;
+    }
+  });
 
   const remindersToDeletePromise: Prisma.PrismaPromise<
     {
@@ -703,7 +715,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
-  for (const eventTypeId of activeOn) {
+  for (const eventTypeId of activeOnWithChildren) {
     if (smsReminderNumberNeeded) {
       await upsertSmsReminderFieldForBooking({
         workflowId: id,
