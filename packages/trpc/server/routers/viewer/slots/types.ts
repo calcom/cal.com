@@ -33,6 +33,7 @@ export const reserveSlotSchema = z
     slotUtcStartDate: z.string(),
     // endTime ISOString
     slotUtcEndDate: z.string(),
+    bookingAttendees: z.number().optional(),
   })
   .refine(
     (data) => !!data.eventTypeId || !!data.slotUtcStartDate || !!data.slotUtcEndDate,
