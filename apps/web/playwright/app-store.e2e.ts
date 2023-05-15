@@ -12,6 +12,7 @@ test.describe("App Store - Authed", () => {
     await pro.login();
     await page.goto("/apps/categories/calendar");
     await page.click('[data-testid="app-store-app-card-apple-calendar"]');
+    await page.waitForURL("/apps/apple-calendar");
     await page.click('[data-testid="install-app-button"]');
     await expect(page.locator(`text=Connect to Apple Server`)).toBeVisible();
   });

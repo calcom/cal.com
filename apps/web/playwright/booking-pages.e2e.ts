@@ -96,7 +96,12 @@ testBothBookers.describe("pro user", () => {
     });
   });
 
-  test("Can cancel the recently created booking and rebook the same timeslot", async ({ page, users }) => {
+  test("Can cancel the recently created booking and rebook the same timeslot", async ({
+    page,
+    users,
+  }, testInfo) => {
+    // Because it tests the entire booking flow + the cancellation + rebooking
+    test.setTimeout(testInfo.timeout * 3);
     await bookFirstEvent(page);
     await expect(page.locator(`[data-testid="attendee-email-${testEmail}"]`)).toHaveText(testEmail);
     await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
@@ -107,7 +112,7 @@ testBothBookers.describe("pro user", () => {
     await page.goto("/bookings/upcoming");
     await page.locator('[data-testid="cancel"]').first().click();
     await page.waitForURL((url) => {
-      return url.pathname.startsWith("/booking");
+      return url.pathname.startsWith("/booking/");
     });
     await page.locator('[data-testid="cancel"]').click();
 
@@ -133,7 +138,7 @@ testBothBookers.describe("pro user", () => {
     await page.goto("/bookings/unconfirmed");
     await Promise.all([
       page.click('[data-testid="confirm"]'),
-      page.waitForResponse((response) => response.url().includes("/api/trpc/viewer.bookings.confirm")),
+      page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm")),
     ]);
     // This is the only booking in there that needed confirmation and now it should be empty screen
     await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();

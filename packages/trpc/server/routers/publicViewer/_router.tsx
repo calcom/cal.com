@@ -1,4 +1,7 @@
-import { publicProcedure, router } from "../../trpc";
+import localeMiddleware from "../../middlewares/localeMiddleware";
+import sessionMiddleware from "../../middlewares/sessionMiddleware";
+import publicProcedure from "../../procedures/publicProcedure";
+import { router } from "../../trpc";
 import { slotsRouter } from "../viewer/slots/_router";
 import { ZEventInputSchema } from "./event.schema";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
@@ -18,7 +21,7 @@ const UNSTABLE_HANDLER_CACHE: PublicViewerRouterHandlerCache = {};
 
 // things that unauthenticated users can query about themselves
 export const publicViewerRouter = router({
-  session: publicProcedure.query(async ({ ctx }) => {
+  session: publicProcedure.use(sessionMiddleware).query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.session) {
       UNSTABLE_HANDLER_CACHE.session = await import("./session.handler").then((mod) => mod.sessionHandler);
     }
@@ -33,7 +36,7 @@ export const publicViewerRouter = router({
     });
   }),
 
-  i18n: publicProcedure.query(async ({ ctx }) => {
+  i18n: publicProcedure.use(localeMiddleware).query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.i18n) {
       UNSTABLE_HANDLER_CACHE.i18n = await import("./i18n.handler").then((mod) => mod.i18nHandler);
     }
@@ -43,9 +46,7 @@ export const publicViewerRouter = router({
       throw new Error("Failed to load handler");
     }
 
-    return UNSTABLE_HANDLER_CACHE.i18n({
-      ctx,
-    });
+    return UNSTABLE_HANDLER_CACHE.i18n({ ctx });
   }),
 
   countryCode: publicProcedure.query(async ({ ctx }) => {
@@ -83,27 +84,24 @@ export const publicViewerRouter = router({
     });
   }),
 
-  stripeCheckoutSession: publicProcedure
-    .input(ZStripeCheckoutSessionInputSchema)
-    .query(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.stripeCheckoutSession) {
-        UNSTABLE_HANDLER_CACHE.stripeCheckoutSession = await import("./stripeCheckoutSession.handler").then(
-          (mod) => mod.stripeCheckoutSessionHandler
-        );
-      }
+  stripeCheckoutSession: publicProcedure.input(ZStripeCheckoutSessionInputSchema).query(async ({ input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.stripeCheckoutSession) {
+      UNSTABLE_HANDLER_CACHE.stripeCheckoutSession = await import("./stripeCheckoutSession.handler").then(
+        (mod) => mod.stripeCheckoutSessionHandler
+      );
+    }
 
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.stripeCheckoutSession) {
-        throw new Error("Failed to load handler");
-      }
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.stripeCheckoutSession) {
+      throw new Error("Failed to load handler");
+    }
 
-      return UNSTABLE_HANDLER_CACHE.stripeCheckoutSession({
-        ctx,
-        input,
-      });
-    }),
+    return UNSTABLE_HANDLER_CACHE.stripeCheckoutSession({
+      input,
+    });
+  }),
 
-  cityTimezones: publicProcedure.query(async ({ ctx }) => {
+  cityTimezones: publicProcedure.query(async () => {
     if (!UNSTABLE_HANDLER_CACHE.cityTimezones) {
       UNSTABLE_HANDLER_CACHE.cityTimezones = await import("./cityTimezones.handler").then(
         (mod) => mod.cityTimezonesHandler
@@ -115,9 +113,7 @@ export const publicViewerRouter = router({
       throw new Error("Failed to load handler");
     }
 
-    return UNSTABLE_HANDLER_CACHE.cityTimezones({
-      ctx,
-    });
+    return UNSTABLE_HANDLER_CACHE.cityTimezones();
   }),
 
   // REVIEW: This router is part of both the public and private viewer router?

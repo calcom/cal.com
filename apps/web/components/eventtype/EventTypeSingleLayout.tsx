@@ -238,7 +238,7 @@ function EventTypeSingleLayout({
         <div className="flex items-center justify-end">
           {!eventType.metadata.managedEventConfig && (
             <>
-              <div className="sm:hover:bg-subtle hidden items-center rounded-md px-2 lg:flex">
+              <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 lg:flex">
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"

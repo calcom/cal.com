@@ -1038,7 +1038,6 @@
   "event_cancelled_trigger": "quando o evento é cancelado",
   "new_event_trigger": "quando um novo evento for reservado",
   "email_host_action": "enviar e-mail para o host",
-  "email_attendee_action": "enviar e-mail para o participante",
   "sms_attendee_action": "enviar SMS para participante",
   "sms_number_action": "enviar SMS para um número específico",
   "workflows": "Fluxos de trabalho",
