@@ -30,6 +30,7 @@ const OptionalTooltipWrapper = ({
 export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: ToggleGroupProps) => {
   const [value, setValue] = useState<string | undefined>(props.defaultValue);
   const activeRef = useRef<HTMLSpanElement>(null);
+
   useEffect(() => {
     if (value && onValueChange) onValueChange(value);
   }, [value, onValueChange]);
