@@ -1726,7 +1726,6 @@
   "locked_apps_description": "成员将能够查看活动的应用，但不能编辑任何应用设置",
   "locked_webhooks_description": "成员将能够查看活动的 Webhook，但不能编辑任何 Webhook 设置",
   "locked_workflows_description": "成员将能够查看活动的工作流程，但不能编辑任何工作流程设置",
-  "locked_by_admin": "被管理员锁定",
   "app_not_connected": "您尚未连接 {{appName}} 账户。",
   "connect_now": "立即连接",
   "managed_event_dialog_confirm_button_one": "替换并通知 {{count}} 个成员",

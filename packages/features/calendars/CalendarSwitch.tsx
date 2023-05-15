@@ -72,7 +72,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
     }
   );
   return (
-    <div className={classNames("flex flex-row items-center my-2")}>
+    <div className={classNames("my-2 flex flex-row items-center")}>
       <div className="flex pl-2">
         <Switch
           id={externalId}
