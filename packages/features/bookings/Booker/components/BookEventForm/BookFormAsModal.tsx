@@ -20,9 +20,9 @@ export function BookFormAsModal({ visible, onCancel }: { visible: boolean; onCan
       <DialogContent
         type={undefined}
         enableOverflow
-        className="[&_.modalsticky]:border-t-subtle [&_.modalsticky]:bg-default max-h-[45vh] pt-4 pb-0 [&_.modalsticky]:sticky [&_.modalsticky]:bottom-0 [&_.modalsticky]:left-0 [&_.modalsticky]:right-0 [&_.modalsticky]:-mx-8 [&_.modalsticky]:border-t [&_.modalsticky]:px-6 [&_.modalsticky]:py-4">
-        <h1 className="font-cal text-emphasis text-lg leading-5">{t("confirm_your_details")} </h1>
-        <div className="mt-6 flex space-x-2 rounded-md leading-none">
+        className="[&_.modalsticky]:border-t-subtle [&_.modalsticky]:bg-default max-h-[80vh] pt-6 pb-0 [&_.modalsticky]:sticky [&_.modalsticky]:bottom-0 [&_.modalsticky]:left-0 [&_.modalsticky]:right-0 [&_.modalsticky]:-mx-8 [&_.modalsticky]:border-t [&_.modalsticky]:px-6 [&_.modalsticky]:py-4">
+        <h1 className="font-cal text-emphasis text-xl leading-5">{t("confirm_your_details")} </h1>
+        <div className="mt-4 flex space-x-2 rounded-md leading-none">
           <Badge variant="grayWithoutHover" startIcon={Calendar} size="lg">
             <span>{parsedSelectedTimeslot.format("LLL")}</span>
           </Badge>

@@ -23,8 +23,12 @@ for module in "$@"; do
     git submodule add --force $project "apps/$module"
     # Set the default branch to main
     git config -f .gitmodules --add "submodule.apps/$module.branch" main
-    # Adding the subdmoule ignores the `.gitignore` so a reset is needed
-    git reset
+    
+    # Update to the latest from main in that submodule
+    cd apps/$module && git pull origin main && cd ../..
+
+    # We forcefully added the subdmoule which was in .gitignore, so unstage it.
+    git restore --staged apps/$module
   else
     # If the module is the API, display a link to request access
     if [ "$module" = "api" ]; then
@@ -35,3 +39,4 @@ for module in "$@"; do
     fi
   fi
 done
+git restore --staged .gitmodules
