@@ -3,7 +3,7 @@
   "name": "Weather in your Calendar",
   "slug": "weather_in_your_calendar",
   "type": "weather_in_your_calendar_other",
-  "logo": "icon.gif",
+  "logo": "icon.svg",
   "url": "https://weather-in-calendar.com",
   "variant": "other",
   "categories": ["other"],

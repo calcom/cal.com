@@ -4,7 +4,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 export const ZInviteMemberInputSchema = z.object({
   teamId: z.number(),
-  usernameOrEmail: z.string().transform((usernameOrEmail) => usernameOrEmail.toLowerCase()),
+  usernameOrEmail: z.string().transform((usernameOrEmail) => usernameOrEmail.trim().toLowerCase()),
   role: z.nativeEnum(MembershipRole),
   language: z.string(),
   sendEmailInvitation: z.boolean(),
