@@ -25,6 +25,7 @@ type WebhookProps = {
   eventTriggers: WebhookTriggerEvents[];
   secret: string | null;
   eventTypeId: number | null;
+  teamId: number | null;
 };
 
 export default function WebhookListItem(props: {
@@ -54,7 +55,11 @@ export default function WebhookListItem(props: {
 
   const onDeleteWebhook = () => {
     // TODO: Confimation dialog before deleting
-    deleteWebhook.mutate({ id: webhook.id, eventTypeId: webhook.eventTypeId || undefined });
+    deleteWebhook.mutate({
+      id: webhook.id,
+      eventTypeId: webhook.eventTypeId || undefined,
+      teamId: webhook.teamId || undefined,
+    });
   };
 
   return (

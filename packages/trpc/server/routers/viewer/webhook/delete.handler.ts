@@ -12,31 +12,47 @@ type DeleteOptions = {
 
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   const { id } = input;
-  input.eventTypeId
-    ? await prisma.eventType.update({
-        where: {
-          id: input.eventTypeId,
-        },
-        data: {
-          webhooks: {
-            delete: {
-              id,
-            },
+
+  if (input.eventTypeId) {
+    await prisma.eventType.update({
+      where: {
+        id: input.eventTypeId,
+      },
+      data: {
+        webhooks: {
+          delete: {
+            id,
           },
         },
-      })
-    : await prisma.user.update({
-        where: {
-          id: ctx.user.id,
-        },
-        data: {
-          webhooks: {
-            delete: {
-              id,
-            },
+      },
+    });
+  } else if (input.teamId) {
+    await prisma.team.update({
+      where: {
+        id: input.teamId,
+      },
+      data: {
+        webhooks: {
+          delete: {
+            id,
           },
         },
-      });
+      },
+    });
+  } else {
+    await prisma.user.update({
+      where: {
+        id: ctx.user.id,
+      },
+      data: {
+        webhooks: {
+          delete: {
+            id,
+          },
+        },
+      },
+    });
+  }
 
   return {
     id,
