@@ -128,6 +128,7 @@ export {
 export { default as MultiSelectCheckboxes } from "./components/form/checkbox/MultiSelectCheckboxes";
 export type { Option as MultiSelectCheckboxesOptionType } from "./components/form/checkbox/MultiSelectCheckboxes";
 export { default as ImageUploader } from "./components/image-uploader/ImageUploader";
+export { default as AddEmail } from "./components/add-email/AddEmail";
 export type { ButtonColor } from "./components/button/Button";
 export { CreateButton } from "./components/createButton";
 export { useCalcomTheme } from "./styles/useCalcomTheme";

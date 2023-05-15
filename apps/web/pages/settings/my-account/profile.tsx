@@ -37,6 +37,7 @@ import {
   SkeletonText,
   TextField,
   Editor,
+  AddEmail
 } from "@calcom/ui";
 import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
@@ -375,7 +376,8 @@ const ProfileForm = ({
         <TextField label={t("full_name")} {...formMethods.register("name")} />
       </div>
       <div className="mt-8">
-        <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
+        <TextField label={t("email")} {...formMethods.register("email")} />
+        <AddEmail buttonMsg={"Add Email"} />
       </div>
       <div className="mt-8">
         <Label>{t("about")}</Label>
