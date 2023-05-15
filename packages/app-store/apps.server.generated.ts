@@ -25,6 +25,7 @@ export const apiHandlers = {
   huddle01video: import("./huddle01video/api"),
   jitsivideo: import("./jitsivideo/api"),
   larkcalendar: import("./larkcalendar/api"),
+  make: import("./make/api"),
   metapixel: import("./metapixel/api"),
   n8n: import("./n8n/api"),
   office365calendar: import("./office365calendar/api"),
