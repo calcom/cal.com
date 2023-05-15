@@ -35,6 +35,10 @@ export type WorkflowType = Workflow & {
     eventType: {
       id: number;
       title: string;
+      parentId: number | null;
+      _count: {
+        children: number;
+      };
     };
   }[];
   readOnly?: boolean;
@@ -112,12 +116,23 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                           <Badge variant="gray">
                             {workflow.activeOn && workflow.activeOn.length > 0 ? (
                               <Tooltip
-                                content={workflow.activeOn.map((activeOn, key) => (
-                                  <p key={key}>{activeOn.eventType.title}</p>
-                                ))}>
+                                content={workflow.activeOn
+                                  .filter((wf) => (workflow.teamId ? wf.eventType.parentId === null : true))
+                                  .map((activeOn, key) => (
+                                    <p key={key}>
+                                      {activeOn.eventType.title}
+                                      {activeOn.eventType._count.children > 0
+                                        ? ` (+${activeOn.eventType._count.children})`
+                                        : ""}
+                                    </p>
+                                  ))}>
                                 <div>
                                   <LinkIcon className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
-                                  {t("active_on_event_types", { count: workflow.activeOn.length })}
+                                  {t("active_on_event_types", {
+                                    count: workflow.activeOn.filter((wf) =>
+                                      workflow.teamId ? wf.eventType.parentId === null : true
+                                    ).length,
+                                  })}
                                 </div>
                               </Tooltip>
                             ) : (
