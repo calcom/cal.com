@@ -24,6 +24,7 @@ export type ChildrenEventType = {
   hidden: boolean;
 };
 
+// TODO: This isnt just a select... rename this component in the future took me ages to find the component i was looking for
 export const ChildrenEventTypeSelect = ({
   options = [],
   value = [],
