@@ -713,6 +713,7 @@ model WorkflowsOnEventTypes {
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId Int
 
+  @@unique([workflowId, eventTypeId])
   @@index([workflowId])
   @@index([eventTypeId])
 }

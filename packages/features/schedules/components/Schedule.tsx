@@ -28,7 +28,7 @@ import {
   Select,
   SkeletonText,
   Switch,
-  Checkbox
+  Checkbox,
 } from "@calcom/ui";
 import { Copy, Plus, Trash } from "@calcom/ui/components/icon";
 
@@ -390,10 +390,10 @@ const CopyTimes = ({
         <ol className="space-y-2">
           <li key="select all">
             <label className="text-default flex w-full items-center justify-between">
-              <span className="px-1">{t('select_all')}</span>
+              <span className="px-1">{t("select_all")}</span>
               <Checkbox
-                description={""}
-                value={t('select_all')}
+                description=""
+                value={t("select_all")}
                 checked={selected.length === 7}
                 onChange={(e) => {
                   if (e.target.checked) {
@@ -412,7 +412,7 @@ const CopyTimes = ({
                 <label className="text-default flex w-full items-center justify-between">
                   <span className="px-1">{weekday}</span>
                   <Checkbox
-                    description={""}
+                    description=""
                     value={weekdayIndex}
                     checked={selected.includes(weekdayIndex) || disabled === weekdayIndex}
                     disabled={disabled === weekdayIndex}
@@ -420,7 +420,7 @@ const CopyTimes = ({
                       if (e.target.checked && !selected.includes(weekdayIndex)) {
                         setSelected(selected.concat([weekdayIndex]));
                       } else if (!e.target.checked && selected.includes(weekdayIndex)) {
-                        setSelected(selected.filter(item => item !== weekdayIndex));
+                        setSelected(selected.filter((item) => item !== weekdayIndex));
                       }
                     }}
                   />

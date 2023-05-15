@@ -169,7 +169,7 @@ function EventTypeSingleLayout({
 
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
-    let navigation = getNavigation({
+    const navigation = getNavigation({
       t,
       eventType,
       enabledAppsNumber,
