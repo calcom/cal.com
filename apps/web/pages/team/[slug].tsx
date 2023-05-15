@@ -12,6 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
+import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { Avatar, AvatarGroup, Button, EmptyScreen, HeadSeo } from "@calcom/ui";
@@ -26,7 +27,7 @@ import Team from "@components/team/screens/Team";
 import { ssrInit } from "@server/lib/ssr";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
-function TeamPage({ team, isUnpublished }: TeamPageProps) {
+function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
   useTheme(team.theme);
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
@@ -105,7 +106,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
         title={teamName}
         description={teamName}
         meeting={{
-          title: team?.bio || "",
+          title: markdownStrippedBio,
           profile: { name: `${team.name}`, image: getPlaceholderAvatar(team.logo, team.name) },
         }}
       />
@@ -201,10 +202,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return { ...member, safeBio: markdownToSafeHTML(member.bio || "") };
   });
 
+  const markdownStrippedBio = stripMarkdown(team?.bio || "");
+
   return {
     props: {
       team: { ...team, safeBio, members },
       trpcState: ssr.dehydrate(),
+      markdownStrippedBio,
     },
   } as const;
 };
