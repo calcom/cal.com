@@ -37,6 +37,8 @@ export default function WebhookListItem(props: {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { webhook } = props;
+  const canEditWebhook = props.canEditWebhook || true;
+
   const deleteWebhook = trpc.viewer.webhook.delete.useMutation({
     async onSuccess() {
       await utils.viewer.webhook.getByViewer.invalidate();
@@ -87,7 +89,7 @@ export default function WebhookListItem(props: {
       <div className="ml-2 flex items-center space-x-4">
         <Switch
           defaultChecked={webhook.active}
-          disabled={!props.canEditWebhook}
+          disabled={!canEditWebhook}
           onCheckedChange={() =>
             toggleWebhook.mutate({
               id: webhook.id,
