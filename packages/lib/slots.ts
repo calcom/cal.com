@@ -4,12 +4,14 @@ import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/sche
 
 import { getWorkingHours } from "./availability";
 import { getTimeZone } from "./date-fns";
+import type { DateRange } from "./date-ranges";
 
 export type GetSlots = {
   inviteeDate: Dayjs;
   frequency: number;
   workingHours: WorkingHours[];
   dateOverrides?: DateOverride[];
+  dateRanges?: DateRange[];
   minimumBookingNotice: number;
   eventLength: number;
   organizerTimeZone: string;
@@ -123,6 +125,39 @@ function buildSlots({
       time: getTime(item.startTime),
     });
   }
+
+  return slots;
+}
+
+function buildSlotsWithDateRanges({
+  dateRanges,
+  frequency,
+  eventLength,
+  timeZone,
+}: {
+  dateRanges: DateRange[];
+  frequency: number;
+  eventLength: number;
+  timeZone: string;
+}) {
+  // keep the old safeguards in; may be needed.
+  frequency = minimumOfOne(frequency);
+  eventLength = minimumOfOne(eventLength);
+
+  const slots: { time: Dayjs; userIds?: number[] }[] = [];
+  dateRanges.forEach((range) => {
+    let slotStartTime = range.start;
+    while (
+      slotStartTime.add(eventLength, "minutes").isBefore(range.end) ||
+      slotStartTime.add(eventLength, "minutes").isSame(range.end)
+    ) {
+      slots.push({
+        time: slotStartTime.tz(timeZone),
+      });
+      slotStartTime = slotStartTime.add(frequency, "minutes");
+    }
+  });
+
   return slots;
 }
 
@@ -138,11 +173,22 @@ const getSlots = ({
   minimumBookingNotice,
   workingHours,
   dateOverrides = [],
+  dateRanges,
   eventLength,
   organizerTimeZone,
 }: GetSlots) => {
+  if (dateRanges) {
+    return buildSlotsWithDateRanges({
+      dateRanges,
+      frequency,
+      eventLength,
+      timeZone: getTimeZone(inviteeDate),
+    });
+  }
+
   // current date in invitee tz
   const startDate = dayjs().utcOffset(inviteeDate.utcOffset()).add(minimumBookingNotice, "minute");
+
   // This code is ran client side, startOf() does some conversions based on the
   // local tz of the client. Sometimes this shifts the day incorrectly.
   const startOfDayUTC = dayjs.utc().set("hour", 0).set("minute", 0).set("second", 0);

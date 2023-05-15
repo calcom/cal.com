@@ -35,7 +35,7 @@ export function processWorkingHours({
 }
 
 export function processDateOverride({ item, timeZone }: { item: DateOverride; timeZone: string }) {
-  const date = dayjs.utc(item.date).tz(timeZone, true);
+  const date = dayjs.utc(item.date).tz(timeZone);
   return {
     start: date.hour(item.startTime.getUTCHours()).minute(item.startTime.getUTCMinutes()).second(0),
     end: date.hour(item.endTime.getUTCHours()).minute(item.endTime.getUTCMinutes()).second(0),
@@ -63,7 +63,7 @@ export function buildDateRanges({
   );
   const groupedDateOverrides = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
-      if ("date" in item) {
+      if ("date" in item && !!item.date) {
         processed.push(processDateOverride({ item, timeZone }));
       }
       return processed;
@@ -73,9 +73,12 @@ export function buildDateRanges({
   const dateRanges = Object.values({
     ...groupedWorkingHours,
     ...groupedDateOverrides,
-  }).flat();
+  }).map(
+    // remove 0-length overrides that were kept to cancel out working dates until now.
+    (ranges) => ranges.filter((range) => !range.start.isSame(range.end))
+  );
 
-  return intersect([dateRanges, [{ start: dateFrom, end: dateTo }]]);
+  return dateRanges.flat();
 }
 
 //group by date is not yet working correctly

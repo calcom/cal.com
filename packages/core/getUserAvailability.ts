@@ -5,7 +5,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
-import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
+import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { checkBookingLimit } from "@calcom/lib/server";
@@ -227,20 +227,17 @@ export async function getUserAvailability(
       };
     });
 
-  const dateRanges = buildDateRanges({ availability, timeZone, dateFrom, dateTo });
-
   return {
-    freeBusy: subtract(
-      dateRanges,
-      bufferedBusyTimes.map((busy) => ({
-        start: dayjs(busy.start),
-        end: dayjs(busy.end),
-      }))
-    ),
-    busy: bufferedBusyTimes, // not needed
+    busy: bufferedBusyTimes,
     timeZone,
-    workingHours, // not needed
-    dateOverrides, // not needed
+    dateRanges: buildDateRanges({
+      dateFrom,
+      dateTo,
+      availability,
+      timeZone,
+    }),
+    workingHours,
+    dateOverrides,
     currentSeats,
   };
 }

@@ -2,15 +2,16 @@ import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
 
 import { getAggregateWorkingHours } from "@calcom/core/getAggregateWorkingHours";
-import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
+import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { intersect } from "@calcom/lib/date-ranges";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
-import getTimeSlots from "@calcom/lib/slots";
+import getSlots from "@calcom/lib/slots";
 import { availabilityUserSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -189,10 +190,14 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     throw new TRPCError({ code: "NOT_FOUND" });
   }
 
-  const startTime =
-    input.timeZone === "Etc/GMT"
-      ? dayjs.utc(input.startTime)
-      : dayjs(input.startTime).utc().tz(input.timeZone);
+  const getStartTime = (startTimeInput: string, timeZone?: string) => {
+    const startTimeMin = dayjs.utc().add(eventType.minimumBookingNotice, "minutes");
+    const startTime = timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone);
+
+    return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
+  };
+
+  const startTime = getStartTime(input.startTime, input.timeZone);
   const endTime =
     input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
 
@@ -214,9 +219,9 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     usersWithCredentials.map(async (currentUser) => {
       const {
         busy,
-        freeBusy,
         workingHours,
         dateOverrides,
+        dateRanges,
         currentSeats: _currentSeats,
         timeZone,
       } = await getUserAvailability(
@@ -236,14 +241,15 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
 
       return {
         timeZone,
-        freeBusy,
         workingHours,
         dateOverrides,
+        dateRanges,
         busy,
         user: currentUser,
       };
     })
   );
+
   // flattens availability of multiple users
   const dateOverrides = userAvailability.flatMap((availability) =>
     availability.dateOverrides.map((override) => ({ userId: availability.user.id, ...override }))
@@ -253,9 +259,6 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     eventLength: eventType.length,
     currentSeats,
   };
-
-  // aggregate availability of users for team events => final available times which consider working hours, date overrides and busy times
-  const availableTimes = getAggregatedAvailability(userAvailability, eventType.schedulingType);
 
   const isTimeWithinBounds = (_time: Parameters<typeof isTimeOutOfBounds>[0]) =>
     !isTimeOutOfBounds(_time, {
@@ -271,16 +274,25 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   const getSlotsCount = 0;
   let checkForAvailabilityCount = 0;
 
-  const timeSlots: ReturnType<typeof getTimeSlots> = [];
+  const timeSlots = getSlots({
+    inviteeDate: startTime,
+    eventLength: input.duration || eventType.length,
+    workingHours,
+    dateOverrides,
+    dateRanges: intersect([...userAvailability.map((user) => user.dateRanges)]),
+    minimumBookingNotice: eventType.minimumBookingNotice,
+    frequency: eventType.slotInterval || input.duration || eventType.length,
+    organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
+  });
 
-  for (
+  /*for (
     let currentCheckedTime = startTime;
     currentCheckedTime.isBefore(endTime);
     currentCheckedTime = currentCheckedTime.add(1, "day")
   ) {
     // get slots retrieves the available times for a given day
     timeSlots.push(
-      ...getTimeSlots({
+      ...getSlots({
         inviteeDate: currentCheckedTime,
         eventLength: input.duration || eventType.length,
         workingHours,
@@ -292,6 +304,21 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
       })
     );
   }
+
+  console.log({
+    oldSlots: timeSlots.map((slot) => slot.time.format()),
+    newSlots: getSlots({
+      inviteeDate: startTime,
+      eventLength: input.duration || eventType.length,
+      workingHours,
+      dateOverrides,
+      dateRanges: intersect([...userAvailability.map((user) => user.dateRanges)]),
+      minimumBookingNotice: eventType.minimumBookingNotice,
+      frequency: eventType.slotInterval || input.duration || eventType.length,
+      organizerTimeZone:
+        eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
+    }).map((slot) => slot.time.format()),
+  });*/
 
   let availableTimeSlots: typeof timeSlots = [];
   // Load cached busy slots
