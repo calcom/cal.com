@@ -127,7 +127,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
             <>
               {webhookGroups && webhookGroups?.length > 0 ? (
                 webhookGroups.map((group) => (
-                  <>
+                  <div key={group.teamId}>
                     {hasTeams && (
                       <div className="items-centers flex ">
                         <Avatar
@@ -155,7 +155,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
                         ))}
                       </div>
                     </div>
-                  </>
+                  </div>
                 ))
               ) : (
                 <div className="flex flex-col" key={webhookGroups[0].profile.slug}>
@@ -184,29 +184,6 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
           )}
         </>
       )}
-
-      {/* {webhooks?.length ? (
-        <>
-          <div className="mt-6 mb-8 border rounded-md border-subtle">
-            <NewWebhookButton />
-            {webhooks.map((webhook, index) => (
-              <WebhookListItem
-                key={webhook.id}
-                webhook={webhook}
-                lastItem={webhooks.length === index + 1}
-                onEditWebhook={() => router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id} `)}
-              />
-            ))}
-          </div>
-        </>
-      ) : (
-        <EmptyScreen
-          Icon={LinkIcon}
-          headline={t("create_your_first_webhook")}
-          description={t("create_your_first_webhook_description", { appName: APP_NAME })}
-          buttonRaw={<NewWebhookButton />}
-        />
-      )} */}
     </>
   );
 };
