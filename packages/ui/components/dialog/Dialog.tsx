@@ -109,6 +109,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               </div>
             </div>
           )}
+          {!type && children}
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     );

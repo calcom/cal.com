@@ -1,8 +1,8 @@
-import { BookingStatus } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import logger from "@calcom/lib/logger";
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { Ensure, Optional } from "@calcom/types/utils";
 
 import type { EventLocationTypeFromAppMeta } from "../types/App";

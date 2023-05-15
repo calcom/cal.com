@@ -7,7 +7,8 @@ import { trpc } from "@calcom/trpc/react";
 import { Meta, showToast, SkeletonContainer } from "@calcom/ui";
 
 import { getLayout } from "../../settings/layouts/SettingsLayout";
-import WebhookForm, { WebhookFormSubmitData } from "../components/WebhookForm";
+import type { WebhookFormSubmitData } from "../components/WebhookForm";
+import WebhookForm from "../components/WebhookForm";
 
 const querySchema = z.object({ id: z.string() });
 

@@ -1,5 +1,6 @@
-import { WorkflowActions } from "@prisma/client";
 import type { TFunction } from "next-i18next";
+
+import { WorkflowActions } from "@calcom/prisma/enums";
 
 import { isSMSAction } from "./actionHelperFunctions";
 import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_EVENTS } from "./constants";

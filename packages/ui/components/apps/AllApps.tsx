@@ -94,7 +94,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
           }}
           className={classNames(
             selectedCategory === null ? "bg-emphasis text-default" : "bg-muted text-emphasis",
-            "hover:bg-emphasis min-w-max rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer hover:text-gray-50"
+            "hover:bg-emphasis min-w-max rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer"
           )}>
           {t("all_apps")}
         </li>
@@ -112,7 +112,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
             }}
             className={classNames(
               selectedCategory === cat ? "bg-emphasis text-default" : "bg-muted text-emphasis",
-              "hover:bg-emphasis rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer hover:text-gray-50"
+              "hover:bg-emphasis rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer"
             )}>
             {cat[0].toUpperCase() + cat.slice(1)}
           </li>

@@ -3,7 +3,6 @@
   "name": "Cron",
   "slug": "cron",
   "type": "cron_other",
-  "imageSrc": "logo.png",
   "logo": "logo.png",
   "url": "https://cal.com/apps/cron",
   "variant": "other",

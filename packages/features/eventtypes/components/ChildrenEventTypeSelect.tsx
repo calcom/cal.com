@@ -1,10 +1,10 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { MembershipRole } from "@prisma/client";
 import type { Props } from "react-select";
 
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { Avatar, Badge, Button, ButtonGroup, Select, Switch, Tooltip } from "@calcom/ui";
 import { ExternalLink, X } from "@calcom/ui/components/icon";
 
@@ -24,6 +24,7 @@ export type ChildrenEventType = {
   hidden: boolean;
 };
 
+// TODO: This isnt just a select... rename this component in the future took me ages to find the component i was looking for
 export const ChildrenEventTypeSelect = ({
   options = [],
   value = [],
@@ -47,7 +48,6 @@ export const ChildrenEventTypeSelect = ({
         }}
         name={props.name}
         placeholder={t("select")}
-        isSearchable={false}
         options={options}
         value={value}
         isMulti
@@ -88,7 +88,11 @@ export const ChildrenEventTypeSelect = ({
                   </small>
                 </div>
                 <div className="flex flex-row items-center gap-2">
-                  {children.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
+                  {children.hidden && (
+                    <Badge variant="gray" className="hidden sm:block">
+                      {t("hidden")}
+                    </Badge>
+                  )}
                   <Tooltip content={t("show_eventtype_on_profile")}>
                     <div className="self-center rounded-md p-2">
                       <Switch
