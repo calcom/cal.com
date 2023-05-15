@@ -23,6 +23,7 @@ import defaultEvents, {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -37,7 +38,16 @@ import PageWrapper from "@components/PageWrapper";
 import { ssrInit } from "@server/lib/ssr";
 
 export default function User(props: inferSSRProps<typeof getServerSideProps> & EmbedProps) {
-  const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
+  const {
+    users,
+    profile,
+    eventTypes,
+    isDynamicGroup,
+    dynamicNames,
+    dynamicUsernames,
+    isSingleUser,
+    markdownStrippedBio,
+  } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(user.theme);
   const { t } = useLocale();
@@ -107,11 +117,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
     <>
       <HeadSeo
         title={isDynamicGroup ? dynamicNames.join(", ") : nameOrUsername}
-        description={
-          isDynamicGroup ? `Book events with ${dynamicUsernames.join(", ")}` : (user.bio as string) || ""
-        }
+        description={isDynamicGroup ? `Book events with ${dynamicUsernames.join(", ")}` : markdownStrippedBio}
         meeting={{
-          title: isDynamicGroup ? "" : `${user.bio}`,
+          title: isDynamicGroup ? "" : markdownStrippedBio,
           profile: { name: `${profile.name}`, image: null },
           users: isDynamicGroup
             ? dynamicUsernames.map((username, index) => ({ username, name: dynamicNames[index] }))
@@ -342,6 +350,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
+  const markdownStrippedBio = stripMarkdown(user?.bio || "");
   return {
     props: {
       users,
@@ -361,6 +370,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       dynamicNames,
       dynamicUsernames,
       isSingleUser,
+      markdownStrippedBio,
     },
   };
 };
