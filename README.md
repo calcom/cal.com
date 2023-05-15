@@ -158,6 +158,15 @@ yarn dx
 ```sh
 echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 ```
+#### Gitpod Setup
+
+1. Click the button below to open this project in Gitpod.
+
+2. This will open a fully configured workspace in your browser with all the necessary dependencies already installed.
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/calcom/cal.com)
+
+
 
 #### Manual setup
 
