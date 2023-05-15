@@ -99,3 +99,5 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
     throw e;
   }
 };
+
+export default responseHandler;
