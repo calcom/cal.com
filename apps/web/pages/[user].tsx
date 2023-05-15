@@ -144,7 +144,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
               {!isBioEmpty && (
                 <>
                   <div
-                    className="  text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                    className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                     dangerouslySetInnerHTML={{ __html: props.safeBio }}
                   />
                 </>
