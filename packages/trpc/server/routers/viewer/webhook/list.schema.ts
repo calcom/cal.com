@@ -6,6 +6,7 @@ export const ZListInputSchema = webhookIdAndEventTypeIdSchema
   .extend({
     appId: z.string().optional(),
     teamId: z.number().optional(),
+    eventTypeId: z.number().optional(),
   })
   .optional();
 

@@ -39,6 +39,7 @@ export default function WebhookListItem(props: {
   const deleteWebhook = trpc.viewer.webhook.delete.useMutation({
     async onSuccess() {
       await utils.viewer.webhook.getByViewer.invalidate();
+      await utils.viewer.webhook.list.invalidate();
       showToast(t("webhook_removed_successfully"), "success");
     },
   });
