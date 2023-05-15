@@ -43,6 +43,12 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
               select: {
                 id: true,
                 title: true,
+                parentId: true,
+                _count: {
+                  select: {
+                    children: true,
+                  },
+                },
               },
             },
           },
@@ -75,6 +81,12 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
               select: {
                 id: true,
                 title: true,
+                parentId: true,
+                _count: {
+                  select: {
+                    children: true,
+                  },
+                },
               },
             },
           },
@@ -120,6 +132,12 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
             select: {
               id: true,
               title: true,
+              parentId: true,
+              _count: {
+                select: {
+                  children: true,
+                },
+              },
             },
           },
         },
