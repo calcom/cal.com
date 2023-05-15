@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -67,6 +67,11 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
           <div className="px-6 py-4 ">
             <Link
               href={`/team/${team.slug}/${type.slug}`}
+              onClick={async () => {
+                sdkActionManager?.fire("eventTypeSelected", {
+                  eventType: type,
+                });
+              }}
               data-testid="event-type-link"
               className="flex justify-between">
               <div className="flex-shrink">
