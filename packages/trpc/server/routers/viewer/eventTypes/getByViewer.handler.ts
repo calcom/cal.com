@@ -171,13 +171,19 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
   const mergedEventTypes = Object.values(eventTypesHashMap)
     .map((eventType) => eventType)
     .filter((evType) => evType.schedulingType !== SchedulingType.MANAGED);
+
+  let image = user.avatar || undefined
+  if (image && user?.username) {
+    image = `${CAL_URL}/${user.username}/avatar.png`
+  }
+
   eventTypeGroups.push({
     teamId: null,
     membershipRole: null,
     profile: {
       slug: user.username,
       name: user.name,
-      image: user.avatar || undefined,
+      image,
     },
     eventTypes: orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
     metadata: {
@@ -215,7 +221,10 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     profiles: eventTypeGroups.map((group) => ({
       teamId: group.teamId,
       membershipRole: group.membershipRole,
-      ...group.profile,
+      profile: {
+        ...group.profile,
+        image: `${CAL_URL}/${group.profile.slug}/avatar.png`,
+      },
       ...group.metadata,
     })),
   };
