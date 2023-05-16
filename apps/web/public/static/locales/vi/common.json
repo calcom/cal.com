@@ -1724,7 +1724,6 @@
   "locked_apps_description": "Các thành viên có thể thấy được những ứng dụng đang hoạt động nhưng không thể sửa bất kỳ thiết lập nào của ứng dụng",
   "locked_webhooks_description": "Các thành viên có thể thấy được những webhook đang hoạt động nhưng không thể sửa bất kỳ thiết lập nào của webhook",
   "locked_workflows_description": "Các thành viên có thể thấy được những tiến độ công việc đang hoạt động nhưng không thể sửa bất kỳ thiết lập nào của tiến độ công việc",
-  "locked_by_admin": "Bị khoá bởi quản trị viên",
   "app_not_connected": "Bạn không có tài khoản {{appName}} đã được kết nối.",
   "connect_now": "Kết nối ngay",
   "managed_event_dialog_confirm_button_one": "Thay thế & thông báo cho {{count}} thành viên",
