@@ -342,7 +342,7 @@ export const viewerTeamsRouter = router({
       ctx,
     });
   }),
-  createInvite: authedProcedure.input(ZCreateInviteInputSchema).query(async ({ ctx, input }) => {
+  createInvite: authedProcedure.input(ZCreateInviteInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.createInvite) {
       UNSTABLE_HANDLER_CACHE.createInvite = await import("./createInvite.handler").then(
         (mod) => mod.createInviteHandler
@@ -361,7 +361,7 @@ export const viewerTeamsRouter = router({
   }),
   setInviteExpiration: authedProcedure
     .input(ZSetInviteExpirationInputSchema)
-    .query(async ({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       if (!UNSTABLE_HANDLER_CACHE.setInviteExpiration) {
         UNSTABLE_HANDLER_CACHE.setInviteExpiration = await import("./setInviteExpiration.handler").then(
           (mod) => mod.setInviteExpirationHandler
@@ -378,7 +378,7 @@ export const viewerTeamsRouter = router({
         input,
       });
     }),
-  deleteInvite: authedProcedure.input(ZDeleteInviteInputSchema).query(async ({ ctx, input }) => {
+  deleteInvite: authedProcedure.input(ZDeleteInviteInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.deleteInvite) {
       UNSTABLE_HANDLER_CACHE.deleteInvite = await import("./deleteInvite.handler").then(
         (mod) => mod.deleteInviteHandler
@@ -397,7 +397,7 @@ export const viewerTeamsRouter = router({
   }),
   inviteMemberByToken: authedProcedure
     .input(ZInviteMemberByTokenSchemaInputSchema)
-    .query(async ({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       if (!UNSTABLE_HANDLER_CACHE.inviteMemberByToken) {
         UNSTABLE_HANDLER_CACHE.inviteMemberByToken = await import("./inviteMemberByToken.handler").then(
           (mod) => mod.inviteMemberByTokenHandler
