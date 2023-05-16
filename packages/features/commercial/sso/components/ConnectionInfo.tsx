@@ -1,4 +1,4 @@
-import type { SSOConnection } from "@calcom/ee/sso/lib/saml";
+import type { SSOConnection } from "@calcom/commercial/sso/lib/saml";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";

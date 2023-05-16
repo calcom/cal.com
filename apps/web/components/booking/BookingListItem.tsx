@@ -6,7 +6,7 @@ import { getEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
-import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
+import ViewRecordingsDialog from "@calcom/features/commercial/video/ViewRecordingsDialog";
 import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";

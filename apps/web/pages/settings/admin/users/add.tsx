@@ -1,4 +1,4 @@
-import UsersAddView from "@calcom/features/ee/users/pages/users-add-view";
+import UsersAddView from "@calcom/features/commercial/users/pages/users-add-view";
 
 import type { CalPageWrapper } from "@components/PageWrapper";
 import PageWrapper from "@components/PageWrapper";

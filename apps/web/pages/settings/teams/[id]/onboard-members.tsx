@@ -1,6 +1,6 @@
 import Head from "next/head";
 
-import AddNewTeamMembers from "@calcom/features/ee/teams/components/AddNewTeamMembers";
+import AddNewTeamMembers from "@calcom/features/commercial/teams/components/AddNewTeamMembers";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import PageWrapper from "@components/PageWrapper";

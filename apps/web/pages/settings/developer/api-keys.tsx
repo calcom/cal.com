@@ -1,9 +1,9 @@
 import { useState } from "react";
 
-import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
-import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
-import ApiKeyDialogForm from "@calcom/features/ee/api-keys/components/ApiKeyDialogForm";
-import ApiKeyListItem from "@calcom/features/ee/api-keys/components/ApiKeyListItem";
+import type { TApiKeys } from "@calcom/commercial/api-keys/components/ApiKeyListItem";
+import LicenseRequired from "@calcom/commercial/common/components/LicenseRequired";
+import ApiKeyDialogForm from "@calcom/features/commercial/api-keys/components/ApiKeyDialogForm";
+import ApiKeyListItem from "@calcom/features/commercial/api-keys/components/ApiKeyListItem";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

@@ -25,9 +25,9 @@ packages/embeds                       @hariombalhara @calcom/core
 packages/eslint-plugin                @zomars @calcom/core
 packages/features                     @zomars @calcom/core
 packages/features/kbar                @alishaz-polymath @calcom/core
-packages/features/ee/impersonation    @sean-brydon @calcom/core
-packages/features/ee/payments         @alannnc @calcom/core
-packages/features/ee/workflows        @CarinaWolli @calcom/core
+packages/features/commercial/impersonation    @sean-brydon @calcom/core
+packages/features/commercial/payments         @alannnc @calcom/core
+packages/features/commercial/workflows        @CarinaWolli @calcom/core
 packages/features/tips                @PeerRich @calcom/core
 packages/ui                           @calcom/ui
 packages/config                       @calcom/core

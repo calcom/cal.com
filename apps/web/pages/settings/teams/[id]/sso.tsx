@@ -1,4 +1,4 @@
-import TeamSSOView from "@calcom/features/ee/sso/page/teams-sso-view";
+import TeamSSOView from "@calcom/features/commercial/sso/page/teams-sso-view";
 
 import type { CalPageWrapper } from "@components/PageWrapper";
 import PageWrapper from "@components/PageWrapper";

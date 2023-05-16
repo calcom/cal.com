@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import type { SSOConnection } from "@calcom/ee/sso/lib/saml";
+import type { SSOConnection } from "@calcom/commercial/sso/lib/saml";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, DialogFooter, Form, showToast, TextArea, Dialog, DialogContent } from "@calcom/ui";
+import { Button, DialogFooter, Form, showToast, TextField, Dialog, DialogContent } from "@calcom/ui";
 
-interface FormValues {
-  metadata: string;
-}
+type FormValues = {
+  clientId: string;
+  clientSecret: string;
+  wellKnownUrl: string;
+};
 
-export default function SAMLConnection({
+export default function OIDCConnection({
   teamId,
   connection,
 }: {
@@ -24,15 +26,15 @@ export default function SAMLConnection({
     <div>
       <div className="flex flex-col sm:flex-row">
         <div>
-          <h2 className="font-medium">{t("sso_saml_heading")}</h2>
+          <h2 className="font-medium">{t("sso_oidc_heading")}</h2>
           <p className="text-default text-sm font-normal leading-6 dark:text-gray-300">
-            {t("sso_saml_description")}
+            {t("sso_oidc_description")}
           </p>
         </div>
         {!connection && (
           <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pt-0 sm:pl-3">
             <Button color="secondary" onClick={() => setOpenModal(true)}>
-              Configure
+              {t("configure")}
             </Button>
           </div>
         )}
@@ -55,11 +57,11 @@ const CreateConnectionDialog = ({
   const utils = trpc.useContext();
   const form = useForm<FormValues>();
 
-  const mutation = trpc.viewer.saml.update.useMutation({
+  const mutation = trpc.viewer.saml.updateOIDC.useMutation({
     async onSuccess() {
       showToast(
         t("sso_connection_created_successfully", {
-          connectionType: "SAML",
+          connectionType: "OIDC",
         }),
         "success"
       );
@@ -77,36 +79,71 @@ const CreateConnectionDialog = ({
         <Form
           form={form}
           handleSubmit={(values) => {
+            const { clientId, clientSecret, wellKnownUrl } = values;
+
             mutation.mutate({
               teamId,
-              encodedRawMetadata: Buffer.from(values.metadata).toString("base64"),
+              clientId,
+              clientSecret,
+              wellKnownUrl,
             });
           }}>
           <div className="mb-10 mt-1">
             <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
-              {t("sso_saml_configuration_title")}
+              {t("sso_oidc_configuration_title")}
             </h2>
-            <p className="text-subtle mt-1 mb-5 text-sm">{t("sso_saml_configuration_description")}</p>
+            <p className="text-subtle mt-1 mb-5 text-sm">{t("sso_oidc_configuration_description")}</p>
           </div>
-          <Controller
-            control={form.control}
-            name="metadata"
-            render={({ field: { value } }) => (
-              <div>
-                <TextArea
-                  data-testid="saml_config"
-                  name="metadata"
+          <div className="space-y-5">
+            <Controller
+              control={form.control}
+              name="clientId"
+              render={({ field: { value } }) => (
+                <TextField
+                  name="clientId"
+                  label="Client id"
                   value={value}
-                  className="h-40"
-                  required={true}
-                  placeholder={t("saml_configuration_placeholder")}
                   onChange={(e) => {
-                    form.setValue("metadata", e?.target.value);
+                    form.setValue("clientId", e?.target.value);
                   }}
+                  type="text"
+                  required
                 />
-              </div>
-            )}
-          />
+              )}
+            />
+            <Controller
+              control={form.control}
+              name="clientSecret"
+              render={({ field: { value } }) => (
+                <TextField
+                  name="clientSecret"
+                  label="Client secret"
+                  value={value}
+                  onChange={(e) => {
+                    form.setValue("clientSecret", e?.target.value);
+                  }}
+                  type="text"
+                  required
+                />
+              )}
+            />
+            <Controller
+              control={form.control}
+              name="wellKnownUrl"
+              render={({ field: { value } }) => (
+                <TextField
+                  name="wellKnownUrl"
+                  label="Well-Known URL"
+                  value={value}
+                  onChange={(e) => {
+                    form.setValue("wellKnownUrl", e?.target.value);
+                  }}
+                  type="text"
+                  required
+                />
+              )}
+            />
+          </div>
           <DialogFooter>
             <Button
               type="button"

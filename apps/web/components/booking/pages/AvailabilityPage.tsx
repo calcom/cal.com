@@ -36,7 +36,7 @@ import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
-const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
+const PoweredBy = dynamic(() => import("@calcom/commercial/components/PoweredBy"));
 
 const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaster), { ssr: false });
 /*const SlotPicker = dynamic(() => import("../SlotPicker").then((mod) => mod.SlotPicker), {

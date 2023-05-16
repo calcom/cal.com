@@ -5,14 +5,14 @@ import { useEffect } from "react";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import stripe from "@calcom/features/ee/payments/server/stripe";
+import stripe from "@calcom/features/commercial/payments/server/stripe";
 import {
   hostedCal,
   isSAMLLoginEnabled,
   samlProductID,
   samlTenantID,
   samlTenantProduct,
-} from "@calcom/features/ee/sso/lib/saml";
+} from "@calcom/features/commercial/sso/lib/saml";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import prisma from "@calcom/prisma";
 

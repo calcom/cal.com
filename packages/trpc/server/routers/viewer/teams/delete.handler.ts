@@ -1,4 +1,4 @@
-import { cancelTeamSubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
+import { cancelTeamSubscriptionFromStripe } from "@calcom/features/commercial/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { closeComDeleteTeam } from "@calcom/lib/sync/SyncServiceManager";

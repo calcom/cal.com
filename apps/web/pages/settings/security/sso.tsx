@@ -1,4 +1,4 @@
-import UserSSOView from "@calcom/features/ee/sso/page/user-sso-view";
+import UserSSOView from "@calcom/features/commercial/sso/page/user-sso-view";
 
 import type { CalPageWrapper } from "@components/PageWrapper";
 import PageWrapper from "@components/PageWrapper";

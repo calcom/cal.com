@@ -1,7 +1,7 @@
 import type { EventType } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 
-import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
+import updateChildrenEventTypes from "@calcom/features/commercial/managed-event-types/lib/handleChildrenEventTypes";
 import { buildEventType } from "@calcom/lib/test/builder";
 import type { CompleteEventType, CompleteWorkflowsOnEventTypes } from "@calcom/prisma/zod";
 

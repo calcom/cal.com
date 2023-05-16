@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 
-import { useIntercom } from "@calcom/features/ee/support/lib/intercom/useIntercom";
+import { useIntercom } from "@calcom/features/commercial/support/lib/intercom/useIntercom";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";

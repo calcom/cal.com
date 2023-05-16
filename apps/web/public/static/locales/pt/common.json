@@ -1581,7 +1581,7 @@
   "choose_license_description": "A Cal.com vem com uma licença AGPLv3 acessível e gratuita, na qual algumas limitações podem ser ultrapassadas a qualquer momento com uma licença Enterprise. Pode atualizar para a versão Enterprise mais tarde e quando quiser.",
   "license": "Licença",
   "agplv3_license": "Licença AGPLv3",
-  "ee_enterprise_license": "Licença Enterprise “/ee”",
+  "ee_enterprise_license": "Licença Enterprise “/commercial”",
   "enterprise_booking_fee": "A partir de {{enterprise_booking_fee}}/mês",
   "enterprise_license_includes": "Tudo para uma utilização comercial",
   "no_need_to_keep_your_code_open_source": "Não há necessidade de manter o seu código aberto",

@@ -11,9 +11,9 @@ import { Toaster } from "react-hot-toast";
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
-import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
-import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
-import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
+import ImpersonatingBanner from "@calcom/features/commercial/impersonation/components/ImpersonatingBanner";
+import HelpMenuItem from "@calcom/features/commercial/support/components/HelpMenuItem";
+import { TeamsUpgradeBanner } from "@calcom/features/commercial/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
@@ -66,7 +66,7 @@ import {
   Zap,
 } from "@calcom/ui/components/icon";
 
-import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
+import FreshChatProvider from "../commercial/support/lib/freshchat/FreshChatProvider";
 import { TeamInviteBadge } from "./TeamInviteBadge";
 
 // need to import without ssr to prevent hydration errors

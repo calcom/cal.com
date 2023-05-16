@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 
-import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
+import { updateQuantitySubscriptionFromStripe } from "@calcom/features/commercial/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { closeComDeleteTeamMembership } from "@calcom/lib/sync/SyncServiceManager";

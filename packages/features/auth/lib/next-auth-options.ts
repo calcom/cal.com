@@ -6,9 +6,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 
-import checkLicense from "@calcom/features/ee/common/server/checkLicense";
-import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
-import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import checkLicense from "@calcom/features/commercial/common/server/checkLicense";
+import ImpersonationProvider from "@calcom/features/commercial/impersonation/lib/ImpersonationProvider";
+import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/commercial/sso/lib/saml";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
@@ -244,7 +244,7 @@ if (isSAMLLoginEnabled) {
           return null;
         }
 
-        const { oauthController } = await (await import("@calcom/features/ee/sso/lib/jackson")).default();
+        const { oauthController } = await (await import("@calcom/features/commercial/sso/lib/jackson")).default();
 
         // Fetch access token
         const { access_token } = await oauthController.token({

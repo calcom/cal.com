@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import jackson from "@calcom/features/ee/sso/lib/jackson";
+import jackson from "@calcom/features/commercial/sso/lib/jackson";
 import { HttpError } from "@calcom/lib/http-error";
 
 // This is the callback endpoint for the OIDC provider

@@ -1,6 +1,6 @@
 import type { Workflow } from "@prisma/client";
 
-import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
+import emailReminderTemplate from "@calcom/commercial/workflows/lib/reminders/templates/emailReminderTemplate";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma/client";

@@ -1,7 +1,7 @@
 import { useState, Suspense } from "react";
 
 import dayjs from "@calcom/dayjs";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "@calcom/features/commercial/common/components/LicenseRequired";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RecordingItemSchema } from "@calcom/prisma/zod-utils";

@@ -4,7 +4,7 @@ import localFont from "next/font/local";
 import Script from "next/script";
 
 import "@calcom/embed-core/src/embed-iframe";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "@calcom/features/commercial/common/components/LicenseRequired";
 
 import type { AppProps } from "@lib/app-providers";
 import AppProviders from "@lib/app-providers";

@@ -1,5 +1,5 @@
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
-import { purchaseTeamSubscription } from "@calcom/features/ee/teams/lib/payments";
+import { purchaseTeamSubscription } from "@calcom/features/commercial/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";

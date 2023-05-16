@@ -1,11 +1,11 @@
-import jackson from "@calcom/features/ee/sso/lib/jackson";
+import jackson from "@calcom/features/commercial/sso/lib/jackson";
 import {
   canAccess,
   oidcPath,
   samlProductID,
   samlTenantID,
   tenantPrefix,
-} from "@calcom/features/ee/sso/lib/saml";
+} from "@calcom/features/commercial/sso/lib/saml";
 
 import { TRPCError } from "@trpc/server";
 

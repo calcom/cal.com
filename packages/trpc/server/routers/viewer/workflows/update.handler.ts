@@ -1,14 +1,14 @@
 import type { Prisma } from "@prisma/client";
 
-import { isSMSAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { isSMSAction } from "@calcom/features/commercial/workflows/lib/actionHelperFunctions";
 import {
   deleteScheduledEmailReminder,
   scheduleEmailReminder,
-} from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
+} from "@calcom/features/commercial/workflows/lib/reminders/emailReminderManager";
 import {
   deleteScheduledSMSReminder,
   scheduleSMSReminder,
-} from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
+} from "@calcom/features/commercial/workflows/lib/reminders/smsReminderManager";
 import { IS_SELF_HOSTED, SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import type { PrismaClient } from "@calcom/prisma/client";
 import { BookingStatus, WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";

@@ -2,7 +2,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
-import { samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
+import { samlProductID, samlTenantID } from "@calcom/features/commercial/sso/lib/saml";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";

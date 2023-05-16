@@ -7,7 +7,7 @@ import type { UseFormRegisterReturn } from "react-hook-form";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { SingleValue } from "react-select";
 
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import useLockedFieldsManager from "@calcom/features/commercial/managed-event-types/hooks/useLockedFieldsManager";
 import { classNames } from "@calcom/lib";
 import type { DurationType } from "@calcom/lib/convertToNewDurationType";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";

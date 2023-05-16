@@ -1,7 +1,7 @@
 import type { GetStaticPaths, GetStaticProps } from "next";
 import { z } from "zod";
 
-import Workflow from "@calcom/features/ee/workflows/pages/workflow";
+import Workflow from "@calcom/features/commercial/workflows/pages/workflow";
 
 import PageWrapper from "@components/PageWrapper";
 import type { CalPageWrapper } from "@components/PageWrapper";

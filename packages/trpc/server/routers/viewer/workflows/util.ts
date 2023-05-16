@@ -1,6 +1,6 @@
 import type { Workflow } from "@prisma/client";
 
-import { isSMSAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
+import { isSMSAction } from "@calcom/commercial/workflows/lib/actionHelperFunctions";
 import {
   getSmsReminderNumberField,
   getSmsReminderNumberSource,

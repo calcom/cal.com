@@ -1,9 +1,9 @@
 import { useState } from "react";
 
-import ConnectionInfo from "@calcom/ee/sso/components/ConnectionInfo";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import OIDCConnection from "@calcom/features/ee/sso/components/OIDCConnection";
-import SAMLConnection from "@calcom/features/ee/sso/components/SAMLConnection";
+import ConnectionInfo from "@calcom/commercial/sso/components/ConnectionInfo";
+import LicenseRequired from "@calcom/features/commercial/common/components/LicenseRequired";
+import OIDCConnection from "@calcom/features/commercial/sso/components/OIDCConnection";
+import SAMLConnection from "@calcom/features/commercial/sso/components/SAMLConnection";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { AppSkeletonLoader as SkeletonLoader, Meta, Alert } from "@calcom/ui";

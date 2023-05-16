@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import jackson from "@calcom/features/ee/sso/lib/jackson";
+import jackson from "@calcom/features/commercial/sso/lib/jackson";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 async function postHandler(req: NextApiRequest, res: NextApiResponse) {

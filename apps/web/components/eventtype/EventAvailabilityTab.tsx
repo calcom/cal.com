@@ -5,7 +5,7 @@ import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
 
 import dayjs from "@calcom/dayjs";
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import useLockedFieldsManager from "@calcom/features/commercial/managed-event-types/hooks/useLockedFieldsManager";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";

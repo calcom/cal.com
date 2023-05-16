@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
+import { getDeploymentKey } from "@calcom/features/commercial/deployment/lib/getDeploymentKey";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";

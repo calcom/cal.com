@@ -1581,7 +1581,7 @@
   "choose_license_description": "Cal.com предоставляется под доступной и бесплатной лицензией AGPLv3, имеющей некоторые ограничения. Вы можете перейти на лицензию Enterprise сейчас или позже.",
   "license": "Лицензия",
   "agplv3_license": "Лицензия AGPLv3",
-  "ee_enterprise_license": "Enterprise-лицензия «/ee»",
+  "ee_enterprise_license": "Enterprise-лицензия «/commercial»",
   "enterprise_booking_fee": "От {{enterprise_booking_fee}}/месяц",
   "enterprise_license_includes": "Всё для коммерческого использования",
   "no_need_to_keep_your_code_open_source": "Необязательно оставлять исходный код открытым",

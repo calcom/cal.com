@@ -6,9 +6,9 @@ import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
-import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import LicenseRequired from "@calcom/features/commercial/common/components/LicenseRequired";
+import { checkPremiumUsername } from "@calcom/features/commercial/common/lib/checkPremiumUsername";
+import { isSAMLLoginEnabled } from "@calcom/features/commercial/sso/lib/saml";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";

@@ -1,1 +1,1 @@
-export * as ee from "./ee";
+export * as ee from "./commercial";

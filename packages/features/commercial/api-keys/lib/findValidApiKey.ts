@@ -1,4 +1,4 @@
-import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
+import { hashAPIKey } from "@calcom/features/commercial/api-keys/lib/apiKeys";
 import prisma from "@calcom/prisma";
 
 const findValidApiKey = async (apiKey: string, appId?: string) => {

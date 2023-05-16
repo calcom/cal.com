@@ -24,7 +24,7 @@ import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
 import { useEvent } from "./utils/event";
 
-const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
+const PoweredBy = dynamic(() => import("@calcom/commercial/components/PoweredBy"));
 const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
   ssr: false,
 });

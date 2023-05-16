@@ -1,7 +1,7 @@
 // TODO: i18n
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
+import SkeletonLoaderTeamList from "@calcom/features/commercial/teams/components/SkeletonloaderTeamList";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";

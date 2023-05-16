@@ -1581,7 +1581,7 @@
   "choose_license_description": "Erişilebilir ve ücretsiz bir AGPLv3 lisansı ile birlikte gelen Cal.com uygulaması bazı sınırlamalara sahip olmakla birlikte uygulamayı istediğiniz zaman Enterprise lisansına yükseltebilirsiniz. Daha sonra istediğiniz zaman yükseltebilirsiniz.",
   "license": "Lisans",
   "agplv3_license": "AGPLv3 Lisansı",
-  "ee_enterprise_license": "“/ee” Enterprise Lisansı",
+  "ee_enterprise_license": "“/commercial” Enterprise Lisansı",
   "enterprise_booking_fee": "Ayda {{enterprise_booking_fee}} başlangıç fiyatıyla",
   "enterprise_license_includes": "Ticari bir kullanım durumu için her şey",
   "no_need_to_keep_your_code_open_source": "Kodunuzu açık kaynak olarak tutmanıza gerek yok",

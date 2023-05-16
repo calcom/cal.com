@@ -36,10 +36,10 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
-} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
+} from "@calcom/features/commercial/workflows/lib/allowDisablingStandardEmails";
+import { deleteScheduledEmailReminder } from "@calcom/features/commercial/workflows/lib/reminders/emailReminderManager";
+import { scheduleWorkflowReminders } from "@calcom/features/commercial/workflows/lib/reminders/reminderScheduler";
+import { deleteScheduledSMSReminder } from "@calcom/features/commercial/workflows/lib/reminders/smsReminderManager";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";

@@ -1581,7 +1581,7 @@
   "choose_license_description": "Cal.com dolazi sa pristupačnom i besplatnom AGPLv3 licencom čija ograničenja mogu da budu nadograđena na licencu za preduzeća u svakom trenutku. Možete u bilo kom trenutku kasnije da nadogradite.",
   "license": "Licenca",
   "agplv3_license": "AGPLv3 licenca",
-  "ee_enterprise_license": "“/ee” Licenca za preduzeća",
+  "ee_enterprise_license": "“/commercial” Licenca za preduzeća",
   "enterprise_booking_fee": "Već od {{enterprise_booking_fee}}/mesečno",
   "enterprise_license_includes": "Sve za komercijalnu upotrebu",
   "no_need_to_keep_your_code_open_source": "Nije potrebno da vaš kôd bude otvoren",

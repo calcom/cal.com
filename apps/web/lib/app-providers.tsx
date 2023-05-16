@@ -9,8 +9,8 @@ import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 import type { ComponentProps, PropsWithChildren, ReactNode } from "react";
 
-import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
-import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
+import DynamicHelpscoutProvider from "@calcom/features/commercial/support/lib/helpscout/providerDynamic";
+import DynamicIntercomProvider from "@calcom/features/commercial/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
 import { trpc } from "@calcom/trpc/react";

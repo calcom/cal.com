@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 
-import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
+import { samlTenantProduct } from "@calcom/features/commercial/sso/lib/saml";
 
 import type { TSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 

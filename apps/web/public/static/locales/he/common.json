@@ -1532,7 +1532,7 @@
   "choose_license_description": "Cal.com מגיע עם רישיון AGPLv3 נגיש וחינמי עם כמה מגבלות שניתן לשדרג לתוכנית Enterprise בכל עת לקבלת גישה אליהן. אתה יכול לשדרג בכל מועד עתידי.",
   "license": "רישיון",
   "agplv3_license": "רישיון AGPLv3",
-  "ee_enterprise_license": "\"ee/\" רישיון Enterprise",
+  "ee_enterprise_license": "\"commercial/\" רישיון Enterprise",
   "enterprise_booking_fee": "החל מ- {{enterprise_booking_fee}}/לחודש",
   "enterprise_license_includes": "הכל לשימוש מסחרי",
   "repackage_rebrand_resell": "אריזה מחדש, מיתוג מחדש ומכירה בקלות",

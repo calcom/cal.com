@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
 
 import { sendTeamInviteEmail } from "@calcom/emails";
-import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
+import { updateQuantitySubscriptionFromStripe } from "@calcom/features/commercial/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";

@@ -1,5 +1,5 @@
-import jackson from "@calcom/features/ee/sso/lib/jackson";
-import { canAccess, samlProductID, samlTenantID, tenantPrefix } from "@calcom/features/ee/sso/lib/saml";
+import jackson from "@calcom/features/commercial/sso/lib/jackson";
+import { canAccess, samlProductID, samlTenantID, tenantPrefix } from "@calcom/features/commercial/sso/lib/saml";
 
 import { TRPCError } from "@trpc/server";
 

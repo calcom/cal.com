@@ -7,7 +7,7 @@ import type { FC } from "react";
 import { useEffect, useState, memo } from "react";
 import { z } from "zod";
 
-import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
+import useIntercom from "@calcom/features/commercial/support/lib/intercom/useIntercom";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";

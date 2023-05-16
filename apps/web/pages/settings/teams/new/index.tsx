@@ -1,6 +1,6 @@
 import Head from "next/head";
 
-import { CreateANewTeamForm } from "@calcom/features/ee/teams/components";
+import { CreateANewTeamForm } from "@calcom/features/commercial/teams/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import PageWrapper from "@components/PageWrapper";

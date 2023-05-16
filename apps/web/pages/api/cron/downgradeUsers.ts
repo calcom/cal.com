@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
+import { updateQuantitySubscriptionFromStripe } from "@calcom/features/commercial/teams/lib/payments";
 import prisma from "@calcom/prisma";
 
 const querySchema = z.object({

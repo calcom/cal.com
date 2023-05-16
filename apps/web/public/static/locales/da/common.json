@@ -1524,7 +1524,7 @@
   "choose_license_description": "Cal.com kommer med en tilgængelig og gratis AGPLv3-licens med nogle begrænsninger, som til enhver tid kan opgraderes til en Enterprise-licens. Du kan opgradere når som helst senere.",
   "license": "Licens",
   "agplv3_license": "AGPLv3 Licens",
-  "ee_enterprise_license": "“/ee” Virksomhedslicens",
+  "ee_enterprise_license": "“/commercial” Virksomhedslicens",
   "enterprise_booking_fee": "Fra {{enterprise_booking_fee}}/måned",
   "enterprise_license_includes": "Alt til en kommerciel brugssag",
   "repackage_rebrand_resell": "Ompak, rebrand og videresælg nemt",

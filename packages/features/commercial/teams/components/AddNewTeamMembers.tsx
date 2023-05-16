@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { z } from "zod";
 
-import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
+import MemberInvitationModal from "@calcom/features/commercial/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

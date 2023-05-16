@@ -3,7 +3,7 @@ import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from 
 import type { AuthOptions, Session } from "next-auth";
 import { getToken } from "next-auth/jwt";
 
-import checkLicense from "@calcom/features/ee/common/server/checkLicense";
+import checkLicense from "@calcom/features/commercial/common/server/checkLicense";
 import { CAL_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
