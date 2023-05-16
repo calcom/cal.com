@@ -1,12 +1,12 @@
 import { XIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { noop } from "lodash";
-import type { ReactNode } from "react";
+import type { ReactNode, ReactElement } from "react";
 
 import { AlertTriangle, Info } from "../icon";
 
 export type TopBannerProps = {
-  text: string;
+  text: ReactElement | string;
   variant?: keyof typeof variantClassName;
   actions?: ReactNode;
   onClose?: () => void;
