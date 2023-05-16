@@ -159,7 +159,8 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
   const { t } = useLocale();
   const { heading = true, fromOnboarding } = props;
   const utils = trpc.useContext();
-  const onChanged = () =>
+  const onChanged = () => {
+    utils.viewer.me.invalidate();
     Promise.allSettled([
       utils.viewer.integrations.invalidate(
         { variant: "calendar", onlyInstalled: true },
@@ -169,6 +170,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
       ),
       utils.viewer.connectedCalendars.invalidate(),
     ]);
+  };
   const query = trpc.viewer.connectedCalendars.useQuery();
   const installedCalendars = trpc.viewer.integrations.useQuery({ variant: "calendar", onlyInstalled: true });
   const mutation = trpc.viewer.setDestinationCalendar.useMutation({
