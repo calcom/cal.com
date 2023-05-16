@@ -26,10 +26,19 @@ export function processWorkingHours({
     if (!item.days.includes(date.day())) {
       continue;
     }
-    results.push({
-      start: date.hour(item.startTime.getUTCHours()).minute(item.startTime.getUTCMinutes()).second(0),
-      end: date.hour(item.endTime.getUTCHours()).minute(item.endTime.getUTCMinutes()).second(0),
-    });
+
+    const start = date.hour(item.startTime.getUTCHours()).minute(item.startTime.getUTCMinutes()).second(0);
+    const end = date.hour(item.endTime.getUTCHours()).minute(item.endTime.getUTCMinutes()).second(0);
+
+    // to avoid OutOfBound error
+    const startOrNow = start.isBefore(dayjs()) ? dayjs().add(1, "second") : start;
+
+    if (startOrNow.isBefore(end)) {
+      results.push({
+        start: startOrNow,
+        end: date.hour(item.endTime.getUTCHours()).minute(item.endTime.getUTCMinutes()).second(0),
+      });
+    }
   }
   return results;
 }
