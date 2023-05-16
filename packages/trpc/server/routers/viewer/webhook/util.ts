@@ -26,48 +26,22 @@ export const webhookProcedure = authedProcedure
         },
       });
 
-      if (webhook.teamId) {
-        const user = await prisma.user.findFirst({
-          where: {
-            id: ctx.user.id,
-          },
-          include: {
-            teams: true,
-          },
-        });
-
-        if (
-          user &&
-          !user.teams.some(
-            (membership) =>
-              membership.teamId === webhook.teamId &&
-              (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
-          )
-        ) {
-          throw new TRPCError({
-            code: "UNAUTHORIZED",
-          });
-        }
-      } else if (webhook.eventTypeId) {
-        const eventType = await prisma.eventType.findFirst({
-          where: {
-            id: webhook.eventTypeId,
-          },
-          include: {
-            team: {
-              include: {
-                members: true,
-              },
+      if (webhook) {
+        if (webhook.teamId) {
+          const user = await prisma.user.findFirst({
+            where: {
+              id: ctx.user.id,
             },
-          },
-        });
+            include: {
+              teams: true,
+            },
+          });
 
-        if (eventType && eventType.userId !== ctx.user.id) {
           if (
-            !eventType.team ||
-            !eventType.team.members.some(
+            user &&
+            !user.teams.some(
               (membership) =>
-                membership.userId === ctx.user.id &&
+                membership.teamId === webhook.teamId &&
                 (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
             )
           ) {
@@ -75,11 +49,39 @@ export const webhookProcedure = authedProcedure
               code: "UNAUTHORIZED",
             });
           }
+        } else if (webhook.eventTypeId) {
+          const eventType = await prisma.eventType.findFirst({
+            where: {
+              id: webhook.eventTypeId,
+            },
+            include: {
+              team: {
+                include: {
+                  members: true,
+                },
+              },
+            },
+          });
+
+          if (eventType && eventType.userId !== ctx.user.id) {
+            if (
+              !eventType.team ||
+              !eventType.team.members.some(
+                (membership) =>
+                  membership.userId === ctx.user.id &&
+                  (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
+              )
+            ) {
+              throw new TRPCError({
+                code: "UNAUTHORIZED",
+              });
+            }
+          }
+        } else if (webhook.userId && webhook.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+          });
         }
-      } else if (webhook.userId && webhook.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
       }
     } else {
       //check if user is authorized to create webhook on event type or team
