@@ -11,21 +11,21 @@ export const webhookProcedure = authedProcedure
   .use(async ({ ctx, input, next }) => {
     // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
     if (!input) return next();
-    const { id } = input;
+    const { id, teamId, eventTypeId } = input;
 
-    const webhook = await prisma.webhook.findFirst({
-      where: {
-        id: id,
-      },
-      include: {
-        user: true,
-        team: true,
-        eventType: true,
-      },
-    });
+    if (id) {
+      //check if user owns webhook
+      const webhook = await prisma.webhook.findFirst({
+        where: {
+          id: id,
+        },
+        include: {
+          user: true,
+          team: true,
+          eventType: true,
+        },
+      });
 
-    if (webhook) {
-      // A webhook is either linked to Event Type, to a user or to a team.
       if (webhook.teamId) {
         const user = await prisma.user.findFirst({
           where: {
@@ -40,7 +40,7 @@ export const webhookProcedure = authedProcedure
           user &&
           !user.teams.some(
             (membership) =>
-              membership.teamId &&
+              membership.teamId === webhook.teamId &&
               (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
           )
         ) {
@@ -82,9 +82,59 @@ export const webhookProcedure = authedProcedure
         });
       }
     } else {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-      });
+      //check if user is authorized to create webhook on event type or team
+      if (teamId) {
+        const user = await prisma.user.findFirst({
+          where: {
+            id: ctx.user.id,
+          },
+          include: {
+            teams: true,
+          },
+        });
+
+        if (
+          user &&
+          !user.teams.some(
+            (membership) =>
+              membership.teamId === teamId &&
+              (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
+          )
+        ) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+          });
+        }
+      } else if (eventTypeId) {
+        const eventType = await prisma.eventType.findFirst({
+          where: {
+            id: eventTypeId,
+          },
+          include: {
+            team: {
+              include: {
+                members: true,
+              },
+            },
+          },
+        });
+
+        if (eventType && eventType.userId !== ctx.user.id) {
+          if (
+            !eventType.team ||
+            !eventType.team.members.some(
+              (membership) =>
+                membership.userId === ctx.user.id &&
+                (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
+            )
+          ) {
+            throw new TRPCError({
+              code: "UNAUTHORIZED",
+            });
+          }
+        }
+      }
     }
+
     return next();
   });

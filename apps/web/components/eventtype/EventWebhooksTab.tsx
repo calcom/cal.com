@@ -7,6 +7,7 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
 import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
+import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
@@ -27,12 +28,6 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [webhookToEdit, setWebhookToEdit] = useState<Webhook>();
-
-  const subscriberUrlReserved = (subscriberUrl: string, id?: string): boolean => {
-    return !!webhooks?.find(
-      (webhook) => webhook.subscriberUrl === subscriberUrl && (!id || webhook.id !== id)
-    );
-  };
 
   const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
     async onSuccess() {
@@ -57,7 +52,14 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
   });
 
   const onCreateWebhook = async (values: WebhookFormSubmitData) => {
-    if (subscriberUrlReserved(values.subscriberUrl, values.id)) {
+    if (
+      subscriberUrlReserved({
+        subscriberUrl: values.subscriberUrl,
+        id: values.id,
+        webhooks,
+        eventTypeId: eventType.id,
+      })
+    ) {
       showToast(t("webhook_subscriber_url_reserved"), "error");
       return;
     }
@@ -172,7 +174,14 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                 apps={installedApps?.items.map((app) => app.slug)}
                 onCancel={() => setEditModalOpen(false)}
                 onSubmit={(values: WebhookFormSubmitData) => {
-                  if (subscriberUrlReserved(values.subscriberUrl, webhookToEdit?.id || "")) {
+                  if (
+                    subscriberUrlReserved({
+                      subscriberUrl: values.subscriberUrl,
+                      id: values.id,
+                      webhooks,
+                      eventTypeId: eventType.id,
+                    })
+                  ) {
                     showToast(t("webhook_subscriber_url_reserved"), "error");
                     return;
                   }
