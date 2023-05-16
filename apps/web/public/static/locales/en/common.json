@@ -1819,5 +1819,7 @@
   "disable_attendees_confirmation_emails": "Disable default confirmation emails for attendees",
   "disable_attendees_confirmation_emails_description": "At least one workflow is active on this event type that sends an email to the attendees when the event is booked.",
   "disable_host_confirmation_emails": "Disable default confirmation emails for host",
-  "disable_host_confirmation_emails_description": "At least one workflow is active on this event type that sends an email to the host when the event is booked."
+  "disable_host_confirmation_emails_description": "At least one workflow is active on this event type that sends an email to the host when the event is booked.",
+  "disconnected_calendar":"your {{calendarName}} has been disconnected.",
+  "reconnect":"reconnect it now"
 }
