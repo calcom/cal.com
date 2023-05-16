@@ -118,11 +118,11 @@ export default function Verify() {
         <div className="m-10 flex max-w-2xl flex-col items-start border border-white p-12 text-left">
           <div className="rounded-full border border-white p-3">
             {hasPaymentFailed ? (
-              <AlertTriangle className="text-inverted h-5 w-5 flex-shrink-0 p-0.5 font-extralight" />
+              <AlertTriangle className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
             ) : sessionId ? (
-              <Check className="text-inverted h-5 w-5 flex-shrink-0 p-0.5 font-extralight" />
+              <Check className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
             ) : (
-              <MailOpen className="text-inverted h-5 w-5 flex-shrink-0 p-0.5 font-extralight" />
+              <MailOpen className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
             )}
           </div>
           <h3 className="font-cal my-6 text-3xl font-normal">

@@ -139,7 +139,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
               <h1 className="font-cal text-emphasis mb-1 text-3xl">
                 {nameOrUsername}
                 {user.verified && (
-                  <Verified className=" mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white" />
+                  <Verified className=" mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black" />
                 )}
               </h1>
               {!isBioEmpty && (

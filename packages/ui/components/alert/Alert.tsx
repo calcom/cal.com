@@ -52,7 +52,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
           )}
           {severity === "neutral" && (
             <Info
-              className={classNames("fill-default h-5 w-5 text-white", iconClassName)}
+              className={classNames("text-default h-5 w-5 fill-transparent", iconClassName)}
               aria-hidden="true"
             />
           )}
