@@ -48,8 +48,8 @@ export default function WebhookListItem(props: {
   });
   const toggleWebhook = trpc.viewer.webhook.edit.useMutation({
     async onSuccess(data) {
-      console.log("data", data);
       await utils.viewer.webhook.getByViewer.invalidate();
+      await utils.viewer.webhook.list.invalidate();
       // TODO: Better success message
       showToast(t(data?.active ? "enabled" : "disabled"), "success");
     },
