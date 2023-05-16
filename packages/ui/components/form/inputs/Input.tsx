@@ -129,7 +129,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
       {addOnLeading || addOnSuffix ? (
         <div
           dir="ltr"
-          className="group relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
+          className="group relative mb-1 flex w-44 items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
           {addOnLeading && (
             <Addon isFilled={addOnFilled} className={classNames("rounded-l-md border-r-0", addOnClassname)}>
               {addOnLeading}
@@ -163,7 +163,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             <Addon
               isFilled={addOnFilled}
               className={classNames(
-                "ltr:rounded-r-md ltr:border-l-0 rtl:rounded-l-md rtl:border-r-0",
+                "flex w-20 justify-center truncate ltr:rounded-r-md ltr:border-l-0 rtl:rounded-l-md rtl:border-r-0",
                 addOnClassname
               )}>
               {addOnSuffix}
