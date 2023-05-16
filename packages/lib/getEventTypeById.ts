@@ -103,6 +103,11 @@ export default async function getEventTypeById({
       successRedirectUrl: true,
       currency: true,
       bookingFields: true,
+      parent: {
+        select: {
+          teamId: true,
+        },
+      },
       team: {
         select: {
           id: true,
@@ -191,6 +196,12 @@ export default async function getEventTypeById({
                     select: {
                       id: true,
                       title: true,
+                      parentId: true,
+                      _count: {
+                        select: {
+                          children: true,
+                        },
+                      },
                     },
                   },
                 },

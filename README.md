@@ -158,6 +158,15 @@ yarn dx
 ```sh
 echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 ```
+#### Gitpod Setup
+
+1. Click the button below to open this project in Gitpod.
+
+2. This will open a fully configured workspace in your browser with all the necessary dependencies already installed.
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/calcom/cal.com)
+
+
 
 #### Manual setup
 
@@ -166,33 +175,28 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    ```
    DATABASE_URL='postgresql://<user>:<pass>@<db-host>:<db-port>'
    ```
-
    <details>
-   <summary>If you don't know how to configure the DATABASE_URL, then follow the steps here to create a quick DB using Heroku.</summary>
+   <summary>If you don't know how to configure the DATABASE_URL, then follow the steps here to create a quick local DB</summary>
 
-   1. Create a free account with [Heroku](https://heroku.com).
+   1. [Download](https://www.postgresql.org/download/) and install postgres in your local (if you don't have it already).
 
-   2. Create a new app.
-      <img width="306" alt="Create an App" src="https://user-images.githubusercontent.com/16905768/115322780-b3d58c00-a17e-11eb-8a52-b758fb0ea942.png">
+   2. Create your own local db by executing `createDB <DB name>` 
 
-   3. In your new app, go to `Overview` and next to `Installed add-ons`, click `Configure Add-ons`. We need this to set up our database.
-      ![image](https://user-images.githubusercontent.com/16905768/115323232-a53ba480-a17f-11eb-98db-58e2f8c52426.png)
+   3. Now open your psql shell with the DB you created: `psql -h localhost -U postgres -d <DB name>`
 
-   4. Once you clicked on `Configure Add-ons`, click on `Find more add-ons` and search for `postgres`. One of the options will be `Heroku Postgres` - click on that option.
-      ![image](https://user-images.githubusercontent.com/16905768/115323126-5beb5500-a17f-11eb-8030-7380310807a9.png)
+   4. Inside the psql shell execute `\conninfo`. And you will get the following info.   
+      ![image](https://user-images.githubusercontent.com/39329182/236612291-51d87f69-6dc1-4a23-bf4d-1ca1754e0a35.png)
 
-   5. Once the pop-up appears, click `Submit Order Form` - plan name should be `Hobby Dev - Free`.
-      <img width="512" alt="Submit Order Form" src="https://user-images.githubusercontent.com/16905768/115323265-b4baed80-a17f-11eb-99f0-d67f019aa6df.png">
+   5. Now extract all the info and add it to your DATABASE_URL. The url would look something like this 
+   `postgresql://postgres:postgres@localhost:5432/Your-DB-Name`.
 
-   6. Once you completed the above steps, click on your newly created `Heroku Postgres` and go to its `Settings`.
-      ![image](https://user-images.githubusercontent.com/16905768/115323367-e92ea980-a17f-11eb-9ff4-dec95f2ec349.png)
-
-   7. In `Settings`, copy your URI to your Cal.com `.env` file and replace the `postgresql://<user>:<pass>@<db-host>:<db-port>` with it.
-      ![image](https://user-images.githubusercontent.com/16905768/115323556-4591c900-a180-11eb-9808-2f55d2aa3995.png)
-      ![image](https://user-images.githubusercontent.com/16905768/115323697-7a9e1b80-a180-11eb-9f08-a742b1037f90.png)
-
-   8. To view your DB, once you add new data in Prisma, you can use [Heroku Data Explorer](https://heroku-data-explorer.herokuapp.com).
    </details>
+
+   If you don't want to create a local DB. Then you can also consider using services like railway.app or render.
+   - [Setup postgres DB with railway.app](https://arctype.com/postgres/setup/railway-postgres)
+   - [Setup postgres DB with render](https://render.com/docs/databases)
+
+1. Copy and paste your `DATABASE_URL` from `.env` to `.env.appStore`.
 
 1. Set a 32 character random string in your `.env` file for the `CALENDSO_ENCRYPTION_KEY` (You can use a command like `openssl rand -base64 24` to generate one).
 1. Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
@@ -459,6 +463,10 @@ following
 8. In the "Scopes" section at the bottom of the page, make sure you select "Read" and "Write" for scope called `crm.objects.contacts`
 9. Click the "Save" button at the bottom footer.
 10. You're good to go. Now you can see any booking in Cal.com created as a meeting in HubSpot for your contacts.
+
+### Obtaining Webex Client ID and Secret
+
+[See Webex Readme](./packages/app-store/webex/)
 
 ### Obtaining ZohoCRM Client ID and Secret
 
