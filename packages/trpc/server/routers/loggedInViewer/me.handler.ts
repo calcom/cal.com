@@ -37,5 +37,7 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     theme: user.theme,
     hideBranding: user.hideBranding,
     metadata: user.metadata,
+    destinationCalendar: user.destinationCalendar,
+    primaryCalendar: user.primaryCalendar,
   };
 };
