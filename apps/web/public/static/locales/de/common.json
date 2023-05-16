@@ -1724,7 +1724,6 @@
   "locked_apps_description": "Mitglieder können die aktiven Apps sehen, können aber keine App-Einstellungen anpassen",
   "locked_webhooks_description": "Mitglieder können die aktiven Webhooks sehen, können aber keine Webhook-Einstellungen anpassen",
   "locked_workflows_description": "Mitglieder können die aktiven Workflows sehen, können aber keine Workflow-Einstellungen anpassen",
-  "locked_by_admin": "Von Admin gesperrt",
   "app_not_connected": "Sie haben kein {{appName}}-Konto verbunden.",
   "connect_now": "Jetzt verbinden",
   "managed_event_dialog_confirm_button_one": "{{count}} Mitglied ersetzen & benachrichtigen",

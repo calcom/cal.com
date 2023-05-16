@@ -1724,7 +1724,6 @@
   "locked_apps_description": "Leden kunnen de actieve apps zien, maar kunnen geen appinstellingen bewerken",
   "locked_webhooks_description": "Leden kunnen de actieve webhooks zien, maar kunnen geen webhookinstellingen bewerken",
   "locked_workflows_description": "Leden kunnen de actieve werkstromen zien, maar kunnen geen werkstroominstellingen bewerken",
-  "locked_by_admin": "Vergrendeld door beheerder",
   "app_not_connected": "U heeft geen {{appName}}-account gekoppeld.",
   "connect_now": "Nu koppelen",
   "managed_event_dialog_confirm_button_one": "{{count}} lid vervangen en informeren",
