@@ -79,6 +79,13 @@ type BookerStore = {
    * Method called by booker component to set initial data.
    */
   initialize: (data: StoreInitializeType) => void;
+  /**
+   * Stored form state, used when user navigates back and
+   * forth between timeslots and form. Get's cleared on submit
+   * to prevent sticky data.
+   */
+  formValues: Record<string, any>;
+  setFormValues: (values: Record<string, any>) => void;
 };
 
 const validLayouts: BookerLayout[] = ["large_calendar", "large_timeslots", "small_calendar"];
@@ -178,6 +185,10 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setSelectedTimeslot: (selectedTimeslot: string | null) => {
     set({ selectedTimeslot });
     updateQueryParam("slot", selectedTimeslot ?? "");
+  },
+  formValues: {},
+  setFormValues: (formValues: Record<string, any>) => {
+    set({ formValues });
   },
 }));
 
