@@ -14,7 +14,7 @@ export const webhookProcedure = authedProcedure
     const { id, teamId, eventTypeId } = input;
 
     if (id) {
-      //check if user owns webhook
+      //check if user is authorized to edit webhook
       const webhook = await prisma.webhook.findFirst({
         where: {
           id: id,
