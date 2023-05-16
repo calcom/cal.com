@@ -33,12 +33,14 @@ const WebhooksView = () => {
     enabled: router.isReady,
   });
 
+  const profiles = data?.profiles.filter((profile) => !profile.readOnly);
+
   return (
     <>
       <Meta
         title="Webhooks"
         description={t("webhooks_description", { appName: APP_NAME })}
-        CTA={data && data.webhookGroups.length > 0 ? <NewWebhookButton profiles={data.profiles} /> : <></>}
+        CTA={data && data.webhookGroups.length > 0 ? <NewWebhookButton profiles={profiles} /> : <></>}
       />
       <div>
         <Suspense fallback={<WebhookListSkeleton />}>
