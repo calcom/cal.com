@@ -160,6 +160,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       away: user.away,
+      appearanceBasis: user.username,
       isDynamicGroup: false,
       profile,
       date,

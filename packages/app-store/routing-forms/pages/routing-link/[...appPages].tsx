@@ -209,6 +209,7 @@ export const getServerSideProps = async function getServerSideProps(
   return {
     props: {
       isEmbed,
+      appearanceBasis: form.user.username,
       profile: {
         theme: form.user.theme,
         brandColor: form.user.brandColor,

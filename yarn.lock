@@ -5001,7 +5001,7 @@ __metadata:
     next-collect: ^0.2.1
     next-i18next: ^11.3.0
     next-seo: ^4.26.0
-    next-themes: ^0.2.0
+    next-themes: 0.2.0
     nodemailer: ^6.7.8
     otplib: ^12.0.1
     postcss: ^8.4.18
@@ -30599,6 +30599,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"next-themes@npm:0.2.0":
+  version: 0.2.0
+  resolution: "next-themes@npm:0.2.0"
+  peerDependencies:
+    next: "*"
+    react: "*"
+    react-dom: "*"
+  checksum: cee02db16bee471856557db9572ffa041b1d77254798e345fad09e1bd8b878e937cdacc73bb73c598eb3b042f20fff0201bd73d2de42e2061fa818585415e857
+  languageName: node
+  linkType: hard
+
 "next-themes@npm:^0.0.8":
   version: 0.0.8
   resolution: "next-themes@npm:0.0.8"
@@ -30607,17 +30618,6 @@ __metadata:
     react: ^16.13.1
     react-dom: ^16.13.1
   checksum: 0764d2594f81019fa7d121fa0cea47fcd4e027efe8b341c8a54127bde80795f712dab4058ee45be64e5d070725920f91b64ece0f63680130c5e5555efe6eb9bf
-  languageName: node
-  linkType: hard
-
-"next-themes@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "next-themes@npm:0.2.0"
-  peerDependencies:
-    next: "*"
-    react: "*"
-    react-dom: "*"
-  checksum: cee02db16bee471856557db9572ffa041b1d77254798e345fad09e1bd8b878e937cdacc73bb73c598eb3b042f20fff0201bd73d2de42e2061fa818585415e857
   languageName: node
   linkType: hard
 

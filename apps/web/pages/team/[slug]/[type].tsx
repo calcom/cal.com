@@ -196,6 +196,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         brandColor: team.brandColor,
         darkBrandColor: team.darkBrandColor,
       },
+      appearanceBasis: team.slug,
       date: dateParam,
       eventType: eventTypeObject,
       workingHours,

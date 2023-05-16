@@ -26,7 +26,10 @@ const I18nextAdapter = appWithTranslation<NextJsAppProps<SSRConfig> & { children
 );
 
 // Workaround for https://github.com/vercel/next.js/issues/8592
-export type AppProps = Omit<NextAppProps<WithNonceProps & Record<string, unknown>>, "Component"> & {
+export type AppProps = Omit<
+  NextAppProps<WithNonceProps & { appearanceBasis?: string } & Record<string, unknown>>,
+  "Component"
+> & {
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
     isThemeSupported?: boolean;
@@ -72,58 +75,21 @@ const enum ThemeSupport {
   Booking = "userConfigured",
 }
 
-const CalcomThemeProvider = (
-  props: PropsWithChildren<
-    WithNonceProps & {
-      isBookingPage?: boolean | ((arg: { router: NextRouter }) => boolean);
-      isThemeSupported?: boolean;
-    }
-  >
-) => {
-  // We now support the inverse of how we handled it in the past. Setting this to false will disable theme.
-  // undefined or true means we use system theme
+type CalcomThemeProps = PropsWithChildren<
+  Pick<AppProps["pageProps"], "nonce" | "appearanceBasis"> &
+    Pick<AppProps["Component"], "isBookingPage" | "isThemeSupported">
+>;
+const CalcomThemeProvider = (props: CalcomThemeProps) => {
   const router = useRouter();
-  const isBookingPage = (() => {
-    if (typeof props.isBookingPage === "function") {
-      return props.isBookingPage({ router: router });
-    }
 
-    return props.isBookingPage;
-  })();
-
-  const themeSupport = isBookingPage
-    ? ThemeSupport.Booking
-    : // if isThemeSupported is explicitly false, we don't use theme there
-    props.isThemeSupported === false
-    ? ThemeSupport.None
-    : ThemeSupport.App;
-
-  const forcedTheme = themeSupport === ThemeSupport.None ? "light" : undefined;
   // Use namespace of embed to ensure same namespaced embed are displayed with same theme. This allows different embeds on the same website to be themed differently
   // One such example is our Embeds Demo and Testing page at http://localhost:3100
   // Having `getEmbedNamespace` defined on window before react initializes the app, ensures that embedNamespace is available on the first mount and can be used as part of storageKey
   const embedNamespace = typeof window !== "undefined" ? window.getEmbedNamespace() : null;
   const isEmbedMode = typeof embedNamespace === "string";
 
-  const storageKey = isEmbedMode
-    ? `embed-theme-${embedNamespace}`
-    : themeSupport === ThemeSupport.App
-    ? "app-theme"
-    : themeSupport === ThemeSupport.Booking
-    ? "booking-theme"
-    : undefined;
-
   return (
-    <ThemeProvider
-      nonce={props.nonce}
-      enableColorScheme={false}
-      enableSystem={themeSupport !== ThemeSupport.None}
-      forcedTheme={forcedTheme}
-      storageKey={storageKey}
-      // next-themes doesn't listen to changes on storageKey. So we need to force a re-render when storageKey changes
-      // This is how login to dashboard soft navigation changes theme from light to dark
-      key={storageKey}
-      attribute="class">
+    <ThemeProvider {...getThemeProviderProps({ props, isEmbedMode, embedNamespace, router })}>
       {/* Embed Mode can be detected reliably only on client side here as there can be static generated pages as well which can't determine if it's embed mode at backend */}
       {/* color-scheme makes background:transparent not work in iframe which is required by embed. */}
       {typeof window !== "undefined" && !isEmbedMode && (
@@ -139,6 +105,75 @@ const CalcomThemeProvider = (
     </ThemeProvider>
   );
 };
+
+function getThemeProviderProps({
+  props,
+  isEmbedMode,
+  embedNamespace,
+  router,
+}: {
+  props: Omit<CalcomThemeProps, "children">;
+  isEmbedMode: boolean;
+  embedNamespace: string | null;
+  router: NextRouter;
+}) {
+  const isBookingPage = (() => {
+    if (typeof props.isBookingPage === "function") {
+      return props.isBookingPage({ router: router });
+    }
+    return props.isBookingPage;
+  })();
+
+  const themeSupport = isBookingPage
+    ? ThemeSupport.Booking
+    : // if isThemeSupported is explicitly false, we don't use theme there
+    props.isThemeSupported === false
+    ? ThemeSupport.None
+    : ThemeSupport.App;
+
+  const isBookingPageThemSupportRequired = themeSupport === ThemeSupport.Booking;
+  const appearanceBasis = props.appearanceBasis;
+
+  if ((isBookingPageThemSupportRequired || isEmbedMode) && !appearanceBasis) {
+    console.warn(
+      "`appearanceBasis` is required for booking page theme support. Not providing it will cause theme flicker."
+    );
+  }
+
+  const appearanceIdSuffix = appearanceBasis ? ":" + appearanceBasis : "";
+  const forcedTheme = themeSupport === ThemeSupport.None ? "light" : undefined;
+  let embedExplicitlySetThemeSuffix = "";
+
+  if (typeof window !== "undefined") {
+    const embedTheme = window.getEmbedTheme();
+    if (embedTheme) {
+      embedExplicitlySetThemeSuffix = ":" + embedTheme;
+    }
+  }
+
+  const storageKey = isEmbedMode
+    ? // Same Namespace, Same Organizer but different themes would still work seamless and not cause theme flicker
+      // Even though it's recommended to use different namespaces when you want to theme differently on the same page but if the embeds are on different pages, the problem can still arise
+      `embed-theme-${embedNamespace}${appearanceIdSuffix}${embedExplicitlySetThemeSuffix}`
+    : themeSupport === ThemeSupport.App
+    ? "app-theme"
+    : isBookingPageThemSupportRequired
+    ? `booking-theme${appearanceIdSuffix}`
+    : undefined;
+
+  return {
+    storageKey,
+    forcedTheme,
+    themeSupport,
+    nonce: props.nonce,
+    enableColorScheme: false,
+    enableSystem: themeSupport !== ThemeSupport.None,
+    // next-themes doesn't listen to changes on storageKey. So we need to force a re-render when storageKey changes
+    // This is how login to dashboard soft navigation changes theme from light to dark
+    key: storageKey,
+    attribute: "class",
+  };
+}
 
 function FeatureFlagsProvider({ children }: { children: React.ReactNode }) {
   const flags = useFlags();
@@ -157,6 +192,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
           <TooltipProvider>
             {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
             <CalcomThemeProvider
+              appearanceBasis={props.pageProps.appearanceBasis}
               nonce={props.pageProps.nonce}
               isThemeSupported={props.Component.isThemeSupported}
               isBookingPage={props.Component.isBookingPage}>
