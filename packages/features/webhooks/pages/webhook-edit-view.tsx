@@ -66,7 +66,7 @@ const EditWebhook = () => {
                 id: webhook.id,
                 webhooks,
                 teamId: webhook.teamId ?? undefined,
-                userId: webhook.userId || undefined,
+                userId: webhook.userId ?? undefined,
               })
             ) {
               showToast(t("webhook_subscriber_url_reserved"), "error");

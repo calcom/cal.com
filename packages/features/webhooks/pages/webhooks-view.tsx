@@ -52,7 +52,6 @@ const WebhooksView = () => {
 const NewWebhookButton = ({
   teamId,
   profiles,
-  btnText,
 }: {
   teamId?: number | null;
   profiles?: {
@@ -62,7 +61,6 @@ const NewWebhookButton = ({
     image?: string | undefined;
     teamId: number | null | undefined;
   }[];
-  btnText?: string;
 }) => {
   const { t, isLocaleReady } = useLocale();
 
@@ -73,7 +71,7 @@ const NewWebhookButton = ({
         data-testid="new_webhook"
         StartIcon={Plus}
         href={`${WEBAPP_URL}/settings/developer/webhooks/new${!!teamId ? `?teamId=${teamId}` : ""}`}>
-        {isLocaleReady ? btnText || t("new") : <SkeletonText className="h-4 w-24" />}
+        {isLocaleReady ? t("new") : <SkeletonText className="h-4 w-24" />}
       </Button>
     );
   }
@@ -125,54 +123,37 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
         <>
           {webhookGroups.length > 0 ? (
             <>
-              {webhookGroups && webhookGroups?.length > 0 ? (
-                webhookGroups.map((group) => (
-                  <div key={group.teamId}>
-                    {hasTeams && (
-                      <div className="items-centers flex ">
-                        <Avatar
-                          alt={group.profile.image || ""}
-                          imageSrc={group.profile.image || `${WEBAPP_URL}/${group.profile.name}/avatar.png`}
-                          size="md"
-                          className="inline-flex justify-center"
-                        />
-                        <div className="text-emphasis ml-2 flex flex-grow items-center font-bold">
-                          {group.profile.name || ""}
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex flex-col" key={group.profile.slug}>
-                      <div className="border-subtle mt-3 mb-8 rounded-md border">
-                        {group.webhooks.map((webhook, index) => (
-                          <WebhookListItem
-                            key={webhook.id}
-                            webhook={webhook}
-                            lastItem={group.webhooks.length === index + 1}
-                            onEditWebhook={() =>
-                              router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id} `)
-                            }
-                          />
-                        ))}
+              {webhookGroups.map((group) => (
+                <div key={group.teamId}>
+                  {hasTeams && (
+                    <div className="items-centers flex ">
+                      <Avatar
+                        alt={group.profile.image || ""}
+                        imageSrc={group.profile.image || `${WEBAPP_URL}/${group.profile.name}/avatar.png`}
+                        size="md"
+                        className="inline-flex justify-center"
+                      />
+                      <div className="text-emphasis ml-2 flex flex-grow items-center font-bold">
+                        {group.profile.name || ""}
                       </div>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <div className="flex flex-col" key={webhookGroups[0].profile.slug}>
-                  <div className="border-subtle mt-6 mb-8 rounded-md border">
-                    {webhookGroups[0].webhooks.map((webhook, index) => (
-                      <WebhookListItem
-                        key={webhook.id}
-                        webhook={webhook}
-                        lastItem={webhookGroups[0].webhooks.length === index + 1}
-                        onEditWebhook={() =>
-                          router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id} `)
-                        }
-                      />
-                    ))}
+                  )}
+                  <div className="flex flex-col" key={group.profile.slug}>
+                    <div className="border-subtle mt-3 mb-8 rounded-md border">
+                      {group.webhooks.map((webhook, index) => (
+                        <WebhookListItem
+                          key={webhook.id}
+                          webhook={webhook}
+                          lastItem={group.webhooks.length === index + 1}
+                          onEditWebhook={() =>
+                            router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id} `)
+                          }
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
-              )}
+              ))}
             </>
           ) : (
             <EmptyScreen
