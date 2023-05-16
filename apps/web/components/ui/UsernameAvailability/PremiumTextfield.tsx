@@ -230,7 +230,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
           <div className="absolute top-0 right-2 flex flex-row">
             <span
               className={classNames(
-                "mx-2 py-1",
+                "mx-2 py-2",
                 isInputUsernamePremium ? "text-orange-400" : "",
                 usernameIsAvailable ? "" : ""
               )}>

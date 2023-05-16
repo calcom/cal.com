@@ -17,6 +17,7 @@
     "app-store": "yarn app-store-cli cli",
     "create-app": "yarn app-store create",
     "edit-app": "yarn app-store edit",
+    "publish-embed": "yarn workspaces foreach --from=\"@calcom/embed*\" npm publish --access=public",
     "delete-app": "yarn app-store delete",
     "create-app-template": "yarn app-store create-template",
     "edit-app-template": "yarn app-store edit-template",
@@ -74,6 +75,7 @@
     "web": "yarn workspace @calcom/web"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.26.1",
     "@deploysentinel/playwright": "^0.3.3",
     "@playwright/test": "^1.31.2",
     "@snaplet/copycat": "^0.3.0",
