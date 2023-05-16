@@ -33,7 +33,7 @@ export default function WebhookListItem(props: {
   canEditWebhook?: boolean;
   onEditWebhook: () => void;
   lastItem: boolean;
-  readOnly: boolean;
+  readOnly?: boolean;
 }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
@@ -74,7 +74,7 @@ export default function WebhookListItem(props: {
       <div className="w-full truncate">
         <div className="flex">
           <p className="text-emphasis truncate text-sm font-medium">{webhook.subscriberUrl}</p>
-          {props.readOnly && (
+          {!!props.readOnly && (
             <Badge variant="gray" className="ml-2 ">
               {t("readonly")}
             </Badge>
