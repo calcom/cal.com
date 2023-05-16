@@ -65,10 +65,10 @@ const ProfileImpersonationView = () => {
         <div className="flex space-x-3">
           <Switch
             onCheckedChange={(e) => {
-              setValue("disableImpersonation", e, { shouldDirty: true });
+              setValue("disableImpersonation", !e, { shouldDirty: true });
             }}
             fitToHeight={true}
-            checked={watch("disableImpersonation")}
+            checked={!watch("disableImpersonation")}
           />
           <div className="flex flex-col">
             <Skeleton as={Label} className="text-emphasis text-sm font-semibold leading-none">
