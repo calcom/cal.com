@@ -1,5 +1,6 @@
 import z from "zod";
 
+import { getAppFromSlug } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmails } from "@calcom/emails";
@@ -335,12 +336,17 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
 
   const primaryCalendarId = ctx.user?.destinationCalendar?.credentialId;
 
+  console.log({ user: ctx.user });
+
   // to show the calendar disconnected banner when the primary calendar is disconnected
   if (primaryCalendarId && id === primaryCalendarId && isCalendarApp) {
-    await prisma.user.update({
-      where: { id: ctx.user.id },
-      data: { primaryCalendar: ctx.user.destinationCalendar?.integration },
-    });
+    const app = getAppFromSlug(credential?.app?.slug);
+    if (app) {
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: { primaryCalendar: app.name },
+      });
+    }
   }
 
   // Validated that credential is user's above
