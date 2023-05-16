@@ -1,12 +1,4 @@
-import type { Session } from "next-auth";
-
-type CityTimezonesOptions = {
-  ctx: {
-    session: Session | null;
-  };
-};
-
-export const cityTimezonesHandler = async ({ ctx: _ctx }: CityTimezonesOptions) => {
+export const cityTimezonesHandler = async () => {
   /**
    * Lazy loads third party dependency to avoid loading 1.5Mb for ALL tRPC procedures.
    * Thanks @roae for the tip 🙏

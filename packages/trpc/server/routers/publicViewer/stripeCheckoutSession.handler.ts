@@ -1,27 +1,18 @@
-import type { Session } from "next-auth";
-
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 
 import type { TStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
+import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
 
 type StripeCheckoutSessionOptions = {
-  ctx: {
-    session: Session | null;
-  };
   input: TStripeCheckoutSessionInputSchema;
 };
 
 export const stripeCheckoutSessionHandler = async ({ input }: StripeCheckoutSessionOptions) => {
   const { checkoutSessionId, stripeCustomerId } = input;
 
-  // TODO: Move the following data checks to superRefine
-  if (!checkoutSessionId && !stripeCustomerId) {
-    throw new Error("Missing checkoutSessionId or stripeCustomerId");
-  }
+  // Moved the following data checks to superRefine
+  const validationResult = ZStripeCheckoutSessionInputSchema.parse(input);
 
-  if (checkoutSessionId && stripeCustomerId) {
-    throw new Error("Both checkoutSessionId and stripeCustomerId provided");
-  }
   let customerId: string;
   let isPremiumUsername = false;
   let hasPaymentFailed = false;

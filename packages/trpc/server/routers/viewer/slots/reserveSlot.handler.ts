@@ -21,40 +21,64 @@ interface ReserveSlotOptions {
 export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => {
   const { prisma, req, res } = ctx;
   const uid = req?.cookies?.uid || uuid();
-  const { slotUtcStartDate, slotUtcEndDate, eventTypeId } = input;
+  const { slotUtcStartDate, slotUtcEndDate, eventTypeId, bookingAttendees } = input;
   const releaseAt = dayjs.utc().add(parseInt(MINUTES_TO_BOOK), "minutes").format();
   const eventType = await prisma.eventType.findUnique({
     where: { id: eventTypeId },
     select: { users: { select: { id: true } }, seatsPerTimeSlot: true },
   });
-  if (eventType) {
-    await Promise.all(
-      eventType.users.map((user) =>
-        prisma.selectedSlots.upsert({
-          where: { selectedSlotUnique: { userId: user.id, slotUtcStartDate, slotUtcEndDate, uid } },
-          update: {
-            slotUtcStartDate,
-            slotUtcEndDate,
-            releaseAt,
-            eventTypeId,
-          },
-          create: {
-            userId: user.id,
-            eventTypeId,
-            slotUtcStartDate,
-            slotUtcEndDate,
-            uid,
-            releaseAt,
-            isSeat: eventType.seatsPerTimeSlot !== null,
-          },
-        })
-      )
-    );
-  } else {
+
+  if (!eventType) {
     throw new TRPCError({
       message: "Event type not found",
       code: "NOT_FOUND",
     });
+  }
+
+  let shouldReserveSlot = true;
+
+  // If this is a seated event then don't reserve a slot
+  if (eventType.seatsPerTimeSlot) {
+    // Check to see if this is the last attendee
+    if (bookingAttendees) {
+      const seatsLeft = eventType.seatsPerTimeSlot - bookingAttendees;
+      if (seatsLeft < 1) shouldReserveSlot = false;
+    } else {
+      // If there is no booking yet then don't reserve the slot
+      shouldReserveSlot = false;
+    }
+  }
+
+  if (eventType && shouldReserveSlot) {
+    try {
+      await Promise.all(
+        eventType.users.map((user) =>
+          prisma.selectedSlots.upsert({
+            where: { selectedSlotUnique: { userId: user.id, slotUtcStartDate, slotUtcEndDate, uid } },
+            update: {
+              slotUtcStartDate,
+              slotUtcEndDate,
+              releaseAt,
+              eventTypeId,
+            },
+            create: {
+              userId: user.id,
+              eventTypeId,
+              slotUtcStartDate,
+              slotUtcEndDate,
+              uid,
+              releaseAt,
+              isSeat: eventType.seatsPerTimeSlot !== null,
+            },
+          })
+        )
+      );
+    } catch {
+      throw new TRPCError({
+        message: "Event type not found",
+        code: "NOT_FOUND",
+      });
+    }
   }
   res?.setHeader("Set-Cookie", serialize("uid", uid, { path: "/", sameSite: "lax" }));
   return;
