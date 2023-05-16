@@ -42,7 +42,7 @@ export default function RoutingForms({
   const { t } = useLocale();
   const { hasPaidPlan } = useHasPaidPlan();
 
-  const { data: forms, isLoading } = trpc.viewer.appRoutingForms.forms.useQuery(undefined, {
+  const { data: forms } = trpc.viewer.appRoutingForms.forms.useQuery(undefined, {
     initialData: forms_,
   });
 
