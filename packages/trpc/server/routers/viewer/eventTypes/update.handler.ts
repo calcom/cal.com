@@ -248,6 +248,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             userId: true,
           },
         },
+        workflows: {
+          select: {
+            workflowId: true,
+          },
+        },
         team: {
           select: {
             name: true,

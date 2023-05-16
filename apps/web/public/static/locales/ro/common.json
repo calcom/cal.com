@@ -1724,7 +1724,6 @@
   "locked_apps_description": "Membrii vor putea vedea aplicațiile active, însă nu le vor putea modifica deloc setările",
   "locked_webhooks_description": "Membrii vor putea vedea webhook-urile active, însă nu le vor putea modifica deloc setările",
   "locked_workflows_description": "Membrii vor putea vedea fluxurile de lucru active, însă nu le vor putea modifica deloc setările",
-  "locked_by_admin": "Blocat de administrator",
   "app_not_connected": "Nu ați conectat un cont {{appName}}.",
   "connect_now": "Conectați-l acum",
   "managed_event_dialog_confirm_button_one": "Înlocuiți și anunțați {{count}} membru",
