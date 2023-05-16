@@ -62,7 +62,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
       <h3 className="text-emphasis font-medium leading-6">
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
-          <span className="inline-block">
+          <span className="inline-block align-middle">
             <Info className="h-4 w-4" />
           </span>
         </Tooltip>
@@ -212,7 +212,7 @@ export default function Availability() {
                 aria-label={t("delete")}
                 className="hidden sm:inline"
                 disabled={schedule?.isLastSchedule}
-                tooltip={t("requires_at_least_one_schedule")}
+                tooltip={schedule?.isLastSchedule ? t("requires_at_least_one_schedule") : t("delete")}
               />
             </DialogTrigger>
             <ConfirmationDialogContent

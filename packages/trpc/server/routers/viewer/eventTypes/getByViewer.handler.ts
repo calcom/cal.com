@@ -46,6 +46,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
         users: true,
       },
     },
+    parentId: true,
     hosts: {
       select: {
         user: {

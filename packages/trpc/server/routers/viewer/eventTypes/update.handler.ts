@@ -5,6 +5,7 @@ import type { NextApiResponse, GetServerSidePropsContext } from "next";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { validateIntervalLimitOrder } from "@calcom/lib";
+import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -141,6 +142,44 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
   }
 
+  if (input.metadata?.disableStandardEmails) {
+    //check if user is allowed to disabled standard emails
+
+    const workflows = await ctx.prisma.workflow.findMany({
+      where: {
+        activeOn: {
+          some: {
+            eventTypeId: input.id,
+          },
+        },
+        trigger: WorkflowTriggerEvents.NEW_EVENT,
+      },
+      include: {
+        steps: true,
+      },
+    });
+
+    if (input.metadata?.disableStandardEmails.confirmation?.host) {
+      if (
+        !workflows.find(
+          (workflow) => !!workflow.steps.find((step) => step.action === WorkflowActions.EMAIL_HOST)
+        )
+      ) {
+        input.metadata.disableStandardEmails.confirmation.host = false;
+      }
+    }
+
+    if (input.metadata?.disableStandardEmails.confirmation?.attendee) {
+      if (
+        !workflows.find(
+          (workflow) => !!workflow.steps.find((step) => step.action === WorkflowActions.EMAIL_ATTENDEE)
+        )
+      ) {
+        input.metadata.disableStandardEmails.confirmation.attendee = false;
+      }
+    }
+  }
+
   if (input?.price || input.metadata?.apps?.stripe?.price) {
     data.price = input.price || input.metadata?.apps?.stripe?.price;
     const paymentCredential = await ctx.prisma.credential.findFirst({
@@ -207,6 +246,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         children: {
           select: {
             userId: true,
+          },
+        },
+        workflows: {
+          select: {
+            workflowId: true,
           },
         },
         team: {
