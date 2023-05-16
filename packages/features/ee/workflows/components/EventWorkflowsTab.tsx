@@ -197,7 +197,7 @@ function EventWorkflowsTab(props: Props) {
         const dataWf = data.workflows.find((wf) => wf.id === workflowOnEventType.id);
         return {
           ...workflowOnEventType,
-          readOnly: isChildrenManagedEventType && dataWf?.teamId ? true : dataWf?.readOnly ?? true,
+          readOnly: isChildrenManagedEventType && dataWf?.teamId ? true : dataWf?.readOnly ?? false,
         } as WorkflowType;
       });
       const disabledWorkflows = data.workflows.filter(
