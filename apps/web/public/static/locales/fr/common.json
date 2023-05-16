@@ -1814,5 +1814,6 @@
   "disable_attendees_confirmation_emails": "Désactiver les e-mails de confirmation par défaut pour les participants",
   "disable_attendees_confirmation_emails_description": "Au moins un workflow est actif sur ce type d'événement qui envoie un e-mail aux participants lorsque l'événement est réservé.",
   "disable_host_confirmation_emails": "Désactiver les e-mails de confirmation par défaut pour l'hôte",
-  "disable_host_confirmation_emails_description": "Au moins un workflow est actif sur ce type d'événement qui envoie un e-mail à l'hôte lorsque l'événement est réservé."
+  "disable_host_confirmation_emails_description": "Au moins un workflow est actif sur ce type d'événement qui envoie un e-mail à l'hôte lorsque l'événement est réservé.",
+  "add_an_override": "Ajouter une dérogation"
 }
