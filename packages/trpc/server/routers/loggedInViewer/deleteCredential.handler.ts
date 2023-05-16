@@ -69,6 +69,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
     },
   });
 
+  const isCalendarApp = credential.app?.categories.includes(AppCategories.calendar);
   // TODO: Improve this uninstallation cleanup per event by keeping a relation of EventType to App which has the data.
   for (const eventType of eventTypes) {
     if (eventType.locations) {
@@ -105,7 +106,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
     }
 
     // If it's a calendar, remove the destination calendar from the event type
-    if (credential.app?.categories.includes(AppCategories.calendar)) {
+    if (isCalendarApp) {
       if (eventType.destinationCalendar?.credential?.appId === credential.appId) {
         const destinationCalendar = await prisma.destinationCalendar.findFirst({
           where: {
@@ -330,6 +331,16 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
     for (const booking of bookingsWithScheduledJobs) {
       cancelScheduledJobs(booking, credential.appId);
     }
+  }
+
+  const primaryCalendarId = ctx.user?.destinationCalendar?.credentialId;
+
+  // to show the calendar disconnected banner when the primary calendar is disconnected
+  if (primaryCalendarId && id === primaryCalendarId && isCalendarApp) {
+    await prisma.user.update({
+      where: { id: ctx.user.id },
+      data: { primaryCalendar: ctx.user.destinationCalendar?.integration },
+    });
   }
 
   // Validated that credential is user's above
