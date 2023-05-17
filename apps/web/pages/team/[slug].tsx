@@ -207,6 +207,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       team: { ...team, safeBio, members },
+      themeBasis: team.slug,
       trpcState: ssr.dehydrate(),
       markdownStrippedBio,
     },

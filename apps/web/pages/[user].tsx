@@ -356,6 +356,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       users,
       safeBio,
       profile,
+      // Dynamic group has no theme preference right now. It uses system theme.
+      themeBasis: isDynamicGroup ? null : user.username,
       user: {
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },

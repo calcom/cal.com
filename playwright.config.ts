@@ -53,7 +53,9 @@ if (IS_EMBED_REACT_TEST) {
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: os.cpus().length,
+  // While debugging it should be focussed mode
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
+  workers: process.env.PWDEBUG ? 1 : os.cpus().length,
   timeout: DEFAULT_TEST_TIMEOUT,
   maxFailures: headless ? 10 : undefined,
   fullyParallel: true,
