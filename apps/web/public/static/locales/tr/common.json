@@ -1729,6 +1729,7 @@
   "managed_event_dialog_confirm_button_one": "{{count}} üyeyi değiştirin ve bilgilendirin",
   "managed_event_dialog_confirm_button_other": "{{count}} üyeyi değiştirin ve bilgilendirin",
   "managed_event_dialog_title_one": "URL /{{slug}}, {{count}} üye için zaten mevcut. Bunu değiştirmek istiyor musunuz?",
+  "managed_event_dialog_title_other": "URL /{{slug}}, {{count}} üye için zaten mevcut. Bunu değiştirmek istiyor musunuz?",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> zaten <strong>/{{slug}}</strong> URL'sini kullanıyor.",
   "managed_event_dialog_information_other": "<strong>{{names}}</strong> zaten <strong>/{{slug}}</strong> URL'sini kullanıyor.",
   "managed_event_dialog_clarification": "Değiştirmeyi seçmeniz durumunda kullanıcıları bilgilendireceğiz. Üzerine yazmak istemiyorsanız geri dönerek onları kaldırın.",
