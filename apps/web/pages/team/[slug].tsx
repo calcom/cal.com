@@ -3,7 +3,7 @@ import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useEffect } from "react";
 
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -11,6 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
+import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { Avatar, AvatarGroup, Button, EmptyScreen, HeadSeo } from "@calcom/ui";
@@ -25,7 +26,7 @@ import Team from "@components/team/screens/Team";
 import { ssrInit } from "@server/lib/ssr";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
-function TeamPage({ team, isUnpublished }: TeamPageProps) {
+function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
   useTheme(team.theme);
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
@@ -62,6 +63,11 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
           <div className="px-6 py-4 ">
             <Link
               href={`/team/${team.slug}/${type.slug}`}
+              onClick={async () => {
+                sdkActionManager?.fire("eventTypeSelected", {
+                  eventType: type,
+                });
+              }}
               data-testid="event-type-link"
               className="flex justify-between">
               <div className="flex-shrink">
@@ -94,7 +100,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
         title={teamName}
         description={teamName}
         meeting={{
-          title: team?.bio || "",
+          title: markdownStrippedBio,
           profile: { name: `${team.name}`, image: getPlaceholderAvatar(team.logo, team.name) },
         }}
       />
@@ -105,7 +111,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
           {!isBioEmpty && (
             <>
               <div
-                className=" text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                 dangerouslySetInnerHTML={{ __html: team.safeBio }}
               />
             </>
@@ -181,10 +187,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const members = team.members.map((member) => {
     return { ...member, safeBio: markdownToSafeHTML(member.bio || "") };
   });
+
+  const markdownStrippedBio = stripMarkdown(team?.bio || "");
+
   return {
     props: {
       team: { ...team, safeBio, members },
       trpcState: ssr.dehydrate(),
+      markdownStrippedBio,
     },
   } as const;
 };

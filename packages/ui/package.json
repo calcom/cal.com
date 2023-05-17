@@ -1,5 +1,6 @@
 {
   "name": "@calcom/ui",
+  "private": true,
   "sideEffects": false,
   "version": "0.0.0",
   "main": "./index.tsx",

@@ -1724,7 +1724,6 @@
   "locked_apps_description": "メンバーは有効なアプリを確認できますが、アプリの設定を編集することはできません",
   "locked_webhooks_description": "メンバーは有効なウェブフックを確認できますが、ウェブフックの設定を編集することはできません",
   "locked_workflows_description": "メンバーは有効なワークフローを確認できますが、ワークフローの設定を編集することはできません",
-  "locked_by_admin": "管理者によりロックされています",
   "app_not_connected": "{{appName}} のアカウントに接続していません。",
   "connect_now": "今すぐ接続",
   "managed_event_dialog_confirm_button_one": "{{count}} 人のメンバーを置き換えて通知する",

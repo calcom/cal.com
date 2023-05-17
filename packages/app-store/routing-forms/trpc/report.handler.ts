@@ -78,3 +78,5 @@ export const reportHandler = async ({ ctx: { prisma }, input }: ReportHandlerOpt
     nextCursor: areThereNoResultsOrLessThanAskedFor ? null : skip + rows.length,
   };
 };
+
+export default reportHandler;

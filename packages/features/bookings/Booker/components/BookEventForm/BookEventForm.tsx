@@ -281,7 +281,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
             />
           </div>
         )}
-        <div className="modalsticky mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
+        <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {!!onCancel && (
             <Button color="minimal" type="button" onClick={onCancel}>
               {t("back")}
