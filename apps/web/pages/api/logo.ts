@@ -1,7 +1,18 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { IS_SELF_HOSTED, LOGO, LOGO_ICON, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  ANDROID_CHROME_ICON_192,
+  ANDROID_CHROME_ICON_256,
+  APPLE_TOUCH_ICON,
+  FAVICON_16,
+  FAVICON_32,
+  IS_SELF_HOSTED,
+  LOGO,
+  LOGO_ICON,
+  MSTILE_ICON,
+  WEBAPP_URL,
+} from "@calcom/lib/constants";
 
 function removePort(url: string) {
   return url.replace(/:\d+$/, "");
@@ -17,7 +28,7 @@ function extractSubdomainAndDomain(hostname: string) {
 }
 
 const logoApiSchema = z.object({
-  icon: z.coerce.boolean().optional(),
+  type: z.coerce.string().optional(),
 });
 
 const SYSTEM_SUBDOMAINS = ["console", "app", "www"];
@@ -47,10 +58,10 @@ async function getTeamLogos(subdomain: string) {
       appIconLogo: true,
     },
   });
-  // try to use team logos, otherwise default to LOGO/LOGO_ICON regardless
+
   return {
-    appLogo: team.appLogo || `${WEBAPP_URL}${LOGO}`,
-    appIconLogo: team.appIconLogo || `${WEBAPP_URL}${LOGO_ICON}`,
+    appLogo: team.appLogo,
+    appIconLogo: team.appIconLogo,
   };
 }
 
@@ -69,7 +80,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const [subdomain] = domains;
   const { appLogo, appIconLogo } = await getTeamLogos(subdomain);
 
-  const filteredLogo = parsedQuery?.icon ? appIconLogo : appLogo;
+  // Resolve all icon types to team logos, falling back to Cal.com defaults.
+  let filteredLogo;
+  switch (parsedQuery?.type) {
+    case "icon":
+      filteredLogo = appIconLogo || `${WEBAPP_URL}${LOGO_ICON}`;
+      break;
+
+    case "favicon-16":
+      filteredLogo = appIconLogo || `${WEBAPP_URL}${FAVICON_16}`;
+      break;
+
+    case "favicon-32":
+      filteredLogo = appIconLogo || `${WEBAPP_URL}${FAVICON_32}`;
+      break;
+
+    case "apple-touch-icon":
+      filteredLogo = appLogo || `${WEBAPP_URL}${APPLE_TOUCH_ICON}`;
+      break;
+
+    case "mstile":
+      filteredLogo = appLogo || `${WEBAPP_URL}${MSTILE_ICON}`;
+      break;
+
+    case "android-chrome-192":
+      filteredLogo = appLogo || `${WEBAPP_URL}${ANDROID_CHROME_ICON_192}`;
+      break;
+
+    case "android-chrome-256":
+      filteredLogo = appLogo || `${WEBAPP_URL}${ANDROID_CHROME_ICON_256}`;
+      break;
+
+    default:
+      filteredLogo = appLogo || `${WEBAPP_URL}${LOGO}`;
+      break;
+  }
 
   const response = await fetch(filteredLogo);
   const arrayBuffer = await response.arrayBuffer();
