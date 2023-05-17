@@ -419,10 +419,14 @@ export const FormBuilder = function FormBuilder({
             fieldIndex: -1,
           })
         }>
-        <DialogContent enableOverflow data-testid="edit-field-dialog">
-          <DialogHeader title={t("add_a_booking_question")} subtitle={t("form_builder_field_add_subtitle")} />
-          <div>
+        <DialogContent className="p-0" data-testid="edit-field-dialog">
+          <div className="h-auto overflow-auto px-8 pt-8">
+            <DialogHeader
+              title={t("add_a_booking_question")}
+              subtitle={t("form_builder_field_add_subtitle")}
+            />
             <Form
+              id="form-builder"
               form={fieldForm}
               handleSubmit={(data) => {
                 const type = data.type || "text";
@@ -472,7 +476,7 @@ export const FormBuilder = function FormBuilder({
                 options={FieldTypes.filter((f) => !f.systemOnly)}
                 label={t("input_type")}
                 classNames={{
-                  menuList: () => "min-h-[27.25rem]",
+                  menuList: () => "min-h-[21rem]",
                 }}
               />
               <InputField
@@ -534,14 +538,14 @@ export const FormBuilder = function FormBuilder({
                   );
                 }}
               />
-              <DialogFooter>
-                <DialogClose color="secondary">{t("cancel")}</DialogClose>
-                <Button data-testid="field-add-save" type="submit">
-                  {isFieldEditMode ? t("save") : t("add")}
-                </Button>
-              </DialogFooter>
             </Form>
           </div>
+          <DialogFooter className="relative rounded pb-6" showDivider>
+            <DialogClose color="secondary">{t("cancel")}</DialogClose>
+            <Button data-testid="field-add-save" type="submit" form="form-builder">
+              {isFieldEditMode ? t("save") : t("add")}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
