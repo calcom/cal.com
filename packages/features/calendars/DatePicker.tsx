@@ -17,7 +17,7 @@ export type DatePickerProps = {
   /** Fires when the month is changed. */
   onMonthChange?: (date: Dayjs) => void;
   /** which date is currently selected (not tracked from here) */
-  selected?: Dayjs | null;
+  selected?: Dayjs[] | null;
   /** defaults to current date. */
   minDate?: Dayjs;
   /** Furthest date selectable in the future, default = UNLIMITED */
@@ -161,7 +161,7 @@ const Days = ({
                 (includedDates && !includedDates.includes(yyyymmdd(day))) ||
                 excludedDates.includes(yyyymmdd(day))
               }
-              active={selected ? yyyymmdd(selected) === yyyymmdd(day) : false}
+              active={selected ? selected.some((e) => yyyymmdd(e) === yyyymmdd(day)) : false}
             />
           )}
         </div>

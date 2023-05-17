@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -39,6 +39,21 @@ const DateOverrideForm = ({
   value?: TimeRange[];
   onClose?: () => void;
 }) => {
+  useEffect(() => {
+    window.addEventListener("keydown", (evt) => {
+      if (evt.key === "Shift") {
+        setShiftDown(true);
+      }
+    });
+
+    window.addEventListener("keyup", (evt) => {
+      if (evt.key === "Shift") {
+        setShiftDown(false);
+      }
+    });
+  }, []);
+
+  const [shiftDown, setShiftDown] = useState<boolean>(false);
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
   const { t, i18n, isLocaleReady } = useLocale();
   const [datesUnavailable, setDatesUnavailable] = useState(
@@ -50,6 +65,49 @@ const DateOverrideForm = ({
   );
 
   const [date, setDate] = useState<Dayjs | null>(value ? dayjs(value[0].start) : null);
+  const [endDate, setEndDate] = useState<Dayjs | null>(value ? dayjs(value[0].start) : null);
+
+  const dateRange = () => {
+    if (!date) return;
+    const datesArray: Dayjs[] = [date];
+
+    if (endDate?.isBefore(date)) {
+      const temp = date;
+      setDate(endDate);
+      setEndDate(temp);
+    }
+
+    let currentDate = date;
+
+    //The maximum date range is 31 days
+    while (currentDate.isBefore(endDate) || currentDate.isSame(endDate)) {
+      if (currentDate.isBusinessDay()) {
+        datesArray.push(currentDate);
+      }
+      currentDate = currentDate.add(1, "day");
+    }
+
+    return datesArray;
+  };
+
+  const changeDate = (newDate: Dayjs) => {
+    if (shiftDown) {
+      if (!endDate) {
+        setEndDate(date);
+      }
+
+      if (endDate.date > newDate.date) {
+        setDate(newDate);
+      } else {
+        setDate(endDate);
+        setEndDate(newDate);
+      }
+    } else {
+      setDate(newDate);
+      setEndDate(newDate);
+    }
+  };
+
   const includedDates = useMemo(
     () =>
       workingHours
@@ -123,8 +181,8 @@ const DateOverrideForm = ({
           includedDates={includedDates}
           excludedDates={excludedDates}
           weekStart={0}
-          selected={date}
-          onChange={(day) => setDate(day)}
+          selected={dateRange()}
+          onChange={(day) => changeDate(day)}
           onMonthChange={(newMonth) => {
             setBrowsingDate(newMonth);
           }}
