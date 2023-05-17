@@ -1781,6 +1781,5 @@
   "seats_and_no_show_fee_error": "Hiện không thể kích hoạt chỗ ngồi và tính khoản phí vắng mặt",
   "complete_your_booking": "Hoàn thành lịch hẹn của bạn",
   "complete_your_booking_subject": "Hoàn thành lịch hẹn của bạn: {{title}} vào {{date}}",
-  "email_invite_team": "{{email}} đã được mời",
-  "add_an_override": "Thêm ghi đè"
+  "email_invite_team": "{{email}} đã được mời"
 }

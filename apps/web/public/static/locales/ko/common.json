@@ -1804,6 +1804,5 @@
   "disable_attendees_confirmation_emails": "참석자에 대한 기본 확인 이메일 비활성화",
   "disable_attendees_confirmation_emails_description": "이 이벤트 유형에는 이벤트가 예약되었을 때 참석자들에게 이메일을 보내는 최소한 하나의 워크플로가 활성화되어 있습니다.",
   "disable_host_confirmation_emails": "호스트에 대한 기본 확인 이메일 비활성화",
-  "disable_host_confirmation_emails_description": "이 이벤트 유형에는 이벤트가 예약될 때 호스트에게 이메일을 보내는 최소한 하나의 워크플로가 활성화되어 있습니다.",
-  "add_an_override": "재정의 추가"
+  "disable_host_confirmation_emails_description": "이 이벤트 유형에는 이벤트가 예약될 때 호스트에게 이메일을 보내는 최소한 하나의 워크플로가 활성화되어 있습니다."
 }

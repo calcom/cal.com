@@ -1781,6 +1781,5 @@
   "seats_and_no_show_fee_error": "Obecnie nie można udostępnić miejsc ani naliczyć opłaty za niestawienie się.",
   "complete_your_booking": "Ukończ rezerwację",
   "complete_your_booking_subject": "Ukończ rezerwację: {{title}} dnia {{date}}",
-  "email_invite_team": "Zaproszono {{email}}",
-  "add_an_override": "Dodaj zastąpienie"
+  "email_invite_team": "Zaproszono {{email}}"
 }
