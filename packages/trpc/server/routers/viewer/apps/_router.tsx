@@ -11,7 +11,8 @@ type AppsRouterHandlerCache = {
   toggle?: typeof import("./toggle.handler").toggleHandler;
   saveKeys?: typeof import("./saveKeys.handler").saveKeysHandler;
   checkForGCal?: typeof import("./checkForGCal.handler").checkForGCalHandler;
-  checkForGWorkspace?: typeof import("./checkForGWorkspace.handler").checkForGWorkspace;
+  checkForGWorkspace?: typeof import("./googleWorkspaceHandler.handler").checkForGWorkspace;
+  getUsersFromGWorkspace?: typeof import("./googleWorkspaceHandler.handler").getUsersFromGWorkspace;
   updateAppCredentials?: typeof import("./updateAppCredentials.handler").updateAppCredentialsHandler;
   queryForDependencies?: typeof import("./queryForDependencies.handler").queryForDependenciesHandler;
 };
@@ -125,9 +126,10 @@ export const appsRouter = router({
         input,
       });
     }),
-  checkForGWorkspace: authedAdminProcedure.query(async ({ ctx }) => {
+  // TODO: @Hariom should we move these elsewhere?
+  checkForGWorkspace: authedProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.checkForGWorkspace) {
-      UNSTABLE_HANDLER_CACHE.checkForGWorkspace = await import("./checkForGWorkspace.handler").then(
+      UNSTABLE_HANDLER_CACHE.checkForGWorkspace = await import("./googleWorkspaceHandler.handler").then(
         (mod) => mod.checkForGWorkspace
       );
     }
@@ -138,6 +140,22 @@ export const appsRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.checkForGWorkspace({
+      ctx,
+    });
+  }),
+  getUsersFromGorkspace: authedProcedure.mutation(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getUsersFromGWorkspace) {
+      UNSTABLE_HANDLER_CACHE.getUsersFromGWorkspace = await import("./googleWorkspaceHandler.handler").then(
+        (mod) => mod.getUsersFromGWorkspace
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getUsersFromGWorkspace) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getUsersFromGWorkspace({
       ctx,
     });
   }),

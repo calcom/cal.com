@@ -64,6 +64,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
   return (
     <Dialog
+      name="inviteModal"
       open={props.isOpen}
       onOpenChange={() => {
         props.onExit();
@@ -139,7 +140,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   rules={{
                     required: t("enter_email_or_username"),
                   }}
-                  render={({ field: { onChange }, fieldState: { error } }) => (
+                  render={({ field: { onChange, value }, fieldState: { error } }) => (
                     <>
                       {/* TODO: Make this a fancy email input that styles on a successful email. */}
                       <TextAreaField
@@ -149,6 +150,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                         autoCorrect="off"
                         placeholder="john@doe.com, alex@smith.com"
                         required
+                        value={value}
                         onChange={(e) => {
                           const emails = e.target.value
                             .split(",")
@@ -167,8 +169,14 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   <span className="bg-muted text-subtle px-2 py-1 leading-none">Or</span>
                   <hr className="border-subtle border-1 h-px w-full" />
                 </div>
-                <GoogleWorkspaceInviteButton />
+                <GoogleWorkspaceInviteButton
+                  onSuccess={(data) => {
+                    console.log(data);
+                    newMemberFormMethods.setValue("emailOrUsername", data);
+                  }}
+                />
                 <Button
+                  disabled
                   type="button"
                   color="secondary"
                   StartIcon={PaperclipIcon}

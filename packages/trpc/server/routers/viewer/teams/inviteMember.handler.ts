@@ -51,6 +51,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     if (!invitee) {
       // liberal email match
 
+      console.log(usernameOrEmail);
       if (!isEmail(usernameOrEmail))
         throw new TRPCError({
           code: "NOT_FOUND",
@@ -102,17 +103,21 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         });
       } catch (e) {
         if (e instanceof Prisma.PrismaClientKnownRequestError) {
-          if (e.code === "P2002") {
+          // Don't throw an error if the user is already a member of the team when inviting multiple users
+
+          if (!Array.isArray(input.usernameOrEmail) && e.code === "P2002") {
             throw new TRPCError({
               code: "FORBIDDEN",
               message: "This user is a member of this team / has a pending invitation.",
             });
+          } else {
+            console.log(`User ${invitee.id} is already a member of this team.`);
           }
         } else throw e;
       }
 
-      let sendTo = input.usernameOrEmail;
-      if (!isEmail(input.usernameOrEmail)) {
+      let sendTo = usernameOrEmail;
+      if (!isEmail(usernameOrEmail)) {
         sendTo = invitee.email;
       }
 

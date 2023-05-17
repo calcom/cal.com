@@ -1,3 +1,4 @@
+import { UsersIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import type { PropsWithChildren } from "react";
@@ -29,20 +30,42 @@ function gotoUrl(url: string, newTab?: boolean) {
   window.location.href = url;
 }
 
-export function GoogleWorkspaceInviteButton(props: PropsWithChildren) {
+export function GoogleWorkspaceInviteButton(
+  props: PropsWithChildren<{ onSuccess: (data: string[]) => void }>
+) {
   const router = useRouter();
   const teamId = Number(router.query.id);
   const [googleWorkspaceLoading, setGoogleWorkspaceLoading] = useState(false);
-  const { data: hasExistingWorkspaceConnection, isLoading } =
-    trpc.viewer.appsRouter.checkForGWorkspace.useQuery();
+  const { data: credential } = trpc.viewer.appsRouter.checkForGWorkspace.useQuery();
+  const mutation = trpc.viewer.appsRouter.getUsersFromGorkspace.useMutation({
+    onSuccess: (data) => {
+      if (Array.isArray(data) && data.length !== 0) {
+        props.onSuccess(data);
+      }
+    },
+  });
   // see if user has any google workspace credentials attached
 
   // Show populate input button if they do
-  if (hasExistingWorkspaceConnection) {
+  if (credential && credential?.id) {
     return (
-      <Tooltip content="You must be a workspace admin to this feature">
-        <Button>oooo we have a connection - populate the fkin list </Button>
-      </Tooltip>
+      <div className="flex gap-2">
+        <Tooltip content="You must be a workspace admin to use this feature">
+          <Button
+            color="secondary"
+            onClick={() => {
+              mutation.mutate();
+            }}
+            className="w-full justify-center gap-2"
+            StartIcon={UsersIcon}
+            loading={mutation.isLoading}>
+            Import from Google Workspace
+          </Button>
+        </Tooltip>
+        <Tooltip content="Remove workspace connection">
+          <Button color="secondary" className="" StartIcon={XIcon} variant="icon" />
+        </Tooltip>
+      </div>
     );
   }
 
@@ -70,7 +93,7 @@ export function GoogleWorkspaceInviteButton(props: PropsWithChildren) {
         gotoUrl(json.url, json.newTab);
       }}
       className="justify-center gap-2">
-      Import via Google Workspace
+      Connect Google Workspace
     </Button>
   );
 }
