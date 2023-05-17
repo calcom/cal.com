@@ -169,7 +169,7 @@ function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TFunction
     }
   }
 
-  const label = noLabel ? "" : field.label || t(field.defaultLabel || "");
+  const label = noLabel ? "" : field.labelAsSafeHtml || t(field.defaultLabel || "");
   const placeholder = field.placeholder || t(field.defaultPlaceholder || "");
 
   if (field.variantsConfig?.variants) {
