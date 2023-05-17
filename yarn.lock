@@ -5066,6 +5066,7 @@ __metadata:
     "@calcom/ui": "*"
     "@floating-ui/react-dom": ^1.0.0
     "@headlessui/react": ^1.5.0
+    "@heroicons/react": ^1.0.6
     "@hookform/resolvers": ^2.9.7
     "@juggle/resize-observer": ^3.4.0
     "@next/bundle-analyzer": ^13.1.6
@@ -6881,6 +6882,15 @@ __metadata:
     react: ^16 || ^17 || ^18
     react-dom: ^16 || ^17 || ^18
   checksum: 9122114d7a618877a8da2ada000422ce82e6af47195e414076fa5cf45687709479eb30b0df414eed52079be6e5904151bc92e4acfafbdde2592c608f015c490e
+  languageName: node
+  linkType: hard
+
+"@heroicons/react@npm:^1.0.6":
+  version: 1.0.6
+  resolution: "@heroicons/react@npm:1.0.6"
+  peerDependencies:
+    react: ">= 16"
+  checksum: 372b1eda3ce735ef069777bc96304f70de585ebb71a6d1cedc121bb695f9bca235619112e3ee14e8779e95a03096813cbbe3b755927a54b7580d1ce084fa4096
   languageName: node
   linkType: hard
 
@@ -17215,7 +17225,7 @@ __metadata:
     jest-watch-select-projects: ^2.0.0
     jest-watch-typeahead: ^2.0.0
     lint-staged: ^12.5.0
-    lucide-react: ^0.130.0
+    lucide-react: ^0.171.0
     prettier: ^2.8.6
     ts-jest: ^28.0.8
     tsc-absolute: ^1.0.0
@@ -28533,12 +28543,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-react@npm:^0.130.0":
-  version: 0.130.1
-  resolution: "lucide-react@npm:0.130.1"
+"lucide-react@npm:^0.171.0":
+  version: 0.171.0
+  resolution: "lucide-react@npm:0.171.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0
-  checksum: 83ba516f60859053380bbe07c23c24695ff479f787aa0e18f2994b63cdf6a48867b7119b10c313a384e301b2521c460c48ebd59a8448ed62cf20a1224839389e
+  checksum: 768ffe368c52a518ee339203d86ff4479989ab4d79c0716f721900c4bb7392ef6ff7a14807f6a685abd74d27f4c1778170bff77a0ab4c3e06c17944b557d8300
   languageName: node
   linkType: hard
 
