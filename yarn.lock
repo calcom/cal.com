@@ -4917,7 +4917,6 @@ __metadata:
     "@daily-co/daily-js": ^0.37.0
     "@formkit/auto-animate": ^1.0.0-beta.5
     "@glidejs/glide": ^3.5.2
-    "@heroicons/react": ^1.0.6
     "@hookform/error-message": ^2.0.0
     "@hookform/resolvers": ^2.9.7
     "@microsoft/microsoft-graph-types-beta": 0.15.0-preview
@@ -5067,7 +5066,6 @@ __metadata:
     "@calcom/ui": "*"
     "@floating-ui/react-dom": ^1.0.0
     "@headlessui/react": ^1.5.0
-    "@heroicons/react": ^1.0.6
     "@hookform/resolvers": ^2.9.7
     "@juggle/resize-observer": ^3.4.0
     "@next/bundle-analyzer": ^13.1.6
@@ -6883,15 +6881,6 @@ __metadata:
     react: ^16 || ^17 || ^18
     react-dom: ^16 || ^17 || ^18
   checksum: 9122114d7a618877a8da2ada000422ce82e6af47195e414076fa5cf45687709479eb30b0df414eed52079be6e5904151bc92e4acfafbdde2592c608f015c490e
-  languageName: node
-  linkType: hard
-
-"@heroicons/react@npm:^1.0.6":
-  version: 1.0.6
-  resolution: "@heroicons/react@npm:1.0.6"
-  peerDependencies:
-    react: ">= 16"
-  checksum: 372b1eda3ce735ef069777bc96304f70de585ebb71a6d1cedc121bb695f9bca235619112e3ee14e8779e95a03096813cbbe3b755927a54b7580d1ce084fa4096
   languageName: node
   linkType: hard
 
