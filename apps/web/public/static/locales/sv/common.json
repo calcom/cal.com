@@ -1729,7 +1729,6 @@
   "managed_event_dialog_confirm_button_one": "Ersätt och meddela {{count}} medlem",
   "managed_event_dialog_confirm_button_other": "Ersätt och meddela {{count}} medlemmar",
   "managed_event_dialog_title_one": "Webbadressen /{{slug}} finns redan för {{count}} medlem. Vill du ersätta den?",
-  "managed_event_dialog_title_other": "Webbadressen /{{slug}} finns redan för {{count}} medlemmar. Vill du ersätta den?",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> använder redan webbadressen <strong>/{{slug}}</strong>.",
   "managed_event_dialog_information_other": "<strong>{{names}}</strong> använder redan webbadressen <string>/{{slug}}</strong>.",
   "managed_event_dialog_clarification": "Om du väljer att byta ut den kommer vi att meddela dem. Gå tillbaka och ta bort dem om du inte vill skriva över den.",

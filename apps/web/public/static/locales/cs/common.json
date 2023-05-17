@@ -1729,7 +1729,6 @@
   "managed_event_dialog_confirm_button_one": "Nahradit a upozornit {{count}} člena",
   "managed_event_dialog_confirm_button_other": "Nahradit a upozornit členy ({{count}})",
   "managed_event_dialog_title_one": "Adresa URL /{{slug}} již existuje pro {{count}} člena. Chcete ji nahradit?",
-  "managed_event_dialog_title_other": "Adresa URL /{{slug}} již existuje pro členy ({{count}}). Chcete ji nahradit?",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> již používá adresa URL <strong>/{{slug}}</strong>.",
   "managed_event_dialog_information_other": "<strong>{{names}}</strong> již používá adresa URL <string>/{{slug}}</strong>.",
   "managed_event_dialog_clarification": "Pokud se rozhodnete ji nahradit, pošleme jim upozornění. Pokud ji nechcete přepsat, vraťte se a odstraňte ji.",

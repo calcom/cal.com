@@ -1729,7 +1729,6 @@
   "managed_event_dialog_confirm_button_one": "استبدال وإشعار العضو {{count}}",
   "managed_event_dialog_confirm_button_other": "استبدال وإشعار الأعضاء {{count}}",
   "managed_event_dialog_title_one": "عنوان url /{{slug}} موجود بالفعل من أجل {{count}} عضو. هل تريد استبداله؟",
-  "managed_event_dialog_title_other": "عنوان url /{{slug}} موجود بالفعل لـ {{count}} أعضاء. هل تريد استبداله؟",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> يستخدم بالفعل عنوان url <strong>/{{slug}}</strong>.",
   "managed_event_dialog_information_other": "<strong>{{names}}</strong> يستخدم بالفعل عنوان url <string>/{{slug}}</strong>.",
   "managed_event_dialog_clarification": "سنقوم بإعلامهم إذا اخترت استبداله. قم بالعودة وإزالتهم إذا كنت لا تريد الكتابة فوقها.",

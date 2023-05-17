@@ -1729,7 +1729,6 @@
   "managed_event_dialog_confirm_button_one": "Замінити й повідомити {{count}} учасника",
   "managed_event_dialog_confirm_button_other": "Замінити й повідомити учасників ({{count}})",
   "managed_event_dialog_title_one": "URL-адреса /{{slug}} вже існує для {{count}} учасника. Хочете замінити її?",
-  "managed_event_dialog_title_other": "URL-адреса /{{slug}} вже існує для кількох учасників ({{count}}). Хочете замінити її?",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> вже використовує URL-адресу <strong>/{{slug}}</strong>.",
   "managed_event_dialog_information_other": "<strong>{{names}}</strong> вже використовують URL-адресу <string>/{{slug}}</strong>.",
   "managed_event_dialog_clarification": "Якщо ви захочете замінити її, ми повідомимо їм. Поверніться і вилучіть їх, якщо ви не хочете перезаписувати її.",

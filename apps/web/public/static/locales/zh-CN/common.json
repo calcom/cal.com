@@ -1733,7 +1733,6 @@
   "managed_event_dialog_confirm_button_one": "替换并通知 {{count}} 个成员",
   "managed_event_dialog_confirm_button_other": "替换并通知 {{count}} 个成员",
   "managed_event_dialog_title_one": "{{count}} 个成员的链接/{{slug}} 已存在。是否要将其替换?",
-  "managed_event_dialog_title_other": "{{count}} 个成员的链接/{{slug}} 已存在。是否要将其替换?",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> 已经在使用 <strong>/{{slug}}</strong> 链接。",
   "managed_event_dialog_information_other": "<strong>{{names}}</strong> 已经在使用 <string>/{{slug}}</strong> 链接。",
   "managed_event_dialog_clarification": "如果您选择将其替换，我们会通知他们。如果您不想将其覆盖，请返回并移除它们。",

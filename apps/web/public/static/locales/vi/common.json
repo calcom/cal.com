@@ -1729,7 +1729,6 @@
   "managed_event_dialog_confirm_button_one": "Thay thế & thông báo cho {{count}} thành viên",
   "managed_event_dialog_confirm_button_other": "Thay thế & thông báo cho {{count}} thành viên",
   "managed_event_dialog_title_one": "URL / {{slug}} đã có sẵn cho {{count}} thành viên. Bạn có muốn thay thế nó?",
-  "managed_event_dialog_title_other": "URL /{{slug}} đã có sẵn cho {{count}} thành viên. Bạn có muốn thay thế nó?",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> đã dùng URL <strong>/{{slug}}</strong> rồi.",
   "managed_event_dialog_information_other": "<strong>{{names}}</strong> đã dùng URL <string>/{{slug}}</strong> rồi.",
   "managed_event_dialog_clarification": "Nếu bạn chọn phương án thay thế nó, chúng tôi sẽ thông báo cho họ biết. Hãy quay lại và xoá bỏ họ nếu bạn không muốn ghi đè nó.",

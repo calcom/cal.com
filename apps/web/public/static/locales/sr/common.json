@@ -1729,7 +1729,6 @@
   "managed_event_dialog_confirm_button_one": "Zameni i obavesti {{count}} člana",
   "managed_event_dialog_confirm_button_other": "Zameni i obavesti {{count}} članova",
   "managed_event_dialog_title_one": "URL /{{slug}} već postoji za {{count}} člana. Da li želite da ga zamenite?",
-  "managed_event_dialog_title_other": "URL /{{slug}} već postoji za {{count}} članova. Da li želite da ga zamenite?",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> već koristi <strong>/{{slug}}</strong> URL.",
   "managed_event_dialog_information_other": "<strong>{{names}}</strong> već koriste <string>/{{slug}}</strong> URL.",
   "managed_event_dialog_clarification": "Ako izaberete da ga zamenite, obavestićemo ih. Vratite se i uklonite ih ako ne želite da zamenite postojeće.",
