@@ -21,9 +21,10 @@ export const BaseScheduledEmail = (
     timeZone: string;
     includeAppsStatus?: boolean;
     t: TFunction;
+    locale: string;
   } & Partial<React.ComponentProps<typeof BaseEmailHtml>>
 ) => {
-  const { t, timeZone } = props;
+  const { t, timeZone, locale } = props;
 
   function getRecipientStart(format: string) {
     return dayjs(props.calEvent.startTime).tz(timeZone).format(format);
@@ -73,7 +74,7 @@ export const BaseScheduledEmail = (
       )}
       <Info label={t("rejection_reason")} description={props.calEvent.rejectionReason} withSpacer />
       <Info label={t("what")} description={props.calEvent.title} withSpacer />
-      <WhenInfo calEvent={props.calEvent} t={t} timeZone={timeZone} />
+      <WhenInfo calEvent={props.calEvent} t={t} timeZone={timeZone} locale={locale} />
       <WhoInfo calEvent={props.calEvent} t={t} />
       <LocationInfo calEvent={props.calEvent} t={t} />
       <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
