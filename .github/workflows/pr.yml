@@ -21,9 +21,11 @@ jobs:
     permissions:
       pull-requests: read
     outputs:
+      all-changes-count: ${{ steps.filter.outputs.all-changes_count }}
       app-store: ${{ steps.filter.outputs.app-store }}
       embed: ${{ steps.filter.outputs.embed }}
       embed-react: ${{ steps.filter.outputs.embed-react }}
+      ignored-paths-count: ${{ steps.filter.outputs.ignored-paths_count }}
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/dangerous-git-checkout
@@ -111,5 +113,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: fail if conditional jobs failed
-        if: ${{ needs.changes.outputs.all-changes_count != needs.changes.outputs.ignored-paths_count }} && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
+        if: ${{ needs.changes.outputs.all-changes-count != needs.changes.outputs.ignored-paths-count }} && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
         run: exit 1
