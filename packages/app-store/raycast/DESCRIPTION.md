@@ -6,4 +6,4 @@ items:
   - 4.png
 ---
 
-Quickly share your Cal.com meeting links with Raycast. Requires Raycast.com to be installed. You can create an API token in your Developer Cal.com Settings.
+Quickly share your Cal.com meeting links with Raycast. Requires Raycast.com to be installed. You can create an API token in your Developer Cal.com Settings. Just editing this to test GitHub actions.
