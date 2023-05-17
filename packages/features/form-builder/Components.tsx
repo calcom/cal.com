@@ -480,7 +480,8 @@ export const Components: Record<FieldType, Component> = {
             placeholder=""
             checked={value}
             disabled={readOnly}
-            description={label ?? ""}
+            description=""
+            descriptionAsSafeHtml={label ?? ""}
           />
         </div>
       );

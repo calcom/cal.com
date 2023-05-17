@@ -10,6 +10,7 @@ import { Info } from "@calcom/ui/components/icon";
 
 import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";
+import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
 import { getVariantsConfig } from "./utils";
 
@@ -169,7 +170,14 @@ function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TFunction
     }
   }
 
-  const label = noLabel ? "" : field.label || t(field.defaultLabel || "");
+  /**
+   * Instead of passing labelAsSafeHtml props to all the components, FormBuilder components can assume that the label is safe html and use it on a case by case basis after adding checks here
+   */
+  if (fieldsThatSupportLabelAsSafeHtml.includes(field.type) && !field.labelAsSafeHtml) {
+    throw new Error(`${field.type} type must have labelAsSafeHtml`);
+  }
+
+  const label = noLabel ? "" : field.labelAsSafeHtml || field.label || t(field.defaultLabel || "");
   const placeholder = field.placeholder || t(field.defaultPlaceholder || "");
 
   if (field.variantsConfig?.variants) {
