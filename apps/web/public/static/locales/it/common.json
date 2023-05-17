@@ -1724,7 +1724,6 @@
   "locked_apps_description": "I membri saranno in grado di vedere le app attive, ma non saranno in grado di modificare le impostazioni delle app",
   "locked_webhooks_description": "I membri saranno in grado di vedere i webhook attivi, ma non saranno in grado di modificare le impostazioni dei webhook",
   "locked_workflows_description": "I membri saranno in grado di vedere i flussi di lavoro attivi, ma non saranno in grado di modificare le impostazioni dei flussi di lavoro",
-  "locked_by_admin": "Bloccato dall'amministratore",
   "app_not_connected": "Non è stato connesso un account di {{appName}}.",
   "connect_now": "Connetti ora",
   "managed_event_dialog_confirm_button_one": "Sostituisci e invia notifica a {{count}} membro",

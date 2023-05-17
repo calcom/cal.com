@@ -4957,6 +4957,7 @@ __metadata:
     "@types/qrcode": ^1.4.3
     "@types/react": 18.0.26
     "@types/react-phone-number-input": ^3.0.14
+    "@types/remove-markdown": ^0.3.1
     "@types/sanitize-html": ^2.9.0
     "@types/stripe": ^8.0.417
     "@types/turndown": ^5.0.1
@@ -5023,12 +5024,11 @@ __metadata:
     react-select: ^5.7.0
     react-timezone-select: ^1.4.0
     react-use-intercom: 1.5.1
-    remark: ^14.0.2
+    remove-markdown: ^0.5.0
     rrule: ^2.7.1
     sanitize-html: ^2.10.0
     schema-dts: ^1.1.0
     short-uuid: ^4.2.0
-    strip-markdown: ^5.0.0
     stripe: ^9.16.0
     superjson: 1.9.1
     tailwindcss: ^3.3.1
@@ -13509,6 +13509,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/remove-markdown@npm:^0.3.1":
+  version: 0.3.1
+  resolution: "@types/remove-markdown@npm:0.3.1"
+  checksum: a673aafa3a3722d959b4ad1d4e95b33f04f037a8bb95a82e843d6005b12b51f9b1bfd5954cd5c8707fbbb2f1d8865f7e632f02f99389ab83d0dcfd2cb1920dbb
+  languageName: node
+  linkType: hard
+
 "@types/resolve@npm:1.20.2":
   version: 1.20.2
   resolution: "@types/resolve@npm:1.20.2"
@@ -13650,7 +13657,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/unist@npm:*, @types/unist@npm:^2.0.0, @types/unist@npm:^2.0.2, @types/unist@npm:^2.0.3, @types/unist@npm:^2.0.6":
+"@types/unist@npm:*, @types/unist@npm:^2.0.0, @types/unist@npm:^2.0.2, @types/unist@npm:^2.0.3":
   version: 2.0.6
   resolution: "@types/unist@npm:2.0.6"
   checksum: 25cb860ff10dde48b54622d58b23e66214211a61c84c0f15f88d38b61aa1b53d4d46e42b557924a93178c501c166aa37e28d7f6d994aba13d24685326272d5db
@@ -35257,6 +35264,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"remove-markdown@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "remove-markdown@npm:0.5.0"
+  checksum: c3c9051e7e7d7c5560e7d70a5093704d868fa57d244eb89533fe7bf960bce68e7901197616c6b296cb22f47af6c15a6bce693467f35709fe399379ea1125e536
+  languageName: node
+  linkType: hard
+
 "remove-trailing-separator@npm:^1.0.1":
   version: 1.1.0
   resolution: "remove-trailing-separator@npm:1.1.0"
@@ -37586,17 +37600,6 @@ __metadata:
   version: 4.2.0
   resolution: "strip-markdown@npm:4.2.0"
   checksum: 85bf852685b9353791073774fa91730beb26f8e122307241f812e5731227eb01829a3979e7606b922c3a83a8a69a1e4c0218cb02ab6025e55c37a75a14472ce6
-  languageName: node
-  linkType: hard
-
-"strip-markdown@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "strip-markdown@npm:5.0.0"
-  dependencies:
-    "@types/mdast": ^3.0.0
-    "@types/unist": ^2.0.6
-    unified: ^10.0.0
-  checksum: 4c3a9140b4fff874b63fe892de2b79d18839732bde8af7ab505b59817dd4a7dcc1bae4ef7d9bd9643e910e8b982197a30ed4859b3a45c4b4d8820893910e6bcd
   languageName: node
   linkType: hard
 

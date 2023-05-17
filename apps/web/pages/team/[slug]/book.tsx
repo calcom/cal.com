@@ -153,6 +153,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         image: eventTypeObject.team?.logo || null,
         eventName: null,
       },
+      themeBasis: eventTypeObject.team?.slug,
       eventType: eventTypeObject,
       recurringEventCount,
       booking,

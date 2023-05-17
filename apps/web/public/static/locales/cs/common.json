@@ -1724,7 +1724,6 @@
   "locked_apps_description": "Členové budou vidět aktivní aplikace, ale nastavení aplikací upravovat moci nebudou",
   "locked_webhooks_description": "Členové budou vidět aktivní webhooky, ale nastavení webhooků upravovat moci nebudou",
   "locked_workflows_description": "Členové budou vidět aktivní pracovní postupy, ale nastavení pracovních postupů upravovat moci nebudou",
-  "locked_by_admin": "Uzamčeno správcem",
   "app_not_connected": "Nemáte připojený účet {{appName}}.",
   "connect_now": "Připojte se",
   "managed_event_dialog_confirm_button_one": "Nahradit a upozornit {{count}} člena",
