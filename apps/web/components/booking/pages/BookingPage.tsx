@@ -23,7 +23,7 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import { BookingFields } from "@calcom/features/bookings/Booker/components/BookEventForm/BookingFields";
 import { createBooking, createRecurringBooking } from "@calcom/features/bookings/lib";
-import { SystemField } from "@calcom/features/bookings/lib/getBookingFields";
+import { SystemField } from "@calcom/features/bookings/lib/SystemField";
 import getBookingResponsesSchema, {
   getBookingResponsesPartialSchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";

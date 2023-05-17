@@ -1,5 +1,5 @@
 import type { EventTypeCustomInput, EventType, Prisma, Workflow } from "@prisma/client";
-import { z } from "zod";
+import type { z } from "zod";
 
 import slugify from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
@@ -11,6 +11,10 @@ import {
 } from "@calcom/prisma/zod-utils";
 
 type Fields = z.infer<typeof eventTypeBookingFields>;
+
+if (typeof window !== "undefined") {
+  console.warn("This file should not be imported on the client side");
+}
 
 export const SMS_REMINDER_NUMBER_FIELD = "smsReminderNumber";
 
@@ -43,16 +47,6 @@ export const getSmsReminderNumberSource = ({
   fieldRequired: isSmsReminderNumberRequired,
   editUrl: `/workflows/${workflowId}`,
 });
-
-export const SystemField = z.enum([
-  "name",
-  "email",
-  "location",
-  "notes",
-  "guests",
-  "rescheduleReason",
-  "smsReminderNumber",
-]);
 
 /**
  * This fn is the key to ensure on the fly mapping of customInputs to bookingFields and ensuring that all the systems fields are present and correctly ordered in bookingFields

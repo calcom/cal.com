@@ -6,7 +6,7 @@ import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
-import { SystemField } from "../../../lib/getBookingFields";
+import { SystemField } from "../../../lib/SystemField";
 
 export const BookingFields = ({
   fields,

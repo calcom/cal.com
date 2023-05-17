@@ -87,7 +87,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
 
     const querySchema = getBookingResponsesPartialSchema({
       eventType: {
-        bookingFields: getBookingFieldsWithSystemFields(eventType),
+        bookingFields: eventType.bookingFields,
       },
       view: rescheduleUid ? "reschedule" : "booking",
     });
