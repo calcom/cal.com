@@ -3,6 +3,8 @@ import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
 import { z } from "zod";
 
+import { APP_NAME } from "@calcom/lib/constants";
+
 import { csp } from "@lib/csp";
 
 type Props = Record<string, unknown> & DocumentProps;
@@ -48,6 +50,26 @@ class MyDocument extends Document<Props> {
           <meta name="msapplication-TileColor" content="#ff0000" />
           <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9fafb" />
           <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1C1C1C" />
+          <noscript>
+            <style>{`#__next { display: none; }`}</style>
+          </noscript>
+          <style>{`
+            .fallback-container {
+              text-align: center;
+              margin-top: 100px;
+              font-family: Arial, sans-serif;
+            }
+            
+            .fallback-heading {
+              font-size: 2.5rem;
+              color: #333;
+            }
+            
+            .fallback-paragraph {
+              font-size: 1.2rem;
+              color: #666;
+            }
+          `}</style>
         </Head>
 
         <body
@@ -66,6 +88,15 @@ class MyDocument extends Document<Props> {
           }>
           <Main />
           <NextScript nonce={nonce} />
+          <noscript>
+            <div className="fallback-container">
+              <h1 className="fallback-heading">JavaScript is not available.</h1>
+              <p className="fallback-paragraph">
+                We’ve detected that JavaScript is disabled in this browser. Please enable JavaScript or switch
+                to a supported browser to continue {APP_NAME}.
+              </p>
+            </div>
+          </noscript>
         </body>
       </Html>
     );
