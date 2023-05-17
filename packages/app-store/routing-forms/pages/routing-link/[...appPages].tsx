@@ -176,8 +176,9 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 }
 
 function getUrlSearchParamsToForward(response: Response, fields: NonNullable<Props["form"]["fields"]>) {
-  const paramsFromResponse: Record<string, string | string[]> = {};
-  const paramsFromCurrentUrl: Record<string, string | string[]> = {};
+  type Params = Record<string, string | string[]>;
+  const paramsFromResponse: Params = {};
+  const paramsFromCurrentUrl: Params = {};
 
   // Build query params from response
   Object.entries(response).forEach(([key, fieldResponse]) => {
@@ -202,11 +203,10 @@ function getUrlSearchParamsToForward(response: Response, fields: NonNullable<Pro
     }
   }
 
-  const allQueryParams: Record<string, string | string[]> = {
-    ...paramsFromResponse,
-    // Make sure that all params initially provided are passed as is.
-    // In case of conflict b/w paramsFromResponse and pageParams, pageParams should win.
+  const allQueryParams: Params = {
     ...paramsFromCurrentUrl,
+    // In case of conflict b/w paramsFromResponse and paramsFromCurrentUrl, paramsFromResponse should win as the booker probably improved upon the prefilled value.
+    ...paramsFromResponse,
   };
 
   const allQueryURLSearchParams = new URLSearchParams();
