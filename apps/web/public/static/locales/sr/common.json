@@ -1724,7 +1724,6 @@
   "locked_apps_description": "Članovi će moći da vide aktivne aplikacije, ali neće moći da uređuju bilo kakva podešavanja aplikacije",
   "locked_webhooks_description": "Članovi će moći da vide aktivne webhook-ove, ali neće moći da uređuju bilo kakva podešavanja webhook-ova",
   "locked_workflows_description": "Članovi će moći da vide aktivne radne tokove, ali neće moći da uređuju bilo kakva podešavanja radnih tokova",
-  "locked_by_admin": "Zaključao administrator",
   "app_not_connected": "Niste povezali {{appName}} nalog.",
   "connect_now": "Povežite odmah",
   "managed_event_dialog_confirm_button_one": "Zameni i obavesti {{count}} člana",
