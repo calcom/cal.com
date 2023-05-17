@@ -13,6 +13,7 @@ export const AttendeeScheduledEmail = (
       locale={props.attendee.language.locale}
       timeZone={props.attendee.timeZone}
       t={props.attendee.language.translate}
+      timeFormat={props.attendee?.timeFormat}
       {...props}
     />
   );

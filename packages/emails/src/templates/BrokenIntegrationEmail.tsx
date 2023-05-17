@@ -57,6 +57,7 @@ export const BrokenIntegrationEmail = (
   const { calEvent, type } = props;
   const t = calEvent.organizer.language.translate;
   const locale = calEvent.organizer.language.locale;
+  const timeFormat = calEvent.organizer?.timeFormat;
 
   if (type === "video") {
     let location = calEvent.location ? getEnumKeyByEnumValue(AppStoreLocationType, calEvent.location) : " ";
@@ -71,6 +72,7 @@ export const BrokenIntegrationEmail = (
       <BaseScheduledEmail
         timeZone={calEvent.organizer.timeZone}
         t={t}
+        timeFormat={timeFormat}
         locale={locale}
         subject={t("broken_integration")}
         title={t("problem_adding_video_link")}
@@ -96,6 +98,7 @@ export const BrokenIntegrationEmail = (
       <BaseScheduledEmail
         timeZone={calEvent.organizer.timeZone}
         t={t}
+        timeFormat={timeFormat}
         locale={locale}
         subject={t("broken_integration")}
         title={t("problem_updating_calendar")}
@@ -110,6 +113,7 @@ export const BrokenIntegrationEmail = (
     <BaseScheduledEmail
       timeZone={calEvent.organizer.timeZone}
       t={t}
+      timeFormat={timeFormat}
       locale={locale}
       subject={t("broken_integration")}
       title={t("problem_updating_calendar")}
