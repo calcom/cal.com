@@ -1,6 +1,8 @@
 import type { EventTypeCustomInput, EventType, Prisma, Workflow } from "@prisma/client";
 import type { z } from "zod";
 
+import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import slugify from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 import {
@@ -328,7 +330,16 @@ export const ensureBookingInputsHaveSystemFields = ({
       };
     }
   }
-  bookingFields = bookingFields.concat(missingSystemAfterFields);
+
+  bookingFields = bookingFields.concat(missingSystemAfterFields).map((f) => {
+    return {
+      ...f,
+      // TODO: This has to be a FormBuilder feature and not be specific to bookingFields. Either use zod transform in FormBuilder to add labelAsSafeHtml automatically or add a getter for fields that would do this.
+      ...(fieldsThatSupportLabelAsSafeHtml.includes(f.type)
+        ? { labelAsSafeHtml: markdownToSafeHTML(f.label || null) || "" }
+        : null),
+    };
+  });
 
   return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(bookingFields);
 };

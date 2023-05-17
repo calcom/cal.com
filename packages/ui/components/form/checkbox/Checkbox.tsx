@@ -11,10 +11,14 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
   error?: boolean;
   className?: string;
   descriptionClassName?: string;
+  /**
+   * Accepts this special property instead of allowing description itself to be accidentally used in dangerous way.
+   */
+  descriptionAsSafeHtml?: string;
 };
 
 const CheckboxField = forwardRef<HTMLInputElement, Props>(
-  ({ label, description, error, disabled, ...rest }, ref) => {
+  ({ label, description, error, disabled, descriptionAsSafeHtml, ...rest }, ref) => {
     const descriptionAsLabel = !label || rest.descriptionAsLabel;
     return (
       <div className="block items-center sm:flex">
@@ -62,7 +66,16 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     )}
                   />
                 </div>
-                <span className={classNames("text-sm", rest.descriptionClassName)}>{description}</span>
+                {descriptionAsSafeHtml ? (
+                  <span
+                    className={classNames("text-sm", rest.descriptionClassName)}
+                    dangerouslySetInnerHTML={{
+                      __html: descriptionAsSafeHtml,
+                    }}
+                  />
+                ) : (
+                  <span className={classNames("text-sm", rest.descriptionClassName)}>{description}</span>
+                )}
               </>
             )}
             {/* {informationIconText && <InfoBadge content={informationIconText}></InfoBadge>} */}
