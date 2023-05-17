@@ -30,6 +30,8 @@ jobs:
         id: filter
         with:
           filters: |
+            all-changes:
+              - '**'
             app-store:
               - 'apps/web/**'
               - 'packages/app-store/**'
@@ -39,6 +41,9 @@ jobs:
             embed-react:
               - 'apps/web/**'
               - 'packages/embeds/**'
+            ignored-paths:
+              - "**.md"
+              - ".github/CODEOWNERS"
 
   env:
     name: Create env file
@@ -104,5 +109,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: fail if conditional jobs failed
-        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled')
+        if: ${{ needs.changes.outputs.all-changes_count != needs.changes.outputs.ignored-paths_count }} && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
         run: exit 1
