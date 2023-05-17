@@ -10,6 +10,8 @@ import { scheduleEmailReminder } from "./emailReminderManager";
 import { scheduleSMSReminder } from "./smsReminderManager";
 import { scheduleWhatsappReminder } from "./whatsappReminderManager";
 
+import { isWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+
 type ExtendedCalendarEvent = CalendarEvent & {
   metadata?: { videoCallUrl: string | undefined };
   eventType: { slug?: string };
@@ -110,7 +112,7 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
               step.sender || SENDER_NAME,
               hideBranding
             );
-          } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE || step.action === WorkflowActions.WHATSAPP_NUMBER) {
+          } else if (isWhatsappAction(step.action)) {
             const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
             await scheduleWhatsappReminder(
               evt,
@@ -206,7 +208,7 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
               step.sender || SENDER_NAME,
               hideBranding
             );
-          } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE || step.action === WorkflowActions.WHATSAPP_NUMBER) {
+          } else if (isWhatsappAction(step.action)) {
             const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
             await scheduleWhatsappReminder(
               evt,

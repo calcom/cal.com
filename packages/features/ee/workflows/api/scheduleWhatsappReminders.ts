@@ -1,4 +1,4 @@
-/* Schedule any workflow reminder that falls within 7 days for SMS */
+/* Schedule any workflow reminder that falls within 7 days for WHATSAPP */
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -146,7 +146,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
   }
 
-  // console.time("Started scheduling Whatsapp Reminders")
   res.status(200).json({ message: "WHATSAPP scheduled" });
 }
 

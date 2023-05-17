@@ -6,7 +6,6 @@ import prisma from "@calcom/prisma";
 import logger from "@calcom/lib/logger";
 import { BookingInfo, deleteScheduledSMSReminder, timeUnitLowerCase } from "./smsReminderManager";
 
-
 import { getSenderId } from "../alphanumericSenderIdSupport";
 import * as twilio from "./smsProviders/twilioProvider";
 import { whatsappEventCancelledTemplate, whatsappEventCompletedTemplate, whatsappEventRescheduledTemplate, whatsappReminderTemplate } from "./templates/whatsapp";
@@ -85,7 +84,7 @@ export const scheduleWhatsappReminder = async (
   log.debug(`Sending Whatsapp for trigger ${triggerEvent}`, message);
 
   if (message.length > 0 && reminderPhone && isNumberVerified) {
-    //send SMS when event is booked/cancelled/rescheduled
+    //send WHATSAPP when event is booked/cancelled/rescheduled
     if (
       triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
       triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ||

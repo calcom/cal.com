@@ -2,7 +2,7 @@ import { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@pris
 import { whatsappEventCancelledTemplate, whatsappEventCompletedTemplate, whatsappEventRescheduledTemplate, whatsappReminderTemplate } from "../lib/reminders/templates/whatsapp";
 
 export function isSMSAction(action: WorkflowActions) {
-  return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER
+  return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER;
 }
 
 export function isWhatsappAction(action: WorkflowActions) {
