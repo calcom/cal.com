@@ -113,5 +113,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: fail if conditional jobs failed
-        if: ${{ needs.changes.outputs.all-changes-count != needs.changes.outputs.ignored-paths-count }} && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
+        if: ${{ needs.changes.outputs.all-changes-count == needs.changes.outputs.ignored-paths-count }} || (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
         run: exit 1
