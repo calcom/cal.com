@@ -192,6 +192,7 @@ export const getServerSideProps = async function getServerSideProps(
     include: {
       user: {
         select: {
+          username: true,
           theme: true,
           brandColor: true,
           darkBrandColor: true,
@@ -209,6 +210,7 @@ export const getServerSideProps = async function getServerSideProps(
   return {
     props: {
       isEmbed,
+      themeBasis: form.user.username,
       profile: {
         theme: form.user.theme,
         brandColor: form.user.brandColor,
