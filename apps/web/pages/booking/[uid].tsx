@@ -1092,6 +1092,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
+      themeBasis: eventType.team ? eventType.team.slug : eventType.users[0]?.username,
       hideBranding: eventType.team ? eventType.team.hideBranding : eventType.users[0].hideBranding,
       profile,
       eventType,
