@@ -45,6 +45,7 @@ jobs:
             ignored-paths:
               - "**.md"
               - ".github/CODEOWNERS"
+              - ".github/workflows/pr.yml"
 
   env:
     name: Create env file
