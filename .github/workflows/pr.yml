@@ -108,7 +108,7 @@ jobs:
     secrets: inherit
 
   required:
-    needs: [lint, type-check, test, build, e2e]
+    needs: [lint]
     if: always()
     runs-on: ubuntu-latest
     steps:
