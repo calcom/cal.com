@@ -9,7 +9,7 @@
         const randomInt = Math.floor(Math.random() * 16777216);
 
         // Convert the integer to a hex string with 6 digits and add leading zeros if necessary
-        const hexString = randomInt.toString(16).padStart(6, '0');
+        const hexString = randomInt.toString(16).padStart(6, "0");
 
         // Return the hex string with a '#' prefix
         return `#${hexString}`;
@@ -161,7 +161,7 @@
         <h3>
           <a href="?only=ns:default">[Dark Theme][Guests(janedoe@example.com and test@example.com)]</a>
         </h3>
-        <button onclick="Cal('ui',{theme:'light'})" >Toggle to Light</button>
+        <button onclick="Cal('ui',{theme:'light'})">Toggle to Light</button>
 
         <i class="last-action"> You would see last Booking page action in my place </i>
         <div>
@@ -187,7 +187,9 @@
           <button onclick="(function () {Cal.ns.second('ui', {styles:{body:{background:'red'}}})})()">
             Change <code>body</code> bg color[Deprecated]
           </button>
-          <button onclick="(function () {Cal.ns.second('ui', {styles:{align:'left'}})})()">Align left[Deprecated]</button>
+          <button onclick="(function () {Cal.ns.second('ui', {styles:{align:'left'}})})()">
+            Align left[Deprecated]
+          </button>
           <button onclick="(function () {Cal.ns.second('ui', {styles:{align:'center'}})})()">
             Align Center[Deprecated]
           </button>
@@ -233,6 +235,13 @@
     <div class="inline-embed-container" id="cal-booking-place-hideEventTypeDetails">
       <h3><a href="?only=hideEventTypeDetails">Hide EventType Details Test</a></h3>
       <div class="place"></div>
+    </div>
+    <div class="inline-embed-container" id="cal-booking-place-conflicting-theme">
+      <h3><a href="?only=conflicting-theme">You would be able to test out conflicting themes for the same namespace here.</a></h3>
+      <div class="light"></div>
+      <div class="dark"></div>
+      <i>Note that one of the embeds would stay in loading state as they are using the same namespace and it is not supported to have more than 1 embeds using same namespace</i>
+      </div>
     </div>
     <script src="./playground.ts"></script>
   </body>
