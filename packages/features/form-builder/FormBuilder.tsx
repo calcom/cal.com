@@ -528,13 +528,7 @@ function FieldLabel({ field }: { field: RhfFormField }) {
   const variantsConfig = field.variantsConfig;
   const defaultVariant = fieldTypeConfigVariantsConfig?.defaultVariant;
   if (!fieldTypeConfigVariants || !variantsConfig) {
-    return (
-      <span
-        dangerouslySetInnerHTML={{
-          __html: field.labelAsSafeHtml || t(field.defaultLabel || ""),
-        }}
-      />
-    );
+    return <span>{field.label || t(field.defaultLabel || "")}</span>;
   }
   const variant = field.variant || defaultVariant;
   if (!variant) {

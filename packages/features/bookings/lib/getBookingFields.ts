@@ -1,7 +1,6 @@
 import type { EventTypeCustomInput, EventType, Prisma, Workflow } from "@prisma/client";
 import { z } from "zod";
 
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import slugify from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 import {
@@ -335,12 +334,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       };
     }
   }
-  bookingFields = bookingFields.concat(missingSystemAfterFields).map((f) => {
-    return {
-      ...f,
-      labelAsSafeHtml: markdownToSafeHTML(f.label || null) || "",
-    };
-  });
+  bookingFields = bookingFields.concat(missingSystemAfterFields);
 
   return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(bookingFields);
 };

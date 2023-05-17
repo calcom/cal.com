@@ -62,12 +62,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     )}
                   />
                 </div>
-                <span
-                  className={classNames("text-sm", rest.descriptionClassName)}
-                  dangerouslySetInnerHTML={{
-                    __html: description,
-                  }}
-                />
+                <span className={classNames("text-sm", rest.descriptionClassName)}>{description}</span>
               </>
             )}
             {/* {informationIconText && <InfoBadge content={informationIconText}></InfoBadge>} */}
