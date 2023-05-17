@@ -245,6 +245,28 @@ if (only === "all" || only === "hideEventTypeDetails") {
   );
 }
 
+if (only === "conflicting-theme") {
+  Cal("init", "conflictingTheme", {
+    debug: true,
+    origin: "http://localhost:3000",
+  });
+
+  Cal.ns.conflictingTheme("inline", {
+    elementOrSelector: "#cal-booking-place-conflicting-theme .dark",
+    calLink: "pro/30min",
+    config: {
+      theme: "dark",
+    },
+  });
+  Cal.ns.conflictingTheme("inline", {
+    elementOrSelector: "#cal-booking-place-conflicting-theme .light",
+    calLink: "pro/30min",
+    config: {
+      theme: "light",
+    },
+  });
+}
+
 Cal("init", "popupDarkTheme", {
   debug: true,
   origin: "http://localhost:3000",
@@ -268,10 +290,12 @@ Cal("init", "popupAutoTheme", {
   debug: true,
   origin: "http://localhost:3000",
 });
+
 Cal("init", "popupTeamLinkLightTheme", {
   debug: true,
   origin: "http://localhost:3000",
 });
+
 Cal("init", "popupTeamLinkDarkTheme", {
   debug: true,
   origin: "http://localhost:3000",
