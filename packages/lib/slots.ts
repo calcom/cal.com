@@ -134,11 +134,13 @@ function buildSlotsWithDateRanges({
   frequency,
   eventLength,
   timeZone,
+  minimumBookingNotice,
 }: {
   dateRanges: DateRange[];
   frequency: number;
   eventLength: number;
   timeZone: string;
+  minimumBookingNotice: number;
 }) {
   // keep the old safeguards in; may be needed.
   frequency = minimumOfOne(frequency);
@@ -147,6 +149,11 @@ function buildSlotsWithDateRanges({
   const slots: { time: Dayjs; userIds?: number[] }[] = [];
   dateRanges.forEach((range) => {
     let slotStartTime = range.start;
+    if (slotStartTime.isSame(dayjs.utc(), "day")) {
+      const startDate = dayjs().utc().add(minimumBookingNotice, "minute");
+      const dayStart = Math.ceil((startDate.hour() * 60 + startDate.minute()) / frequency) * frequency;
+      slotStartTime = dayjs().utc().startOf("day").add(dayStart, "minutes");
+    }
     while (
       slotStartTime.add(eventLength, "minutes").isBefore(range.end) ||
       slotStartTime.add(eventLength, "minutes").isSame(range.end)
@@ -183,6 +190,7 @@ const getSlots = ({
       frequency,
       eventLength,
       timeZone: getTimeZone(inviteeDate),
+      minimumBookingNotice,
     });
   }
 
