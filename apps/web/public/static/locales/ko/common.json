@@ -1737,7 +1737,6 @@
   "locked_apps_description": "회원은 활성 앱을 볼 수 있지만 앱 설정을 편집할 수는 없습니다",
   "locked_webhooks_description": "회원은 활성 웹훅을 볼 수 있지만 웹훅 설정을 편집할 수는 없습니다",
   "locked_workflows_description": "회원은 활성 워크플로를 볼 수 있지만 워크플로 설정을 편집할 수는 없습니다",
-  "locked_by_admin": "관리자에 의해 잠금 됨",
   "app_not_connected": "{{appName}} 계정을 연결하지 않으셨습니다.",
   "connect_now": "지금 연결",
   "managed_event_dialog_confirm_button_one": "회원 {{count}}명 바꾸기 및 알림",
