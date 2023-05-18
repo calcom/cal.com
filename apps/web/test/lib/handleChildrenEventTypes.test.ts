@@ -96,7 +96,8 @@ describe("handleChildrenEventTypes", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       // eslint-disable-next-line
-      const {schedulingType, id, teamId, timeZone, users, scheduleId, offsetStart, ...evType} = mockFindFirstEventType({
+      const { schedulingType, id, teamId, timeZone, users, scheduleId, offsetStart, ...evType } =
+        mockFindFirstEventType({
           id: 123,
           metadata: { managedEventConfig: {} },
           locations: [],
@@ -134,7 +135,18 @@ describe("handleChildrenEventTypes", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       // eslint-disable-next-line
-      const {schedulingType, id, teamId, timeZone, locations, parentId, userId, scheduleId, offsetStart, ...evType} = mockFindFirstEventType({
+      const {
+        schedulingType,
+        id,
+        teamId,
+        timeZone,
+        locations,
+        parentId,
+        userId,
+        scheduleId,
+        offsetStart,
+        ...evType
+      } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
         locations: [],
       });
@@ -218,7 +230,8 @@ describe("handleChildrenEventTypes", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       // eslint-disable-next-line
-      const {schedulingType, id, teamId, timeZone, users, scheduleId, offsetStart, ...evType} = mockFindFirstEventType({
+      const { schedulingType, id, teamId, timeZone, users, scheduleId, offsetStart, ...evType } =
+        mockFindFirstEventType({
           id: 123,
           metadata: { managedEventConfig: {} },
           locations: [],
@@ -256,7 +269,19 @@ describe("handleChildrenEventTypes", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       // eslint-disable-next-line
-      const {schedulingType, id, teamId, timeZone, users, locations, parentId, userId, scheduleId, offsetStart, ...evType} = mockFindFirstEventType({
+      const {
+        schedulingType,
+        id,
+        teamId,
+        timeZone,
+        users,
+        locations,
+        parentId,
+        userId,
+        scheduleId,
+        offsetStart,
+        ...evType
+      } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
         locations: [],
       });
