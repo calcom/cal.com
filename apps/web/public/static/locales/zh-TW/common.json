@@ -1724,7 +1724,6 @@
   "locked_apps_description": "成員將能查看啟用的應用程式，但無法編輯任何應用程式設定",
   "locked_webhooks_description": "成員將能查看啟用的 Webhook，但無法編輯任何 Webhook 設定",
   "locked_workflows_description": "成員將能查看啟用的工作流程，但無法編輯任何工作流程設定",
-  "locked_by_admin": "已由管理員鎖定",
   "app_not_connected": "您尚未連結 {{appName}} 帳號。",
   "connect_now": "立即連結",
   "managed_event_dialog_confirm_button_one": "取代並通知 {{count}} 位成員",

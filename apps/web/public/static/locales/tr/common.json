@@ -1724,7 +1724,6 @@
   "locked_apps_description": "Üyeler aktif uygulamaları görebilir, ancak hiçbir uygulama ayarını düzenleyemez",
   "locked_webhooks_description": "Üyeler aktif web kancalarını görebilir, ancak hiçbir web kancası ayarını düzenleyemez",
   "locked_workflows_description": "Üyeler aktif iş akışlarını görebilir, ancak hiçbir iş akışı ayarını düzenleyemez",
-  "locked_by_admin": "Yönetici tarafından kilitlendi",
   "app_not_connected": "Bir {{appName}} hesabı bağlamadınız.",
   "connect_now": "Hemen bağlan",
   "managed_event_dialog_confirm_button_one": "{{count}} üyeyi değiştirin ve bilgilendirin",

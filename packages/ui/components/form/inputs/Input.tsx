@@ -74,7 +74,7 @@ const Addon = ({ isFilled, children, className, error }: AddonProps) => (
     )}>
     <div
       className={classNames(
-        "flex h-9 flex-col justify-center text-sm",
+        "min-h-9 flex flex-col justify-center text-sm leading-7",
         error ? "text-error" : "text-default"
       )}>
       <span className="flex whitespace-nowrap">{children}</span>
@@ -143,7 +143,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             isStandaloneField={false}
             className={classNames(
               className,
-              "disabled:bg-muted disabled:hover:border-subtle disabled:cursor-not-allowed",
+              "disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed",
               addOnLeading && "rounded-l-none border-l-0",
               addOnSuffix && "rounded-r-none border-r-0",
               type === "search" && "pr-8",
@@ -184,7 +184,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           placeholder={placeholder}
           className={classNames(
             className,
-            "disabled:bg-muted disabled:hover:border-subtle disabled:cursor-not-allowed"
+            "disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed"
           )}
           {...passThrough}
           readOnly={readOnly}
@@ -280,7 +280,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default mb-2 block w-full rounded-md border py-2 px-3 text-sm leading-4 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
+        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle mb-2 block w-full rounded-md border py-2 px-3 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
         props.className
       )}
     />

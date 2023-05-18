@@ -175,7 +175,7 @@ const Route = ({
               </div>
               <Select
                 isDisabled={disabled}
-                className="block w-full flex-grow px-2"
+                className="data-testid-select-routing-action block w-full flex-grow px-2"
                 required
                 value={RoutingPages.find((page) => page.value === route.action?.type)}
                 onChange={(item) => {
