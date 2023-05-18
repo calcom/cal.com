@@ -35,7 +35,6 @@ const Component = ({
   email,
   tos,
   privacy,
-  isProOnly,
   descriptionItems,
   isTemplate,
   dependencies,
@@ -150,7 +149,6 @@ const Component = ({
               {!isGlobal && (
                 <InstallAppButton
                   type={type}
-                  isProOnly={isProOnly}
                   disableInstall={disableInstall}
                   render={({ useDefaultComponent, ...props }) => {
                     if (useDefaultComponent) {
@@ -190,7 +188,6 @@ const Component = ({
           ) : (
             <InstallAppButton
               type={type}
-              isProOnly={isProOnly}
               disableInstall={disableInstall}
               render={({ useDefaultComponent, ...props }) => {
                 if (useDefaultComponent) {
@@ -357,7 +354,6 @@ export default function App(props: {
   tos?: string;
   privacy?: string;
   licenseRequired: AppType["licenseRequired"];
-  isProOnly: AppType["isProOnly"];
   descriptionItems?: Array<string | { iframe: IframeHTMLAttributes<HTMLIFrameElement> }>;
   isTemplate?: boolean;
   disableInstall?: boolean;

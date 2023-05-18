@@ -72,7 +72,6 @@ function SingleAppPage(props: inferSSRProps<typeof getStaticProps>) {
       website={data.url}
       email={data.email}
       licenseRequired={data.licenseRequired}
-      isProOnly={data.isProOnly}
       descriptionItems={source.data?.items as string[] | undefined}
       isTemplate={data.isTemplate}
       dependencies={data.dependencies}

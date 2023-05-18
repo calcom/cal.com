@@ -96,7 +96,6 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
           ? !app.isGlobal && (
               <InstallAppButton
                 type={app.type}
-                isProOnly={app.isProOnly}
                 disableInstall={!!app.dependencies && !app.dependencyData?.some((data) => !data.installed)}
                 wrapperClassName="[@media(max-width:260px)]:w-full"
                 render={({ useDefaultComponent, ...props }) => {
@@ -124,7 +123,6 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
             credentials.length === 0 && (
               <InstallAppButton
                 type={app.type}
-                isProOnly={app.isProOnly}
                 wrapperClassName="[@media(max-width:260px)]:w-full"
                 disableInstall={!!app.dependencies && app.dependencyData?.some((data) => !data.installed)}
                 render={({ useDefaultComponent, ...props }) => {
