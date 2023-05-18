@@ -2,11 +2,11 @@ import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
 
 import { getAggregateWorkingHours } from "@calcom/core/getAggregateWorkingHours";
+import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { intersect } from "@calcom/lib/date-ranges";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -279,7 +279,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     eventLength: input.duration || eventType.length,
     workingHours,
     dateOverrides,
-    dateRanges: intersect([...userAvailability.map((user) => user.dateRanges)]),
+    dateRanges: getAggregatedAvailability(userAvailability, eventType.schedulingType),
     minimumBookingNotice: eventType.minimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
