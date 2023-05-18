@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { detectContentType, optimizeImage } from "next/dist/server/image-optimizer";
 import { z } from "zod";
 
 import {
@@ -33,6 +34,74 @@ const logoApiSchema = z.object({
 
 const SYSTEM_SUBDOMAINS = ["console", "app", "www"];
 
+type LogoType =
+  | "logo"
+  | "icon"
+  | "favicon-16"
+  | "favicon-32"
+  | "apple-touch-icon"
+  | "mstile"
+  | "android-chrome-192"
+  | "android-chrome-256";
+
+type LogoTypeDefinition = {
+  fallback: string;
+  w?: number;
+  h?: number;
+  source: "appLogo" | "appIconLogo";
+};
+
+const logoDefinitions: Record<LogoType, LogoTypeDefinition> = {
+  logo: {
+    fallback: `${WEBAPP_URL}${LOGO}`,
+    source: "appLogo",
+  },
+  icon: {
+    fallback: `${WEBAPP_URL}${LOGO_ICON}`,
+    source: "appIconLogo",
+  },
+  "favicon-16": {
+    fallback: `${WEBAPP_URL}${FAVICON_16}`,
+    w: 16,
+    h: 16,
+    source: "appIconLogo",
+  },
+  "favicon-32": {
+    fallback: `${WEBAPP_URL}${FAVICON_32}`,
+    w: 32,
+    h: 32,
+    source: "appIconLogo",
+  },
+  "apple-touch-icon": {
+    fallback: `${WEBAPP_URL}${APPLE_TOUCH_ICON}`,
+    w: 180,
+    h: 180,
+    source: "appLogo",
+  },
+  mstile: {
+    fallback: `${WEBAPP_URL}${MSTILE_ICON}`,
+    w: 150,
+    h: 150,
+    source: "appLogo",
+  },
+  "android-chrome-192": {
+    fallback: `${WEBAPP_URL}${ANDROID_CHROME_ICON_192}`,
+    w: 192,
+    h: 192,
+    source: "appLogo",
+  },
+  "android-chrome-256": {
+    fallback: `${WEBAPP_URL}${ANDROID_CHROME_ICON_256}`,
+    w: 256,
+    h: 256,
+    source: "appLogo",
+  },
+};
+
+function isValidLogoType(type: string): type is LogoType {
+  return type in logoDefinitions;
+}
+
 async function getTeamLogos(subdomain: string) {
   if (
     // if not cal.com
@@ -43,8 +112,8 @@ async function getTeamLogos(subdomain: string) {
     SYSTEM_SUBDOMAINS.includes(subdomain)
   ) {
     return {
-      appLogo: `${WEBAPP_URL}${LOGO}`,
-      appIconLogo: `${WEBAPP_URL}${LOGO_ICON}`,
+      appLogo: undefined,
+      appIconLogo: undefined,
     };
   }
   // load from DB
@@ -78,47 +147,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!domains) throw new Error("No domains");
 
   const [subdomain] = domains;
-  const { appLogo, appIconLogo } = await getTeamLogos(subdomain);
+  const teamLogos = await getTeamLogos(subdomain);
 
   // Resolve all icon types to team logos, falling back to Cal.com defaults.
-  let filteredLogo;
-  switch (parsedQuery?.type) {
-    case "icon":
-      filteredLogo = appIconLogo || `${WEBAPP_URL}${LOGO_ICON}`;
-      break;
-
-    case "favicon-16":
-      filteredLogo = appIconLogo || `${WEBAPP_URL}${FAVICON_16}`;
-      break;
-
-    case "favicon-32":
-      filteredLogo = appIconLogo || `${WEBAPP_URL}${FAVICON_32}`;
-      break;
-
-    case "apple-touch-icon":
-      filteredLogo = appLogo || `${WEBAPP_URL}${APPLE_TOUCH_ICON}`;
-      break;
-
-    case "mstile":
-      filteredLogo = appLogo || `${WEBAPP_URL}${MSTILE_ICON}`;
-      break;
-
-    case "android-chrome-192":
-      filteredLogo = appLogo || `${WEBAPP_URL}${ANDROID_CHROME_ICON_192}`;
-      break;
-
-    case "android-chrome-256":
-      filteredLogo = appLogo || `${WEBAPP_URL}${ANDROID_CHROME_ICON_256}`;
-      break;
-
-    default:
-      filteredLogo = appLogo || `${WEBAPP_URL}${LOGO}`;
-      break;
-  }
+  const type: LogoType = parsedQuery?.type && isValidLogoType(parsedQuery.type) ? parsedQuery.type : "logo";
+  const logoDefinition = logoDefinitions[type];
+  const filteredLogo = teamLogos[logoDefinition.source] ?? logoDefinition.fallback;
 
   const response = await fetch(filteredLogo);
   const arrayBuffer = await response.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
+  let buffer = Buffer.from(arrayBuffer);
+
+  // If we need to resize the team logos (via Next.js' built-in image processing)
+  if (teamLogos[logoDefinition.source] && logoDefinition.w) {
+    buffer = await optimizeImage({
+      buffer,
+      contentType: detectContentType(buffer) ?? "image/jpeg",
+      quality: 100,
+      width: logoDefinition.w,
+      height: logoDefinition.h, // optional
+    });
+  }
+
   res.setHeader("Content-Type", response.headers.get("content-type") as string);
   res.setHeader("Cache-Control", "s-maxage=86400");
   res.send(buffer);
