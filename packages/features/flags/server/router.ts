@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-import { authedAdminProcedure, publicProcedure, router } from "@calcom/trpc/server/trpc";
+import { authedAdminProcedure } from "@calcom/trpc/server/procedures/authedProcedure";
+import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
+import { router } from "@calcom/trpc/server/trpc";
 
 import { getFeatureFlagMap } from "./utils";
 

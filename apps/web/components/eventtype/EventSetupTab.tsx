@@ -285,7 +285,7 @@ export const EventSetupTab = (
                           "h-4 w-4",
                           // invert all the icons except app icons
                           eventLocationType.iconUrl &&
-                            !eventLocationType.iconUrl.startsWith("/api") &&
+                            !eventLocationType.iconUrl.startsWith("/app-store") &&
                             "dark:invert"
                         )}
                         alt={`${eventLocationType.label} logo`}
@@ -390,7 +390,12 @@ export const EventSetupTab = (
           addOnLeading={
             <>
               {CAL_URL?.replace(/^(https?:|)\/\//, "")}/
-              {team ? "team/" + team.slug : eventType.users[0].username}/
+              {!isManagedEventType
+                ? team
+                  ? "team/" + team.slug
+                  : eventType.users[0].username
+                : t("username_placeholder")}
+              /
             </>
           }
           {...formMethods.register("slug", {

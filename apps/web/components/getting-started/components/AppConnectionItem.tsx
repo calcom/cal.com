@@ -3,15 +3,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui";
 
-interface ICalendarItem {
+interface IAppConnectionItem {
   title: string;
   description?: string;
   logo: string;
   type: App["type"];
+  installed?: boolean;
 }
 
-const CalendarItem = (props: ICalendarItem) => {
-  const { title, logo, type } = props;
+const AppConnectionItem = (props: IAppConnectionItem) => {
+  const { title, logo, type, installed } = props;
   const { t } = useLocale();
   return (
     <div className="flex flex-row items-center justify-between p-5">
@@ -25,13 +26,14 @@ const CalendarItem = (props: ICalendarItem) => {
           <Button
             {...buttonProps}
             color="secondary"
+            disabled={installed}
             type="button"
             onClick={(event) => {
               // Save cookie key to return url step
               document.cookie = `return-to=${window.location.href};path=/;max-age=3600;SameSite=Lax`;
               buttonProps && buttonProps.onClick && buttonProps?.onClick(event);
             }}>
-            {t("connect")}
+            {installed ? t("installed") : t("connect")}
           </Button>
         )}
       />
@@ -39,4 +41,4 @@ const CalendarItem = (props: ICalendarItem) => {
   );
 };
 
-export { CalendarItem };
+export { AppConnectionItem };
