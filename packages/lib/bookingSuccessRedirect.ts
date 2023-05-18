@@ -1,11 +1,13 @@
 import type { NextRouter } from "next/router";
 
+import type { PaymentPageProps } from "@calcom/ee/payments/pages/payment";
 import type { BookingResponse } from "@calcom/web/lib/types/booking";
 
 import type { EventType } from ".prisma/client";
 
-const getBookingRedirectExtraParams = (booking: BookingResponse) => {
-  type BookingResponseKey = keyof BookingResponse;
+type SuccessRedirectBookingType = BookingResponse | PaymentPageProps["booking"];
+export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingType) => {
+  type BookingResponseKey = keyof SuccessRedirectBookingType;
   const redirectQueryParamKeys: BookingResponseKey[] = [
     "title",
     "description",
@@ -24,17 +26,15 @@ export const bookingSuccessRedirect = async ({
   booking,
   query,
   router,
-  passExtraQueryParams,
 }: {
   successRedirectUrl: EventType["successRedirectUrl"];
-  booking: BookingResponse;
+  booking: SuccessRedirectBookingType;
   query: Record<string, string | null | undefined | boolean>;
   router: NextRouter;
-  passExtraQueryParams: boolean;
 }) => {
   if (successRedirectUrl) {
     const url = new URL(successRedirectUrl);
-    const extraParams = passExtraQueryParams ? getBookingRedirectExtraParams(booking) : {};
+    const extraParams = getBookingRedirectExtraParams(booking);
     const queryWithExtraParams = { ...query, ...extraParams };
     Object.entries(queryWithExtraParams).forEach(([key, value]) => {
       if (value === null || value === undefined) {

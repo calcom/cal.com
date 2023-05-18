@@ -297,7 +297,6 @@ const BookingPage = ({
         successRedirectUrl: eventType.successRedirectUrl,
         query,
         booking: responseData,
-        passExtraQueryParams: eventType.metadata?.passExtraParamsToRedirectUrl ?? false,
       });
     },
   });
@@ -317,7 +316,6 @@ const BookingPage = ({
         successRedirectUrl: eventType.successRedirectUrl,
         query,
         booking,
-        passExtraQueryParams: eventType.metadata?.passExtraParamsToRedirectUrl ?? false,
       });
     },
   });
