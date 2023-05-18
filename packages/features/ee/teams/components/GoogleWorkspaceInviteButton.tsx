@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import type { PropsWithChildren } from "react";
 
+import { useFlags } from "@calcom/features/flags/hooks";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, Tooltip, showToast } from "@calcom/ui";
@@ -35,6 +36,7 @@ export function GoogleWorkspaceInviteButton(
   props: PropsWithChildren<{ onSuccess: (data: string[]) => void }>
 ) {
   const router = useRouter();
+  const featureFlags = useFlags();
   const utils = trpc.useContext();
   const { t } = useLocale();
   const teamId = Number(router.query.id);
@@ -53,6 +55,10 @@ export function GoogleWorkspaceInviteButton(
       showToast(t("app_removed_successfully"), "success");
     },
   });
+
+  if (featureFlags["google-workspace-directory"] == false) {
+    return null;
+  }
 
   // Show populate input button if they do
   if (credential && credential?.id) {
