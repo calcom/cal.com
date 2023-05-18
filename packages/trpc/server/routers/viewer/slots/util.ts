@@ -270,9 +270,9 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     });
 
   const getSlotsTime = 0;
-  let checkForAvailabilityTime = 0;
+  const checkForAvailabilityTime = 0;
   const getSlotsCount = 0;
-  let checkForAvailabilityCount = 0;
+  const checkForAvailabilityCount = 0;
 
   const timeSlots = getSlots({
     inviteeDate: startTime,
@@ -284,41 +284,6 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
   });
-
-  /*for (
-    let currentCheckedTime = startTime;
-    currentCheckedTime.isBefore(endTime);
-    currentCheckedTime = currentCheckedTime.add(1, "day")
-  ) {
-    // get slots retrieves the available times for a given day
-    timeSlots.push(
-      ...getSlots({
-        inviteeDate: currentCheckedTime,
-        eventLength: input.duration || eventType.length,
-        workingHours,
-        dateOverrides,
-        minimumBookingNotice: eventType.minimumBookingNotice,
-        frequency: eventType.slotInterval || input.duration || eventType.length,
-        organizerTimeZone:
-          eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
-      })
-    );
-  }
-
-  console.log({
-    oldSlots: timeSlots.map((slot) => slot.time.format()),
-    newSlots: getSlots({
-      inviteeDate: startTime,
-      eventLength: input.duration || eventType.length,
-      workingHours,
-      dateOverrides,
-      dateRanges: intersect([...userAvailability.map((user) => user.dateRanges)]),
-      minimumBookingNotice: eventType.minimumBookingNotice,
-      frequency: eventType.slotInterval || input.duration || eventType.length,
-      organizerTimeZone:
-        eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
-    }).map((slot) => slot.time.format()),
-  });*/
 
   let availableTimeSlots: typeof timeSlots = [];
   // Load cached busy slots
@@ -342,44 +307,48 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     where: { eventTypeId: { equals: eventType.id }, id: { notIn: selectedSlots.map((item) => item.id) } },
   });
 
-  availableTimeSlots = timeSlots.filter((slot) => {
-    const fixedHosts = userAvailability.filter((availability) => availability.user.isFixed);
-    return fixedHosts.every((schedule) => {
-      const startCheckForAvailability = performance.now();
+  availableTimeSlots = timeSlots;
 
-      const isAvailable = checkIfIsAvailable({
-        time: slot.time,
-        ...schedule,
-        ...availabilityCheckProps,
-      });
-      const endCheckForAvailability = performance.now();
-      checkForAvailabilityCount++;
-      checkForAvailabilityTime += endCheckForAvailability - startCheckForAvailability;
-      return isAvailable;
-    });
-  });
+  //This should already be handled in getAggregatedAvailability
+
+  // availableTimeSlots = timeSlots.filter((slot) => {
+  //   const fixedHosts = userAvailability.filter((availability) => availability.user.isFixed);
+  //   return fixedHosts.every((schedule) => {
+  //     const startCheckForAvailability = performance.now();
+
+  //     const isAvailable = checkIfIsAvailable({
+  //       time: slot.time,
+  //       ...schedule,
+  //       ...availabilityCheckProps,
+  //     });
+  //     const endCheckForAvailability = performance.now();
+  //     checkForAvailabilityCount++;
+  //     checkForAvailabilityTime += endCheckForAvailability - startCheckForAvailability;
+  //     return isAvailable;
+  //   });
+  // });
   // what else are you going to call it?
-  const looseHostAvailability = userAvailability.filter(({ user: { isFixed } }) => !isFixed);
-  if (looseHostAvailability.length > 0) {
-    availableTimeSlots = availableTimeSlots
-      .map((slot) => {
-        slot.userIds = slot.userIds?.filter((slotUserId) => {
-          const userSchedule = looseHostAvailability.find(
-            ({ user: { id: userId } }) => userId === slotUserId
-          );
-          if (!userSchedule) {
-            return false;
-          }
-          return checkIfIsAvailable({
-            time: slot.time,
-            ...userSchedule,
-            ...availabilityCheckProps,
-          });
-        });
-        return slot;
-      })
-      .filter((slot) => !!slot.userIds?.length);
-  }
+  // const looseHostAvailability = userAvailability.filter(({ user: { isFixed } }) => !isFixed);
+  // if (looseHostAvailability.length > 0) {
+  //   availableTimeSlots = availableTimeSlots
+  //     .map((slot) => {
+  //       slot.userIds = slot.userIds?.filter((slotUserId) => {
+  //         const userSchedule = looseHostAvailability.find(
+  //           ({ user: { id: userId } }) => userId === slotUserId
+  //         );
+  //         if (!userSchedule) {
+  //           return false;
+  //         }
+  //         return checkIfIsAvailable({
+  //           time: slot.time,
+  //           ...userSchedule,
+  //           ...availabilityCheckProps,
+  //         });
+  //       });
+  //       return slot;
+  //     })
+  //     .filter((slot) => !!slot.userIds?.length);
+  // }
 
   if (selectedSlots?.length > 0) {
     let occupiedSeats: typeof selectedSlots = selectedSlots.filter(

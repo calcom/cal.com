@@ -22,9 +22,9 @@ export const getAggregatedAvailability = (
   );
   // return early when there are no fixed hosts.
   if (!fixedHosts.length) {
-    return looseHostAvailability;
+    const availabiltiesWithoutOverlaps = mergeOverlappingDateRanges(looseHostAvailability);
+    return availabiltiesWithoutOverlaps;
   }
-  s;
 
   const fixedHostDateRanges = fixedHosts.map((s) => s.dateRanges);
 
@@ -33,3 +33,30 @@ export const getAggregatedAvailability = (
 
   return intersectedAvailability;
 };
+
+function mergeOverlappingDateRanges(dateRanges: DateRange[]) {
+  const sortedDateRanges = dateRanges.sort((a, b) => a.start.diff(b.start)); //is it already sorted before?
+
+  const mergedDateRanges: DateRange[] = [];
+
+  let currentRange = sortedDateRanges[0];
+
+  for (let i = 1; i < sortedDateRanges.length; i++) {
+    const nextRange = sortedDateRanges[i];
+    if (
+      currentRange.start.format("DD MM YY") === nextRange.start.format("DD MM YY") &&
+      currentRange.end.isAfter(nextRange.start)
+    ) {
+      currentRange = {
+        start: currentRange.start,
+        end: currentRange.end.isAfter(nextRange.end) ? currentRange.end : nextRange.end,
+      };
+    } else {
+      mergedDateRanges.push(currentRange);
+      currentRange = nextRange;
+    }
+  }
+  mergedDateRanges.push(currentRange);
+
+  return mergedDateRanges;
+}
