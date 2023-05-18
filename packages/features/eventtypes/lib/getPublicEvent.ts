@@ -115,7 +115,7 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
         image: `${WEBAPP_URL}/${users[0].username}/avatar.png`,
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
-        theme: users[0].theme,
+        theme: null,
       },
     };
   }
