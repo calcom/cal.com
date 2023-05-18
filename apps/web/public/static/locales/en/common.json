@@ -1806,7 +1806,7 @@
   "charge_attendee": "Charge attendee {{amount, currency}}",
   "payment_app_commission": "Require payment ({{paymentFeePercentage}}% + {{fee, currency}} commission per transaction)",
   "email_invite_team": "{{email}} has been invited",
-  "email_invite_team_bulk": "{{userCount} users have been invited",
+  "email_invite_team_bulk": "{{userCount}} users have been invited",
   "error_collecting_card": "Error collecting card",
   "image_size_limit_exceed": "Uploaded image shouldn't exceed 5mb size limit",
   "inline_embed": "Inline Embed",
