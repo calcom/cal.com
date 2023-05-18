@@ -80,6 +80,7 @@ export async function getEventType(input: TGetScheduleInputSchema) {
       slug: true,
       minimumBookingNotice: true,
       length: true,
+      offsetStart: true,
       seatsPerTimeSlot: true,
       timeZone: true,
       slotInterval: true,
@@ -281,6 +282,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
         workingHours,
         dateOverrides,
         minimumBookingNotice: eventType.minimumBookingNotice,
+        offsetStart: eventType.offsetStart,
         frequency: eventType.slotInterval || input.duration || eventType.length,
         organizerTimeZone:
           eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
