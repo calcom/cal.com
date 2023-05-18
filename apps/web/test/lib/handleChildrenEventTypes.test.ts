@@ -1,5 +1,4 @@
-import type { EventType } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
+import type { EventType, Prisma } from "@prisma/client";
 
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { buildEventType } from "@calcom/lib/test/builder";
@@ -93,9 +92,7 @@ describe("handleChildrenEventTypes", () => {
 
   describe("Happy paths", () => {
     it("Adds new users", async () => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      // eslint-disable-next-line
+      // @ts-expect-error users is not in the EventType type
       const { schedulingType, id, teamId, timeZone, users, scheduleId, offsetStart, ...evType } =
         mockFindFirstEventType({
           id: 123,
@@ -132,9 +129,6 @@ describe("handleChildrenEventTypes", () => {
     });
 
     it("Updates old users", async () => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      // eslint-disable-next-line
       const {
         schedulingType,
         id,
@@ -144,6 +138,7 @@ describe("handleChildrenEventTypes", () => {
         parentId,
         userId,
         scheduleId,
+        // @ts-expect-error offsetStart is not in the EventType type
         offsetStart,
         ...evType
       } = mockFindFirstEventType({
@@ -266,19 +261,18 @@ describe("handleChildrenEventTypes", () => {
       expect(result.deletedExistentEventTypes).toEqual([123]);
     });
     it("Deletes existent event types for old users updated", async () => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      // eslint-disable-next-line
       const {
         schedulingType,
         id,
         teamId,
         timeZone,
+        // @ts-expect-error users is not in the EventType type
         users,
         locations,
         parentId,
         userId,
         scheduleId,
+        // @ts-expect-error offsetStart is not in the EventType type
         offsetStart,
         ...evType
       } = mockFindFirstEventType({
@@ -330,6 +324,7 @@ describe("handleChildrenEventTypes", () => {
         parentId,
         userId,
         scheduleId,
+        // @ts-expect-error offsetStart is not in the EventType type
         offsetStart,
         ...evType
       } = mockFindFirstEventType({
