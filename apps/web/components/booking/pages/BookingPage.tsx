@@ -49,7 +49,6 @@ import { AlertTriangle, Calendar, RefreshCw, User } from "@calcom/ui/components/
 
 import { timeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
-import type { BookingResponse } from "@lib/types/booking";
 
 import type { Gate, GateState } from "@components/Gates";
 import Gates from "@components/Gates";
@@ -271,7 +270,7 @@ const BookingPage = ({
   }, []);
 
   const mutation = useMutation(createBooking, {
-    onSuccess: async (responseData: BookingResponse) => {
+    onSuccess: async (responseData) => {
       if ("paymentUid" in responseData && !!responseData.paymentUid) {
         return await router.push(
           createPaymentLink({
