@@ -201,7 +201,7 @@ export const FormBuilder = function FormBuilder({
                       // It has the same drawback that if the label is changed, the value of the option will change. It is not a big deal for now.
                       value.splice(index, 1, {
                         label: e.target.value,
-                        value: e.target.value.toLowerCase().trim(),
+                        value: e.target.value.trim(),
                       });
                       onChange(value);
                     }}
