@@ -171,7 +171,6 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 </div>
                 <GoogleWorkspaceInviteButton
                   onSuccess={(data) => {
-                    console.log(data);
                     newMemberFormMethods.setValue("emailOrUsername", data);
                   }}
                 />

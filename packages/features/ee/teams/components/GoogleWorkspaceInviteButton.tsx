@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import type { PropsWithChildren } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, Tooltip } from "@calcom/ui";
 
@@ -34,6 +35,7 @@ export function GoogleWorkspaceInviteButton(
   props: PropsWithChildren<{ onSuccess: (data: string[]) => void }>
 ) {
   const router = useRouter();
+  const { t } = useLocale();
   const teamId = Number(router.query.id);
   const [googleWorkspaceLoading, setGoogleWorkspaceLoading] = useState(false);
   const { data: credential } = trpc.viewer.appsRouter.checkForGWorkspace.useQuery();
@@ -50,7 +52,7 @@ export function GoogleWorkspaceInviteButton(
   if (credential && credential?.id) {
     return (
       <div className="flex gap-2">
-        <Tooltip content="You must be a workspace admin to use this feature">
+        <Tooltip content={t("google_workspace_admin_tooltip")}>
           <Button
             color="secondary"
             onClick={() => {
@@ -59,7 +61,7 @@ export function GoogleWorkspaceInviteButton(
             className="w-full justify-center gap-2"
             StartIcon={UsersIcon}
             loading={mutation.isLoading}>
-            Import from Google Workspace
+            {t("import_from_google_workspace")}
           </Button>
         </Tooltip>
         <Tooltip content="Remove workspace connection">
@@ -93,7 +95,7 @@ export function GoogleWorkspaceInviteButton(
         gotoUrl(json.url, json.newTab);
       }}
       className="justify-center gap-2">
-      Connect Google Workspace
+      {t("connect_google_workspace")}
     </Button>
   );
 }
