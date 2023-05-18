@@ -42,6 +42,9 @@ export function GoogleWorkspaceInviteButton(
   const teamId = Number(router.query.id);
   const [googleWorkspaceLoading, setGoogleWorkspaceLoading] = useState(false);
   const { data: credential } = trpc.viewer.appsRouter.checkForGWorkspace.useQuery();
+  const { data: hasGcalInstalled } = trpc.viewer.appsRouter.checkGlobalKeys.useQuery({
+    slug: "google-calendar",
+  });
   const mutation = trpc.viewer.appsRouter.getUsersFromGorkspace.useMutation({
     onSuccess: (data) => {
       if (Array.isArray(data) && data.length !== 0) {
@@ -56,7 +59,7 @@ export function GoogleWorkspaceInviteButton(
     },
   });
 
-  if (featureFlags["google-workspace-directory"] == false) {
+  if (featureFlags["google-workspace-directory"] == false || !hasGcalInstalled) {
     return null;
   }
 
