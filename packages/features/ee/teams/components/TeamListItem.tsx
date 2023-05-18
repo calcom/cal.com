@@ -53,7 +53,9 @@ export default function TeamListItem(props: Props) {
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
   const team = props.team;
-  const [openMemberInvitationModal, setOpenMemberInvitationModal] = useState(false);
+  const router = useRouter();
+  const showDialog = router.query.inviteModal === "true";
+  const [openMemberInvitationModal, setOpenMemberInvitationModal] = useState(showDialog);
   const teamQuery = trpc.viewer.teams.get.useQuery({ teamId: team?.id });
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess(data) {

@@ -40,9 +40,10 @@ export const AddNewTeamMembersForm = ({
   teamId: number;
 }) => {
   const { t, i18n } = useLocale();
-  const [memberInviteModal, setMemberInviteModal] = useState(false);
-  const utils = trpc.useContext();
   const router = useRouter();
+  const showDialog = router.query.inviteModal === "true";
+  const [memberInviteModal, setMemberInviteModal] = useState(showDialog);
+  const utils = trpc.useContext();
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess(data) {
       await utils.viewer.teams.get.invalidate();
