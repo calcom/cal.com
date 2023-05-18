@@ -49,6 +49,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
   const onLayoutToggle = useCallback((newLayout: BookerLayout) => setLayout(newLayout), [setLayout]);
 
   const animationScope = useBookerResizeAnimation(layout, bookerState);
+  const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
 
   useBrandColors({
     brandColor: event.data?.profile.brandColor,
@@ -117,14 +118,16 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
           />
         </div>
       )}
-      <div className="text-default flex h-full w-full flex-col items-center">
+      <div className="text-default flex h-full w-full flex-col items-center overflow-x-clip">
         <div
           ref={animationScope}
           className={classNames(
             // Sets booker size css variables for the size of all the columns.
             ...getBookerSizeClassNames(layout, bookerState),
-            "bg-muted grid max-w-full auto-rows-fr items-start overflow-clip dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
-            layout === "small_calendar" && "border-subtle rounded-md border"
+            "bg-muted grid max-w-full auto-rows-fr items-start dark:[color-scheme:dark] sm:motion-reduce:transition-none md:flex-row",
+            layout === "small_calendar" && "border-subtle rounded-md border",
+            !isEmbed && "sm:transition-[width] sm:duration-300",
+            layout === "small_calendar" && isEmbed && "mt-20"
           )}>
           <AnimatePresence>
             <StickyOnDesktop key="meta" className="relative z-10 flex min-h-full">

@@ -38,7 +38,7 @@ export const AvailableTimes = ({
   const isToday = dayjs().isSame(date, "day");
 
   return (
-    <div className={classNames("text-default", className)}>
+    <div className={classNames("text-default flex flex-col", className)}>
       <header className="bg-muted before:bg-muted mb-5 flex w-full flex-row items-center font-medium">
         <span className={classNames(isLargeTimeslots && "w-full text-center")}>
           <span className="text-emphasis font-semibold">
