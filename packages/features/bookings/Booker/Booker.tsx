@@ -124,7 +124,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
           />
         </div>
       )}
-      <div className="flex h-full w-full flex-col items-center">
+      <div className="text-default flex h-full w-full flex-col items-center">
         <div
           ref={animationScope}
           className={classNames(
