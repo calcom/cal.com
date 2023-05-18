@@ -29,7 +29,7 @@ import {
   TableActions,
   TextAreaField,
 } from "@calcom/ui";
-import { Check, Clock, MapPin, RefreshCcw, Send, Slash, X, CreditCard } from "@calcom/ui/components/icon";
+import { Check, Clock, MapPin, RefreshCcw, Send, Ban, X, CreditCard } from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -119,7 +119,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setRejectionDialogIsOpen(true);
       },
-      icon: Slash,
+      icon: Ban,
       disabled: mutation.isLoading,
     },
     // For bookings with payment, only confirm if the booking is paid for
