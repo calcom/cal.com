@@ -1,6 +1,8 @@
 import { cubicBezier, useAnimate } from "framer-motion";
 import { useReducedMotion } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+
+import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 
 import type { BookerLayout, BookerState } from "./types";
 
@@ -120,8 +122,13 @@ export const getBookerSizeClassNames = (layout: BookerLayout, bookerState: Booke
 export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerState) => {
   const prefersReducedMotion = useReducedMotion();
   const [animationScope, animate] = useAnimate();
+  // Notifies embed after animiation is done.
+  const notifyEmbedOfSizeTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useEffect(() => {
+    if (notifyEmbedOfSizeTimeout.current) {
+      clearTimeout(notifyEmbedOfSizeTimeout.current);
+    }
     const animationConfig = resizeAnimationConfig[layout][state] || resizeAnimationConfig[layout].default;
 
     const animatedProperties = {
@@ -159,6 +166,15 @@ export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerStat
         duration: 0.5,
         ease: cubicBezier(0.4, 0, 0.2, 1),
       });
+
+      notifyEmbedOfSizeTimeout.current = setTimeout(() => {
+        sdkActionManager?.fire("__dimensionChanged", {
+          // + 200 to account for layout switch
+          iframeHeight: Number(animationScope.current.offsetHeight) + 200,
+          iframeWidth: Number(animationScope.current.offsetWidth),
+          isFirstTime: false,
+        });
+      }, 501);
     }
   }, [animate, animationScope, layout, prefersReducedMotion, state]);
 
