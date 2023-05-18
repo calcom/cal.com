@@ -51,7 +51,6 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     if (!invitee) {
       // liberal email match
 
-      console.log(usernameOrEmail);
       if (!isEmail(usernameOrEmail))
         throw new TRPCError({
           code: "NOT_FOUND",
