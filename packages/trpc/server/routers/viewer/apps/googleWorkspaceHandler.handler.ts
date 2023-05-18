@@ -31,6 +31,7 @@ export const checkForGWorkspace = async ({ ctx }: CheckForGCalOptions) => {
 
   return { id: gWorkspacePresent?.id };
 };
+
 let client_id = "";
 let client_secret = "";
 
@@ -68,4 +69,16 @@ export const getUsersFromGWorkspace = async ({ ctx }: CheckForGCalOptions) => {
   // We only want their email addresses
   const emails = data.users?.map((user) => user.primaryEmail as string) ?? ([] as string[]);
   return emails;
+};
+
+export const removeCurrentGoogleWorkspaceConnection = async ({ ctx }: CheckForGCalOptions) => {
+  // There should only ever be one google_workspace_directory credential per user but we delete many as we can't make type unique
+  const gWorkspacePresent = await prisma.credential.deleteMany({
+    where: {
+      type: "google_workspace_directory",
+      userId: ctx.user.id,
+    },
+  });
+
+  return { deleted: gWorkspacePresent?.count };
 };

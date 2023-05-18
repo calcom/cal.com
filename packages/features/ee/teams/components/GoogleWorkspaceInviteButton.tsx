@@ -5,7 +5,7 @@ import type { PropsWithChildren } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button, Tooltip } from "@calcom/ui";
+import { Button, Tooltip, showToast } from "@calcom/ui";
 
 const GoogleIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -35,6 +35,7 @@ export function GoogleWorkspaceInviteButton(
   props: PropsWithChildren<{ onSuccess: (data: string[]) => void }>
 ) {
   const router = useRouter();
+  const utils = trpc.useContext();
   const { t } = useLocale();
   const teamId = Number(router.query.id);
   const [googleWorkspaceLoading, setGoogleWorkspaceLoading] = useState(false);
@@ -46,7 +47,12 @@ export function GoogleWorkspaceInviteButton(
       }
     },
   });
-  // see if user has any google workspace credentials attached
+
+  const removeConnectionMutation = trpc.viewer.appsRouter.removeCurrentGoogleWorkspaceConnection.useMutation({
+    onSuccess: () => {
+      showToast(t("app_removed_successfully"), "success");
+    },
+  });
 
   // Show populate input button if they do
   if (credential && credential?.id) {
@@ -65,7 +71,16 @@ export function GoogleWorkspaceInviteButton(
           </Button>
         </Tooltip>
         <Tooltip content="Remove workspace connection">
-          <Button color="secondary" className="" StartIcon={XIcon} variant="icon" />
+          <Button
+            color="secondary"
+            loading={removeConnectionMutation.isLoading}
+            StartIcon={XIcon}
+            onClick={() => {
+              removeConnectionMutation.mutate();
+              utils.viewer.appsRouter.checkForGWorkspace.invalidate();
+            }}
+            variant="icon"
+          />
         </Tooltip>
       </div>
     );
