@@ -97,7 +97,7 @@
   "dependencies": {
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
-    "lucide-react": "^0.130.0",
+    "lucide-react": "^0.171.0",
     "turbo": "^1.8.3"
   },
   "resolutions": {
