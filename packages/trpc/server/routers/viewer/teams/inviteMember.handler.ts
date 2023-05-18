@@ -54,7 +54,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       if (!isEmail(usernameOrEmail))
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: `Invite failed because there is no corresponding user for ${input.usernameOrEmail}`,
+          message: `Invite failed because there is no corresponding user for ${usernameOrEmail}`,
         });
 
       // valid email given, create User and add to team
@@ -86,7 +86,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
           from: ctx.user.name,
           to: usernameOrEmail,
           teamName: team.name,
-          joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/teams`,
+          joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`, // we know that the user has not completed onboarding yet, so we can redirect them to the onboarding flow
           isCalcomMember: false,
         });
       }
@@ -103,7 +103,6 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       } catch (e) {
         if (e instanceof Prisma.PrismaClientKnownRequestError) {
           // Don't throw an error if the user is already a member of the team when inviting multiple users
-
           if (!Array.isArray(input.usernameOrEmail) && e.code === "P2002") {
             throw new TRPCError({
               code: "FORBIDDEN",
@@ -119,21 +118,40 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       if (!isEmail(usernameOrEmail)) {
         sendTo = invitee.email;
       }
-
       // inform user of membership by email
       if (input.sendEmailInvitation && ctx?.user?.name && team?.name) {
+        const inviteTeamOptions = {
+          joinLink: `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`,
+          isCalcomMember: true,
+        };
+        /**
+         * Here we want to redirect to a differnt place if onboarding has been completed or not. This prevents the flash of going to teams -> Then to onboarding - also show a differnt email template.
+         * This only changes if the user is a CAL user and has not completed onboarding and has no password
+         */
+        if (!invitee.completedOnboarding && !invitee.password && invitee.identityProvider === "CAL") {
+          const token = randomBytes(32).toString("hex");
+          await prisma.verificationToken.create({
+            data: {
+              identifier: usernameOrEmail,
+              token,
+              expires: new Date(new Date().setHours(168)), // +1 week
+            },
+          });
+
+          inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
+          inviteTeamOptions.isCalcomMember = false;
+        }
+
         await sendTeamInviteEmail({
           language: translation,
           from: ctx.user.name,
           to: sendTo,
           teamName: team.name,
-          joinLink: WEBAPP_URL + "/settings/teams",
-          isCalcomMember: true,
+          ...inviteTeamOptions,
         });
       }
     }
-    if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(input.teamId);
   });
-
+  if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(input.teamId);
   return input;
 };

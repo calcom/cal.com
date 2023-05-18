@@ -35,3 +35,5 @@ export const formsHandler = async ({ ctx }: FormsHandlerOptions) => {
   }
   return serializableForms;
 };
+
+export default formsHandler;
