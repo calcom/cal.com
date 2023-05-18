@@ -48,12 +48,21 @@ export const AddNewTeamMembersForm = ({
       await utils.viewer.teams.get.invalidate();
       setMemberInviteModal(false);
       if (data.sendEmailInvitation) {
-        showToast(
-          t("email_invite_team", {
-            email: data.usernameOrEmail,
-          }),
-          "success"
-        );
+        if (Array.isArray(data.usernameOrEmail)) {
+          showToast(
+            t("email_invite_team_bulk", {
+              userCount: data.usernameOrEmail.length,
+            }),
+            "success"
+          );
+        } else {
+          showToast(
+            t("email_invite_team", {
+              email: data.usernameOrEmail,
+            }),
+            "success"
+          );
+        }
       }
     },
     onError: (error) => {
