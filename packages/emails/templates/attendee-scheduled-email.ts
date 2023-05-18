@@ -112,7 +112,7 @@ ${this.t(
 )}
 ${this.t(subtitle)}
 
-${getRichDescription(this.calEvent, this.attendee.language.translate)}
+${getRichDescription(this.calEvent, this.t)}
 `.trim();
   }
 
