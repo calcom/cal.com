@@ -96,11 +96,11 @@ describe("handleChildrenEventTypes", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       // eslint-disable-next-line
-      const { schedulingType, id, teamId, timeZone, users, ...evType } = mockFindFirstEventType({
-        id: 123,
-        metadata: { managedEventConfig: {} },
-        locations: [],
-      });
+      const {schedulingType, id, teamId, timeZone, users, scheduleId, offsetStart, ...evType} = mockFindFirstEventType({
+          id: 123,
+          metadata: { managedEventConfig: {} },
+          locations: [],
+        });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [], team: { name: "" } },
@@ -119,6 +119,8 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
+          hashedLink: undefined,
+          workflows: undefined,
           userId: 4,
         },
       });
@@ -132,11 +134,10 @@ describe("handleChildrenEventTypes", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       // eslint-disable-next-line
-      const { schedulingType, id, teamId, timeZone, locations, parentId, userId, scheduleId, ...evType } =
-        mockFindFirstEventType({
-          metadata: { managedEventConfig: {} },
-          locations: [],
-        });
+      const {schedulingType, id, teamId, timeZone, locations, parentId, userId, scheduleId, offsetStart, ...evType} = mockFindFirstEventType({
+        metadata: { managedEventConfig: {} },
+        locations: [],
+      });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
@@ -217,11 +218,11 @@ describe("handleChildrenEventTypes", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       // eslint-disable-next-line
-      const { schedulingType, id, teamId, timeZone, users, ...evType } = mockFindFirstEventType({
-        id: 123,
-        metadata: { managedEventConfig: {} },
-        locations: [],
-      });
+      const {schedulingType, id, teamId, timeZone, users, scheduleId, offsetStart, ...evType} = mockFindFirstEventType({
+          id: 123,
+          metadata: { managedEventConfig: {} },
+          locations: [],
+        });
       prismaMock.eventType.deleteMany.mockResolvedValue([123] as unknown as Prisma.BatchPayload);
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
@@ -243,6 +244,7 @@ describe("handleChildrenEventTypes", () => {
           recurringEvent: undefined,
           hashedLink: undefined,
           userId: 4,
+          workflows: undefined,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -254,11 +256,10 @@ describe("handleChildrenEventTypes", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       // eslint-disable-next-line
-      const { schedulingType, id, teamId, timeZone, users, locations, parentId, userId, ...evType } =
-        mockFindFirstEventType({
-          metadata: { managedEventConfig: {} },
-          locations: [],
-        });
+      const {schedulingType, id, teamId, timeZone, users, locations, parentId, userId, scheduleId, offsetStart, ...evType} = mockFindFirstEventType({
+        metadata: { managedEventConfig: {} },
+        locations: [],
+      });
       prismaMock.eventType.deleteMany.mockResolvedValue([123] as unknown as Prisma.BatchPayload);
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
@@ -277,6 +278,7 @@ describe("handleChildrenEventTypes", () => {
           durationLimits: undefined,
           recurringEvent: undefined,
           scheduleId: undefined,
+          hashedLink: undefined,
         },
         where: {
           userId_parentId: {
@@ -294,16 +296,26 @@ describe("handleChildrenEventTypes", () => {
 
   describe("Workflows", () => {
     it("Links workflows to new and existing assigned members", async () => {
-      const { schedulingType, id, teamId, locations, timeZone, parentId, userId, ...evType } =
-        mockFindFirstEventType({
-          metadata: { managedEventConfig: {} },
-          locations: [],
-          workflows: [
-            {
-              workflowId: 11,
-            } as CompleteWorkflowsOnEventTypes,
-          ],
-        });
+      const {
+        schedulingType,
+        id,
+        teamId,
+        locations,
+        timeZone,
+        parentId,
+        userId,
+        scheduleId,
+        offsetStart,
+        ...evType
+      } = mockFindFirstEventType({
+        metadata: { managedEventConfig: {} },
+        locations: [],
+        workflows: [
+          {
+            workflowId: 11,
+          } as CompleteWorkflowsOnEventTypes,
+        ],
+      });
       prismaMock.$transaction.mockResolvedValue([{ id: 2 }]);
       await updateChildrenEventTypes({
         eventTypeId: 1,
