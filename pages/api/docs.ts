@@ -1,7 +1,7 @@
 import modifyRes from "modify-response-middleware";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { use } from "next-api-middleware";
 import { withSwagger } from "next-swagger-doc";
-import type { NextApiRequest, NextApiResponse } from "next/types";
 
 import pjson from "~/package.json";
 

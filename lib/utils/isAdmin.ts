@@ -1,4 +1,4 @@
-import type { NextApiRequest } from "next/types";
+import type { NextApiRequest } from "next";
 
 import { UserPermissionRole } from "@calcom/prisma/enums";
 

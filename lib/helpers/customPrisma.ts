@@ -9,7 +9,7 @@ const LOCAL_CONSOLE_URL = process.env.NEXT_PUBLIC_CONSOLE_URL || CONSOLE_URL;
 export const customPrismaClient: NextMiddleware = async (req, res, next) => {
   const {
     query: { key },
-  }: { query: { key?: string } } = req;
+  } = req;
   // If no custom api Id is provided, attach to request the regular cal.com prisma client.
   if (!key) {
     req.prisma = new PrismaClient();
