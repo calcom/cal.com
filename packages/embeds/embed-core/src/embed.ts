@@ -435,6 +435,7 @@ class CalApi {
     buttonColor = "rgb(0, 0, 0)",
     buttonTextColor = "rgb(255, 255, 255)",
     calOrigin,
+    config,
   }: {
     calLink: string;
     buttonText?: string;
@@ -444,6 +445,7 @@ class CalApi {
     buttonColor?: string;
     buttonTextColor?: string;
     calOrigin?: string;
+    config?: PrefillAndIframeAttrsConfig;
   }) {
     // validate(arguments[0], {
     //   required: true,
@@ -466,6 +468,10 @@ class CalApi {
       el.dataset.calLink = calLink;
       el.dataset.calNamespace = this.cal.namespace;
       el.dataset.calOrigin = calOrigin ?? "";
+      if (config) {
+        el.dataset.calConfig = JSON.stringify(config);
+      }
+
       if (attributes?.id) {
         el.id = attributes.id;
       }
