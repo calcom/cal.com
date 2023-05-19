@@ -23,6 +23,7 @@ class MyDocument extends Document<Props> {
       // If x-csp not set by gSSP, then it's initialPropsOnly
       setHeader(ctx, "x-csp", "initialPropsOnly");
     }
+
     const asPath = ctx.asPath || "";
     // Use a dummy URL as default so that URL parsing works for relative URLs as well. We care about searchParams and pathname only
     const parsedUrl = new URL(asPath, "https://dummyurl");
@@ -45,7 +46,8 @@ class MyDocument extends Document<Props> {
           <link rel="manifest" href="/site.webmanifest" />
           <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
           <meta name="msapplication-TileColor" content="#ff0000" />
-          <meta name="theme-color" content="var(--cal-bg)" />
+          <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9fafb" />
+          <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1C1C1C" />
         </Head>
 
         <body

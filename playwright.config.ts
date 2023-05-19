@@ -53,7 +53,9 @@ if (IS_EMBED_REACT_TEST) {
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: os.cpus().length,
+  // While debugging it should be focussed mode
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
+  workers: process.env.PWDEBUG ? 1 : os.cpus().length,
   timeout: DEFAULT_TEST_TIMEOUT,
   maxFailures: headless ? 10 : undefined,
   fullyParallel: true,
@@ -102,11 +104,17 @@ const config: PlaywrightTestConfig = {
       name: "@calcom/embed-core",
       testDir: "./packages/embeds/embed-core/",
       testMatch: /.*\.(e2e|test)\.tsx?/,
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
       use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3100/" },
     },
     {
       name: "@calcom/embed-react",
       testDir: "./packages/embeds/embed-react/",
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
       testMatch: /.*\.(e2e|test)\.tsx?/,
       use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3101/" },
     },
@@ -114,12 +122,18 @@ const config: PlaywrightTestConfig = {
       name: "@calcom/embed-core--firefox",
       testDir: "./packages/embeds/",
       testMatch: /.*\.e2e\.tsx?/,
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
       use: { ...devices["Desktop Firefox"] },
     },
     {
       name: "@calcom/embed-core--webkit",
       testDir: "./packages/embeds/",
       testMatch: /.*\.e2e\.tsx?/,
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
       use: { ...devices["Desktop Safari"] },
     },
   ],

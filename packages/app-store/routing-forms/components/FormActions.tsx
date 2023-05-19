@@ -276,6 +276,9 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
       }
       return { previousValue };
     },
+    onSuccess: () => {
+      showToast(t("form_updated_successfully"), "success");
+    },
     onSettled: (routingForm) => {
       utils.viewer.appRoutingForms.forms.invalidate();
       if (routingForm) {
@@ -463,7 +466,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   const Component = as || Button;
   if (!dropdown) {
     return (
-      <Component ref={forwardedRef} {...actionProps}>
+      <Component data-testid={`form-action-${actionName}`} ref={forwardedRef} {...actionProps}>
         {children}
       </Component>
     );
