@@ -54,11 +54,11 @@ export const Select = <
             "bg-default border-default !min-h-9 h-9 text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-2 focus-within:ring-emphasis hover:border-emphasis rounded-md border ",
             state.isMulti
               ? variant === "checkbox"
-                ? "px-3 py-2"
+                ? "px-3 py-2 h-fit"
                 : state.hasValue
-                ? "p-1"
-                : "px-3 py-2"
-              : "py-2 px-3",
+                ? "p-1 h-fit"
+                : "px-3 py-2 h-fit"
+              : "py-2 px-3 h-fit",
             props.isDisabled && "bg-subtle",
             props.classNames?.control
           ),

@@ -1572,7 +1572,7 @@
   "sender_name": "اسم المرسل",
   "already_invited": "تمت دعوة هذا الحاضر بالفعل",
   "no_recordings_found": "لم يتم العثور على تسجيلات",
-  "new_workflow_subtitle": "سير عمل جديد من أجل...",
+  "new_workflow_subtitle": "سير عمل جديد لـ...",
   "reporting": "تقديم التقارير",
   "reporting_feature": "عرض جميع البيانات الواردة وتنزيلها كملف CSV",
   "teams_plan_required": "خطة Teams مطلوبة",

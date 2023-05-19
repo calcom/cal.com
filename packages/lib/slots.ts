@@ -14,17 +14,20 @@ export type GetSlots = {
   dateRanges?: DateRange[];
   minimumBookingNotice: number;
   eventLength: number;
+  offsetStart: number;
   organizerTimeZone: string;
 };
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
 
 const minimumOfOne = (input: number) => (input < 1 ? 1 : input);
+const minimumOfZero = (input: number) => (input < 0 ? 0 : input);
 
 function buildSlots({
   startOfInviteeDay,
   computedLocalAvailability,
   frequency,
   eventLength,
+  offsetStart,
   startDate,
   organizerTimeZone,
   inviteeTimeZone,
@@ -34,6 +37,7 @@ function buildSlots({
   startDate: Dayjs;
   frequency: number;
   eventLength: number;
+  offsetStart: number;
   organizerTimeZone: string;
   inviteeTimeZone: string;
 }) {
@@ -44,6 +48,8 @@ function buildSlots({
   // keep the old safeguards in; may be needed.
   frequency = minimumOfOne(frequency);
   eventLength = minimumOfOne(eventLength);
+  offsetStart = minimumOfZero(offsetStart);
+
   // A day starts at 00:00 unless the startDate is the same as the current day
   const dayStart = startOfInviteeDay.isSame(startDate, "day")
     ? Math.ceil((startDate.hour() * 60 + startDate.minute()) / frequency) * frequency
@@ -86,7 +92,11 @@ function buildSlots({
 
   for (const [boundaryStart, boundaryEnd] of ranges) {
     // loop through the day, based on frequency.
-    for (let slotStart = boundaryStart; slotStart < boundaryEnd; slotStart += frequency) {
+    for (
+      let slotStart = boundaryStart + offsetStart;
+      slotStart < boundaryEnd;
+      slotStart += offsetStart + frequency
+    ) {
       computedLocalAvailability.forEach((item) => {
         // TODO: This logic does not allow for past-midnight bookings.
         if (slotStart < item.startTime || slotStart > item.endTime + 1 - eventLength) {
@@ -199,6 +209,7 @@ const getSlots = ({
   dateOverrides = [],
   dateRanges,
   eventLength,
+  offsetStart,
   organizerTimeZone,
 }: GetSlots) => {
   if (dateRanges) {
@@ -312,6 +323,7 @@ const getSlots = ({
     startDate,
     frequency,
     eventLength,
+    offsetStart,
     organizerTimeZone,
     inviteeTimeZone: timeZone,
   });
