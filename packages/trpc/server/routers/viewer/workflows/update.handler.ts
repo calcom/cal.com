@@ -388,12 +388,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
       //step was edited
     } else if (JSON.stringify(oldStep) !== JSON.stringify(newStep)) {
-      if (
-        !userWorkflow.teamId &&
-        !hasPaidPlan &&
-        !isSMSAction(oldStep.action) &&
-        isSMSAction(newStep.action)
-      ) {
+      if (!hasPaidPlan && !isSMSAction(oldStep.action) && isSMSAction(newStep.action)) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
       await ctx.prisma.workflowStep.update({
