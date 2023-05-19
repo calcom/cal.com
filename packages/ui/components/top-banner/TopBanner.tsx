@@ -1,9 +1,8 @@
-import { XIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { noop } from "lodash";
 import type { ReactNode } from "react";
 
-import { AlertTriangle, Info } from "../icon";
+import { X, AlertTriangle, Info } from "@calcom/ui/components/icon";
 
 export type TopBannerProps = {
   text: string;
@@ -44,7 +43,7 @@ export function TopBanner(props: TopBannerProps) {
           type="button"
           onClick={noop}
           className="hover:bg-gray-20 text-muted flex items-center rounded-lg p-1.5 text-sm">
-          <XIcon className="text-emphasis h-4 w-4" />
+          <X className="text-emphasis h-4 w-4" />
         </button>
       )}
     </div>
