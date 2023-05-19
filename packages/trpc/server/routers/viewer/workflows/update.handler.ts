@@ -10,12 +10,14 @@ import {
   scheduleSMSReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { IS_SELF_HOSTED, SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import type { PrismaClient } from "@calcom/prisma/client";
 import { BookingStatus, WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
+import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
   getSender,
@@ -63,6 +65,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   if (steps.find((step) => step.workflowId != id)) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
+
+  const isCurrentUsernamePremium = user && user.metadata && hasKeyInMetadata(user, "isPremium");
+
+  let isTeamsPlan = false;
+  if (!isCurrentUsernamePremium) {
+    const { hasTeamPlan } = await hasTeamPlanHandler({ ctx });
+    isTeamsPlan = !!hasTeamPlan;
+  }
+  const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan;
 
   const activeOnEventTypes = await ctx.prisma.eventType.findMany({
     where: {
@@ -377,13 +388,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
       //step was edited
     } else if (JSON.stringify(oldStep) !== JSON.stringify(newStep)) {
-      if (
-        !userWorkflow.teamId &&
-        !userWorkflow.user?.teams.length &&
-        !isSMSAction(oldStep.action) &&
-        isSMSAction(newStep.action) &&
-        !IS_SELF_HOSTED
-      ) {
+      if (!hasPaidPlan && !isSMSAction(oldStep.action) && isSMSAction(newStep.action)) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
       await ctx.prisma.workflowStep.update({
@@ -536,7 +541,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   //added steps
   const addedSteps = steps.map((s) => {
     if (s.id <= 0) {
-      if (!userWorkflow.user?.teams.length && isSMSAction(s.action) && !IS_SELF_HOSTED) {
+      if (isSMSAction(s.action) && !hasPaidPlan) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
       const { id: _stepId, ...stepToAdd } = s;
