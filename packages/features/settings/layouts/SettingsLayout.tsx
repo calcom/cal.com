@@ -1,4 +1,5 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import type { ComponentProps } from "react";
@@ -12,7 +13,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
-import useSessionQuery from "@calcom/trpc/react/hooks/useSessionQuery";
 import type { VerticalTabItemProps } from "@calcom/ui";
 import { Badge, Button, ErrorBoundary, Skeleton, useMeta, VerticalTabItem } from "@calcom/ui";
 import {
@@ -105,14 +105,16 @@ tabs.find((tab) => {
 const adminRequiredKeys = ["admin"];
 
 const useTabs = () => {
-  const { data: session } = useSessionQuery();
+  const session = useSession();
+  const { data: user } = trpc.viewer.me.useQuery();
   const { data: avatar } = useAvatarQuery();
 
-  const isAdmin = session?.user?.role === UserPermissionRole.ADMIN;
+  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
   tabs.map((tab) => {
     if (tab.href === "/settings/my-account") {
       tab.name = session?.user?.name || "my_account";
+      tab.name = user?.name || "my_account";
       tab.icon = undefined;
       tab.avatar = avatar?.avatar || WEBAPP_URL + "/" + session?.user?.username + "/avatar.png";
     }
