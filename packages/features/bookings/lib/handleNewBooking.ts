@@ -2170,28 +2170,7 @@ async function handler(
       eventTypeId,
       triggerEvent: eventTrigger,
     };
-
-    const subscriberOptionsMeetingEnded = {
-      userId: organizerUser.id,
-      eventTypeId,
-      triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-    };
-
-    try {
-      const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
-
-      subscribersMeetingEnded.forEach((subscriber) => {
-        if (rescheduleUid && originalRescheduledBooking) {
-          cancelScheduledJobs(originalRescheduledBooking, undefined, true);
-        }
-        if (booking && booking.status === BookingStatus.ACCEPTED) {
-          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
-        }
-      });
-    } catch (error) {
-      log.error("Error while running scheduledJobs for booking", error);
-    }
-
+    
     try {
       // Send BOOKING REQUESTED Webhook call
       const subscribers = await getWebhooks(subscriberOptions);
