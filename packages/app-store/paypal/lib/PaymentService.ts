@@ -3,9 +3,10 @@ import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
-import type { IAbstractPaymentService } from "@calcom/lib/PaymentService";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 export const paypalCredentialKeysSchema = z.object({
   client_id: z.string(),
@@ -53,13 +54,13 @@ export class PaymentService implements IAbstractPaymentService {
           },
           amount: payment.amount,
           currency: payment.currency,
-          externalId: "",
           data: {},
           fee: 0,
           refunded: false,
           success: false,
         },
       });
+      console.log({ paymentData });
       const paypalClient = new Paypal({
         clientId: this.credentials.client_id,
         secretKey: this.credentials.secret_key,
@@ -68,8 +69,9 @@ export class PaymentService implements IAbstractPaymentService {
         referenceId: paymentData.uid,
         amount: paymentData.amount,
         currency: paymentData.currency,
+        returnUrl: `${WEBAPP_URL}/booking/${booking.uid}`,
       });
-
+      console.log({ preference });
       await prisma?.payment.update({
         where: {
           id: paymentData.id,
@@ -126,9 +128,11 @@ export class PaymentService implements IAbstractPaymentService {
     },
     paymentData: Payment
   ): Promise<void> {
-    throw new Error("Method not implemented.");
+    console.log("afterPayment", event, booking, paymentData);
+    return Promise.resolve();
   }
   deletePayment(paymentId: number): Promise<boolean> {
-    throw new Error("Method not implemented.");
+    console.log("deletePayment", paymentId);
+    return Promise.resolve(false);
   }
 }

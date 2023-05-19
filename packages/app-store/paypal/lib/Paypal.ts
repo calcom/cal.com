@@ -2,10 +2,40 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 
 class Paypal {
   url: string;
-  bearerToken: string;
-  constructor({ clientId, secretKey }: { clientId?: string; secretKey: string }) {
+  clientId: string;
+  secretKey: string;
+  accessToken: string | null = null;
+
+  constructor({ clientId, secretKey }: { clientId: string; secretKey: string }) {
     this.url = IS_PRODUCTION ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
-    this.bearerToken = secretKey;
+    this.clientId = clientId;
+    this.secretKey = secretKey;
+  }
+
+  async getAccessToken(): Promise<void> {
+    const headers = {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${Buffer.from(`${this.clientId}:${this.secretKey}`).toString("base64")}`,
+    };
+
+    const body = new URLSearchParams();
+    body.append("grant_type", "client_credentials");
+
+    try {
+      const response = await fetch(`${this.url}/v1/oauth2/token`, {
+        method: "POST",
+        headers,
+        body,
+      });
+      if (response.ok) {
+        const { access_token } = await response.json();
+        this.accessToken = access_token;
+      } else {
+        console.error(`Request failed with status ${response.status}`);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   // Orders
@@ -13,14 +43,19 @@ class Paypal {
     referenceId,
     amount,
     currency,
+    returnUrl,
   }: {
     referenceId: string;
     amount: number;
     currency: string;
+    returnUrl: string;
   }): Promise<PaymentResponse> {
+    // Always get a new access token
+    await this.getAccessToken();
+
     const headers = {
       "Content-Type": "application/json",
-      Authorization: "Bearer ",
+      Authorization: `Bearer ${this.accessToken}`,
     };
 
     const paymentRequestBody: PaymentRequestBody = {
@@ -30,29 +65,18 @@ class Paypal {
           reference_id: referenceId,
           amount: {
             currency_code: currency,
-            value: amount.toString(),
+            value: (amount / 100).toString(),
           },
         },
       ],
-      payment_source: {
-        paypal: {
-          experience_context: {
-            payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
-            payment_method_selected: "PAYPAL",
-            brand_name: "EXAMPLE INC",
-            locale: "en-US",
-            landing_page: "LOGIN",
-            shipping_preference: "SET_PROVIDED_ADDRESS",
-            user_action: "PAY_NOW",
-            return_url: "https://example.com/returnUrl",
-            cancel_url: "https://example.com/cancelUrl",
-          },
-        },
+      application_context: {
+        user_action: "PAY_NOW",
+        return_url: returnUrl,
       },
     };
 
     try {
-      const response = await fetch(`${this.url}}/v2/checkout/orders`, {
+      const response = await fetch(`${this.url}/v2/checkout/orders`, {
         method: "POST",
         headers,
         body: JSON.stringify(paymentRequestBody),
@@ -118,6 +142,47 @@ class Paypal {
   async showRefundDetails(): Promise<any> {
     console.log("Paypal show refund details");
   }
+
+  async createWebhooks(): Promise<boolean> {
+    // Always get a new access token
+    await this.getAccessToken();
+
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${this.accessToken}`,
+    };
+
+    const body = {
+      url: `https://5bf4-200-76-22-226.ngrok.io/api/integrations//paypal/webhook`,
+      event_types: [
+        {
+          name: "PAYMENT.CAPTURE.COMPLETED",
+        },
+        {
+          name: "PAYMENT.CAPTURE.REFUNDED",
+        },
+        {
+          name: "PAYMENT.CAPTURE.REVERSED",
+        },
+      ],
+    };
+
+    try {
+      const response = await fetch(`${this.url}/v1/notifications/webhooks`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
+      });
+
+      if (response.ok) {
+        return true;
+      }
+    } catch (error) {
+      console.error(error);
+    }
+
+    return false;
+  }
 }
 
 export default Paypal;
@@ -151,7 +216,12 @@ interface PaymentSource {
 interface PaymentRequestBody {
   purchase_units: PurchaseUnit[];
   intent: string;
-  payment_source: PaymentSource;
+  // payment_source can be omitted for orders when you don't have paypal-request-id
+  payment_source?: PaymentSource;
+  application_context: {
+    user_action: string;
+    return_url: string;
+  };
 }
 
 interface Link {

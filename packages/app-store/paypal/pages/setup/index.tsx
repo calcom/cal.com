@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { Toaster } from "react-hot-toast";
 
+import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, TextField, showToast } from "@calcom/ui";
@@ -59,7 +60,7 @@ export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
   const saveKeysMutation = trpc.viewer.appsRouter.updateAppCredentials.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
-      router.push("/event-types");
+      // router.push("/event-types");
     },
     onError: (error) => {
       showToast(error.message, "error");
@@ -79,6 +80,13 @@ export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
       },
     });
 
+    // Create webhook for this installation
+    const paypalClient = new Paypal({ clientId: key.clientId, secretKey: key.secretKey });
+    const webhook = await paypalClient.createWebhooks();
+    if (!webhook) {
+      // @TODO: make a button that tries to create the webhook again
+      console.log("Failed to create webhook", webhook);
+    }
     return true;
   };
 

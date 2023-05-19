@@ -27,6 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         appId: "paypal",
       },
     });
+
     if (!installation) {
       throw new Error("Unable to create user credential for Paypal");
     }
