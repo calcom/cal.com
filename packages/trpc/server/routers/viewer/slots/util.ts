@@ -423,12 +423,14 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   if (input.rescheduleUid) {
     const rescheduleSlot = await prisma.booking.findUnique({
       where: {
-        uid: input.rescheduleUid
-      }
-    })
+        uid: input.rescheduleUid,
+      },
+    });
 
     if (rescheduleSlot) {
-      availableTimeSlots = availableTimeSlots.filter((slot) => !dayjs(slot.time).isSame(dayjs(rescheduleSlot.startTime)))
+      availableTimeSlots = availableTimeSlots.filter(
+        (slot) => !dayjs(slot.time).isSame(dayjs(rescheduleSlot.startTime))
+      );
     }
   }
 
