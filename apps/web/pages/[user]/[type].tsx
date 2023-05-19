@@ -70,7 +70,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
   const { type: slug, user: username } = paramsSchema.parse(context.params);
   const ssg = await ssgInit(context);
 
-  const user = await prisma.user.findUnique({
+  const user = await prisma.user.findFirst({
     where: {
       /** TODO: We should standarize this */
       username: username.toLowerCase().replace(/( |%20)/g, "+"),

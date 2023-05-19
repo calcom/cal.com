@@ -18,7 +18,7 @@ async function getIdentityData(req: NextApiRequest) {
   const { username, teamname } = querySchema.parse(req.query);
 
   if (username) {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findFirst({
       where: { username },
       select: { avatar: true, email: true },
     });

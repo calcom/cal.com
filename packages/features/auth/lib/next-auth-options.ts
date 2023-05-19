@@ -69,7 +69,7 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.InternalServerError);
       }
 
-      const user = await prisma.user.findUnique({
+      const user = await prisma.user.findFirst({
         where: {
           email: credentials.email.toLowerCase(),
         },
@@ -605,7 +605,12 @@ export const AUTH_OPTIONS: AuthOptions = {
             !existingUserWithEmail.username
           ) {
             await prisma.user.update({
-              where: { email: existingUserWithEmail.email },
+              where: {
+                email_username: {
+                  email: existingUserWithEmail.email,
+                  username: existingUserWithEmail.username!,
+                },
+              },
               data: {
                 // update the email to the IdP email
                 email: user.email,

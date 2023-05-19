@@ -18,7 +18,7 @@ export const getStaticProps: GetStaticProps<
   { user: string }
 > = async (context) => {
   const { user: username, month } = paramsSchema.parse(context.params);
-  const userWithCredentials = await prisma.user.findUnique({
+  const userWithCredentials = await prisma.user.findFirst({
     where: {
       username,
     },
