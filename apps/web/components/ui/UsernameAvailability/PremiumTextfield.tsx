@@ -1,4 +1,3 @@
-import { StarIcon as StarIconSolid } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { debounce, noop } from "lodash";
 import { useRouter } from "next/router";
@@ -15,6 +14,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Button, Dialog, DialogClose, DialogContent, Input, Label } from "@calcom/ui";
+import { Star as StarSolid } from "@calcom/ui/components/icon";
 import { Check, Edit2, ExternalLink } from "@calcom/ui/components/icon";
 
 export enum UsernameChangeStatusEnum {
@@ -231,11 +231,15 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             <span
               className={classNames(
                 "mx-2 py-2",
-                isInputUsernamePremium ? "text-orange-400" : "",
+                isInputUsernamePremium ? "text-transparent" : "",
                 usernameIsAvailable ? "" : ""
               )}>
-              {isInputUsernamePremium ? <StarIconSolid className="mt-[2px] h-4 w-4" /> : <></>}
-              {!isInputUsernamePremium && usernameIsAvailable ? <Check className="mt-2 h-4 w-4" /> : <></>}
+              {isInputUsernamePremium ? <StarSolid className="mt-[2px] h-4 w-4 fill-orange-400" /> : <></>}
+              {!isInputUsernamePremium && usernameIsAvailable ? (
+                <Check className="mt-[2px] h-4 w-4" />
+              ) : (
+                <></>
+              )}
             </span>
           </div>
         </div>
