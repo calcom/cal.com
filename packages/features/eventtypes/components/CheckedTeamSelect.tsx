@@ -36,7 +36,7 @@ export const CheckedTeamSelect = ({
         }}
         name={props.name}
         placeholder={props.placeholder || t("select")}
-        isSearchable={false}
+        isSearchable={true}
         options={options}
         value={value}
         isMulti
