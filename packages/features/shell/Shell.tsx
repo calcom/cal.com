@@ -299,19 +299,19 @@ function UserDropdown({ small }: { small?: boolean }) {
                 />
               }
               {!user.away && (
-                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-muted bg-green-500" />
+                <div className="border-muted absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 bg-green-500" />
               )}
               {user.away && (
-                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-muted bg-yellow-500" />
+                <div className="border-muted absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 bg-yellow-500" />
               )}
             </span>
             {!small && (
               <span className="flex flex-grow items-center truncate">
-                <span className="flex-grow truncate text-sm">
-                  <span className="text-emphasis mb-1 pb-1 block truncate font-medium leading-none">
+                <span className="flex-grow truncate text-sm leading-none">
+                  <span className="text-emphasis mb-1 block truncate font-medium leading-none">
                     {user.name || "Nameless User"}
                   </span>
-                  <span className="text-default pb-1 truncate font-normal leading-none">
+                  <span className="text-default truncate font-normal leading-none">
                     {user.username
                       ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
                         ? `cal.com/${user.username}`
@@ -664,7 +664,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "pwa:pb-2.5 bg-muted border-subtle fixed bottom-0 z-30 -mx-4 flex w-full border border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-2.5 bg-muted border-subtle fixed bottom-0 z-30 -mx-4 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
@@ -746,7 +746,7 @@ function SideBarContainer() {
 function SideBar() {
   return (
     <div className="relative">
-      <aside className="desktop-transparent bg-muted border-muted top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-4">
+      <aside className="desktop-transparent bg-muted border-muted top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-4">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-6 ">
           <header className="items-center justify-between md:hidden lg:flex">
             <Link href="/event-types" className="px-2">

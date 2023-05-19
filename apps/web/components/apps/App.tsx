@@ -36,6 +36,7 @@ const Component = ({
   tos,
   privacy,
   isProOnly,
+  teamsPlanRequired,
   descriptionItems,
   isTemplate,
   dependencies,
@@ -152,6 +153,7 @@ const Component = ({
                   type={type}
                   isProOnly={isProOnly}
                   disableInstall={disableInstall}
+                  teamsPlanRequired={teamsPlanRequired}
                   render={({ useDefaultComponent, ...props }) => {
                     if (useDefaultComponent) {
                       props = {
@@ -192,6 +194,7 @@ const Component = ({
               type={type}
               isProOnly={isProOnly}
               disableInstall={disableInstall}
+              teamsPlanRequired={teamsPlanRequired}
               render={({ useDefaultComponent, ...props }) => {
                 if (useDefaultComponent) {
                   props = {
@@ -241,7 +244,9 @@ const Component = ({
         </div>
         <h4 className="text-emphasis mt-8 font-semibold ">{t("pricing")}</h4>
         <span className="text-default">
-          {price === 0 ? (
+          {teamsPlanRequired ? (
+            t("teams_plan_required")
+          ) : price === 0 ? (
             t("free_to_use_apps")
           ) : (
             <>
@@ -358,6 +363,7 @@ export default function App(props: {
   privacy?: string;
   licenseRequired: AppType["licenseRequired"];
   isProOnly: AppType["isProOnly"];
+  teamsPlanRequired: AppType["teamsPlanRequired"];
   descriptionItems?: Array<string | { iframe: IframeHTMLAttributes<HTMLIFrameElement> }>;
   isTemplate?: boolean;
   disableInstall?: boolean;
