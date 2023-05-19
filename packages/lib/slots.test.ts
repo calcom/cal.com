@@ -8,6 +8,28 @@ import getSlots from "./slots";
 
 MockDate.set("2021-06-20T11:59:59Z");
 
+describe("Tests the date-range slot logic", () => {
+  it("can fit 24 hourly slots for an empty day", async () => {
+    const dateRanges = [
+      {
+        start: dayjs.utc().add(1, "day").startOf("day"),
+        end: dayjs.utc().add(1, "day").endOf("day"),
+      },
+    ];
+    expect(
+      getSlots({
+        inviteeDate: dayjs.utc().add(1, "day"),
+        frequency: 60,
+        minimumBookingNotice: 0,
+        workingHours: [],
+        eventLength: 60,
+        organizerTimeZone: "America/Toronto",
+        dateRanges: dateRanges,
+      })
+    ).toHaveLength(24);
+  });
+});
+
 describe("Tests the slot logic", () => {
   it("can fit 24 hourly slots for an empty day", async () => {
     // 24h in a day.
