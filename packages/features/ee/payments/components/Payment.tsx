@@ -30,6 +30,20 @@ type States =
   | { status: "error"; error: Error }
   | { status: "ok" };
 
+const getReturnUrl = (props: Props) => {
+  const returnUrl = new URL(props.eventType.successRedirectUrl || `${CAL_URL}/booking/${props.booking.uid}`);
+
+  const queryParams = getBookingRedirectExtraParams(props.booking);
+
+  Object.entries(queryParams).forEach(([key, value]) => {
+    if (value === null || value === undefined) {
+      return;
+    }
+    returnUrl.searchParams.append(key, String(value));
+  });
+  return returnUrl.toString();
+};
+
 const PaymentForm = (props: Props) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
@@ -55,18 +69,7 @@ const PaymentForm = (props: Props) => {
       email: router.query.email,
     };
 
-    const returnUrl = new URL(
-      props.eventType.successRedirectUrl || `${CAL_URL}/booking/${props.booking.uid}`
-    );
-
-    const queryParams = getBookingRedirectExtraParams(props.booking);
-
-    Object.entries(queryParams).forEach(([key, value]) => {
-      if (value === null || value === undefined) {
-        return;
-      }
-      returnUrl.searchParams.append(key, String(value));
-    });
+    const returnUrl = getReturnUrl(props);
 
     if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
       payload = await stripe.confirmSetup({
