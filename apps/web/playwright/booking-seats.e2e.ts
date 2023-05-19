@@ -71,10 +71,8 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
     // to change the test as little as possible.
     // eslint-disable-next-line playwright/no-conditional-in-test
     if (bookerVariant === "old-booker") {
-      await page.waitForNavigation({
-        url(url) {
-          return url.pathname.endsWith("/book");
-        },
+      await page.waitForURL((url) => {
+        return url.pathname.endsWith("/book");
       });
     }
 
@@ -192,7 +190,7 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
 
       await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-      await page.waitForNavigation({ url: /.*booking/ });
+      await page.waitForURL(/.*booking/);
 
       await page.goto(`/reschedule/${references[1].referenceUid}`);
 
@@ -200,6 +198,7 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
 
       await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
+      // Using waitForUrl here fails the assertion `expect(oldBooking?.status).toBe(BookingStatus.CANCELLED);` probably because waitForUrl is considered complete before waitForNavigation and till that time the booking is not cancelled
       await page.waitForNavigation({ url: /.*booking/ });
 
       // Should expect old booking to be cancelled

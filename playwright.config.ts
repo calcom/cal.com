@@ -12,7 +12,7 @@ const outputDir = path.join(__dirname, "test-results");
 
 // So, if not in CI, keep the timers high, if the test is stuck somewhere and there is unnecessary wait developer can see in browser that it's stuck
 const DEFAULT_NAVIGATION_TIMEOUT = process.env.CI ? 15000 : 50000;
-const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 10000 : 50000;
+const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 15000 : 50000;
 
 // Test Timeout can hit due to slow expect, slow navigation.
 // So, it should me much higher than sum of expect and navigation timeouts as there can be many async expects and navigations in a single test
@@ -53,7 +53,9 @@ if (IS_EMBED_REACT_TEST) {
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: os.cpus().length,
+  // While debugging it should be focussed mode
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
+  workers: process.env.PWDEBUG ? 1 : os.cpus().length,
   timeout: DEFAULT_TEST_TIMEOUT,
   maxFailures: headless ? 10 : undefined,
   fullyParallel: true,
@@ -102,11 +104,17 @@ const config: PlaywrightTestConfig = {
       name: "@calcom/embed-core",
       testDir: "./packages/embeds/embed-core/",
       testMatch: /.*\.(e2e|test)\.tsx?/,
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
       use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3100/" },
     },
     {
       name: "@calcom/embed-react",
       testDir: "./packages/embeds/embed-react/",
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
       testMatch: /.*\.(e2e|test)\.tsx?/,
       use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3101/" },
     },
@@ -114,12 +122,18 @@ const config: PlaywrightTestConfig = {
       name: "@calcom/embed-core--firefox",
       testDir: "./packages/embeds/",
       testMatch: /.*\.e2e\.tsx?/,
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
       use: { ...devices["Desktop Firefox"] },
     },
     {
       name: "@calcom/embed-core--webkit",
       testDir: "./packages/embeds/",
       testMatch: /.*\.e2e\.tsx?/,
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
       use: { ...devices["Desktop Safari"] },
     },
   ],

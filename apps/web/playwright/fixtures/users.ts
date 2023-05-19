@@ -346,12 +346,12 @@ export async function getPaymentCredential(page: Page) {
 
   /** We start the Stripe flow */
   await Promise.all([
-    page.waitForNavigation({ url: "https://connect.stripe.com/oauth/v2/authorize?*" }),
+    page.waitForURL("https://connect.stripe.com/oauth/v2/authorize?*"),
     page.click('[data-testid="install-app-button"]'),
   ]);
 
   await Promise.all([
-    page.waitForNavigation({ url: "/apps/installed/payment?hl=stripe" }),
+    page.waitForURL("/apps/installed/payment?hl=stripe"),
     /** We skip filling Stripe forms (testing mode only) */
     page.click('[id="skip-account-app"]'),
   ]);

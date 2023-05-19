@@ -1,5 +1,3 @@
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
-
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
@@ -8,6 +6,7 @@ import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { Button, SkeletonText } from "@calcom/ui";
+import { ChevronLeft, ChevronRight } from "@calcom/ui/components/icon";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 export type DatePickerProps = {
@@ -44,6 +43,7 @@ export const Day = ({
   active: boolean;
   date: Dayjs;
 }) => {
+  const { t } = useLocale();
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
   const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
   return (
@@ -64,7 +64,9 @@ export const Day = ({
       {...props}>
       {date.date()}
       {date.isToday() && (
-        <span className="absolute left-0 right-0 bottom-0 h-2/5 align-middle text-4xl leading-[0rem]">.</span>
+        <span className="absolute left-1/2 top-1/2 flex h-[5px] w-[5px] translate-y-[8px] -translate-x-1/2 items-center justify-center rounded-full bg-white align-middle sm:translate-y-[12px]">
+          <span className="sr-only">{t("today")}</span>
+        </span>
       )}
     </button>
   );
@@ -220,7 +222,7 @@ const DatePicker = ({
               data-testid="decrementMonth"
               color="minimal"
               variant="icon"
-              StartIcon={ChevronLeftIcon}
+              StartIcon={ChevronLeft}
             />
             <Button
               className="group p-1 opacity-70 hover:opacity-100"
@@ -228,7 +230,7 @@ const DatePicker = ({
               data-testid="incrementMonth"
               color="minimal"
               variant="icon"
-              StartIcon={ChevronRightIcon}
+              StartIcon={ChevronRight}
             />
           </div>
         </div>
