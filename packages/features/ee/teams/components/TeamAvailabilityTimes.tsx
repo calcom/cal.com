@@ -41,6 +41,7 @@ export default function TeamAvailabilityTimes(props: Props) {
         inviteeDate: props.selectedDate,
         workingHours: data?.workingHours || [],
         minimumBookingNotice: 0,
+        offsetStart: 0,
         eventLength: props.frequency,
         organizerTimeZone: `${data?.timeZone}`,
       })

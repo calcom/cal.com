@@ -1,9 +1,8 @@
-import { ArrowRightIcon } from "@heroicons/react/solid";
-
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { List } from "@calcom/ui";
+import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { AppConnectionItem } from "../components/AppConnectionItem";
 import { ConnectedCalendarItem } from "../components/ConnectedCalendarItem";
@@ -85,7 +84,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
         onClick={() => nextStep()}
         disabled={disabledNextButton}>
         {firstCalendar ? `${t("continue")}` : `${t("next_step_text")}`}
-        <ArrowRightIcon className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
+        <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </button>
     </>
   );

@@ -251,7 +251,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
 
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {
-      showToast("Form updated successfully.", "success");
+      showToast(t("form_updated_successfully"), "success");
     },
     onError(e) {
       if (e.message) {
