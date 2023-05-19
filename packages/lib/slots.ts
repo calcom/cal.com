@@ -14,7 +14,7 @@ export type GetSlots = {
   dateRanges?: DateRange[];
   minimumBookingNotice: number;
   eventLength: number;
-  offsetStart: number;
+  offsetStart?: number;
   organizerTimeZone: string;
 };
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
@@ -27,7 +27,7 @@ function buildSlots({
   computedLocalAvailability,
   frequency,
   eventLength,
-  offsetStart,
+  offsetStart = 0,
   startDate,
   organizerTimeZone,
   inviteeTimeZone,
