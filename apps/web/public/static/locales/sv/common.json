@@ -1724,7 +1724,6 @@
   "locked_apps_description": "Medlemmarna kommer att kunna se de aktiva apparna, men de kommer inte att kunna ändra appinställningarna",
   "locked_webhooks_description": "Medlemmarna kommer att kunna se aktiva webhooks men inte kunna redigera inställningar för webhooks",
   "locked_workflows_description": "Medlemmarna kommer att kunna se de aktiva arbetsflödena, men de kommer inte att kunna ändra några arbetsflödesinställningar",
-  "locked_by_admin": "Låst av administratör",
   "app_not_connected": "Du har inte anslutit ett {{appName}}-konto.",
   "connect_now": "Anslut nu",
   "managed_event_dialog_confirm_button_one": "Ersätt och meddela {{count}} medlem",

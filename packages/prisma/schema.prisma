@@ -57,6 +57,7 @@ model EventType {
   /// @zod.custom(imports.eventTypeLocations)
   locations               Json?
   length                  Int
+  offsetStart             Int                     @default(0)
   hidden                  Boolean                 @default(false)
   hosts                   Host[]
   users                   User[]                  @relation("user_eventtype")
@@ -713,6 +714,7 @@ model WorkflowsOnEventTypes {
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId Int
 
+  @@unique([workflowId, eventTypeId])
   @@index([workflowId])
   @@index([eventTypeId])
 }

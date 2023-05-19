@@ -86,5 +86,19 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
     }
   }
 
-  return { data: parsedQuery, setQuery, removeByKey, pushItemToKey, removeItemByKeyAndValue };
+  // Remove all query params from the URL
+  function removeAllQueryParams() {
+    const { asPath } = router;
+    const newPath = asPath.split("?")[0];
+    router.replace(newPath, undefined, { shallow: true });
+  }
+
+  return {
+    data: parsedQuery,
+    setQuery,
+    removeByKey,
+    pushItemToKey,
+    removeItemByKeyAndValue,
+    removeAllQueryParams,
+  };
 }
