@@ -419,6 +419,19 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
 
   availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
 
+  // Remove the current reschedule time slot from the list
+  if (input.rescheduleUid) {
+    const rescheduleSlot = await prisma.booking.findUnique({
+      where: {
+        uid: input.rescheduleUid
+      }
+    })
+
+    if (rescheduleSlot) {
+      availableTimeSlots = availableTimeSlots.filter((slot) => !dayjs(slot.time).isSame(dayjs(rescheduleSlot.startTime)))
+    }
+  }
+
   const computedAvailableSlots = availableTimeSlots.reduce(
     (
       r: Record<string, { time: string; users: string[]; attendees?: number; bookingUid?: string }[]>,

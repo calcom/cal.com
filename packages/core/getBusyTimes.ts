@@ -66,26 +66,22 @@ export async function getBusyTimes(params: {
    */
   performance.mark("prismaBookingGetStart");
 
-  let sharedQuery = {
+  const sharedQuery = {
     startTime: { gte: new Date(startTime) },
     endTime: { lte: new Date(endTime) },
     status: {
       in: [BookingStatus.ACCEPTED],
-    }
-  };
-
-  // If the user is re-scheduling the meeting, then we need to make its nearest slots available.
-  // For eg: If the user has previosly selected 11:00 AM slot and now he wants to move to either 15 or 30 minutes earlier or later,
-  // with the current implementation, those slots will not be shown because its overlapping with the already booked one,
-  // so we need to ignore the current re-scheduling meetings slots and make the slots available accordingly
-  if (rescheduleUid) {
-    sharedQuery = {
-      ...sharedQuery,
+    },
+    // If the user is re-scheduling the meeting, then we need to make its nearest slots available.
+    // For eg: If the user has previously selected 11:00 AM slot and now he wants to move it by 15 or 30 minutes earlier or later,
+    // with the current implementation, those slots will not be shown because its overlapping with the already booked one,
+    // so we need to ignore the current re-scheduling meetings slots and make the slots available accordingly
+    ...(rescheduleUid ? {
       uid: {
         not: rescheduleUid
       }
-    }
-  }
+    } : {})
+  };
 
   // Find bookings that block this user from hosting further bookings.
   const busyTimes: EventBusyDetails[] = await prisma.booking
