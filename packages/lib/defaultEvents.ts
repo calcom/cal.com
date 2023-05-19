@@ -63,6 +63,7 @@ const commons = {
   periodType: PeriodType.UNLIMITED,
   periodDays: null,
   slotInterval: null,
+  offsetStart: 0,
   locations: [{ type: DailyLocationType }],
   customInputs,
   disableGuests: true,
