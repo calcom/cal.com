@@ -389,7 +389,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
       });
       currentSeats = availabilityCheckProps.currentSeats;
     }
-
+    // this always return in empty availableTimeSlots (do we want to do that here or do we want to include that in date ranges already)
     availableTimeSlots = availableTimeSlots
       .map((slot) => {
         slot.userIds = slot.userIds?.filter((slotUserId) => {

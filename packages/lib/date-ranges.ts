@@ -155,7 +155,6 @@ function getIntersection(range1: DateRange, range2: DateRange) {
   return null;
 }
 
-// first version
 export function subtract(sourceRanges: DateRange[], excludedRanges: DateRange[]) {
   const result: DateRange[] = [];
 
