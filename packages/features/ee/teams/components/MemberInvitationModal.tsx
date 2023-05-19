@@ -50,6 +50,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     return [
       { value: MembershipRole.MEMBER, label: t("member") },
       { value: MembershipRole.ADMIN, label: t("admin") },
+      { value: MembershipRole.OWNER, label: t("owner") },
     ];
   }, [t]);
 
@@ -164,11 +165,6 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   )}
                 />
 
-                <div className="mt-1 mb-3 flex w-full items-center justify-center">
-                  <hr className="border-subtle border-1 h-px w-full" />
-                  <span className="bg-muted text-subtle px-2 py-1 leading-none">Or</span>
-                  <hr className="border-subtle border-1 h-px w-full" />
-                </div>
                 <GoogleWorkspaceInviteButton
                   onSuccess={(data) => {
                     newMemberFormMethods.setValue("emailOrUsername", data);

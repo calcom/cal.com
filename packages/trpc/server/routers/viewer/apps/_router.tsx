@@ -12,9 +12,6 @@ type AppsRouterHandlerCache = {
   toggle?: typeof import("./toggle.handler").toggleHandler;
   saveKeys?: typeof import("./saveKeys.handler").saveKeysHandler;
   checkForGCal?: typeof import("./checkForGCal.handler").checkForGCalHandler;
-  checkForGWorkspace?: typeof import("./googleWorkspaceHandler.handler").checkForGWorkspace;
-  getUsersFromGWorkspace?: typeof import("./googleWorkspaceHandler.handler").getUsersFromGWorkspace;
-  removeCurrentGoogleWorkspaceConnection?: typeof import("./googleWorkspaceHandler.handler").removeCurrentGoogleWorkspaceConnection;
   updateAppCredentials?: typeof import("./updateAppCredentials.handler").updateAppCredentialsHandler;
   queryForDependencies?: typeof import("./queryForDependencies.handler").queryForDependenciesHandler;
   checkGlobalKeys?: typeof import("./checkGlobalKeys.handler").checkForGlobalKeysHandler;
@@ -144,55 +141,6 @@ export const appsRouter = router({
     return UNSTABLE_HANDLER_CACHE.checkGlobalKeys({
       ctx,
       input,
-    });
-  }),
-  // TODO: @Hariom should we move these elsewhere?
-  checkForGWorkspace: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.checkForGWorkspace) {
-      UNSTABLE_HANDLER_CACHE.checkForGWorkspace = await import("./googleWorkspaceHandler.handler").then(
-        (mod) => mod.checkForGWorkspace
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.checkForGWorkspace) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.checkForGWorkspace({
-      ctx,
-    });
-  }),
-  getUsersFromGorkspace: authedProcedure.mutation(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getUsersFromGWorkspace) {
-      UNSTABLE_HANDLER_CACHE.getUsersFromGWorkspace = await import("./googleWorkspaceHandler.handler").then(
-        (mod) => mod.getUsersFromGWorkspace
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getUsersFromGWorkspace) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.getUsersFromGWorkspace({
-      ctx,
-    });
-  }),
-  removeCurrentGoogleWorkspaceConnection: authedProcedure.mutation(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.removeCurrentGoogleWorkspaceConnection) {
-      UNSTABLE_HANDLER_CACHE.removeCurrentGoogleWorkspaceConnection = await import(
-        "./googleWorkspaceHandler.handler"
-      ).then((mod) => mod.removeCurrentGoogleWorkspaceConnection);
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.removeCurrentGoogleWorkspaceConnection) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.removeCurrentGoogleWorkspaceConnection({
-      ctx,
     });
   }),
 });

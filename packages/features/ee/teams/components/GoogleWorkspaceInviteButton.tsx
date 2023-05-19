@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import type { PropsWithChildren } from "react";
 
-import { useFlags } from "@calcom/features/flags/hooks";
+import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, Tooltip, showToast } from "@calcom/ui";
@@ -36,16 +36,16 @@ export function GoogleWorkspaceInviteButton(
   props: PropsWithChildren<{ onSuccess: (data: string[]) => void }>
 ) {
   const router = useRouter();
-  const featureFlags = useFlags();
+  const featureFlags = useFlagMap();
   const utils = trpc.useContext();
   const { t } = useLocale();
   const teamId = Number(router.query.id);
   const [googleWorkspaceLoading, setGoogleWorkspaceLoading] = useState(false);
-  const { data: credential } = trpc.viewer.appsRouter.checkForGWorkspace.useQuery();
+  const { data: credential } = trpc.viewer.googleWorkspace.checkForGWorkspace.useQuery();
   const { data: hasGcalInstalled } = trpc.viewer.appsRouter.checkGlobalKeys.useQuery({
     slug: "google-calendar",
   });
-  const mutation = trpc.viewer.appsRouter.getUsersFromGorkspace.useMutation({
+  const mutation = trpc.viewer.googleWorkspace.getUsersFromGWorkspace.useMutation({
     onSuccess: (data) => {
       if (Array.isArray(data) && data.length !== 0) {
         props.onSuccess(data);
@@ -53,11 +53,12 @@ export function GoogleWorkspaceInviteButton(
     },
   });
 
-  const removeConnectionMutation = trpc.viewer.appsRouter.removeCurrentGoogleWorkspaceConnection.useMutation({
-    onSuccess: () => {
-      showToast(t("app_removed_successfully"), "success");
-    },
-  });
+  const removeConnectionMutation =
+    trpc.viewer.googleWorkspace.removeCurrentGoogleWorkspaceConnection.useMutation({
+      onSuccess: () => {
+        showToast(t("app_removed_successfully"), "success");
+      },
+    });
 
   if (featureFlags["google-workspace-directory"] == false || !hasGcalInstalled) {
     return null;
@@ -86,7 +87,7 @@ export function GoogleWorkspaceInviteButton(
             StartIcon={XIcon}
             onClick={() => {
               removeConnectionMutation.mutate();
-              utils.viewer.appsRouter.checkForGWorkspace.invalidate();
+              utils.viewer.googleWorkspace.checkForGWorkspace.invalidate();
             }}
             variant="icon"
           />

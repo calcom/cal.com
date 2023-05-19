@@ -4,7 +4,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-const scopes = ["https://www.googleapis.com/auth/admin.directory.user.readonly"];
+const scopes = [
+  "https://www.googleapis.com/auth/admin.directory.user.readonly",
+  "https://www.googleapis.com/auth/admin.directory.customer.readonly",
+];
 
 let client_id = "";
 let client_secret = "";
