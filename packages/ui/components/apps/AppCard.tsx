@@ -97,6 +97,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
               <InstallAppButton
                 type={app.type}
                 isProOnly={app.isProOnly}
+                teamsPlanRequired={app.teamsPlanRequired}
                 disableInstall={!!app.dependencies && !app.dependencyData?.some((data) => !data.installed)}
                 wrapperClassName="[@media(max-width:260px)]:w-full"
                 render={({ useDefaultComponent, ...props }) => {
@@ -127,6 +128,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
                 isProOnly={app.isProOnly}
                 wrapperClassName="[@media(max-width:260px)]:w-full"
                 disableInstall={!!app.dependencies && app.dependencyData?.some((data) => !data.installed)}
+                teamsPlanRequired={app.teamsPlanRequired}
                 render={({ useDefaultComponent, ...props }) => {
                   if (useDefaultComponent) {
                     props = {
