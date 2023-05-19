@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { detectContentType, optimizeImage } from "next/dist/server/image-optimizer";
 import { z } from "zod";
 
 import {
@@ -160,6 +159,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // If we need to resize the team logos (via Next.js' built-in image processing)
   if (teamLogos[logoDefinition.source] && logoDefinition.w) {
+    const { detectContentType, optimizeImage } = await import("next/dist/server/image-optimizer");
     buffer = await optimizeImage({
       buffer,
       contentType: detectContentType(buffer) ?? "image/jpeg",
