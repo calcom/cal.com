@@ -17,6 +17,9 @@ if [ "$GITHUB_ACCESS_TOKEN" == "" ]; then
 fi
 
 # We add an exception to test on staging
+if [ "$VERCEL_GIT_COMMIT_REF" == "production" ]; then
+  BRANCH_TO_CLONE="-b $VERCEL_GIT_COMMIT_REF"
+fi
 if [ "$VERCEL_GIT_COMMIT_REF" == "staging" ]; then
   BRANCH_TO_CLONE="-b $VERCEL_GIT_COMMIT_REF"
 fi
