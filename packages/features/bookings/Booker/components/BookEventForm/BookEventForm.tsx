@@ -70,11 +70,15 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
   const username = useBookerStore((state) => state.username);
+  const formValues = useBookerStore((state) => state.formValues);
+  const setFormValues = useBookerStore((state) => state.setFormValues);
   const isRescheduling = !!rescheduleUid && !!rescheduleBooking;
   const event = useEvent();
   const eventType = event.data;
 
   const defaultValues = useMemo(() => {
+    if (Object.keys(formValues).length) return formValues;
+
     if (!eventType?.bookingFields) {
       return {};
     }
@@ -128,7 +132,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       email: defaultUserValues.email,
     };
     return defaults;
-  }, [eventType?.bookingFields, isRescheduling, rescheduleBooking, rescheduleUid]);
+  }, [eventType?.bookingFields, formValues, isRescheduling, rescheduleBooking, rescheduleUid]);
 
   const bookingFormSchema = z
     .object({
@@ -226,6 +230,8 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     );
 
   const bookEvent = (values: BookingFormValues) => {
+    // Clears form values stored in store, so old values won't stick around.
+    setFormValues({});
     bookingForm.clearErrors();
 
     // It shouldn't be possible that this method is fired without having event data,
@@ -280,7 +286,18 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
 
   return (
     <div className="flex h-full flex-col">
-      <Form className="flex h-full flex-col" form={bookingForm} handleSubmit={bookEvent} noValidate>
+      <Form
+        className="flex h-full flex-col"
+        onChange={() => {
+          // Form data is saved in store. This way when user navigates back to
+          // still change the timeslot, and comes back to the form, all their values
+          // still exist. This gets cleared when the form is submitted.
+          const values = bookingForm.getValues();
+          setFormValues(values);
+        }}
+        form={bookingForm}
+        handleSubmit={bookEvent}
+        noValidate>
         <BookingFields
           isDynamicGroupBooking={!!(username && username.indexOf("+") > -1)}
           fields={eventType.bookingFields}
