@@ -135,12 +135,14 @@ function buildSlotsWithDateRanges({
   eventLength,
   timeZone,
   minimumBookingNotice,
+  organizerTimeZone,
 }: {
   dateRanges: DateRange[];
   frequency: number;
   eventLength: number;
   timeZone: string;
   minimumBookingNotice: number;
+  organizerTimeZone: string;
 }) {
   // keep the old safeguards in; may be needed.
   frequency = minimumOfOne(frequency);
@@ -154,9 +156,24 @@ function buildSlotsWithDateRanges({
       const dayStart = Math.ceil((startDate.hour() * 60 + startDate.minute()) / frequency) * frequency;
       slotStartTime = dayjs().utc().startOf("day").add(dayStart, "minutes");
     }
+
+    // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
+    // This surely can be handled shorter than that
+    const rangeEnd = range.end
+      .add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes")
+      .isSame(
+        range.end
+          .add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes")
+          .endOf("day")
+          .add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes"),
+        "minute"
+      )
+      ? range.end.add(1, "minute")
+      : range.end;
+
     while (
-      slotStartTime.add(eventLength, "minutes").isBefore(range.end) ||
-      slotStartTime.add(eventLength, "minutes").isSame(range.end)
+      slotStartTime.add(eventLength, "minutes").isBefore(rangeEnd) ||
+      slotStartTime.add(eventLength, "minutes").isSame(rangeEnd)
     ) {
       slots.push({
         time: slotStartTime.tz(timeZone),
@@ -191,6 +208,7 @@ const getSlots = ({
       eventLength,
       timeZone: getTimeZone(inviteeDate),
       minimumBookingNotice,
+      organizerTimeZone,
     });
   }
 

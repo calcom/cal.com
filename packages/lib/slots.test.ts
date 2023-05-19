@@ -18,7 +18,19 @@ describe("Tests the date-range slot logic", () => {
     ];
     expect(
       getSlots({
-        inviteeDate: dayjs.utc().add(1, "day"),
+        inviteeDate: dayjs.utc().add(1, "day").tz(),
+        frequency: 60,
+        minimumBookingNotice: 0,
+        workingHours: [],
+        eventLength: 60,
+        organizerTimeZone: "Etc/GMT",
+        dateRanges: dateRanges,
+      })
+    ).toHaveLength(24);
+
+    expect(
+      getSlots({
+        inviteeDate: dayjs.utc().add(1, "day").tz(),
         frequency: 60,
         minimumBookingNotice: 0,
         workingHours: [],
