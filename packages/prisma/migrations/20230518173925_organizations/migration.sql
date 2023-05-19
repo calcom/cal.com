@@ -28,3 +28,13 @@ ALTER TABLE "users" ADD CONSTRAINT "users_organizationId_fkey" FOREIGN KEY ("org
 
 -- AddForeignKey
 ALTER TABLE "Team" ADD CONSTRAINT "Team_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+INSERT INTO
+  "Feature" (slug, enabled, description, "type")
+VALUES
+  (
+    'organizations',
+    true,
+    'Manage organizations with multiple teams',
+    'OPERATIONAL'
+  ) ON CONFLICT (slug) DO NOTHING;

@@ -10,4 +10,5 @@ export type AppFlags = {
   workflows: boolean;
   "v2-booking-page": boolean;
   "managed-event-types": boolean;
+  organizations: boolean;
 };
