@@ -322,7 +322,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                       disabled={seatsLocked.disabled}
                       defaultValue={value || 2}
                       min={1}
-                      className="w-24"
                       addOnSuffix={<>{t("seats")}</>}
                       onChange={(e) => {
                         onChange(Math.abs(Number(e.target.value)));
