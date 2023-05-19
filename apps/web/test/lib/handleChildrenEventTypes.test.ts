@@ -138,7 +138,6 @@ describe("handleChildrenEventTypes", () => {
         parentId,
         userId,
         scheduleId,
-        // @ts-expect-error offsetStart is not in the EventType type
         offsetStart,
         ...evType
       } = mockFindFirstEventType({
@@ -272,7 +271,6 @@ describe("handleChildrenEventTypes", () => {
         parentId,
         userId,
         scheduleId,
-        // @ts-expect-error offsetStart is not in the EventType type
         offsetStart,
         ...evType
       } = mockFindFirstEventType({
@@ -324,7 +322,6 @@ describe("handleChildrenEventTypes", () => {
         parentId,
         userId,
         scheduleId,
-        // @ts-expect-error offsetStart is not in the EventType type
         offsetStart,
         ...evType
       } = mockFindFirstEventType({
