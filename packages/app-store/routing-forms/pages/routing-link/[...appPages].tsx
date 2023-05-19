@@ -16,10 +16,12 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, showToast, useCalcomTheme } from "@calcom/ui";
 
 import FormInputFields from "../../components/FormInputFields";
+import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 import { processRoute } from "../../lib/processRoute";
 import type { Response, Route } from "../../types/types";
 
+type Props = inferSSRProps<typeof getServerSideProps>;
 const useBrandColors = ({
   brandColor,
   darkBrandColor,
@@ -34,7 +36,7 @@ const useBrandColors = ({
   useCalcomTheme(brandTheme);
 };
 
-function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getServerSideProps>) {
+function RoutingForm({ form, profile, ...restProps }: Props) {
   const [customPageMessage, setCustomPageMessage] = useState<Route["action"]["value"]>("");
   const formFillerIdRef = useRef(uuidv4());
   const isEmbed = useIsEmbed(restProps.isEmbed);
@@ -43,12 +45,15 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
   });
+
+  const [response, setResponse] = usePrefilledResponse(form);
+
   // TODO: We might want to prevent spam from a single user by having same formFillerId across pageviews
   // But technically, a user can fill form multiple times due to any number of reasons and we currently can't differentiate b/w that.
   // - like a network error
   // - or he abandoned booking flow in between
   const formFillerId = formFillerIdRef.current;
-  const decidedActionRef = useRef<Route["action"]>();
+  const decidedActionWithFormResponseRef = useRef<{ action: Route["action"]; response: Response }>();
   const router = useRouter();
 
   const onSubmit = (response: Response) => {
@@ -65,7 +70,10 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
       formFillerId,
       response: response,
     });
-    decidedActionRef.current = decidedAction;
+    decidedActionWithFormResponseRef.current = {
+      action: decidedAction,
+      response,
+    };
   };
 
   useEffect(() => {
@@ -75,19 +83,26 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
 
   const responseMutation = trpc.viewer.appRoutingForms.public.response.useMutation({
     onSuccess: () => {
-      const decidedAction = decidedActionRef.current;
-      if (!decidedAction) {
+      const decidedActionWithFormResponse = decidedActionWithFormResponseRef.current;
+      if (!decidedActionWithFormResponse) {
         return;
       }
+      const fields = form.fields;
+      if (!fields) {
+        throw new Error("Routing Form fields must exist here");
+      }
+      const allURLSearchParams = getUrlSearchParamsToForward(decidedActionWithFormResponse.response, fields);
+      const decidedAction = decidedActionWithFormResponse.action;
 
       //TODO: Maybe take action after successful mutation
       if (decidedAction.type === "customPageMessage") {
         setCustomPageMessage(decidedAction.value);
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
-        router.push(`/${decidedAction.value}`);
+        router.push(`/${decidedAction.value}?${allURLSearchParams}`);
       } else if (decidedAction.type === "externalRedirectUrl") {
-        window.parent.location.href = decidedAction.value;
+        window.parent.location.href = `${decidedAction.value}?${allURLSearchParams}`;
       }
+      // We don't want to show this message as it doesn't look good in Embed.
       // showToast("Form submitted successfully! Redirecting now ...", "success");
     },
     onError: (e) => {
@@ -97,11 +112,10 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
       if (e?.data?.code === "CONFLICT") {
         return void showToast("Form already submitted", "error");
       }
+      // We don't want to show this error as it doesn't look good in Embed.
       // showToast("Something went wrong", "error");
     },
   });
-
-  const [response, setResponse] = useState<Response>({});
 
   const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -161,6 +175,53 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
   );
 }
 
+function getUrlSearchParamsToForward(response: Response, fields: NonNullable<Props["form"]["fields"]>) {
+  type Params = Record<string, string | string[]>;
+  const paramsFromResponse: Params = {};
+  const paramsFromCurrentUrl: Params = {};
+
+  // Build query params from response
+  Object.entries(response).forEach(([key, fieldResponse]) => {
+    const foundField = fields.find((f) => f.id === key);
+    if (!foundField) {
+      // If for some reason, the field isn't there, let's just
+      return;
+    }
+    paramsFromResponse[getFieldIdentifier(foundField) as keyof typeof paramsFromResponse] =
+      fieldResponse.value;
+  });
+
+  // Build query params from current URL. It excludes route params
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  for (const [name, value] of new URLSearchParams(window.location.search).entries()) {
+    const target = paramsFromCurrentUrl[name];
+    if (target instanceof Array) {
+      target.push(value);
+    } else {
+      paramsFromCurrentUrl[name] = [value];
+    }
+  }
+
+  const allQueryParams: Params = {
+    ...paramsFromCurrentUrl,
+    // In case of conflict b/w paramsFromResponse and paramsFromCurrentUrl, paramsFromResponse should win as the booker probably improved upon the prefilled value.
+    ...paramsFromResponse,
+  };
+
+  const allQueryURLSearchParams = new URLSearchParams();
+
+  // Make serializable URLSearchParams instance
+  Object.entries(allQueryParams).forEach(([param, value]) => {
+    const valueArray = value instanceof Array ? value : [value];
+    valueArray.forEach((v) => {
+      allQueryURLSearchParams.append(param, v);
+    });
+  });
+
+  return allQueryURLSearchParams;
+}
+
 export default function RoutingLink(props: inferSSRProps<typeof getServerSideProps>) {
   return <RoutingForm {...props} />;
 }
@@ -192,6 +253,7 @@ export const getServerSideProps = async function getServerSideProps(
     include: {
       user: {
         select: {
+          username: true,
           theme: true,
           brandColor: true,
           darkBrandColor: true,
@@ -209,6 +271,7 @@ export const getServerSideProps = async function getServerSideProps(
   return {
     props: {
       isEmbed,
+      themeBasis: form.user.username,
       profile: {
         theme: form.user.theme,
         brandColor: form.user.brandColor,
@@ -217,4 +280,20 @@ export const getServerSideProps = async function getServerSideProps(
       form: await getSerializableForm(form),
     },
   };
+};
+
+const usePrefilledResponse = (form: Props["form"]) => {
+  const router = useRouter();
+
+  const prefillResponse: Response = {};
+
+  // Prefill the form from query params
+  form.fields?.forEach((field) => {
+    prefillResponse[field.id] = {
+      value: router.query[getFieldIdentifier(field)] || "",
+      label: field.label,
+    };
+  });
+  const [response, setResponse] = useState<Response>(prefillResponse);
+  return [response, setResponse] as const;
 };

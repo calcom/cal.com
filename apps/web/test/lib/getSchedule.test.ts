@@ -151,10 +151,6 @@ const TestData = {
   },
 };
 
-const ctx = {
-  prisma: prismaMock,
-};
-
 type App = {
   slug: string;
   dirName: string;
@@ -186,6 +182,7 @@ type InputEventType = {
   id: number;
   title?: string;
   length?: number;
+  offsetStart?: number;
   slotInterval?: number;
   minimumBookingNotice?: number;
   users?: { id: number }[];
@@ -711,6 +708,72 @@ describe("getSchedule", () => {
       );
     });
 
+    test("Start times are offset (offsetStart)", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+
+      const scenarioData = {
+        eventTypes: [
+          {
+            id: 1,
+            length: 25,
+            offsetStart: 5,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          },
+        ],
+        hosts: [],
+        apps: [TestData.apps.googleCalendar],
+      };
+
+      createBookingScenario(scenarioData);
+
+      const schedule = await getSchedule({
+        eventTypeId: 1,
+        eventTypeSlug: "",
+        startTime: `${plus1DateString}T18:30:00.000Z`,
+        endTime: `${plus2DateString}T18:29:59.999Z`,
+        timeZone: Timezones["+5:30"],
+      });
+
+      expect(schedule).toHaveTimeSlots(
+        [
+          `04:05:00.000Z`,
+          `04:35:00.000Z`,
+          `05:05:00.000Z`,
+          `05:35:00.000Z`,
+          `06:05:00.000Z`,
+          `06:35:00.000Z`,
+          `07:05:00.000Z`,
+          `07:35:00.000Z`,
+          `08:05:00.000Z`,
+          `08:35:00.000Z`,
+          `09:05:00.000Z`,
+          `09:35:00.000Z`,
+          `10:05:00.000Z`,
+          `10:35:00.000Z`,
+          `11:05:00.000Z`,
+          `11:35:00.000Z`,
+          `12:05:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
+
     test("Check for Date overrides", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
@@ -1132,6 +1195,7 @@ function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
     seatsPerTimeSlot: null,
     metadata: {},
     minimumBookingNotice: 0,
+    offsetStart: 0,
   };
   const foundEvents: Record<number, boolean> = {};
   const eventTypesWithUsers = eventTypes.map((eventType) => {
