@@ -4,6 +4,8 @@ import appStore from "@calcom/app-store";
 import { sendDeclinedEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
+import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
+import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
@@ -16,9 +18,6 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TConfirmInputSchema } from "./confirm.schema";
 import type { BookingsProcedureContext } from "./util";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 
 type ConfirmOptions = {
   ctx: {
@@ -308,42 +307,29 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
 
     await sendDeclinedEmails(evt);
     // send BOOKING_REJECTED webhooks
-    try {
-      const subscribersBookingRejected = await getWebhooks({
-        userId: booking.userId || 0,
-        eventTypeId: booking.eventTypeId || 0,
-        triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
-      });
-  
-      const eventTypeInfo: EventTypeInfo = {
-        eventTitle: booking.eventType?.title,
-        eventDescription: booking.eventType?.description,
-        requiresConfirmation: booking.eventType?.requiresConfirmation || null,
-        price: booking.eventType?.price,
-        currency: booking.eventType?.currency,
-        length: booking.eventType?.length,
-      };
-  
-      const promises = subscribersBookingRejected.map((sub) =>
-        sendPayload(sub.secret, WebhookTriggerEvents.BOOKING_REJECTED, new Date().toISOString(), sub, {
-          ...evt,
-          ...eventTypeInfo,
-          bookingId,
-          eventTypeId: booking.eventType?.id,
-          status: BookingStatus.REJECTED,
-          smsReminderNumber: booking.smsReminderNumber || undefined,
-        }).catch((e) => {
-          console.error(
-            `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_REJECTED}, URL: ${sub.subscriberUrl}`,
-            e
-          );
-        })
-      );
-      await Promise.all(promises);
-    } catch (error) {
-      // Silently fail
-      console.error(error);
-    }
+    const subscriberOptions = {
+      userId: booking.userId || 0,
+      eventTypeId: booking.eventTypeId || 0,
+      triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
+    };
+    const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REJECTED;
+    const eventTypeInfo: EventTypeInfo = {
+      eventTitle: booking.eventType?.title,
+      eventDescription: booking.eventType?.description,
+      requiresConfirmation: booking.eventType?.requiresConfirmation || null,
+      price: booking.eventType?.price,
+      currency: booking.eventType?.currency,
+      length: booking.eventType?.length,
+    };
+    const webhookData = {
+      ...evt,
+      ...eventTypeInfo,
+      bookingId,
+      eventTypeId: booking.eventType?.id,
+      status: BookingStatus.REJECTED,
+      smsReminderNumber: booking.smsReminderNumber || undefined,
+    };
+    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
 
   const message = "Booking " + confirmed ? "confirmed" : "rejected";
