@@ -1,4 +1,3 @@
-import { CheckCircleIcon } from "@heroicons/react/outline";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import Link from "next/link";
 import type { ComponentProps } from "react";
@@ -6,6 +5,7 @@ import { forwardRef } from "react";
 
 import { classNames } from "@calcom/lib";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
+import { CheckCircle } from "@calcom/ui/components/icon";
 
 import type { ButtonColor } from "../../button/Button";
 
@@ -76,7 +76,7 @@ export const DropdownMenuCheckboxItem = forwardRef<HTMLDivElement, DropdownMenuC
       <DropdownMenuPrimitive.CheckboxItem {...props} ref={forwardedRef}>
         {children}
         <DropdownMenuPrimitive.ItemIndicator>
-          <CheckCircleIcon />
+          <CheckCircle />
         </DropdownMenuPrimitive.ItemIndicator>
       </DropdownMenuPrimitive.CheckboxItem>
     );
@@ -93,7 +93,7 @@ export const DropdownMenuRadioItem = forwardRef<HTMLDivElement, DropdownMenuRadi
       <DropdownMenuPrimitive.RadioItem {...props} ref={forwardedRef}>
         {children}
         <DropdownMenuPrimitive.ItemIndicator>
-          <CheckCircleIcon />
+          <CheckCircle />
         </DropdownMenuPrimitive.ItemIndicator>
       </DropdownMenuPrimitive.RadioItem>
     );

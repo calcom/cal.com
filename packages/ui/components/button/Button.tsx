@@ -116,18 +116,13 @@ const buttonClasses = cva(
       }),
       // Destructive variants
       {
-        disabled: true,
-        color: "destructive",
-        className: "text-red-700/30 hover:text-red-700/30 border border-default text-emphasis",
-      },
-      {
         loading: true,
         color: "destructive",
         className:
           "text-red-700/30 dark:text-red-700/30 hover:text-red-700/30  border border-default text-emphasis",
       },
       ...applyStyleToMultipleVariants({
-        disabled: [false, undefined],
+        disabled: [false, true, undefined],
         color: "destructive",
         className:
           "border border-default text-emphasis hover:text-red-700 focus-visible:text-red-700  hover:border-red-100 focus-visible:border-red-100 hover:bg-error  focus-visible:bg-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-red-700",
