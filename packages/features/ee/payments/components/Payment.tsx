@@ -69,20 +69,20 @@ const PaymentForm = (props: Props) => {
       email: router.query.email,
     };
 
-    const returnUrl = getReturnUrl(props);
+    const return_url = getReturnUrl(props);
 
     if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
       payload = await stripe.confirmSetup({
         elements,
         confirmParams: {
-          return_url: returnUrl.toString(),
+          return_url,
         },
       });
     } else if (paymentOption === "ON_BOOKING") {
       payload = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: returnUrl.toString(),
+          return_url,
         },
       });
     }
