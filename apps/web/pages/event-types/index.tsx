@@ -360,7 +360,11 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
-          const calLink = `${CAL_URL}/${embedLink}`;
+          let calLink = `${CAL_URL}/${embedLink}`;
+          // If Private link is generated, use this link
+          if (type?.hashedLink?.link) {
+            calLink = `${CAL_URL}/d/${type.hashedLink.link}/${type.slug}`;
+          }
           const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
           const isChildrenManagedEventType =
             type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;

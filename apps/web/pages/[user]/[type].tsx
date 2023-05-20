@@ -145,6 +145,19 @@ async function getUserPageProps(context: GetStaticPropsContext) {
 
   if (!eventType) return { notFound: true };
 
+  // If Private Link is generated, we will not let users book events through normal slug
+  const hashedLink = await prisma.hashedLink.findUnique({
+    where: {
+      eventTypeId: eventType.id,
+    },
+    select: {
+      link: true,
+    },
+  });
+  if (hashedLink?.link) {
+    return { notFound: true };
+  }
+
   //TODO: Use zodSchema to verify it instead of using Type Assertion
   const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
   const eventTypeObject = Object.assign({}, eventType, {
