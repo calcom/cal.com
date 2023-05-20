@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
 import type { IframeHTMLAttributes } from "react";
 import React, { useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton, AppDependencyComponent } from "@calcom/app-store/components";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
-import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import Shell from "@calcom/features/shell/Shell";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
@@ -37,13 +36,13 @@ const Component = ({
   tos,
   privacy,
   isProOnly,
+  teamsPlanRequired,
   descriptionItems,
   isTemplate,
   dependencies,
 }: Parameters<typeof App>[0]) => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
-  const router = useRouter();
 
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
@@ -154,6 +153,7 @@ const Component = ({
                   type={type}
                   isProOnly={isProOnly}
                   disableInstall={disableInstall}
+                  teamsPlanRequired={teamsPlanRequired}
                   render={({ useDefaultComponent, ...props }) => {
                     if (useDefaultComponent) {
                       props = {
@@ -186,7 +186,7 @@ const Component = ({
               label={t("disconnect")}
               credentialId={existingCredentials[0]}
               onSuccess={() => {
-                router.replace("/apps/installed");
+                appCredentials.refetch();
               }}
             />
           ) : (
@@ -194,6 +194,7 @@ const Component = ({
               type={type}
               isProOnly={isProOnly}
               disableInstall={disableInstall}
+              teamsPlanRequired={teamsPlanRequired}
               render={({ useDefaultComponent, ...props }) => {
                 if (useDefaultComponent) {
                   props = {
@@ -243,11 +244,13 @@ const Component = ({
         </div>
         <h4 className="text-emphasis mt-8 font-semibold ">{t("pricing")}</h4>
         <span className="text-default">
-          {price === 0 ? (
+          {teamsPlanRequired ? (
+            t("teams_plan_required")
+          ) : price === 0 ? (
             t("free_to_use_apps")
           ) : (
             <>
-              {Intl.NumberFormat("en-US", {
+              {Intl.NumberFormat(i18n.language, {
                 style: "currency",
                 currency: "USD",
                 useGrouping: false,
@@ -360,13 +363,14 @@ export default function App(props: {
   privacy?: string;
   licenseRequired: AppType["licenseRequired"];
   isProOnly: AppType["isProOnly"];
+  teamsPlanRequired: AppType["teamsPlanRequired"];
   descriptionItems?: Array<string | { iframe: IframeHTMLAttributes<HTMLIFrameElement> }>;
   isTemplate?: boolean;
   disableInstall?: boolean;
   dependencies?: string[];
 }) {
   return (
-    <Shell smallHeading isPublic heading={<ShellHeading />} backPath="/apps" withoutSeo>
+    <Shell smallHeading isPublic hideHeadingOnMobile heading={<ShellHeading />} backPath="/apps" withoutSeo>
       <HeadSeo
         title={props.name}
         description={props.description}

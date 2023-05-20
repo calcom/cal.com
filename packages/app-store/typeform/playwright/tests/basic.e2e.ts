@@ -19,14 +19,10 @@ const installApps = async (page: Page, users: Fixtures["users"]) => {
   await user.login();
   await page.goto(`/apps/routing-forms`);
   await page.click('[data-testid="install-app-button"]');
-  await page.waitForNavigation({
-    url: (url) => url.pathname === `/apps/routing-forms/forms`,
-  });
+  await page.waitForURL((url) => url.pathname === `/apps/routing-forms/forms`);
   await page.goto(`/apps/typeform`);
   await page.click('[data-testid="install-app-button"]');
-  await page.waitForNavigation({
-    url: (url) => url.pathname === `/apps/typeform/how-to-use`,
-  });
+  await page.waitForURL((url) => url.pathname === `/apps/typeform/how-to-use`);
 };
 
 test.describe("Typeform App", () => {

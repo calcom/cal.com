@@ -4,7 +4,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Badge, ConfirmationDialogContent, Dialog, DropdownActions, showToast, Table } from "@calcom/ui";
 import { Edit, Trash } from "@calcom/ui/components/icon";
 
-import { withLicenseRequired } from "../../common/components/v2/LicenseRequired";
+import { withLicenseRequired } from "../../common/components/LicenseRequired";
 
 const { Body, Cell, ColumnTitle, Header, Row } = Table;
 

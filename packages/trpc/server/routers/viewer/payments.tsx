@@ -8,7 +8,8 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
-import { router, authedProcedure } from "../../trpc";
+import authedProcedure from "../../procedures/authedProcedure";
+import { router } from "../../trpc";
 
 export const paymentsRouter = router({
   chargeCard: authedProcedure
@@ -106,7 +107,7 @@ export const paymentsRouter = router({
       const paymentInstance = new PaymentService(paymentCredential);
 
       try {
-        const paymentData = await paymentInstance.chargeCard(booking.payment[0], booking.id);
+        const paymentData = await paymentInstance.chargeCard(booking.payment[0]);
 
         if (!paymentData) {
           throw new TRPCError({ code: "NOT_FOUND", message: `Could not generate payment data` });

@@ -10,6 +10,7 @@ module.exports = {
     "../../packages/app-store/**/*{components,pages}/**/*.{js,ts,jsx,tsx}",
     "../../packages/features/**/*.{js,ts,jsx,tsx}",
     "../../packages/ui/**/*.{js,ts,jsx,tsx}",
+    "../../packages/atoms/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: "class",
   theme: {
@@ -26,9 +27,10 @@ module.exports = {
         error: "var(--cal-bg-error)",
         black: "#111111",
         brand: {
-          default: "var(--cal-brand,'#111827')",
-          emphasis: "var(--cal-brand-emphasis,'#101010')",
-          subtle: "var(--cal-brand-subtle,'#9CA3AF')",
+          default: "var(--cal-brand,#111827)",
+          emphasis: "var(--cal-brand-emphasis,#101010)",
+          subtle: "var(--cal-brand-subtle,#9CA3AF)",
+          accent: "var(--cal-brand-accent,white)",
         },
         gray: {
           50: "#F9FAFB",
@@ -91,18 +93,12 @@ module.exports = {
       },
       keyframes: {
         "fade-in-up": {
-          "0%": {
-            opacity: 0.75,
-            transform: "translateY(20px)",
-          },
-          "100%": {
-            opacity: 1,
-            transform: "translateY(0)",
-          },
+          from: { opacity: 0, transform: "translateY(10px)" },
+          to: { opacity: 1, transform: "none" },
         },
       },
       animation: {
-        "fade-in-up": "fade-in-up 0.35s cubic-bezier(.21,1.02,.73,1)",
+        "fade-in-up": "fade-in-up 600ms var(--animation-delay, 0ms) cubic-bezier(.21,1.02,.73,1) forwards",
       },
       boxShadow: {
         dropdown: "0px 2px 6px -1px rgba(0, 0, 0, 0.08)",
@@ -151,6 +147,7 @@ module.exports = {
     require("@tailwindcss/typography"),
     require("tailwind-scrollbar"),
     require("tailwindcss-radix")(),
+    require("@savvywombat/tailwindcss-grid-areas"),
     plugin(({ addVariant }) => {
       addVariant("mac", ".mac &");
       addVariant("windows", ".windows &");

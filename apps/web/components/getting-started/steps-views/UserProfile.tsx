@@ -1,4 +1,3 @@
-import { ArrowRightIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 import type { FormEvent } from "react";
 import { useRef, useState } from "react";
@@ -11,6 +10,7 @@ import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
 import { Avatar } from "@calcom/ui";
+import { ArrowRight } from "@calcom/ui/components/icon";
 
 import type { IOnboardingPageProps } from "../../../pages/getting-started/[[...step]]";
 
@@ -35,6 +35,7 @@ const UserProfile = (props: IUserProfileProps) => {
   const router = useRouter();
   const createEventType = trpc.viewer.eventTypes.create.useMutation();
   const telemetry = useTelemetry();
+  const [firstRender, setFirstRender] = useState(true);
 
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (_data, context) => {
@@ -147,6 +148,8 @@ const UserProfile = (props: IUserProfileProps) => {
           getText={() => md.render(getValues("bio") || user?.bio || "")}
           setText={(value: string) => setValue("bio", turndown(value))}
           excludedToolbarItems={["blockType"]}
+          firstRender={firstRender}
+          setFirstRender={setFirstRender}
         />
         <p className="dark:text-inverted text-default mt-2 font-sans text-sm font-normal">
           {t("few_sentences_about_yourself")}
@@ -156,7 +159,7 @@ const UserProfile = (props: IUserProfileProps) => {
         type="submit"
         className="text-inverted mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm">
         {t("finish")}
-        <ArrowRightIcon className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
+        <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </Button>
     </form>
   );

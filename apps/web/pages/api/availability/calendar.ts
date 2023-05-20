@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const user = await prisma.user.findUnique({
+  const userWithCredentials = await prisma.user.findUnique({
     where: {
       id: session.user.id,
     },
@@ -25,11 +25,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       selectedCalendars: true,
     },
   });
-
-  if (!user) {
+  if (!userWithCredentials) {
     res.status(401).json({ message: "Not authenticated" });
     return;
   }
+  const { credentials, ...user } = userWithCredentials;
 
   if (req.method === "POST") {
     await prisma.selectedCalendar.upsert({
@@ -80,7 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     // get user's credentials + their connected integrations
-    const calendarCredentials = getCalendarCredentials(user.credentials);
+    const calendarCredentials = getCalendarCredentials(credentials);
     // get all the connected integrations' calendars (from third party)
     const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
     const calendars = connectedCalendars.flatMap((c) => c.calendars).filter(notEmpty);

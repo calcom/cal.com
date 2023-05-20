@@ -1,7 +1,7 @@
+import { isEmpty } from "lodash";
 import { useTranslation } from "next-i18next";
 import { useEffect } from "react";
 
-import { getDirFromLang } from "@calcom/lib/i18n";
 import { trpc } from "@calcom/trpc/react";
 
 export function useViewerI18n() {
@@ -22,16 +22,18 @@ export function useViewerI18n() {
  */
 const I18nLanguageHandler = (): null => {
   const { i18n } = useTranslation("common");
-  const locale = useViewerI18n().data?.locale || "en";
+  const locale = useViewerI18n().data?.locale || i18n.language;
 
   useEffect(() => {
-    if (locale && i18n.language && i18n.language !== locale) {
-      if (typeof i18n.changeLanguage === "function") i18n.changeLanguage(locale);
+    // bail early when i18n = {}
+    if (isEmpty(i18n)) return;
+    // if locale is ready and the i18n.language does != locale - changeLanguage
+    if (locale && i18n.language !== locale) {
+      i18n.changeLanguage(locale);
     }
-
-    const dir = getDirFromLang(locale);
+    // set dir="rtl|ltr"
+    document.dir = i18n.dir();
     document.documentElement.setAttribute("lang", locale);
-    document.documentElement.setAttribute("dir", dir);
   }, [locale, i18n]);
 
   return null;

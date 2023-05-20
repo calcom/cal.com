@@ -7,9 +7,16 @@ import { CONSOLE_URL, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { isIpInBanlist } from "@calcom/lib/getIP";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
+let cold = true;
+
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
+  const requestHeaders = new Headers(req.headers);
 
+  // This console.log is required to create a report in axios for hot and cold requests
+  console.log(cold ? "Cold Start" : "Hot Start");
+  requestHeaders.set("x-cal-cold-start", cold ? "true" : "false");
+  cold = false;
   if (!url.pathname.startsWith("/api")) {
     //
     // NOTE: When tRPC hits an error a 500 is returned, when this is received
@@ -61,27 +68,19 @@ const middleware: NextMiddleware = async (req) => {
   }
 
   if (url.pathname.startsWith("/api/trpc/")) {
-    const requestHeaders = new Headers(req.headers);
     requestHeaders.set("x-cal-timezone", req.headers.get("x-vercel-ip-timezone") ?? "");
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
   }
 
   if (url.pathname.startsWith("/auth/login")) {
-    const moreHeaders = new Headers(req.headers);
     // Use this header to actually enforce CSP, otherwise it is running in Report Only mode on all pages.
-    moreHeaders.set("x-csp-enforce", "true");
-    return NextResponse.next({
-      request: {
-        headers: moreHeaders,
-      },
-    });
+    requestHeaders.set("x-csp-enforce", "true");
   }
 
-  return NextResponse.next();
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 };
 
 export const config = {

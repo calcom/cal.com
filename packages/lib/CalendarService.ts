@@ -71,17 +71,6 @@ const getDuration = (start: string, end: string): DurationObject => ({
   minutes: dayjs(end).diff(dayjs(start), "minute"),
 });
 
-const buildUtcOffset = (minutes: number): string => {
-  const h =
-    minutes > 0
-      ? "+" + (Math.floor(minutes / 60) < 10 ? "0" + Math.floor(minutes / 60) : Math.floor(minutes / 60))
-      : "-" +
-        (Math.ceil(minutes / 60) > -10 ? "0" + Math.ceil(minutes / 60) * -1 : Math.ceil(minutes / 60) * -1);
-  const m = Math.abs(minutes % 60);
-  const offset = `${h}:${m}`;
-  return offset;
-};
-
 const getAttendees = (attendees: Person[]): Attendee[] =>
   attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
 
@@ -287,6 +276,38 @@ export default abstract class BaseCalendarService implements Calendar {
     }
   }
 
+  /**
+   * getUserTimezoneFromDB() retrieves the timezone of a user from the database.
+   *
+   * @param {number} id - The user's unique identifier.
+   * @returns {Promise<string | undefined>} - A Promise that resolves to the user's timezone or "Europe/London" as a default value if the timezone is not found.
+   */
+  getUserTimezoneFromDB = async (id: number): Promise<string | undefined> => {
+    const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        timeZone: true,
+      },
+    });
+    return user?.timeZone;
+  };
+
+  /**
+   * getUserId() extracts the user ID from the first calendar in an array of IntegrationCalendars.
+   *
+   * @param {IntegrationCalendar[]} selectedCalendars - An array of IntegrationCalendars.
+   * @returns {number | null} - The user ID associated with the first calendar in the array, or null if the array is empty or the user ID is not found.
+   */
+  getUserId = (selectedCalendars: IntegrationCalendar[]): number | null => {
+    if (selectedCalendars.length === 0) {
+      return null;
+    }
+    return selectedCalendars[0].userId || null;
+  };
+
   isValidFormat = (url: string): boolean => {
     const allowedExtensions = ["eml", "ics"];
     const urlExtension = getFileExtension(url);
@@ -310,6 +331,10 @@ export default abstract class BaseCalendarService implements Calendar {
       dateTo,
       headers: this.headers,
     });
+
+    const userId = this.getUserId(selectedCalendars);
+    // we use the userId from selectedCalendars to fetch the user's timeZone from the database primarily for all-day events without any timezone information
+    const userTimeZone = userId ? await this.getUserTimezoneFromDB(userId) : "Europe/London";
     const events: { start: string; end: string }[] = [];
     objects.forEach((object) => {
       if (object.data == null || JSON.stringify(object.data) == "{}") return;
@@ -321,7 +346,6 @@ export default abstract class BaseCalendarService implements Calendar {
         console.error("Error parsing calendar object: ", e);
         return;
       }
-      // const vevent = vcalendar.getFirstSubcomponent("vevent");
       const vevents = vcalendar.getAllSubcomponents("vevent");
       vevents.forEach((vevent) => {
         // if event status is free or transparent, return
@@ -334,23 +358,32 @@ export default abstract class BaseCalendarService implements Calendar {
         const isUTC = timezone === "Z";
         const tzid: string | undefined = vevent?.getFirstPropertyValue("tzid") || isUTC ? "UTC" : timezone;
         // In case of icalendar, when only tzid is available without vtimezone, we need to add vtimezone explicitly to take care of timezone diff
-        if (!vcalendar.getFirstSubcomponent("vtimezone") && tzid) {
-          // this.registerTimezone(tzid);
+        if (!vcalendar.getFirstSubcomponent("vtimezone")) {
+          const timezoneToUse = tzid || userTimeZone;
+          if (timezoneToUse) {
+            try {
+              const timezoneComp = new ICAL.Component("vtimezone");
+              timezoneComp.addPropertyWithValue("tzid", timezoneToUse);
+              const standard = new ICAL.Component("standard");
 
-          const timezoneComp = new ICAL.Component("vtimezone");
-          timezoneComp.addPropertyWithValue("tzid", tzid);
-          const standard = new ICAL.Component("standard");
-          // get timezone offset
-          const tzoffsetfrom = buildUtcOffset(dayjs(event.startDate.toJSDate()).tz(tzid, true).utcOffset());
-          const tzoffsetto = buildUtcOffset(dayjs(event.endDate.toJSDate()).tz(tzid, true).utcOffset());
+              // get timezone offset
+              const tzoffsetfrom = dayjs(event.startDate.toJSDate()).tz(timezoneToUse).format("Z");
+              const tzoffsetto = dayjs(event.endDate.toJSDate()).tz(timezoneToUse).format("Z");
 
-          // set timezone offset
-          standard.addPropertyWithValue("tzoffsetfrom", tzoffsetfrom);
-          standard.addPropertyWithValue("tzoffsetto", tzoffsetto);
-          // provide a standard dtstart
-          standard.addPropertyWithValue("dtstart", "1601-01-01T00:00:00");
-          timezoneComp.addSubcomponent(standard);
-          vcalendar.addSubcomponent(timezoneComp);
+              // set timezone offset
+              standard.addPropertyWithValue("tzoffsetfrom", tzoffsetfrom);
+              standard.addPropertyWithValue("tzoffsetto", tzoffsetto);
+              // provide a standard dtstart
+              standard.addPropertyWithValue("dtstart", "1601-01-01T00:00:00");
+              timezoneComp.addSubcomponent(standard);
+              vcalendar.addSubcomponent(timezoneComp);
+            } catch (e) {
+              // Adds try-catch to ensure the code proceeds when Apple Calendar provides non-standard TZIDs
+              console.log("error in adding vtimezone", e);
+            }
+          } else {
+            console.error("No timezone found");
+          }
         }
         const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
 
@@ -420,6 +453,7 @@ export default abstract class BaseCalendarService implements Calendar {
           event.startDate = event.startDate.convertToZone(zone);
           event.endDate = event.endDate.convertToZone(zone);
         }
+
         return events.push({
           start: dayjs(event.startDate.toJSDate()).toISOString(),
           end: dayjs(event.endDate.toJSDate()).toISOString(),

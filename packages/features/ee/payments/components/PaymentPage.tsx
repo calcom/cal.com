@@ -2,7 +2,6 @@ import classNames from "classnames";
 import Head from "next/head";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
-import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
@@ -19,7 +18,7 @@ import type { PaymentPageProps } from "../pages/payment";
 import PaymentComponent from "./Payment";
 
 const PaymentPage: FC<PaymentPageProps> = (props) => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
   const [timezone, setTimezone] = useState<string | null>(null);
@@ -107,13 +106,10 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         {props.payment.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
                       </div>
                       <div className="col-span-2 mb-6 font-semibold">
-                        <IntlProvider locale="en">
-                          <FormattedNumber
-                            value={paymentAppData.price / 100.0}
-                            style="currency"
-                            currency={paymentAppData?.currency?.toUpperCase()}
-                          />
-                        </IntlProvider>
+                        {new Intl.NumberFormat(i18n.language, {
+                          style: "currency",
+                          currency: paymentAppData.currency,
+                        }).format(paymentAppData.price / 100.0)}
                       </div>
                     </div>
                   </div>

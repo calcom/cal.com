@@ -1,4 +1,3 @@
-import { AdminRequired } from "components/ui/AdminRequired";
 import { noop } from "lodash";
 import type { LinkProps } from "next/link";
 import Link from "next/link";
@@ -6,6 +5,7 @@ import { useRouter } from "next/router";
 import type { FC, MouseEventHandler } from "react";
 import { Fragment } from "react";
 
+import { PermissionContainer } from "@calcom/features/auth/PermissionContainer";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import classNames from "@lib/classNames";
@@ -60,7 +60,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
               }
             : noop;
 
-          const Component = tab.adminRequired ? AdminRequired : Fragment;
+          const Component = tab.adminRequired ? PermissionContainer : Fragment;
           const className = tab.className || "";
           return (
             <Component key={tab.name}>

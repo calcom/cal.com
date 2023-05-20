@@ -103,6 +103,7 @@ export const AddNewTeamMembersForm = ({
       <hr className="border-subtle my-6" />
       <Button
         EndIcon={ArrowRight}
+        color="primary"
         className="mt-6 w-full justify-center"
         disabled={publishTeamMutation.isLoading}
         onClick={() => {
@@ -118,7 +119,7 @@ export default AddNewTeamMembers;
 
 const AddNewTeamMemberSkeleton = () => {
   return (
-    <SkeletonContainer className="rounded-md border">
+    <SkeletonContainer className="border-subtle rounded-md border">
       <div className="flex w-full justify-between p-4">
         <div>
           <p className="text-emphasis text-sm font-medium">

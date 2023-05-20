@@ -1,4 +1,3 @@
-import { BadgeCheckIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
@@ -23,11 +22,12 @@ import defaultEvents, {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, AvatarGroup, HeadSeo } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import { Verified, ArrowRight } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
@@ -37,7 +37,16 @@ import PageWrapper from "@components/PageWrapper";
 import { ssrInit } from "@server/lib/ssr";
 
 export default function User(props: inferSSRProps<typeof getServerSideProps> & EmbedProps) {
-  const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
+  const {
+    users,
+    profile,
+    eventTypes,
+    isDynamicGroup,
+    dynamicNames,
+    dynamicUsernames,
+    isSingleUser,
+    markdownStrippedBio,
+  } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(user.theme);
   const { t } = useLocale();
@@ -59,7 +68,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
       {eventTypes.map((type, index) => (
         <li
           key={index}
-          className=" border-subtle bg-default hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
+          className=" border-subtle bg-default dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
           <ArrowRight className="text-emphasis absolute right-3 top-3 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
           <Link
             href={getUsernameSlugLink({ users: props.users, slug: type.slug })}
@@ -107,11 +116,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
     <>
       <HeadSeo
         title={isDynamicGroup ? dynamicNames.join(", ") : nameOrUsername}
-        description={
-          isDynamicGroup ? `Book events with ${dynamicUsernames.join(", ")}` : (user.bio as string) || ""
-        }
+        description={isDynamicGroup ? `Book events with ${dynamicUsernames.join(", ")}` : markdownStrippedBio}
         meeting={{
-          title: isDynamicGroup ? "" : `${user.bio}`,
+          title: isDynamicGroup ? "" : markdownStrippedBio,
           profile: { name: `${profile.name}`, image: null },
           users: isDynamicGroup
             ? dynamicUsernames.map((username, index) => ({ username, name: dynamicNames[index] }))
@@ -123,7 +130,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
         <main
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
-            isEmbed ? " border-booker border-booker-width  bg-default rounded-md border" : "",
+            isEmbed ? "border-booker border-booker-width  bg-default rounded-md border" : "",
             "max-w-3xl py-24 px-4"
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
@@ -131,12 +138,14 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
               <Avatar imageSrc={user.avatar} size="xl" alt={nameOrUsername} />
               <h1 className="font-cal text-emphasis mb-1 text-3xl">
                 {nameOrUsername}
-                {user.verified && <BadgeCheckIcon className=" mx-1 -mt-1 inline h-6 w-6 text-blue-500" />}
+                {user.verified && (
+                  <Verified className=" mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black" />
+                )}
               </h1>
               {!isBioEmpty && (
                 <>
                   <div
-                    className="  text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                    className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                     dangerouslySetInnerHTML={{ __html: props.safeBio }}
                   />
                 </>
@@ -161,7 +170,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                 <div
                   key={type.id}
                   style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                  className=" border-subtle bg-default hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
+                  className="bg-default border-subtle dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
                   <ArrowRight className="text-emphasis  absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
                   {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <div className="block w-full p-5">
@@ -342,11 +351,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
+  const markdownStrippedBio = stripMarkdown(user?.bio || "");
   return {
     props: {
       users,
       safeBio,
       profile,
+      // Dynamic group has no theme preference right now. It uses system theme.
+      themeBasis: isDynamicGroup ? null : user.username,
       user: {
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },
@@ -361,6 +373,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       dynamicNames,
       dynamicUsernames,
       isSingleUser,
+      markdownStrippedBio,
     },
   };
 };

@@ -4,7 +4,6 @@
   "title": "Sylaps",
   "slug": "sylapsvideo",
   "type": "sylaps_video",
-  "imageSrc": "icon.svg",
   "logo": "icon.svg",
   "url": "https://cal.com/apps/sylaps",
   "variant": "conferencing",

@@ -3,8 +3,6 @@ import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
 import { z } from "zod";
 
-import { getDirFromLang } from "@calcom/lib/i18n";
-
 import { csp } from "@lib/csp";
 
 type Props = Record<string, unknown> & DocumentProps;
@@ -25,6 +23,7 @@ class MyDocument extends Document<Props> {
       // If x-csp not set by gSSP, then it's initialPropsOnly
       setHeader(ctx, "x-csp", "initialPropsOnly");
     }
+
     const asPath = ctx.asPath || "";
     // Use a dummy URL as default so that URL parsing works for relative URLs as well. We care about searchParams and pathname only
     const parsedUrl = new URL(asPath, "https://dummyurl");
@@ -38,9 +37,8 @@ class MyDocument extends Document<Props> {
     const { isEmbed } = this.props;
     const nonceParsed = z.string().safeParse(this.props.nonce);
     const nonce = nonceParsed.success ? nonceParsed.data : "";
-    const dir = getDirFromLang(locale);
     return (
-      <Html lang={locale} dir={dir}>
+      <Html lang={locale}>
         <Head nonce={nonce}>
           <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
           <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -48,7 +46,8 @@ class MyDocument extends Document<Props> {
           <link rel="manifest" href="/site.webmanifest" />
           <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
           <meta name="msapplication-TileColor" content="#ff0000" />
-          <meta name="theme-color" content="var(--cal-bg)" />
+          <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9fafb" />
+          <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1C1C1C" />
         </Head>
 
         <body

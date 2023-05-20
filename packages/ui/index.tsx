@@ -33,7 +33,6 @@ export {
   DateRangePicker,
   MultiSelectCheckbox,
   ToggleGroup,
-  ToggleGroupItem,
   getReactSelectProps,
   ColorPicker,
   FormStep,
@@ -132,3 +131,4 @@ export { default as ImageUploader } from "./components/image-uploader/ImageUploa
 export type { ButtonColor } from "./components/button/Button";
 export { CreateButton } from "./components/createButton";
 export { useCalcomTheme } from "./styles/useCalcomTheme";
+export { ScrollableArea } from "./components/scrollable/ScrollableArea";

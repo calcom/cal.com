@@ -9,7 +9,9 @@ import { appDataSchema as giphy_zod_ts } from "./giphy/zod";
 import { appDataSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
 import { appDataSchema as gtm_zod_ts } from "./gtm/zod";
 import { appDataSchema as hubspot_zod_ts } from "./hubspot/zod";
+import { appDataSchema as jitsivideo_zod_ts } from "./jitsivideo/zod";
 import { appDataSchema as larkcalendar_zod_ts } from "./larkcalendar/zod";
+import { appDataSchema as metapixel_zod_ts } from "./metapixel/zod";
 import { appDataSchema as office365calendar_zod_ts } from "./office365calendar/zod";
 import { appDataSchema as office365video_zod_ts } from "./office365video/zod";
 import { appDataSchema as plausible_zod_ts } from "./plausible/zod";
@@ -22,8 +24,11 @@ import { appDataSchema as tandemvideo_zod_ts } from "./tandemvideo/zod";
 import { appDataSchema as booking_pages_tag_zod_ts } from "./templates/booking-pages-tag/zod";
 import { appDataSchema as event_type_app_card_zod_ts } from "./templates/event-type-app-card/zod";
 import { appDataSchema as vital_zod_ts } from "./vital/zod";
+import { appDataSchema as webex_zod_ts } from "./webex/zod";
 import { appDataSchema as wordpress_zod_ts } from "./wordpress/zod";
 import { appDataSchema as zapier_zod_ts } from "./zapier/zod";
+import { appDataSchema as zoho_bigin_zod_ts } from "./zoho-bigin/zod";
+import { appDataSchema as zohocrm_zod_ts } from "./zohocrm/zod";
 import { appDataSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 
 export const appDataSchemas = {
@@ -34,7 +39,9 @@ export const appDataSchemas = {
   googlecalendar: googlecalendar_zod_ts,
   gtm: gtm_zod_ts,
   hubspot: hubspot_zod_ts,
+  jitsivideo: jitsivideo_zod_ts,
   larkcalendar: larkcalendar_zod_ts,
+  metapixel: metapixel_zod_ts,
   office365calendar: office365calendar_zod_ts,
   office365video: office365video_zod_ts,
   plausible: plausible_zod_ts,
@@ -47,7 +54,10 @@ export const appDataSchemas = {
   "booking-pages-tag": booking_pages_tag_zod_ts,
   "event-type-app-card": event_type_app_card_zod_ts,
   vital: vital_zod_ts,
+  webex: webex_zod_ts,
   wordpress: wordpress_zod_ts,
   zapier: zapier_zod_ts,
+  "zoho-bigin": zoho_bigin_zod_ts,
+  zohocrm: zohocrm_zod_ts,
   zoomvideo: zoomvideo_zod_ts,
 };

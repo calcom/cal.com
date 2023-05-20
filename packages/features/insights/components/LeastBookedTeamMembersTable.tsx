@@ -14,12 +14,20 @@ export const LeastBookedTeamMembersTable = () => {
   const { dateRange, selectedEventTypeId, selectedTeamId: teamId } = filter;
   const [startDate, endDate] = dateRange;
 
-  const { data, isSuccess, isLoading } = trpc.viewer.insights.membersWithLeastBookings.useQuery({
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-    teamId,
-    eventTypeId: selectedEventTypeId ?? undefined,
-  });
+  const { data, isSuccess, isLoading } = trpc.viewer.insights.membersWithLeastBookings.useQuery(
+    {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      teamId,
+      eventTypeId: selectedEventTypeId ?? undefined,
+    },
+    {
+      staleTime: 30000,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 
   if (isLoading) return <LoadingInsight />;
 

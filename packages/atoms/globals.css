@@ -1,0 +1,10 @@
+/*
+ * @NOTE: This file is only imported when building the component's CSS file
+ * When using this component in any Cal project, the globals are automatically imported
+ * in that project.
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "../ui/styles/shared-globals.css";
