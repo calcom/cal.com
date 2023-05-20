@@ -113,10 +113,9 @@ const useTabs = () => {
 
   tabs.map((tab) => {
     if (tab.href === "/settings/my-account") {
-      tab.name = session?.user?.name || "my_account";
       tab.name = user?.name || "my_account";
       tab.icon = undefined;
-      tab.avatar = avatar?.avatar || WEBAPP_URL + "/" + session?.user?.username + "/avatar.png";
+      tab.avatar = avatar?.avatar || WEBAPP_URL + "/" + session?.data?.user?.username + "/avatar.png";
     }
     return tab;
   });
