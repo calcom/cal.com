@@ -93,7 +93,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
           {type === "creation" && (
             <div>
               <DialogHeader title={title} subtitle={props.description} />
-              <div className="flex max-h-[95vh] flex-col space-y-6">{children}</div>
+              <div className="flex max-h-[95vh] flex-col">{children}</div>
             </div>
           )}
           {type === "confirmation" && (
@@ -137,12 +137,8 @@ export function DialogHeader(props: DialogHeaderProps) {
 export function DialogFooter(props: { children: ReactNode; className?: string; showDivider?: boolean }) {
   return (
     <div className={classNames("bg-default", props.className)}>
-      {props.showDivider && <hr className="border-subtle" />}
-      <div
-        className={classNames(
-          "mt-7 flex justify-end space-x-2 rtl:space-x-reverse",
-          props.showDivider && "mr-8"
-        )}>
+      {props.showDivider && <hr className="border-subtle absolute right-0 w-full" />}
+      <div className={classNames("bg-default mt-6 flex justify-end space-x-2 rtl:space-x-reverse")}>
         {props.children}
       </div>
     </div>
