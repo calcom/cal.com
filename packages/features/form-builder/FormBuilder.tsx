@@ -540,7 +540,7 @@ export const FormBuilder = function FormBuilder({
               />
             </Form>
           </div>
-          <DialogFooter className="relative rounded pb-6 pr-8" showDivider>
+          <DialogFooter className="relative rounded px-8 pb-6" showDivider>
             <DialogClose color="secondary">{t("cancel")}</DialogClose>
             <Button data-testid="field-add-save" type="submit" form="form-builder">
               {isFieldEditMode ? t("save") : t("add")}
