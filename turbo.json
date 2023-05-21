@@ -7,7 +7,6 @@
     },
     "@calcom/prisma#db-migrate": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-up"],
       "inputs": ["./schema.prisma", "./migrations/**/*.sql"]
     },
     "@calcom/prisma#db-seed": {
