@@ -32,6 +32,8 @@ import AuthContainer from "@components/ui/AuthContainer";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 import { ssrInit } from "@server/lib/ssr";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 interface LoginValues {
   email: string;
@@ -50,7 +52,23 @@ export default function Login({
 }: inferSSRProps<typeof _getServerSideProps> & WithNonceProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const methods = useForm<LoginValues>();
+
+  const loginFormSchema = z.object({
+    email: z.string().email(),
+    password: z.string().refine(value => totpEmail || value.length > 0, {
+      message: "Password is required."
+    }),
+    csrfToken: z.string().optional()
+  })
+
+  const methods = useForm<LoginValues>({
+    defaultValues:{
+      email: totpEmail || (router.query.email as string),
+      csrfToken: csrfToken || undefined,
+      password: ""
+    },
+    resolver: zodResolver(loginFormSchema)
+  });
 
   const { register, formState } = methods;
   const [twoFactorRequired, setTwoFactorRequired] = useState(!!totpEmail || false);
@@ -152,23 +170,20 @@ export default function Login({
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)} data-testid="login-form">
             <div>
-              <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
+              <input type="hidden" hidden {...register("csrfToken")} />
             </div>
             <div className="space-y-6">
               <div className={classNames("space-y-6", { hidden: twoFactorRequired })}>
                 <EmailField
                   id="email"
                   label={t("email_address")}
-                  defaultValue={totpEmail || (router.query.email as string)}
                   placeholder="john.doe@example.com"
-                  required
                   {...register("email")}
                 />
                 <div className="relative">
                   <PasswordField
                     id="password"
                     autoComplete="off"
-                    required={!totpEmail}
                     className="mb-0"
                     {...register("password")}
                   />
