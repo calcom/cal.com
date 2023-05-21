@@ -55,19 +55,19 @@ export default function Login({
 
   const loginFormSchema = z.object({
     email: z.string().email(),
-    password: z.string().refine(value => totpEmail || value.length > 0, {
-      message: "Password is required."
+    password: z.string().refine((value) => totpEmail || value.length > 0, {
+      message: "Password is required.",
     }),
-    csrfToken: z.string().optional()
-  })
+    csrfToken: z.string().optional(),
+  });
 
   const methods = useForm<LoginValues>({
-    defaultValues:{
+    defaultValues: {
       email: totpEmail || (router.query.email as string),
       csrfToken: csrfToken || undefined,
-      password: ""
+      password: "",
     },
-    resolver: zodResolver(loginFormSchema)
+    resolver: zodResolver(loginFormSchema),
   });
 
   const { register, formState } = methods;
@@ -164,8 +164,8 @@ export default function Login({
               ? TwoFactorFooter
               : ExternalTotpFooter
             : process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true"
-            ? LoginFooter
-            : null
+              ? LoginFooter
+              : null
         }>
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)} data-testid="login-form">
