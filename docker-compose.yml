@@ -18,13 +18,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      
-  calcom:
+
+  cal.com:
+    container_name: cal.com
     build: .
     ports:
       - "3000:3000"
     depends_on:
       - postgres
-      
+    network_mode: host
+
 volumes:
   db_data:
