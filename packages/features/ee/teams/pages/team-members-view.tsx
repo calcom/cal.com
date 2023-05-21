@@ -48,7 +48,6 @@ function MembersList(props: MembersListProps) {
         autoComplete="false"
         onChange={(e) => setQuery(e.target.value)}
         value={query}
-        defaultValue=""
         placeholder={`${t("search")}...`}
       />
       {membersList?.length && team ? (
