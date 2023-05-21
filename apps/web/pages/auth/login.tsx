@@ -1,3 +1,4 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import classNames from "classnames";
 import { jwtVerify } from "jose";
 import type { GetServerSidePropsContext } from "next";
@@ -8,6 +9,7 @@ import type { CSSProperties } from "react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
+import { z } from "zod";
 
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
@@ -32,8 +34,6 @@ import AuthContainer from "@components/ui/AuthContainer";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 import { ssrInit } from "@server/lib/ssr";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 
 interface LoginValues {
   email: string;
@@ -164,8 +164,8 @@ export default function Login({
               ? TwoFactorFooter
               : ExternalTotpFooter
             : process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true"
-              ? LoginFooter
-              : null
+            ? LoginFooter
+            : null
         }>
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)} data-testid="login-form">
