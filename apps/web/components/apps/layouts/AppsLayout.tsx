@@ -20,8 +20,7 @@ export default function AppsLayout({ children, actions, emptyStore, ...rest }: A
   const router = useRouter();
   const isAdmin = session.data?.user.role === "ADMIN";
 
-  if (session.status === "loading") return <></>;
-  
+  if (session.status === "loading") return <></>;  
   return (
     <Shell {...rest} actions={actions?.("block")} hideHeadingOnMobile>
       <div className="flex flex-col xl:flex-row">
