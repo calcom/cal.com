@@ -33,7 +33,7 @@ const Switch = (
     <Wrapper tooltip={props.tooltip}>
       <div
         className={cx(
-          "flex h-auto w-auto flex-row items-center",
+          "flex h-auto w-auto flex-row items-center !bg-transparent",
           fitToHeight && "h-fit",
           labelOnLeading && "flex-row-reverse",
           classNames?.container
