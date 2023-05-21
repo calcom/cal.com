@@ -3,28 +3,28 @@
 FROM node:18
 
 # Create app directory
-WORKDIR /usr/src/app
+WORKDIR /usr/cal.com
 
-# Install app dependencies
 COPY package*.json ./
+COPY yarn.lock ./
 
-# Add yarn globally
-RUN npm install -g yarn
+# Copy all files from current directory to .
+ADD . ./
 
-# Install dependencies
-RUN yarn
-
-# Add .env file
-COPY .env.example /usr/src/app/.env
+# Create .env file
+COPY .env.example ./.env
 
 # Create NEXTAUTH_SECRET on .env
-RUN echo NEXTAUTH_SECRET=\"$(openssl rand -base64 32)\" >> /usr/src/app/.env
+RUN echo NEXTAUTH_SECRET=\"$(openssl rand -base64 32)\" >> ./.env
 
 # Create CALENDSO_ENCRYPTION_KEY on .env
-RUN echo CALENDSO_ENCRYPTION_KEY=\"$(openssl rand -base64 32)\" >> /usr/src/app/.env
+RUN echo CALENDSO_ENCRYPTION_KEY=\"$(openssl rand -base64 32)\" >> ./.env
 
 # Bundle app source
-COPY . .
+COPY . ./.
 
-# Run the app
-CMD [ "yarn", "dev" ]
+# Istall dependencies on .
+RUN yarn install
+
+# Run yarn db-deploy, yarn db-migrate, and yarn db-seed, then run yarn dev
+CMD ["/bin/bash", "-c", "yarn db-deploy; yarn db-seed; yarn dev"]
