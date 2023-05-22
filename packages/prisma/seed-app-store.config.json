@@ -1,6 +1,6 @@
 [
   {
-    "/*": "This file is auto-generated and updated by `yarn app-store create/edit`. Don't edit it manually",
+    "/*": "This file is deprecated now. No new entry should be added to it.",
     "dirName": "routing-forms",
     "categories": ["other"],
     "slug": "routing-forms",
@@ -213,6 +213,13 @@
     "isTemplate": false
   },
   {
+    "dirName": "webex",
+    "categories": ["video"],
+    "slug": "webex",
+    "type": "webex_video",
+    "isTemplate": false
+  },
+  {
     "dirName": "cron",
     "categories": ["calendar"],
     "slug": "cron",
@@ -231,6 +238,13 @@
     "categories": ["video"],
     "slug": "discord",
     "type": "discord_video",
+    "isTemplate": false
+  },
+  {
+    "dirName": "sylapsvideo",
+    "categories": ["video"],
+    "slug": "sylapsvideo",
+    "type": "sylaps_video",
     "isTemplate": false
   }
 ]

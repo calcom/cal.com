@@ -1,6 +1,7 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
 import type { Dispatch, SetStateAction } from "react";
 
+import getFieldIdentifier from "../lib/getFieldIdentifier";
 import { getQueryBuilderConfig } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
 import type { SerializableForm, Response } from "../types/types";
@@ -52,7 +53,7 @@ export default function FormInputFields(props: Props) {
               /* @ts-ignore */
               required={!!field.required}
               listValues={options}
-              data-testid="form-field"
+              data-testid={`form-field-${getFieldIdentifier(field)}`}
               setValue={(value) => {
                 setResponse((response) => {
                   response = response || {};

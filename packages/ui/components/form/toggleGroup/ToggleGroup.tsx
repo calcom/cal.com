@@ -1,18 +1,35 @@
 import * as RadixToggleGroup from "@radix-ui/react-toggle-group";
-import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { classNames } from "@calcom/lib";
-
-export const ToggleGroupItem = () => <div>hi</div>;
+import { Tooltip } from "@calcom/ui";
 
 interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps, "type"> {
-  options: { value: string; label: string; disabled?: boolean }[];
+  options: { value: string; label: string | ReactNode; disabled?: boolean; tooltip?: string }[];
   isFullWidth?: boolean;
 }
 
+const OptionalTooltipWrapper = ({
+  children,
+  tooltipText,
+}: {
+  children: ReactNode;
+  tooltipText?: ReactNode;
+}) => {
+  if (tooltipText) {
+    return (
+      <Tooltip delayDuration={150} sideOffset={12} side="bottom" content={tooltipText}>
+        {children}
+      </Tooltip>
+    );
+  }
+  return <>{children}</>;
+};
+
 export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: ToggleGroupProps) => {
   const [value, setValue] = useState<string | undefined>(props.defaultValue);
-  const [activeToggleElement, setActiveToggleElement] = useState<null | HTMLButtonElement>(null);
+  const activeRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     if (value && onValueChange) onValueChange(value);
@@ -31,30 +48,41 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
         )}>
         {/* Active toggle. It's a separate element so we can animate it nicely. */}
         <span
+          ref={activeRef}
           aria-hidden
-          className="bg-emphasis absolute top-[4px] bottom-[4px] left-0 z-[0] rounded-[4px] transition-all"
-          style={{ left: activeToggleElement?.offsetLeft, width: activeToggleElement?.offsetWidth }}
+          className={classNames(
+            "bg-emphasis absolute top-[4px] bottom-[4px] left-0 z-[0] rounded-[4px]",
+            // Disable the animation until after initial render, that way when the component would
+            // rerender the styles are immediately set and we don't see a flash moving the element
+            // into position because of the animation.
+            activeRef?.current && "transition-all"
+          )}
         />
         {options.map((option) => (
-          <RadixToggleGroup.Item
-            disabled={option.disabled}
-            key={option.value}
-            value={option.value}
-            className={classNames(
-              "relative rounded-[4px] px-3 py-1 text-sm leading-tight",
-              option.disabled
-                ? " text-gray-400 hover:cursor-not-allowed"
-                : " text-default [&[aria-checked='false']]:hover:bg-subtle",
-              isFullWidth && "w-full"
-            )}
-            ref={(node) => {
-              if (node && value === option.value) {
-                setActiveToggleElement(node);
-              }
-              return node;
-            }}>
-            {option.label}
-          </RadixToggleGroup.Item>
+          <OptionalTooltipWrapper key={option.value} tooltipText={option.tooltip}>
+            <RadixToggleGroup.Item
+              disabled={option.disabled}
+              value={option.value}
+              className={classNames(
+                "relative rounded-[4px] px-3 py-1 text-sm leading-tight",
+                option.disabled
+                  ? "text-gray-400 hover:cursor-not-allowed"
+                  : "text-default [&[aria-checked='false']]:hover:bg-subtle",
+                isFullWidth && "w-full"
+              )}
+              ref={(node) => {
+                if (node && value === option.value) {
+                  // Sets position of active toggle element with inline styles.
+                  // This way we trigger as little rerenders as possible.
+                  if (!activeRef.current || activeRef?.current.style.left === `${node.offsetLeft}px`) return;
+                  activeRef.current.style.left = `${node.offsetLeft}px`;
+                  activeRef.current.style.width = `${node.offsetWidth}px`;
+                }
+                return node;
+              }}>
+              {option.label}
+            </RadixToggleGroup.Item>
+          </OptionalTooltipWrapper>
         ))}
       </RadixToggleGroup.Root>
     </>

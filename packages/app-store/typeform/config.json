@@ -3,7 +3,7 @@
   "name": "Typeform",
   "slug": "typeform",
   "type": "typeform_other",
-  "logo": "/api/app-store/typeform/icon-dark.svg",
+  "logo": "icon-dark.svg",
   "url": "https://cal.com/apps/typeform",
   "variant": "other",
   "categories": ["other"],

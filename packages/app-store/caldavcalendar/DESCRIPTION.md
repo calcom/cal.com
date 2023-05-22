@@ -1,6 +1,6 @@
 ---
 items:
-  - /api/app-store/caldavcalendar/1.jpg
+  - 1.jpg
 ---
 
 Caldav is a protocol that allows different clients/servers to access scheduling information on remote servers as well as schedule meetings with other users on the same server or other servers. It extends WebDAV specification and uses iCalendar format for the data.

@@ -1,0 +1,42 @@
+import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
+import { Examples, Example, Note, Title, VariantsTable, VariantColumn, RowTitles, CustomArgsTable} from '@calcom/storybook/components'
+import { Icon } from "@calcom/ui";
+
+import { EventDetails } from './Details';
+import { EventTitle } from './Title';
+import { EventMembers } from './Members';
+import { mockEvent } from './event.mock.ts';
+
+<Meta title="Features/Events/Meta" component={EventDetails} />
+
+<Title title="Event Meta" suffix="Brief" subtitle="Version 2.0 — Last Update: 12 Dec 2022"/>
+
+<Examples title="Combined event meta block">
+  <div style={{maxWidth: 300}}>
+    <Example title="Event Title">
+      <EventTitle event={mockEvent}/>
+    </Example>
+    <Example title="Event Details">
+      <EventDetails event={mockEvent}/>
+    </Example>
+  </div>
+</Examples>
+
+<Canvas>
+  <Story name="All variants">
+    <VariantsTable titles={['Event Meta Components']} columnMinWidth={150}>
+      <VariantRow variant="">
+        <div style={{maxWidth: 300}}>
+          <EventMembers users={
+            [
+              {name: "Pro example", username: "pro"},
+              {name: "Team example", username: "team"}
+            ]
+          } />
+          <EventTitle>Quick catch-up</EventTitle>
+          <EventDetails event={mockEvent} />
+        </div>
+      </VariantRow>
+    </VariantsTable>
+  </Story>
+</Canvas>

@@ -38,13 +38,13 @@ export function UpgradeTip({
         <picture className="absolute min-h-[295px] w-full rounded-lg object-cover">
           <source srcSet={`${background}-dark.jpg`} media="(prefers-color-scheme: dark)" />
           <img
-            className="absolute min-h-[295px] w-full rounded-lg object-cover"
+            className="absolute min-h-[295px] w-full rounded-lg object-cover object-left md:object-center"
             src={`${background}.jpg`}
             loading="lazy"
             alt={title}
           />
         </picture>
-        <div className="relative mt-4 px-8 sm:px-14">
+        <div className="relative my-4 px-8 sm:px-14">
           <h1 className={classNames("font-cal text-3xl", dark && "text-inverted")}>{t(title)}</h1>
           <p className={classNames("mt-4 mb-8 max-w-sm", dark ? "text-inverted" : "text-default")}>
             {t(description)}
