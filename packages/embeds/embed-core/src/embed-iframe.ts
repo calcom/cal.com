@@ -288,7 +288,7 @@ const methods = {
 
     if (stylesConfig) {
       console.warn(
-        "Cal.com Embed: `styles` prop is deprecated. Use `cssVarsPerTheme` instead to achieve the same effect"
+        "Cal.com Embed: `styles` prop is deprecated. Use `cssVarsPerTheme` instead to achieve the same effect. Here is a list of CSS variables that are supported.https://github.com/calcom/cal.com/blob/main/packages/config/tailwind-preset.js#L19"
       );
     }
 
