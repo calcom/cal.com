@@ -237,7 +237,7 @@ const BookingPage = ({
         eventTypeId: eventType.id,
         slotUtcStartDate: dayjs(queryDate).utc().format(),
         slotUtcEndDate: dayjs(queryDate).utc().add(parseInt(queryDuration), "minutes").format(),
-        bookingAttendees: currentSlotBooking ? currentSlotBooking.attendees.length : undefined,
+        bookingUid: currentSlotBooking?.uid,
       });
     }
   };
