@@ -55,6 +55,7 @@ if (only === "all" || only === "ns:second") {
         iframeAttrs: {
           id: "cal-booking-place-second-iframe",
         },
+        theme: "auto",
       },
     },
   ]);
