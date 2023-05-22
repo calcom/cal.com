@@ -17,6 +17,10 @@ export const subscriberUrlReserved = ({
   userId,
   eventTypeId,
 }: Params): boolean => {
+  if (!teamId && !userId && !eventTypeId) {
+    throw new Error("Either teamId, userId, or eventTypeId must be provided.");
+  }
+
   const findMatchingWebhook = (condition: (webhook: Webhook) => void) => {
     return !!webhooks?.find(
       (webhook) => webhook.subscriberUrl === subscriberUrl && (!id || webhook.id !== id) && condition(webhook)
