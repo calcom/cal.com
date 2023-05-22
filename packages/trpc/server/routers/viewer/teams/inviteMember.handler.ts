@@ -135,7 +135,6 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         inviteTeamOptions.isCalcomMember = false;
       }
 
-
       await sendTeamInviteEmail({
         language: translation,
         from: ctx.user.name,
