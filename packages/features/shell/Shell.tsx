@@ -24,6 +24,7 @@ import getBrandColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { trpc } from "@calcom/trpc/react";
+import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 import {
@@ -246,8 +247,9 @@ export default function Shell(props: LayoutProps) {
 
 function UserDropdown({ small }: { small?: boolean }) {
   const { t } = useLocale();
-  const query = useMeQuery();
-  const user = query.data;
+  const { data: user } = useMeQuery();
+  const { data: avatar } = useAvatarQuery();
+
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -294,7 +296,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   className="rounded-full"
-                  src={WEBAPP_URL + "/" + user.username + "/avatar.png"}
+                  src={avatar?.avatar || WEBAPP_URL + "/" + user.username + "/avatar.png"}
                   alt={user.username || "Nameless User"}
                 />
               }
