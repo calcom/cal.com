@@ -2,7 +2,6 @@
   "name": "Google Tag Manager",
   "slug": "gtm",
   "type": "gtm_analytics",
-  "imageSrc": "icon.svg",
   "logo": "icon.svg",
   "url": "https://tagmanager.google.com",
   "variant": "analytics",

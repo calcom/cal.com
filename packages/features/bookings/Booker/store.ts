@@ -5,7 +5,7 @@ import dayjs from "@calcom/dayjs";
 
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerState, BookerLayout } from "./types";
-import { updateQueryParam, getQueryParam } from "./utils/query-param";
+import { updateQueryParam, getQueryParam, removeQueryParam } from "./utils/query-param";
 
 /**
  * Arguments passed into store initializer, containing
@@ -51,6 +51,7 @@ type BookerStore = {
    */
   selectedDate: string | null;
   setSelectedDate: (date: string | null) => void;
+  addToSelectedDate: (days: number) => void;
   /**
    * Selected event duration in minutes.
    */
@@ -78,6 +79,19 @@ type BookerStore = {
    * Method called by booker component to set initial data.
    */
   initialize: (data: StoreInitializeType) => void;
+  /**
+   * Stored form state, used when user navigates back and
+   * forth between timeslots and form. Get's cleared on submit
+   * to prevent sticky data.
+   */
+  formValues: Record<string, any>;
+  setFormValues: (values: Record<string, any>) => void;
+};
+
+const validLayouts: BookerLayout[] = ["large_calendar", "large_timeslots", "small_calendar"];
+
+const checkLayout = (layout: BookerLayout) => {
+  return validLayouts.find((validLayout) => validLayout === layout);
 };
 
 /**
@@ -90,12 +104,32 @@ type BookerStore = {
 export const useBookerStore = create<BookerStore>((set, get) => ({
   state: "loading",
   setState: (state: BookerState) => set({ state }),
-  layout: "small_calendar",
-  setLayout: (layout: BookerLayout) => set({ layout }),
+  layout: checkLayout(getQueryParam("layout") as BookerLayout) || "small_calendar",
+  setLayout: (layout: BookerLayout) => {
+    // If we switch to a large layout and don't have a date selected yet,
+    // we selected it here, so week title is rendered properly.
+    if (["large_calendar", "large_timeslots"].includes(layout) && !get().selectedDate) {
+      set({ selectedDate: dayjs().format("YYYY-MM-DD") });
+    }
+    return set({ layout });
+  },
   selectedDate: getQueryParam("date") || null,
   setSelectedDate: (selectedDate: string | null) => {
     set({ selectedDate });
     updateQueryParam("date", selectedDate ?? "");
+  },
+  addToSelectedDate: (days: number) => {
+    const currentSelection = dayjs(get().selectedDate);
+    const newSelection = currentSelection.add(days, "day");
+    const newSelectionFormatted = newSelection.format("YYYY-MM-DD");
+
+    if (newSelection.month() !== currentSelection.month()) {
+      set({ month: newSelection.format("YYYY-MM") });
+      updateQueryParam("month", newSelection.format("YYYY-MM"));
+    }
+
+    set({ selectedDate: newSelectionFormatted });
+    updateQueryParam("date", newSelectionFormatted);
   },
   username: null,
   eventSlug: null,
@@ -136,6 +170,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     // force clear this.
     if (rescheduleBooking) set({ selectedTimeslot: null });
     if (month) set({ month });
+    removeQueryParam("layout");
   },
   selectedDuration: Number(getQueryParam("duration")) || null,
   setSelectedDuration: (selectedDuration: number | null) => {
@@ -150,6 +185,10 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setSelectedTimeslot: (selectedTimeslot: string | null) => {
     set({ selectedTimeslot });
     updateQueryParam("slot", selectedTimeslot ?? "");
+  },
+  formValues: {},
+  setFormValues: (formValues: Record<string, any>) => {
+    set({ formValues });
   },
 }));
 

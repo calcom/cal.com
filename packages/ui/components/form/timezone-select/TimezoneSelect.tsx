@@ -52,7 +52,7 @@ export function TimezoneSelect({
       classNames={{
         ...timezoneClassNames,
         input: (state) =>
-          classNames("text-emphasis", timezoneClassNames?.input && timezoneClassNames.input(state)),
+          classNames("text-emphasis h-6", timezoneClassNames?.input && timezoneClassNames.input(state)),
         option: (state) =>
           classNames(
             "bg-default flex cursor-pointer justify-between py-2.5 px-3 rounded-none text-default ",
@@ -87,6 +87,7 @@ export function TimezoneSelect({
         menu: (state) =>
           classNames(
             "rounded-md bg-default text-sm leading-4 text-default mt-1 border border-subtle",
+            state.selectProps.menuIsOpen && "shadow-dropdown", // Add box-shadow when menu is open
             timezoneClassNames?.menu && timezoneClassNames.menu(state)
           ),
         groupHeading: () => "leading-none text-xs uppercase text-default pl-2.5 pt-4 pb-2",
@@ -105,6 +106,7 @@ export function TimezoneSelect({
             timezoneClassNames?.indicatorsContainer && timezoneClassNames.indicatorsContainer(state)
           ),
         multiValueRemove: () => "text-default py-auto ml-2",
+        noOptionsMessage: () => "h-12 py-2 flex items-center justify-center",
       }}
     />
   );

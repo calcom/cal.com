@@ -1,10 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
-import { MembershipRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useLayoutEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -14,6 +13,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import objectKeys from "@calcom/lib/objectKeys";
 import turndown from "@calcom/lib/turndownService";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
@@ -54,6 +54,10 @@ const ProfileView = () => {
   const utils = trpc.useContext();
   const session = useSession();
   const [firstRender, setFirstRender] = useState(true);
+
+  useLayoutEffect(() => {
+    document.body.focus();
+  }, []);
 
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
@@ -260,7 +264,7 @@ const ProfileView = () => {
                   <>
                     <Label className="text-emphasis mt-5">{t("about")}</Label>
                     <div
-                      className=" text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                      className="  text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600 break-words"
                       dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
                     />
                   </>

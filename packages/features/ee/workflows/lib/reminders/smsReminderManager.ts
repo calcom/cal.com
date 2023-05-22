@@ -1,10 +1,10 @@
-import type { TimeUnit } from "@prisma/client";
-import { WorkflowTriggerEvents, WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@prisma/client";
-
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import type { TimeUnit } from "@calcom/prisma/enums";
+import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
+import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalEventResponses } from "@calcom/types/Calendar";
 

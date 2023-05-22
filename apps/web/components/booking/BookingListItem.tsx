@@ -1,4 +1,3 @@
-import { BookingStatus } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -13,6 +12,7 @@ import { formatTime } from "@calcom/lib/date-fns";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { ActionType } from "@calcom/ui";
@@ -29,7 +29,7 @@ import {
   TableActions,
   TextAreaField,
 } from "@calcom/ui";
-import { Check, Clock, MapPin, RefreshCcw, Send, Slash, X, CreditCard } from "@calcom/ui/components/icon";
+import { Check, Clock, MapPin, RefreshCcw, Send, Ban, X, CreditCard } from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -119,7 +119,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setRejectionDialogIsOpen(true);
       },
-      icon: Slash,
+      icon: Ban,
       disabled: mutation.isLoading,
     },
     // For bookings with payment, only confirm if the booking is paid for
@@ -280,13 +280,13 @@ function BookingListItem(booking: BookingItemProps) {
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
       />
-      {booking.paid && (
+      {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
           isOpenDialog={chargeCardDialogIsOpen}
           setIsOpenDialog={setChargeCardDialogIsOpen}
           bookingId={booking.id}
-          paymentAmount={booking?.payment[0].amount}
-          paymentCurrency={booking?.payment[0].currency}
+          paymentAmount={booking.payment[0].amount}
+          paymentCurrency={booking.payment[0].currency}
         />
       )}
       {showRecordingsButtons && (
@@ -354,11 +354,15 @@ function BookingListItem(booking: BookingItemProps) {
                 {booking.eventType.team.name}
               </Badge>
             )}
-            {booking.paid && (
+            {booking.paid && !booking.payment[0] ? (
+              <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+                {t("error_collecting_card")}
+              </Badge>
+            ) : booking.paid ? (
               <Badge className="ltr:mr-2 rtl:ml-2" variant="green">
                 {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
               </Badge>
-            )}
+            ) : null}
             {recurringDates !== undefined && (
               <div className="text-muted mt-2 text-sm">
                 <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
@@ -458,7 +462,7 @@ function BookingListItem(booking: BookingItemProps) {
               <RequestSentMessage />
             </div>
           )}
-          {booking.status === "ACCEPTED" && booking.paid && booking?.payment[0]?.paymentOption === "HOLD" && (
+          {booking.status === "ACCEPTED" && booking.paid && booking.payment[0]?.paymentOption === "HOLD" && (
             <div className="ml-2">
               <TableActions actions={chargeCardActions} />
             </div>
@@ -483,12 +487,12 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
     i18n: { language },
   } = useLocale();
   const now = new Date();
-  const recurringCount = recurringDates.filter((date) => {
+  const recurringCount = recurringDates.filter((recurringDate) => {
     return (
-      date >= now &&
+      recurringDate >= now &&
       !booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
         .map((date) => date.toDateString())
-        .includes(date.toDateString())
+        .includes(recurringDate.toDateString())
     );
   }).length;
 

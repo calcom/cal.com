@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -12,6 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
+import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { Avatar, AvatarGroup, Button, EmptyScreen, HeadSeo } from "@calcom/ui";
@@ -26,7 +27,7 @@ import Team from "@components/team/screens/Team";
 import { ssrInit } from "@server/lib/ssr";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
-function TeamPage({ team, isUnpublished }: TeamPageProps) {
+function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
   useTheme(team.theme);
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
@@ -56,17 +57,22 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
   }
 
   const EventTypes = () => (
-    <ul className="border-subtle border-subtle rounded-md border">
+    <ul className="border-subtle rounded-md border">
       {team.eventTypes.map((type, index) => (
         <li
           key={index}
           className={classNames(
-            "dark:bg-darkgray-100 border-subtle bg-default hover:bg-muted border-subtle group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0",
+            "dark:bg-darkgray-100 bg-default hover:bg-muted border-subtle group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0",
             !isEmbed && "bg-default"
           )}>
           <div className="px-6 py-4 ">
             <Link
               href={`/team/${team.slug}/${type.slug}`}
+              onClick={async () => {
+                sdkActionManager?.fire("eventTypeSelected", {
+                  eventType: type,
+                });
+              }}
               data-testid="event-type-link"
               className="flex justify-between">
               <div className="flex-shrink">
@@ -100,18 +106,18 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
         title={teamName}
         description={teamName}
         meeting={{
-          title: team?.bio || "",
+          title: markdownStrippedBio,
           profile: { name: `${team.name}`, image: getPlaceholderAvatar(team.logo, team.name) },
         }}
       />
       <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pt-12 pb-12">
-        <div className="max-w-96 mx-auto mb-8 text-center">
+        <div className="mx-auto mb-8 max-w-3xl text-center">
           <Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />
           <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider">{teamName}</p>
           {!isBioEmpty && (
             <>
               <div
-                className=" text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                 dangerouslySetInnerHTML={{ __html: team.safeBio }}
               />
             </>
@@ -126,7 +132,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
               <div>
                 <div className="relative mt-12">
                   <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                    <div className="border-subtle border-subtle w-full border-t" />
+                    <div className="border-subtle w-full border-t" />
                   </div>
                   <div className="relative flex justify-center">
                     <span className="dark:bg-darkgray-50 bg-subtle text-subtle dark:text-inverted px-2 text-sm">
@@ -196,10 +202,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return { ...member, safeBio: markdownToSafeHTML(member.bio || "") };
   });
 
+  const markdownStrippedBio = stripMarkdown(team?.bio || "");
+
   return {
     props: {
       team: { ...team, safeBio, members },
+      themeBasis: team.slug,
       trpcState: ssr.dehydrate(),
+      markdownStrippedBio,
     },
   } as const;
 };

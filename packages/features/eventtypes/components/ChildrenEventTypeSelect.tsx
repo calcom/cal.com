@@ -1,10 +1,10 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { MembershipRole } from "@prisma/client";
 import type { Props } from "react-select";
 
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { Avatar, Badge, Button, ButtonGroup, Select, Switch, Tooltip } from "@calcom/ui";
 import { ExternalLink, X } from "@calcom/ui/components/icon";
 
@@ -24,6 +24,7 @@ export type ChildrenEventType = {
   hidden: boolean;
 };
 
+// TODO: This isnt just a select... rename this component in the future took me ages to find the component i was looking for
 export const ChildrenEventTypeSelect = ({
   options = [],
   value = [],
@@ -47,7 +48,6 @@ export const ChildrenEventTypeSelect = ({
         }}
         name={props.name}
         placeholder={t("select")}
-        isSearchable={false}
         options={options}
         value={value}
         isMulti
@@ -66,6 +66,7 @@ export const ChildrenEventTypeSelect = ({
             <div className="flex flex-row items-center gap-3 p-3">
               <Avatar
                 size="mdLg"
+                className="overflow-visible"
                 imageSrc={`${CAL_URL}/${children.owner.username}/avatar.png`}
                 alt={children.owner.name || ""}
               />
@@ -73,22 +74,20 @@ export const ChildrenEventTypeSelect = ({
                 <div className="flex flex-col">
                   <span className="text text-sm font-semibold leading-none">
                     {children.owner.name}
-                    {children.owner.membership === MembershipRole.OWNER ? (
-                      <Badge className="ml-2" variant="gray">
-                        {t("owner")}
-                      </Badge>
-                    ) : (
-                      <Badge className="ml-2" variant="gray">
-                        {t("member")}
-                      </Badge>
-                    )}
+                    <div className="flex flex-row gap-1">
+                      {children.owner.membership === MembershipRole.OWNER ? (
+                        <Badge variant="gray">{t("owner")}</Badge>
+                      ) : (
+                        <Badge variant="gray">{t("member")}</Badge>
+                      )}
+                      {children.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
+                    </div>
                   </span>
                   <small className="text-subtle font-normal leading-normal">
                     {`/${children.owner.username}/${children.slug}`}
                   </small>
                 </div>
                 <div className="flex flex-row items-center gap-2">
-                  {children.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
                   <Tooltip content={t("show_eventtype_on_profile")}>
                     <div className="self-center rounded-md p-2">
                       <Switch

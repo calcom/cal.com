@@ -1,4 +1,3 @@
-import { MembershipRole, UserPermissionRole } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -11,7 +10,9 @@ import { classNames } from "@calcom/lib";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
 import type { VerticalTabItemProps } from "@calcom/ui";
 import { Badge, Button, ErrorBoundary, Skeleton, useMeta, VerticalTabItem } from "@calcom/ui";
 import {
@@ -105,14 +106,16 @@ const adminRequiredKeys = ["admin"];
 
 const useTabs = () => {
   const session = useSession();
+  const { data: user } = trpc.viewer.me.useQuery();
+  const { data: avatar } = useAvatarQuery();
 
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
   tabs.map((tab) => {
-    if (tab.name === "my_account") {
-      tab.name = session.data?.user?.name || "my_account";
+    if (tab.href === "/settings/my-account") {
+      tab.name = user?.name || "my_account";
       tab.icon = undefined;
-      tab.avatar = WEBAPP_URL + "/" + session.data?.user?.username + "/avatar.png";
+      tab.avatar = avatar?.avatar || WEBAPP_URL + "/" + session?.data?.user?.username + "/avatar.png";
     }
     return tab;
   });
@@ -128,9 +131,9 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
       href="/"
-      className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-64 flex-row items-center rounded-md py-2 px-3 text-sm font-medium leading-4"
+      className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md py-2 px-3 text-sm font-medium leading-4"
       data-testid={`vertical-tab-${name}`}>
-      <ArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] md:mt-0" />
+      <ArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0" />
       <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate">
         {name}
       </Skeleton>

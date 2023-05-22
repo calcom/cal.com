@@ -1,9 +1,10 @@
 import type { Prisma } from "@prisma/client";
-import crypto from "crypto";
+import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { authedProcedure, isAuthed, router } from "@calcom/trpc/server/trpc";
+import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
+import { router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
@@ -13,7 +14,9 @@ const UserBelongsToTeamInput = z.object({
   teamId: z.coerce.number().optional().nullable(),
 });
 
-const userBelongsToTeamMiddleware = isAuthed.unstable_pipe(async ({ ctx, next, rawInput }) => {
+//const userBelongsToTeamMiddleware = isAuthed.unstable_pipe();
+
+const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, rawInput }) => {
   const parse = UserBelongsToTeamInput.safeParse(rawInput);
   if (!parse.success) {
     throw new TRPCError({ code: "BAD_REQUEST" });
@@ -40,8 +43,6 @@ const userBelongsToTeamMiddleware = isAuthed.unstable_pipe(async ({ ctx, next, r
 
   return next();
 });
-
-const userBelongsToTeamProcedure = authedProcedure.use(userBelongsToTeamMiddleware);
 
 const UserSelect = {
   id: true,
@@ -715,7 +716,7 @@ export const insightsRouter = router({
         return {
           userId: booking.userId,
           user: userHashMap.get(booking.userId),
-          emailMd5: crypto.createHash("md5").update(user?.email).digest("hex"),
+          emailMd5: md5(user?.email),
           count: booking._count.id,
         };
       });
@@ -806,7 +807,7 @@ export const insightsRouter = router({
         return {
           userId: booking.userId,
           user: userHashMap.get(booking.userId),
-          emailMd5: crypto.createHash("md5").update(user?.email).digest("hex"),
+          emailMd5: md5(user?.email),
           count: booking._count.id,
         };
       });
