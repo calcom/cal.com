@@ -50,9 +50,11 @@ export const connectedCalendarsHandler = async ({ ctx }: ConnectedCalendarsOptio
     const { integration = "", externalId = "", credentialId } = connectedCalendars[0].primary ?? {};
     // Select the first calendar matching the primary by default since that will also be the destination calendar
     if (externalId) {
-      const calendarIndex = connectedCalendars[0].calendars.findIndex((item) => item.externalId === externalId && item.integration === integration)
+      const calendarIndex = connectedCalendars[0].calendars.findIndex(
+        (item) => item.externalId === externalId && item.integration === integration
+      );
       if (calendarIndex >= 0) {
-        connectedCalendars[0].calendars[calendarIndex].isSelected = true
+        connectedCalendars[0].calendars[calendarIndex].isSelected = true;
       }
     }
     user.destinationCalendar = await prisma.destinationCalendar.create({
@@ -79,9 +81,11 @@ export const connectedCalendarsHandler = async ({ ctx }: ConnectedCalendarsOptio
       const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
       // Select the first calendar matching the primary by default since that will also be the destination calendar
       if (externalId) {
-        const calendarIndex = connectedCalendars[0].calendars.findIndex((item) => item.externalId === externalId && item.integration === integration)
+        const calendarIndex = connectedCalendars[0].calendars.findIndex(
+          (item) => item.externalId === externalId && item.integration === integration
+        );
         if (calendarIndex >= 0) {
-          connectedCalendars[0].calendars[calendarIndex].isSelected = true
+          connectedCalendars[0].calendars[calendarIndex].isSelected = true;
         }
       }
       user.destinationCalendar = await prisma.destinationCalendar.update({
@@ -95,14 +99,18 @@ export const connectedCalendarsHandler = async ({ ctx }: ConnectedCalendarsOptio
       // Mark the destination calendar as selected in the calendar list
       // We use every so that we can exit early once we find the matching calendar
       connectedCalendars.every((cal) => {
-        const index = cal.calendars.findIndex((calendar) => calendar.externalId === destinationCal.externalId && calendar.integration === destinationCal.integration)
+        const index = cal.calendars.findIndex(
+          (calendar) =>
+            calendar.externalId === destinationCal.externalId &&
+            calendar.integration === destinationCal.integration
+        );
         if (index >= 0) {
-          cal.calendars[index].isSelected = true
-          return false
+          cal.calendars[index].isSelected = true;
+          return false;
         }
 
-        return true
-      })
+        return true;
+      });
     }
   }
 
