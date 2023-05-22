@@ -1,5 +1,4 @@
 import type { DestinationCalendar } from "@prisma/client";
-import { isFinite } from "lodash";
 
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { prisma } from "@calcom/prisma";
@@ -36,8 +35,8 @@ export const connectedCalendarsHandler = async ({ ctx }: ConnectedCalendarsOptio
   );
   let toggledCalendarDetails:
     | {
-        externalId?: string;
-        integration?: string;
+        externalId: string;
+        integration: string;
       }
     | undefined;
 
@@ -57,10 +56,10 @@ export const connectedCalendarsHandler = async ({ ctx }: ConnectedCalendarsOptio
     const { integration = "", externalId = "", credentialId } = connectedCalendars[0].primary ?? {};
     // Select the first calendar matching the primary by default since that will also be the destination calendar
     if (externalId) {
-      const calendarIndex = connectedCalendars[0].calendars?.findIndex(
+      const calendarIndex = (connectedCalendars[0].calendars || []).findIndex(
         (item) => item.externalId === externalId && item.integration === integration
       );
-      if (isFinite(calendarIndex) && connectedCalendars?.[0]?.calendars?.[calendarIndex]) {
+      if (calendarIndex >= 0 && connectedCalendars[0].calendars) {
         connectedCalendars[0].calendars[calendarIndex].isSelected = true;
         toggledCalendarDetails = {
           externalId,
@@ -92,10 +91,10 @@ export const connectedCalendarsHandler = async ({ ctx }: ConnectedCalendarsOptio
       const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
       // Select the first calendar matching the primary by default since that will also be the destination calendar
       if (externalId) {
-        const calendarIndex = connectedCalendars[0].calendars?.findIndex(
+        const calendarIndex = (connectedCalendars[0].calendars || []).findIndex(
           (item) => item.externalId === externalId && item.integration === integration
         );
-        if (isFinite(calendarIndex) && connectedCalendars?.[0]?.calendars?.[calendarIndex]) {
+        if (calendarIndex >= 0 && connectedCalendars[0].calendars) {
           connectedCalendars[0].calendars[calendarIndex].isSelected = true;
           toggledCalendarDetails = {
             externalId,
@@ -114,16 +113,16 @@ export const connectedCalendarsHandler = async ({ ctx }: ConnectedCalendarsOptio
       // Mark the destination calendar as selected in the calendar list
       // We use every so that we can exit early once we find the matching calendar
       connectedCalendars.every((cal) => {
-        const index = cal.calendars?.findIndex(
+        const index = (cal.calendars || []).findIndex(
           (calendar) =>
             calendar.externalId === destinationCal.externalId &&
             calendar.integration === destinationCal.integration
         );
-        if (isFinite(index) && cal.calendars?.[index]) {
+        if (index >= 0 && cal.calendars) {
           cal.calendars[index].isSelected = true;
           toggledCalendarDetails = {
             externalId: destinationCal.externalId,
-            integration: destinationCal.integration,
+            integration: destinationCal.integration || "",
           };
           return false;
         }
