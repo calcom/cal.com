@@ -44,12 +44,16 @@ export default function EmbedInitIframe() {
         cssVarsStyle.push(`}`);
       }
     }
+
+    const existingStyleEl = document.head.querySelector("#embed-css-vars") as HTMLStyleElement;
+    if (existingStyleEl) {
+      existingStyleEl.innerText = cssVarsStyle.join("\n");
+      return;
+    }
+
     const style = document.createElement("style");
     style.id = "embed-css-vars";
     style.innerText = cssVarsStyle.join("\n");
-    if (document.head.querySelector("#embed-css-vars")) {
-      return;
-    }
     document.head.appendChild(style);
   };
 }
