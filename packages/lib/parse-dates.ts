@@ -28,20 +28,20 @@ export const parseDate = (date: string | null | Dayjs, language: string, options
 export const parseDateTimeWithTimeZone = (date: Date, language: string, timezone: string) => {
   const newDate = new Date(date);
 
-  const timeOptions: Object = {
+  const timeOptions: object = {
     timeZone: timezone,
     hour12: true,
-    hourCycle: 'h12',
-    hour: 'numeric',
-    minute: 'numeric',
+    hourCycle: "h12",
+    hour: "numeric",
+    minute: "numeric",
   };
 
-  const dateOptions: Object = {
+  const dateOptions: object = {
     timeZone: timezone, 
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   };
 
   const formatedTime = newDate.toLocaleTimeString(language, timeOptions).replace(" ", "").toLowerCase();
