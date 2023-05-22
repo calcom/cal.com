@@ -34,7 +34,7 @@ export const AvailableTimes = ({
   const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
   const hasTimeSlots = !!seatsPerTimeslot;
   const [layout] = useBookerStore((state) => [state.layout], shallow);
-  const isLargeTimeslots = layout === "large_timeslots";
+  const isLargeTimeslots = layout === "column_view";
   const isToday = dayjs().isSame(date, "day");
 
   return (

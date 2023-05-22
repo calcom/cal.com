@@ -5,6 +5,7 @@ import type { NextApiResponse, GetServerSidePropsContext } from "next";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { validateIntervalLimitOrder } from "@calcom/lib";
+import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -46,6 +47,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     teamId,
     bookingFields,
     offsetStart,
+    bookerLayouts,
     ...rest
   } = input;
 
@@ -54,6 +56,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     bookingFields,
+    bookerLayouts: bookerLayouts || null,
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
   };
   data.locations = locations ?? undefined;
@@ -108,6 +111,17 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Offset start time must be zero or greater." });
     }
     data.offsetStart = offsetStart;
+  }
+
+  const bookerLayoutsError = validateBookerLayouts(bookerLayouts || null);
+  if (bookerLayoutsError) {
+    // Function returns a translation key, this maps it to an actual English text.
+    const errorText = {
+      bookerlayout_error_min_one_enabled: "At least one layout has to be enabled.",
+      bookerlayout_error_default_not_enabled:
+        "The layout you selected as the default view is not part of the enabled layouts.",
+    };
+    throw new TRPCError({ code: "BAD_REQUEST", message: errorText[bookerLayoutsError] });
   }
 
   if (schedule) {

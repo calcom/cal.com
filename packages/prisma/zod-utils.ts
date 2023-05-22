@@ -539,3 +539,21 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
 export const unlockedManagedEventTypeProps = {
   ...pick(allManagedEventTypeProps, ["locations", "scheduleId", "destinationCalendar"]),
 };
+
+export const bookerLayoutOptions = ["month_view", "week_view", "column_view"] as const;
+// @TODO: HAHA. Let's just look the array above and find out why that's not working..
+const layoutOptions = z.union([
+  z.literal(bookerLayoutOptions[0]),
+  z.literal(bookerLayoutOptions[1]),
+  z.literal(bookerLayoutOptions[2]),
+]);
+
+export const bookerLayouts = z
+  .object({
+    enabledLayouts: z.array(layoutOptions),
+    defaultLayout: layoutOptions,
+  })
+  .nullable();
+
+export type BookerLayouts = z.infer<typeof layoutOptions>;
+export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;

@@ -15,7 +15,7 @@ import type { BookerAreas, BookerLayout } from "../types";
  *  // Where default is the required default area.
  *  default: "calendar",
  *  // Any optional overrides for different layouts by their layout name.
- *  large_calendar: "main",
+ *  week_view: "main",
  * }
  */
 type GridArea = BookerAreas | ({ [key in BookerLayout]?: BookerAreas } & { default: BookerAreas });

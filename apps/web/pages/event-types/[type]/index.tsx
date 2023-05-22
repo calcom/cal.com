@@ -17,10 +17,15 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { Prisma } from "@calcom/prisma/client";
 import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
-import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import type {
+  BookerLayoutSettings,
+  customInputSchema,
+  EventTypeMetaDataSchema,
+} from "@calcom/prisma/zod-utils";
+import { bookerLayouts, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
@@ -96,6 +101,7 @@ export type FormValues = {
   hosts: { userId: number; isFixed: boolean }[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
   availability?: AvailabilityOption;
+  bookerLayouts: BookerLayoutSettings;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -225,6 +231,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     minimumBookingNotice: eventType.minimumBookingNotice,
     metadata,
     hosts: eventType.hosts,
+    bookerLayouts: eventType.bookerLayouts as BookerLayoutSettings,
     children: eventType.children.map((ch) => ({
       ...ch,
       created: true,
@@ -259,6 +266,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           length: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           offsetStart: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           bookingFields: eventTypeBookingFields,
+          bookerLayouts: bookerLayouts,
         })
         // TODO: Add schema for other fields later.
         .passthrough()
@@ -332,6 +340,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       seatsPerTimeSlotEnabled,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       minimumBookingNoticeInDurationType,
+      bookerLayouts,
       ...input
     } = values;
 
@@ -344,6 +353,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       const isValid = validateIntervalLimitOrder(durationLimits);
       if (!isValid) throw new Error(t("event_setup_duration_limits_error"));
     }
+
+    const layoutError = validateBookerLayouts(bookerLayouts);
+    if (layoutError) throw new Error(t(layoutError));
 
     if (metadata?.multipleDuration !== undefined) {
       if (metadata?.multipleDuration.length < 1) {
@@ -376,6 +388,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       metadata,
       customInputs,
       children,
+      bookerLayouts,
     });
   };
 
@@ -418,6 +431,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
               minimumBookingNoticeInDurationType,
               availability,
+              bookerLayouts,
               ...input
             } = values;
 
@@ -430,6 +444,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               const isValid = validateIntervalLimitOrder(durationLimits);
               if (!isValid) throw new Error(t("event_setup_duration_limits_error"));
             }
+
+            const layoutError = validateBookerLayouts(bookerLayouts);
+            if (layoutError) throw new Error(t(layoutError));
 
             if (metadata?.multipleDuration !== undefined) {
               if (metadata?.multipleDuration.length < 1) {
@@ -457,6 +474,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               seatsShowAttendees,
               metadata,
               customInputs,
+              bookerLayouts,
             });
           }}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>

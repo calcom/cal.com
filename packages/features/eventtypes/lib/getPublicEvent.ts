@@ -11,6 +11,7 @@ import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { PrismaClient } from "@calcom/prisma/client";
 import {
+  bookerLayoutOptions,
   EventTypeMetaDataSchema,
   customInputSchema,
   userMetadata as userMetadataSchema,
@@ -36,6 +37,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   seatsPerTimeSlot: true,
   bookingFields: true,
   team: true,
+  bookerLayouts: true,
   workflows: {
     include: {
       workflow: {
@@ -104,6 +106,10 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
 
     return {
       ...defaultEvent,
+      bookerLayouts: {
+        enabledLayouts: bookerLayoutOptions,
+        defaultLayout: "month_view",
+      },
       bookingFields: getBookingFieldsWithSystemFields(defaultEvent),
       // Clears meta data since we don't want to send this in the public api.
       users: users.map((user) => ({ ...user, metadata: undefined })),
