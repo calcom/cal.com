@@ -1,3 +1,5 @@
+import type { Membership } from "@prisma/client";
+
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -12,6 +14,22 @@ export const webhookProcedure = authedProcedure
     // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
     if (!input) return next();
     const { id, teamId, eventTypeId } = input;
+
+    const assertPartOfTeamWithRequiredAccessLevel = (memberships?: Membership[], teamId?: number) => {
+      if (!memberships) return false;
+      if (teamId) {
+        return memberships.some(
+          (membership) =>
+            membership.teamId === teamId &&
+            (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
+        );
+      }
+      return memberships.some(
+        (membership) =>
+          membership.userId === ctx.user.id &&
+          (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
+      );
+    };
 
     if (id) {
       //check if user is authorized to edit webhook
@@ -65,14 +83,7 @@ export const webhookProcedure = authedProcedure
           });
 
           if (eventType && eventType.userId !== ctx.user.id) {
-            const userHasAdminOwnerPermissionInTeam =
-              eventType.team &&
-              eventType.team.members.some(
-                (membership) =>
-                  membership.userId === ctx.user.id &&
-                  (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
-              );
-            if (!userHasAdminOwnerPermissionInTeam) {
+            if (!assertPartOfTeamWithRequiredAccessLevel(eventType.team?.members)) {
               throw new TRPCError({
                 code: "UNAUTHORIZED",
               });
@@ -96,14 +107,7 @@ export const webhookProcedure = authedProcedure
           },
         });
 
-        if (
-          user &&
-          !user.teams.some(
-            (membership) =>
-              membership.teamId === teamId &&
-              (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
-          )
-        ) {
+        if (!assertPartOfTeamWithRequiredAccessLevel(user?.teams, teamId)) {
           throw new TRPCError({
             code: "UNAUTHORIZED",
           });
@@ -123,14 +127,7 @@ export const webhookProcedure = authedProcedure
         });
 
         if (eventType && eventType.userId !== ctx.user.id) {
-          const userBelongsToTeam =
-            eventType.team &&
-            eventType.team.members.some(
-              (membership) =>
-                membership.userId === ctx.user.id &&
-                (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
-            );
-          if (!userBelongsToTeam) {
+          if (!assertPartOfTeamWithRequiredAccessLevel(eventType.team?.members)) {
             throw new TRPCError({
               code: "UNAUTHORIZED",
             });
