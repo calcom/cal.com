@@ -2094,17 +2094,17 @@ async function handler(
       ? WebhookTriggerEvents.BOOKING_RESCHEDULED
       : WebhookTriggerEvents.BOOKING_CREATED;
     const subscriberOptions = {
-      userId: !eventType.team?.id ? organizerUser.id : 0,
+      userId: organizerUser.id,
       eventTypeId,
       triggerEvent: eventTrigger,
-      teamId: eventType.team?.id ?? 0,
+      teamId: eventType.team?.id,
     };
 
     const subscriberOptionsMeetingEnded = {
-      userId: !eventType.team?.id ? organizerUser.id : 0,
+      userId: organizerUser.id,
       eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-      teamId: eventType.team?.id ?? 0,
+      teamId: eventType.team?.id,
     };
 
     try {

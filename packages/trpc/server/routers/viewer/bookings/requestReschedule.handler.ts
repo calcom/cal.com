@@ -237,10 +237,10 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
     // Send Webhook call if hooked to BOOKING.CANCELLED
     const subscriberOptions = {
-      userId: !bookingToReschedule.eventType?.teamId ? bookingToReschedule.userId : 0,
-      eventTypeId: (bookingToReschedule.eventTypeId as number) ?? 0,
+      userId: bookingToReschedule.userId,
+      eventTypeId: bookingToReschedule.eventTypeId as number,
       triggerEvent: eventTrigger,
-      teamId: bookingToReschedule.eventType?.teamId ?? 0,
+      teamId: bookingToReschedule.eventType?.teamId,
     };
     const webhooks = await getWebhooks(subscriberOptions);
     const promises = webhooks.map((webhook) =>
