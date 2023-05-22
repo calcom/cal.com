@@ -29,7 +29,7 @@ type FormValues = {
 };
 
 export default function Signup({ prepopulateFormValues, token }: inferSSRProps<typeof getServerSideProps>) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
 
@@ -52,6 +52,7 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
         ...data,
+        language: i18n.language,
       }),
       headers: {
         "Content-Type": "application/json",

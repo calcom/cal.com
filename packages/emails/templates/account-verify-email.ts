@@ -1,4 +1,4 @@
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 
 import { APP_NAME } from "@calcom/lib/constants";
 

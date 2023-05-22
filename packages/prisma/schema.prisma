@@ -277,13 +277,19 @@ model Membership {
   @@index([userId])
 }
 
+enum TokenType {
+  TEAM_INVITE
+  VERIFY_ACCOUNT
+}
+
 model VerificationToken {
-  id         Int      @id @default(autoincrement())
+  id         Int        @id @default(autoincrement())
   identifier String
-  token      String   @unique
+  token      String     @unique
+  type       TokenType?
   expires    DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
   @@unique([identifier, token])
   @@index([token])

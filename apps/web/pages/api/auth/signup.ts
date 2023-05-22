@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { sendEmailVerifciation } from "@calcom/features/auth/lib/verifyEmail";
 import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma from "@calcom/prisma";
@@ -17,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const data = req.body;
-  const { email, password } = data;
+  const { email, password, language } = data;
   const username = slugify(data.username);
   const userEmail = email.toLowerCase();
 
@@ -105,6 +106,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       closeComUpsertTeamUser(team, user, membership.role);
     }
   }
+
+  await sendEmailVerifciation({
+    email: userEmail,
+    username,
+    language,
+  });
 
   res.status(201).json({ message: "Created user" });
 }
