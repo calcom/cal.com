@@ -177,6 +177,8 @@ async function getUserPageProps(context: GetStaticPropsContext) {
         slug: `${user.username}/${eventType.slug}`,
         image: `${WEBAPP_URL}/${user.username}/avatar.png`,
       },
+      // Dynamic group has no theme preference right now. It uses system theme.
+      themeBasis: user.username,
       away: user?.away,
       isDynamic: false,
       trpcState: ssg.dehydrate(),
@@ -307,6 +309,8 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
     props: {
       eventType: eventTypeObject,
       profile,
+      // Dynamic group has no theme preference right now. It uses system theme.
+      themeBasis: null,
       isDynamic: true,
       away: false,
       trpcState: ssg.dehydrate(),
