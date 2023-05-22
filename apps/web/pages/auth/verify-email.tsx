@@ -4,21 +4,23 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 import { trpc } from "@calcom/trpc";
+import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import { Button, EmptyScreen, showToast } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
 function VerifyEmailPage() {
-  const { data } = useSession();
+  const { data } = useEmailVerifyCheck();
+  const { data: session } = useSession();
   const router = useRouter();
   const mutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
 
   useEffect(() => {
-    if (data?.user.emailVerified) {
-      router.replace("/");
+    if (!data?.requiresRedirect) {
+      router.replace("/event-types");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.user.emailVerified]);
+  }, [data?.requiresRedirect]);
 
   return (
     <div className="h-[100vh] w-full ">
@@ -29,15 +31,16 @@ function VerifyEmailPage() {
             dashedBorder={false}
             Icon={MailOpenIcon}
             headline="Check your email"
-            description={`We’ve sent an email to ${data?.user.email}. Click the button in that email to confirm your email and continue.`}
+            description={`We’ve sent an email to ${session?.user.email}. Click the button in that email to confirm your email and continue.`}
             className="bg-default"
             buttonRaw={
               <Button
                 color="minimal"
                 className="underline"
+                loading={mutation.isLoading}
                 onClick={() => {
+                  showToast("Send email", "success");
                   mutation.mutate();
-                  showToast("Resent Email", "success");
                 }}>
                 Resend Email
               </Button>
