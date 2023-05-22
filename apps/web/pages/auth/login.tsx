@@ -1,3 +1,4 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import classNames from "classnames";
 import { jwtVerify } from "jose";
 import type { GetServerSidePropsContext } from "next";
@@ -8,6 +9,7 @@ import type { CSSProperties } from "react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
+import { z } from "zod";
 
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
@@ -39,7 +41,10 @@ interface LoginValues {
   totpCode: string;
   csrfToken: string;
 }
-
+const formSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Invalid email"),
+  password: z.string().min(1, "Password is required"),
+});
 export default function Login({
   csrfToken,
   isGoogleLoginEnabled,
@@ -50,7 +55,7 @@ export default function Login({
 }: inferSSRProps<typeof _getServerSideProps> & WithNonceProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const methods = useForm<LoginValues>();
+  const methods = useForm<LoginValues>({ resolver: zodResolver(formSchema) });
 
   const { register, formState } = methods;
   const [twoFactorRequired, setTwoFactorRequired] = useState(!!totpEmail || false);
@@ -161,14 +166,14 @@ export default function Login({
                   label={t("email_address")}
                   defaultValue={totpEmail || (router.query.email as string)}
                   placeholder="john.doe@example.com"
-                  required
+                  // Note: override the type as text because it was throwing the default browser error message, Checking email type By zod
+                  type="text"
                   {...register("email")}
                 />
                 <div className="relative">
                   <PasswordField
                     id="password"
                     autoComplete="off"
-                    required={!totpEmail}
                     className="mb-0"
                     {...register("password")}
                   />
