@@ -129,7 +129,7 @@ type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Record<str
   iframeAttrs?: Record<string, string> & {
     id?: string;
   };
-  theme: EmbedThemeConfig;
+  theme?: EmbedThemeConfig;
 };
 
 export class Cal {

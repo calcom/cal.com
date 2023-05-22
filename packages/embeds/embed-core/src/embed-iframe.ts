@@ -31,7 +31,7 @@ const embedStore = {
   reactNonStylesStateSetters: {} as Record<keyof EmbedNonStylesConfig, setNonStylesConfig>,
   parentInformedAboutContentHeight: false,
   windowLoadEventFired: false,
-  setTheme: undefined as ((arg0: Theme) => void) | undefined,
+  setTheme: undefined as ((arg0: EmbedThemeConfig) => void) | undefined,
   theme: undefined as UiConfig["theme"],
   uiConfig: undefined as Omit<UiConfig, "styles" | "theme"> | undefined,
   setUiConfig: undefined as ((arg0: UiConfig) => void) | undefined,
