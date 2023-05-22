@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import jsonLogic from "json-logic-js";
 
 // converts input to lowercase if string
