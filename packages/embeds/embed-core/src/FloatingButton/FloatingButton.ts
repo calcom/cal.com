@@ -4,6 +4,7 @@ type ModalTargetDatasetProps = {
   calLink: string;
   calNamespace: string;
   calOrigin: string;
+  calConfig: string;
 };
 
 type CamelCase<T extends string> = T extends `${infer U}${infer V}` ? `${Uppercase<U>}${V}` : T;

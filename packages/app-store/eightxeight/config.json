@@ -1,0 +1,28 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "8x8",
+  "slug": "eightxeight",
+  "type": "eightxeight_video",
+  "logo": "icon.svg",
+  "url": "https://cal.com/apps/eightxeight",
+  "variant": "conferencing",
+  "categories": [
+    "video"
+  ],
+  "publisher": "shivamklr",
+  "email": "shivamkalra98@gmail.com",
+  "appData": {
+    "location": {
+      "type": "integrations:{SLUG}_video",
+      "label": "{TITLE}",
+      "linkType": "static",
+      "organizerInputPlaceholder": "https://8x8.vc/company",
+      "urlRegExp": "^(http|https)://(www\\.)?8x8.vc/[a-zA-Z0-9]*"
+    }
+  },
+  "description": "The best video conferencing solution for businesses of any size. Fully secure, reliable, packed with features and ridiculously simple to use.\r\r",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "event-type-location-video-static",
+  "dirName": "eightxeight"
+}
