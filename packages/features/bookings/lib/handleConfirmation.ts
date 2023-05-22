@@ -237,13 +237,13 @@ export async function handleConfirmation(args: {
 
   try {
     const subscribersBookingCreated = await getWebhooks({
-      userId: !booking.eventType?.teamId ? booking.userId ?? 0 : 0,
+      userId: booking.eventType?.teamId ? 0 : booking.userId ?? 0,
       eventTypeId: booking.eventTypeId ?? 0,
       triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
       teamId: booking.eventType?.teamId ?? 0,
     });
     const subscribersMeetingEnded = await getWebhooks({
-      userId: !booking.eventType?.teamId ? booking.userId ?? 0 : 0,
+      userId: booking.eventType?.teamId ? 0 : booking.userId ?? 0,
       eventTypeId: booking.eventTypeId ?? 0,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
       teamId: booking.eventType?.teamId ?? 0,

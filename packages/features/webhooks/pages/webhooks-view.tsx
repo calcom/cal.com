@@ -66,13 +66,15 @@ const NewWebhookButton = ({
 }) => {
   const { t, isLocaleReady } = useLocale();
 
+  const url = new URL(`${WEBAPP_URL}/settings/developer/webhooks/new`);
+  if (!!teamId) {
+    url.searchParams.set("teamId", `${teamId}`);
+  }
+  const href = url.href;
+
   if (!profiles || profiles.length < 2) {
     return (
-      <Button
-        color="primary"
-        data-testid="new_webhook"
-        StartIcon={Plus}
-        href={`${WEBAPP_URL}/settings/developer/webhooks/new${!!teamId ? `?teamId=${teamId}` : ""}`}>
+      <Button color="primary" data-testid="new_webhook" StartIcon={Plus} href={href}>
         {isLocaleReady ? t("new") : <SkeletonText className="h-4 w-24" />}
       </Button>
     );
@@ -123,7 +125,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
     <>
       {webhookGroups && (
         <>
-          {webhookGroups.length > 0 ? (
+          {webhookGroups.length && (
             <>
               {webhookGroups.map((group) => (
                 <div key={group.teamId}>
@@ -158,7 +160,8 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
                 </div>
               ))}
             </>
-          ) : (
+          )}
+          {!webhookGroups.length && (
             <EmptyScreen
               Icon={LinkIcon}
               headline={t("create_your_first_webhook")}

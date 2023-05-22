@@ -60,12 +60,12 @@ test.describe("Manage Booking Questions", () => {
             },
           },
         },
-        include: {
-          eventTypes: true,
+        select: {
+          id: true,
         },
       });
 
-      const teamId = team?.eventTypes?.[0].teamId ?? 0;
+      const teamId = team?.id ?? 0;
       const webhookReceiver = await addWebhook(undefined, teamId);
 
       await test.step("Go to First Team Event", async () => {
@@ -408,32 +408,30 @@ async function addWebhook(
   teamId?: number | null
 ) {
   const webhookReceiver = createHttpServer();
+
+  const data: {
+    id: string;
+    subscriberUrl: string;
+    eventTriggers: WebhookTriggerEvents[];
+    userId?: number;
+    teamId?: number;
+  } = {
+    id: uuid(),
+    subscriberUrl: webhookReceiver.url,
+    eventTriggers: [
+      WebhookTriggerEvents.BOOKING_CREATED,
+      WebhookTriggerEvents.BOOKING_CANCELLED,
+      WebhookTriggerEvents.BOOKING_RESCHEDULED,
+    ],
+  };
+
   if (teamId) {
-    await prisma.webhook.create({
-      data: {
-        id: uuid(),
-        teamId: teamId,
-        subscriberUrl: webhookReceiver.url,
-        eventTriggers: [
-          WebhookTriggerEvents.BOOKING_CREATED,
-          WebhookTriggerEvents.BOOKING_CANCELLED,
-          WebhookTriggerEvents.BOOKING_RESCHEDULED,
-        ],
-      },
-    });
+    data.teamId = teamId;
   } else if (user) {
-    await prisma.webhook.create({
-      data: {
-        id: uuid(),
-        userId: user.id,
-        subscriberUrl: webhookReceiver.url,
-        eventTriggers: [
-          WebhookTriggerEvents.BOOKING_CREATED,
-          WebhookTriggerEvents.BOOKING_CANCELLED,
-          WebhookTriggerEvents.BOOKING_RESCHEDULED,
-        ],
-      },
-    });
+    data.userId = user.id;
   }
+
+  await prisma.webhook.create({ data });
+
   return webhookReceiver;
 }

@@ -39,7 +39,7 @@ const triggerWebhook = async ({
   const eventTrigger: WebhookTriggerEvents = "RECORDING_READY";
   // Send Webhook call if hooked to BOOKING.RECORDING_READY
   const subscriberOptions = {
-    userId: !booking.teamId ? booking.userId ?? 0 : 0,
+    userId: booking.teamId ? 0 : booking.userId ?? 0,
     eventTypeId: booking.eventTypeId ?? 0,
     triggerEvent: eventTrigger,
     teamId: booking.teamId ?? 0,

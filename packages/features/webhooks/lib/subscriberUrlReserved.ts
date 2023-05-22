@@ -17,23 +17,17 @@ export const subscriberUrlReserved = ({
   userId,
   eventTypeId,
 }: Params): boolean => {
-  if (teamId) {
+  const findMatchingWebhook = (condition: (webhook: Webhook) => void) => {
     return !!webhooks?.find(
-      (webhook) =>
-        webhook.subscriberUrl === subscriberUrl && (!id || webhook.id !== id) && webhook.teamId === teamId
+      (webhook) => webhook.subscriberUrl === subscriberUrl && (!id || webhook.id !== id) && condition(webhook)
     );
+  };
+
+  if (teamId) {
+    return findMatchingWebhook((webhook: Webhook) => webhook.teamId === teamId);
   }
   if (eventTypeId) {
-    return !!webhooks?.find(
-      (webhook) =>
-        webhook.subscriberUrl === subscriberUrl &&
-        (!id || webhook.id !== id) &&
-        webhook.eventTypeId === eventTypeId
-    );
-  } else {
-    return !!webhooks?.find(
-      (webhook) =>
-        webhook.subscriberUrl === subscriberUrl && (!id || webhook.id !== id) && webhook.userId === userId
-    );
+    return findMatchingWebhook((webhook: Webhook) => webhook.eventTypeId === eventTypeId);
   }
+  return findMatchingWebhook((webhook: Webhook) => webhook.userId === userId);
 };

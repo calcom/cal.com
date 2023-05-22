@@ -38,7 +38,7 @@ export default function WebhookListItem(props: {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { webhook } = props;
-  const canEditWebhook = props.canEditWebhook || true;
+  const canEditWebhook = props.canEditWebhook ?? true;
 
   const deleteWebhook = trpc.viewer.webhook.delete.useMutation({
     async onSuccess() {
