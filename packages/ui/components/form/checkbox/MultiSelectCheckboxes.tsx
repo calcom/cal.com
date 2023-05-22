@@ -65,6 +65,7 @@ export default function MultiSelectCheckboxes({
   setSelected,
   setValue,
   className,
+  isDisabled,
 }: Omit<Props, "options"> & MultiSelectionCheckboxesProps) {
   const additonalComponents = { MultiValue };
 
@@ -78,6 +79,7 @@ export default function MultiSelectCheckboxes({
       variant="checkbox"
       options={options}
       isMulti
+      isDisabled={isDisabled}
       className={classNames(className ? className : "w-64 text-sm")}
       isSearchable={false}
       closeMenuOnSelect={false}
