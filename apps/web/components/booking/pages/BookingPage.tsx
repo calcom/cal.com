@@ -31,6 +31,7 @@ import getBookingResponsesSchema, {
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilder";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { bookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, MINUTES_TO_BOOK } from "@calcom/lib/constants";
@@ -57,7 +58,6 @@ import BookingDescription from "@components/booking/BookingDescription";
 import type { BookPageProps } from "../../../pages/[user]/book";
 import type { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import type { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
-import { useTimePreferences } from "@calcom/features/bookings/lib";
 
 const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaster), { ssr: false });
 
