@@ -39,7 +39,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
-import { parseDate, parseRecurringDates } from "@calcom/lib/parse-dates";
+import { parseDate, parseDateTimeWithTimeZone, parseRecurringDates } from "@calcom/lib/parse-dates";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { TimeFormat } from "@calcom/lib/timeFormat";
@@ -57,6 +57,7 @@ import BookingDescription from "@components/booking/BookingDescription";
 import type { BookPageProps } from "../../../pages/[user]/book";
 import type { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import type { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 
 const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaster), { ssr: false });
 
@@ -230,6 +231,8 @@ const BookingPage = ({
     }),
     {}
   );
+
+  const { timezone } = useTimePreferences(); 
 
   const reserveSlot = () => {
     if (queryDuration) {
@@ -602,9 +605,8 @@ const BookingPage = ({
                         <Calendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                         {isClientTimezoneAvailable &&
                           typeof booking.startTime === "string" &&
-                          parseDate(dayjs(booking.startTime), i18n.language, {
-                            selectedTimeFormat: timeFormat,
-                          })}
+                          parseDateTimeWithTimeZone(booking.startTime, i18n.language, timezone)
+                        }
                       </p>
                     </div>
                   )}
