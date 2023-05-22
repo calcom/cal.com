@@ -1,7 +1,9 @@
+import { expect, it } from "vitest";
+
 import { getLuckyUser } from "@calcom/lib/server";
 import { buildUser } from "@calcom/lib/test/builder";
 
-import { prismaMock } from "../../../../tests/config/singleton";
+import prisma from "../../../../tests/libs/__mocks__/prisma";
 
 it("can find lucky user with maximize availability", async () => {
   const user1 = buildUser({
@@ -30,7 +32,7 @@ it("can find lucky user with maximize availability", async () => {
   // TODO: we may be able to use native prisma generics somehow?
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  prismaMock.user.findMany.mockResolvedValue(users);
+  prisma.user.findMany.mockResolvedValue(users);
 
   await expect(
     getLuckyUser("MAXIMIZE_AVAILABILITY", {

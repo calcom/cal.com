@@ -1,11 +1,12 @@
 import type { EventType } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
+import { describe, expect, it, vi } from "vitest";
 
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { buildEventType } from "@calcom/lib/test/builder";
+import type { Prisma } from "@calcom/prisma/client";
 import type { CompleteEventType, CompleteWorkflowsOnEventTypes } from "@calcom/prisma/zod";
 
-import { prismaMock } from "../../../../tests/config/singleton";
+import prismaMock from "../../../../tests/libs/__mocks__/prisma";
 
 const mockFindFirstEventType = (data?: Partial<CompleteEventType>) => {
   const eventType = buildEventType(data as Partial<EventType>);
@@ -13,13 +14,13 @@ const mockFindFirstEventType = (data?: Partial<CompleteEventType>) => {
   return eventType;
 };
 
-jest.mock("@calcom/emails/email-manager", () => {
+vi.mock("@calcom/emails/email-manager", () => {
   return {
     sendSlugReplacementEmail: () => ({}),
   };
 });
 
-jest.mock("@calcom/lib/server/i18n", () => {
+vi.mock("@calcom/lib/server/i18n", () => {
   return {
     getTranslation: (key: string) => key,
   };
@@ -259,7 +260,7 @@ describe("handleChildrenEventTypes", () => {
           metadata: { managedEventConfig: {} },
           locations: [],
         });
-      prismaMock.eventType.deleteMany.mockResolvedValue([123] as unknown as Prisma.BatchPayload);
+        prismaMock.eventType.deleteMany.mockResolvedValue([123] as unknown as Prisma.BatchPayload);
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [{ userId: 4 }], team: { name: "" } },

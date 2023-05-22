@@ -1,5 +1,5 @@
+import crypto from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
-import crypto from "node:crypto";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { defaultHandler } from "@calcom/lib/server";
