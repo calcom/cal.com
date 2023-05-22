@@ -1,4 +1,4 @@
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 import { Trans } from "react-i18next";
 
 import { AppStoreLocationType } from "@calcom/app-store/locations";
@@ -56,6 +56,8 @@ export const BrokenIntegrationEmail = (
 ) => {
   const { calEvent, type } = props;
   const t = calEvent.organizer.language.translate;
+  const locale = calEvent.organizer.language.locale;
+  const timeFormat = calEvent.organizer?.timeFormat;
 
   if (type === "video") {
     let location = calEvent.location ? getEnumKeyByEnumValue(AppStoreLocationType, calEvent.location) : " ";
@@ -70,6 +72,8 @@ export const BrokenIntegrationEmail = (
       <BaseScheduledEmail
         timeZone={calEvent.organizer.timeZone}
         t={t}
+        timeFormat={timeFormat}
+        locale={locale}
         subject={t("broken_integration")}
         title={t("problem_adding_video_link")}
         subtitle={<BrokenVideoIntegration location={location} eventTypeId={calEvent.eventTypeId} t={t} />}
@@ -94,6 +98,8 @@ export const BrokenIntegrationEmail = (
       <BaseScheduledEmail
         timeZone={calEvent.organizer.timeZone}
         t={t}
+        timeFormat={timeFormat}
+        locale={locale}
         subject={t("broken_integration")}
         title={t("problem_updating_calendar")}
         subtitle={<BrokenCalendarIntegration calendar={calendar} eventTypeId={calEvent.eventTypeId} t={t} />}
@@ -107,6 +113,8 @@ export const BrokenIntegrationEmail = (
     <BaseScheduledEmail
       timeZone={calEvent.organizer.timeZone}
       t={t}
+      timeFormat={timeFormat}
+      locale={locale}
       subject={t("broken_integration")}
       title={t("problem_updating_calendar")}
       headerType="xCircle"
