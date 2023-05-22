@@ -56,7 +56,7 @@ export default function Login({
   const loginFormSchema = z.object({
     email: z.string().email(),
     password: z.string().refine((value) => totpEmail || value.length > 0, {
-      message: "Password is required.",
+      message: t("password_is_required"),
     }),
     csrfToken: z.string().optional(),
   });
