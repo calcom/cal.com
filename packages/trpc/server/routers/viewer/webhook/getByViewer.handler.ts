@@ -98,7 +98,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
       image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
     },
     metadata: {
-      readOnly: membership.role === MembershipRole.MEMBER,
+      readOnly: membership.role !== MembershipRole.ADMIN && membership.role !== MembershipRole.OWNER,
     },
     webhooks: membership.team.webhooks,
   }));
