@@ -94,7 +94,7 @@ export const BaseAppFork = {
       slug: slug,
       type: `${slug}_${category}`,
       // TODO: Remove usage of imageSrc, it is being used in ConnectCalendars.tsx. After that delete imageSrc in all configs and from here
-      imageSrc: `icon.svg`,
+      // imageSrc: `icon.svg`,
       logo: `icon.svg`,
       variant: categoryToVariantMap[category as keyof typeof categoryToVariantMap] || category,
       categories: [category],
