@@ -125,7 +125,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
     <>
       {webhookGroups && (
         <>
-          {webhookGroups.length && (
+          {!!webhookGroups.length && (
             <>
               {webhookGroups.map((group) => (
                 <div key={group.teamId}>

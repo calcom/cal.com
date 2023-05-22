@@ -90,21 +90,20 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     },
   });
 
-  webhookGroups = ([] as WebhookGroup[]).concat(
-    webhookGroups,
-    user.teams.map((membership) => ({
-      teamId: membership.team.id,
-      profile: {
-        name: membership.team.name,
-        slug: "team/" + membership.team.slug,
-        image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
-      },
-      metadata: {
-        readOnly: membership.role === MembershipRole.MEMBER,
-      },
-      webhooks: membership.team.webhooks,
-    }))
-  );
+  const teamWebhookGroups: WebhookGroup[] = user.teams.map((membership) => ({
+    teamId: membership.team.id,
+    profile: {
+      name: membership.team.name,
+      slug: "team/" + membership.team.slug,
+      image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
+    },
+    metadata: {
+      readOnly: membership.role === MembershipRole.MEMBER,
+    },
+    webhooks: membership.team.webhooks,
+  }));
+
+  webhookGroups = webhookGroups.concat(teamWebhookGroups);
 
   return {
     webhookGroups: webhookGroups.filter((groupBy) => !!groupBy.webhooks?.length),
