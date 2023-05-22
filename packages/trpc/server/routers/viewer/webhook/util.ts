@@ -37,7 +37,7 @@ export const webhookProcedure = authedProcedure
             },
           });
 
-          const userBelongsToTeam =
+          const userHasAdminOwnerPermissionInTeam =
             user &&
             user.teams.some(
               (membership) =>
@@ -45,7 +45,7 @@ export const webhookProcedure = authedProcedure
                 (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
             );
 
-          if (!userBelongsToTeam) {
+          if (!userHasAdminOwnerPermissionInTeam) {
             throw new TRPCError({
               code: "UNAUTHORIZED",
             });
@@ -65,14 +65,14 @@ export const webhookProcedure = authedProcedure
           });
 
           if (eventType && eventType.userId !== ctx.user.id) {
-            const userBelongsToTeam =
+            const userHasAdminOwnerPermissionInTeam =
               eventType.team &&
               eventType.team.members.some(
                 (membership) =>
                   membership.userId === ctx.user.id &&
                   (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
               );
-            if (!userBelongsToTeam) {
+            if (!userHasAdminOwnerPermissionInTeam) {
               throw new TRPCError({
                 code: "UNAUTHORIZED",
               });
