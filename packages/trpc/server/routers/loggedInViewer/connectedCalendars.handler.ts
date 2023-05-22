@@ -33,6 +33,12 @@ export const connectedCalendarsHandler = async ({ ctx }: ConnectedCalendarsOptio
     user.selectedCalendars,
     user.destinationCalendar?.externalId
   );
+  let toggledCalendarDetails:
+    | {
+        externalId: string;
+        integration: string;
+      }
+    | undefined;
 
   if (connectedCalendars.length === 0) {
     /* As there are no connected calendars, delete the destination calendar if it exists */
@@ -50,11 +56,15 @@ export const connectedCalendarsHandler = async ({ ctx }: ConnectedCalendarsOptio
     const { integration = "", externalId = "", credentialId } = connectedCalendars[0].primary ?? {};
     // Select the first calendar matching the primary by default since that will also be the destination calendar
     if (externalId) {
-      const calendarIndex = connectedCalendars[0].calendars.findIndex(
+      const calendarIndex = connectedCalendars[0].calendars?.findIndex(
         (item) => item.externalId === externalId && item.integration === integration
       );
       if (calendarIndex >= 0) {
         connectedCalendars[0].calendars[calendarIndex].isSelected = true;
+        toggledCalendarDetails = {
+          externalId,
+          integration,
+        };
       }
     }
     user.destinationCalendar = await prisma.destinationCalendar.create({
@@ -81,11 +91,15 @@ export const connectedCalendarsHandler = async ({ ctx }: ConnectedCalendarsOptio
       const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
       // Select the first calendar matching the primary by default since that will also be the destination calendar
       if (externalId) {
-        const calendarIndex = connectedCalendars[0].calendars.findIndex(
+        const calendarIndex = connectedCalendars[0].calendars?.findIndex(
           (item) => item.externalId === externalId && item.integration === integration
         );
         if (calendarIndex >= 0) {
           connectedCalendars[0].calendars[calendarIndex].isSelected = true;
+          toggledCalendarDetails = {
+            externalId,
+            integration,
+          };
         }
       }
       user.destinationCalendar = await prisma.destinationCalendar.update({
@@ -106,12 +120,36 @@ export const connectedCalendarsHandler = async ({ ctx }: ConnectedCalendarsOptio
         );
         if (index >= 0) {
           cal.calendars[index].isSelected = true;
+          toggledCalendarDetails = {
+            externalId: destinationCal.externalId,
+            integration: destinationCal.integration,
+          };
           return false;
         }
 
         return true;
       });
     }
+  }
+
+  // Insert the newly toggled record to the DB
+  if (toggledCalendarDetails) {
+    await prisma.selectedCalendar.upsert({
+      where: {
+        userId_integration_externalId: {
+          userId: user.id,
+          integration: toggledCalendarDetails.integration,
+          externalId: toggledCalendarDetails.externalId,
+        },
+      },
+      create: {
+        userId: user.id,
+        integration: toggledCalendarDetails.integration,
+        externalId: toggledCalendarDetails.externalId,
+      },
+      // already exists
+      update: {},
+    });
   }
 
   return {
