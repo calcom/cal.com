@@ -4227,6 +4227,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/eightxeight@workspace:packages/app-store/eightxeight":
+  version: 0.0.0-use.local
+  resolution: "@calcom/eightxeight@workspace:packages/app-store/eightxeight"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/emails@*, @calcom/emails@workspace:packages/emails":
   version: 0.0.0-use.local
   resolution: "@calcom/emails@workspace:packages/emails"
