@@ -37,14 +37,15 @@ export const webhookProcedure = authedProcedure
             },
           });
 
-          if (
+          const userBelongsToTeam =
             user &&
-            !user.teams.some(
+            user.teams.some(
               (membership) =>
                 membership.teamId === webhook.teamId &&
                 (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
-            )
-          ) {
+            );
+
+          if (!userBelongsToTeam) {
             throw new TRPCError({
               code: "UNAUTHORIZED",
             });
@@ -64,14 +65,14 @@ export const webhookProcedure = authedProcedure
           });
 
           if (eventType && eventType.userId !== ctx.user.id) {
-            if (
-              !eventType.team ||
-              !eventType.team.members.some(
+            const userBelongsToTeam =
+              eventType.team &&
+              eventType.team.members.some(
                 (membership) =>
                   membership.userId === ctx.user.id &&
                   (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
-              )
-            ) {
+              );
+            if (!userBelongsToTeam) {
               throw new TRPCError({
                 code: "UNAUTHORIZED",
               });
@@ -122,14 +123,14 @@ export const webhookProcedure = authedProcedure
         });
 
         if (eventType && eventType.userId !== ctx.user.id) {
-          if (
-            !eventType.team ||
-            !eventType.team.members.some(
+          const userBelongsToTeam =
+            eventType.team &&
+            eventType.team.members.some(
               (membership) =>
                 membership.userId === ctx.user.id &&
                 (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
-            )
-          ) {
+            );
+          if (!userBelongsToTeam) {
             throw new TRPCError({
               code: "UNAUTHORIZED",
             });
