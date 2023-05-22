@@ -8,10 +8,10 @@ import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
 
 type Theme = "dark" | "light";
-
+export type EmbedThemeConfig = Theme | "auto";
 export type UiConfig = {
   hideEventTypeDetails?: boolean;
-  theme?: Theme | "auto";
+  theme?: EmbedThemeConfig;
   styles?: EmbedStyles & EmbedNonStylesConfig;
   //TODO: Extract from tailwind the list of all custom variables and support them in auto-completion as well as runtime validation. Followup with listing all variables in Embed Snippet Generator UI.
   cssVarsPerTheme?: Record<Theme, Record<string, string>>;
@@ -31,7 +31,7 @@ const embedStore = {
   reactNonStylesStateSetters: {} as Record<keyof EmbedNonStylesConfig, setNonStylesConfig>,
   parentInformedAboutContentHeight: false,
   windowLoadEventFired: false,
-  setTheme: undefined as ((arg0: string) => void) | undefined,
+  setTheme: undefined as ((arg0: EmbedThemeConfig) => void) | undefined,
   theme: undefined as UiConfig["theme"],
   uiConfig: undefined as Omit<UiConfig, "styles" | "theme"> | undefined,
   setUiConfig: undefined as ((arg0: UiConfig) => void) | undefined,
@@ -170,14 +170,14 @@ function isValidNamespace(ns: string | null | undefined) {
 
 export const useEmbedTheme = () => {
   const router = useRouter();
-  const [theme, setTheme] = useState(embedStore.theme || (router.query.theme as string));
+  const [theme, setTheme] = useState(embedStore.theme || (router.query.theme as typeof embedStore.theme));
   useEffect(() => {
     router.events.on("routeChangeComplete", () => {
       sdkActionManager?.fire("__routeChanged", {});
     });
   }, [router.events]);
   embedStore.setTheme = setTheme;
-  return theme === "auto" ? null : theme;
+  return theme;
 };
 
 export const useEmbedUiConfig = () => {
@@ -434,7 +434,7 @@ if (isBrowser) {
   // Exposes certain global variables/fns that are used by the app to get interface with the embed.
   embedInit();
   const url = new URL(document.URL);
-  embedStore.theme = (window?.getEmbedTheme?.() || "auto") as UiConfig["theme"];
+  embedStore.theme = window?.getEmbedTheme?.() as UiConfig["theme"];
   if (url.searchParams.get("prerender") !== "true" && window?.isEmbed?.()) {
     log("Initializing embed-iframe");
     // HACK
