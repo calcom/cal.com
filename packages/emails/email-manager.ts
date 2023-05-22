@@ -35,6 +35,8 @@ import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
+import AccountVerifyEmail, { EmailVerifyLink } from "./templates/account-verify-email";
+import { VerifyAccountEmail } from "./src/templates";
 
 const sendEmail = (prepare: () => BaseEmail) => {
   return new Promise((resolve, reject) => {
@@ -238,6 +240,10 @@ export const sendPasswordResetEmail = async (passwordResetEvent: PasswordReset) 
 
 export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
   await sendEmail(() => new TeamInviteEmail(teamInviteEvent));
+};
+
+export const sendEmailVerificationLink = async (verificationInput: EmailVerifyLink) => {
+  await sendEmail(() => new AccountVerifyEmail(verificationInput));
 };
 
 export const sendRequestRescheduleEmail = async (
