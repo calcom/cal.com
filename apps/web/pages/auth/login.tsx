@@ -41,10 +41,6 @@ interface LoginValues {
   totpCode: string;
   csrfToken: string;
 }
-const formSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Invalid email"),
-  password: z.string().min(1, "Password is required"),
-});
 export default function Login({
   csrfToken,
   isGoogleLoginEnabled,
@@ -55,6 +51,13 @@ export default function Login({
 }: inferSSRProps<typeof _getServerSideProps> & WithNonceProps) {
   const { t } = useLocale();
   const router = useRouter();
+  const formSchema = z.object({
+    email: z
+      .string()
+      .min(1, `${t("error_required_field")}`)
+      .email(`${t("enter_valid_email")}`),
+    password: z.string().min(1, `${t("error_required_field")}`),
+  });
   const methods = useForm<LoginValues>({ resolver: zodResolver(formSchema) });
 
   const { register, formState } = methods;
