@@ -67,6 +67,8 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       trialEndsAt: true,
       metadata: true,
       role: true,
+      dailyDigestEnabled: true,
+      dailyDigestTime: true,
     },
   });
 

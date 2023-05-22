@@ -1836,5 +1836,10 @@
   "connect_google_workspace":"Connect Google Workspace",
   "google_workspace_admin_tooltip":"You must be a Workspace Admin to use this feature",
   "first_event_type_webhook_description": "Create your first webhook for this event type",
-  "create_for": "Create for"
+  "create_for": "Create for",
+  "notifications": "Notifications",
+  "notifications_description": "Manage settings for your booking notifications",
+  "daily_digest_enabled_label": "Daily Digest",
+  "daily_digest_enabled_description": "Receive a daily digest of the next day's meetings",
+  "daily_digest_time_label": "What time would you like to receive your daily digest?"
 }

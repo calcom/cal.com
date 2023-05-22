@@ -267,7 +267,7 @@ const LazySelect = ({
   max?: ConfigType;
 }) => {
   // Lazy-loaded options, otherwise adding a field has a noticeable redraw delay.
-  const { options, filter } = useOptions();
+  const { options, filter } = useScheduleOptions();
 
   useEffect(() => {
     filter({ current: value });
@@ -300,12 +300,10 @@ interface IOption {
  */
 /** Begin Time Increments For Select */
 const INCREMENT = 15;
-const useOptions = () => {
+export const useScheduleOptions = () => {
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
   const { timeFormat } = query.data || { timeFormat: null };
-
-  const [filteredOptions, setFilteredOptions] = useState<IOption[]>([]);
 
   const options = useMemo(() => {
     const end = dayjs().utc().endOf("day");
@@ -331,6 +329,8 @@ const useOptions = () => {
     });
     return options;
   }, [timeFormat]);
+
+  const [filteredOptions, setFilteredOptions] = useState<IOption[]>(options);
 
   const filter = useCallback(
     ({ offset, limit, current }: { offset?: ConfigType; limit?: ConfigType; current?: ConfigType }) => {
