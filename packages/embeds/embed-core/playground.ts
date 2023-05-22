@@ -55,6 +55,7 @@ if (only === "all" || only === "ns:second") {
         iframeAttrs: {
           id: "cal-booking-place-second-iframe",
         },
+        theme: "auto",
       },
     },
   ]);
@@ -333,6 +334,16 @@ Cal("init", "routingFormDark", {
 
 if (only === "all" || only == "ns:floatingButton") {
   Cal.ns.floatingButton("floatingButton", {
-    calLink: "pro",
+    calLink: "pro/30min",
+    config: {
+      iframeAttrs: {
+        id: "floatingtest",
+      },
+      name: "John",
+      email: "johndoe@gmail.com",
+      notes: "Test Meeting",
+      guests: ["janedoe@example.com", "test@example.com"],
+      theme: "dark",
+    },
   });
 }
