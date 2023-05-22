@@ -91,7 +91,7 @@ ${this.t("request_reschedule_subtitle", {
 })},
 ${this.getWhen()}
 ${this.t("need_to_reschedule_or_cancel")}
-${getManageLink(this.calEvent)}
+${getManageLink(this.calEvent, this.t)}
 `.replace(/(<([^>]+)>)/gi, "");
   }
 }
