@@ -1,5 +1,5 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
-import jsonLogic from "json-logic-js";
+import jsonLogic from "./jsonLogicOverrides";
 import { Utils as QbUtils } from "react-awesome-query-builder";
 import type { z } from "zod";
 
