@@ -37,7 +37,7 @@ function buildSlots({
   startDate: Dayjs;
   frequency: number;
   eventLength: number;
-  offsetStart: number;
+  offsetStart?: number;
   organizerTimeZone: string;
   inviteeTimeZone: string;
 }) {
@@ -209,7 +209,7 @@ const getSlots = ({
   dateOverrides = [],
   dateRanges,
   eventLength,
-  offsetStart,
+  offsetStart = 0,
   organizerTimeZone,
 }: GetSlots) => {
   if (dateRanges) {
