@@ -231,7 +231,6 @@ const PublicShell = (props: LayoutProps) => {
 
 export default function Shell(props: LayoutProps) {
   const { data : user } = useMeQuery()
-  console.log(user?.theme)
   // if a page is unauthed and isPublic is true, the redirect does not happen.
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
