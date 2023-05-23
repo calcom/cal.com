@@ -3,6 +3,8 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
+import { APP_NAME } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import { Button, EmptyScreen, showToast } from "@calcom/ui";
@@ -13,14 +15,15 @@ function VerifyEmailPage() {
   const { data } = useEmailVerifyCheck();
   const { data: session } = useSession();
   const router = useRouter();
+  const { t } = useLocale();
   const mutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
 
   useEffect(() => {
-    if (!data?.requiresRedirect) {
+    if (!data?.isVerified) {
       router.replace("/event-types");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.requiresRedirect]);
+  }, [data?.isVerified]);
 
   return (
     <div className="h-[100vh] w-full ">
@@ -30,8 +33,8 @@ function VerifyEmailPage() {
             border
             dashedBorder={false}
             Icon={MailOpenIcon}
-            headline="Check your email"
-            description={`We’ve sent an email to ${session?.user.email}. Click the button in that email to confirm your email and continue.`}
+            headline={t("check_your_email")}
+            description={t("verify_email_page_body", { email: session?.user?.email, appName: APP_NAME })}
             className="bg-default"
             buttonRaw={
               <Button

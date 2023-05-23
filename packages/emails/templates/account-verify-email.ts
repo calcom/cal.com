@@ -29,7 +29,7 @@ export default class AccountVerifyEmail extends BaseEmail {
     return {
       to: `${this.verifyAccountInput.user.name} <${this.verifyAccountInput.user.email}>`,
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
-      subject: this.verifyAccountInput.language("reset_password_subject", {
+      subject: this.verifyAccountInput.language("verify_email_subject", {
         appName: APP_NAME,
       }),
       html: renderEmail("VerifyAccountEmail", this.verifyAccountInput),
@@ -39,14 +39,13 @@ export default class AccountVerifyEmail extends BaseEmail {
 
   protected getTextBody(): string {
     return `
-${this.verifyAccountInput.language("reset_password_subject", { appName: APP_NAME })}
+${this.verifyAccountInput.language("verify_email_subject", { appName: APP_NAME })}
+${this.verifyAccountInput.language("verify_email_email_header")}
 ${this.verifyAccountInput.language("hi_user_name", { name: this.verifyAccountInput.user.name })},
-${this.verifyAccountInput.language("someone_requested_password_reset")}
-${this.verifyAccountInput.language("change_password")}: ${this.verifyAccountInput.verificationEmailLink}
-${this.verifyAccountInput.language("password_reset_instructions")}
-${this.verifyAccountInput.language("have_any_questions")} ${this.verifyAccountInput.language(
-      "contact_our_support_team"
-    )}
+${this.verifyAccountInput.language("verify_email_email_body", { appName: APP_NAME })}
+${this.verifyAccountInput.language("verify_email_email_link_text")}
+${this.verifyAccountInput.verificationEmailLink}
+${this.verifyAccountInput.language("happy_scheduling")} ${this.verifyAccountInput.language("the_calcom_team")}
 `.replace(/(<([^>]+)>)/gi, "");
   }
 }

@@ -24,7 +24,6 @@ import getBrandColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { trpc } from "@calcom/trpc/react";
-import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 import {
@@ -137,29 +136,6 @@ function useRedirectToOnboardingIfNeeded() {
   };
 }
 
-// Checks if anyone logs in and hasnt verified their email address yet.
-// If so, redirect them to the email verification page - this is also handled on signup but the user could ignore and try and login.
-function useRedirectToEmailVerify() {
-  const router = useRouter();
-
-  const { data } = useEmailVerifyCheck();
-  const requriedRedirect = data?.requiresRedirect;
-  console.log({ data });
-
-  useEffect(() => {
-    if (requriedRedirect) {
-      router.replace({
-        pathname: `/auth/verify-email`,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requriedRedirect]);
-
-  return {
-    requriedRedirect,
-  };
-}
-
 const Layout = (props: LayoutProps) => {
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
 
@@ -255,7 +231,6 @@ export default function Shell(props: LayoutProps) {
   // if a page is unauthed and isPublic is true, the redirect does not happen.
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
-  useRedirectToEmailVerify();
   // System Theme is automatically supported using ThemeProvider. If we intend to use user theme throughout the app we need to uncomment this.
   // useTheme(profile.theme);
   useBrandColors();
