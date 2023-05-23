@@ -29,8 +29,6 @@ export const checkForGWorkspace = async ({ ctx }: CheckForGCalOptions) => {
     },
   });
 
-  console.log({ gWorkspacePresent });
-
   return { id: gWorkspacePresent?.id };
 };
 
