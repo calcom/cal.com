@@ -1,10 +1,10 @@
-import { useFlagMap } from "flags/context/provider";
-
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import { Button, TopBanner, showToast } from "@calcom/ui";
+
+import { useFlagMap } from "../../flags/context/provider";
 
 function VerifyEmailBanner() {
   const flags = useFlagMap();
