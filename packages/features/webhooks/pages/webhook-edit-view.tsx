@@ -59,6 +59,7 @@ const EditWebhook = () => {
         />
         <WebhookForm
           webhook={webhook}
+          noRoutingFormTriggers={!!webhook.teamId}
           onSubmit={(values: WebhookFormSubmitData) => {
             if (
               subscriberUrlReserved({
