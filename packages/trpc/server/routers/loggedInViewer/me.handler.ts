@@ -35,6 +35,7 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     bio: user.bio,
     weekStart: user.weekStart,
     theme: user.theme,
+    appTheme: user?.appTheme,
     hideBranding: user.hideBranding,
     metadata: user.metadata,
   };

@@ -26,6 +26,7 @@ type UpdateProfileOptions = {
 
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
+  console.log(input, "updateinput");
   const data: Prisma.UserUpdateInput = {
     ...input,
     metadata: input.metadata as Prisma.InputJsonValue,

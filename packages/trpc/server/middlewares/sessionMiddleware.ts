@@ -32,6 +32,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       defaultScheduleId: true,
       bufferTime: true,
       theme: true,
+      appTheme: true,
       createdDate: true,
       hideBranding: true,
       avatar: true,
