@@ -641,7 +641,7 @@ const BookingPage = ({
                         {t("seats_available", {
                           count: currentSlotBooking
                             ? eventType.seatsPerTimeSlot - currentSlotBooking.attendees.length
-                            : eventType.seatsPerTimeSlot
+                            : eventType.seatsPerTimeSlot,
                         })}
                       </p>
                     </div>
