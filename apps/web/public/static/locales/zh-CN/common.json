@@ -1790,5 +1790,6 @@
   "disable_attendees_confirmation_emails_description": "该活动类型中至少有一个工作流程处于活动状态，当该活动被预约时，将向参与者发送电子邮件。",
   "disable_host_confirmation_emails": "禁用主持人的默认确认电子邮件",
   "disable_host_confirmation_emails_description": "该活动类型中至少有一个工作流程处于活动状态，当该活动被预约时，将向主持人发送电子邮件。",
-  "first_event_type_webhook_description": "为此活动类型创建第一个 Webhook"
+  "first_event_type_webhook_description": "为此活动类型创建第一个 Webhook",
+  "create_for": "创建"
 }
