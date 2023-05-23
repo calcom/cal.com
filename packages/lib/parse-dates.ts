@@ -25,28 +25,29 @@ export const parseDate = (date: string | null | Dayjs, language: string, options
   return processDate(date, language, options);
 };
 
-export const parseDateTimeWithTimeZone = (date: Date, language: string, timezone: string) => {
-  const newDate = new Date(date);
+const timeOptions: Intl.DateTimeFormatOptions = {
+  hour12: true,
+  hourCycle: "h12",
+  hour: "numeric",
+  minute: "numeric",
+};
 
-  const timeOptions: object = {
-    timeZone: timezone,
-    hour12: true,
-    hourCycle: "h12",
-    hour: "numeric",
-    minute: "numeric",
-  };
+const dateOptions: Intl.DateTimeFormatOptions = {
+  weekday: "long",
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+};
 
-  const dateOptions: object = {
-    timeZone: timezone,
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  };
-
-  const formattedTime = newDate.toLocaleTimeString(language, timeOptions).replace(" ", "").toLowerCase();
-  const formattedDate = newDate.toLocaleDateString(language, dateOptions);
-  return formattedTime + ", " + formattedDate;
+export const parseDateTimeWithTimeZone = (date: Date, language: string, timezone: string): string => {
+  timeOptions.timeZone = timezone;
+  dateOptions.timeZone = timezone;
+  const formattedDate = new Date(date).toLocaleDateString(language, dateOptions);
+  const formattedTime = new Date(date)
+    .toLocaleTimeString(language, timeOptions)
+    .replace(" ", "")
+    .toLowerCase();
+  return `${formattedTime}, ${formattedDate}`;
 };
 
 export const parseRecurringDates = (
