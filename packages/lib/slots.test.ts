@@ -8,37 +8,76 @@ import getSlots from "./slots";
 
 MockDate.set("2021-06-20T11:59:59Z");
 
+const startTime = dayjs.utc().startOf("day");
+
+// let dateRanges: DateRange[] = [];
+// for (let date = startTime; date.isBefore(startTime.add(5, "day")); date = date.add(1, "day")) {
+//   dateRanges.push({
+//     start: date,
+//     end: date.endOf("day"),
+//   });
+// }
+
+const dateRangesMockDay = [{ start: dayjs.utc().startOf("day"), end: dayjs.utc().endOf("day") }];
+
+const dateRangesNextDay = [
+  { start: dayjs.utc().add(1, "day").startOf("day"), end: dayjs.utc().add(1, "day").endOf("day") },
+];
+
 describe("Tests the date-range slot logic", () => {
   it("can fit 24 hourly slots for an empty day", async () => {
-    const dateRanges = [
-      {
-        start: dayjs.utc().add(1, "day").startOf("day"),
-        end: dayjs.utc().add(1, "day").endOf("day"),
-      },
-    ];
     expect(
       getSlots({
-        inviteeDate: dayjs.utc().add(1, "day").tz(),
+        inviteeDate: dayjs.utc().add(1, "day"),
         frequency: 60,
         minimumBookingNotice: 0,
-        workingHours: [],
         eventLength: 60,
         organizerTimeZone: "Etc/GMT",
-        dateRanges: dateRanges,
+        dateRanges: dateRangesNextDay,
       })
     ).toHaveLength(24);
 
     expect(
       getSlots({
-        inviteeDate: dayjs.utc().add(1, "day").tz(),
+        inviteeDate: dayjs.utc().add(1, "day"),
         frequency: 60,
         minimumBookingNotice: 0,
-        workingHours: [],
         eventLength: 60,
         organizerTimeZone: "America/Toronto",
-        dateRanges: dateRanges,
+        dateRanges: dateRangesNextDay,
       })
     ).toHaveLength(24);
+  });
+
+  it("only shows future booking slots on the same day", async () => {
+    // The mock date is 1s to midday, so 12 slots should be open given 0 booking notice.
+
+    expect(
+      getSlots({
+        inviteeDate: dayjs.utc(),
+        frequency: 60,
+        minimumBookingNotice: 0,
+        dateRanges: dateRangesMockDay,
+        eventLength: 60,
+        offsetStart: 0,
+        organizerTimeZone: "America/Toronto",
+      })
+    ).toHaveLength(12);
+  });
+
+  it("adds minimum booking notice correctly", async () => {
+    // 24h in a day.
+    expect(
+      getSlots({
+        inviteeDate: dayjs.utc().add(1, "day").startOf("day"),
+        frequency: 60,
+        minimumBookingNotice: 1500,
+        dateRanges: dateRangesNextDay,
+        eventLength: 60,
+        offsetStart: 0,
+        organizerTimeZone: "America/Toronto",
+      })
+    ).toHaveLength(11);
   });
 });
 
