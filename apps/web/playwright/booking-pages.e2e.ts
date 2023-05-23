@@ -8,6 +8,8 @@ import {
   bookTimeSlot,
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,
+  testEmail,
+  testName,
 } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
@@ -101,6 +103,8 @@ testBothBookers.describe("pro user", () => {
     // Because it tests the entire booking flow + the cancellation + rebooking
     test.setTimeout(testInfo.timeout * 3);
     await bookFirstEvent(page);
+    await expect(page.locator(`[data-testid="attendee-email-${testEmail}"]`)).toHaveText(testEmail);
+    await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
 
     const [pro] = users.get();
     await pro.login();
@@ -114,7 +118,10 @@ testBothBookers.describe("pro user", () => {
 
     const cancelledHeadline = await page.locator('[data-testid="cancelled-headline"]').innerText();
 
-    await expect(cancelledHeadline).toBe("This event is cancelled");
+    expect(cancelledHeadline).toBe("This event is cancelled");
+
+    await expect(page.locator(`[data-testid="attendee-email-${testEmail}"]`)).toHaveText(testEmail);
+    await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
 
     await page.goto(`/${pro.username}`);
     await bookFirstEvent(page);
@@ -155,7 +162,7 @@ testBothBookers.describe("pro user", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     additionalGuests.forEach(async (email) => {
-      await expect(page.locator(`[data-testid="attendee-${email}"]`)).toHaveText(email);
+      await expect(page.locator(`[data-testid="attendee-email-${email}"]`)).toHaveText(email);
     });
   });
 });
