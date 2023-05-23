@@ -67,6 +67,7 @@ import {
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
+import type { IntervalLimit } from "@calcom/types/Calendar";
 import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
@@ -533,7 +534,7 @@ function getBookingData({
 
 function getCustomInputsResponses(
   reqBody: {
-    responses?: Record<string, any>;
+    responses?: Record<string, object>;
     customInputs?: z.infer<typeof bookingCreateSchemaLegacyPropsForApi>["customInputs"];
   },
   eventTypeCustomInputs: Awaited<ReturnType<typeof getEventTypesFromDB>>["customInputs"]
@@ -734,12 +735,12 @@ async function handler(
 
   if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
     const startAsDate = dayjs(reqBody.start).toDate();
-    await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
+    await checkBookingLimits(eventType.bookingLimits as IntervalLimit, startAsDate, eventType.id);
   }
 
   if (eventType && eventType.hasOwnProperty("durationLimits") && eventType?.durationLimits) {
     const startAsDate = dayjs(reqBody.start).toDate();
-    await checkDurationLimits(eventType.durationLimits, startAsDate, eventType.id);
+    await checkDurationLimits(eventType.durationLimits as IntervalLimit, startAsDate, eventType.id);
   }
 
   if (!eventType.seatsPerTimeSlot) {
@@ -1756,7 +1757,7 @@ async function handler(
     if (booking && booking.id && eventType.seatsPerTimeSlot) {
       const currentAttendee = booking.attendees.find(
         (attendee) => attendee.email === req.body.responses.email
-      )!;
+      );
 
       // Save description to bookingSeat
       const uniqueAttendeeId = uuid();

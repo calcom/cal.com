@@ -63,9 +63,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   return res.status(200).json({ success: true });
 };
 
-function validate(
-  handler: (req: NextApiRequest, res: NextApiResponse) => Promise<any | NextApiResponse | void>
-) {
+function validate(handler: (req: NextApiRequest, res: NextApiResponse) => Promise<NextApiResponse | void>) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     if (req.method === "POST") {
       try {

@@ -45,7 +45,8 @@ test("add webhook & test that creating an event triggers a webhook call", async 
   });
 
   const [request] = webhookReceiver.requestList;
-  const body = request.body as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const body: any = request.body;
 
   // remove dynamic properties that differs depending on where you run the tests
   const dynamic = "[redacted/dynamic]";

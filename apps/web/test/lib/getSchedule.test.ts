@@ -491,6 +491,7 @@ describe("getSchedule", () => {
     });
 
     // FIXME: Fix minimumBookingNotice is respected test
+    // eslint-disable-next-line playwright/no-skipped-test
     test.skip("minimumBookingNotice is respected", async () => {
       jest.useFakeTimers().setSystemTime(
         (() => {

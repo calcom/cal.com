@@ -1,7 +1,6 @@
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 
 import type { TStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
-import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
 
 type StripeCheckoutSessionOptions = {
   input: TStripeCheckoutSessionInputSchema;
@@ -11,7 +10,6 @@ export const stripeCheckoutSessionHandler = async ({ input }: StripeCheckoutSess
   const { checkoutSessionId, stripeCustomerId } = input;
 
   // Moved the following data checks to superRefine
-  const validationResult = ZStripeCheckoutSessionInputSchema.parse(input);
 
   let customerId: string;
   let isPremiumUsername = false;

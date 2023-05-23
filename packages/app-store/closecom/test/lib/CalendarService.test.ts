@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import CloseCom from "@calcom/lib/CloseCom";
 import {
   getCloseComContactIds,

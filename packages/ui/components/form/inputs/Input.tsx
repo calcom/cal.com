@@ -15,7 +15,7 @@ import { Label } from "./Label";
 type InputProps = JSX.IntrinsicElements["input"] & { isFullWidth?: boolean; isStandaloneField?: boolean };
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { isFullWidth = true, isStandaloneField = true, ...props },
+  { isFullWidth = true, ...props },
   ref
 ) {
   return (

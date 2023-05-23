@@ -427,6 +427,7 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
         'p[data-testid="attendee-email-second+seats@cal.com"]'
       );
       await expect(foundSecondAttendeeAsOwner).toHaveCount(1);
+      // eslint-disable-next-line playwright/no-page-pause
       await page.pause();
       await page.goto("auth/logout");
 

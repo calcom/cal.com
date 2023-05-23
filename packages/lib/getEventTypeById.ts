@@ -241,24 +241,26 @@ export default async function getEventTypeById({
   });
 
   const { locations, metadata, ...restEventType } = rawEventType;
-  const newMetadata = EventTypeMetaDataSchema.parse(metadata || {})!;
-  const apps = newMetadata.apps || {};
+  const newMetadata = EventTypeMetaDataSchema.parse(metadata || {});
+  const apps = newMetadata?.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
   const stripeMetaData = getPaymentAppData(eventTypeWithParsedMetadata, true);
-  newMetadata.apps = {
-    ...apps,
-    stripe: {
-      ...stripeMetaData,
-      paymentOption: stripeMetaData.paymentOption as string,
-      currency:
-        (
-          credentials.find((integration) => integration.type === "stripe_payment")
-            ?.key as unknown as StripeData
-        )?.default_currency || "usd",
-    },
-    giphy: getEventTypeAppData(eventTypeWithParsedMetadata, "giphy", true),
-    rainbow: getEventTypeAppData(eventTypeWithParsedMetadata, "rainbow", true),
-  };
+  if (newMetadata) {
+    newMetadata.apps = {
+      ...apps,
+      stripe: {
+        ...stripeMetaData,
+        paymentOption: stripeMetaData.paymentOption as string,
+        currency:
+          (
+            credentials.find((integration) => integration.type === "stripe_payment")
+              ?.key as unknown as StripeData
+          )?.default_currency || "usd",
+      },
+      giphy: getEventTypeAppData(eventTypeWithParsedMetadata, "giphy", true),
+      rainbow: getEventTypeAppData(eventTypeWithParsedMetadata, "rainbow", true),
+    };
+  }
 
   // TODO: How to extract metadata schema from _EventTypeModel to be able to parse it?
   // const parsedMetaData = _EventTypeModel.parse(newMetadata);

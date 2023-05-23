@@ -75,8 +75,7 @@ function getNavigation(props: {
   installedAppsNumber: number;
   availability: AvailabilityOption | undefined;
 }) {
-  const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber, availability } =
-    props;
+  const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber } = props;
   const duration =
     eventType.metadata?.multipleDuration?.map((duration) => ` ${duration}`) || eventType.length;
 
@@ -220,7 +219,18 @@ function EventTypeSingleLayout({
       });
     }
     return navigation;
-  }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team, availability]);
+  }, [
+    t,
+    eventType,
+    enabledAppsNumber,
+    installedAppsNumber,
+    enabledWorkflowsNumber,
+    availability,
+    isManagedEventType,
+    isChildrenManagedEventType,
+    team,
+    formMethods,
+  ]);
 
   const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
     eventType.slug
@@ -236,7 +246,7 @@ function EventTypeSingleLayout({
       heading={eventType.title}
       CTA={
         <div className="flex items-center justify-end">
-          {!eventType.metadata.managedEventConfig && (
+          {!eventType.metadata?.managedEventConfig && (
             <>
               <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 lg:flex">
                 <Skeleton
