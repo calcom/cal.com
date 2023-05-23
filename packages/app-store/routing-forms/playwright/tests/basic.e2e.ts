@@ -446,7 +446,7 @@ async function addAllTypesOfFieldsAndSaveForm(
 
   const { optionsInUi: fieldTypesList } = await verifySelectOptions(
     { selector: ".data-testid-field-type", nth: 0 },
-    ["Email", "Long Text", "Multiple Selection", "Number", "Phone", "Single selection", "Short Text"],
+    ["Email", "Long Text", "Multiple Selection", "Number", "Phone", "Single Selection", "Short Text"],
     page
   );
 
