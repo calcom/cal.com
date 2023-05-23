@@ -51,9 +51,11 @@ export const parseDateTimeWithTimeZone = (
   if (options?.withDefaultTimeFormat) {
     timeOptions.hourCycle = "h12";
   } else if (options?.selectedTimeFormat) {
-    timeOptions.hourCycle = options.selectedTimeFormat === TimeFormat.TWELVE_HOUR ? "h12" : "h23";
+    timeOptions.hourCycle = options.selectedTimeFormat === TimeFormat.TWELVE_HOUR ? "h12" : "h24";
+    if (timeOptions.hourCycle === "h24") {
+      delete timeOptions.hour12;
+    }
   }
-
   const formattedDate = new Date(date).toLocaleDateString(language, dateOptions);
   const formattedTime = new Date(date)
     .toLocaleTimeString(language, timeOptions)
