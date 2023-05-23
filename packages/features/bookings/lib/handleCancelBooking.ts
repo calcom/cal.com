@@ -629,12 +629,6 @@ async function handler(req: CustomRequest) {
     return { message: "Booking successfully cancelled." };
   }
 
-  const attendeeDeletes = prisma.attendee.deleteMany({
-    where: {
-      bookingId: bookingToDelete.id,
-    },
-  });
-
   const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
     where: {
       bookingId: bookingToDelete.id,
@@ -657,7 +651,7 @@ async function handler(req: CustomRequest) {
     });
   });
 
-  const prismaPromises: Promise<unknown>[] = [attendeeDeletes, bookingReferenceDeletes];
+  const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
 
   await Promise.all(prismaPromises.concat(apiDeletes));
 
