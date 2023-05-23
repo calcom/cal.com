@@ -160,6 +160,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
               title={t("create_webhook")}
               description={t("create_webhook_team_event_type")}>
               <WebhookForm
+                noRoutingFormTriggers={true}
                 onSubmit={onCreateWebhook}
                 onCancel={() => setCreateModalOpen(false)}
                 apps={installedApps?.items.map((app) => app.slug)}
@@ -170,6 +171,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
           <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
             <DialogContent enableOverflow title={t("edit_webhook")}>
               <WebhookForm
+                noRoutingFormTriggers={true}
                 webhook={webhookToEdit}
                 apps={installedApps?.items.map((app) => app.slug)}
                 onCancel={() => setEditModalOpen(false)}
@@ -177,7 +179,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                   if (
                     subscriberUrlReserved({
                       subscriberUrl: values.subscriberUrl,
-                      id: values.id,
+                      id: webhookToEdit?.id,
                       webhooks,
                       eventTypeId: eventType.id,
                     })
