@@ -39,9 +39,21 @@ const dateOptions: Intl.DateTimeFormatOptions = {
   day: "numeric",
 };
 
-export const parseDateTimeWithTimeZone = (date: Date, language: string, timezone: string): string => {
+export const parseDateTimeWithTimeZone = (
+  date: Date,
+  language: string,
+  timezone: string,
+  options?: ExtraOptions
+): string => {
   timeOptions.timeZone = timezone;
   dateOptions.timeZone = timezone;
+
+  if (options?.withDefaultTimeFormat) {
+    timeOptions.hourCycle = "h12";
+  } else if (options?.selectedTimeFormat) {
+    timeOptions.hourCycle = options.selectedTimeFormat === TimeFormat.TWELVE_HOUR ? "h12" : "h23";
+  }
+
   const formattedDate = new Date(date).toLocaleDateString(language, dateOptions);
   const formattedTime = new Date(date)
     .toLocaleTimeString(language, timeOptions)

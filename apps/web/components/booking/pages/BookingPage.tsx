@@ -605,7 +605,9 @@ const BookingPage = ({
                         <Calendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                         {isClientTimezoneAvailable &&
                           typeof booking.startTime === "string" &&
-                          parseDateTimeWithTimeZone(booking.startTime, i18n.language, timezone)}
+                          parseDateTimeWithTimeZone(booking.startTime, i18n.language, timezone, {
+                            selectedTimeFormat: timeFormat,
+                          })}
                       </p>
                     </div>
                   )}
