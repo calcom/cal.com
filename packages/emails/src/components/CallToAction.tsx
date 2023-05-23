@@ -65,11 +65,10 @@ export const CallToAction = (props: {
               marginLeft: 0,
             }}
             iconName={startIconName}
-            secondary={secondary}
           />
         )}
         {label}
-        {endIconName && <CallToActionIcon iconName={endIconName} secondary={secondary} />}
+        {endIconName && <CallToActionIcon iconName={endIconName} />}
       </a>
     </p>
   );
