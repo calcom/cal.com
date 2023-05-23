@@ -1,5 +1,6 @@
 import { guessEventLocationType } from "@calcom/app-store/locations";
 import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import type { CalEventResponses } from "@calcom/types/Calendar";
 
@@ -30,7 +31,7 @@ const customTemplate = (
     month: "long",
     day: "numeric",
     year: "numeric",
-  }).format(variables.eventDate?.toDate());
+  }).format(variables.eventDate?.add(dayjs().tz(variables.timeZone).utcOffset(), "minute").toDate());
 
   let locationString = variables.location || "";
 
