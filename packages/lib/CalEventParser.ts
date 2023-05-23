@@ -1,3 +1,4 @@
+import type { TFunction } from "next-i18next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -10,26 +11,26 @@ const translator = short();
 
 // The odd indentation in this file is necessary because otherwise the leading tabs will be applied into the event description.
 
-export const getWhat = (calEvent: CalendarEvent) => {
+export const getWhat = (calEvent: CalendarEvent, t: TFunction) => {
   return `
-${calEvent.organizer.language.translate("what")}:
+${t("what")}:
 ${calEvent.type}
   `;
 };
 
-export const getWhen = (calEvent: CalendarEvent) => {
+export const getWhen = (calEvent: CalendarEvent, t: TFunction) => {
   return calEvent.seatsPerTimeSlot
     ? `
-${calEvent.organizer.language.translate("organizer_timezone")}:
+${t("organizer_timezone")}:
 ${calEvent.organizer.timeZone}
   `
     : `
-${calEvent.organizer.language.translate("invitee_timezone")}:
+${t("invitee_timezone")}:
 ${calEvent.attendees[0].timeZone}
   `;
 };
 
-export const getWho = (calEvent: CalendarEvent) => {
+export const getWho = (calEvent: CalendarEvent, t: TFunction) => {
   let attendeesFromCalEvent = [...calEvent.attendees];
   if (calEvent.seatsPerTimeSlot && !calEvent.seatsShowAttendees) {
     attendeesFromCalEvent = [];
@@ -37,38 +38,38 @@ export const getWho = (calEvent: CalendarEvent) => {
   const attendees = attendeesFromCalEvent
     .map((attendee) => {
       return `
-${attendee?.name || calEvent.organizer.language.translate("guest")}
+${attendee?.name || t("guest")}
 ${attendee.email}
       `;
     })
     .join("");
 
   const organizer = `
-${calEvent.organizer.name} - ${calEvent.organizer.language.translate("organizer")}
+${calEvent.organizer.name} - ${t("organizer")}
 ${calEvent.organizer.email}
   `;
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members.map((member) => {
         return `
-${member.name} - ${calEvent.organizer.language.translate("team_member")} 
+${member.name} - ${t("team_member")} 
 ${member.email}
     `;
       })
     : [];
 
   return `
-${calEvent.organizer.language.translate("who")}:
+${t("who")}:
 ${organizer + attendees + teamMembers.join("")}
   `;
 };
 
-export const getAdditionalNotes = (calEvent: CalendarEvent) => {
+export const getAdditionalNotes = (calEvent: CalendarEvent, t: TFunction) => {
   if (!calEvent.additionalNotes) {
     return "";
   }
   return `
-${calEvent.organizer.language.translate("additional_notes")}:
+${t("additional_notes")}:
 ${calEvent.additionalNotes}
   `;
 };
@@ -94,11 +95,11 @@ ${labelValueMap[key]}
   return responsesString;
 };
 
-export const getAppsStatus = (calEvent: CalendarEvent) => {
+export const getAppsStatus = (calEvent: CalendarEvent, t: TFunction) => {
   if (!calEvent.appsStatus) {
     return "";
   }
-  return `\n${calEvent.organizer.language.translate("apps_status")}
+  return `\n${t("apps_status")}
       ${calEvent.appsStatus.map((app) => {
         return `\n- ${app.appName} ${
           app.success >= 1 ? `✅ ${app.success > 1 ? `(x${app.success})` : ""}` : ""
@@ -111,11 +112,11 @@ export const getAppsStatus = (calEvent: CalendarEvent) => {
     `;
 };
 
-export const getDescription = (calEvent: CalendarEvent) => {
+export const getDescription = (calEvent: CalendarEvent, t: TFunction) => {
   if (!calEvent.description) {
     return "";
   }
-  return `\n${calEvent.organizer.language.translate("description")}
+  return `\n${t("description")}
     ${calEvent.description}
     `;
 };
@@ -153,9 +154,9 @@ const getSeatReferenceId = (calEvent: CalendarEvent): string => {
   return calEvent.attendeeSeatId ? calEvent.attendeeSeatId : "";
 };
 
-export const getManageLink = (calEvent: CalendarEvent) => {
+export const getManageLink = (calEvent: CalendarEvent, t: TFunction) => {
   return `
-${calEvent.organizer.language.translate("need_to_reschedule_or_cancel")}
+${t("need_to_reschedule_or_cancel")}
 ${WEBAPP_URL + "/booking/" + getUid(calEvent) + "?changes=true"}
   `;
 };
@@ -176,27 +177,29 @@ export const getRescheduleLink = (calEvent: CalendarEvent): string => {
   return `${WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}`;
 };
 
-export const getRichDescription = (calEvent: CalendarEvent /*, attendee?: Person*/) => {
+export const getRichDescription = (calEvent: CalendarEvent, t_?: TFunction /*, attendee?: Person*/) => {
+  const t = t_ ?? calEvent.organizer.language.translate;
+
   return `
-${getCancellationReason(calEvent)}
-${getWhat(calEvent)}
-${getWhen(calEvent)}
-${getWho(calEvent)}
-${calEvent.organizer.language.translate("where")}:
+${getCancellationReason(calEvent, t)}
+${getWhat(calEvent, t)}
+${getWhen(calEvent, t)}
+${getWho(calEvent, t)}
+${t("where")}:
 ${getLocation(calEvent)}
-${getDescription(calEvent)}
-${getAdditionalNotes(calEvent)}
+${getDescription(calEvent, t)}
+${getAdditionalNotes(calEvent, t)}
 ${getUserFieldsResponses(calEvent)}
-${getAppsStatus(calEvent)}
+${getAppsStatus(calEvent, t)}
 ${
   // TODO: Only the original attendee can make changes to the event
   // Guests cannot
-  !calEvent.seatsPerTimeSlot && getManageLink(calEvent)
+  !calEvent.seatsPerTimeSlot && getManageLink(calEvent, t)
 }
 ${
   calEvent.paymentInfo
     ? `
-${calEvent.organizer.language.translate("pay_now")}:
+${t("pay_now")}:
 ${calEvent.paymentInfo.link}
 `
     : ""
@@ -204,10 +207,10 @@ ${calEvent.paymentInfo.link}
   `.trim();
 };
 
-export const getCancellationReason = (calEvent: CalendarEvent) => {
+export const getCancellationReason = (calEvent: CalendarEvent, t: TFunction) => {
   if (!calEvent.cancellationReason) return "";
   return `
-${calEvent.organizer.language.translate("cancellation_reason")}:
+${t("cancellation_reason")}:
 ${calEvent.cancellationReason}
  `;
 };

@@ -23,35 +23,40 @@ const logoApiSchema = z.object({
 const SYSTEM_SUBDOMAINS = ["console", "app", "www"];
 
 async function getTeamLogos(subdomain: string) {
-  if (
-    // if not cal.com
-    IS_SELF_HOSTED ||
-    // missing subdomain (empty string)
-    !subdomain ||
-    // in SYSTEM_SUBDOMAINS list
-    SYSTEM_SUBDOMAINS.includes(subdomain)
-  ) {
+  try {
+    if (
+      // if not cal.com
+      IS_SELF_HOSTED ||
+      // missing subdomain (empty string)
+      !subdomain ||
+      // in SYSTEM_SUBDOMAINS list
+      SYSTEM_SUBDOMAINS.includes(subdomain)
+    ) {
+      throw new Error("No custom logo needed");
+    }
+    // load from DB
+    const { default: prisma } = await import("@calcom/prisma");
+    const team = await prisma.team.findUniqueOrThrow({
+      where: {
+        slug: subdomain,
+      },
+      select: {
+        appLogo: true,
+        appIconLogo: true,
+      },
+    });
+    // try to use team logos, otherwise default to LOGO/LOGO_ICON regardless
+    return {
+      appLogo: team.appLogo || `${WEBAPP_URL}${LOGO}`,
+      appIconLogo: team.appIconLogo || `${WEBAPP_URL}${LOGO_ICON}`,
+    };
+  } catch (error) {
+    if (error instanceof Error) console.error(error.message);
     return {
       appLogo: `${WEBAPP_URL}${LOGO}`,
       appIconLogo: `${WEBAPP_URL}${LOGO_ICON}`,
     };
   }
-  // load from DB
-  const { default: prisma } = await import("@calcom/prisma");
-  const team = await prisma.team.findUniqueOrThrow({
-    where: {
-      slug: subdomain,
-    },
-    select: {
-      appLogo: true,
-      appIconLogo: true,
-    },
-  });
-  // try to use team logos, otherwise default to LOGO/LOGO_ICON regardless
-  return {
-    appLogo: team.appLogo || `${WEBAPP_URL}${LOGO}`,
-    appIconLogo: team.appIconLogo || `${WEBAPP_URL}${LOGO_ICON}`,
-  };
 }
 
 /**
