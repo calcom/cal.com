@@ -1486,6 +1486,9 @@ async function handler(
        * so if you modify it in a inner function it will be modified in the outer function
        * deep cloning evt to avoid this
        */
+      if (!evt?.uid) {
+        evt.uid = booking?.uid ?? null;
+      }
       const copyEvent = cloneDeep(evt);
       copyEvent.uid = booking.uid;
       await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
