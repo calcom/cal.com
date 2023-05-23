@@ -22,6 +22,7 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { createBooking, createRecurringBooking } from "@calcom/features/bookings/lib";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import {
   getBookingFieldsWithSystemFields,
   SystemField,
@@ -31,7 +32,6 @@ import getBookingResponsesSchema, {
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilder";
-import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { bookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, MINUTES_TO_BOOK } from "@calcom/lib/constants";
@@ -232,7 +232,7 @@ const BookingPage = ({
     {}
   );
 
-  const { timezone } = useTimePreferences(); 
+  const { timezone } = useTimePreferences();
 
   const reserveSlot = () => {
     if (queryDuration) {
@@ -605,8 +605,7 @@ const BookingPage = ({
                         <Calendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                         {isClientTimezoneAvailable &&
                           typeof booking.startTime === "string" &&
-                          parseDateTimeWithTimeZone(booking.startTime, i18n.language, timezone)
-                        }
+                          parseDateTimeWithTimeZone(booking.startTime, i18n.language, timezone)}
                       </p>
                     </div>
                   )}
