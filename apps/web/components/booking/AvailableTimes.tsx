@@ -72,7 +72,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
       slotUtcStartDate: slot.time,
       eventTypeId,
       slotUtcEndDate: dayjs(slot.time).utc().add(duration, "minutes").format(),
-      bookingAttendees: bookingAttendees || undefined,
+      bookingUid: slot.bookingUid,
     });
   };
 
