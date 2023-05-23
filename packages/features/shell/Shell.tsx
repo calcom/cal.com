@@ -69,6 +69,7 @@ import {
 
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
 import { TeamInviteBadge } from "./TeamInviteBadge";
+import useTheme from '@calcom/lib/hooks/useTheme'
 
 // need to import without ssr to prevent hydration errors
 const Tips = dynamic(() => import("@calcom/features/tips").then((mod) => mod.Tips), {
@@ -229,11 +230,13 @@ const PublicShell = (props: LayoutProps) => {
 };
 
 export default function Shell(props: LayoutProps) {
+  const { data : user } = useMeQuery()
+  console.log(user?.theme)
   // if a page is unauthed and isPublic is true, the redirect does not happen.
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   // System Theme is automatically supported using ThemeProvider. If we intend to use user theme throughout the app we need to uncomment this.
-  // useTheme(profile.theme);
+  useTheme(user?.theme);
   useBrandColors();
 
   return !props.isPublic ? (
