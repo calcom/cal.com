@@ -2097,12 +2097,14 @@ async function handler(
       userId: organizerUser.id,
       eventTypeId,
       triggerEvent: eventTrigger,
+      teamId: eventType.team?.id,
     };
 
     const subscriberOptionsMeetingEnded = {
       userId: organizerUser.id,
       eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+      teamId: eventType.team?.id,
     };
 
     try {

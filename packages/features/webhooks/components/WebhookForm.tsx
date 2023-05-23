@@ -44,6 +44,7 @@ const WebhookForm = (props: {
   apps?: (keyof typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2)[];
   onSubmit: (event: WebhookFormSubmitData) => void;
   onCancel?: () => void;
+  noRoutingFormTriggers: boolean;
 }) => {
   const { apps = [] } = props;
   const { t } = useLocale();
@@ -51,6 +52,7 @@ const WebhookForm = (props: {
   const triggerOptions = [...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"]];
   if (apps) {
     for (const app of apps) {
+      if (app === "routing-forms" && props.noRoutingFormTriggers) continue;
       if (WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2[app]) {
         triggerOptions.push(...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2[app]);
       }
