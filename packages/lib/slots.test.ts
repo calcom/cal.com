@@ -79,6 +79,21 @@ describe("Tests the date-range slot logic", () => {
       })
     ).toHaveLength(11);
   });
+
+  it("shows correct time slots for 20 minutes long events with working hours that do not end at a full hour ", async () => {
+    // 72 20-minutes events in a 24h day
+    expect(
+      getSlots({
+        inviteeDate: dayjs.utc().add(1, "day"),
+        frequency: 20,
+        minimumBookingNotice: 0,
+        dateRanges: dateRangesNextDay,
+        eventLength: 20,
+        offsetStart: 0,
+        organizerTimeZone: "America/Toronto",
+      })
+    ).toHaveLength(72);
+  });
 });
 
 describe("Tests the slot logic", () => {
@@ -193,7 +208,7 @@ describe("Tests the slot logic", () => {
   });
 
   it("shows correct time slots for 20 minutes long events with working hours that do not end at a full hour ", async () => {
-    // 72 20-minutes events in a 24h day
+    // 72 20-minutes events in a 24h day => so why should it only by 71? 2021-06-21T21:40:00.000Z is missing
     expect(
       getSlots({
         inviteeDate: dayjs.utc().add(1, "day"),

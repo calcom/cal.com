@@ -172,13 +172,7 @@ function buildSlotsWithDateRanges({
     // This surely can be handled shorter than that
     const rangeEnd = range.end
       .add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes")
-      .isSame(
-        range.end
-          .add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes")
-          .endOf("day")
-          .add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes"),
-        "minute"
-      )
+      .isSame(range.end.endOf("day").add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes"), "minute")
       ? range.end.add(1, "minute")
       : range.end;
 
