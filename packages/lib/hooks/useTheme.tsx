@@ -21,8 +21,10 @@ export default function useTheme(themeToSet?: Maybe<string>) {
       return;
     }
 
-    // Embed theme takes precedence over theme configured in app. If embedTheme isn't set that is it's in 'Auto' mode, then it would use the theme configured in appearance.
-    const finalThemeToSet = embedTheme || themeToSet;
+    // Embed theme takes precedence over theme configured in app.
+    // If embedTheme isn't set i.e. it's not explicitly configured with a theme, then it would use the theme configured in appearance.
+    // If embedTheme is set to "auto" then we consider it as null which then uses system theme.
+    const finalThemeToSet = embedTheme ? (embedTheme === "auto" ? null : embedTheme) : themeToSet;
 
     if (!finalThemeToSet || finalThemeToSet === activeTheme) return;
 

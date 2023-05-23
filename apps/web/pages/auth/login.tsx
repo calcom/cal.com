@@ -172,7 +172,7 @@ export default function Login({
                     className="mb-0"
                     {...register("password")}
                   />
-                  <div className="absolute -top-1.5 ltr:right-0 rtl:left-0">
+                  <div className="absolute -top-[2px] ltr:right-0 rtl:left-0">
                     <Link
                       href="/auth/forgot-password"
                       tabIndex={-1}
