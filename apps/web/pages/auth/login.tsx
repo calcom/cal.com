@@ -158,7 +158,7 @@ export default function Login({
             : null
         }>
         <FormProvider {...methods}>
-          <form onSubmit={methods.handleSubmit(onSubmit)} data-testid="login-form">
+          <form onSubmit={methods.handleSubmit(onSubmit)} noValidate data-testid="login-form">
             <div>
               <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
             </div>
@@ -169,14 +169,14 @@ export default function Login({
                   label={t("email_address")}
                   defaultValue={totpEmail || (router.query.email as string)}
                   placeholder="john.doe@example.com"
-                  // Note: override the type as text because it was throwing the default browser error message, Checking email type By zod
-                  type="text"
+                  required
                   {...register("email")}
                 />
                 <div className="relative">
                   <PasswordField
                     id="password"
                     autoComplete="off"
+                    required={!totpEmail}
                     className="mb-0"
                     {...register("password")}
                   />
