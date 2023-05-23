@@ -50,6 +50,7 @@ const ProfileImpersonationView = () => {
     setValue,
     reset,
     getValues,
+    watch,
   } = formMethods;
 
   const isDisabled = isSubmitting || !isDirty;
@@ -63,11 +64,11 @@ const ProfileImpersonationView = () => {
         }}>
         <div className="flex space-x-3">
           <Switch
-            defaultChecked={!user?.disableImpersonation}
             onCheckedChange={(e) => {
               setValue("disableImpersonation", !e, { shouldDirty: true });
             }}
             fitToHeight={true}
+            checked={!watch("disableImpersonation")}
           />
           <div className="flex flex-col">
             <Skeleton as={Label} className="text-emphasis text-sm font-semibold leading-none">

@@ -29,6 +29,9 @@ packages/features/ee/impersonation    @sean-brydon @calcom/core
 packages/features/ee/payments         @alannnc @calcom/core
 packages/features/ee/workflows        @CarinaWolli @calcom/core
 packages/features/tips                @PeerRich @calcom/core
-packages/ui                           @calcom/ui
+# Trivial changes should be mergeable by core team as well
+# Major UI changes must be reviewed by UI team
+# Critical changes even if major can still be merged by core team if needed.
+packages/ui                           @calcom/ui @calcom/core
 packages/config                       @calcom/core
 packages/app-store/routing-forms   @hariombalhara @calcom/core
