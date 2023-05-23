@@ -92,6 +92,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       durationLimits: durationLimits ?? undefined,
       metadata: metadata === null ? Prisma.DbNull : metadata,
       bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
+      bookerLayouts: eventType.bookerLayouts || undefined,
     };
 
     const newEventType = await prisma.eventType.create({ data });

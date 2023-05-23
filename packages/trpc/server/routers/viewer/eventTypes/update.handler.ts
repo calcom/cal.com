@@ -56,7 +56,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     bookingFields,
-    bookerLayouts: bookerLayouts || null,
+    bookerLayouts: bookerLayouts || undefined,
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
   };
   data.locations = locations ?? undefined;
@@ -120,6 +120,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       bookerlayout_error_min_one_enabled: "At least one layout has to be enabled.",
       bookerlayout_error_default_not_enabled:
         "The layout you selected as the default view is not part of the enabled layouts.",
+      bookerlayout_error_unknown_layout: "The layout you selected is not a valid layout.",
     };
     throw new TRPCError({ code: "BAD_REQUEST", message: errorText[bookerLayoutsError] });
   }

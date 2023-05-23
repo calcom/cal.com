@@ -10,6 +10,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { PrismaClient } from "@calcom/prisma/client";
+import type { BookerLayoutSettings, BookerLayouts } from "@calcom/prisma/zod-utils";
 import {
   bookerLayoutOptions,
   EventTypeMetaDataSchema,
@@ -107,9 +108,9 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
     return {
       ...defaultEvent,
       bookerLayouts: {
-        enabledLayouts: bookerLayoutOptions,
-        defaultLayout: "month_view",
-      },
+        enabledLayouts: [...bookerLayoutOptions],
+        defaultLayout: "month_view" as BookerLayouts,
+      } as BookerLayoutSettings,
       bookingFields: getBookingFieldsWithSystemFields(defaultEvent),
       // Clears meta data since we don't want to send this in the public api.
       users: users.map((user) => ({ ...user, metadata: undefined })),
@@ -152,6 +153,7 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
 
   return {
     ...event,
+    bookerLayouts: event.bookerLayouts as BookerLayoutSettings,
     description: markdownToSafeHTML(event.description),
     metadata: EventTypeMetaDataSchema.parse(event.metadata || {}),
     customInputs: customInputSchema.array().parse(event.customInputs || []),

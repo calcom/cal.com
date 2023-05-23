@@ -299,6 +299,7 @@
   "bookerlayout_column_view": "Column",
   "bookerlayout_error_min_one_enabled": "At least one layout has to be enabled.",
   "bookerlayout_error_default_not_enabled": "The layout you selected as the default view is not part of the enabled layouts.",
+  "bookerlayout_error_unknown_layout": "The layout you selected is not a valid layout.",
   "unexpected_error_try_again": "An unexpected error occurred. Try again.",
   "sunday_time_error": "Invalid time on Sunday",
   "monday_time_error": "Invalid time on Monday",

@@ -202,9 +202,10 @@ export const useInitializeBookerStore = ({
   eventId,
   rescheduleUid = null,
   rescheduleBooking = null,
+  layout,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
-    initializeStore({ username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking });
-  }, [initializeStore, username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking]);
+    initializeStore({ username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking, layout });
+  }, [initializeStore, username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking, layout]);
 };

@@ -7,6 +7,7 @@ import { shallow } from "zustand/shallow";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
+import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { ToggleGroup } from "@calcom/ui";
 import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 
@@ -97,7 +98,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
         <div className="[&>div]:bg-muted fixed top-2 right-3 z-10">
           <ToggleGroup
             onValueChange={onLayoutToggle}
-            defaultValue={layout}
+            value={layout}
             options={[
               {
                 value: "month_view",
@@ -114,7 +115,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
                 label: <Columns width="16" height="16" />,
                 tooltip: t("switch_multiday"),
               },
-            ].filter((v) => event.data?.bookerLayouts?.enabledLayouts?.includes(v.value))}
+            ].filter((v) => event.data?.bookerLayouts?.enabledLayouts?.includes(v.value as BookerLayouts))}
           />
         </div>
       )}

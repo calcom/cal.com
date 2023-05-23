@@ -188,6 +188,7 @@ export default async function handleChildrenEventTypes({
             metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
             bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
             durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
+            bookerLayouts: managedEventTypeValues.bookerLayouts || undefined,
             userId,
             users: {
               connect: [{ id: userId }],
@@ -242,6 +243,7 @@ export default async function handleChildrenEventTypes({
             metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
             bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
             durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
+            bookerLayouts: managedEventTypeValues.bookerLayouts || undefined,
             hashedLink: hashedLinkQuery(userId),
           },
         });

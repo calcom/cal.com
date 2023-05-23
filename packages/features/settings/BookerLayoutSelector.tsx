@@ -37,7 +37,7 @@ type BookerLayoutState = { [key in BookerLayouts]: boolean };
 const BookerLayoutFields = ({ settings, onChange }: BookerLayoutFieldsProps) => {
   const { t } = useLocale();
 
-  const defaultLayout = settings?.defaultLayout || "MONTH_VIEW";
+  const defaultLayout = settings?.defaultLayout || "month_view";
 
   const toggleValues: BookerLayoutState = bookerLayoutOptions.reduce((layouts, layout) => {
     layouts[layout] = !settings?.enabledLayouts ? true : settings.enabledLayouts.indexOf(layout) > -1;
