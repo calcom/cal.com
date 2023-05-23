@@ -201,7 +201,7 @@ export const FormBuilder = function FormBuilder({
                       // It has the same drawback that if the label is changed, the value of the option will change. It is not a big deal for now.
                       value.splice(index, 1, {
                         label: e.target.value,
-                        value: e.target.value.toLowerCase().trim(),
+                        value: e.target.value.trim(),
                       });
                       onChange(value);
                     }}
@@ -419,7 +419,7 @@ export const FormBuilder = function FormBuilder({
             fieldIndex: -1,
           })
         }>
-        <DialogContent data-testid="edit-field-dialog">
+        <DialogContent enableOverflow data-testid="edit-field-dialog">
           <DialogHeader title={t("add_a_booking_question")} subtitle={t("form_builder_field_add_subtitle")} />
           <div>
             <Form

@@ -1,6 +1,7 @@
 {
   "name": "@calcom/config",
   "sideEffects": false,
+  "private": true,
   "version": "0.0.0",
   "main": "index.js",
   "license": "MIT",

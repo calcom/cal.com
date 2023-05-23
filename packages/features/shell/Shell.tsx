@@ -24,6 +24,7 @@ import getBrandColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { trpc } from "@calcom/trpc/react";
+import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 import {
@@ -254,8 +255,9 @@ export default function Shell(props: LayoutProps) {
 
 function UserDropdown({ small }: { small?: boolean }) {
   const { t } = useLocale();
-  const query = useMeQuery();
-  const user = query.data;
+  const { data: user } = useMeQuery();
+  const { data: avatar } = useAvatarQuery();
+
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -302,7 +304,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   className="rounded-full"
-                  src={WEBAPP_URL + "/" + user.username + "/avatar.png"}
+                  src={avatar?.avatar || WEBAPP_URL + "/" + user.username + "/avatar.png"}
                   alt={user.username || "Nameless User"}
                 />
               }
@@ -315,11 +317,11 @@ function UserDropdown({ small }: { small?: boolean }) {
             </span>
             {!small && (
               <span className="flex flex-grow items-center truncate">
-                <span className="flex-grow truncate text-sm">
-                  <span className="text-emphasis mb-1 block truncate pb-1 font-medium leading-none">
+                <span className="flex-grow truncate text-sm leading-none">
+                  <span className="text-emphasis mb-1 block truncate font-medium leading-none">
                     {user.name || "Nameless User"}
                   </span>
-                  <span className="text-default truncate pb-1 font-normal leading-none">
+                  <span className="text-default truncate font-normal leading-none">
                     {user.username
                       ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
                         ? `cal.com/${user.username}`
@@ -672,7 +674,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "pwa:pb-2.5 bg-muted border-subtle fixed bottom-0 z-30 -mx-4 flex w-full border border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-2.5 bg-muted border-subtle fixed bottom-0 z-30 -mx-4 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
