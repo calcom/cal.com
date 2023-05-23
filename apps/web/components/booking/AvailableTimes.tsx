@@ -180,7 +180,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                             {t("seats_available", {
                               count: slot.attendees
                               ? seatsPerTimeSlot - slot.attendees
-                              : seatsPerTimeSlot
+                              : seatsPerTimeSlot,
                             })}
                           </p>
                         )}
