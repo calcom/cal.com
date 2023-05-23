@@ -9,7 +9,7 @@ import type { DateRange } from "./date-ranges";
 export type GetSlots = {
   inviteeDate: Dayjs;
   frequency: number;
-  workingHours: WorkingHours[];
+  workingHours?: WorkingHours[];
   dateOverrides?: DateOverride[];
   dateRanges?: DateRange[];
   minimumBookingNotice: number;
@@ -160,11 +160,12 @@ function buildSlotsWithDateRanges({
 
   const slots: { time: Dayjs; userIds?: number[] }[] = [];
   dateRanges.forEach((range) => {
-    let slotStartTime = range.start;
-    if (slotStartTime.isSame(dayjs.utc(), "day")) {
-      const startDate = dayjs().utc().add(minimumBookingNotice, "minute");
-      const dayStart = Math.ceil((startDate.hour() * 60 + startDate.minute()) / frequency) * frequency;
-      slotStartTime = dayjs().utc().startOf("day").add(dayStart, "minutes");
+    const startTimeWithMinNotice = dayjs().utc().add(minimumBookingNotice, "minute");
+    let slotStartTime = range.start.isAfter(startTimeWithMinNotice) ? range.start : startTimeWithMinNotice;
+    if (slotStartTime.minute() % frequency !== 0) {
+      slotStartTime = slotStartTime
+        .startOf("hour")
+        .add(Math.round(slotStartTime.minute() / frequency) * frequency, "minute");
     }
 
     // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
@@ -205,7 +206,7 @@ const getSlots = ({
   inviteeDate,
   frequency,
   minimumBookingNotice,
-  workingHours,
+  workingHours = [],
   dateOverrides = [],
   dateRanges,
   eventLength,
