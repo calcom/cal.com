@@ -44,9 +44,9 @@ export const parseDateTimeWithTimeZone = (date: Date, language: string, timezone
     day: "numeric",
   };
 
-  const formatedTime = newDate.toLocaleTimeString(language, timeOptions).replace(" ", "").toLowerCase();
-  const formatedDate = newDate.toLocaleDateString(language, dateOptions);
-  return formatedTime + ", " + formatedDate;
+  const formattedTime = newDate.toLocaleTimeString(language, timeOptions).replace(" ", "").toLowerCase();
+  const formattedDate = newDate.toLocaleDateString(language, dateOptions);
+  return formattedTime + ", " + formattedDate;
 };
 
 export const parseRecurringDates = (
