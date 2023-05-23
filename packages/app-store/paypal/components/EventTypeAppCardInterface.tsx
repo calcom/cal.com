@@ -86,7 +86,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   }}
                 />
               </div>
-              <div className="mt-2 w-60">
+              {/* @TODO: To be released in follow up PR */}
+              {/* <div className="mt-2 w-60">
                 <label className="text-default block text-sm font-medium" htmlFor="currency">
                   Payment option
                 </label>
@@ -105,10 +106,11 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   className="mb-1 h-[38px] w-full"
                   isDisabled={seatsEnabled}
                 />
-              </div>
+              </div> 
               {seatsEnabled && paymentOption === "HOLD" && (
                 <Alert className="mt-2" severity="warning" title={t("seats_and_no_show_fee_error")} />
               )}
+              */}
             </>
           )
         )}

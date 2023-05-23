@@ -8,6 +8,8 @@ import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
+import { paymentOptionEnum } from "../zod";
+
 export const paypalCredentialKeysSchema = z.object({
   client_id: z.string(),
   secret_key: z.string(),
@@ -37,7 +39,6 @@ export class PaymentService implements IAbstractPaymentService {
       if (!booking) {
         throw new Error();
       }
-      const { title } = booking;
 
       const paymentData = await prisma?.payment.create({
         data: {
@@ -60,7 +61,7 @@ export class PaymentService implements IAbstractPaymentService {
           success: false,
         },
       });
-      console.log({ paymentData });
+
       const paypalClient = new Paypal({
         clientId: this.credentials.client_id,
         secretKey: this.credentials.secret_key,
@@ -71,7 +72,7 @@ export class PaymentService implements IAbstractPaymentService {
         currency: paymentData.currency,
         returnUrl: `${WEBAPP_URL}/booking/${booking.uid}`,
       });
-      console.log({ preference });
+
       await prisma?.payment.update({
         where: {
           id: paymentData.id,
@@ -98,13 +99,83 @@ export class PaymentService implements IAbstractPaymentService {
     throw new Error("Method not implemented.");
   }
 
-  collectCard(
+  async collectCard(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: number,
-    bookerEmail: string,
+    _bookerEmail: string,
     paymentOption: PaymentOption
   ): Promise<Payment> {
-    throw new Error("Method not implemented.");
+    // Ensure that the payment service can support the passed payment option
+    if (paymentOptionEnum.parse(paymentOption) !== "HOLD") {
+      throw new Error("Payment option is not compatible with create method");
+    }
+    try {
+      const booking = await prisma?.booking.findFirst({
+        select: {
+          uid: true,
+          title: true,
+        },
+        where: {
+          id: bookingId,
+        },
+      });
+      if (!booking) {
+        throw new Error();
+      }
+
+      const paymentData = await prisma?.payment.create({
+        data: {
+          uid: uuidv4(),
+          app: {
+            connect: {
+              slug: "paypal",
+            },
+          },
+          booking: {
+            connect: {
+              id: bookingId,
+            },
+          },
+          amount: payment.amount,
+          currency: payment.currency,
+          data: {},
+          fee: 0,
+          refunded: false,
+          success: false,
+          paymentOption: paymentOption || "ON_BOOKING",
+        },
+      });
+
+      const paypalClient = new Paypal({
+        clientId: this.credentials.client_id,
+        secretKey: this.credentials.secret_key,
+      });
+      const preference = await paypalClient.createOrder({
+        referenceId: paymentData.uid,
+        amount: paymentData.amount,
+        currency: paymentData.currency,
+        returnUrl: `${WEBAPP_URL}/booking/${booking.uid}`,
+        intent: "AUTHORIZE",
+      });
+      console.log("preference", preference);
+      await prisma?.payment.update({
+        where: {
+          id: paymentData.id,
+        },
+        data: {
+          externalId: preference?.id,
+          data: Object.assign({}, preference) as unknown as Prisma.InputJsonValue,
+        },
+      });
+
+      if (!paymentData) {
+        throw new Error();
+      }
+      return paymentData;
+    } catch (error) {
+      console.error(error);
+      throw new Error("Payment could not be created");
+    }
   }
   chargeCard(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
@@ -128,11 +199,9 @@ export class PaymentService implements IAbstractPaymentService {
     },
     paymentData: Payment
   ): Promise<void> {
-    console.log("afterPayment", event, booking, paymentData);
     return Promise.resolve();
   }
   deletePayment(paymentId: number): Promise<boolean> {
-    console.log("deletePayment", paymentId);
     return Promise.resolve(false);
   }
 }

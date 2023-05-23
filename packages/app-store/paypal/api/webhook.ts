@@ -37,9 +37,7 @@ export async function handlePaymentSuccess(payload: z.infer<typeof PaypalPayload
       bookingId: true,
     },
   });
-  if (!payment?.bookingId) {
-    console.log(JSON.stringify(payload), JSON.stringify(payment));
-  }
+
   if (!payment?.bookingId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
   const booking = await prisma.booking.findUnique({
@@ -173,22 +171,17 @@ export async function handlePaymentSuccess(payload: z.infer<typeof PaypalPayload
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    console.log("Webhook Received", req.method, req.body);
     if (req.method !== "POST") {
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
     }
     const { body } = req;
-    // We first receive a notification from Mercado Pago that a payment was made
-    console.log("Webhook Received", body);
-    if (PaypalPayloadSchema.safeParse(body).success || !!body.action) {
-      return res.status(200).end();
-    }
 
-    // The second notification is the actual payment
     const parse = PaypalPayloadSchema.safeParse(body);
     if (!parse.success) {
+      console.error(parse.error);
       throw new HttpCode({ statusCode: 400, message: "Bad Request" });
     }
+
     const { data: parsedPayload } = parse;
     if (parsedPayload.event_type === "PAYMENT.CAPTURE.COMPLETED") {
       return await handlePaymentSuccess(parsedPayload);
@@ -214,16 +207,14 @@ const PaypalPayloadSchema = z.object({
   event_type: z.string(),
   summary: z.string(),
   resource: z.object({
-    disbursement_mode: z.literal("INSTANT"),
+    disbursement_mode: z.string().optional(),
     amount: z.object({
-      currency_code: z.literal("USD"),
+      currency_code: z.string(),
       value: z.string(),
     }),
     seller_protection: z.object({
-      status: z.literal("ELIGIBLE"),
-      dispute_categories: z.array(
-        z.union([z.literal("ITEM_NOT_RECEIVED"), z.literal("UNAUTHORIZED_TRANSACTION")])
-      ),
+      status: z.string().optional(),
+      dispute_categories: z.array(z.string()).optional(),
     }),
     supplementary_data: z.object({
       related_ids: z.object({
@@ -235,17 +226,17 @@ const PaypalPayloadSchema = z.object({
     final_capture: z.boolean(),
     seller_receivable_breakdown: z.object({
       gross_amount: z.object({
-        currency_code: z.literal("USD"),
+        currency_code: z.string(),
         value: z.string(),
       }),
       paypal_fee: z.object({
-        currency_code: z.literal("USD"),
+        currency_code: z.string(),
         value: z.string(),
       }),
       platform_fees: z.array(
         z.object({
           amount: z.object({
-            currency_code: z.literal("USD"),
+            currency_code: z.string(),
             value: z.string(),
           }),
           payee: z.object({
@@ -254,7 +245,7 @@ const PaypalPayloadSchema = z.object({
         })
       ),
       net_amount: z.object({
-        currency_code: z.literal("USD"),
+        currency_code: z.string(),
         value: z.string(),
       }),
     }),
@@ -267,14 +258,14 @@ const PaypalPayloadSchema = z.object({
       })
     ),
     id: z.string(),
-    status: z.literal("COMPLETED"),
+    status: z.string(),
   }),
   links: z.array(
     z.object({
       href: z.string(),
       rel: z.string(),
       method: z.string(),
-      encType: z.string(),
+      encType: z.string().optional(),
     })
   ),
   event_version: z.string(),

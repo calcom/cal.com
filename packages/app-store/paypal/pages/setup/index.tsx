@@ -68,6 +68,9 @@ export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
   });
 
   const saveKeys = async (key: { clientId: string; secretKey: string }) => {
+    if (!key.clientId || !key.secretKey || key.clientId === key.secretKey) {
+      return false;
+    }
     if (typeof credentialId !== "number") {
       return;
     }
@@ -80,8 +83,22 @@ export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
       },
     });
 
-    // Create webhook for this installation
+    // Test credentials before saving
     const paypalClient = new Paypal({ clientId: key.clientId, secretKey: key.secretKey });
+    const test = await paypalClient.test();
+    if (!test) {
+      return false;
+    }
+
+    // Delete all existing webhooks
+    const webhooksToDelete = await paypalClient.listWebhooks();
+    if (webhooksToDelete) {
+      for (const webhook of webhooksToDelete) {
+        await paypalClient.deleteWebhook(webhook);
+      }
+    }
+
+    // Create webhook for this installation
     const webhook = await paypalClient.createWebhooks();
     if (!webhook) {
       // @TODO: make a button that tries to create the webhook again
@@ -146,7 +163,10 @@ export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
                 {/* @TODO: translate */}
                 <li>
                   Log into your Paypal Developer account and create a new app{" "}
-                  <a href="https://developer.paypal.com" className="text-orange-600 underline">
+                  <a
+                    target="_blank"
+                    href="https://developer.paypal.com"
+                    className="text-orange-600 underline">
                     {t("here")}
                   </a>
                   .

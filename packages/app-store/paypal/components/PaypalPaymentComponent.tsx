@@ -25,21 +25,22 @@ export const PaypalPaymentComponent = (props: IPaypalPaymentComponentProps) => {
   const { data } = payment;
   const wrongUrl = (
     <>
-      <p>Couldn&apos;t obtain payment URL</p>
+      <p className="mt-3 text-center">Couldn&apos;t obtain payment URL</p>
     </>
   );
-  // use parsing on data
+
   const parsedData = schema.safeParse(data);
   if (!parsedData.success || !parsedData.data.links) {
     return wrongUrl;
   }
-  const paymentUrl = parsedData.data.links.find((link) => link.rel === "approve")?.href;
+  const paymentUrl = parsedData.data.links.find(
+    (link) => link.rel === "approve" || link.rel === "payer-action"
+  )?.href;
   if (!paymentUrl) {
     return wrongUrl;
   }
   return (
     <div className="flex h-full w-full flex-col items-center justify-center">
-      <p className="break-all">{JSON.stringify(payment)}</p>
       <Link
         href={`${paymentUrl}`}
         className="inline-flex items-center justify-center rounded-md rounded-2xl border border-transparent bg-[#ffc439] px-12 py-2 text-base font-medium
