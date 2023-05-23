@@ -7,26 +7,26 @@ function normalize(input: any) {
 }
 
 jsonLogic.add_operation("==", function (a: any, b: any) {
-  return normalize(a) == normalize(b)
-})
+  return normalize(a) == normalize(b);
+});
 
 jsonLogic.add_operation("===", function (a: any, b: any) {
-  return normalize(a) === normalize(b)
-})
+  return normalize(a) === normalize(b);
+});
 
 jsonLogic.add_operation("!==", function (a: any, b: any) {
-  return normalize(a) !== normalize(b)
-})
+  return normalize(a) !== normalize(b);
+});
 
 jsonLogic.add_operation("!=", function (a: any, b: any) {
-  return normalize(a) != normalize(b)
-})
+  return normalize(a) != normalize(b);
+});
 
 jsonLogic.add_operation("in", function (a: any, b: any) {
-  const first = normalize(a)
-  const second = normalize(b)
+  const first = normalize(a);
+  const second = normalize(b);
   if (!second || typeof second.indexOf === "undefined") return false;
-  return (second.indexOf(first) !== -1);
-})
+  return second.indexOf(first) !== -1;
+});
 
-export default jsonLogic
+export default jsonLogic;
