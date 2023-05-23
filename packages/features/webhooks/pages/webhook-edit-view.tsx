@@ -9,6 +9,7 @@ import { Meta, showToast, SkeletonContainer } from "@calcom/ui";
 import { getLayout } from "../../settings/layouts/SettingsLayout";
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
+import { subscriberUrlReserved } from "../lib/subscriberUrlReserved";
 
 const querySchema = z.object({ id: z.string() });
 
@@ -47,10 +48,6 @@ const EditWebhook = () => {
       },
     });
 
-    const subscriberUrlReserved = (subscriberUrl: string, id: string): boolean => {
-      return !!webhooks?.find((webhook) => webhook.subscriberUrl === subscriberUrl && webhook.id !== id);
-    };
-
     if (isLoading || !webhook) return <SkeletonContainer />;
 
     return (
@@ -62,8 +59,17 @@ const EditWebhook = () => {
         />
         <WebhookForm
           webhook={webhook}
+          noRoutingFormTriggers={!!webhook.teamId}
           onSubmit={(values: WebhookFormSubmitData) => {
-            if (subscriberUrlReserved(values.subscriberUrl, webhook.id)) {
+            if (
+              subscriberUrlReserved({
+                subscriberUrl: values.subscriberUrl,
+                id: webhook.id,
+                webhooks,
+                teamId: webhook.teamId ?? undefined,
+                userId: webhook.userId ?? undefined,
+              })
+            ) {
               showToast(t("webhook_subscriber_url_reserved"), "error");
               return;
             }
