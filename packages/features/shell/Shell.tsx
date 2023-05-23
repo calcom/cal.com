@@ -161,14 +161,11 @@ const Layout = (props: LayoutProps) => {
 
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
-      <div className="flex min-h-screen flex-col">
-        <div ref={bannerRef} className="divide-y divide-black">
+      <div className="flex min-h-screen flex-col" style={{ paddingTop: `${bannersHeight}px` }}>
+        <div ref={bannerRef} className="fixed top-0 z-10 w-full divide-y divide-black">
           <TeamsUpgradeBanner />
           <ImpersonatingBanner />
           <AdminPasswordBanner />
-        </div>
-        <div ref={bannerRef} className="bg-orange-400 px-4 py-2 text-center text-white">
-          The password requirements for your account have changed. Update password.
         </div>
         <div className="flex flex-1" data-testid="dashboard-shell">
           {props.SidebarContainer || <SideBarContainer bannersHeight={bannersHeight} />}
@@ -766,8 +763,8 @@ function SideBar({ bannersHeight }: SideBarProps) {
   return (
     <div className="relative">
       <aside
-        style={{ paddingBottom: `${bannersHeight}px` }}
-        className="desktop-transparent bg-muted border-muted top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-4">
+        style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
+        className="desktop-transparent bg-muted border-muted fixed left-0 top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-4">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-6 ">
           <header className="items-center justify-between md:hidden lg:flex">
             <Link href="/event-types" className="px-2">
