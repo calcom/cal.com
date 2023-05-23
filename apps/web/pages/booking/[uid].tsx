@@ -400,7 +400,7 @@ export default function Success(props: SuccessProps) {
                       </>
                     )}
                     <div className="font-medium">{t("what")}</div>
-                    <div className="col-span-2 mb-6 last:mb-0">{props.bookingInfo.title}</div>
+                    <div className="col-span-2 mb-6 last:mb-0">{eventName}</div>
                     <div className="font-medium">{t("when")}</div>
                     <div className="col-span-2 mb-6 last:mb-0">
                       {reschedule && !!formerTime && (
