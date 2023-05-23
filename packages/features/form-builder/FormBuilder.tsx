@@ -195,6 +195,7 @@ export const FormBuilder = function FormBuilder({
                 <div className="flex items-center">
                   <Input
                     required
+                    className={value.length > 2 ? "pr-6" : ""}
                     value={option.label}
                     onChange={(e) => {
                       // Right now we use label of the option as the value of the option. It allows us to not separately lookup the optionId to know the optionValue
