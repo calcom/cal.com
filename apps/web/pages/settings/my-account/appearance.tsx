@@ -93,7 +93,6 @@ const AppearanceView = () => {
     <Form
       form={formMethods}
       handleSubmit={(values) => {
-        console.log(values, "updatemutate");
         mutation.mutate({
           ...values,
           // Radio values don't support null as values, therefore we convert an empty string
