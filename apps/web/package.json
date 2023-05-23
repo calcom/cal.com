@@ -109,6 +109,7 @@
     "react-intl": "^5.25.1",
     "react-live-chat-loader": "^2.7.3",
     "react-multi-email": "^0.5.3",
+    "react-phone-input-2": "^2.15.1",
     "react-phone-number-input": "^3.2.7",
     "react-schemaorg": "^2.0.0",
     "react-select": "^5.7.0",
