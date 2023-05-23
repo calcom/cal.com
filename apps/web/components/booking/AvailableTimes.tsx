@@ -178,9 +178,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                             {slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot} /{" "}
                             {seatsPerTimeSlot}{" "}
                             {t("seats_available", {
-                              count: slot.attendees
-                              ? seatsPerTimeSlot - slot.attendees
-                              : seatsPerTimeSlot,
+                              count: slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot,
                             })}
                           </p>
                         )}
