@@ -432,7 +432,7 @@ export default class EventManager {
     newBookingId?: number
   ): Promise<Array<EventResult<NewCalendarEventType>>> {
     if (!event?.uid) {
-      event.uid = booking.uid;
+      event.uid = booking?.uid ?? null;
     }
 
     let calendarReference: PartialReference | undefined = undefined,
