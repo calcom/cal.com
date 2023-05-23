@@ -2089,6 +2089,31 @@ async function handler(
         videoCallUrl: getVideoCallUrlFromCalEvent(evt),
       }
     : undefined;
+
+  const eventTypeInfo: EventTypeInfo = {
+    eventTitle: eventType.title,
+    eventDescription: eventType.description,
+    requiresConfirmation: requiresConfirmation || null,
+    price: paymentAppData.price,
+    currency: eventType.currency,
+    length: eventType.length,
+  };
+  const webhookData = {
+    ...evt,
+    ...eventTypeInfo,
+    bookingId: booking?.id,
+    rescheduleUid,
+    rescheduleStartTime: originalRescheduledBooking?.startTime
+      ? dayjs(originalRescheduledBooking?.startTime).utc().format()
+      : undefined,
+    rescheduleEndTime: originalRescheduledBooking?.endTime
+      ? dayjs(originalRescheduledBooking?.endTime).utc().format()
+      : undefined,
+    metadata: { ...metadata, ...reqBody.metadata },
+    eventTypeId,
+    status: "ACCEPTED",
+    smsReminderNumber: booking?.smsReminderNumber || undefined,
+  };
   if (isConfirmedByDefault) {
     const eventTrigger: WebhookTriggerEvents = rescheduleUid
       ? WebhookTriggerEvents.BOOKING_RESCHEDULED
@@ -2122,31 +2147,6 @@ async function handler(
       log.error("Error while running scheduledJobs for booking", error);
     }
 
-    const eventTypeInfo: EventTypeInfo = {
-      eventTitle: eventType.title,
-      eventDescription: eventType.description,
-      requiresConfirmation: requiresConfirmation || null,
-      price: paymentAppData.price,
-      currency: eventType.currency,
-      length: eventType.length,
-    };
-    const webhookData = {
-      ...evt,
-      ...eventTypeInfo,
-      bookingId: booking?.id,
-      rescheduleUid,
-      rescheduleStartTime: originalRescheduledBooking?.startTime
-        ? dayjs(originalRescheduledBooking?.startTime).utc().format()
-        : undefined,
-      rescheduleEndTime: originalRescheduledBooking?.endTime
-        ? dayjs(originalRescheduledBooking?.endTime).utc().format()
-        : undefined,
-      metadata: { ...metadata, ...reqBody.metadata },
-      eventTypeId,
-      status: "ACCEPTED",
-      smsReminderNumber: booking?.smsReminderNumber || undefined,
-    };
-
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   } else if (eventType.requiresConfirmation) {
@@ -2157,30 +2157,7 @@ async function handler(
       eventTypeId,
       triggerEvent: eventTrigger,
     };
-    const eventTypeInfo: EventTypeInfo = {
-      eventTitle: eventType.title,
-      eventDescription: eventType.description,
-      requiresConfirmation: requiresConfirmation || null,
-      price: paymentAppData.price,
-      currency: eventType.currency,
-      length: eventType.length,
-    };
-    const webhookData = {
-      ...evt,
-      ...eventTypeInfo,
-      bookingId: booking?.id,
-      rescheduleUid,
-      rescheduleStartTime: originalRescheduledBooking?.startTime
-        ? dayjs(originalRescheduledBooking?.startTime).utc().format()
-        : undefined,
-      rescheduleEndTime: originalRescheduledBooking?.endTime
-        ? dayjs(originalRescheduledBooking?.endTime).utc().format()
-        : undefined,
-      metadata: { ...metadata, ...reqBody.metadata },
-      eventTypeId,
-      status: "PENDING",
-      smsReminderNumber: booking?.smsReminderNumber || undefined,
-    };
+    webhookData.status = "PENDING";
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
 

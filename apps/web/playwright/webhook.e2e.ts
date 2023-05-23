@@ -328,7 +328,7 @@ test.describe("BOOKING_REQUESTED", async () => {
     body.payload.eventTypeId = dynamic;
     body.payload.videoCallData = dynamic;
     body.payload.appsStatus = dynamic;
-    // body.payload.metadata.videoCallUrl = dynamic;
+    body.payload.metadata.videoCallUrl = dynamic;
 
     expect(body).toMatchObject({
       triggerEvent: "BOOKING_REQUESTED",
@@ -378,6 +378,7 @@ test.describe("BOOKING_REQUESTED", async () => {
         bookingId: "[redacted/dynamic]",
         status: "PENDING",
         additionalInformation: "[redacted/dynamic]",
+        metadata: { videoCallUrl: "[redacted/dynamic]" },
       },
     });
 
