@@ -177,7 +177,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                   if (
                     subscriberUrlReserved({
                       subscriberUrl: values.subscriberUrl,
-                      id: values.id,
+                      id: webhookToEdit?.id,
                       webhooks,
                       eventTypeId: eventType.id,
                     })
