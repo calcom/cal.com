@@ -48,6 +48,9 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         },
       ],
     },
+    include: {
+      children: true,
+    },
   });
 
   if (!userEventType)
@@ -118,13 +121,15 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
     await prisma.workflowsOnEventTypes.deleteMany({
       where: {
         workflowId,
-        eventTypeId,
+        eventTypeId: { in: [eventTypeId].concat(userEventType.children.map((ch) => ch.id)) },
       },
     });
 
-    await removeSmsReminderFieldForBooking({
-      workflowId,
-      eventTypeId,
+    [eventTypeId].concat(userEventType.children.map((ch) => ch.id)).map(async (chId) => {
+      await removeSmsReminderFieldForBooking({
+        workflowId,
+        eventTypeId: chId,
+      });
     });
   } else {
     // activate workflow and schedule reminders for existing bookings
@@ -220,11 +225,13 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       }
     }
 
-    await prisma.workflowsOnEventTypes.create({
-      data: {
-        workflowId,
-        eventTypeId,
-      },
+    await prisma.workflowsOnEventTypes.createMany({
+      data: [
+        {
+          workflowId,
+          eventTypeId,
+        },
+      ].concat(userEventType.children.map((ch) => ({ workflowId, eventTypeId: ch.id }))),
     });
 
     if (
@@ -235,10 +242,12 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       const isSmsReminderNumberRequired = eventTypeWorkflow.steps.some((step) => {
         return step.action === WorkflowActions.SMS_ATTENDEE && step.numberRequired;
       });
-      await upsertSmsReminderFieldForBooking({
-        workflowId,
-        isSmsReminderNumberRequired,
-        eventTypeId,
+      [eventTypeId].concat(userEventType.children.map((ch) => ch.id)).map(async (evTyId) => {
+        await upsertSmsReminderFieldForBooking({
+          workflowId,
+          isSmsReminderNumberRequired,
+          eventTypeId: evTyId,
+        });
       });
     }
   }

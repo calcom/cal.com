@@ -443,8 +443,10 @@ export default function Success(props: SuccessProps) {
                           )}
                           {bookingInfo?.attendees.map((attendee) => (
                             <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
-                              {attendee.name && <p>{attendee.name}</p>}
-                              <p data-testid={`attendee-${attendee.email}`}>{attendee.email}</p>
+                              {attendee.name && (
+                                <p data-testid={`attendee-name-${attendee.name}`}>{attendee.name}</p>
+                              )}
+                              <p data-testid={`attendee-email-${attendee.email}`}>{attendee.email}</p>
                             </div>
                           ))}
                         </div>
@@ -1092,6 +1094,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
+      themeBasis: eventType.team ? eventType.team.slug : eventType.users[0]?.username,
       hideBranding: eventType.team ? eventType.team.hideBranding : eventType.users[0].hideBranding,
       profile,
       eventType,
