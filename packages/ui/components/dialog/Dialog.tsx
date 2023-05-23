@@ -93,7 +93,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
           {type === "creation" && (
             <div>
               <DialogHeader title={title} subtitle={props.description} />
-              <div className="flex max-h-[95vh] flex-col">{children}</div>
+              <div className="flex flex-col">{children}</div>
             </div>
           )}
           {type === "confirmation" && (
