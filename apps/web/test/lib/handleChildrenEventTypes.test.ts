@@ -260,7 +260,7 @@ describe("handleChildrenEventTypes", () => {
           metadata: { managedEventConfig: {} },
           locations: [],
         });
-        prismaMock.eventType.deleteMany.mockResolvedValue([123] as unknown as Prisma.BatchPayload);
+      prismaMock.eventType.deleteMany.mockResolvedValue([123] as unknown as Prisma.BatchPayload);
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
