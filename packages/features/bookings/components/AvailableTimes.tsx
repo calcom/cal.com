@@ -96,7 +96,7 @@ export const AvailableTimes = ({
                     aria-hidden
                   />
                   {slot.attendees ? seatsPerTimeslot - slot.attendees : seatsPerTimeslot}{" "}
-                  {t("seats_available")}
+                  {(slot.attendees && (seatsPerTimeslot - slot.attendees > 1)) || seatsPerTimeslot > 1 ? t("seats_available") : t("seat_available")}
                 </p>
               )}
             </Button>
