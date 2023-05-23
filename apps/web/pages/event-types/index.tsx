@@ -416,7 +416,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         {!isManagedEventType && (
                           <>
                             {type.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
-                            <Tooltip content={t("show_eventtype_on_profile")}>
+                            <Tooltip
+                              content={type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")}>
                               <div className="self-center rounded-md p-2">
                                 <Switch
                                   name="Hidden"
