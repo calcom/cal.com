@@ -4,6 +4,7 @@ import type { TFunction } from "next-i18next";
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
+import type { User } from "@calcom/prisma/client";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
@@ -25,6 +26,7 @@ import ForgotPasswordEmail from "./templates/forgot-password-email";
 import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
 import OrganizerAttendeeCancelledSeatEmail from "./templates/organizer-attendee-cancelled-seat-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
+import OrganizerDailyDigestEmail from "./templates/organizer-daily-digest-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
 import OrganizerPaymentRefundFailedEmail from "./templates/organizer-payment-refund-failed-email";
 import OrganizerRequestEmail from "./templates/organizer-request-email";
@@ -206,6 +208,12 @@ export const sendOrganizerRequestReminderEmail = async (calEvent: CalendarEvent)
       emailsToSend.push(sendEmail(() => new OrganizerRequestReminderEmail({ calEvent, teamMember })));
     }
   }
+
+  await Promise.all(emailsToSend);
+};
+
+export const sendOrganizerDailyDigestEmail = async (user: User, t: TFunction, calEvents: CalendarEvent[]) => {
+  await sendEmail(() => new OrganizerDailyDigestEmail({ user, t, calEvents }));
 };
 
 export const sendAwaitingPaymentEmail = async (calEvent: CalendarEvent) => {

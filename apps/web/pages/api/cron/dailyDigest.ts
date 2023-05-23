@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { sendOrganizerDailyDigestEmail } from "@calcom/emails";
+import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -13,14 +15,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  // TODO: Find users whose daily digest time is set to this moment (within a 5m tolerance?)
-  // For each, find bookings beginning in the next 24hrs and email as a daily digest
+  // TODO: For each user, find bookings beginning in the next 24hrs and email as a daily digest
   const users = await getUsersDueDigests();
-  console.debug(users);
 
   let notificationsSent = 0;
-  for (const _ of []) {
-    // await sendOrganizerDailyDigestEmail([]);
+  for (const user of users) {
+    const tOrganizer = await getTranslation(user.locale ?? "en", "common");
+    await sendOrganizerDailyDigestEmail(user, tOrganizer, []);
 
     notificationsSent++;
   }

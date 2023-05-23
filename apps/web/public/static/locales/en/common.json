@@ -1841,5 +1841,8 @@
   "notifications_description": "Manage settings for your booking notifications",
   "daily_digest_enabled_label": "Daily Digest",
   "daily_digest_enabled_description": "Receive a daily digest of the next day's meetings",
-  "daily_digest_time_label": "What time would you like to receive your daily digest?"
+  "daily_digest_time_label": "What time would you like to receive your daily digest?",
+  "daily_digest_email_subject": "Daily Digest: {{count}} upcoming meetings",
+  "daily_digest_email_title": "Daily Digest",
+  "daily_digest_email_subtitle": "Your meetings for the next 24 hours"
 }
