@@ -66,7 +66,7 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
           ...data,
           callbackUrl: router.query.callbackUrl
             ? `${WEBAPP_URL}/${router.query.callbackUrl}`
-            : `${WEBAPP_URL}/getting-started`,
+            : `${WEBAPP_URL}/auth/verify-email`,
         });
       })
       .catch((err) => {

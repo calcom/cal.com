@@ -144,6 +144,7 @@ function useRedirectToEmailVerify() {
 
   const { data } = useEmailVerifyCheck();
   const requriedRedirect = data?.requiresRedirect;
+  console.log({ data });
 
   useEffect(() => {
     if (requriedRedirect) {

@@ -3,7 +3,6 @@ import { z } from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
-import { TokenType } from "@calcom/prisma/enums";
 
 const verifySchema = z.object({
   token: z.string(),
@@ -15,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const foundToken = await prisma.verificationToken.findFirst({
     where: {
       token,
-      type: TokenType.VERIFY_ACCOUNT,
+      type: "VERIFY_ACCOUNT",
     },
   });
 
