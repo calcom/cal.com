@@ -20,7 +20,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(400).json({ message: "`code` must be a string" });
     return;
   }
-
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }

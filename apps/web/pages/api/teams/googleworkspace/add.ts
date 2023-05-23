@@ -9,15 +9,10 @@ const scopes = [
   "https://www.googleapis.com/auth/admin.directory.customer.readonly",
 ];
 
-let client_id = "";
-let client_secret = "";
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     // Get appKeys from google-calendar
-    const appKeys = await getAppKeysFromSlug("google-calendar");
-    if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
-    if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
+    const { client_id, client_secret } = await getAppKeysFromSlug("google-calendar");
     if (!client_id) return res.status(400).json({ message: "Google client_id missing." });
     if (!client_secret) return res.status(400).json({ message: "Google client_secret missing." });
 

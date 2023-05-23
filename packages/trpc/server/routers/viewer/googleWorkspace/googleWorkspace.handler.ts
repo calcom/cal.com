@@ -34,13 +34,8 @@ export const checkForGWorkspace = async ({ ctx }: CheckForGCalOptions) => {
   return { id: gWorkspacePresent?.id };
 };
 
-let client_id = "";
-let client_secret = "";
-
 export const getUsersFromGWorkspace = async ({ ctx }: CheckForGCalOptions) => {
-  const appKeys = await getAppKeysFromSlug("google-calendar");
-  if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
-  if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
+  const { client_id, client_secret } = await getAppKeysFromSlug("google-calendar");
   if (!client_id) return new Error("Google client_id missing.");
   if (!client_secret) new Error("Google client_secret missing.");
 

@@ -8,9 +8,6 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
-let client_id = "";
-let client_secret = "";
-
 const stateSchema = z.object({
   teamId: z.string(),
 });
@@ -31,9 +28,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const appKeys = await getAppKeysFromSlug("google-calendar");
-  if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
-  if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
+  const { client_id, client_secret } = await getAppKeysFromSlug("google-calendar");
+
   if (!client_id) return res.status(400).json({ message: "Google client_id missing." });
   if (!client_secret) return res.status(400).json({ message: "Google client_secret missing." });
 
