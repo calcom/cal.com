@@ -46,6 +46,7 @@ export default function OmniInstallAppButton({
   return (
     <InstallAppButton
       type={app.type}
+      teamsPlanRequired={app.teamsPlanRequired}
       wrapperClassName={classNames("[@media(max-width:260px)]:w-full", className)}
       render={({ useDefaultComponent, ...props }) => {
         if (useDefaultComponent) {

@@ -35,6 +35,7 @@ const Component = ({
   email,
   tos,
   privacy,
+  teamsPlanRequired,
   descriptionItems,
   isTemplate,
   dependencies,
@@ -150,6 +151,7 @@ const Component = ({
                 <InstallAppButton
                   type={type}
                   disableInstall={disableInstall}
+                  teamsPlanRequired={teamsPlanRequired}
                   render={({ useDefaultComponent, ...props }) => {
                     if (useDefaultComponent) {
                       props = {
@@ -189,6 +191,7 @@ const Component = ({
             <InstallAppButton
               type={type}
               disableInstall={disableInstall}
+              teamsPlanRequired={teamsPlanRequired}
               render={({ useDefaultComponent, ...props }) => {
                 if (useDefaultComponent) {
                   props = {
@@ -238,7 +241,9 @@ const Component = ({
         </div>
         <h4 className="text-emphasis mt-8 font-semibold ">{t("pricing")}</h4>
         <span className="text-default">
-          {price === 0 ? (
+          {teamsPlanRequired ? (
+            t("teams_plan_required")
+          ) : price === 0 ? (
             t("free_to_use_apps")
           ) : (
             <>
@@ -354,6 +359,7 @@ export default function App(props: {
   tos?: string;
   privacy?: string;
   licenseRequired: AppType["licenseRequired"];
+  teamsPlanRequired: AppType["teamsPlanRequired"];
   descriptionItems?: Array<string | { iframe: IframeHTMLAttributes<HTMLIFrameElement> }>;
   isTemplate?: boolean;
   disableInstall?: boolean;
