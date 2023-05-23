@@ -22,6 +22,7 @@ function PhoneInput({ name, className = "", onChange, ...rest }: PhoneInputProps
   return (
     <BasePhoneInput
       {...rest}
+      flagUrl="/country-flag-icons/3x2/{XX}.svg"
       international
       defaultCountry={defaultCountry}
       name={name}
