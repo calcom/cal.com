@@ -1825,5 +1825,7 @@
   "disable_attendees_confirmation_emails_description": "At least one workflow is active on this event type that sends an email to the attendees when the event is booked.",
   "disable_host_confirmation_emails": "Disable default confirmation emails for host",
   "disable_host_confirmation_emails_description": "At least one workflow is active on this event type that sends an email to the host when the event is booked.",
-  "password_is_required": "Password is required"
+  "password_is_required": "Password is required",
+  "first_event_type_webhook_description": "Create your first webhook for this event type",
+  "create_for": "Create for"
 }
