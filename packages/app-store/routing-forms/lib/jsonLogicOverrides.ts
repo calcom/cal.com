@@ -46,7 +46,7 @@ jsonLogic.add_operation("!=", function (a: any, b: any) {
 jsonLogic.add_operation("in", function (a: string, b: string | string[]) {
   const first = normalize(a);
   const second = normalize(b);
-  if (!second || typeof second.indexOf === "undefined") return false;
+  if (!second) return false;
   return second.indexOf(first) !== -1;
 });
 
