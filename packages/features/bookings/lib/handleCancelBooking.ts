@@ -306,8 +306,9 @@ async function handler(req: CustomRequest) {
   // Send Webhook call if hooked to BOOKING.CANCELLED
   const subscriberOptions = {
     userId: bookingToDelete.userId,
-    eventTypeId: (bookingToDelete.eventTypeId as number) || 0,
+    eventTypeId: bookingToDelete.eventTypeId as number,
     triggerEvent: eventTrigger,
+    teamId: bookingToDelete.eventType?.teamId,
   };
 
   const eventTypeInfo: EventTypeInfo = {

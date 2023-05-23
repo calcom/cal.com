@@ -39,17 +39,23 @@ export default function EmbedInitIframe() {
       for (const [themeName, cssVars] of Object.entries(cssVarsPerTheme)) {
         cssVarsStyle.push(`.${themeName} {`);
         for (const [cssVarName, value] of Object.entries(cssVars)) {
-          cssVarsStyle.push(`--${cssVarName}: ${value};`);
+          // The styles are applied inline on .light/.dark elements by the codebase(useCalcomTheme). So, to make sure embed styles take precedence, we add !important
+          cssVarsStyle.push(`--${cssVarName}: ${value} !important;`);
         }
         cssVarsStyle.push(`}`);
       }
     }
+
+    const existingStyleEl = document.head.querySelector("#embed-css-vars") as HTMLStyleElement;
+    if (existingStyleEl) {
+      console.warn("Existing embed CSS Vars are being reset");
+      existingStyleEl.innerText = cssVarsStyle.join("\n");
+      return;
+    }
+
     const style = document.createElement("style");
     style.id = "embed-css-vars";
     style.innerText = cssVarsStyle.join("\n");
-    if (document.head.querySelector("#embed-css-vars")) {
-      return;
-    }
     document.head.appendChild(style);
   };
 }
