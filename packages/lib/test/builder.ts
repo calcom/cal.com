@@ -118,6 +118,7 @@ export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
     secret: faker.lorem.slug(),
     active: true,
     eventTriggers: [],
+    teamId: null,
     ...webhook,
   };
 };
