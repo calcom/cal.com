@@ -5,6 +5,7 @@ import { mockDeep, mockReset } from "vitest-mock-extended";
 vi.mock("@calcom/prisma", () => ({
   default: prisma,
   availabilityUserSelect: vi.fn(),
+  userSelect: vi.fn(),
 }));
 
 beforeEach(() => {
