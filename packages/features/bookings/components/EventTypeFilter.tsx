@@ -33,7 +33,7 @@ export const EventTypeFilter = () => {
 
   const [groupedEventTypes, setGroupedEventTypes] = useState<GroupedEventTypeState>();
 
-  trpc.viewer.eventTypes.listWithTeam.useQuery(undefined, {
+  const eventTypes = trpc.viewer.eventTypes.listWithTeam.useQuery(undefined, {
     onSuccess: (data) => {
       // Will be handled up the tree to redirect
       // Group event types by team
@@ -43,14 +43,18 @@ export const EventTypeFilter = () => {
       ); // Add the team name
       const individualEvents = data.filter((el) => !el.team);
       // push indivdual events to the start of grouped array
-      setGroupedEventTypes({ user_own_event_types: individualEvents, ...grouped });
+      setGroupedEventTypes(
+        individualEvents.length > 0 ? { user_own_event_types: individualEvents, ...grouped } : grouped
+      );
     },
     enabled: !!user,
   });
 
-  if (!user) return null;
+  if (!eventTypes.data) return null;
 
-  return (
+  const isNotEmpty = eventTypes.data.length > 0;
+
+  return eventTypes.status === "success" && isNotEmpty ? (
     <AnimatedPopover text={t("event_type")}>
       <div className="">
         {groupedEventTypes &&
@@ -78,5 +82,5 @@ export const EventTypeFilter = () => {
           ))}
       </div>
     </AnimatedPopover>
-  );
+  ) : null;
 };
