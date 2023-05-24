@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
@@ -26,11 +27,12 @@ import { ssrInit } from "@server/lib/ssr";
 export type SSOProviderPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Provider(props: SSOProviderPageProps) {
+  const searchParams = useSearchParams();
   const router = useRouter();
 
   useEffect(() => {
     if (props.provider === "saml") {
-      const email = typeof router.query?.email === "string" ? router.query?.email : null;
+      const email = typeof searchParams?.get("email") === "string" ? searchParams?.get("email") : null;
 
       if (!email) {
         router.push("/auth/error?error=" + "Email not provided");

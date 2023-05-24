@@ -1,5 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";

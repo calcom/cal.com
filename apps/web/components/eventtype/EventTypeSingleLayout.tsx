@@ -1,7 +1,7 @@
 import { Webhook as TbWebhook } from "lucide-react";
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -148,7 +148,7 @@ function EventTypeSingleLayout({
     onSuccess: async () => {
       await utils.viewer.eventTypes.invalidate();
       showToast(t("event_type_deleted_successfully"), "success");
-      await router.push("/event-types");
+      router.push("/event-types");
       setDeleteDialogOpen(false);
     },
     onError: (err) => {

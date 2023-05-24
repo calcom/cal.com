@@ -1,5 +1,6 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React, { useEffect } from "react";
 
@@ -12,7 +13,10 @@ export default function AdminLayout({
   children,
 
   ...rest
-}: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
+}: {
+  children: React.ReactNode;
+} & ComponentProps<typeof Shell>) {
+  const pathname = usePathname();
   const session = useSession();
   const router = useRouter();
 
@@ -23,7 +27,7 @@ export default function AdminLayout({
     }
   }, [session, router]);
 
-  const isAppsPage = router.asPath.startsWith("/settings/admin/apps");
+  const isAppsPage = pathname?.startsWith("/settings/admin/apps");
   return (
     <SettingsLayout {...rest}>
       <div className="divide-subtle mx-auto flex max-w-4xl flex-row divide-y">

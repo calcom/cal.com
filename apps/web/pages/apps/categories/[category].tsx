@@ -1,6 +1,6 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import Shell from "@calcom/features/shell/Shell";
@@ -12,9 +12,9 @@ import { AppCard, SkeletonText } from "@calcom/ui";
 import PageWrapper from "@components/PageWrapper";
 
 export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticProps>) {
+  const searchParams = useSearchParams();
   const { t, isLocaleReady } = useLocale();
-  const router = useRouter();
-  const { category } = router.query;
+  const category = searchParams?.get("category");
 
   return (
     <>

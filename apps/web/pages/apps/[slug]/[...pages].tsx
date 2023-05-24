@@ -1,5 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 
 import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
 import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
@@ -57,9 +57,9 @@ function getRoute(appName: string, pages: string[]) {
 }
 
 const AppPage: AppPageType["default"] = function AppPage(props) {
+  const searchParams = useSearchParams();
   const appName = props.appName;
-  const router = useRouter();
-  const pages = router.query.pages as string[];
+  const pages = searchParams?.get("pages") as string[];
   const route = getRoute(appName, pages);
 
   const componentProps = {

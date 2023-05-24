@@ -1,4 +1,5 @@
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -47,7 +48,9 @@ const querySchema = z.object({
 type AvailabilityFormValues = {
   name: string;
   schedule: ScheduleType;
-  dateOverrides: { ranges: TimeRange[] }[];
+  dateOverrides: {
+    ranges: TimeRange[];
+  }[];
   timeZone: string;
   isDefault: boolean;
 };
@@ -92,6 +95,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
 };
 
 export default function Availability() {
+  const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
@@ -100,7 +104,7 @@ export default function Availability() {
     data: { schedule: scheduleId },
   } = useTypedQuery(querySchema);
 
-  const { fromEventType } = router.query;
+  const fromEventType = searchParams?.get("fromEventType");
   const { timeFormat } = me.data || { timeFormat: null };
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { data: schedule, isLoading } = trpc.viewer.availability.schedule.get.useQuery(

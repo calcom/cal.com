@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
@@ -154,7 +154,7 @@ function BookingListItem(booking: BookingItemProps) {
       id: "cancel",
       label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel"),
       /* When cancelling we need to let the UI and the API know if the intention is to
-         cancel all remaining bookings or just that booking instance. */
+               cancel all remaining bookings or just that booking instance. */
       href: `/booking/${booking.uid}?cancel=true${
         isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
       }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
@@ -235,7 +235,12 @@ function BookingListItem(booking: BookingItemProps) {
     },
   });
 
-  const saveLocation = (newLocationType: EventLocationType["type"], details: { [key: string]: string }) => {
+  const saveLocation = (
+    newLocationType: EventLocationType["type"],
+    details: {
+      [key: string]: string;
+    }
+  ) => {
     let newLocation = newLocationType as string;
     const eventLocationType = getEventLocationType(newLocationType);
     if (eventLocationType?.organizerInputType) {
@@ -251,13 +256,11 @@ function BookingListItem(booking: BookingItemProps) {
     .sort((date1: Date, date2: Date) => date1.getTime() - date2.getTime());
 
   const onClickTableData = () => {
-    router.push({
-      pathname: `/booking/${booking.uid}`,
-      query: {
-        allRemainingBookings: isTabRecurring,
-        email: booking.attendees[0] ? booking.attendees[0].email : undefined,
-      },
+    const urlSearchParams = new URLSearchParams({
+      allRemainingBookings: isTabRecurring.toString(),
     });
+    if (booking.attendees[0]) urlSearchParams.set("email", booking.attendees[0].email);
+    router.push(`/booking/${booking.uid}?${urlSearchParams.toString()}`);
   };
 
   const title = booking.title;

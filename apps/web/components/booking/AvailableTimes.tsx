@@ -1,6 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import type { FC } from "react";
 import { useEffect, useState, useCallback } from "react";
 
@@ -46,11 +47,12 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   ethSignature,
   duration,
 }) => {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
   const { t, i18n } = useLocale();
-  const router = useRouter();
-  const { rescheduleUid } = router.query;
+  const rescheduleUid = searchParams?.get("rescheduleUid");
 
   const [brand, setBrand] = useState("#292929");
 
@@ -110,9 +112,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                   query: Record<string, string | number | string[] | undefined | TimeFormat>;
                 };
                 const bookingUrl: BookingURL = {
-                  pathname: router.pathname.endsWith("/embed") ? "../book" : "book",
+                  pathname: pathname?.endsWith("/embed") ? "../book" : "book",
                   query: {
-                    ...router.query,
+                    ...Object.fromEntries(searchParams ?? new URLSearchParams()),
                     date: dayjs.utc(slot.time).tz(timeZone()).format(),
                     type: eventTypeId,
                     slug: eventTypeSlug,

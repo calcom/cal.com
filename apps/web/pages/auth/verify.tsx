@@ -1,6 +1,8 @@
 import { signIn } from "next-auth/react";
 import Head from "next/head";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import * as React from "react";
 import { useEffect, useState, useRef } from "react";
 import z from "zod";
@@ -54,8 +56,12 @@ const querySchema = z.object({
 });
 
 export default function Verify() {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const router = useRouter();
-  const { t, sessionId, stripeCustomerId } = querySchema.parse(router.query);
+  const { t, sessionId, stripeCustomerId } = querySchema.parse(
+    ...Object.fromEntries(searchParams ?? new URLSearchParams())
+  );
   const [secondsLeft, setSecondsLeft] = useState(30);
   const { data } = trpc.viewer.public.stripeCheckoutSession.useQuery({
     stripeCustomerId,
@@ -88,7 +94,7 @@ export default function Verify() {
     }
   }, [secondsLeft]);
 
-  if (!router.isReady || !data) {
+  if (!true || !data) {
     // Loading state
     return <Loader />;
   }
@@ -106,7 +112,7 @@ export default function Verify() {
       <Head>
         <title>
           {/* @note: Ternary can look ugly ant his might be extracted later but I think at 3 it's not yet worth
-          it or too hard to read. */}
+        it or too hard to read. */}
           {hasPaymentFailed
             ? "Your payment failed"
             : sessionId
@@ -156,10 +162,10 @@ export default function Verify() {
                 setSecondsLeft(30);
                 // Update query params with t:timestamp, shallow: true doesn't re-render the page
                 router.push(
-                  router.asPath,
+                  pathname,
                   {
                     query: {
-                      ...router.query,
+                      ...Object.fromEntries(searchParams ?? new URLSearchParams()),
                       t: Date.now(),
                     },
                   },

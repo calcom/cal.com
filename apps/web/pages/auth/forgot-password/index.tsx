@@ -3,7 +3,7 @@ import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
 
@@ -17,13 +17,17 @@ import AuthContainer from "@components/ui/AuthContainer";
 export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
   const { t, i18n } = useLocale();
   const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<{ message: string } | null>(null);
+  const [error, setError] = React.useState<{
+    message: string;
+  } | null>(null);
   const [success, setSuccess] = React.useState(false);
   const [email, setEmail] = React.useState("");
   const router = useRouter();
 
   const handleChange = (e: SyntheticEvent) => {
-    const target = e.target as typeof e.target & { value: string };
+    const target = e.target as typeof e.target & {
+      value: string;
+    };
     setEmail(target.value);
   };
 

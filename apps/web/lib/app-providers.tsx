@@ -5,8 +5,8 @@ import type { SSRConfig } from "next-i18next";
 import { appWithTranslation } from "next-i18next";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
-import type { NextRouter } from "next/router";
-import { useRouter } from "next/router";
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context";
+import { useRouter } from "next/navigation";
 import type { ComponentProps, PropsWithChildren, ReactNode } from "react";
 
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
@@ -21,20 +21,26 @@ import type { WithNonceProps } from "@lib/withNonce";
 
 import { useViewerI18n } from "@components/I18nLanguageHandler";
 
-const I18nextAdapter = appWithTranslation<NextJsAppProps<SSRConfig> & { children: React.ReactNode }>(
-  ({ children }) => <>{children}</>
-);
+const I18nextAdapter = appWithTranslation<
+  NextJsAppProps<SSRConfig> & {
+    children: React.ReactNode;
+  }
+>(({ children }) => <>{children}</>);
 
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = Omit<
-  NextAppProps<WithNonceProps & { themeBasis?: string } & Record<string, unknown>>,
+  NextAppProps<
+    WithNonceProps & {
+      themeBasis?: string;
+    } & Record<string, unknown>
+  >,
   "Component"
 > & {
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
     isThemeSupported?: boolean;
-    isBookingPage?: boolean | ((arg: { router: NextRouter }) => boolean);
-    getLayout?: (page: React.ReactElement, router: NextRouter) => ReactNode;
+    isBookingPage?: boolean | ((arg: { router: AppRouterInstance }) => boolean);
+    getLayout?: (page: React.ReactElement, router: AppRouterInstance) => ReactNode;
     PageWrapper?: (props: AppProps) => JSX.Element;
   };
 
@@ -140,7 +146,7 @@ function getThemeProviderProps({
   props: Omit<CalcomThemeProps, "children">;
   isEmbedMode: boolean;
   embedNamespace: string | null;
-  router: NextRouter;
+  router: AppRouterInstance;
 }) {
   const isBookingPage = (() => {
     if (typeof props.isBookingPage === "function") {

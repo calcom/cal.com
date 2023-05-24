@@ -1,8 +1,11 @@
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import type { TFunction } from "next-i18next";
-import type { NextRouter } from "next/router";
-import { useRouter } from "next/router";
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context";
+import type { ReadonlyURLSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import type { MutableRefObject, RefObject } from "react";
 import { createRef, forwardRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
@@ -57,24 +60,32 @@ const getDimension = (dimension: string) => {
   return dimension;
 };
 
-const goto = (router: NextRouter, searchParams: Record<string, string>) => {
-  const newQuery = new URLSearchParams(router.asPath.split("?")[1]);
-  Object.keys(searchParams).forEach((key) => {
-    newQuery.set(key, searchParams[key]);
+const goto = (
+  router: AppRouterInstance,
+  newSearchParams: Record<string, string>,
+  pathname: string,
+  searchParams: ReadonlyURLSearchParams
+) => {
+  const newQuery = new URLSearchParams(searchParams);
+  Object.keys(newSearchParams).forEach((key) => {
+    newQuery.set(key, newSearchParams[key]);
   });
-  router.push(`${router.asPath.split("?")[0]}?${newQuery.toString()}`, undefined, {
-    shallow: true,
-  });
+  router.push(`${pathname}?${newQuery.toString()}`);
 };
 
-const removeQueryParams = (router: NextRouter, queryParams: string[]) => {
-  const params = new URLSearchParams(window.location.search);
+const removeQueryParams = (
+  router: AppRouterInstance,
+  queryParams: string[],
+  pathname: string,
+  searchParams: ReadonlyURLSearchParams
+) => {
+  const params = new URLSearchParams(searchParams);
 
   queryParams.forEach((param) => {
     params.delete(param);
   });
 
-  router.push(`${router.asPath.split("?")[0]}?${params.toString()}`);
+  router.push(`${pathname}?${params.toString()}`);
 };
 
 /**
@@ -496,7 +507,11 @@ const tabs = [
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState }
+      {
+        embedType: EmbedType;
+        calLink: string;
+        previewState: PreviewState;
+      }
     >(function EmbedHtml({ embedType, calLink, previewState }, ref) {
       const { t } = useLocale();
       if (ref instanceof Function || !ref) {
@@ -545,7 +560,11 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState }
+      {
+        embedType: EmbedType;
+        calLink: string;
+        previewState: PreviewState;
+      }
     >(function EmbedReact({ embedType, calLink, previewState }, ref) {
       const { t } = useLocale();
       if (ref instanceof Function || !ref) {
@@ -585,7 +604,11 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
     type: "iframe",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
-      { calLink: string; embedType: EmbedType; previewState: PreviewState }
+      {
+        calLink: string;
+        embedType: EmbedType;
+        previewState: PreviewState;
+      }
     >(function Preview({ calLink, embedType }, ref) {
       if (ref instanceof Function || !ref) {
         return null;
@@ -614,7 +637,16 @@ Cal("init", {origin:"${WEBAPP_URL}"});
 `;
 }
 
-const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
+const ThemeSelectControl = ({
+  children,
+  ...props
+}: ControlProps<
+  {
+    value: Theme;
+    label: string;
+  },
+  false
+>) => {
   return (
     <components.Control {...props}>
       <Sun className="text-subtle mr-2 h-4 w-4" />
@@ -626,6 +658,8 @@ const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme;
 const ChooseEmbedTypesDialogContent = () => {
   const { t } = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   return (
     <DialogContent className="rounded-lg p-10" type="creation" size="lg">
       <div className="mb-2">
@@ -643,9 +677,14 @@ const ChooseEmbedTypesDialogContent = () => {
             key={index}
             data-testid={embed.type}
             onClick={() => {
-              goto(router, {
-                embedType: embed.type,
-              });
+              goto(
+                router,
+                {
+                  embedType: embed.type,
+                },
+                pathname,
+                searchParams
+              );
             }}>
             <div className="bg-default order-none box-border flex-none rounded-md border border-solid dark:bg-transparent dark:invert">
               {embed.illustration}
@@ -666,6 +705,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   embedType: EmbedType;
   embedUrl: string;
 }) => {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { t } = useLocale();
 
   const router = useRouter();
@@ -673,10 +714,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const dialogContentRef = useRef<HTMLDivElement>(null);
 
   const s = (href: string) => {
-    const searchParams = new URLSearchParams(router.asPath.split("?")[1] || "");
+    const _searchParams = new URLSearchParams(searchParams);
     const [a, b] = href.split("=");
-    searchParams.set(a, b);
-    return `${router.asPath.split("?")[0]}?${searchParams.toString()}`;
+    _searchParams.set(a, b);
+    return `${pathname?.split("?")[0]}?${_searchParams.toString()}`;
   };
   const parsedTabs = tabs.map((t) => ({ ...t, href: s(t.href) }));
   const embedCodeRefs: Record<(typeof tabs)[0]["name"], RefObject<HTMLTextAreaElement>> = {};
@@ -706,14 +747,19 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   });
 
   const close = () => {
-    removeQueryParams(router, ["dialog", ...queryParamsForDialog]);
+    removeQueryParams(router, ["dialog", ...queryParamsForDialog], pathname, searchParams);
   };
 
   // Use embed-code as default tab
-  if (!router.query.embedTabName) {
-    goto(router, {
-      embedTabName: "embed-code",
-    });
+  if (!searchParams?.get("embedTabName")) {
+    goto(
+      router,
+      {
+        embedTabName: "embed-code",
+      },
+      pathname,
+      searchParams
+    );
   }
 
   if (!embed || !embedUrl) {
@@ -823,7 +869,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             <button
               className="h-6 w-6"
               onClick={() => {
-                removeQueryParams(router, ["embedType", "embedTabName"]);
+                removeQueryParams(router, ["embedType", "embedTabName"], pathname, searchParams);
               }}>
               <ArrowLeft className="mr-4 w-4" />
             </button>
@@ -1083,7 +1129,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               <div
                 key={tab.href}
                 className={classNames(
-                  router.query.embedTabName === tab.href.split("=")[1] ? "flex flex-grow flex-col" : "hidden"
+                  searchParams?.get("embedTabName") === tab.href.split("=")[1]
+                    ? "flex flex-grow flex-col"
+                    : "hidden"
                 )}>
                 <div className="flex h-[55vh] flex-grow flex-col">
                   {tab.type === "code" ? (
@@ -1102,7 +1150,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     />
                   )}
                 </div>
-                <div className={router.query.embedTabName == "embed-preview" ? "block" : "hidden"} />
+                <div className={searchParams?.get("embedTabName") == "embed-preview" ? "block" : "hidden"} />
                 <div className="mt-8 flex flex-row-reverse gap-x-2">
                   {tab.type === "code" ? (
                     <Button
@@ -1130,8 +1178,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 };
 
 export const EmbedDialog = () => {
-  const router = useRouter();
-  const embedUrl: string = router.query.embedUrl as string;
+  const searchParams = useSearchParams();
+  const embedUrl: string = searchParams?.get("embedUrl") as string;
   return (
     <Dialog
       name="embed"
@@ -1139,11 +1187,11 @@ export const EmbedDialog = () => {
       onOpenChange={(open) => {
         if (!open) window.resetEmbedStatus();
       }}>
-      {!router.query.embedType ? (
+      {!searchParams?.get("embedType") ? (
         <ChooseEmbedTypesDialogContent />
       ) : (
         <EmbedTypeCodeAndPreviewDialogContent
-          embedType={router.query.embedType as EmbedType}
+          embedType={searchParams?.get("embedType") as EmbedType}
           embedUrl={embedUrl}
         />
       )}
@@ -1165,12 +1213,19 @@ export const EmbedButton = <T extends React.ElementType>({
   ...props
 }: EmbedButtonProps<T> & React.ComponentPropsWithoutRef<T>) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   className = classNames("hidden lg:inline-flex", className);
   const openEmbedModal = () => {
-    goto(router, {
-      dialog: "embed",
-      embedUrl,
-    });
+    goto(
+      router,
+      {
+        dialog: "embed",
+        embedUrl,
+      },
+      pathname,
+      searchParams
+    );
   };
   const Component = as ?? Button;
 

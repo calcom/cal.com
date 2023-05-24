@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import { debounce, noop } from "lodash";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -47,6 +48,8 @@ const obtainNewUsernameChangeCondition = ({
 };
 
 const PremiumTextfield = (props: ICustomUsernameProps) => {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { t } = useLocale();
   const {
     currentUsername,
@@ -61,8 +64,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
-  const router = useRouter();
-  const { paymentStatus: recentAttemptPaymentStatus } = router.query;
+  const recentAttemptPaymentStatus = searchParams?.get("recentAttemptPaymentStatus");
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
   const { data: stripeCustomer } = trpc.viewer.stripeCustomer.useQuery();
   const isCurrentUsernamePremium =
@@ -119,7 +121,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
   const paymentLink = `/api/integrations/stripepayment/subscription?intentUsername=${
     inputUsernameValue || usernameFromStripe
-  }&action=${usernameChangeCondition}&callbackUrl=${router.asPath}`;
+  }&action=${usernameChangeCondition}&callbackUrl=${pathname}`;
 
   const ActionButtons = () => {
     if (paymentRequired) {
@@ -222,7 +224,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             onChange={(event) => {
               event.preventDefault();
               // Reset payment status
-              delete router.query.paymentStatus;
+              delete searchParams?.get("paymentStatus");
               setInputUsernameValue(event.target.value);
             }}
             data-testid="username-input"

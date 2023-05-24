@@ -1,7 +1,8 @@
 import classNames from "classnames";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -28,12 +29,13 @@ import { ssrInit } from "@server/lib/ssr";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   useTheme(team.theme);
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
   const isEmbed = useIsEmbed();
   const telemetry = useTelemetry();
-  const router = useRouter();
   const teamName = team.name || "Nameless Team";
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
 
@@ -42,7 +44,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
       telemetryEventTypes.pageView,
       collectPageParameters("/team/[slug]", { isTeamBooking: true })
     );
-  }, [telemetry, router.asPath]);
+  }, [telemetry, pathname]);
 
   if (isUnpublished) {
     return (
@@ -57,7 +59,8 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
   }
 
   // slug is a route parameter, we don't want to forward it to the next route
-  const { slug: _slug, ...queryParamsToForward } = router.query;
+  const _slug = searchParams?.get("_slug"),
+    queryParamsToForward = searchParams?.get("queryParamsToForward");
 
   const EventTypes = () => (
     <ul className="border-subtle rounded-md border">

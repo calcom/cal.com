@@ -1,6 +1,6 @@
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
@@ -29,8 +29,8 @@ type FormValues = {
 };
 
 export default function Signup({ prepopulateFormValues, token }: inferSSRProps<typeof getServerSideProps>) {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
-  const router = useRouter();
   const telemetry = useTelemetry();
 
   const methods = useForm<FormValues>({
@@ -63,8 +63,8 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
         await signIn<"credentials">("credentials", {
           ...data,
-          callbackUrl: router.query.callbackUrl
-            ? `${WEBAPP_URL}/${router.query.callbackUrl}`
+          callbackUrl: searchParams?.get("callbackUrl")
+            ? `${WEBAPP_URL}/${searchParams?.get("callbackUrl")}`
             : `${WEBAPP_URL}/getting-started`,
         });
       })
@@ -139,8 +139,8 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
                       className="w-full justify-center"
                       onClick={() =>
                         signIn("Cal.com", {
-                          callbackUrl: router.query.callbackUrl
-                            ? `${WEBAPP_URL}/${router.query.callbackUrl}`
+                          callbackUrl: searchParams?.get("callbackUrl")
+                            ? `${WEBAPP_URL}/${searchParams?.get("callbackUrl")}`
                             : `${WEBAPP_URL}/getting-started`,
                         })
                       }>

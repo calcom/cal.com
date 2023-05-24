@@ -1,6 +1,6 @@
 import type { GetStaticPropsContext } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
@@ -13,10 +13,9 @@ import PageWrapper from "@components/PageWrapper";
 import { ssgInit } from "@server/lib/ssg";
 
 export default function Custom404() {
+  const pathname = usePathname();
   const { t } = useLocale();
-
-  const router = useRouter();
-  const [username] = router.asPath.replace("%20", "-").split(/[?#]/);
+  const [username] = pathname?.replace("%20", "-").split(/[?#]/);
 
   const links = [
     {
@@ -38,15 +37,15 @@ export default function Custom404() {
     setUrl(`${WEBSITE_URL}/signup?username=${username.replace("/", "")}`);
   }, [username]);
 
-  const isSuccessPage = router.asPath.startsWith("/booking");
-  const isSubpage = router.asPath.includes("/", 2) || isSuccessPage;
-  const isSignup = router.asPath.startsWith("/signup");
+  const isSuccessPage = pathname?.startsWith("/booking");
+  const isSubpage = pathname?.includes("/", 2) || isSuccessPage;
+  const isSignup = pathname?.startsWith("/signup");
   const isCalcom = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com";
   /**
    * If we're on 404 and the route is insights it means it is disabled
    * TODO: Abstract this for all disabled features
    **/
-  const isInsights = router.asPath.startsWith("/insights");
+  const isInsights = pathname?.startsWith("/insights");
   if (isInsights) {
     return (
       <>

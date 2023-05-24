@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -9,17 +9,22 @@ import { Avatar } from "@calcom/ui";
 
 type TeamType = NonNullable<TeamWithMembers>;
 type MembersType = TeamType["members"];
-type MemberType = MembersType[number] & { safeBio: string | null };
+type MemberType = MembersType[number] & {
+  safeBio: string | null;
+};
 
-type TeamTypeWithSafeHtml = Omit<TeamType, "members"> & { members: MemberType[] };
+type TeamTypeWithSafeHtml = Omit<TeamType, "members"> & {
+  members: MemberType[];
+};
 
 const Member = ({ member, teamName }: { member: MemberType; teamName: string | null }) => {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
-  const router = useRouter();
   const isBioEmpty = !member.bio || !member.bio.replace("<p><br></p>", "").length;
 
   // slug is a route parameter, we don't want to forward it to the next route
-  const { slug: _slug, ...queryParamsToForward } = router.query;
+  const _slug = searchParams.getAll();
+  const queryParamsToForward = searchParams?.get("queryParamsToForward");
 
   return (
     <Link key={member.id} href={{ pathname: `/${member.username}`, query: queryParamsToForward }}>

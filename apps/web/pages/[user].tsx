@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import { Toaster } from "react-hot-toast";
 
 import {
@@ -37,6 +37,7 @@ import PageWrapper from "@components/PageWrapper";
 import { ssrInit } from "@server/lib/ssr";
 
 export default function User(props: inferSSRProps<typeof getServerSideProps> & EmbedProps) {
+  const searchParams = useSearchParams();
   const {
     users,
     profile,
@@ -50,7 +51,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(user.theme);
   const { t } = useLocale();
-  const router = useRouter();
 
   const isBioEmpty = !user.bio || !user.bio.replace("<p><br></p>", "").length;
 
@@ -99,18 +99,18 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
-  const query = { ...router.query };
+  const query = { ...Object.fromEntries(searchParams ?? new URLSearchParams()) };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
   const nameOrUsername = user.name || user.username || "";
 
-  /* 
-   const telemetry = useTelemetry();
-   useEffect(() => {
-    if (top !== window) {
-      //page_view will be collected automatically by _middleware.ts
-      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/[user]"));
-    }
-  }, [telemetry, router.asPath]); */
+  /*
+     const telemetry = useTelemetry();
+     useEffect(() => {
+      if (top !== window) {
+        //page_view will be collected automatically by _middleware.ts
+        telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/[user]"));
+      }
+    }, [telemetry, router.asPath]); */
   const isEventListEmpty = eventTypes.length === 0;
   return (
     <>

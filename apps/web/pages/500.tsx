@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -9,8 +9,8 @@ import { Copy } from "@calcom/ui/components/icon";
 import PageWrapper from "@components/PageWrapper";
 
 export default function Error500() {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
-  const router = useRouter();
 
   return (
     <div className="bg-subtle flex h-screen">
@@ -25,20 +25,20 @@ export default function Error500() {
           Something went wrong on our end. Get in touch with our support team, and we’ll get it fixed right
           away for you.
         </p>
-        {router.query.error && (
+        {searchParams?.get("error") && (
           <div className="mb-8 flex flex-col">
             <p className="text-default mb-4 max-w-2xl text-sm">
               Please provide the following text when contacting support to better help you:
             </p>
             <pre className="bg-emphasis text-emphasis w-full max-w-2xl whitespace-normal break-words rounded-md p-4">
-              {router.query.error}
+              {searchParams?.get("error")}
               <br />
               <Button
                 color="secondary"
                 className="mt-2 border-0 font-sans font-normal hover:bg-gray-300"
                 StartIcon={Copy}
                 onClick={() => {
-                  navigator.clipboard.writeText(router.query.error as string);
+                  navigator.clipboard.writeText(searchParams?.get("error") as string);
                   showToast("Link copied!", "success");
                 }}>
                 {t("copy")}

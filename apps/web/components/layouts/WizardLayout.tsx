@@ -1,5 +1,5 @@
 import { noop } from "lodash";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
@@ -11,9 +11,12 @@ export default function WizardLayout({
   currentStep = 0,
 }: {
   children: React.ReactNode;
-} & { maxSteps?: number; currentStep?: number }) {
+} & {
+  maxSteps?: number;
+  currentStep?: number;
+}) {
+  const pathname = usePathname();
   const [meta, setMeta] = useState({ title: "", subtitle: " " });
-  const router = useRouter();
   const { title, subtitle } = meta;
 
   useEffect(() => {
@@ -21,7 +24,7 @@ export default function WizardLayout({
       title: window.document.title,
       subtitle: window.document.querySelector('meta[name="description"]')?.getAttribute("content") || "",
     });
-  }, [router.asPath]);
+  }, [pathname]);
 
   return (
     <div

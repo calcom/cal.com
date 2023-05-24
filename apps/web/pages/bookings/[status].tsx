@@ -1,6 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { GetStaticPaths, GetStaticProps } from "next";
-import { useRouter } from "next/router";
+import { useParams } from "next/navigation";
 import { Fragment } from "react";
 import { z } from "zod";
 
@@ -29,7 +29,9 @@ type RecurringInfo = {
   recurringEventId: string | null;
   count: number;
   firstDate: Date | null;
-  bookings: { [key: string]: Date[] };
+  bookings: {
+    [key: string]: Date[];
+  };
 };
 
 const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
@@ -47,9 +49,9 @@ const querySchema = z.object({
 });
 
 export default function Bookings() {
+  const searchParams = useParams();
   const { data: filterQuery } = useFilterQuery();
-  const router = useRouter();
-  const { status } = router.isReady ? querySchema.parse(router.query) : { status: "upcoming" as const };
+  const { status } = searchParams ? querySchema.parse(searchParams) : { status: "upcoming" };
   const { t } = useLocale();
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
@@ -62,7 +64,7 @@ export default function Bookings() {
     },
     {
       // first render has status `undefined`
-      enabled: router.isReady,
+      enabled: true,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
   );

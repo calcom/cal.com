@@ -1,7 +1,9 @@
 import { noop } from "lodash";
 import type { LinkProps } from "next/link";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { FC, MouseEventHandler } from "react";
 import { Fragment } from "react";
 
@@ -26,6 +28,8 @@ export interface NavTabProps {
 }
 
 const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const router = useRouter();
   const { t } = useLocale();
   return (
@@ -42,21 +46,18 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
           let isCurrent;
           if (tab.href) {
             href = tab.href;
-            isCurrent = router.asPath === tab.href;
+            isCurrent = pathname === tab.href;
           } else if (tab.tabName) {
             href = "";
-            isCurrent = router.query.tabName === tab.tabName;
+            isCurrent = searchParams?.get("tabName") === tab.tabName;
           }
 
           const onClick: MouseEventHandler = tab.tabName
             ? (e) => {
                 e.preventDefault();
-                router.push({
-                  query: {
-                    ...router.query,
-                    tabName: tab.tabName,
-                  },
-                });
+                const _searchParams = new URLSearchParams(searchParams);
+                if (tab.tabName) _searchParams.set("tabName", tab.tabName);
+                router.push(`${pathname}?${_searchParams.toString()}`);
               }
             : noop;
 

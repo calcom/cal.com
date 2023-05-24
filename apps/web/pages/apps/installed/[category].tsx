@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useReducer, useState } from "react";
 import z from "zod";
 
@@ -116,9 +116,12 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
   const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
   const utils = trpc.useContext();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
-  const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
-    undefined
-  );
+  const [locationType, setLocationType] = useState<
+    | (EventLocationType & {
+        slug: string;
+      })
+    | undefined
+  >(undefined);
 
   const onSuccessCallback = useCallback(() => {
     setBulkUpdateModal(true);
@@ -296,9 +299,9 @@ type ModalState = {
 };
 
 export default function InstalledApps() {
+  const searchParams = useSearchParams();
   const { t } = useLocale();
-  const router = useRouter();
-  const category = router.query.category as querySchemaType["category"];
+  const category = searchParams?.get("category") as querySchemaType["category"];
   const categoryList: querySchemaType["category"][] = [
     "payment",
     "conferencing",

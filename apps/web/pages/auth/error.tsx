@@ -1,6 +1,5 @@
 import type { GetStaticPropsContext } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,11 +17,10 @@ const querySchema = z.object({
 
 export default function Error() {
   const { t } = useLocale();
-  const router = useRouter();
-  const { error } = querySchema.parse(router.query);
+  const { error } = querySchema.parse(...Object.fromEntries(searchParams ?? new URLSearchParams()));
   const isTokenVerificationError = error?.toLowerCase() === "verification";
   let errorMsg = <SkeletonText />;
-  if (router.isReady) {
+  if (true) {
     errorMsg = isTokenVerificationError ? t("token_invalid_expired") : t("error_during_login");
   }
 

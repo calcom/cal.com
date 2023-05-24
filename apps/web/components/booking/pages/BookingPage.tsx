@@ -3,7 +3,8 @@ import { useMutation } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useReducer, useState } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
@@ -211,6 +212,7 @@ const BookingPage = ({
   hashedLink,
   ...restProps
 }: BookingPageProps) => {
+  const searchParams = useSearchParams();
   const removeSelectedSlotMarkMutation = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation();
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const { t, i18n } = useLocale();
@@ -257,12 +259,12 @@ const BookingPage = ({
 
   useEffect(() => {
     /* if (top !== window) {
-      //page_view will be collected automatically by _middleware.ts
-      telemetry.event(
-        telemetryEventTypes.embedView,
-        collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
-      );
-    } */
+          //page_view will be collected automatically by _middleware.ts
+          telemetry.event(
+            telemetryEventTypes.embedView,
+            collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
+          );
+        } */
     reserveSlot();
     const interval = setInterval(reserveSlot, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
     return () => {
@@ -342,10 +344,10 @@ const BookingPage = ({
   });
 
   const parsedQuery = querySchema.parse({
-    ...router.query,
+    ...Object.fromEntries(searchParams ?? new URLSearchParams()),
     // `guest` because we need to support legacy URL with `guest` query param support
     // `guests` because the `name` of the corresponding bookingField is `guests`
-    guests: router.query.guests || router.query.guest,
+    guests: searchParams?.get("guests") || searchParams?.get("guest"),
   });
 
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
@@ -459,12 +461,12 @@ const BookingPage = ({
     // <...url>&metadata[user_id]=123 will be send as a custom input field as the hidden type.
 
     // @TODO: move to metadata
-    const metadata = Object.keys(router.query)
+    const metadata = Object.keys(...Object.fromEntries(searchParams ?? new URLSearchParams()))
       .filter((key) => key.startsWith("metadata"))
       .reduce(
         (metadata, key) => ({
           ...metadata,
-          [key.substring("metadata[".length, key.length - 1)]: router.query[key],
+          [key.substring("metadata[".length, key.length - 1)]: searchParams?.get(key),
         }),
         {}
       );
@@ -484,7 +486,7 @@ const BookingPage = ({
         timeZone: timeZone(),
         language: i18n.language,
         rescheduleUid,
-        user: router.query.user,
+        user: searchParams?.get("user"),
         metadata,
         hasHashedBookingLink,
         hashedLink,
@@ -501,13 +503,13 @@ const BookingPage = ({
         timeZone: timeZone(),
         language: i18n.language,
         rescheduleUid,
-        bookingUid: (router.query.bookingUid as string) || booking?.uid,
-        user: router.query.user,
+        bookingUid: (searchParams?.get("bookingUid") as string) || booking?.uid,
+        user: searchParams?.get("user"),
         metadata,
         hasHashedBookingLink,
         hashedLink,
         ethSignature: gateState.rainbowToken,
-        seatReferenceUid: router.query.seatReferenceUid as string,
+        seatReferenceUid: searchParams?.get("seatReferenceUid") as string,
       });
     }
   };
@@ -693,8 +695,9 @@ const BookingPage = ({
 export default BookingPage;
 
 function ErrorMessage({ error }: { error: unknown }) {
+  const searchParams = useSearchParams();
+  const rescheduleUid = searchParams?.get("rescheduleUid");
   const { t } = useLocale();
-  const { query: { rescheduleUid } = {} } = useRouter();
   const router = useRouter();
 
   return (

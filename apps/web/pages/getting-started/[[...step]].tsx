@@ -1,7 +1,8 @@
 import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
 import { z } from "zod";
 
@@ -45,11 +46,12 @@ const stepRouteSchema = z.object({
 
 // TODO: Refactor how steps work to be contained in one array/object. Currently we have steps,initalsteps,headers etc. These can all be in one place
 const OnboardingPage = (props: IOnboardingPageProps) => {
+  const pathname = usePathname();
   const router = useRouter();
   const { user } = props;
   const { t } = useLocale();
 
-  const result = stepRouteSchema.safeParse(router.query);
+  const result = stepRouteSchema.safeParse(...Object.fromEntries(searchParams ?? new URLSearchParams()));
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
 
   const headers = [
@@ -93,12 +95,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
 
   const goToIndex = (index: number) => {
     const newStep = steps[index];
-    router.push(
-      {
-        pathname: `/getting-started/${stepTransform(newStep)}`,
-      },
-      undefined
-    );
+    router.push(`/getting-started/${stepTransform(newStep)}`);
   };
 
   const currentStepIndex = steps.indexOf(currentStep);
@@ -115,7 +112,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
           "--cal-brand-subtle": "#9CA3AF",
         } as CSSProperties
       }
-      key={router.asPath}>
+      key={pathname}>
       <Head>
         <title>
           {APP_NAME} - {t("getting_started")}

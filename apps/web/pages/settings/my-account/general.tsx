@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -147,7 +147,10 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
             <Label className="text-emphasis">
               <>{t("language")}</>
             </Label>
-            <Select<{ label: string; value: string }>
+            <Select<{
+              label: string;
+              value: string;
+            }>
               className="capitalize"
               options={localeOptions}
               value={value}

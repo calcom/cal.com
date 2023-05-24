@@ -1,6 +1,5 @@
 import type { EventType } from "@prisma/client";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import type { z } from "zod";
 
@@ -83,7 +82,9 @@ export const SlotPicker = ({
   ethSignature,
 }: {
   eventType: Pick<
-    EventType & { metadata: z.infer<typeof EventTypeMetaDataSchema> },
+    EventType & {
+      metadata: z.infer<typeof EventTypeMetaDataSchema>;
+    },
     "id" | "schedulingType" | "slug" | "length" | "metadata"
   >;
   timeFormat: TimeFormat;
@@ -101,14 +102,13 @@ export const SlotPicker = ({
   let { duration = eventType.length.toString() } = useRouterQuery("duration");
   const { date, setQuery: setDate } = useRouterQuery("date");
   const { month, setQuery: setMonth } = useRouterQuery("month");
-  const router = useRouter();
 
   if (!eventType.metadata?.multipleDuration) {
     duration = eventType.length.toString();
   }
 
   useEffect(() => {
-    if (!router.isReady) return;
+    if (!true) return;
 
     // Etc/GMT is not actually a timeZone, so handle this select option explicitly to prevent a hard crash.
     if (timeZone === "Etc/GMT") {
@@ -126,7 +126,7 @@ export const SlotPicker = ({
         setSelectedDate(dayjs.tz(date, timeZone));
       }
     }
-  }, [router.isReady, month, date, duration, timeZone]);
+  }, [true, month, date, duration, timeZone]);
 
   const { i18n, isLocaleReady } = useLocale();
   const { slots: monthSlots, isLoading } = useSlots({

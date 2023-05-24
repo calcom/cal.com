@@ -1,5 +1,4 @@
 import dynamic from "next/dynamic";
-import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
 import { z } from "zod";
 
@@ -65,9 +64,8 @@ const useBrandColors = ({ brandColor, darkBrandColor }: { brandColor: string; da
 };
 
 const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
-  const router = useRouter();
   const isEmbed = useIsEmbed(restProps.isEmbed);
-  const query = dateQuerySchema.parse(router.query);
+  const query = dateQuerySchema.parse(...Object.fromEntries(searchParams ?? new URLSearchParams()));
   const { rescheduleUid } = query;
   useTheme(profile.theme);
   useBrandColors({
@@ -104,16 +102,16 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const [recurringEventCount, setRecurringEventCount] = useState(eventType.recurringEvent?.count);
 
   /*
-  const telemetry = useTelemetry();
-   useEffect(() => {
-    if (top !== window) {
-      //page_view will be collected automatically by _middleware.ts
-      telemetry.event(
-        telemetryEventTypes.embedView,
-        collectPageParameters("/availability", { isTeamBooking: document.URL.includes("team/") })
-      );
-    }
-  }, [telemetry]); */
+    const telemetry = useTelemetry();
+     useEffect(() => {
+      if (top !== window) {
+        //page_view will be collected automatically by _middleware.ts
+        telemetry.event(
+          telemetryEventTypes.embedView,
+          collectPageParameters("/availability", { isTeamBooking: document.URL.includes("team/") })
+        );
+      }
+    }, [telemetry]); */
   const embedUiConfig = useEmbedUiConfig();
   // get dynamic user list here
   const userList = eventType.users ? eventType.users.map((user) => user.username).filter(notEmpty) : [];
@@ -260,18 +258,18 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                     </BookingDescription>
 
                     {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
-                    <div>
-                      <p
-                        className="mt-4 mb-3 text-default"
-                        data-testid="former_time_p_desktop">
-                        {t("former_time")}
-                      </p>
-                      <p className="text-subtle line-through ">
-                        <CalendarIcon className="ltr:mr-[10px] rtl:ml-[10px] -mt-1 inline-block h-4 w-4 text-subtle" />
-                        {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
-                      </p>
-                    </div>
-                  )*/}
+            <div>
+              <p
+                className="mt-4 mb-3 text-default"
+                data-testid="former_time_p_desktop">
+                {t("former_time")}
+              </p>
+              <p className="text-subtle line-through ">
+                <CalendarIcon className="ltr:mr-[10px] rtl:ml-[10px] -mt-1 inline-block h-4 w-4 text-subtle" />
+                {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
+              </p>
+            </div>
+          )*/}
                   </div>
                 )}
                 <SlotPicker
