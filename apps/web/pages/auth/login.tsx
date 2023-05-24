@@ -1,3 +1,4 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import classNames from "classnames";
 import { jwtVerify } from "jose";
 import type { GetServerSidePropsContext } from "next";
@@ -8,6 +9,7 @@ import type { CSSProperties } from "react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
+import { z } from "zod";
 
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
@@ -39,7 +41,6 @@ interface LoginValues {
   totpCode: string;
   csrfToken: string;
 }
-
 export default function Login({
   csrfToken,
   isGoogleLoginEnabled,
@@ -50,7 +51,14 @@ export default function Login({
 }: inferSSRProps<typeof _getServerSideProps> & WithNonceProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const methods = useForm<LoginValues>();
+  const formSchema = z.object({
+    email: z
+      .string()
+      .min(1, `${t("error_required_field")}`)
+      .email(`${t("enter_valid_email")}`),
+    password: z.string().min(1, `${t("error_required_field")}`),
+  });
+  const methods = useForm<LoginValues>({ resolver: zodResolver(formSchema) });
 
   const { register, formState } = methods;
   const [twoFactorRequired, setTwoFactorRequired] = useState(!!totpEmail || false);
@@ -150,7 +158,7 @@ export default function Login({
             : null
         }>
         <FormProvider {...methods}>
-          <form onSubmit={methods.handleSubmit(onSubmit)} data-testid="login-form">
+          <form onSubmit={methods.handleSubmit(onSubmit)} noValidate data-testid="login-form">
             <div>
               <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
             </div>
@@ -172,7 +180,7 @@ export default function Login({
                     className="mb-0"
                     {...register("password")}
                   />
-                  <div className="absolute -top-1.5 ltr:right-0 rtl:left-0">
+                  <div className="absolute -top-[2px] ltr:right-0 rtl:left-0">
                     <Link
                       href="/auth/forgot-password"
                       tabIndex={-1}
