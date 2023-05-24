@@ -2,6 +2,7 @@ import type { Session } from "next-auth";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
+import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 import type { Maybe } from "@trpc/server";
@@ -41,6 +42,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       brandColor: true,
       darkBrandColor: true,
       away: true,
+      defaultBookerLayouts: true,
       credentials: {
         select: {
           id: true,
@@ -91,6 +93,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     email,
     username,
     locale,
+    defaultBookerLayouts: user.defaultBookerLayouts as BookerLayoutSettings,
   };
 }
 

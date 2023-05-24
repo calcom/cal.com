@@ -58,6 +58,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
           brandColor: true,
           darkBrandColor: true,
           theme: true,
+          defaultBookerLayouts: true,
         },
       },
     },
@@ -85,6 +86,7 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
         brandColor: true,
         darkBrandColor: true,
         theme: true,
+        defaultBookerLayouts: true,
       },
     });
 
@@ -105,12 +107,13 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
       }
     }
 
+    const defaultEventBookerLayouts = {
+      enabledLayouts: [...bookerLayoutOptions],
+      defaultLayout: "month_view" as BookerLayouts,
+    } as BookerLayoutSettings;
+
     return {
       ...defaultEvent,
-      bookerLayouts: {
-        enabledLayouts: [...bookerLayoutOptions],
-        defaultLayout: "month_view" as BookerLayouts,
-      } as BookerLayoutSettings,
       bookingFields: getBookingFieldsWithSystemFields(defaultEvent),
       // Clears meta data since we don't want to send this in the public api.
       users: users.map((user) => ({ ...user, metadata: undefined })),
@@ -123,6 +126,7 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
         theme: null,
+        bookerLayouts: users[0].defaultBookerLayouts || defaultEventBookerLayouts,
       },
     };
   }
@@ -191,6 +195,8 @@ function getProfileFromEvent(event: Event) {
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
     theme: profile.theme,
+    bookerLayouts:
+      event.bookerLayouts || ("defaultBookerLayouts" in profile ? profile.defaultBookerLayouts : null),
   };
 }
 

@@ -48,7 +48,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
   );
   const extraDays = layout === "column_view" ? (isTablet ? 2 : 4) : 0;
   const onLayoutToggle = useCallback((newLayout: BookerLayout) => setLayout(newLayout), [setLayout]);
-
+  const bookerLayouts = event.data?.profile?.bookerLayouts;
   const animationScope = useBookerResizeAnimation(layout, bookerState);
 
   useBrandColors({
@@ -64,7 +64,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
     eventId: event?.data?.id,
     rescheduleUid,
     rescheduleBooking,
-    layout: event.data?.bookerLayouts?.defaultLayout || "month_view",
+    layout: bookerLayouts?.defaultLayout || "month_view",
   });
 
   useEffect(() => {
@@ -94,7 +94,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
         If we would render this on mobile, it would unset the mobile variant,
         since that's not a valid option, so it would set the layout to null.
       */}
-      {!isMobile && !!event.data?.bookerLayouts && event.data?.bookerLayouts.enabledLayouts.length > 1 && (
+      {!isMobile && !!bookerLayouts && bookerLayouts.enabledLayouts.length > 1 && (
         <div className="[&>div]:bg-muted fixed top-2 right-3 z-10">
           <ToggleGroup
             onValueChange={onLayoutToggle}
@@ -115,7 +115,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
                 label: <Columns width="16" height="16" />,
                 tooltip: t("switch_multiday"),
               },
-            ].filter((v) => event.data?.bookerLayouts?.enabledLayouts?.includes(v.value as BookerLayouts))}
+            ].filter((v) => bookerLayouts?.enabledLayouts?.includes(v.value as BookerLayouts))}
           />
         </div>
       )}

@@ -162,7 +162,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       </div>
       <hr className="border-subtle" />
       <div>
-        <BookerLayoutSelector />
+        <BookerLayoutSelector fallbackToUserSettings />
       </div>
       <hr className="border-subtle" />
       <FormBuilder

@@ -37,5 +37,6 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     theme: user.theme,
     hideBranding: user.hideBranding,
     metadata: user.metadata,
+    defaultBookerLayouts: user.defaultBookerLayouts,
   };
 };
