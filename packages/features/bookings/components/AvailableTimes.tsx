@@ -97,7 +97,7 @@ export const AvailableTimes = ({
                   />
                   {slot.attendees ? seatsPerTimeslot - slot.attendees : seatsPerTimeslot}{" "}
                   {t("seats_available", {
-                    count: slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot,
+                    count: slot.attendees ? seatsPerTimeslot - slot.attendees : seatsPerTimeslot,
                   })}
                 </p>
               )}
