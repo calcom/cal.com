@@ -178,7 +178,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     isSAMLLoginEnabled,
     trpcState: ssr.dehydrate(),
     prepopulateFormValues: undefined,
-    isEmailVerifyEnabled,
+    isEmailVerifyEnabled: !!isEmailVerifyEnabled,
   };
 
   if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
