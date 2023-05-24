@@ -12,7 +12,7 @@ test("Inline Iframe - Configured with Dark Theme", async ({
   await deleteAllBookingsByEmail("embed-user@example.com");
   await addEmbedListeners("");
   await page.goto("/?only=ns:default");
-  const embedIframe = await getEmbedIframe({ page, pathname: "/pro" });
+  const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
   expect(embedIframe).toBeEmbedCalLink("", getActionFiredDetails, {
     pathname: "/pro",
     searchParams: {
