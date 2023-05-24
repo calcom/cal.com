@@ -904,7 +904,7 @@
   "duplicate": "Duplizieren",
   "offer_seats": "Plätze anbieten",
   "offer_seats_description": "Bieten Sie Plätze für Buchungen an (dies deaktiviert Gäste & Opt-in-Buchungen)",
-  "seats_available": "Verfügbare Plätze",
+  "seats_available_other": "Verfügbare Plätze",
   "number_of_seats": "Anzahl der Plätze pro Termin",
   "enter_number_of_seats": "Anzahl der Plätze eingeben",
   "you_can_manage_your_schedules": "Sie können Ihren Verfügbarkeitsplan bei Ihren Verfügbarkeiten ändern.",
