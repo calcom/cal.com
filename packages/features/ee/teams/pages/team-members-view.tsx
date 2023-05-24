@@ -66,7 +66,8 @@ const MembersView = () => {
   const router = useRouter();
   const session = useSession();
   const utils = trpc.useContext();
-  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
+  const showDialog = router.query.inviteModal === "true";
+  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(showDialog);
   const teamId = Number(router.query.id);
 
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
@@ -83,12 +84,21 @@ const MembersView = () => {
       await utils.viewer.teams.get.invalidate();
       setShowMemberInvitationModal(false);
       if (data.sendEmailInvitation) {
-        showToast(
-          t("email_invite_team", {
-            email: data.usernameOrEmail,
-          }),
-          "success"
-        );
+        if (Array.isArray(data.usernameOrEmail)) {
+          showToast(
+            t("email_invite_team_bulk", {
+              userCount: data.usernameOrEmail.length,
+            }),
+            "success"
+          );
+        } else {
+          showToast(
+            t("email_invite_team", {
+              email: data.usernameOrEmail,
+            }),
+            "success"
+          );
+        }
       }
     },
     onError: (error) => {
