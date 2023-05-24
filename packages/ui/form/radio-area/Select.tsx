@@ -1,10 +1,10 @@
-import { ChevronDownIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import React from "react";
 import type { FieldValues, Path, UseFormReturn } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ChevronDown } from "@calcom/ui/components/icon";
 
 import { RadioArea, RadioAreaGroup } from "./RadioAreaGroup";
 
@@ -46,7 +46,7 @@ export const Select = function RadioAreaSelect<TFieldValues extends FieldValues>
           disabled && "bg-emphasis cursor-default focus:ring-0 "
         )}>
         {getLabel(props.value) ?? placeholder}
-        <ChevronDownIcon className="text-subtle float-right h-5 w-5" />
+        <ChevronDown className="text-subtle float-right h-5 w-5" />
       </CollapsibleTrigger>
       <CollapsibleContent>
         <RadioAreaGroup className="space-y-2 text-sm" onChange={props.onChange}>
