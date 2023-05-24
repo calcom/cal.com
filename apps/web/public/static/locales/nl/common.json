@@ -904,7 +904,7 @@
   "duplicate": "Dupliceren",
   "offer_seats": "Zitplaatsen aanbieden",
   "offer_seats_description": "Bied beschikbare plaatsen aan voor boekingen. Hiermee worden gastboekingen en aanmeldingsboekingen automatisch uitgeschakeld.",
-  "seats_available": "Beschikbare zitplaatsen",
+  "seats_available_other": "Beschikbare zitplaatsen",
   "number_of_seats": "Aantal zitplaatsen per boeking",
   "enter_number_of_seats": "Voer het aantal zitplaatsen in",
   "you_can_manage_your_schedules": "U kunt uw schema's beheren op de beschikbaarheidspagina.",
