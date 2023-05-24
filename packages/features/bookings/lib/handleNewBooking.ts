@@ -1486,6 +1486,9 @@ async function handler(
        * so if you modify it in a inner function it will be modified in the outer function
        * deep cloning evt to avoid this
        */
+      if (!evt?.uid) {
+        evt.uid = booking?.uid ?? null;
+      }
       const copyEvent = cloneDeep(evt);
       copyEvent.uid = booking.uid;
       await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
@@ -2097,12 +2100,14 @@ async function handler(
       userId: organizerUser.id,
       eventTypeId,
       triggerEvent: eventTrigger,
+      teamId: eventType.team?.id,
     };
 
     const subscriberOptionsMeetingEnded = {
       userId: organizerUser.id,
       eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+      teamId: eventType.team?.id,
     };
 
     try {

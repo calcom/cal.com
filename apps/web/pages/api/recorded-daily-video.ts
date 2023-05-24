@@ -33,14 +33,16 @@ const triggerWebhook = async ({
   booking: {
     userId: number | undefined;
     eventTypeId: number | null;
+    teamId?: number | null;
   };
 }) => {
   const eventTrigger: WebhookTriggerEvents = "RECORDING_READY";
   // Send Webhook call if hooked to BOOKING.RECORDING_READY
   const subscriberOptions = {
-    userId: booking.userId ?? 0,
-    eventTypeId: booking.eventTypeId ?? 0,
+    userId: booking.userId,
+    eventTypeId: booking.eventTypeId,
     triggerEvent: eventTrigger,
+    teamId: booking.teamId,
   };
   const webhooks = await getWebhooks(subscriberOptions);
 
@@ -87,6 +89,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         location: true,
         isRecorded: true,
         eventTypeId: true,
+        eventType: {
+          select: {
+            teamId: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -164,7 +171,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     await triggerWebhook({
       evt,
       downloadLink,
-      booking: { userId: booking?.user?.id, eventTypeId: booking.eventTypeId },
+      booking: {
+        userId: booking?.user?.id,
+        eventTypeId: booking.eventTypeId,
+        teamId: booking.eventType?.teamId,
+      },
     });
 
     const isSendingEmailsAllowed = IS_SELF_HOSTED || session?.user?.belongsToActiveTeam;
