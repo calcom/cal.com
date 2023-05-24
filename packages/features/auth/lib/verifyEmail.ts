@@ -16,6 +16,18 @@ export const sendEmailVerifciation = async ({ email, language, username }: Verif
   const token: string = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
 
+  const sendEmailVerifciationEnabled = await prisma.feature.findFirst({
+    where: {
+      slug: "email-verification",
+      enabled: true,
+    },
+  });
+
+  if (!sendEmailVerifciationEnabled) {
+    console.log("Email verification is disabled - Skipping");
+    return { ok: true, skipped: true };
+  }
+
   await prisma.verificationToken.create({
     data: {
       identifier: email,
@@ -38,5 +50,5 @@ export const sendEmailVerifciation = async ({ email, language, username }: Verif
     },
   });
 
-  return { ok: true };
+  return { ok: true, skipped: false };
 };

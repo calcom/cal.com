@@ -29,12 +29,15 @@ type FormValues = {
   apiError: string;
 };
 
-export default function Signup({ prepopulateFormValues, token }: inferSSRProps<typeof getServerSideProps>) {
+export default function Signup({
+  prepopulateFormValues,
+  token,
+  isEmailVerifyEnabled,
+}: inferSSRProps<typeof getServerSideProps>) {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
   const flags = useFlagMap();
-
   const methods = useForm<FormValues>({
     defaultValues: prepopulateFormValues,
   });
@@ -64,7 +67,7 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
       .then(handleErrors)
       .then(async () => {
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
-        const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
+        const verifyOrGettingStarted = isEmailVerifyEnabled ? "auth/verify-email" : "getting-started";
         await signIn<"credentials">("credentials", {
           ...data,
           callbackUrl: router.query.callbackUrl
@@ -133,6 +136,7 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
                     className="border-default mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                   />
                 </div>
+                {JSON.stringify(flags)}
                 <div className="flex space-x-2 rtl:space-x-reverse">
                   <Button type="submit" loading={isSubmitting} className="w-full justify-center">
                     {t("create_account")}
@@ -165,11 +169,19 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const ssr = await ssrInit(ctx);
   const token = z.string().optional().parse(ctx.query.token);
 
+  const isEmailVerifyEnabled = await prisma.feature.findFirst({
+    where: {
+      slug: "email-verification",
+      enabled: true,
+    },
+  });
+
   const props = {
     isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
     isSAMLLoginEnabled,
     trpcState: ssr.dehydrate(),
     prepopulateFormValues: undefined,
+    isEmailVerifyEnabled,
   };
 
   if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
@@ -243,6 +255,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         email: verificationToken.identifier,
         username,
       },
+      isEmailVerifyEnabled,
     },
   };
 };
