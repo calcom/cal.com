@@ -67,6 +67,8 @@ const AppearanceView = () => {
 
   const {
     formState: { isSubmitting, isDirty },
+    reset,
+    
   } = formMethods;
 
   const mutation = trpc.viewer.updateProfile.useMutation({
@@ -96,6 +98,7 @@ const AppearanceView = () => {
           // back to null here.
           theme: values.theme || null,
         });
+        reset(values);
       }}>
       <Meta title={t("appearance")} description={t("appearance_description")} />
       <div className="mb-6 flex items-center text-sm">
@@ -127,7 +130,6 @@ const AppearanceView = () => {
           register={formMethods.register}
         />
       </div>
-
       <hr className="border-subtle my-8 border" />
       <div className="mb-6 flex items-center text-sm">
         <div>
@@ -135,7 +137,6 @@ const AppearanceView = () => {
           <p className="text-default mt-0.5 leading-5">{t("customize_your_brand_colors")}</p>
         </div>
       </div>
-
       <div className="block justify-between sm:flex">
         <Controller
           name="brandColor"
@@ -199,9 +200,10 @@ const AppearanceView = () => {
         </div>
       ) : null}
       {/* TODO future PR to preview brandColors */}
+
       {/* <Button
         color="secondary"
-        EndIcon={ExternalLink}
+        EndIcon={}
         className="mt-6"
         onClick={() => window.open(`${WEBAPP_URL}/${user.username}/${user.eventTypes[0].title}`, "_blank")}>
         Preview
