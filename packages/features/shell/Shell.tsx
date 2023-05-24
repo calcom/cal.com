@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
-import React, { Fragment, useEffect, useState, useRef } from "react";
+import React, { Fragment, useEffect, useState, useRef, useLayoutEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
@@ -140,12 +140,25 @@ function useRedirectToOnboardingIfNeeded() {
 const Layout = (props: LayoutProps) => {
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
   const bannerRef = useRef<HTMLDivElement | null>(null);
-  const [bannersHeight, setBannersHeight] = useState(0);
+  const [bannersHeight, setBannersHeight] = useState<number>(0);
 
-  useEffect(() => {
-    if (bannerRef.current) {
-      setBannersHeight(bannerRef.current.offsetHeight);
+  useLayoutEffect(() => {
+    const resizeObserver = new ResizeObserver((entries) => {
+      const { offsetHeight } = entries[0].target as HTMLElement;
+      setBannersHeight(offsetHeight);
+    });
+
+    const currentBannerRef = bannerRef.current;
+
+    if (currentBannerRef) {
+      resizeObserver.observe(currentBannerRef);
     }
+
+    return () => {
+      if (currentBannerRef) {
+        resizeObserver.unobserve(currentBannerRef);
+      }
+    };
   }, [bannerRef]);
 
   return (
@@ -162,7 +175,7 @@ const Layout = (props: LayoutProps) => {
 
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
-      <div className="flex min-h-screen flex-col" style={{ paddingTop: `${bannersHeight}px` }}>
+      <div style={{ paddingTop: `${bannersHeight}px` }} className="flex min-h-screen flex-col">
         <div ref={bannerRef} className="fixed top-0 z-10 w-full divide-y divide-black">
           <TeamsUpgradeBanner />
           <ImpersonatingBanner />
@@ -766,7 +779,7 @@ function SideBar({ bannersHeight }: SideBarProps) {
     <div className="relative">
       <aside
         style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
-        className="desktop-transparent bg-muted border-muted fixed left-0 top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-4">
+        className="desktop-transparent bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-4">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-6 ">
           <header className="items-center justify-between md:hidden lg:flex">
             <Link href="/event-types" className="px-2">
