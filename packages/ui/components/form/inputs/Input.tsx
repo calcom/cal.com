@@ -338,6 +338,7 @@ type FormProps<T extends object> = { form: UseFormReturn<T>; handleSubmit: Submi
 
 const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLFormElement>) => {
   const { form, handleSubmit, ...passThrough } = props;
+
   return (
     <FormProvider {...form}>
       <form

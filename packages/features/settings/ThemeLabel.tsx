@@ -9,6 +9,7 @@ interface ThemeLabelProps {
 
 export default function ThemeLabel(props: ThemeLabelProps) {
   const { variant, label, value, defaultChecked, register } = props;
+  
   return (
     <label
       className="relative mb-4 flex-1 cursor-pointer text-center last:mb-0 last:mr-0 sm:mr-4 sm:mb-0"

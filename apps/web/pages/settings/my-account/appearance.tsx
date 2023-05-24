@@ -87,7 +87,6 @@ const AppearanceView = () => {
   if (!user) return null;
 
   const isDisabled = isSubmitting || !isDirty;
-  console.log(user.appTheme, formMethods, "user");
 
   return (
     <Form
