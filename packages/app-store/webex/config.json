@@ -6,7 +6,7 @@
   "type": "webex_video",
   "imageSrc": "/icon.ico",
   "logo": "/icon.ico",
-  "url": "https://cal.com/apps/webex",
+  "url": "https://cal.com",
   "variant": "conferencing",
   "categories": ["video"],
   "publisher": "Cal.com, Inc.",
