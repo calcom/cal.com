@@ -96,7 +96,9 @@ export const AvailableTimes = ({
                     aria-hidden
                   />
                   {slot.attendees ? seatsPerTimeslot - slot.attendees : seatsPerTimeslot}{" "}
-                  {t("seats_available")}
+                  {t("seats_available", {
+                    count: slot.attendees ? seatsPerTimeslot - slot.attendees : seatsPerTimeslot,
+                  })}
                 </p>
               )}
             </Button>
