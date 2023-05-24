@@ -28,7 +28,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                 className: classNames("flex text-sm font-medium text-emphasis"),
                 ...(!descriptionAsLabel
                   ? {
-                      htmlFor: id,
+                      htmlFor: rest.id ? rest.id : id,
                     }
                   : {}),
               },
@@ -54,7 +54,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     ref={ref}
                     type="checkbox"
                     disabled={disabled}
-                    id={id}
+                    id={rest.id ? rest.id : id}
                     className={classNames(
                       "text-primary-600 focus:ring-primary-500 border-default bg-default h-4 w-4 rounded ltr:mr-2 rtl:ml-2",
                       !error && disabled
