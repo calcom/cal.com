@@ -194,7 +194,6 @@ export const FormBuilder = function FormBuilder({
               <li key={index}>
                 <div className="flex items-center">
                   <Input
-                    style={{ paddingRight: "2em" }}
                     required
                     value={option.label}
                     onChange={(e) => {
