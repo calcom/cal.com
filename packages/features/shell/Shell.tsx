@@ -127,7 +127,6 @@ function useRedirectToOnboardingIfNeeded() {
   const { data: email } = useEmailVerifyCheck();
 
   const needsEmailVerification = !email?.isVerified && flags["email-verification"];
-  console.log({ needsEmailVerification });
 
   const isRedirectingToOnboarding = user && shouldShowOnboarding(user);
 
@@ -139,6 +138,7 @@ function useRedirectToOnboardingIfNeeded() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRedirectingToOnboarding, needsEmailVerification]);
+
   return {
     isRedirectingToOnboarding,
   };

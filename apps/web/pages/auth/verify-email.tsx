@@ -19,8 +19,8 @@ function VerifyEmailPage() {
   const mutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
 
   useEffect(() => {
-    if (!data?.isVerified) {
-      router.replace("/event-types");
+    if (data?.isVerified) {
+      router.replace("/getting-started");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.isVerified]);
