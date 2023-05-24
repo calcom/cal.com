@@ -129,7 +129,6 @@ export interface App {
   teamsPlanRequired?: {
     upgradeUrl: string;
   };
-  isProOnly?: boolean;
   appData?: AppData;
   /**
    * @deprecated
