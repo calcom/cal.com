@@ -107,11 +107,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  const emailSent = await sendEmailVerifciation({
+  await sendEmailVerifciation({
     email: userEmail,
     username,
     language,
   });
 
-  res.status(201).json({ message: "Created user", emailSent: emailSent.skipped });
+  res.status(201).json({ message: "Created user" });
 }
