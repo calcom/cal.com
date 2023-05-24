@@ -181,6 +181,10 @@
             Change booker border for dark and light themes
           </button>
           <button
+          onclick="(function () {Cal.ns.second('ui', {cssVarsPerTheme:{light:{'cal-brand':'green'},dark:{'cal-brand':'red'}}})})()">
+          Change Brand color for dark and light theme
+        </button>
+          <button
             onclick="(function () {Cal.ns.second('ui', {styles:{eventTypeListItem:{backgroundColor:'blue'}}})})()">
             Change <code>eventTypeListItem</code> bg color[Deprecated]
           </button>
