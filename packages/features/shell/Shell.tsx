@@ -234,7 +234,6 @@ export default function Shell(props: LayoutProps) {
   const { data: user } = useMeQuery();
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
-  console.log(user, "usemequery");
   // System Theme is automatically supported using ThemeProvider. If we intend to use user theme throughout the app we need to uncomment this.
   useTheme(user?.appTheme);
   useBrandColors();
