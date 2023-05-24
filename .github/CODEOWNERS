@@ -8,29 +8,29 @@
 # ⬇️ Removed so we can manually trigger checks
 # *           @calcom/reviewers
 
-.github/    @calcom/core
-.husky/     @calcom/core
-.vcode/     @calcom/core
-.snaplet/   @calcom/core
-deploy/     @calcom/core
-scripts/    @calcom/core
+.github/    @calcom/leads
+.husky/     @calcom/leads
+.vcode/     @calcom/leads
+.snaplet/   @calcom/leads
+deploy/     @calcom/leads
+scripts/    @calcom/leads
 
 apps/swagger    @calcom/docs
 
-packages/app-store-cli                @hariombalhara @calcom/core
-packages/dayjs                        @zomars @calcom/core
-packages/emails                       @zomars @calcom/core
-packages/embeds                       @hariombalhara @calcom/core
-packages/eslint-plugin                @zomars @calcom/core
-packages/features                     @zomars @calcom/core
-packages/features/kbar                @alishaz-polymath @calcom/core
-packages/features/ee/impersonation    @sean-brydon @calcom/core
-packages/features/ee/payments         @alannnc @calcom/core
-packages/features/ee/workflows        @CarinaWolli @calcom/core
-packages/features/tips                @PeerRich @calcom/core
+packages/app-store-cli                @calcom/app-store
+packages/dayjs                        @calcom/leads
+packages/emails                       @calcom/leads
+packages/embeds                       @calcom/embeds
+packages/eslint-plugin                @calcom/leads
+packages/features                     @calcom/leads
+packages/features/kbar                @alishaz-polymath
+packages/features/ee/impersonation    @calcom/impersonation
+packages/features/ee/payments         @calcom/billing
+packages/features/ee/workflows        @calcom/workflows
+packages/features/tips                @PeerRich
 # Trivial changes should be mergeable by core team as well
 # Major UI changes must be reviewed by UI team
 # Critical changes even if major can still be merged by core team if needed.
-packages/ui                           @calcom/ui @calcom/core
-packages/config                       @calcom/core
-packages/app-store/routing-forms   @hariombalhara @calcom/core
+packages/ui                           @calcom/ui
+packages/config                       @calcom/leads
+packages/app-store/routing-forms      @calcom/routing-forms
