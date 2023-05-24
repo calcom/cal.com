@@ -120,14 +120,18 @@ const BookerLayoutFields = ({ settings, onChange, showUserSettings }: BookerLayo
     <div className="my-4 space-y-5">
       <div
         className={classNames(
-          "flex transition-opacity",
+          "flex flex-col gap-5 transition-opacity sm:flex-row sm:gap-3",
           disableFields && "pointer-events-none opacity-40",
           disableFields && isUserLoading && "animate-pulse"
         )}>
         {bookerLayoutOptions.map((layout) => (
           <div className="w-full" key={layout}>
             <label>
-              <img className="mb-3 cursor-pointer" src={`/bookerlayout_${layout}.svg`} alt="Layout preview" />
+              <img
+                className="mb-3 w-full max-w-none cursor-pointer"
+                src={`/bookerlayout_${layout}.svg`}
+                alt="Layout preview"
+              />
               <Checkbox
                 value={layout}
                 name={`bookerlayout_${layout}`}
