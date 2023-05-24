@@ -252,7 +252,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         email: verificationToken.identifier,
         username,
       },
-      isEmailVerifyEnabled,
+      isEmailVerifyEnabled: !!isEmailVerifyEnabled,
     },
   };
 };
