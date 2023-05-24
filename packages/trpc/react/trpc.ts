@@ -38,6 +38,7 @@ const ENDPOINTS = [
   "webhook",
   "workflows",
   "appsRouter",
+  "googleWorkspace",
 ] as const;
 export type Endpoint = (typeof ENDPOINTS)[number];
 

@@ -12,22 +12,14 @@ type EditOptions = {
 
 export const editHandler = async ({ ctx, input }: EditOptions) => {
   const { id, ...data } = input;
-  const webhook = input.eventTypeId
-    ? await prisma.webhook.findFirst({
-        where: {
-          eventTypeId: input.eventTypeId,
-          id,
-        },
-      })
-    : await prisma.webhook.findFirst({
-        where: {
-          userId: ctx.user.id,
-          id,
-        },
-      });
+
+  const webhook = await prisma.webhook.findFirst({
+    where: {
+      id,
+    },
+  });
+
   if (!webhook) {
-    // user does not own this webhook
-    // team event doesn't own this webhook
     return null;
   }
   return await prisma.webhook.update({

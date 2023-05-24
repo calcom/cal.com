@@ -44,8 +44,8 @@ import { EventLimitsTab } from "@components/eventtype/EventLimitsTab";
 import { EventRecurringTab } from "@components/eventtype/EventRecurringTab";
 import { EventSetupTab } from "@components/eventtype/EventSetupTab";
 import { EventTeamTab } from "@components/eventtype/EventTeamTab";
-import { EventTeamWebhooksTab } from "@components/eventtype/EventTeamWebhooksTab";
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
+import { EventWebhooksTab } from "@components/eventtype/EventWebhooksTab";
 import EventWorkflowsTab from "@components/eventtype/EventWorkfowsTab";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -317,7 +317,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         workflows={eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow)}
       />
     ),
-    webhooks: <EventTeamWebhooksTab eventType={eventType} team={team} />,
+    webhooks: <EventWebhooksTab eventType={eventType} />,
   } as const;
 
   const handleSubmit = async (values: FormValues) => {

@@ -30,7 +30,13 @@ const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) =>
   ssr: false,
 });
 
-const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: BookerProps) => {
+const BookerComponent = ({
+  username,
+  eventSlug,
+  month,
+  rescheduleBooking,
+  hideBranding = false,
+}: BookerProps) => {
   const { t } = useLocale();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
@@ -203,7 +209,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             "mt-auto mb-6 pt-6 [&_img]:h-[15px]",
             layout === "month_view" ? "block" : "hidden"
           )}>
-          <PoweredBy logoOnly />
+          {!hideBranding ? <PoweredBy logoOnly /> : null}
         </m.span>
       </div>
 
