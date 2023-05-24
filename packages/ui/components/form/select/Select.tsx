@@ -25,7 +25,7 @@ export const Select = <
   variant = "default",
   ...props
 }: SelectProps<Option, IsMulti, Group>) => {
-  const { classNames, ...restProps } = props;
+  const { classNames, id, ...restProps } = props;
   const reactSelectProps = React.useMemo(() => {
     return getReactSelectProps<Option, IsMulti, Group>({
       components: components || {},
@@ -88,6 +88,7 @@ export const Select = <
         multiValueRemove: () => "text-default py-auto ml-2",
         ...classNames,
       }}
+      inputId={id}
       {...restProps}
     />
   );
@@ -120,7 +121,7 @@ export const SelectField = function SelectField<
           </Label>
         )}
       </div>
-      <Select {...passThrough} />
+      <Select id={id} {...passThrough} />
     </div>
   );
 };
