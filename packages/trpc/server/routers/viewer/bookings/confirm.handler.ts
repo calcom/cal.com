@@ -308,9 +308,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     await sendDeclinedEmails(evt);
     // send BOOKING_REJECTED webhooks
     const subscriberOptions = {
-      userId: booking.userId || 0,
-      eventTypeId: booking.eventTypeId || 0,
+      userId: booking.userId,
+      eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
+      teamId: booking.eventType?.teamId,
     };
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REJECTED;
     const eventTypeInfo: EventTypeInfo = {

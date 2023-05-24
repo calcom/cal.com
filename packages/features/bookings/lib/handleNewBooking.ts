@@ -2159,6 +2159,7 @@ async function handler(
       userId: organizerUser.id,
       eventTypeId,
       triggerEvent: eventTrigger,
+      teamId: eventType.team?.id,
     };
     webhookData.status = "PENDING";
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
