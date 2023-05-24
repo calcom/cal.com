@@ -904,7 +904,6 @@
   "duplicate": "Duplicado",
   "offer_seats": "Ofrecer plazas",
   "offer_seats_description": "Ofrecer plazas para las reservas (desactiva las reservas de invitados y las optativas)",
-  "seats_available_one":"Asiento disponible",
   "seats_available_other": "Plazas disponibles",
   "number_of_seats": "Número de plazas por reserva",
   "enter_number_of_seats": "Introduzca el número de plazas",

@@ -904,7 +904,6 @@
   "duplicate": "Duplicar",
   "offer_seats": "Oferecer lugares",
   "offer_seats_description": "Oferecer lugares para reservas (isto desactiva os convidados e confirmações nas reservas)",
-  "seats_available_one":"Lugar disponível",
   "seats_available_other": "Lugares disponíveis",
   "number_of_seats": "Número de lugares por reserva",
   "enter_number_of_seats": "Digite um número de lugares",

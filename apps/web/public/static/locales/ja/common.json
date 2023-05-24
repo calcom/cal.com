@@ -904,7 +904,6 @@
   "duplicate": "複製",
   "offer_seats": "座席を提供",
   "offer_seats_description": "予約可能な座席を設定します。これにより、ゲストおよびオプトイン予約は自動的に無効化されます。",
-  "seats_available_one":"空席あり",
   "seats_available_other": "空席あり",
   "number_of_seats": "1予約あたりの座席数",
   "enter_number_of_seats": "座席数を入力",

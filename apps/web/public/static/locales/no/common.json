@@ -861,7 +861,6 @@
   "duplicate": "Dupliser",
   "offer_seats": "Tilby seter",
   "offer_seats_description": "Tilby seter for booking. Dette deaktiverer automatisk gjeste- og påmeldings-bookinger.",
-  "seats_available_one":"Tilgjengelig sete",
   "seats_available_other": "Tilgjengelige seter",
   "number_of_seats": "Antall seter per booking",
   "enter_number_of_seats": "Angi antall seter",

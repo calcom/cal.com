@@ -904,7 +904,6 @@
   "duplicate": "Duplica",
   "offer_seats": "Imposta posti",
   "offer_seats_description": "Indica i posti disponibili (ciò disabiliterà le prenotazioni ospite e le prenotazioni opt-in).",
-  "seats_available_one":"Posto disponibile",
   "seats_available_other": "Posti disponibili",
   "number_of_seats": "Numero di posti per prenotazione",
   "enter_number_of_seats": "Immettere il numero di posti",

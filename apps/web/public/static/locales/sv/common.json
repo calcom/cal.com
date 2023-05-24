@@ -904,7 +904,6 @@
   "duplicate": "Duplicera",
   "offer_seats": "Erbjud platser",
   "offer_seats_description": "Erbjud platser till bokningar. Detta inaktiverar gäster och bokningar.",
-  "seats_available_one":"Tillgänglig sits",
   "seats_available_other": "Tillgängliga platser",
   "number_of_seats": "Antal platser per bokning",
   "enter_number_of_seats": "Ange antal platser",

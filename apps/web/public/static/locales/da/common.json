@@ -876,7 +876,6 @@
   "duplicate": "Duplikér",
   "offer_seats": "Tilbyd pladser",
   "offer_seats_description": "Tilbyd pladser til booking. Dette deaktiverer automatisk gæste- og tilvalgs bookinger.",
-  "seats_available_one":"Tilgængeligt sæde",
   "seats_available_other": "Tilgængelige pladser",
   "number_of_seats": "Antal pladser pr. booking",
   "enter_number_of_seats": "Angiv antal pladser",

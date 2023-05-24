@@ -904,7 +904,6 @@
   "duplicate": "Duplicar",
   "offer_seats": "Oferecer assentos",
   "offer_seats_description": "Oferecer assentos para reserva. Isto desativa automaticamente reservas de convidados e confirmações.",
-  "seats_available_one":"Assento disponível",
   "seats_available_other": "Assentos disponíveis",
   "number_of_seats": "Número de assentos por reserva",
   "enter_number_of_seats": "Insira a quantidade de assentos",
