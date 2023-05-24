@@ -5,32 +5,66 @@
 # the repo. Unless a later match takes precedence,
 # @global-owner1 and @global-owner2 will be requested for
 # review when someone opens a pull request.
-# ⬇️ Removed so we can manually trigger checks
-# *           @calcom/reviewers
 
-.github/    @calcom/leads
-.husky/     @calcom/leads
-.vcode/     @calcom/leads
-.snaplet/   @calcom/leads
-deploy/     @calcom/leads
-scripts/    @calcom/leads
+# ⬇️ Current Teams
+# @calcom/app-store            # https://github.com/orgs/calcom/teams/app-store
+# @calcom/authentication       # https://github.com/orgs/calcom/teams/authentication
+# @calcom/automated-testing    # https://github.com/orgs/calcom/teams/automated-testing
+# @calcom/billing              # https://github.com/orgs/calcom/teams/billing
+# @calcom/bookings             # https://github.com/orgs/calcom/teams/bookings
+# @calcom/caldav               # https://github.com/orgs/calcom/teams/caldav
+# @calcom/calendar-apps        # https://github.com/orgs/calcom/teams/calendar-apps
+# @calcom/ci-dx                # https://github.com/orgs/calcom/teams/ci-dx
+# @calcom/console              # https://github.com/orgs/calcom/teams/console
+# @calcom/crm-apps             # https://github.com/orgs/calcom/teams/crm-apps
+# @calcom/desktop-app          # https://github.com/orgs/calcom/teams/desktop-app
+# @calcom/docker               # https://github.com/orgs/calcom/teams/docker
+# @calcom/docs                 # https://github.com/orgs/calcom/teams/docs
+# @calcom/documentation        # https://github.com/orgs/calcom/teams/documentation
+# @calcom/embeds               # https://github.com/orgs/calcom/teams/embeds
+# @calcom/event-types          # https://github.com/orgs/calcom/teams/event-types
+# @calcom/impersonation        # https://github.com/orgs/calcom/teams/impersonation
+# @calcom/ops-stack            # https://github.com/orgs/calcom/teams/ops-stack
+# @calcom/public-api           # https://github.com/orgs/calcom/teams/public-api
+# @calcom/routing-forms        # https://github.com/orgs/calcom/teams/routing-forms
+# @calcom/seats                # https://github.com/orgs/calcom/teams/seats
+# @calcom/teams                # https://github.com/orgs/calcom/teams/teams
+# @calcom/ui                   # https://github.com/orgs/calcom/teams/ui
+# @calcom/webhooks             # https://github.com/orgs/calcom/teams/webhooks
+# @calcom/workflows             # https://github.com/orgs/calcom/teams/workflows
+# @calcom/zapier               # https://github.com/orgs/calcom/teams/zapier
 
-apps/swagger    @calcom/docs
 
-packages/app-store-cli                @calcom/app-store
-packages/dayjs                        @calcom/leads
-packages/emails                       @calcom/leads
-packages/embeds                       @calcom/embeds
-packages/eslint-plugin                @calcom/leads
-packages/features                     @calcom/leads
-packages/features/kbar                @alishaz-polymath
-packages/features/ee/impersonation    @calcom/impersonation
-packages/features/ee/payments         @calcom/billing
-packages/features/ee/workflows        @calcom/workflows
-packages/features/tips                @PeerRich
-# Trivial changes should be mergeable by core team as well
-# Major UI changes must be reviewed by UI team
-# Critical changes even if major can still be merged by core team if needed.
-packages/ui                           @calcom/ui
-packages/config                       @calcom/leads
-packages/app-store/routing-forms      @calcom/routing-forms
+.github/    @calcom/ci-dx
+.husky/     @calcom/ci-dx
+.vcode/     @calcom/ci-dx
+deploy/     @calcom/ci-dx
+scripts/    @calcom/ci-dx
+
+apps/swagger                                @calcom/docs
+apps/web/playwright                         @calcom/automated-testing
+packages/app-store-cli                      @calcom/app-store
+packages/app-store/routing-forms            @calcom/routing-forms
+packages/app-store/applecalendar            @calcom/caldav
+packages/app-store/caldavcalendar           @calcom/caldav
+packages/app-store/googlecalendar           @calcom/calendar-apps
+packages/app-store/exchange2013calendar     @calcom/calendar-apps
+packages/app-store/exchange2016calendar     @calcom/calendar-apps
+packages/app-store/larkcalendar             @calcom/calendar-apps
+packages/app-store/office365calendar        @calcom/calendar-apps
+packages/config                             @calcom/leads
+packages/core                               @calcom/bookings
+packages/dayjs                              @calcom/leads
+packages/emails                             @calcom/leads
+packages/embeds                             @calcom/embeds
+packages/eslint-plugin                      @calcom/leads
+packages/features                           @calcom/leads
+packages/features/bookings                  @calcom/bookings
+packages/features/ee/impersonation          @calcom/impersonation
+packages/features/ee/payments               @calcom/billing
+packages/features/ee/workflows              @calcom/workflows
+packages/features/kbar                      @alishaz-polymath
+packages/features/tips                      @PeerRich
+packages/features/webhooks                  @calcom/webhooks
+packages/ui                                 @calcom/ui
+playwright.config.ts                        @calcom/automated-testing
