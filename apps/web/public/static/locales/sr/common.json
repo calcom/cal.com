@@ -904,7 +904,7 @@
   "duplicate": "Dupliraj",
   "offer_seats": "Ponudi mesta",
   "offer_seats_description": "Ponudite mesta za zakazivanje. Ovo automatski onemogućava gostujuća i opciona zakazivanja.",
-  "seats_available": "Slobodnih mesta",
+  "seats_available_other": "Slobodnih mesta",
   "number_of_seats": "Broj mesta po zakazivanju",
   "enter_number_of_seats": "Unesite broj slobodnih mesta",
   "you_can_manage_your_schedules": "Svojim rasporedima možete upravljati na stranici Dostupnost.",
