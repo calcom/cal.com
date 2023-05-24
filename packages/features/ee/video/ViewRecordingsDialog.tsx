@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import { useState, Suspense } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -8,14 +9,7 @@ import type { RecordingItemSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { PartialReference } from "@calcom/types/EventManager";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  UpgradeTeamsBadge,
-} from "@calcom/ui";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
 import { Button } from "@calcom/ui";
 import { Download } from "@calcom/ui/components/icon";
 
@@ -101,6 +95,7 @@ const useRecordingDownload = () => {
 const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTeamPlan: boolean }) => {
   const { t } = useLocale();
   const { setRecordingId, isFetching, recordingId } = useRecordingDownload();
+  const router = useRouter();
 
   const { data: recordings } = trpc.viewer.getCalVideoRecordings.useQuery(
     { roomName },
@@ -138,7 +133,12 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
                     {t("download")}
                   </Button>
                 ) : (
-                  <UpgradeTeamsBadge />
+                  <Button
+                    tooltip={t("upgrade_to_access_recordings_description")}
+                    className="ml-4 lg:ml-0"
+                    onClick={() => router.push("/teams")}>
+                    {t("upgrade")}
+                  </Button>
                 )}
               </div>
             );
