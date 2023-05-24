@@ -637,7 +637,12 @@ const BookingPage = ({
                         {currentSlotBooking
                           ? eventType.seatsPerTimeSlot - currentSlotBooking.attendees.length
                           : eventType.seatsPerTimeSlot}{" "}
-                        / {eventType.seatsPerTimeSlot} {t("seats_available")}
+                        / {eventType.seatsPerTimeSlot}{" "}
+                        {t("seats_available", {
+                          count: currentSlotBooking
+                            ? eventType.seatsPerTimeSlot - currentSlotBooking.attendees.length
+                            : eventType.seatsPerTimeSlot,
+                        })}
                       </p>
                     </div>
                   )}
