@@ -15,7 +15,6 @@
 deploy/     @calcom/core
 scripts/    @calcom/core
 
-apps/docs       @calcom/docs
 apps/swagger    @calcom/docs
 
 packages/app-store-cli                @hariombalhara @calcom/core
