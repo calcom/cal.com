@@ -41,6 +41,7 @@ import {
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
+import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
@@ -2117,16 +2118,19 @@ async function handler(
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
   };
+  const subscriberOptions: GetSubscriberOptions = {
+    userId: organizerUser.id,
+    eventTypeId,
+    triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+    teamId: eventType.team?.id,
+  };
+
   if (isConfirmedByDefault) {
     const eventTrigger: WebhookTriggerEvents = rescheduleUid
       ? WebhookTriggerEvents.BOOKING_RESCHEDULED
       : WebhookTriggerEvents.BOOKING_CREATED;
-    const subscriberOptions = {
-      userId: organizerUser.id,
-      eventTypeId,
-      triggerEvent: eventTrigger,
-      teamId: eventType.team?.id,
-    };
+
+    subscriberOptions.triggerEvent = eventTrigger;
 
     const subscriberOptionsMeetingEnded = {
       userId: organizerUser.id,
@@ -2155,12 +2159,7 @@ async function handler(
   } else if (eventType.requiresConfirmation) {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
-    const subscriberOptions = {
-      userId: organizerUser.id,
-      eventTypeId,
-      triggerEvent: eventTrigger,
-      teamId: eventType.team?.id,
-    };
+    subscriberOptions.triggerEvent = eventTrigger;
     webhookData.status = "PENDING";
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
