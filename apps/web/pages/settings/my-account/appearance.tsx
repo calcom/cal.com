@@ -138,7 +138,7 @@ const AppearanceView = () => {
         />
       </div>
 
-      <hr className="border-subtle my-8 border" />
+      <hr className="border-subtle my-8 border [&:has(+hr)]:hidden" />
       <BookerLayoutSelector
         name="defaultBookerLayouts"
         title={t("bookerlayout_user_settings_title")}

@@ -36,6 +36,10 @@ export const BookerLayoutSelector = ({
   const shouldShowUserSettings =
     (fallbackToUserSettings && getValues(name || "bookerLayouts") === null) || false;
 
+  // @TODO: Enable this before merge, so we don't show the settings before release.
+  // const flags = useFlagMap();
+  // if (flags.newbooker !== true) return null;
+
   return (
     <>
       <Label className="mb-0">{title ? title : t("bookerlayout_title")}</Label>
