@@ -14,7 +14,6 @@ export type EmailVerifyLink = {
   verificationEmailLink: string;
 };
 
-export const PASSWORD_RESET_EXPIRY_HOURS = 6;
 
 export default class AccountVerifyEmail extends BaseEmail {
   verifyAccountInput: EmailVerifyLink;
