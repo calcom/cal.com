@@ -17,18 +17,18 @@ interface VerifyEmailType {
   language?: string;
 }
 
-export const sendEmailVerifciation = async ({ email, language, username }: VerifyEmailType) => {
+export const sendEmailVerification = async ({ email, language, username }: VerifyEmailType) => {
   const token: string = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
 
-  const sendEmailVerifciationEnabled = await prisma.feature.findFirst({
+  const sendEmailVerificationEnabled = await prisma.feature.findFirst({
     where: {
       slug: "email-verification",
       enabled: true,
     },
   });
 
-  if (!sendEmailVerifciationEnabled) {
+  if (!sendEmailVerificationEnabled) {
     console.log("Email verification is disabled - Skipping");
     return { ok: true, skipped: true };
   }

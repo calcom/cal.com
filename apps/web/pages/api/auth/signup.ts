@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { sendEmailVerifciation } from "@calcom/features/auth/lib/verifyEmail";
+import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma from "@calcom/prisma";
@@ -107,7 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  await sendEmailVerifciation({
+  await sendEmailVerification({
     email: userEmail,
     username,
     language,

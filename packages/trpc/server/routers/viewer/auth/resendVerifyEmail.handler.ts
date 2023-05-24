@@ -1,4 +1,4 @@
-import { sendEmailVerifciation } from "@calcom/features/auth/lib/verifyEmail";
+import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 
 import type { TrpcSessionUser } from "../../../trpc";
 
@@ -9,7 +9,7 @@ type ResendEmailOptions = {
 };
 
 export const resendVerifyEmail = async ({ ctx }: ResendEmailOptions) => {
-  const email = await sendEmailVerifciation({
+  const email = await sendEmailVerification({
     email: ctx.user.email,
     username: ctx.user?.username ?? undefined,
     language: ctx.user.locale,
