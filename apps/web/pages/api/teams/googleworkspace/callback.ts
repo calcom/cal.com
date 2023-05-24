@@ -30,8 +30,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { client_id, client_secret } = await getAppKeysFromSlug("google-calendar");
 
-  if (!client_id) return res.status(400).json({ message: "Google client_id missing." });
-  if (!client_secret) return res.status(400).json({ message: "Google client_secret missing." });
+  if (!client_id || typeof client_id !== "string")
+    return res.status(400).json({ message: "Google client_id missing." });
+  if (!client_secret || typeof client_secret !== "string")
+    return res.status(400).json({ message: "Google client_secret missing." });
 
   const redirect_uri = WEBAPP_URL + "/api/teams/googleworkspace/callback";
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
