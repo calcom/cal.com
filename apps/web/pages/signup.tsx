@@ -9,7 +9,6 @@ import { z } from "zod";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
-import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -37,7 +36,6 @@ export default function Signup({
   const { t, i18n } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
-  const flags = useFlagMap();
   const methods = useForm<FormValues>({
     defaultValues: prepopulateFormValues,
   });
@@ -136,7 +134,6 @@ export default function Signup({
                     className="border-default mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                   />
                 </div>
-                {JSON.stringify(flags)}
                 <div className="flex space-x-2 rtl:space-x-reverse">
                   <Button type="submit" loading={isSubmitting} className="w-full justify-center">
                     {t("create_account")}
