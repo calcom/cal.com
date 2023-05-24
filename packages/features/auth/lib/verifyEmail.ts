@@ -2,9 +2,14 @@ import { randomBytes } from "crypto";
 
 import { sendEmailVerificationLink } from "@calcom/emails/email-manager";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import rateLimit from "@calcom/lib/rateLimit";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { TokenType } from "@calcom/prisma/enums";
+
+const limiter = rateLimit({
+  intervalInMs: 60 * 1000, // 1 minute
+});
 
 interface VerifyEmailType {
   username?: string;
@@ -40,6 +45,12 @@ export const sendEmailVerifciation = async ({ email, language, username }: Verif
   const params = new URLSearchParams({
     token,
   });
+
+  const { isRateLimited } = limiter.check(10, email); // 10 requests per minute
+
+  if (isRateLimited) {
+    throw new Error("Too many requests");
+  }
 
   await sendEmailVerificationLink({
     language: translation,
