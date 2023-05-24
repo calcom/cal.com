@@ -3,7 +3,7 @@ INSERT INTO
 VALUES
   (
     'email-verification',
-    false,
+    true,
     'Enable email verification for new users',
     'OPERATIONAL'
   ) ON CONFLICT (slug) DO NOTHING;
