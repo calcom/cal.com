@@ -1732,7 +1732,7 @@
   "managed_event_dialog_title_other": "{{count}} 位成員已有網址/{{slug}}。您要取代嗎？",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> 已在使用 <strong>/{{slug}}</strong> 網址。",
   "managed_event_dialog_information_other": "<strong>{{names}}</strong> 已在使用 <string>/{{slug}}</strong> 網址。",
-  "managed_event_dialog_clarification": "如果您選擇取代，我們會通知他們；如果不想覆寫既有設定，請返回並移除。",
+  "managed_event_dialog_clarification": "如果您選擇取代，我們會通知他們；如果不想覆寫既有網址，請返回並移除。",
   "review_event_type": "檢閱活動類型",
   "looking_for_more_analytics": "在找更多分析嗎？",
   "looking_for_more_insights": "在找更多 Insights 嗎？",
