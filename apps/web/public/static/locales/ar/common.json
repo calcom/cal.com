@@ -904,7 +904,7 @@
   "duplicate": "تكرار",
   "offer_seats": "عرض مقاعد",
   "offer_seats_description": "عرض مقاعد للحجز. هذا يعطل تلقائياً حجز الضيوف وحجز الاشتراك.",
-  "seats_available": "المقاعد المتاحة",
+  "seats_available_other": "المقاعد المتاحة",
   "number_of_seats": "عدد المقاعد لكل حجز",
   "enter_number_of_seats": "أدخل عدد المقاعد",
   "you_can_manage_your_schedules": "يمكنك إدارة الجداول الخاصة بك في صفحة الأوقات المتاحة.",
