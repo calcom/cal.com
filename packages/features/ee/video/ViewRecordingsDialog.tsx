@@ -116,7 +116,7 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
           {recordings.data.map((recording: RecordingItemSchema, index: number) => {
             return (
               <div
-                className="flex w-full items-center justify-between rounded-md border px-4 py-2"
+                className="border-subtle flex w-full items-center justify-between rounded-md border px-4 py-2"
                 key={recording.id}>
                 <div className="flex flex-col">
                   <h1 className="text-sm font-semibold">
