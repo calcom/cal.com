@@ -66,13 +66,14 @@ const AppearanceView = () => {
   });
 
   const {
-    formState: { isSubmitting, isDirty },
+    formState: { isSubmitting, isDirty }, reset
   } = formMethods;
 
   const mutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       await utils.viewer.me.invalidate();
       showToast(t("settings_updated_successfully"), "success");
+      reset(data);
     },
     onError: () => {
       showToast(t("error_updating_settings"), "error");
