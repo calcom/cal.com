@@ -152,12 +152,14 @@ export function Card({
               {learnMore.text}
             </LinkComponent>
           )}
-          <button
-            className="text-default hover:text-emphasis p-0 text-xs font-normal"
-            color="minimal"
-            onClick={actionButton?.onClick}>
-            {actionButton?.child}
-          </button>
+          {actionButton?.child && (
+            <button
+              className="text-default hover:text-emphasis p-0 text-xs font-normal"
+              color="minimal"
+              onClick={actionButton?.onClick}>
+              {actionButton?.child}
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -2,7 +2,7 @@
 import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
-import type { InterfaceWithParent, interfaceWithParent, UiConfig } from "./embed-iframe";
+import type { InterfaceWithParent, interfaceWithParent, UiConfig, EmbedThemeConfig } from "./embed-iframe";
 import css from "./embed.css";
 import type { EventData, EventDataMap } from "./sdk-action-manager";
 import { SdkActionManager } from "./sdk-action-manager";
@@ -129,6 +129,7 @@ type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Record<str
   iframeAttrs?: Record<string, string> & {
     id?: string;
   };
+  theme?: EmbedThemeConfig;
 };
 
 export class Cal {

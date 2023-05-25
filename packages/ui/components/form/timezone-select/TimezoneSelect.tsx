@@ -52,18 +52,22 @@ export function TimezoneSelect({
       classNames={{
         ...timezoneClassNames,
         input: (state) =>
-          classNames("text-emphasis h-6", timezoneClassNames?.input && timezoneClassNames.input(state)),
+          classNames(
+            "text-emphasis h-6 md:max-w-[145px] max-w-[250px]",
+            timezoneClassNames?.input && timezoneClassNames.input(state)
+          ),
         option: (state) =>
           classNames(
-            "bg-default flex cursor-pointer justify-between py-2.5 px-3 rounded-none text-default ",
+            "bg-default flex !cursor-pointer justify-between py-2.5 px-3 rounded-none text-default ",
             state.isFocused && "bg-subtle",
-            state.isSelected && "bg-emphasis text-default",
+            state.isSelected && "bg-emphasis",
             timezoneClassNames?.option && timezoneClassNames.option(state)
           ),
         placeholder: (state) => classNames("text-muted", state.isFocused && "hidden"),
         dropdownIndicator: () => "text-default",
         control: (state) =>
           classNames(
+            "!cursor-pointer",
             variant === "default"
               ? "px-3 py-2 bg-default border-default !min-h-9 text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-2 focus-within:ring-emphasis hover:border-emphasis rounded-md border gap-1"
               : "text-sm gap-1",
