@@ -17,7 +17,8 @@ type GetWorkflowActionOptionsOptions = {
 export const getWorkflowActionOptionsHandler = async ({ ctx }: GetWorkflowActionOptionsOptions) => {
   const { user } = ctx;
 
-  const isCurrentUsernamePremium = user && user.metadata && hasKeyInMetadata(user, "isPremium");
+  const isCurrentUsernamePremium =
+    user && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
 
   let isTeamsPlan = false;
   if (!isCurrentUsernamePremium) {
