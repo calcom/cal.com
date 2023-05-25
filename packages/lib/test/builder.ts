@@ -211,6 +211,7 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     selectedCalendars: [],
     startTime: 0,
     theme: null,
+    appTheme: null,
     timeFormat: null,
     trialEndsAt: null,
     twoFactorEnabled: false,
