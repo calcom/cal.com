@@ -1,4 +1,5 @@
-import type { Prisma, UserPermissionRole } from "@prisma/client";
+import { faker } from "@faker-js/faker";
+import type { Prisma } from "@prisma/client";
 import { uuid } from "short-uuid";
 
 import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
@@ -13,14 +14,9 @@ import prisma from ".";
 import mainAppStore from "./seed-app-store";
 
 async function createUserAndEventType(opts: {
-  user: {
-    email: string;
+  user: Prisma.UserCreateInput & {
     password: string;
-    username: string;
-    name: string;
     completedOnboarding?: boolean;
-    timeZone?: string;
-    role?: UserPermissionRole;
   };
   eventTypes: Array<
     Prisma.EventTypeCreateInput & {
@@ -524,6 +520,42 @@ async function main() {
       role: "ADMIN",
     },
     eventTypes: [],
+  });
+
+  // Bookings every 30m for 48hrs, useful to test the boundaries of dailyDigestEmails
+  await createUserAndEventType({
+    user: {
+      email: "verybusy@example.com",
+      password: "verybusy",
+      username: "verybusy",
+      name: "Very Busy",
+      timeZone: "Asia/Tokyo",
+      dailyDigestEnabled: true,
+      dailyDigestTime: dayjs("2023-05-25 20:00:00").toDate(),
+    },
+    eventTypes: [
+      {
+        title: "30min",
+        slug: "30min",
+        length: 30,
+        _bookings: Array.from({ length: 48 * 2 }, (_, i) => {
+          const guest = faker.person.fullName();
+          const startTime = dayjs()
+            .startOf("day")
+            .add(30 * i, "minutes")
+            .toDate();
+          const endTime = dayjs(startTime).add(30, "minutes").toDate();
+
+          return {
+            uid: uuid(),
+            title: `30min between Very Busy and ${guest}`,
+            startTime,
+            endTime,
+            location: "Online",
+          };
+        }),
+      },
+    ],
   });
 
   const pro2UserTeam = await createUserAndEventType({

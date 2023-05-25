@@ -21,4 +21,7 @@ The first argument is the template name as defined inside `templates/index.ts`. 
 
 ## Development
 
-You can use an API endpoint to preview the email HTML, there's already one on `/apps/web/pages/api/email.ts` feel free to change the template to the one you're currently working on.
+You can use an API endpoint to preview the email HTML, there is already:
+
+- `/apps/web/pages/api/email.ts`, which you can change the template you're currently working on.
+- `/apps/web/pages/api/dailyDigestEmail.ts`, which gives a preview of all the daily digest emails currently eligible to be sent.

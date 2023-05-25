@@ -1,8 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import type { TFunction } from "next-i18next";
 
+import dayjs from "@calcom/dayjs";
 import { sendOrganizerDailyDigestEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server";
-import prisma from "@calcom/prisma";
+import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { BookingStatus, type User } from "@calcom/prisma/client";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
@@ -15,20 +19,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  // TODO: For each user, find bookings beginning in the next 24hrs and email as a daily digest
   const users = await getUsersDueDigests();
 
   let notificationsSent = 0;
   for (const user of users) {
     const tOrganizer = await getTranslation(user.locale ?? "en", "common");
-    await sendOrganizerDailyDigestEmail(user, tOrganizer, []);
+    const calEventListPromises = user.bookings.map((booking) =>
+      createCalendarEventFromBooking(user, booking, tOrganizer)
+    );
+    const calEventList = await Promise.all(calEventListPromises);
+
+    await sendOrganizerDailyDigestEmail(user, tOrganizer, calEventList);
 
     notificationsSent++;
   }
   res.status(200).json({ notificationsSent });
 }
 
-async function getUsersDueDigests() {
+export async function getUsersDueDigests() {
   /*
    * Find users who are due daily digests bookings within 5 minutes of now
    *
@@ -68,9 +76,40 @@ async function getUsersDueDigests() {
   }
 
   const userIds = rawUserIdsList.map(({ id }) => id);
+  const within24hrs = {
+    lte: dayjs().add(1, "day").toDate(),
+    gte: dayjs().toDate(),
+  };
+
   const users = await prisma.user.findMany({
     where: {
       id: { in: userIds },
+      bookings: {
+        some: {
+          startTime: within24hrs,
+        },
+      },
+    },
+    include: {
+      bookings: {
+        select: {
+          ...bookingMinimalSelect,
+          uid: true,
+          location: true,
+          eventType: {
+            select: {
+              title: true,
+            },
+          },
+        },
+        where: {
+          startTime: within24hrs,
+          status: BookingStatus.ACCEPTED,
+        },
+        orderBy: {
+          startTime: "asc",
+        },
+      },
     },
   });
 
@@ -107,5 +146,43 @@ const isRawUserIdsRow = (data: unknown): data is RawUserIdsRow => {
 type RawUserIdsList = RawUserIdsRow[];
 
 const isRawUserIdsList = (data: unknown): data is RawUserIdsList => {
+  // TODO: Can zod replace this?
   return Array.isArray(data) && data.every(isRawUserIdsRow);
+};
+
+export const createCalendarEventFromBooking = async (
+  organizer: User,
+  booking: Awaited<ReturnType<typeof getUsersDueDigests>>[number]["bookings"][number],
+  t: TFunction
+): Promise<CalendarEvent> => {
+  const attendeesListPromises = booking.attendees.map(async (attendee) => {
+    return {
+      name: attendee.name,
+      email: attendee.email,
+      timeZone: attendee.timeZone,
+      language: {
+        translate: await getTranslation(attendee.locale ?? "en", "common"),
+        locale: attendee.locale ?? "en",
+      },
+    };
+  });
+
+  const attendeesList = await Promise.all(attendeesListPromises);
+
+  return {
+    title: booking.title,
+    type: booking.eventType?.title ?? booking.title,
+    description: booking.description,
+    startTime: booking.startTime.toISOString(),
+    endTime: booking.endTime.toISOString(),
+    organizer: {
+      email: organizer.email,
+      name: organizer.name ?? "Nameless",
+      timeZone: organizer.timeZone,
+      language: { translate: t, locale: organizer.locale ?? "en" },
+    },
+    location: booking.location ?? "",
+    attendees: attendeesList,
+    uid: booking.uid,
+  };
 };

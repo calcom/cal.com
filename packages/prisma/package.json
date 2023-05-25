@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@calcom/lib": "*",
+    "@faker-js/faker": "^8.0.1",
     "@prisma/client": "^4.13.0",
     "@prisma/generator-helper": "^4.13.0",
     "prisma": "^4.13.0",
