@@ -25,6 +25,45 @@ export const parseDate = (date: string | null | Dayjs, language: string, options
   return processDate(date, language, options);
 };
 
+const timeOptions: Intl.DateTimeFormatOptions = {
+  hour12: true,
+  hourCycle: "h12",
+  hour: "numeric",
+  minute: "numeric",
+};
+
+const dateOptions: Intl.DateTimeFormatOptions = {
+  weekday: "long",
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+};
+
+export const parseDateTimeWithTimeZone = (
+  date: Date,
+  language: string,
+  timezone: string,
+  options?: ExtraOptions
+): string => {
+  timeOptions.timeZone = timezone;
+  dateOptions.timeZone = timezone;
+
+  if (options?.withDefaultTimeFormat) {
+    timeOptions.hourCycle = "h12";
+  } else if (options?.selectedTimeFormat) {
+    timeOptions.hourCycle = options.selectedTimeFormat === TimeFormat.TWELVE_HOUR ? "h12" : "h24";
+    if (timeOptions.hourCycle === "h24") {
+      delete timeOptions.hour12;
+    }
+  }
+  const formattedDate = new Date(date).toLocaleDateString(language, dateOptions);
+  const formattedTime = new Date(date)
+    .toLocaleTimeString(language, timeOptions)
+    .replace(" ", "")
+    .toLowerCase();
+  return `${formattedTime}, ${formattedDate}`;
+};
+
 export const parseRecurringDates = (
   {
     startDate,

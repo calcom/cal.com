@@ -11,6 +11,7 @@ import closecom_config_json from "./closecom/config.json";
 import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
 import discord_config_json from "./discord/config.json";
+import eightxeight_config_json from "./eightxeight/config.json";
 import { metadata as exchange2013calendar__metadata_ts } from "./exchange2013calendar/_metadata";
 import { metadata as exchange2016calendar__metadata_ts } from "./exchange2016calendar/_metadata";
 import exchangecalendar_config_json from "./exchangecalendar/config.json";
@@ -27,6 +28,7 @@ import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar__metadata_ts } from "./larkcalendar/_metadata";
 import make_config_json from "./make/config.json";
 import metapixel_config_json from "./metapixel/config.json";
+import mirotalk_config_json from "./mirotalk/config.json";
 import n8n_config_json from "./n8n/config.json";
 import { metadata as office365calendar__metadata_ts } from "./office365calendar/_metadata";
 import office365video_config_json from "./office365video/config.json";
@@ -76,6 +78,7 @@ export const appStoreMetadata = {
   cron: cron_config_json,
   dailyvideo: dailyvideo__metadata_ts,
   discord: discord_config_json,
+  eightxeight: eightxeight_config_json,
   exchange2013calendar: exchange2013calendar__metadata_ts,
   exchange2016calendar: exchange2016calendar__metadata_ts,
   exchangecalendar: exchangecalendar_config_json,
@@ -92,6 +95,7 @@ export const appStoreMetadata = {
   larkcalendar: larkcalendar__metadata_ts,
   make: make_config_json,
   metapixel: metapixel_config_json,
+  mirotalk: mirotalk_config_json,
   n8n: n8n_config_json,
   office365calendar: office365calendar__metadata_ts,
   office365video: office365video_config_json,
