@@ -11,6 +11,7 @@ export const InstallAppButtonMap = {
   vital: dynamic(() => import("./vital/components/InstallAppButton")),
 };
 export const AppSettingsComponentsMap = {
+  make: dynamic(() => import("./make/components/AppSettingsInterface")),
   "general-app-settings": dynamic(() =>
     import("./templates/general-app-settings/components/AppSettingsInterface")
   ),
