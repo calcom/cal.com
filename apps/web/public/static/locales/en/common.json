@@ -1836,5 +1836,8 @@
   "connect_google_workspace":"Connect Google Workspace",
   "google_workspace_admin_tooltip":"You must be a Workspace Admin to use this feature",
   "first_event_type_webhook_description": "Create your first webhook for this event type",
-  "create_for": "Create for"
+  "create_for": "Create for",
+  "setup_organisation": "Setup an Organization",
+  "organisation_banner_description": "Create an environments where your teams can create shared apps, workflows and event types with round-robin and collective scheduling.",
+  "organisation_banner_title": "Manage organizations with multiple teams"
 }
