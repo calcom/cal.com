@@ -27,7 +27,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
     }
     this.name = "SEND_BOOKING_CONFIRMATION";
     this.attendee = attendee;
-    this.t = attendee.language.translate;
+    this.t = this.calEvent.organizer.language.translate;
   }
 
   protected getiCalEventAsString(): string | undefined {
