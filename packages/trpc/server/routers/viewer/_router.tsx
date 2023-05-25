@@ -14,6 +14,7 @@ import { availabilityRouter } from "./availability/_router";
 import { bookingsRouter } from "./bookings/_router";
 import { deploymentSetupRouter } from "./deploymentSetup/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
+import { googleWorkspaceRouter } from "./googleWorkspace/_router";
 import { paymentsRouter } from "./payments/_router";
 import { slotsRouter } from "./slots/_router";
 import { ssoRouter } from "./sso/_router";
@@ -46,5 +47,6 @@ export const viewerRouter = mergeRouters(
     features: featureFlagRouter,
     appsRouter,
     users: userAdminRouter,
+    googleWorkspace: googleWorkspaceRouter,
   })
 );
