@@ -1,10 +1,10 @@
-import type { DateArray, Person } from "ics";
+import type { DateArray } from "ics";
 import { createEvent } from "ics";
 
 import dayjs from "@calcom/dayjs";
 import { getManageLink } from "@calcom/lib/CalEventParser";
 import { APP_NAME } from "@calcom/lib/constants";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { renderEmail } from "..";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
@@ -14,6 +14,7 @@ export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerSche
   constructor(calEvent: CalendarEvent, metadata: { rescheduleLink: string }) {
     super({ calEvent });
     this.metadata = metadata;
+    this.t = this.calEvent.attendees[0].language.translate;
   }
   protected getNodeMailerPayload(): Record<string, unknown> {
     const toAddresses = [this.calEvent.attendees[0].email];
@@ -31,7 +32,7 @@ export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerSche
       })}`,
       html: renderEmail("AttendeeWasRequestedToRescheduleEmail", {
         calEvent: this.calEvent,
-        attendee: this.calEvent.organizer,
+        attendee: this.calEvent.attendees[0],
         metadata: this.metadata,
       }),
       text: this.getTextBody(),
