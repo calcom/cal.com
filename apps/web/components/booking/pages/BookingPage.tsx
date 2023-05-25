@@ -8,7 +8,7 @@ import { useEffect, useMemo, useReducer, useState } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { Turnstile } from '@marsidev/react-turnstile'
+import { Turnstile } from "@marsidev/react-turnstile";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { EventLocationType } from "@calcom/app-store/locations";
@@ -211,7 +211,7 @@ const BookingPage = ({
   hashedLink,
   ...restProps
 }: BookingPageProps) => {
-  const [status, setStatus] = useState("")
+  const [status, setStatus] = useState("");
   const removeSelectedSlotMarkMutation = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation();
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const { t, i18n } = useLocale();
@@ -661,17 +661,19 @@ const BookingPage = ({
                       ? "-mt-4"
                       : ""
                   )}>
-                    <Turnstile className="fixed bottom-4 right-4" 
-                     onError={() => setStatus('error')}
-                     onExpire={() => setStatus('expired')}
-                     onSuccess={() => setStatus('solved')}
-                     siteKey='0x4AAAAAAAFM2dMLqlOd35hp'/>
+                <Turnstile
+                    className="fixed bottom-4 right-4"
+                    onError={() => setStatus("error")}
+                    onExpire={() => setStatus("expired")}
+                    onSuccess={() => setStatus("solved")}
+                    siteKey="0x4AAAAAAAFM2dMLqlOd35hp"
+                  />
                   <Button color="minimal" type="button" onClick={() => router.back()}>
                     {t("cancel")}
                   </Button>
                   <Button
                     type="submit"
-                    disabled = {status === "solved" ? (false) : (true)}
+                    disabled={status === "solved" ? false : true}
                     data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
                     loading={mutation.isLoading || recurringMutation.isLoading}>
                     {rescheduleUid ? t("reschedule") : t("confirm")}
