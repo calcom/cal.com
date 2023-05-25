@@ -1,0 +1,38 @@
+<svg width="208" height="120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g clip-path="url(#a)">
+    <path fill="url(#b)" d="M0 0h208v120H0z"/>
+    <path d="M50 18h158v102H50V18Z" fill="#fff"/>
+    <path d="M18 21c0-1.6569 1.3431-3 3-3h29v102H18V21Z" fill="#F3F4F6"/>
+    <rect x="22" y="22" width="12" height="4" rx="1" fill="#E5E7EB"/>
+    <rect x="22" y="30" width="24" height="4" rx="1" fill="#D1D5DB"/>
+    <rect x="22" y="36" width="24" height="4" rx="1" fill="#E5E7EB"/>
+    <rect x="22" y="42" width="24" height="4" rx="1" fill="#E5E7EB"/>
+    <rect x="22" y="48" width="24" height="4" rx="1" fill="#E5E7EB"/>
+    <rect x="22" y="54" width="24" height="4" rx="1" fill="#E5E7EB"/>
+    <rect x="22" y="60" width="24" height="4" rx="1" fill="#E5E7EB"/>
+    <rect x="57" y="24" width="24" height="2" rx="1" fill="#D1D5DB"/>
+    <rect x="57" y="28" width="58" height="2" rx="1" fill="#E5E7EB"/>
+    <rect x="60" y="52" width="24" height="3" rx="1" fill="#E5E7EB"/>
+    <rect x="176" y="52" width="6" height="3" rx="1.5" fill="#E5E7EB"/>
+    <rect x="186" y="52" width="24" height="3" rx="1.5" fill="#E5E7EB"/>
+    <rect x="60" y="64" width="24" height="3" rx="1" fill="#E5E7EB"/>
+    <rect x="176" y="64" width="6" height="3" rx="1.5" fill="#E5E7EB"/>
+    <rect x="186" y="64" width="24" height="3" rx="1.5" fill="#E5E7EB"/>
+    <rect x="60" y="76" width="24" height="3" rx="1" fill="#E5E7EB"/>
+    <rect x="176" y="76" width="6" height="3" rx="1.5" fill="#E5E7EB"/>
+    <rect x="186" y="76" width="24" height="3" rx="1.5" fill="#E5E7EB"/>
+    <circle cx="59.5" cy="41.5" r="2.5" fill="#F3F4F6"/>
+    <rect x="64" y="39" width="24" height="2" rx="1" fill="#E5E7EB"/>
+    <rect x="64" y="42" width="15" height="2" rx="1" fill="#F3F4F6"/>
+    <path d="M209.168 59.0632h.5v-9.2431c0-.8285-.672-1.5-1.5-1.5H57.4795c-.8284 0-1.5.6715-1.5 1.5v9.2431H209.168ZM56.4795 59.3201h-.5v11.7431H209.668V59.3201H56.4795ZM56.4795 71.3201h-.5v10.2431c0 .8285.6716 1.5 1.5 1.5H209.668V71.3201H56.4795Z" stroke="#F3F4F6"/>
+  </g>
+  <defs>
+    <radialGradient id="b" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-339.61518016 178.0751816 -289.08762224 -551.33199376 385.549 -55)">
+      <stop stop-color="#A2ABBE"/>
+      <stop offset="1" stop-color="#D4D4D5"/>
+    </radialGradient>
+    <clipPath id="a">
+      <path fill="#fff" d="M0 0h208v120H0z"/>
+    </clipPath>
+  </defs>
+</svg>

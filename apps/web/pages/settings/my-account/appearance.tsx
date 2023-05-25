@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import AppThemeLabel from "@calcom/features/settings/AppThemeLabel";
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -63,7 +62,6 @@ const AppearanceView = () => {
       brandColor: user?.brandColor || "#292929",
       darkBrandColor: user?.darkBrandColor || "#fafafa",
       hideBranding: user?.hideBranding,
-      appTheme: user?.appTheme,
     },
   });
 
@@ -97,40 +95,10 @@ const AppearanceView = () => {
           // Radio values don't support null as values, therefore we convert an empty string
           // back to null here.
           theme: values.theme || null,
-          appTheme: values.appTheme || null,
         });
       }}>
       <Meta title={t("appearance")} description={t("appearance_description")} />
-      <div className="mb-6 flex items-center text-sm">
-        <div>
-          <p className="text-default font-semibold">App Theme</p>
-          <p className="text-default">This only applies to your app.</p>
-        </div>
-      </div>
-      <div className="flex flex-col justify-between sm:flex-row">
-        <AppThemeLabel
-          page="complete"
-          defaultChecked={user?.appTheme === "system"}
-          value="system"
-          themeType="system"
-          register={formMethods.register}
-        />
-        <AppThemeLabel
-          page="complete"
-          defaultChecked={user?.appTheme === "light"}
-          value="light"
-          themeType="light"
-          register={formMethods.register}
-        />
-        <AppThemeLabel
-          page="complete"
-          defaultChecked={user?.appTheme === "dark"}
-          value="dark"
-          themeType="dark"
-          register={formMethods.register}
-        />
-      </div>
-      <hr className="border-subtle my-8 border" />
+
       <div className="mb-6 flex items-center text-sm">
         <div>
           <p className="text-default font-semibold">{t("theme")}</p>

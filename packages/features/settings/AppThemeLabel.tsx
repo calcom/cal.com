@@ -1,8 +1,8 @@
 interface AppThemeLabelProps {
   page: string;
   defaultChecked?: boolean;
-  value: "light" | "dark" | "system";
-  themeType: "light" | "dark" | "system";
+  value: "light" | "dark" | null;
+  themeType: "Light" | "Dark" | "System Default";
   register: any;
 }
 
@@ -24,7 +24,7 @@ export default function AppThemeLabel(props: AppThemeLabelProps) {
         <img
           aria-hidden="true"
           className="cover w-full rounded-lg"
-          src={`/theme-${props.themeType}.svg`}
+          src={`/appTheme-${props.themeType}.svg`}
           alt={`theme ${props.themeType}`}
         />
       </div>
