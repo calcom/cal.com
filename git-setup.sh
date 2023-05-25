@@ -2,7 +2,7 @@
 # If no project name is given
 if [ $# -eq 0 ]; then
   # Display usage and stop
-  echo "Usage: git-setup.sh <api,console,website>"
+  echo "Usage: git-setup.sh <console,website>"
   exit 1
 fi
 # Get remote url to support either https or ssh
@@ -30,13 +30,7 @@ for module in "$@"; do
     # We forcefully added the subdmoule which was in .gitignore, so unstage it.
     git restore --staged apps/$module
   else
-    # If the module is the API, display a link to request access
-    if [ "$module" = "api" ]; then
-      echo "You don't have access to: '${module}' module. You can request access in: https://console.cal.com"
-    else
-      # If the module is not the API, display normal message
-      echo "You don't have access to: '${module}' module."
-    fi
+    echo "You don't have access to: '${module}' module."
   fi
 done
 git restore --staged .gitmodules
