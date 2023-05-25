@@ -103,7 +103,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   delete query.user; // So it doesn't display in the Link (and make tests fail)
   const nameOrUsername = user.name || user.username || "";
 
-  /* 
+  /*
    const telemetry = useTelemetry();
    useEffect(() => {
     if (top !== window) {
