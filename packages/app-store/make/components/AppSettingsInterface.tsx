@@ -64,7 +64,7 @@ export default function AppSettings() {
   const { t } = useLocale();
   return (
     <>
-      <div className="text-sm font-semibold leading-4 ">{t("get_started_zapier_templates")}</div>
+      <div className="text-sm font-semibold leading-4 ">{t("get_started_make_templates")}</div>
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         {templates.map((template, index) => (
           <TemplateCard key={index} template={template} />

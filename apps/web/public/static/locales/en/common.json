@@ -1683,6 +1683,7 @@
   "form_builder_field_add_subtitle": "Customize the questions asked on the booking page",
   "show_on_booking_page":"Show on booking page",
   "get_started_zapier_templates": "Get started with Zapier templates",
+  "get_started_make_templates": "Get started with Make templates",
   "team_is_unpublished": "{{team}} is unpublished",
   "team_is_unpublished_description": "This team link is currently not available. Please contact the team owner or ask them publish it.",
   "team_member": "Team member",
