@@ -1,4 +1,4 @@
-import { expect, it } from "@jest/globals";
+import { expect, it } from "vitest";
 
 import { filterByCities, addCitiesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
 
@@ -34,25 +34,25 @@ const option = {
 };
 
 it("should return empty array for an empty string", () => {
-  expect(filterByCities("", cityData)).toMatchInlineSnapshot(`Array []`);
+  expect(filterByCities("", cityData)).toMatchInlineSnapshot(`[]`);
 });
 
 it("should filter cities for a valid city name", () => {
   expect(filterByCities("San Francisco", cityData)).toMatchInlineSnapshot(`
-    Array [
-      Object {
+    [
+      {
         "city": "San Francisco",
         "timezone": "America/Argentina/Cordoba",
       },
-      Object {
+      {
         "city": "San Francisco de Macoris",
         "timezone": "America/Santo_Domingo",
       },
-      Object {
+      {
         "city": "San Francisco Gotera",
         "timezone": "America/El_Salvador",
       },
-      Object {
+      {
         "city": "San Francisco",
         "timezone": "America/Los_Angeles",
       },
@@ -62,7 +62,7 @@ it("should filter cities for a valid city name", () => {
 
 it("should return appropriate timezone(s) for a given city name array", () => {
   expect(addCitiesToDropdown(cityData)).toMatchInlineSnapshot(`
-    Object {
+    {
       "America/Argentina/Cordoba": "San Francisco",
       "America/El_Salvador": "San Francisco Gotera",
       "America/Los_Angeles": "San Francisco",

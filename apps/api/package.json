@@ -1,0 +1,49 @@
+{
+  "name": "@calcom/api",
+  "version": "1.0.0",
+  "description": "Public API for Cal.com",
+  "main": "index.ts",
+  "repository": "git@github.com:calcom/api.git",
+  "author": "Cal.com Inc.",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
+    "dev": "PORT=3002 next dev",
+    "lint": "eslint . --ignore-path .gitignore",
+    "lint:report": "eslint . --format json --output-file ../../lint-results/api.json",
+    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
+    "start": "PORT=3002 next start",
+    "test": "jest --detectOpenHandles --passWithNoTests",
+    "type-check": "tsc --pretty --noEmit"
+  },
+  "devDependencies": {
+    "@calcom/tsconfig": "*",
+    "@calcom/types": "*",
+    "babel-jest": "^28.1.0",
+    "jest": "^28.1.0",
+    "node-mocks-http": "^1.11.0"
+  },
+  "dependencies": {
+    "@calcom/app-store": "*",
+    "@calcom/core": "*",
+    "@calcom/dayjs": "*",
+    "@calcom/emails": "*",
+    "@calcom/features": "*",
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*",
+    "@calcom/trpc": "*",
+    "@sentry/nextjs": "^7.20.0",
+    "bcryptjs": "^2.4.3",
+    "memory-cache": "^0.2.0",
+    "next": "~13.2.1",
+    "next-api-middleware": "^1.0.1",
+    "next-axiom": "^0.16.0",
+    "next-swagger-doc": "^0.3.6",
+    "next-validations": "^0.2.0",
+    "typescript": "^4.9.4",
+    "tzdata": "^1.0.30",
+    "uuid": "^8.3.2",
+    "zod": "^3.20.2"
+  }
+}

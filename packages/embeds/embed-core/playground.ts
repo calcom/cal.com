@@ -42,9 +42,7 @@ if (only === "all" || only === "ns:second") {
     origin: "http://localhost:3000",
   });
 
-  // Bulk API is supported - Keep all configuration at one place.
-  // Not able to type Bulk Api correctly when the first argument itself is an array.
-  Cal.ns.second([
+  Cal.ns.second(
     "inline",
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -57,8 +55,8 @@ if (only === "all" || only === "ns:second") {
         },
         theme: "auto",
       },
-    },
-  ]);
+    }
+  );
   Cal.ns.second("on", {
     action: "*",
     callback,
