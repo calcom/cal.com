@@ -1,5 +1,3 @@
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
-
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
@@ -8,6 +6,7 @@ import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { Button, SkeletonText } from "@calcom/ui";
+import { ChevronLeft, ChevronRight } from "@calcom/ui/components/icon";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 export type DatePickerProps = {
@@ -223,7 +222,7 @@ const DatePicker = ({
               data-testid="decrementMonth"
               color="minimal"
               variant="icon"
-              StartIcon={ChevronLeftIcon}
+              StartIcon={ChevronLeft}
             />
             <Button
               className="group p-1 opacity-70 hover:opacity-100"
@@ -231,7 +230,7 @@ const DatePicker = ({
               data-testid="incrementMonth"
               color="minimal"
               variant="icon"
-              StartIcon={ChevronRightIcon}
+              StartIcon={ChevronRight}
             />
           </div>
         </div>

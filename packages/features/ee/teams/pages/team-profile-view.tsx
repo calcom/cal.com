@@ -54,7 +54,7 @@ const ProfileView = () => {
   const utils = trpc.useContext();
   const session = useSession();
   const [firstRender, setFirstRender] = useState(true);
-  
+
   useLayoutEffect(() => {
     document.body.focus();
   }, []);
@@ -264,7 +264,7 @@ const ProfileView = () => {
                   <>
                     <Label className="text-emphasis mt-5">{t("about")}</Label>
                     <div
-                      className=" text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                      className="  text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600 break-words"
                       dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
                     />
                   </>

@@ -11,6 +11,7 @@ import closecom_config_json from "./closecom/config.json";
 import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
 import discord_config_json from "./discord/config.json";
+import eightxeight_config_json from "./eightxeight/config.json";
 import { metadata as exchange2013calendar__metadata_ts } from "./exchange2013calendar/_metadata";
 import { metadata as exchange2016calendar__metadata_ts } from "./exchange2016calendar/_metadata";
 import exchangecalendar_config_json from "./exchangecalendar/config.json";
@@ -26,6 +27,7 @@ import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadat
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar__metadata_ts } from "./larkcalendar/_metadata";
 import metapixel_config_json from "./metapixel/config.json";
+import mirotalk_config_json from "./mirotalk/config.json";
 import n8n_config_json from "./n8n/config.json";
 import { metadata as office365calendar__metadata_ts } from "./office365calendar/_metadata";
 import office365video_config_json from "./office365video/config.json";
@@ -55,11 +57,13 @@ import typeform_config_json from "./typeform/config.json";
 import vimcal_config_json from "./vimcal/config.json";
 import { metadata as vital__metadata_ts } from "./vital/_metadata";
 import weather_in_your_calendar_config_json from "./weather_in_your_calendar/config.json";
+import webex_config_json from "./webex/config.json";
 import whatsapp_config_json from "./whatsapp/config.json";
 import whereby_config_json from "./whereby/config.json";
 import { metadata as wipemycalother__metadata_ts } from "./wipemycalother/_metadata";
 import wordpress_config_json from "./wordpress/config.json";
 import { metadata as zapier__metadata_ts } from "./zapier/_metadata";
+import zoho_bigin_config_json from "./zoho-bigin/config.json";
 import zohocrm_config_json from "./zohocrm/config.json";
 import { metadata as zoomvideo__metadata_ts } from "./zoomvideo/_metadata";
 
@@ -73,6 +77,7 @@ export const appStoreMetadata = {
   cron: cron_config_json,
   dailyvideo: dailyvideo__metadata_ts,
   discord: discord_config_json,
+  eightxeight: eightxeight_config_json,
   exchange2013calendar: exchange2013calendar__metadata_ts,
   exchange2016calendar: exchange2016calendar__metadata_ts,
   exchangecalendar: exchangecalendar_config_json,
@@ -88,6 +93,7 @@ export const appStoreMetadata = {
   jitsivideo: jitsivideo__metadata_ts,
   larkcalendar: larkcalendar__metadata_ts,
   metapixel: metapixel_config_json,
+  mirotalk: mirotalk_config_json,
   n8n: n8n_config_json,
   office365calendar: office365calendar__metadata_ts,
   office365video: office365video_config_json,
@@ -117,11 +123,13 @@ export const appStoreMetadata = {
   vimcal: vimcal_config_json,
   vital: vital__metadata_ts,
   weather_in_your_calendar: weather_in_your_calendar_config_json,
+  webex: webex_config_json,
   whatsapp: whatsapp_config_json,
   whereby: whereby_config_json,
   wipemycalother: wipemycalother__metadata_ts,
   wordpress: wordpress_config_json,
   zapier: zapier__metadata_ts,
+  "zoho-bigin": zoho_bigin_config_json,
   zohocrm: zohocrm_config_json,
   zoomvideo: zoomvideo__metadata_ts,
 };
