@@ -162,7 +162,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       return false;
     }).length > 0;
 
-  const hasPremiumUserName = hasKeyInMetadata(user, "isPremium");
+  const hasPremiumUserName = hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
 
   return {
     props: {

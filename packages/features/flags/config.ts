@@ -11,4 +11,5 @@ export type AppFlags = {
   "v2-booking-page": boolean;
   "managed-event-types": boolean;
   organizations: boolean;
+  "google-workspace-directory": boolean;
 };

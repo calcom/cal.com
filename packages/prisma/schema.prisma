@@ -267,6 +267,7 @@ model Team {
   parent              Team?            @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
   children            Team[]           @relation("organization")
   scopedMembers       User[]           @relation("scope")
+  webhooks            Webhook[]
 }
 
 enum MembershipRole {
@@ -515,6 +516,7 @@ enum WebhookTriggerEvents {
 model Webhook {
   id              String                 @id @unique
   userId          Int?
+  teamId          Int?
   eventTypeId     Int?
   /// @zod.url()
   subscriberUrl   String
@@ -523,6 +525,7 @@ model Webhook {
   active          Boolean                @default(true)
   eventTriggers   WebhookTriggerEvents[]
   user            User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team            Team?                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   eventType       EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   app             App?                   @relation(fields: [appId], references: [slug], onDelete: Cascade)
   appId           String?
