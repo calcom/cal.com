@@ -110,7 +110,14 @@ export const SelectField = function SelectField<
   } & SelectProps<Option, IsMulti, Group>
 ) {
   const { t } = useLocale();
-  const { label = t(props.name || ""), containerClassName, labelProps, className, ...passThrough } = props;
+  const {
+    label = t(props.name || ""),
+    containerClassName,
+    labelProps,
+    className,
+    id: passThroughId,
+    ...passThrough
+  } = props;
   const id = useId();
   return (
     <div className={cx(containerClassName)}>
@@ -121,7 +128,7 @@ export const SelectField = function SelectField<
           </Label>
         )}
       </div>
-      <Select id={id} {...passThrough} />
+      <Select id={passThroughId || id} {...passThrough} />
     </div>
   );
 };
