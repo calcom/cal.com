@@ -6,7 +6,13 @@ import { classNames } from "@calcom/lib";
 import { Tooltip } from "@calcom/ui";
 
 interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps, "type"> {
-  options: { value: string; label: string | ReactNode; disabled?: boolean; tooltip?: string }[];
+  options: {
+    value: string;
+    label: string | ReactNode;
+    disabled?: boolean;
+    tooltip?: string;
+    iconLeft?: ReactNode;
+  }[];
   isFullWidth?: boolean;
 }
 
@@ -80,7 +86,10 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
                 }
                 return node;
               }}>
-              {option.label}
+              <div className="item-center flex justify-center ">
+                {option.iconLeft && <span className="mr-2 flex h-4 w-4 items-center">{option.iconLeft}</span>}
+                {option.label}
+              </div>
             </RadixToggleGroup.Item>
           </OptionalTooltipWrapper>
         ))}

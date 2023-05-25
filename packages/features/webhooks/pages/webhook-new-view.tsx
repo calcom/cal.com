@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
 import { APP_NAME } from "@calcom/lib/constants";
@@ -8,11 +9,16 @@ import { Meta, showToast, SkeletonContainer } from "@calcom/ui";
 import { getLayout } from "../../settings/layouts/SettingsLayout";
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
+import { subscriberUrlReserved } from "../lib/subscriberUrlReserved";
 
 const NewWebhookView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
+  const session = useSession();
+
+  const teamId = router.query.teamId ? +router.query.teamId : undefined;
+
   const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery(
     { variant: "other", onlyInstalled: true },
     {
@@ -36,14 +42,16 @@ const NewWebhookView = () => {
     },
   });
 
-  const subscriberUrlReserved = (subscriberUrl: string, id?: string): boolean => {
-    return !!webhooks?.find(
-      (webhook) => webhook.subscriberUrl === subscriberUrl && (!id || webhook.id !== id)
-    );
-  };
-
   const onCreateWebhook = async (values: WebhookFormSubmitData) => {
-    if (subscriberUrlReserved(values.subscriberUrl, values.id)) {
+    if (
+      subscriberUrlReserved({
+        subscriberUrl: values.subscriberUrl,
+        id: values.id,
+        webhooks,
+        teamId,
+        userId: session.data?.user.id,
+      })
+    ) {
       showToast(t("webhook_subscriber_url_reserved"), "error");
       return;
     }
@@ -58,6 +66,7 @@ const NewWebhookView = () => {
       active: values.active,
       payloadTemplate: values.payloadTemplate,
       secret: values.secret,
+      teamId,
     });
   };
 
@@ -70,8 +79,11 @@ const NewWebhookView = () => {
         description={t("add_webhook_description", { appName: APP_NAME })}
         backButton
       />
-
-      <WebhookForm onSubmit={onCreateWebhook} apps={installedApps?.items.map((app) => app.slug)} />
+      <WebhookForm
+        onSubmit={onCreateWebhook}
+        apps={installedApps?.items.map((app) => app.slug)}
+        noRoutingFormTriggers={!!teamId}
+      />
     </>
   );
 };
