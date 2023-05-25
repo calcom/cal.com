@@ -96,8 +96,8 @@ const TestData = {
           userId: null,
           eventTypeId: null,
           days: [0, 1, 2, 3, 4, 5, 6],
-          startTime: "1970-01-01T09:30:00.000Z",
-          endTime: "1970-01-01T18:00:00.000Z",
+          startTime: new Date("1970-01-01T09:30:00.000Z"),
+          endTime: new Date("1970-01-01T18:00:00.000Z"),
           date: null,
         },
       ],
@@ -111,16 +111,16 @@ const TestData = {
           userId: null,
           eventTypeId: null,
           days: [0, 1, 2, 3, 4, 5, 6],
-          startTime: "1970-01-01T09:30:00.000Z",
-          endTime: "1970-01-01T18:00:00.000Z",
+          startTime: new Date("1970-01-01T09:30:00.000Z"),
+          endTime: new Date("1970-01-01T18:00:00.000Z"),
           date: null,
         },
         {
           userId: null,
           eventTypeId: null,
           days: [0, 1, 2, 3, 4, 5, 6],
-          startTime: `1970-01-01T14:00:00.000Z`,
-          endTime: `1970-01-01T18:00:00.000Z`,
+          startTime: new Date("1970-01-01T14:00:00.000Z"),
+          endTime: new Date("1970-01-01T18:00:00.000Z"),
           date: dateString,
         },
       ],
@@ -170,8 +170,8 @@ type InputUser = typeof TestData.users.example & { id: number } & {
       userId: number | null;
       eventTypeId: number | null;
       days: number[];
-      startTime: string;
-      endTime: string;
+      startTime: Date;
+      endTime: Date;
       date: string | null;
     }[];
     timeZone: string;
