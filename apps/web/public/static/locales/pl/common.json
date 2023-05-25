@@ -1336,6 +1336,7 @@
   "copy_link_to_form": "Skopiuj link do formularza",
   "theme": "Motyw",
   "theme_applies_note": "Dotyczy tylko publicznych stron rezerwacji",
+  "app_theme": "Motyw aplikacji",
   "theme_light": "Jasny",
   "theme_dark": "Ciemny",
   "theme_system": "Ustawienia domyślne systemu",

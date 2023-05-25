@@ -1343,6 +1343,7 @@
   "copy_link_to_form": "Copier le lien vers le formulaire",
   "theme": "Apparence",
   "theme_applies_note": "Ceci s'applique uniquement à vos pages publiques de réservation.",
+  "app_theme": "Thème de l'application",
   "theme_light": "Clair",
   "theme_dark": "Sombre",
   "theme_system": "Automatique",

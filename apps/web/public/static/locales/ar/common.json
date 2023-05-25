@@ -1336,6 +1336,7 @@
   "copy_link_to_form": "نسخ الرابط إلى النموذج",
   "theme": "السمة",
   "theme_applies_note": "ينطبق هذا فقط على صفحات الحجز العامة",
+  "app_theme": "سمة التطبيق",
   "theme_light": "فاتح",
   "theme_dark": "داكن",
   "theme_system": "الافتراضي للنظام",

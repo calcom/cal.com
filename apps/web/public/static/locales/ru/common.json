@@ -1336,6 +1336,7 @@
   "copy_link_to_form": "Скопировать ссылку на форму",
   "theme": "Тема",
   "theme_applies_note": "Распространяется только на ваши публичные страницы бронирования",
+  "app_theme": "Tema dell'app",
   "theme_light": "Светлая",
   "theme_dark": "Темная",
   "theme_system": "Системная",

@@ -1351,6 +1351,7 @@
   "copy_link_to_form": "Copy link to form",
   "theme": "Theme",
   "theme_applies_note": "This only applies to your public booking pages",
+  "app_theme": "App Theme",
   "theme_light": "Light",
   "theme_dark": "Dark",
   "theme_system": "System default",

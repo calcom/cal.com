@@ -1336,6 +1336,7 @@
   "copy_link_to_form": "Link in Formular kopieren",
   "theme": "Theme",
   "theme_applies_note": "Dies gilt nur für Ihre öffentlichen Buchungsseiten",
+  "app_theme": "App-Design",
   "theme_light": "Hell",
   "theme_dark": "Dunkel",
   "theme_system": "Systemstandard",

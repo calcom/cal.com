@@ -1336,6 +1336,7 @@
   "copy_link_to_form": "複製連結至表單",
   "theme": "主題",
   "theme_applies_note": "這只適用於您的公開預約頁面",
+  "app_theme": "應用程式主題",
   "theme_light": "淺色",
   "theme_dark": "暗色",
   "theme_system": "系統預設",

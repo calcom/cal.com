@@ -1267,6 +1267,7 @@
   "copy_link_to_form": "Kopier lenken til skjemaet",
   "theme": "Tema",
   "theme_applies_note": "Dette gjelder kun for dine offentlige bookingsider",
+  "app_theme": "App-tema",
   "theme_light": "Lyst",
   "theme_dark": "Mørkt",
   "theme_system": "System standard",

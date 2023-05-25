@@ -1336,6 +1336,7 @@
   "copy_link_to_form": "Copiar enlace al formulario",
   "theme": "Tema",
   "theme_applies_note": "Esto sólo se aplica a tus páginas públicas de reservas",
+  "app_theme": "Tema de la aplicación",
   "theme_light": "Claro",
   "theme_dark": "Oscuro",
   "theme_system": "Predeterminado del sistema",

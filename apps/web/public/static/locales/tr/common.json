@@ -1336,6 +1336,7 @@
   "copy_link_to_form": "Bağlantıyı forma kopyala",
   "theme": "Tema",
   "theme_applies_note": "Bu, sadece genel rezervasyon sayfalarınız için geçerlidir",
+  "app_theme": "Uygulama Teması",
   "theme_light": "Açık",
   "theme_dark": "Koyu",
   "theme_system": "Sistem varsayılanı",

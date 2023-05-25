@@ -1339,6 +1339,7 @@
   "copy_link_to_form": "将链接复制到表格",
   "theme": "主题",
   "theme_applies_note": "这仅适用于您的公开预约页面",
+  "app_theme": "应用主题",
   "theme_light": "浅色",
   "theme_dark": "深色",
   "theme_system": "系统默认设置",

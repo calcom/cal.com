@@ -1336,6 +1336,7 @@
   "copy_link_to_form": "Copia il link del modulo",
   "theme": "Tema",
   "theme_applies_note": "Si applica solo alle pagine di prenotazione pubbliche",
+  "app_theme": "Tema dell'app",
   "theme_light": "Chiaro",
   "theme_dark": "Scuro",
   "theme_system": "Predefinito di sistema",

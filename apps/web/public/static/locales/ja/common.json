@@ -1336,6 +1336,7 @@
   "copy_link_to_form": "フォームへのリンクをコピー",
   "theme": "テーマ",
   "theme_applies_note": "公開予約ページにのみ適用されます",
+  "app_theme": "アプリのテーマ",
   "theme_light": "ライト",
   "theme_dark": "ダーク",
   "theme_system": "システムデフォルト",

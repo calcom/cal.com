@@ -155,8 +155,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
       <Meta title={t("general")} description={t("general_description")} />
       <div className="mb-6 flex items-center text-sm">
         <div>
-          <p className="text-default font-semibold">App Theme</p>
-          <p className="text-default">This only applies to your app.</p>
+          <p className="text-default font-semibold">{t("app_theme")}</p>
         </div>
       </div>
       <div className="flex flex-col justify-between sm:flex-row">
@@ -164,21 +163,21 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           page="complete"
           defaultChecked={user?.appTheme === null}
           value={null}
-          themeType="System Default"
+          themeType={t("theme_system")}
           register={formMethods.register}
         />
         <AppThemeLabel
           page="complete"
           defaultChecked={user?.appTheme === "light"}
           value="light"
-          themeType="Light"
+          themeType={t("theme_light")}
           register={formMethods.register}
         />
         <AppThemeLabel
           page="complete"
           defaultChecked={user?.appTheme === "dark"}
           value="dark"
-          themeType="Dark"
+          themeType={t("theme_dark")}
           register={formMethods.register}
         />
       </div>
