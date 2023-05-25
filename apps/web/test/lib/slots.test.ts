@@ -1,5 +1,5 @@
-import { expect, it } from "@jest/globals";
 import MockDate from "mockdate";
+import { describe, expect, it } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { MINUTES_DAY_END, MINUTES_DAY_START } from "@calcom/lib/availability";
