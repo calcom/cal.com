@@ -68,10 +68,13 @@ const DateOverrideForm = ({
   const [endDate, setEndDate] = useState<Dayjs | null>(value ? dayjs(value[0].start) : null);
 
   const dateRange = () => {
-    if (!date) return;
-    const datesArray: Dayjs[] = [date];
+    if (!date) return [];
 
-    if (endDate?.isBefore(date)) {
+    if (!endDate) return [date];
+
+    const datesArray: Dayjs[] = [];
+
+    if (endDate.isBefore(date)) {
       const temp = date;
       setDate(endDate);
       setEndDate(temp);
@@ -79,7 +82,6 @@ const DateOverrideForm = ({
 
     let currentDate = date;
 
-    //The maximum date range is 31 days
     while (currentDate.isBefore(endDate) || currentDate.isSame(endDate)) {
       if (currentDate.isBusinessDay()) {
         datesArray.push(currentDate);
@@ -92,11 +94,7 @@ const DateOverrideForm = ({
 
   const changeDate = (newDate: Dayjs) => {
     if (shiftDown) {
-      if (!endDate) {
-        setEndDate(date);
-      }
-
-      if (endDate.date > newDate.date) {
+      if (!endDate || endDate.date > newDate.date) {
         setDate(newDate);
       } else {
         setDate(endDate);
@@ -143,10 +141,21 @@ const DateOverrideForm = ({
           }))
         : (workingHours || []).reduce((dayRanges, workingHour) => {
             if (date && workingHour.days.includes(date.day())) {
-              dayRanges.push({
-                start: dayjs.utc().startOf("day").add(workingHour.startTime, "minute").toDate(),
-                end: dayjs.utc().startOf("day").add(workingHour.endTime, "minute").toDate(),
-              });
+              if (endDate && workingHour.days.includes(endDate.day())) {
+                const range = dateRange();
+
+                range?.forEach((day) => {
+                  dayRanges.push({
+                    start: day.utc().startOf("day").add(workingHour.startTime, "minute").toDate(),
+                    end: day.utc().startOf("day").add(workingHour.endTime, "minute").toDate(),
+                  });
+                });
+              } else {
+                dayRanges.push({
+                  start: dayjs.utc().startOf("day").add(workingHour.startTime, "minute").toDate(),
+                  end: dayjs.utc().startOf("day").add(workingHour.endTime, "minute").toDate(),
+                });
+              }
             }
             return dayRanges;
           }, [] as TimeRange[]),
@@ -168,8 +177,8 @@ const DateOverrideForm = ({
               ]
             : values.range
           ).map((item) => ({
-            start: date.hour(item.start.getHours()).minute(item.start.getMinutes()).toDate(),
-            end: date.hour(item.end.getHours()).minute(item.end.getMinutes()).toDate(),
+            start: dayjs(item.start).hour(item.start.getHours()).minute(item.start.getMinutes()).toDate(),
+            end: dayjs(item.start).hour(item.end.getHours()).minute(item.end.getMinutes()).toDate(),
           }))
         );
         onClose();

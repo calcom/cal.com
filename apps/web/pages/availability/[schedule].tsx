@@ -56,6 +56,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
   const { remove, append, update, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
+
   const { t } = useLocale();
   return (
     <div className="p-6">

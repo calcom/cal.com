@@ -54,60 +54,63 @@ const DateOverrideList = ({
 
   return (
     <ul className="border-subtle rounded border" data-testid="date-overrides-list">
-      {items.sort(sortByDate).map((item, index) => (
-        <li key={item.id} className="border-subtle flex justify-between border-b px-5 py-4 last:border-b-0">
-          <div>
-            <h3 className="text-emphasis text-sm">
-              {new Intl.DateTimeFormat("en-GB", {
-                weekday: "short",
-                month: "long",
-                day: "numeric",
-              }).format(item.ranges[0].start)}
-            </h3>
-            {item.ranges[0].start.valueOf() - item.ranges[0].end.valueOf() === 0 ? (
-              <p className="text-subtle text-xs">{t("unavailable")}</p>
-            ) : (
-              item.ranges.map((range, i) => (
-                <p key={i} className="text-subtle text-xs">
-                  {timeSpan(range)}
-                </p>
-              ))
-            )}
-          </div>
-          <div className="flex flex-row-reverse gap-5 space-x-2 rtl:space-x-reverse">
-            <DateOverrideInputDialog
-              excludedDates={excludedDates}
-              workingHours={workingHours}
-              value={item.ranges}
-              onChange={(ranges) => {
-                update(index, {
-                  ranges,
-                });
-              }}
-              Trigger={
-                <DialogTrigger asChild>
-                  <Button
-                    tooltip={t("edit")}
-                    className="text-default"
-                    color="minimal"
-                    variant="icon"
-                    StartIcon={Edit2}
-                  />
-                </DialogTrigger>
-              }
-            />
-            <Tooltip content="Delete">
-              <Button
-                className="text-default"
-                color="destructive"
-                variant="icon"
-                StartIcon={Trash2}
-                onClick={() => remove(index)}
+      {items.sort(sortByDate).map((item, index) => {
+        console.log(item);
+        return (
+          <li key={item.id} className="border-subtle flex justify-between border-b px-5 py-4 last:border-b-0">
+            <div>
+              <h3 className="text-emphasis text-sm">
+                {new Intl.DateTimeFormat("en-GB", {
+                  weekday: "short",
+                  month: "long",
+                  day: "numeric",
+                }).format(item.ranges[0].start)}
+              </h3>
+              {item.ranges[0].start.valueOf() - item.ranges[0].end.valueOf() === 0 ? (
+                <p className="text-subtle text-xs">{t("unavailable")}</p>
+              ) : (
+                item.ranges.map((range, i) => (
+                  <p key={i} className="text-subtle text-xs">
+                    {timeSpan(range)}
+                  </p>
+                ))
+              )}
+            </div>
+            <div className="flex flex-row-reverse gap-5 space-x-2 rtl:space-x-reverse">
+              <DateOverrideInputDialog
+                excludedDates={excludedDates}
+                workingHours={workingHours}
+                value={item.ranges}
+                onChange={(ranges) => {
+                  update(index, {
+                    ranges,
+                  });
+                }}
+                Trigger={
+                  <DialogTrigger asChild>
+                    <Button
+                      tooltip={t("edit")}
+                      className="text-default"
+                      color="minimal"
+                      variant="icon"
+                      StartIcon={Edit2}
+                    />
+                  </DialogTrigger>
+                }
               />
-            </Tooltip>
-          </div>
-        </li>
-      ))}
+              <Tooltip content="Delete">
+                <Button
+                  className="text-default"
+                  color="destructive"
+                  variant="icon"
+                  StartIcon={Trash2}
+                  onClick={() => remove(index)}
+                />
+              </Tooltip>
+            </div>
+          </li>
+        );
+      })}
     </ul>
   );
 };
