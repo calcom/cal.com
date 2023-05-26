@@ -1,5 +1,8 @@
 name: E2E test
 on:
+  pull_request_target:
+    branches:
+      - main
   workflow_call:
 jobs:
   e2e:
