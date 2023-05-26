@@ -2,7 +2,8 @@
   "name": "CSS Variables API",
   "packageManager": "yarn@3.4.1",
   "scripts": {
-    "type-check": "tsc --pretty --noEmit"
+    "type-check": "tsc --pretty --noEmit",
+    "type-check:ci": "tsc-absolute --pretty --noEmit"
   },
   "dependencies": {
     "@calcom/embed-react": "workspace:^"

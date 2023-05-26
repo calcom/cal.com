@@ -27,7 +27,7 @@
   },
   "main": "./dist/Cal.umd.js",
   "module": "./dist/Cal.es.js",
-  "types": "./dist/embed-react/src/index.d.ts",
+  "types": "./dist/Cal.d.ts",
   "peerDependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
