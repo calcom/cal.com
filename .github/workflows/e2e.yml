@@ -4,6 +4,7 @@ on:
     branches:
       - main
   workflow_dispatch:
+  workflow_call:
 jobs:
   e2e:
     timeout-minutes: 20
