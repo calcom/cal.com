@@ -59,7 +59,7 @@ export default function Login({
         .email(`${t("enter_valid_email")}`),
       password: z.string().min(1, `${t("error_required_field")}`),
     })
-    // Passthrough other fields like totpCod
+    // Passthrough other fields like totpCode
     .passthrough();
   const methods = useForm<LoginValues>({ resolver: zodResolver(formSchema) });
   const { register, formState } = methods;
