@@ -844,6 +844,7 @@ describe("getSchedule", () => {
           // A default Event Type which this user owns
           {
             id: 2,
+            length: 15,
             slotInterval: 45,
             users: [{ id: 101 }],
           },
