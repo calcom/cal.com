@@ -52,22 +52,36 @@ interface Props {
 
 export default function TeamListItem(props: Props) {
   const { t, i18n } = useLocale();
+
+  const router = useRouter();
   const utils = trpc.useContext();
   const team = props.team;
+
+  const showDialog = router.query.inviteModal === "true";
+  const [openMemberInvitationModal, setOpenMemberInvitationModal] = useState(showDialog);
   const [openInviteLinkSettingsModal, setOpenInviteLinkSettingsModal] = useState(false);
-  const [openMemberInvitationModal, setOpenMemberInvitationModal] = useState(false);
+
   const teamQuery = trpc.viewer.teams.get.useQuery({ teamId: team?.id });
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess(data) {
       await utils.viewer.teams.get.invalidate();
       setOpenMemberInvitationModal(false);
       if (data.sendEmailInvitation) {
-        showToast(
-          t("email_invite_team", {
-            email: data.usernameOrEmail,
-          }),
-          "success"
-        );
+        if (Array.isArray(data.usernameOrEmail)) {
+          showToast(
+            t("email_invite_team_bulk", {
+              userCount: data.usernameOrEmail.length,
+            }),
+            "success"
+          );
+        } else {
+          showToast(
+            t("email_invite_team", {
+              email: data.usernameOrEmail,
+            }),
+            "success"
+          );
+        }
       }
     },
     onError: (error) => {

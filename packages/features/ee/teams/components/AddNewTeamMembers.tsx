@@ -49,10 +49,13 @@ export const AddNewTeamMembersForm = ({
   teamId: number;
 }) => {
   const { t, i18n } = useLocale();
-  const [inviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
-  const [memberInviteModal, setMemberInviteModal] = useState(false);
-  const utils = trpc.useContext();
+
   const router = useRouter();
+  const utils = trpc.useContext();
+
+  const showDialog = router.query.inviteModal === "true";
+  const [memberInviteModal, setMemberInviteModal] = useState(showDialog);
+  const [inviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
 
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery({ teamId });
 
@@ -61,12 +64,21 @@ export const AddNewTeamMembersForm = ({
       await utils.viewer.teams.get.invalidate();
       setMemberInviteModal(false);
       if (data.sendEmailInvitation) {
-        showToast(
-          t("email_invite_team", {
-            email: data.usernameOrEmail,
-          }),
-          "success"
-        );
+        if (Array.isArray(data.usernameOrEmail)) {
+          showToast(
+            t("email_invite_team_bulk", {
+              userCount: data.usernameOrEmail.length,
+            }),
+            "success"
+          );
+        } else {
+          showToast(
+            t("email_invite_team", {
+              email: data.usernameOrEmail,
+            }),
+            "success"
+          );
+        }
       }
     },
     onError: (error) => {
