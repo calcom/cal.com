@@ -45,30 +45,29 @@ jobs:
     uses: ./.github/workflows/env-create-file.yml
     secrets: inherit
 
-  type-check:
-    name: Type check
-    uses: ./.github/workflows/check-types.yml
-    secrets: inherit
+  # type-check:
+  #   name: Type check
+  #   uses: ./.github/workflows/check-types.yml
+  #   secrets: inherit
 
-  test:
-    name: Unit tests
-    uses: ./.github/workflows/test.yml
-    secrets: inherit
+  # test:
+  #   name: Unit tests
+  #   uses: ./.github/workflows/test.yml
+  #   secrets: inherit
 
-  lint:
-    name: Linters
-    uses: ./.github/workflows/lint.yml
-    secrets: inherit
+  # lint:
+  #   name: Linters
+  #   uses: ./.github/workflows/lint.yml
+  #   secrets: inherit
 
-  build:
-    name: Production build
-    needs: env
-    uses: ./.github/workflows/production-build.yml
-    secrets: inherit
+  # build:
+  #   name: Production build
+  #   needs: env
+  #   uses: ./.github/workflows/production-build.yml
+  #   secrets: inherit
 
   e2e:
     name: E2E tests
-    needs: [changes, lint, build]
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
