@@ -4055,6 +4055,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/codesandbox-css-variables-api@workspace:packages/embeds/codesandboxes/embed-react/css-variables-api":
+  version: 0.0.0-use.local
+  resolution: "@calcom/codesandbox-css-variables-api@workspace:packages/embeds/codesandboxes/embed-react/css-variables-api"
+  dependencies:
+    "@calcom/embed-react": "workspace:^"
+    typescript: ^5.0.4
+  languageName: unknown
+  linkType: soft
+
 "@calcom/config@*, @calcom/config@workspace:packages/config":
   version: 0.0.0-use.local
   resolution: "@calcom/config@workspace:packages/config"
@@ -14604,15 +14613,6 @@ __metadata:
   checksum: 8ed0d477ce3bc9c6fe2bf6a6a2cc316bb9c4127c5a7827bae947fa8ec34c7092395c5a283cc300c05b5fa01cbbfa1f938f410a7bf75db7c7846fea41949989ec
   languageName: node
   linkType: hard
-
-"CSS Variables API@workspace:packages/embeds/codesandboxes/embed-react/CSS Variables API":
-  version: 0.0.0-use.local
-  resolution: "CSS Variables API@workspace:packages/embeds/codesandboxes/embed-react/CSS Variables API"
-  dependencies:
-    "@calcom/embed-react": "workspace:^"
-    typescript: ^5.0.4
-  languageName: unknown
-  linkType: soft
 
 "JSONStream@npm:^1.3.5":
   version: 1.3.5

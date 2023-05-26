@@ -1,9 +1,10 @@
 {
-  "name": "CSS Variables API",
+  "name": "@calcom/codesandbox-css-variables-api",
+  "private": true,
   "packageManager": "yarn@3.4.1",
   "scripts": {
     "type-check": "tsc --pretty --noEmit",
-    "type-check:ci": "tsc-absolute --pretty --noEmit"
+    "type-check-embed-app": "tsc-absolute --pretty --noEmit"
   },
   "dependencies": {
     "@calcom/embed-react": "workspace:^"

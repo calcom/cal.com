@@ -68,6 +68,7 @@
     "test-e2e:embed-react": "yarn db-seed && yarn e2e:embed-react",
     "test-playwright": "yarn playwright test --config=playwright.config.ts",
     "test": "vitest run",
+    "type-check-embed-app": "turbo run type-check-embed-app",
     "type-check": "turbo run type-check",
     "type-check:ci": "turbo run type-check:ci --log-prefix=none",
     "web": "yarn workspace @calcom/web"
