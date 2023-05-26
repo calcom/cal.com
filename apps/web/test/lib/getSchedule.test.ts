@@ -25,7 +25,7 @@ prismaMock.user.findMany.mockResolvedValue([]);
 
 vi.mock("@calcom/lib/constants", () => ({
   IS_PRODUCTION: true,
-  WEBAPP_URL: "http://localhost:3000"
+  WEBAPP_URL: "http://127.0.0.1:3000"
 }));
 
 declare global {
@@ -145,7 +145,7 @@ const TestData = {
         expiry_date: Infinity,
         client_id: "client_id",
         client_secret: "client_secret",
-        redirect_uris: ["http://localhost:3000/auth/callback"],
+        redirect_uris: ["http://127.0.0.1:3000/auth/callback"],
       },
     },
   },

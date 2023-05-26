@@ -23,11 +23,11 @@ export const nextServer = async ({ port = 3000 } = { port: 3000 }) => {
   process.env.PLAYWRIGHT_TEST_BASE_URL =
     process.env.NEXT_PUBLIC_WEBAPP_URL =
     process.env.NEXT_PUBLIC_WEBSITE_URL =
-      "http://localhost:" + port;
+      "http://127.0.0.1:" + port;
   const app = next({
     dev: dev,
     port,
-    hostname: "localhost",
+    hostname: "127.0.0.1",
   });
   console.log("Started Next Server", { dev, port });
 
