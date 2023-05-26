@@ -2,6 +2,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import { IS_SELF_HOSTED, LOGO, LOGO_ICON, WEBAPP_URL } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
+
+const log = logger.getChildLogger({ prefix: ["[api/logo]"] });
 
 function removePort(url: string) {
   return url.replace(/:\d+$/, "");
@@ -51,7 +54,7 @@ async function getTeamLogos(subdomain: string) {
       appIconLogo: team.appIconLogo || `${WEBAPP_URL}${LOGO_ICON}`,
     };
   } catch (error) {
-    if (error instanceof Error) console.error(error.message);
+    if (error instanceof Error) log.debug(error.message);
     return {
       appLogo: `${WEBAPP_URL}${LOGO}`,
       appIconLogo: `${WEBAPP_URL}${LOGO_ICON}`,

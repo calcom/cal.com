@@ -904,6 +904,7 @@
   "duplicate": "复制",
   "offer_seats": "提供位置",
   "offer_seats_description": "提供位置以供预约 (这将自动禁止访客和选择加入预约)。",
+  "seats_available_one": "可用位置",
   "seats_available_other": "可用位置",
   "number_of_seats": "每个预约的位置数目",
   "enter_number_of_seats": "输入位置数目",
@@ -1790,6 +1791,7 @@
   "disable_attendees_confirmation_emails_description": "该活动类型中至少有一个工作流程处于活动状态，当该活动被预约时，将向参与者发送电子邮件。",
   "disable_host_confirmation_emails": "禁用主持人的默认确认电子邮件",
   "disable_host_confirmation_emails_description": "该活动类型中至少有一个工作流程处于活动状态，当该活动被预约时，将向主持人发送电子邮件。",
+  "add_an_override": "添加替代",
   "first_event_type_webhook_description": "为此活动类型创建第一个 Webhook",
   "create_for": "创建"
 }
