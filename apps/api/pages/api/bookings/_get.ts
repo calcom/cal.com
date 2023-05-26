@@ -107,7 +107,16 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *         description: No bookings were found
  */
 
-// Helper function to build where clause to reduce code repetition and improve readability
+/**
+ * Constructs the WHERE clause for Prisma booking findMany operation.
+ *
+ * @param userId - The ID of the user making the request. This is used to filter bookings where the user is either the host or an attendee.
+ * @param attendeeEmails - An array of emails provided in the request for filtering bookings by attendee emails, used in case of Admin calls.
+ * @param userIds - An array of user IDs to be included in the filter. Defaults to an empty array, and an array of user IDs in case of Admin call containing it.
+ * @param userEmails - An array of user emails to be included in the filter if it is an Admin call and contains userId in query parameter. Defaults to an empty array.
+ *
+ * @returns An object that represents the WHERE clause for the findMany/findUnique operation.
+ */
 function buildWhereClause(
   userId: number,
   attendeeEmails: string[],
@@ -150,18 +159,6 @@ function buildWhereClause(
   };
 }
 
-const getAttendeeEmails = (
-  query: Partial<{
-    [key: string]: string | string[];
-  }>
-) => {
-  if (!query.attendeeEmails) {
-    return [];
-  }
-
-  return;
-};
-
 async function handler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;
   const args: Prisma.BookingFindManyArgs = {};
@@ -171,11 +168,11 @@ async function handler(req: NextApiRequest) {
     payment: true,
   };
 
-  const queryForAttendeeEmails = schemaQuerySingleOrMultipleAttendeeEmails.parse(req.query);
-  const attendeeEmails = Array.isArray(queryForAttendeeEmails.attendeeEmail)
-    ? queryForAttendeeEmails.attendeeEmail
-    : typeof queryForAttendeeEmails.attendeeEmail === "string"
-    ? [queryForAttendeeEmails.attendeeEmail]
+  const queryFilterForAttendeeEmails = schemaQuerySingleOrMultipleAttendeeEmails.parse(req.query);
+  const attendeeEmails = Array.isArray(queryFilterForAttendeeEmails.attendeeEmail)
+    ? queryFilterForAttendeeEmails.attendeeEmail
+    : typeof queryFilterForAttendeeEmails.attendeeEmail === "string"
+    ? [queryFilterForAttendeeEmails.attendeeEmail]
     : [];
   const filterByAttendeeEmails = attendeeEmails.length > 0;
 
