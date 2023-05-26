@@ -306,8 +306,9 @@ async function handler(req: CustomRequest) {
   // Send Webhook call if hooked to BOOKING.CANCELLED
   const subscriberOptions = {
     userId: bookingToDelete.userId,
-    eventTypeId: (bookingToDelete.eventTypeId as number) || 0,
+    eventTypeId: bookingToDelete.eventTypeId as number,
     triggerEvent: eventTrigger,
+    teamId: bookingToDelete.eventType?.teamId,
   };
 
   const eventTypeInfo: EventTypeInfo = {
@@ -629,12 +630,6 @@ async function handler(req: CustomRequest) {
     return { message: "Booking successfully cancelled." };
   }
 
-  const attendeeDeletes = prisma.attendee.deleteMany({
-    where: {
-      bookingId: bookingToDelete.id,
-    },
-  });
-
   const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
     where: {
       bookingId: bookingToDelete.id,
@@ -657,7 +652,7 @@ async function handler(req: CustomRequest) {
     });
   });
 
-  const prismaPromises: Promise<unknown>[] = [attendeeDeletes, bookingReferenceDeletes];
+  const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
 
   await Promise.all(prismaPromises.concat(apiDeletes));
 
