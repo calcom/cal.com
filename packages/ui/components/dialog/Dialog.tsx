@@ -1,6 +1,6 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
-import type { PropsWithChildren, ReactNode } from "react";
+import type { ReactNode } from "react";
 import React, { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
