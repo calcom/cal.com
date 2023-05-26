@@ -31,17 +31,19 @@ test.describe("2FA Tests", async () => {
       expect(secret).toHaveLength(32);
       await page.click('[data-testid="goto-otp-screen"]');
 
-      // Try a wrong code and test that wrong code is rejected.
-      await fillOtp(page, "123456");
+      /**
+       * Try a wrong code and test that wrong code is rejected.
+       */
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      await fillOtp({ page, secret: "123456", noRetry: true });
       await page.press('input[name="2fa6"]', "Enter");
-
       await expect(page.locator('[data-testid="error-submitting-code"]')).toBeVisible();
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const token = authenticator.generate(secret!);
-      expect(token).toHaveLength(6);
-
-      await fillOtp(page, token);
+      await fillOtp({
+        page,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        secret: secret!,
+      });
       await page.press('input[name="2fa6"]', "Enter");
 
       await expect(page.locator(`[data-testid=two-factor-switch][data-state="checked"]`)).toBeVisible();
@@ -61,12 +63,14 @@ test.describe("2FA Tests", async () => {
         },
       });
 
-      const token = authenticator.generate(
+      const secret = symmetricDecrypt(
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        symmetricDecrypt(userWith2FaSecret!.twoFactorSecret!, process.env.CALENDSO_ENCRYPTION_KEY!)
+        userWith2FaSecret!.twoFactorSecret!,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        process.env.CALENDSO_ENCRYPTION_KEY!
       );
-      expect(token).toHaveLength(6);
-      await fillOtp(page, token);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      await fillOtp({ page, secret: secret! });
       await Promise.all([
         page.press('input[name="2fa6"]', "Enter"),
         page.waitForResponse("**/api/auth/callback/credentials**"),
@@ -79,7 +83,7 @@ test.describe("2FA Tests", async () => {
     });
   });
 
-  test("should allow a user disable 2FA", async ({ page, users }) => {
+  test("should allow a user to disable 2FA", async ({ page, users }) => {
     // log in trail user
     const user = await test.step("Enable 2FA", async () => {
       const user = await users.create();
@@ -97,10 +101,7 @@ test.describe("2FA Tests", async () => {
       await page.click('[data-testid="goto-otp-screen"]');
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const token = authenticator.generate(secret!);
-      expect(token).toHaveLength(6);
-
-      await fillOtp(page, token);
+      await fillOtp({ page, secret: secret! });
       await page.click('[data-testid="enable-2fa"]');
       await expect(page.locator(`[data-testid=two-factor-switch][data-state="checked"]`)).toBeVisible();
 
@@ -115,19 +116,22 @@ test.describe("2FA Tests", async () => {
       await page.goto("/settings/security/two-factor-auth");
       await page.click(`[data-testid=two-factor-switch][data-state="checked"]`);
       await page.fill('input[name="password"]', userPassword);
+
       const userWith2FaSecret = await prisma?.user.findFirst({
         where: {
           id: user.id,
         },
       });
 
-      const token = authenticator.generate(
+      const secret = symmetricDecrypt(
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        symmetricDecrypt(userWith2FaSecret!.twoFactorSecret!, process.env.CALENDSO_ENCRYPTION_KEY!)
+        userWith2FaSecret!.twoFactorSecret!,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        process.env.CALENDSO_ENCRYPTION_KEY!
       );
-      expect(token).toHaveLength(6);
 
-      await fillOtp(page, token);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      await fillOtp({ page, secret: secret! });
       await page.click('[data-testid="disable-2fa"]');
       await expect(page.locator(`[data-testid=two-factor-switch][data-state="unchecked"]`)).toBeVisible();
 
@@ -136,7 +140,13 @@ test.describe("2FA Tests", async () => {
   });
 });
 
-async function fillOtp(page: Page, token: string) {
+async function fillOtp({ page, secret, noRetry }: { page: Page; secret: string; noRetry?: boolean }) {
+  let token = authenticator.generate(secret);
+  if (!noRetry && !authenticator.check(token, secret)) {
+    console.log("Token expired, Renerating.");
+    // Maybe token was just about to expire, try again just once more
+    token = authenticator.generate(secret);
+  }
   await page.fill('input[name="2fa1"]', token[0]);
   await page.fill('input[name="2fa2"]', token[1]);
   await page.fill('input[name="2fa3"]', token[2]);
