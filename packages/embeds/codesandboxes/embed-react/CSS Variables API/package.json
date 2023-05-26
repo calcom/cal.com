@@ -1,0 +1,13 @@
+{
+  "name": "CSS Variables API",
+  "packageManager": "yarn@3.4.1",
+  "scripts": {
+    "type-check": "tsc --pretty --noEmit"
+  },
+  "dependencies": {
+    "@calcom/embed-react": "workspace:^"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.4"
+  }
+}

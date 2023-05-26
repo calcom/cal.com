@@ -1,0 +1,18 @@
+{
+  "extends": "@calcom/tsconfig/base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ES2015",
+    "moduleResolution": "Node",
+    "baseUrl": ".",
+    "declaration": true,
+    "jsx": "preserve",
+    "outDir": "dist",
+    "paths": {
+      "@calcom/embed-core": ["../embed-core/src"],
+      "@calcom/embed-snippet": ["../embed-snippet/src"]
+    }
+  },
+  "include": ["**/*.tsx"],
+  "exclude": ["node_modules"]
+}
