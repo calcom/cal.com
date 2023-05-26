@@ -151,7 +151,7 @@ export async function localize(locale: string) {
 }
 
 export const createNewEventType = async (page: Page, args: { eventTitle: string }) => {
-  await page.click("[data-testid=new-event-type]");
+  await page.click("[data-testid=create-button]");
   const eventTitle = args.eventTitle;
   await page.fill("[name=title]", eventTitle);
   await page.fill("[name=length]", "10");
