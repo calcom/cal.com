@@ -68,7 +68,7 @@ const config: PlaywrightTestConfig = {
   outputDir: path.join(outputDir, "results"),
   webServer,
   use: {
-    baseURL: "http://localhost:3000/",
+    baseURL: "http://127.0.0.1:3000/",
     locale: "en-US",
     trace: "retain-on-failure",
     headless,
@@ -107,7 +107,7 @@ const config: PlaywrightTestConfig = {
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
-      use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3100/" },
+      use: { ...devices["Desktop Chrome"], baseURL: "http://127.0.0.1:3100/" },
     },
     {
       name: "@calcom/embed-react",
@@ -116,7 +116,7 @@ const config: PlaywrightTestConfig = {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
       testMatch: /.*\.(e2e|test)\.tsx?/,
-      use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3101/" },
+      use: { ...devices["Desktop Chrome"], baseURL: "http://127.0.0.1:3101/" },
     },
     {
       name: "@calcom/embed-core--firefox",
