@@ -75,14 +75,6 @@ export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
       return;
     }
 
-    saveKeysMutation.mutate({
-      credentialId,
-      key: {
-        client_id: key.clientId,
-        secret_key: key.secretKey,
-      },
-    });
-
     // Test credentials before saving
     const paypalClient = new Paypal({ clientId: key.clientId, secretKey: key.secretKey });
     const test = await paypalClient.test();
@@ -99,11 +91,22 @@ export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
     }
 
     // Create webhook for this installation
-    const webhook = await paypalClient.createWebhooks();
-    if (!webhook) {
+    const webhookId = await paypalClient.createWebhook();
+    if (!webhookId) {
       // @TODO: make a button that tries to create the webhook again
-      console.log("Failed to create webhook", webhook);
+      console.log("Failed to create webhook", webhookId);
+      return false;
     }
+    console.log({ webhookId });
+    saveKeysMutation.mutate({
+      credentialId,
+      key: {
+        client_id: key.clientId,
+        secret_key: key.secretKey,
+        webhook_id: webhookId,
+      },
+    });
+
     return true;
   };
 

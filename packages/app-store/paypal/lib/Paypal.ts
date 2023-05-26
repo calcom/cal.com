@@ -1,7 +1,6 @@
+import type { Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
-
-import { IS_PRODUCTION } from "@calcom/lib/constants";
 
 class Paypal {
   url: string;
@@ -52,12 +51,14 @@ class Paypal {
     amount,
     currency,
     returnUrl,
+    cancelUrl,
     intent = "CAPTURE",
   }: {
     referenceId: string;
     amount: number;
     currency: string;
     returnUrl: string;
+    cancelUrl: string;
     intent?: "CAPTURE" | "AUTHORIZE";
   }): Promise<CreateOrderResponse> {
     // Always get a new access token
@@ -85,7 +86,7 @@ class Paypal {
           experience_context: {
             user_action: "PAY_NOW",
             return_url: returnUrl,
-            cancel_url: returnUrl,
+            cancel_url: cancelUrl,
           },
         },
       },
@@ -122,44 +123,73 @@ class Paypal {
     console.log("Paypal confirm order");
   }
 
-  async captureOrder(): Promise<any> {
-    console.log("Paypal capture order");
+  async captureOrder(orderId: string): Promise<boolean> {
+    try {
+      await this.getAccessToken();
+
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.accessToken}`,
+      };
+
+      const captureResult = await fetch(`${this.url}/v2/checkout/orders/${orderId}/capture`, {
+        method: "POST",
+        headers,
+      });
+      if (captureResult.ok) {
+        const result = await captureResult.json();
+        if (result.body.status === "COMPLETED") {
+          // Get payment reference id
+
+          const payment = await prisma?.payment.findFirst({
+            where: {
+              externalId: orderId,
+            },
+            select: {
+              id: true,
+              bookingId: true,
+              data: true,
+            },
+          });
+
+          if (!payment) {
+            throw new Error("Payment not found");
+          }
+          console.log("B4 Updating");
+          await prisma?.payment.update({
+            where: {
+              id: payment?.id,
+            },
+            data: {
+              success: true,
+              data: Object.assign(
+                {},
+                { ...(payment?.data as Record<string, string | number>), capture: result.body.id }
+              ) as unknown as Prisma.InputJsonValue,
+            },
+          });
+
+          // Update booking as paid
+          await prisma?.booking.update({
+            where: {
+              id: payment.bookingId,
+            },
+            data: {
+              status: "ACCEPTED",
+            },
+          });
+
+          return true;
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+    return false;
   }
 
-  async authorizeOrder(): Promise<any> {
-    console.log("Paypal authorize order");
-  }
-
-  // Payments
-  async getPayment(): Promise<any> {
-    console.log("Paypal get payment");
-  }
-
-  async capturePayment(): Promise<any> {
-    console.log("Paypal capture payment");
-  }
-
-  async reauthorizePayment(): Promise<any> {
-    console.log("Paypal reauthorize payment");
-  }
-
-  async voidPayment(): Promise<any> {
-    console.log("Paypal void payment");
-  }
-
-  async showCapturedPayment(): Promise<any> {
-    console.log("Paypal show captured payment");
-  }
-
-  async refundCapturedPayment(): Promise<any> {
-    console.log("Paypal refund captured payment");
-  }
-
-  async showRefundDetails(): Promise<any> {
-    console.log("Paypal show refund details");
-  }
-
-  async createWebhooks(): Promise<boolean> {
+  async createWebhook(): Promise<boolean | string> {
     // Always get a new access token
     await this.getAccessToken();
 
@@ -169,16 +199,13 @@ class Paypal {
     };
 
     const body = {
-      url: `https://29c2-177-228-110-113.ngrok-free.app/api/integrations/paypal/webhook`,
+      url: `https://51cc-200-76-22-226.ngrok-free.app/api/integrations/paypal/webhook`,
       event_types: [
         {
-          name: "PAYMENT.CAPTURE.COMPLETED",
+          name: "CHECKOUT.ORDER.APPROVED",
         },
         {
-          name: "PAYMENT.CAPTURE.REFUNDED",
-        },
-        {
-          name: "PAYMENT.CAPTURE.REVERSED",
+          name: "CHECKOUT.ORDER.COMPLETED",
         },
       ],
     };
@@ -191,7 +218,8 @@ class Paypal {
       });
 
       if (response.ok) {
-        return true;
+        const result = await response.json();
+        return result.id as string;
       }
     } catch (error) {
       console.error(error);
@@ -217,8 +245,12 @@ class Paypal {
 
       if (response.ok) {
         const { webhooks } = await response.json();
-        console.log({ webhooks });
-        return webhooks.map((webhook: { id: string }) => webhook.id);
+
+        return webhooks
+          .filter((webhook: { id: string; url: string }) => {
+            return webhook.url.includes("api/integrations/paypal/webhook");
+          })
+          .map((webhook: { id: string }) => webhook.id);
       }
     } catch (error) {
       console.error(error);
@@ -262,8 +294,8 @@ class Paypal {
     return true;
   }
 
-  async verify(options: Partial<any> = {}) {
-    options.uri = "/v1/notifications/verify-webhook-signature";
+  async verifyWebhook(options: WebhookEventVerifyRequest): Promise<void> {
+    const url = `${this.url}/v1/notifications/verify-webhook-signature`;
     const parseRequest = webhookEventVerifyRequestSchema.safeParse(options);
 
     // Webhook event should be parsable
@@ -280,21 +312,22 @@ class Paypal {
       webhook_id: options.body.webhook_id,
     });
 
-    options.body = stringy.slice(0, -1) + `,"webhook_event":${options.body.webhook_event}` + "}";
+    const bodyToString = stringy.slice(0, -1) + `,"webhook_event":${options.body.webhook_event}` + "}";
     try {
-      const response = await fetch(options.uri, {
+      const response = await fetch(url, {
         method: "POST",
         headers: options.headers,
+        body: bodyToString,
       });
+
       if (!response.ok) {
         throw response;
       }
       const data = await response.json();
       const parsedResponse = JSON.parse(data);
-      if (parsedResponse.verification_status !== "SUCCESS") {
-        throw parsedResponse;
+      if (data.verification_status !== "SUCCESS") {
+        throw data;
       }
-      return parsedResponse;
     } catch (err) {
       console.error(err);
       throw err;
@@ -349,6 +382,11 @@ interface CreateOrderResponse {
   links: Link[];
 }
 
+const headersSchema = z.object({
+  "Content-Type": z.string(),
+  Authorization: z.string(),
+});
+
 const webhookEventVerifyRequestSchema = z.object({
   body: z
     .object({
@@ -361,10 +399,7 @@ const webhookEventVerifyRequestSchema = z.object({
       webhook_id: z.string(),
     })
     .required(),
-  headers: z.object({
-    "Content-Type": z.string().default("application/json"),
-  }),
-  json: z.boolean(),
-  method: z.string(),
-  uri: z.string().default("/v1/notifications/verify-webhook-signature"),
+  headers: headersSchema,
 });
+
+export type WebhookEventVerifyRequest = z.infer<typeof webhookEventVerifyRequestSchema>;

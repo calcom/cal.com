@@ -13,6 +13,7 @@ import { paymentOptionEnum } from "../zod";
 export const paypalCredentialKeysSchema = z.object({
   client_id: z.string(),
   secret_key: z.string(),
+  webhook_id: z.string(),
 });
 
 export class PaymentService implements IAbstractPaymentService {
@@ -66,11 +67,12 @@ export class PaymentService implements IAbstractPaymentService {
         clientId: this.credentials.client_id,
         secretKey: this.credentials.secret_key,
       });
-      const preference = await paypalClient.createOrder({
+      const orderResult = await paypalClient.createOrder({
         referenceId: paymentData.uid,
         amount: paymentData.amount,
         currency: paymentData.currency,
-        returnUrl: `${WEBAPP_URL}/booking/${booking.uid}`,
+        returnUrl: `${WEBAPP_URL}/api/integrations/paypal/capture?bookingUid=${booking.uid}`,
+        cancelUrl: `${WEBAPP_URL}/payment/${paymentData.uid}`,
       });
 
       await prisma?.payment.update({
@@ -78,8 +80,8 @@ export class PaymentService implements IAbstractPaymentService {
           id: paymentData.id,
         },
         data: {
-          externalId: preference?.id,
-          data: Object.assign({}, preference) as unknown as Prisma.InputJsonValue,
+          externalId: orderResult?.id,
+          data: Object.assign({}, { order: orderResult }) as unknown as Prisma.InputJsonValue,
         },
       });
 
@@ -155,9 +157,10 @@ export class PaymentService implements IAbstractPaymentService {
         amount: paymentData.amount,
         currency: paymentData.currency,
         returnUrl: `${WEBAPP_URL}/booking/${booking.uid}`,
+        cancelUrl: `${WEBAPP_URL}/payment/${paymentData.uid}`,
         intent: "AUTHORIZE",
       });
-      console.log("preference", preference);
+
       await prisma?.payment.update({
         where: {
           id: paymentData.id,

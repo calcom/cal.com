@@ -2,6 +2,8 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import * as z from "zod";
 
+import { paypalCredentialKeysSchema } from "@calcom/app-store/paypal/lib";
+import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -27,14 +29,18 @@ async function getEventType(id: number) {
   });
 }
 
-export async function handlePaymentSuccess(payload: z.infer<typeof PaypalPayloadSchema>) {
+export async function handlePaymentSuccess(
+  payload: z.infer<typeof eventSchema>,
+  webhookHeaders: WebHookHeadersType
+) {
   const payment = await prisma.payment.findFirst({
     where: {
-      externalId: payload.resource.supplementary_data.related_ids.order_id,
+      externalId: payload?.resource?.id,
     },
     select: {
       id: true,
       bookingId: true,
+      success: true,
     },
   });
 
@@ -72,6 +78,28 @@ export async function handlePaymentSuccess(payload: z.infer<typeof PaypalPayload
   });
 
   if (!booking) throw new HttpCode({ statusCode: 204, message: "No booking found" });
+  // Probably booking it's already paid from /capture but we need to send confirmation email
+  const foundCredentials = await findPaymentCredentials(booking.id);
+  if (!foundCredentials) throw new HttpCode({ statusCode: 204, message: "No credentials found" });
+  const { webhookId, ...credentials } = foundCredentials;
+
+  const paypalClient = new Paypal(credentials);
+  await paypalClient.getAccessToken();
+  await paypalClient.verifyWebhook({
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${paypalClient.accessToken}`,
+    },
+    body: {
+      auth_algo: webhookHeaders["paypal-auth-algo"],
+      cert_url: webhookHeaders["paypal-cert-url"],
+      transmission_id: webhookHeaders["paypal-transmission-id"],
+      transmission_sig: webhookHeaders["paypal-transmission-sig"],
+      transmission_time: webhookHeaders["paypal-transmission-time"],
+      webhook_event: JSON.stringify(payload),
+      webhook_id: webhookId,
+    },
+  });
 
   type EventTypeRaw = Awaited<ReturnType<typeof getEventType>>;
   let eventTypeRaw: EventTypeRaw | null = null;
@@ -139,23 +167,25 @@ export async function handlePaymentSuccess(payload: z.infer<typeof PaypalPayload
     delete bookingData.status;
   }
 
-  const paymentUpdate = prisma.payment.update({
-    where: {
-      id: payment.id,
-    },
-    data: {
-      success: true,
-    },
-  });
+  if (!payment?.success) {
+    await prisma.payment.update({
+      where: {
+        id: payment.id,
+      },
+      data: {
+        success: true,
+      },
+    });
+  }
 
-  const bookingUpdate = prisma.booking.update({
-    where: {
-      id: booking.id,
-    },
-    data: bookingData,
-  });
-
-  await prisma.$transaction([paymentUpdate, bookingUpdate]);
+  if (booking.status === "PENDING") {
+    await prisma.booking.update({
+      where: {
+        id: booking.id,
+      },
+      data: bookingData,
+    });
+  }
 
   if (!isConfirmed && !eventTypeRaw?.requiresConfirmation) {
     await handleConfirmation({ user, evt, prisma, bookingId: booking.id, booking, paid: true });
@@ -174,17 +204,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method !== "POST") {
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
     }
-    const { body } = req;
+    const { body, headers } = req;
 
-    const parse = PaypalPayloadSchema.safeParse(body);
+    const parseHeaders = webhookHeadersSchema.safeParse(headers);
+    if (!parseHeaders.success) {
+      console.error(parseHeaders.error);
+      throw new HttpCode({ statusCode: 400, message: "Bad Request" });
+    }
+    const parse = eventSchema.safeParse(body);
     if (!parse.success) {
       console.error(parse.error);
+      console.error(JSON.stringify(parse.error));
       throw new HttpCode({ statusCode: 400, message: "Bad Request" });
     }
 
     const { data: parsedPayload } = parse;
-    if (parsedPayload.event_type === "PAYMENT.CAPTURE.COMPLETED") {
-      return await handlePaymentSuccess(parsedPayload);
+
+    if (parsedPayload.event_type === "CHECKOUT.ORDER.APPROVED") {
+      return await handlePaymentSuccess(parsedPayload, parseHeaders.data);
     }
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
@@ -200,74 +237,96 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.status(200).end();
 }
 
-const PaypalPayloadSchema = z.object({
-  id: z.string(),
-  create_time: z.string(),
-  resource_type: z.string(),
-  event_type: z.string(),
-  summary: z.string(),
-  resource: z.object({
-    disbursement_mode: z.string().optional(),
-    amount: z.object({
-      currency_code: z.string(),
-      value: z.string(),
-    }),
-    seller_protection: z.object({
-      status: z.string().optional(),
-      dispute_categories: z.array(z.string()).optional(),
-    }),
-    supplementary_data: z.object({
-      related_ids: z.object({
-        order_id: z.string(),
-      }),
-    }),
-    update_time: z.string(),
+const resourceSchema = z
+  .object({
     create_time: z.string(),
-    final_capture: z.boolean(),
-    seller_receivable_breakdown: z.object({
-      gross_amount: z.object({
-        currency_code: z.string(),
-        value: z.string(),
-      }),
-      paypal_fee: z.object({
-        currency_code: z.string(),
-        value: z.string(),
-      }),
-      platform_fees: z.array(
-        z.object({
-          amount: z.object({
-            currency_code: z.string(),
-            value: z.string(),
-          }),
-          payee: z.object({
-            merchant_id: z.string(),
-          }),
-        })
-      ),
-      net_amount: z.object({
-        currency_code: z.string(),
-        value: z.string(),
+    id: z.string(),
+    payment_source: z.object({
+      paypal: z.object({}).optional(),
+    }),
+    intent: z.string(),
+    payer: z.object({
+      email_address: z.string(),
+      payer_id: z.string(),
+      address: z.object({
+        country_code: z.string(),
       }),
     }),
-    invoice_id: z.string(),
-    links: z.array(
-      z.object({
-        href: z.string(),
-        rel: z.string(),
-        method: z.string(),
-      })
-    ),
+    status: z.string().optional(),
+  })
+  .passthrough();
+
+const eventSchema = z
+  .object({
     id: z.string(),
-    status: z.string(),
-  }),
-  links: z.array(
-    z.object({
-      href: z.string(),
-      rel: z.string(),
-      method: z.string(),
-      encType: z.string().optional(),
-    })
-  ),
-  event_version: z.string(),
-  resource_version: z.string(),
-});
+    create_time: z.string(),
+    resource_type: z.string(),
+    event_type: z.string(),
+    summary: z.string(),
+    resource: resourceSchema,
+    status: z.string().optional(),
+    event_version: z.string(),
+    resource_version: z.string(),
+  })
+  .passthrough();
+
+const webhookHeadersSchema = z
+  .object({
+    "paypal-auth-algo": z.string(),
+    "paypal-cert-url": z.string(),
+    "paypal-transmission-id": z.string(),
+    "paypal-transmission-sig": z.string(),
+    "paypal-transmission-time": z.string(),
+  })
+  .passthrough();
+
+type WebHookHeadersType = z.infer<typeof webhookHeadersSchema>;
+
+export const findPaymentCredentials = async (
+  bookingId: number
+): Promise<{ clientId: string; secretKey: string; webhookId: string }> => {
+  try {
+    // @TODO: what about team bookings with paypal?
+    const userFromBooking = await prisma?.booking.findFirst({
+      where: {
+        id: bookingId,
+      },
+      select: {
+        id: true,
+        userId: true,
+      },
+    });
+
+    if (!userFromBooking) throw new Error("No user found");
+
+    const credentials = await prisma?.credential.findFirst({
+      where: {
+        appId: "paypal",
+        userId: userFromBooking?.userId,
+      },
+      select: {
+        key: true,
+      },
+    });
+    if (!credentials) {
+      throw new Error("No credentials found");
+    }
+    const parsedCredentials = paypalCredentialKeysSchema.safeParse(credentials?.key);
+    if (!parsedCredentials.success) {
+      throw new Error("Credentials malformed");
+    }
+
+    return {
+      clientId: parsedCredentials.data.client_id,
+      secretKey: parsedCredentials.data.secret_key,
+      webhookId: parsedCredentials.data.webhook_id,
+    };
+  } catch (err) {
+    console.error(err);
+    return {
+      clientId: "",
+      secretKey: "",
+      webhookId: "",
+    };
+  }
+};

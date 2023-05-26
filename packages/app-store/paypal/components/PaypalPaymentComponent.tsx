@@ -8,16 +8,21 @@ interface IPaypalPaymentComponentProps {
 }
 
 // Create zod schema for data
-const schema = z.object({
-  id: z.string(),
-  status: z.string(),
-  links: z.array(
-    z.object({
-      href: z.string(),
-      rel: z.string(),
-      method: z.string(),
+const PaymentPaypalDataSchema = z.object({
+  order: z
+    .object({
+      id: z.string(),
+      status: z.string(),
+      links: z.array(
+        z.object({
+          href: z.string(),
+          rel: z.string(),
+          method: z.string(),
+        })
+      ),
     })
-  ),
+    .optional(),
+  capture: z.object({}).optional(),
 });
 
 export const PaypalPaymentComponent = (props: IPaypalPaymentComponentProps) => {
@@ -29,24 +34,24 @@ export const PaypalPaymentComponent = (props: IPaypalPaymentComponentProps) => {
     </>
   );
 
-  const parsedData = schema.safeParse(data);
-  if (!parsedData.success || !parsedData.data.links) {
+  const parsedData = PaymentPaypalDataSchema.safeParse(data);
+  if (!parsedData.success || !parsedData.data?.order?.links) {
     return wrongUrl;
   }
-  const paymentUrl = parsedData.data.links.find(
+  const paymentUrl = parsedData.data.order.links.find(
     (link) => link.rel === "approve" || link.rel === "payer-action"
   )?.href;
   if (!paymentUrl) {
     return wrongUrl;
   }
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center">
+    <div className="mt-4 flex h-full w-full flex-col items-center justify-center">
       <Link
         href={`${paymentUrl}`}
-        className="inline-flex items-center justify-center rounded-md rounded-2xl border border-transparent bg-[#ffc439] px-12 py-2 text-base font-medium
-        text-black shadow-sm hover:brightness-95 focus:outline-none focus:ring-offset-2">
+        className="inline-flex items-center justify-center rounded-md rounded-2xl border border-transparent bg-[#ffc439] px-12 py-2 text-base
+        font-medium text-black shadow-sm hover:brightness-95 focus:outline-none focus:ring-offset-2">
         Pay with
-        <img src="/api/app-store/paypal/paypal-logo.svg" alt="Paypal" className="mx-2 w-14" />
+        <img src="/api/app-store/paypal/paypal-logo.svg" alt="Paypal" className="mx-2 mt-2 mb-1 w-16" />
         <span />
       </Link>
     </div>
