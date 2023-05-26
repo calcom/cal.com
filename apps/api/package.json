@@ -14,14 +14,12 @@
     "lint:report": "eslint . --format json --output-file ../../lint-results/api.json",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "start": "PORT=3002 next start",
-    "test": "jest --detectOpenHandles --passWithNoTests",
+    "test": "echo 'No tests yet' && exit 1",
     "type-check": "tsc --pretty --noEmit"
   },
   "devDependencies": {
     "@calcom/tsconfig": "*",
     "@calcom/types": "*",
-    "babel-jest": "^28.1.0",
-    "jest": "^28.1.0",
     "node-mocks-http": "^1.11.0"
   },
   "dependencies": {
