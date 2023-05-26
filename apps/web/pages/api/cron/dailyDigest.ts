@@ -56,19 +56,22 @@ export async function getUsersDueDigests() {
    * We return more columns than we need, but the extra ones are useful for diagnostics and debugging purposes
    */
   const rawUserIdsList = await prisma.$queryRaw`
-    SELECT
-      "id",
-      "timeZone",
-      "dailyDigestTime",
-      ((current_date + "dailyDigestTime") AT TIME ZONE "timeZone" AT TIME ZONE 'UTC') as "utcDailyDigestTime",
-      (NOW() - INTERVAL '5 minutes')::time as "minTime",
-      (NOW() + INTERVAL '5 minutes')::time as "maxTime"
-    FROM users
-    WHERE "dailyDigestEnabled" = true
-    AND
-      ((current_date + "dailyDigestTime") AT TIME ZONE "timeZone" AT TIME ZONE 'UTC')::time
-        BETWEEN (NOW() - INTERVAL '5 minutes')::time
-        AND (NOW() + INTERVAL '5 minutes')::time;
+    WITH dailyDigestUsers AS MATERIALIZED (
+      SELECT
+          "id",
+          "timeZone",
+          "dailyDigestTime",
+          ((current_date + "dailyDigestTime") AT TIME ZONE "timeZone" AT TIME ZONE 'UTC') as "utcDailyDigestTime",
+          (NOW() - INTERVAL '5 minutes')::time as "minTime",
+          (NOW() + INTERVAL '5 minutes')::time as "maxTime"
+        FROM users
+        INNER JOIN pg_timezone_names ON users."timeZone" = pg_timezone_names."name"
+        WHERE "dailyDigestEnabled" = true
+    )
+    SELECT * FROM dailyDigestUsers
+    WHERE "utcDailyDigestTime"::time
+      BETWEEN (NOW() - INTERVAL '5 minutes')::time
+      AND (NOW() + INTERVAL '5 minutes')::time;
   `;
 
   if (!isRawUserIdsList(rawUserIdsList)) {
