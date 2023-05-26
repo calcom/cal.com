@@ -56,5 +56,6 @@ declare namespace NodeJS {
      *  "non-strict" -> Strict CSP except the usage of unsafe-inline for `style-src`
      */
     readonly CSP_POLICY: "strict" | "non-strict";
+    readonly MAX_CONCURRENT_DAILY_DIGEST_SENDS: number;
   }
 }

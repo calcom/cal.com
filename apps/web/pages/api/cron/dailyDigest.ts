@@ -1,3 +1,4 @@
+import { mapLimit } from "async";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { TFunction } from "next-i18next";
 
@@ -22,17 +23,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const users = await getUsersDueDigests();
 
   let notificationsSent = 0;
-  for (const user of users) {
-    const tOrganizer = await getTranslation(user.locale ?? "en", "common");
-    const calEventListPromises = user.bookings.map((booking) =>
-      createCalendarEventFromBooking(user, booking, tOrganizer)
-    );
-    const calEventList = await Promise.all(calEventListPromises);
+  await mapLimit(
+    users,
+    process.env.MAX_CONCURRENT_DAILY_DIGEST_SENDS ?? 5,
+    async (user: Awaited<ReturnType<typeof getUsersDueDigests>>[number]) => {
+      const tOrganizer = await getTranslation(user.locale ?? "en", "common");
+      const calEventListPromises = user.bookings.map((booking) =>
+        createCalendarEventFromBooking(user, booking, tOrganizer)
+      );
+      const calEventList = await Promise.all(calEventListPromises);
 
-    await sendOrganizerDailyDigestEmail(user, tOrganizer, calEventList);
+      await sendOrganizerDailyDigestEmail(user, tOrganizer, calEventList);
+      notificationsSent++;
+    }
+  );
 
-    notificationsSent++;
-  }
   res.status(200).json({ notificationsSent });
 }
 

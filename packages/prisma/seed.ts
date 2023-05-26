@@ -522,41 +522,45 @@ async function main() {
     eventTypes: [],
   });
 
-  // Bookings every 30m for 48hrs, useful to test the boundaries of dailyDigestEmails
-  await createUserAndEventType({
-    user: {
-      email: "verybusy@example.com",
-      password: "verybusy",
-      username: "verybusy",
-      name: "Very Busy",
-      timeZone: "Asia/Tokyo",
-      dailyDigestEnabled: true,
-      dailyDigestTime: dayjs("2023-05-25 20:00:00").toDate(),
-    },
-    eventTypes: [
-      {
-        title: "30min",
-        slug: "30min",
-        length: 30,
-        _bookings: Array.from({ length: 48 * 2 }, (_, i) => {
-          const guest = faker.person.fullName();
-          const startTime = dayjs()
-            .startOf("day")
-            .add(30 * i, "minutes")
-            .toDate();
-          const endTime = dayjs(startTime).add(30, "minutes").toDate();
+  // Add a lot of users who are opted into daily digests, with bookings due in the next day. Useful to stress-test daily digest emails (adjust length as required for testing)
+  if (false) {
+    await Promise.all(
+      Array.from({ length: 100 }, async () => {
+        const name = faker.person.fullName();
+        const timeZone = faker.location.timeZone();
+        await createUserAndEventType({
+          user: {
+            email: faker.internet.exampleEmail(),
+            password: faker.internet.password(),
+            username: faker.internet.userName(),
+            name,
+            timeZone,
+            dailyDigestEnabled: true,
+            dailyDigestTime: dayjs().toDate(), // Not all entries will be "now" because they'll be interpreted as per their timezone. I can't figure out how to save the current time in another timezone
+          },
+          eventTypes: [
+            {
+              title: "30min",
+              slug: "30min",
+              length: 30,
+              _bookings: Array.from({ length: faker.number.int({ min: 0, max: 10 }) }, (_, i) => {
+                const guest = faker.person.fullName();
+                const startTime = faker.date.soon();
+                const endTime = dayjs(startTime).add(30, "minutes").toDate();
 
-          return {
-            uid: uuid(),
-            title: `30min between Very Busy and ${guest}`,
-            startTime,
-            endTime,
-            location: "Online",
-          };
-        }),
-      },
-    ],
-  });
+                return {
+                  uid: uuid(),
+                  title: `30min between ${name} and ${guest}`,
+                  startTime,
+                  endTime,
+                };
+              }),
+            },
+          ],
+        });
+      })
+    );
+  }
 
   const pro2UserTeam = await createUserAndEventType({
     user: {

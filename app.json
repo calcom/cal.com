@@ -79,6 +79,10 @@
     "NEXT_PUBLIC_TEAM_IMPERSONATION": {
       "description": "Set the following value to true if you wish to enable Team Impersonation",
       "value": "false"
+    },
+    "MAX_CONCURRENT_DAILY_DIGEST_SENDS": {
+      "description": "How many Daily Digest emails can be sent concurrently. Used to fine-tune performance.",
+      "value": 5    
     }
   },
   "scripts": {
