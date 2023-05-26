@@ -358,18 +358,18 @@ function EventTypeSingleLayout({
                 </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <div className="sm:hover:bg-subtle flex h-9 flex-row items-center justify-between py-2 px-4">
+              <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between py-2 px-4">
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"
                   className="mt-2 inline cursor-pointer self-center pr-2 ">
-                  {t("hide_from_profile")}
+                  {formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")}
                 </Skeleton>
                 <Switch
                   id="hiddenSwitch"
-                  checked={formMethods.watch("hidden")}
+                  checked={!formMethods.watch("hidden")}
                   onCheckedChange={(e) => {
-                    formMethods.setValue("hidden", e);
+                    formMethods.setValue("hidden", !e);
                   }}
                 />
               </div>
