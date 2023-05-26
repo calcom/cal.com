@@ -94,6 +94,50 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *         description: No bookings were found
  */
 
+// Helper function to build where clause to reduce code repetition and improve readability
+function buildWhereClause(
+  isAdmin: boolean,
+  userId: number,
+  attendeeEmails: string[],
+  userIds: number[] = [],
+  userEmails: string[] = []
+) {
+  const filterByAttendeeEmails = attendeeEmails.length > 0;
+  const userFilter = userIds.length > 0 ? { userId: { in: userIds } } : { userId };
+  let whereClause = {};
+  if (filterByAttendeeEmails) {
+    whereClause = {
+      AND: [
+        userFilter,
+        {
+          attendees: {
+            some: {
+              email: { in: attendeeEmails },
+            },
+          },
+        },
+      ],
+    };
+  } else {
+    whereClause = {
+      OR: [
+        userFilter,
+        {
+          attendees: {
+            some: {
+              email: { in: userEmails },
+            },
+          },
+        },
+      ],
+    };
+  }
+
+  return {
+    AND: [userFilter, { attendees: { some: { email: { in: attendeeEmails } } } }],
+  };
+}
+
 const getAttendeeEmails = (
   query: Partial<{
     [key: string]: string | string[];
@@ -119,42 +163,20 @@ async function handler(req: NextApiRequest) {
   const filterByAttendeeEmails = attendeeEmails.length > 0;
 
   /** Only admins can query other users */
-  if (isAdmin && req.query.userId) {
-    const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
-    const userIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
-    const users = await prisma.user.findMany({
-      where: { id: { in: userIds } },
-      select: { email: true },
-    });
-    if (!filterByAttendeeEmails) {
+  if (isAdmin) {
+    if (req.query.userId) {
+      const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
+      const userIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
+      const users = await prisma.user.findMany({
+        where: { id: { in: userIds } },
+        select: { email: true },
+      });
       const userEmails = users.map((u) => u.email);
-      args.where = {
-        OR: [
-          { userId: { in: userIds } },
-          {
-            attendees: {
-              some: {
-                email: { in: userEmails },
-              },
-            },
-          },
-        ],
-      };
-    } else {
-      args.where = {
-        AND: [
-          { userId: { in: userIds } },
-          {
-            attendees: {
-              some: {
-                email: { in: attendeeEmails },
-              },
-            },
-          },
-        ],
-      };
+      args.where = buildWhereClause(isAdmin, userId, attendeeEmails, userIds, userEmails);
+    } else if (filterByAttendeeEmails) {
+      args.where = buildWhereClause(isAdmin, userId, attendeeEmails, [], []);
     }
-  } else if (!isAdmin) {
+  } else {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -164,33 +186,7 @@ async function handler(req: NextApiRequest) {
     if (!user) {
       throw new HttpError({ message: "User not found", statusCode: 500 });
     }
-    args.where = {
-      OR: [
-        {
-          userId,
-        },
-        {
-          attendees: {
-            some: {
-              email: user.email,
-            },
-          },
-        },
-      ],
-    };
-  } else if (filterByAttendeeEmails) {
-    args.where = {
-      AND: [
-        { userId },
-        {
-          attendees: {
-            some: {
-              email: { in: attendeeEmails },
-            },
-          },
-        },
-      ],
-    };
+    args.where = buildWhereClause(isAdmin, userId, attendeeEmails, [], []);
   }
   const data = await prisma.booking.findMany(args);
   return { bookings: data.map((booking) => schemaBookingReadPublic.parse(booking)) };
