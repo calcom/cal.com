@@ -304,11 +304,11 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 
   return {
     ...eventType,
-    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-    recurringEvent: parseRecurringEvent(eventType.recurringEvent),
-    customInputs: customInputSchema.array().parse(eventType.customInputs || []),
-    locations: (eventType.locations ?? []) as LocationObject[],
-    bookingFields: getBookingFieldsWithSystemFields(eventType),
+    metadata: EventTypeMetaDataSchema.parse(eventType?.metadata || {}),
+    recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
+    customInputs: customInputSchema.array().parse(eventType?.customInputs || []),
+    locations: (eventType?.locations ?? []) as LocationObject[],
+    bookingFields: getBookingFieldsWithSystemFields(eventType || {}),
   };
 };
 
@@ -488,7 +488,7 @@ function getBookingData({
             }
           }
         });
-
+  debugger;
   const reqBody = bookingDataSchema.parse(req.body);
   if ("customInputs" in reqBody) {
     if (reqBody.customInputs) {
@@ -584,7 +584,7 @@ async function handler(
     ...eventType,
     bookingFields: getBookingFieldsWithSystemFields(eventType),
   };
-
+  debugger;
   const {
     recurringCount,
     allRecurringDates,
@@ -673,7 +673,7 @@ async function handler(
           ...user,
           isFixed,
         }))
-      : eventType.users;
+      : eventType.users || [];
   // loadUsers allows type inferring
   let users: (Awaited<ReturnType<typeof loadUsers>>[number] & {
     isFixed?: boolean;
@@ -1486,6 +1486,9 @@ async function handler(
        * so if you modify it in a inner function it will be modified in the outer function
        * deep cloning evt to avoid this
        */
+      if (!evt?.uid) {
+        evt.uid = booking?.uid ?? null;
+      }
       const copyEvent = cloneDeep(evt);
       copyEvent.uid = booking.uid;
       await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
@@ -2097,12 +2100,14 @@ async function handler(
       userId: organizerUser.id,
       eventTypeId,
       triggerEvent: eventTrigger,
+      teamId: eventType.team?.id,
     };
 
     const subscriberOptionsMeetingEnded = {
       userId: organizerUser.id,
       eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+      teamId: eventType.team?.id,
     };
 
     try {

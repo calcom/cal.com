@@ -72,7 +72,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
       slotUtcStartDate: slot.time,
       eventTypeId,
       slotUtcEndDate: dayjs(slot.time).utc().add(duration, "minutes").format(),
-      bookingAttendees: bookingAttendees || undefined,
+      bookingUid: slot.bookingUid,
     });
   };
 
@@ -176,7 +176,10 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                                 : "text-emerald-400"
                             } text-sm`}>
                             {slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot} /{" "}
-                            {seatsPerTimeSlot} {t("seats_available")}
+                            {seatsPerTimeSlot}{" "}
+                            {t("seats_available", {
+                              count: slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot,
+                            })}
                           </p>
                         )}
                       </Link>
