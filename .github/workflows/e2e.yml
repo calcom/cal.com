@@ -3,7 +3,7 @@ on:
   pull_request_target:
     branches:
       - main
-  workflow_call:
+  workflow_dispatch:
 jobs:
   e2e:
     timeout-minutes: 20
