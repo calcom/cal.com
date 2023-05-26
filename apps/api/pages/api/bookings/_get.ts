@@ -38,6 +38,7 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *         schema:
  *           oneOf:
  *            - type: string
+ *              format: email
  *              example: john.doe@example.com
  *            - type: array
  *              items:
