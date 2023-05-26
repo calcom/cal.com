@@ -58,6 +58,8 @@
     "start": "turbo run start --scope=\"@calcom/web\"",
     "tdd": "vitest watch",
     "e2e": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/web",
+    "e2e-shard-1": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/web --shard 1/2",
+    "e2e-shard-2": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/web --shard 2/2",
     "e2e:app-store": "QUICK=true yarn playwright test --project=@calcom/app-store",
     "e2e:embed": "QUICK=true yarn playwright test --project=@calcom/embed-core",
     "e2e:embed-react": "QUICK=true yarn playwright test --project=@calcom/embed-react",
