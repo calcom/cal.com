@@ -66,8 +66,8 @@ const AppearanceView = () => {
   });
 
   const {
-    formState: { isSubmitting, isDirty }, 
-    reset
+    formState: { isSubmitting, isDirty },
+    reset,
   } = formMethods;
 
   const mutation = trpc.viewer.updateProfile.useMutation({
