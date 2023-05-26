@@ -5,6 +5,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaBookingReadPublic } from "~/lib/validations/booking";
+import { schemaQuerySingleOrMultipleAttendeeEmails } from "~/lib/validations/shared/queryAttendeeEmail";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
 
 /**
@@ -31,6 +32,18 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *              items:
  *                type: integer
  *              example: [2, 3, 4]
+ *       - in: query
+ *         name: attendeeEmails
+ *         required: false
+ *         schema:
+ *           oneOf:
+ *            - type: string
+ *              example: john.doe@example.com
+ *            - type: array
+ *              items:
+ *                type: string
+ *                format: email
+ *              example: [john.doe@example.com, jane.doe@example.com]
  *     operationId: listBookings
  *     tags:
  *     - bookings
@@ -96,7 +109,6 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
 
 // Helper function to build where clause to reduce code repetition and improve readability
 function buildWhereClause(
-  isAdmin: boolean,
   userId: number,
   attendeeEmails: string[],
   userIds: number[] = [],
@@ -134,7 +146,7 @@ function buildWhereClause(
   }
 
   return {
-    AND: [userFilter, { attendees: { some: { email: { in: attendeeEmails } } } }],
+    ...whereClause,
   };
 }
 
@@ -147,7 +159,7 @@ const getAttendeeEmails = (
     return [];
   }
 
-  return Array.isArray(query.attendeeEmails) ? query.attendeeEmails : query.attendeeEmails.split(",");
+  return;
 };
 
 async function handler(req: NextApiRequest) {
@@ -159,7 +171,12 @@ async function handler(req: NextApiRequest) {
     payment: true,
   };
 
-  const attendeeEmails = getAttendeeEmails(req.query);
+  const queryForAttendeeEmails = schemaQuerySingleOrMultipleAttendeeEmails.parse(req.query);
+  const attendeeEmails = Array.isArray(queryForAttendeeEmails.attendeeEmail)
+    ? queryForAttendeeEmails.attendeeEmail
+    : typeof queryForAttendeeEmails.attendeeEmail === "string"
+    ? [queryForAttendeeEmails.attendeeEmail]
+    : [];
   const filterByAttendeeEmails = attendeeEmails.length > 0;
 
   /** Only admins can query other users */
@@ -172,9 +189,9 @@ async function handler(req: NextApiRequest) {
         select: { email: true },
       });
       const userEmails = users.map((u) => u.email);
-      args.where = buildWhereClause(isAdmin, userId, attendeeEmails, userIds, userEmails);
+      args.where = buildWhereClause(userId, attendeeEmails, userIds, userEmails);
     } else if (filterByAttendeeEmails) {
-      args.where = buildWhereClause(isAdmin, userId, attendeeEmails, [], []);
+      args.where = buildWhereClause(userId, attendeeEmails, [], []);
     }
   } else {
     const user = await prisma.user.findUnique({
@@ -186,7 +203,7 @@ async function handler(req: NextApiRequest) {
     if (!user) {
       throw new HttpError({ message: "User not found", statusCode: 500 });
     }
-    args.where = buildWhereClause(isAdmin, userId, attendeeEmails, [], []);
+    args.where = buildWhereClause(userId, attendeeEmails, [], []);
   }
   const data = await prisma.booking.findMany(args);
   return { bookings: data.map((booking) => schemaBookingReadPublic.parse(booking)) };
