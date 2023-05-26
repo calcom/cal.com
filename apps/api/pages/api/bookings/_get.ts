@@ -94,6 +94,18 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *         description: No bookings were found
  */
 
+const getAttendeeEmails = (
+  query: Partial<{
+    [key: string]: string | string[];
+  }>
+) => {
+  if (!query.attendeeEmails) {
+    return [];
+  }
+
+  return Array.isArray(query.attendeeEmails) ? query.attendeeEmails : query.attendeeEmails.split(",");
+};
+
 async function handler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;
   const args: Prisma.BookingFindManyArgs = {};
@@ -103,6 +115,9 @@ async function handler(req: NextApiRequest) {
     payment: true,
   };
 
+  const attendeeEmails = getAttendeeEmails(req.query);
+  const filterByAttendeeEmails = attendeeEmails.length > 0;
+
   /** Only admins can query other users */
   if (isAdmin && req.query.userId) {
     const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
@@ -111,19 +126,34 @@ async function handler(req: NextApiRequest) {
       where: { id: { in: userIds } },
       select: { email: true },
     });
-    const userEmails = users.map((u) => u.email);
-    args.where = {
-      OR: [
-        { userId: { in: userIds } },
-        {
-          attendees: {
-            some: {
-              email: { in: userEmails },
+    if (!filterByAttendeeEmails) {
+      const userEmails = users.map((u) => u.email);
+      args.where = {
+        OR: [
+          { userId: { in: userIds } },
+          {
+            attendees: {
+              some: {
+                email: { in: userEmails },
+              },
             },
           },
-        },
-      ],
-    };
+        ],
+      };
+    } else {
+      args.where = {
+        AND: [
+          { userId: { in: userIds } },
+          {
+            attendees: {
+              some: {
+                email: { in: attendeeEmails },
+              },
+            },
+          },
+        ],
+      };
+    }
   } else if (!isAdmin) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -143,6 +173,19 @@ async function handler(req: NextApiRequest) {
           attendees: {
             some: {
               email: user.email,
+            },
+          },
+        },
+      ],
+    };
+  } else if (filterByAttendeeEmails) {
+    args.where = {
+      AND: [
+        { userId },
+        {
+          attendees: {
+            some: {
+              email: { in: attendeeEmails },
             },
           },
         },
