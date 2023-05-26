@@ -21,7 +21,7 @@ interface ReserveSlotOptions {
 export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => {
   const { prisma, req, res } = ctx;
   const uid = req?.cookies?.uid || uuid();
-  const { slotUtcStartDate, slotUtcEndDate, eventTypeId, bookingAttendees } = input;
+  const { slotUtcStartDate, slotUtcEndDate, eventTypeId, bookingUid } = input;
   const releaseAt = dayjs.utc().add(parseInt(MINUTES_TO_BOOK), "minutes").format();
   const eventType = await prisma.eventType.findUnique({
     where: { id: eventTypeId },
@@ -40,8 +40,13 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
   // If this is a seated event then don't reserve a slot
   if (eventType.seatsPerTimeSlot) {
     // Check to see if this is the last attendee
-    if (bookingAttendees) {
-      const seatsLeft = eventType.seatsPerTimeSlot - bookingAttendees;
+    const bookingWithAttendees = await prisma.booking.findFirst({
+      where: { uid: bookingUid },
+      select: { attendees: true },
+    });
+    const bookingAttendeesLength = bookingWithAttendees?.attendees?.length;
+    if (bookingAttendeesLength) {
+      const seatsLeft = eventType.seatsPerTimeSlot - bookingAttendeesLength;
       if (seatsLeft < 1) shouldReserveSlot = false;
     } else {
       // If there is no booking yet then don't reserve the slot
