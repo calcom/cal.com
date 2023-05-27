@@ -4,4 +4,3 @@ node_modules
 **/**/public
 packages/prisma/zod
 apps/web/public/embed
-apps/api
