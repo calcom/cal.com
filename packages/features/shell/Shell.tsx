@@ -41,6 +41,7 @@ import {
   HeadSeo,
   Logo,
   SkeletonText,
+  Tooltip,
   showToast,
   useCalcomTheme,
 } from "@calcom/ui";
@@ -618,6 +619,7 @@ const NavigationItem: React.FC<{
 
   return (
     <Fragment>
+      <Tooltip side="right" content={t(item.name)} className="lg:hidden">
       <Link
         href={item.href}
         aria-label={t(item.name)}
@@ -646,6 +648,7 @@ const NavigationItem: React.FC<{
           <SkeletonText className="h-3 w-32" />
         )}
       </Link>
+      </Tooltip>
       {item.child &&
         isCurrent({ router, isChild, item }) &&
         item.child.map((item, index) => <NavigationItem index={index} key={item.name} item={item} isChild />)}
