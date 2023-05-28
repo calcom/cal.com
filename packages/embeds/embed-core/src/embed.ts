@@ -4,8 +4,8 @@ import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
 import type { InterfaceWithParent, interfaceWithParent, UiConfig, EmbedThemeConfig } from "./embed-iframe";
 import css from "./embed.css";
-import type { EventData, EventDataMap } from "./sdk-action-manager";
 import { SdkActionManager } from "./sdk-action-manager";
+import type { EventData, EventDataMap } from "./sdk-action-manager";
 import allCss from "./tailwind.generated.css?inline";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -660,6 +660,19 @@ document.addEventListener("click", (e) => {
   if (!(targetEl instanceof HTMLElement)) {
     return;
   }
+
+  /**
+   * on click, checks if the target element is the floating button
+   * if so, hides the button to ensure that it does not cover
+   * any of the modal's content.
+   *
+   * bringing the element back - check out the close() method
+   * of ModalBox element
+   */
+  if (targetEl.dataset.calNamespace === "floatingButton") {
+    targetEl.style.display = "none";
+  }
+
   const path = targetEl.dataset.calLink;
   if (!path) {
     return;

@@ -30,6 +30,14 @@ export class ModalBox extends HTMLElement {
   }
 
   close() {
+    /**
+     * brings back the floating button that has been hidden
+     */
+    const calFloatingButton = document.querySelector("cal-floating-button");
+    if (calFloatingButton) {
+      (calFloatingButton as HTMLElement).style.display = "inline";
+    }
+
     this.show(false);
   }
 
