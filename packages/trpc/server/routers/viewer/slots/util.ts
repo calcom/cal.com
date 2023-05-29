@@ -352,6 +352,20 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   //     .filter((slot) => !!slot.userIds?.length);
   // }
 
+  const isSlot = (
+    item:
+      | {
+          time: dayjs.Dayjs;
+          userIds?: number[] | undefined;
+        }
+      | undefined
+  ): item is {
+    time: dayjs.Dayjs;
+    userIds?: number[] | undefined;
+  } => {
+    return !!item;
+  };
+
   if (selectedSlots?.length > 0) {
     let occupiedSeats: typeof selectedSlots = selectedSlots.filter(
       (item) => item.isSeat && item.eventTypeId === eventType.id
@@ -391,30 +405,41 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
       });
       currentSeats = availabilityCheckProps.currentSeats;
     }
-    // this always return in empty availableTimeSlots (do we want to do that here or do we want to include that in date ranges already)
     availableTimeSlots = availableTimeSlots
       .map((slot) => {
-        slot.userIds = slot.userIds?.filter((slotUserId) => {
-          const busy = selectedSlots.reduce<EventBusyDate[]>((r, c) => {
-            if (c.userId === slotUserId && !c.isSeat) {
-              r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
-            }
-            return r;
-          }, []);
-
-          if (!busy?.length && eventType.seatsPerTimeSlot === null) {
-            return false;
+        const busy = selectedSlots.reduce<EventBusyDate[]>((r, c) => {
+          if (!c.isSeat) {
+            r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
           }
+          return r;
+        }, []);
 
-          return checkIfIsAvailable({
+        if (
+          checkIfIsAvailable({
             time: slot.time,
             busy,
             ...availabilityCheckProps,
-          });
-        });
-        return slot;
+          })
+        ) {
+          return slot;
+        }
+        return undefined;
       })
-      .filter((slot) => !!slot.userIds?.length);
+      .filter(
+        (
+          item:
+            | {
+                time: dayjs.Dayjs;
+                userIds?: number[] | undefined;
+              }
+            | undefined
+        ): item is {
+          time: dayjs.Dayjs;
+          userIds?: number[] | undefined;
+        } => {
+          return !!item;
+        }
+      );
   }
 
   availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
