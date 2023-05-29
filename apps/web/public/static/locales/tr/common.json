@@ -1781,5 +1781,9 @@
   "seats_and_no_show_fee_error": "Şu anda koltuklar etkinleştirilemiyor ve katılmama ücreti tahsil edilemiyor",
   "complete_your_booking": "Rezervasyonunuzu tamamlayın",
   "complete_your_booking_subject": "Rezervasyonunuzu tamamlayın: {{title}}, {{date}}",
-  "email_invite_team": "{{email}} davet edildi"
+  "confirm_your_details": "Bilgilerinizi onaylayın",
+  "currency_string": "{{amount, currency}}",
+  "email_invite_team": "{{email}} davet edildi",
+  "form_updated_successfully": "Form başarıyla güncellendi.",
+  "disable_attendees_confirmation_emails": "Katılımcılar için varsayılan onay e-postalarını devre dışı bırakın"
 }
