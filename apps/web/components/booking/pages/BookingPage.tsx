@@ -23,6 +23,7 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import { BookingFields } from "@calcom/features/bookings/Booker/components/BookEventForm/BookingFields";
 import { createBooking, createRecurringBooking } from "@calcom/features/bookings/lib";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { SystemField } from "@calcom/features/bookings/lib/SystemField";
 import getBookingResponsesSchema, {
   getBookingResponsesPartialSchema,
@@ -36,7 +37,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
-import { parseDate, parseRecurringDates } from "@calcom/lib/parse-dates";
+import { parseDate, parseDateTimeWithTimeZone, parseRecurringDates } from "@calcom/lib/parse-dates";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { TimeFormat } from "@calcom/lib/timeFormat";
@@ -120,13 +121,15 @@ const BookingPage = ({
     {}
   );
 
+  const { timezone } = useTimePreferences();
+
   const reserveSlot = () => {
     if (queryDuration) {
       reserveSlotMutation.mutate({
         eventTypeId: eventType.id,
         slotUtcStartDate: dayjs(queryDate).utc().format(),
         slotUtcEndDate: dayjs(queryDate).utc().add(parseInt(queryDuration), "minutes").format(),
-        bookingAttendees: currentSlotBooking ? currentSlotBooking.attendees.length : undefined,
+        bookingUid: currentSlotBooking?.uid,
       });
     }
   };
@@ -490,7 +493,7 @@ const BookingPage = ({
                         <Calendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                         {isClientTimezoneAvailable &&
                           typeof booking.startTime === "string" &&
-                          parseDate(dayjs(booking.startTime), i18n.language, {
+                          parseDateTimeWithTimeZone(booking.startTime, i18n.language, timezone, {
                             selectedTimeFormat: timeFormat,
                           })}
                       </p>
@@ -522,7 +525,12 @@ const BookingPage = ({
                         {currentSlotBooking
                           ? eventType.seatsPerTimeSlot - currentSlotBooking.attendees.length
                           : eventType.seatsPerTimeSlot}{" "}
-                        / {eventType.seatsPerTimeSlot} {t("seats_available")}
+                        / {eventType.seatsPerTimeSlot}{" "}
+                        {t("seats_available", {
+                          count: currentSlotBooking
+                            ? eventType.seatsPerTimeSlot - currentSlotBooking.attendees.length
+                            : eventType.seatsPerTimeSlot,
+                        })}
                       </p>
                     </div>
                   )}

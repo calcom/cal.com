@@ -20,7 +20,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     key: {},
   });
 
-  return { url: getInstalledAppPath({ variant: "other", slug: "ping" }) };
+  return { url: getInstalledAppPath({ variant: appConfig.variant, slug: "ping" }) };
 }
 
 export default defaultResponder(getHandler);

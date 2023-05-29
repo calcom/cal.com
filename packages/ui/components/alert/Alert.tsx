@@ -1,9 +1,8 @@
-import { CheckCircleIcon, ExclamationIcon, InformationCircleIcon, XCircleIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import type { ReactNode } from "react";
 import { forwardRef } from "react";
 
-import { Info } from "../icon";
+import { CheckCircle2, Info, XCircle, AlertTriangle } from "@calcom/ui/components/icon";
 
 export interface AlertProps {
   title?: ReactNode;
@@ -34,25 +33,34 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
       <div className="relative flex flex-col md:flex-row">
         <div className="flex-shrink-0">
           {severity === "error" && (
-            <XCircleIcon className={classNames("h-5 w-5 text-red-400", iconClassName)} aria-hidden="true" />
+            <XCircle
+              className={classNames("h-5 w-5 fill-red-400 text-white", iconClassName)}
+              aria-hidden="true"
+            />
           )}
           {severity === "warning" && (
-            <ExclamationIcon
-              className={classNames("h-5 w-5 text-yellow-400", iconClassName)}
+            <AlertTriangle
+              className={classNames("h-5 w-5 fill-yellow-400 text-white", iconClassName)}
               aria-hidden="true"
             />
           )}
           {severity === "info" && (
-            <InformationCircleIcon
-              className={classNames("h-5 w-5 text-sky-400", iconClassName)}
+            <Info
+              className={classNames("h-5 w-5 fill-sky-400 text-white", iconClassName)}
               aria-hidden="true"
             />
           )}
           {severity === "neutral" && (
-            <Info className={classNames("text-default h-5 w-5", iconClassName)} aria-hidden="true" />
+            <Info
+              className={classNames("text-default h-5 w-5 fill-transparent", iconClassName)}
+              aria-hidden="true"
+            />
           )}
           {severity === "success" && (
-            <CheckCircleIcon className={classNames("text-muted h-5 w-5", iconClassName)} aria-hidden="true" />
+            <CheckCircle2
+              className={classNames("fill-muted h-5 w-5 text-white", iconClassName)}
+              aria-hidden="true"
+            />
           )}
         </div>
         <div className="ml-3 flex-grow">

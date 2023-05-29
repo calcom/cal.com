@@ -1,15 +1,16 @@
-/**
- * !: Stops the `jose` dependency from bundling the browser version and breaking tests
- * @jest-environment node
- */
 import type {
   EventType as PrismaEventType,
   User as PrismaUser,
   Booking as PrismaBooking,
   App as PrismaApp,
 } from "@prisma/client";
+
+import CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
+import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+
 import { diff } from "jest-diff";
 import { v4 as uuidv4 } from "uuid";
+import { describe, expect, vi, beforeEach, afterEach, test } from "vitest";
 
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -18,14 +19,13 @@ import type { BookingStatus } from "@calcom/prisma/enums";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
 
-import { prismaMock, CalendarManagerMock } from "../../../../tests/config/singleton";
-
 // TODO: Mock properly
 prismaMock.eventType.findUnique.mockResolvedValue(null);
 prismaMock.user.findMany.mockResolvedValue([]);
 
-jest.mock("@calcom/lib/constants", () => ({
+vi.mock("@calcom/lib/constants", () => ({
   IS_PRODUCTION: true,
+  WEBAPP_URL: "http://localhost:3000"
 }));
 
 declare global {
@@ -151,10 +151,6 @@ const TestData = {
   },
 };
 
-const ctx = {
-  prisma: prismaMock,
-};
-
 type App = {
   slug: string;
   dirName: string;
@@ -186,6 +182,7 @@ type InputEventType = {
   id: number;
   title?: string;
   length?: number;
+  offsetStart?: number;
   slotInterval?: number;
   minimumBookingNotice?: number;
   users?: { id: number }[];
@@ -236,6 +233,13 @@ describe("getSchedule", () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
+      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
+        {
+          start: `${plus2DateString}T04:45:00.000Z`,
+          end: `${plus2DateString}T23:00:00.000Z`,
+        },
+      ]);
+
       const scenarioData = {
         hosts: [],
         eventTypes: [
@@ -264,12 +268,6 @@ describe("getSchedule", () => {
       // An event with one accepted booking
       createBookingScenario(scenarioData);
 
-      addBusyTimesInGoogleCalendar([
-        {
-          start: `${plus2DateString}T04:45:00.000Z`,
-          end: `${plus2DateString}T23:00:00.000Z`,
-        },
-      ]);
       const scheduleForDayWithAGoogleCalendarBooking = await getSchedule({
         eventTypeId: 1,
         eventTypeSlug: "",
@@ -495,7 +493,7 @@ describe("getSchedule", () => {
 
     // FIXME: Fix minimumBookingNotice is respected test
     test.skip("minimumBookingNotice is respected", async () => {
-      jest.useFakeTimers().setSystemTime(
+      vi.useFakeTimers().setSystemTime(
         (() => {
           const today = new Date();
           // Beginning of the day in current timezone of the system
@@ -574,12 +572,19 @@ describe("getSchedule", () => {
           dateString: todayDateString,
         }
       );
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     test("afterBuffer and beforeBuffer tests - Non Cal Busy Time", async () => {
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
       const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+
+      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
+        {
+          start: `${plus3DateString}T04:00:00.000Z`,
+          end: `${plus3DateString}T05:59:59.000Z`,
+        },
+      ]);
 
       const scenarioData = {
         eventTypes: [
@@ -610,13 +615,6 @@ describe("getSchedule", () => {
 
       createBookingScenario(scenarioData);
 
-      addBusyTimesInGoogleCalendar([
-        {
-          start: `${plus3DateString}T04:00:00.000Z`,
-          end: `${plus3DateString}T05:59:59.000Z`,
-        },
-      ]);
-
       const scheduleForEventOnADayWithNonCalBooking = await getSchedule({
         eventTypeId: 1,
         eventTypeSlug: "",
@@ -643,6 +641,13 @@ describe("getSchedule", () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
       const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+
+      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
+        {
+          start: `${plus3DateString}T04:00:00.000Z`,
+          end: `${plus3DateString}T05:59:59.000Z`,
+        },
+      ]);
 
       const scenarioData = {
         eventTypes: [
@@ -682,13 +687,6 @@ describe("getSchedule", () => {
 
       createBookingScenario(scenarioData);
 
-      addBusyTimesInGoogleCalendar([
-        {
-          start: `${plus3DateString}T04:00:00.000Z`,
-          end: `${plus3DateString}T05:59:59.000Z`,
-        },
-      ]);
-
       const scheduleForEventOnADayWithCalBooking = await getSchedule({
         eventTypeId: 1,
         eventTypeSlug: "",
@@ -704,6 +702,74 @@ describe("getSchedule", () => {
           // `08:00:00.000Z`, // - 8 AM is not available because of beforeBuffer(120mins) of possible booking at 08:00
           `10:00:00.000Z`,
           `12:00:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
+
+    test("Start times are offset (offsetStart)", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+
+      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+
+      const scenarioData = {
+        eventTypes: [
+          {
+            id: 1,
+            length: 25,
+            offsetStart: 5,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          },
+        ],
+        hosts: [],
+        apps: [TestData.apps.googleCalendar],
+      };
+
+      createBookingScenario(scenarioData);
+
+      const schedule = await getSchedule({
+        eventTypeId: 1,
+        eventTypeSlug: "",
+        startTime: `${plus1DateString}T18:30:00.000Z`,
+        endTime: `${plus2DateString}T18:29:59.999Z`,
+        timeZone: Timezones["+5:30"],
+      });
+
+      expect(schedule).toHaveTimeSlots(
+        [
+          `04:05:00.000Z`,
+          `04:35:00.000Z`,
+          `05:05:00.000Z`,
+          `05:35:00.000Z`,
+          `06:05:00.000Z`,
+          `06:35:00.000Z`,
+          `07:05:00.000Z`,
+          `07:35:00.000Z`,
+          `08:05:00.000Z`,
+          `08:35:00.000Z`,
+          `09:05:00.000Z`,
+          `09:35:00.000Z`,
+          `10:05:00.000Z`,
+          `10:35:00.000Z`,
+          `11:05:00.000Z`,
+          `11:35:00.000Z`,
+          `12:05:00.000Z`,
         ],
         {
           dateString: plus2DateString,
@@ -1132,6 +1198,7 @@ function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
     seatsPerTimeSlot: null,
     metadata: {},
     minimumBookingNotice: 0,
+    offsetStart: 0,
   };
   const foundEvents: Record<number, boolean> = {};
   const eventTypesWithUsers = eventTypes.map((eventType) => {
@@ -1316,15 +1383,3 @@ const getDate = (param: { dateIncrement?: number; monthIncrement?: number; yearI
     dateString: `${year}-${month}-${date}`,
   };
 };
-
-/**
- * TODO: Improve this to validate the arguments passed to getBusyCalendarTimes if they are valid or not.
- */
-function addBusyTimesInGoogleCalendar(
-  busy: {
-    start: string;
-    end: string;
-  }[]
-) {
-  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue(busy);
-}
