@@ -10,8 +10,8 @@ import { Button } from "@calcom/ui";
 import { Dropdown } from "@calcom/ui";
 
 type AppInstallButtonProps = {
-  onInstall: (userId: string) => void;
-  onUninstall: (userId: string) => void;
+  onInstall: (userId: string, orgId?: string) => void;
+  onUninstall: (userId: string, orgId?: string) => void;
   users: {
     id: string;
     orgId?: string; // present if org
@@ -30,13 +30,21 @@ export function AppInstallButton(props: AppInstallButtonProps) {
   if (users.length === 1) {
     if (!users[0].installed) {
       return (
-        <Button onClick={() => onInstall(users[0].id)} color="secondary" size="sm" StartIcon={PlusIcon}>
+        <Button
+          onClick={() => onInstall(users[0].id, users[0].orgId)}
+          color="secondary"
+          size="sm"
+          StartIcon={PlusIcon}>
           {t("install")}
         </Button>
       );
     } else {
       return (
-        <Button onClick={() => onUninstall(users[0].id)} color="secondary" size="sm" StartIcon={PlusIcon}>
+        <Button
+          onClick={() => onUninstall(users[0].id, users[0].orgId)}
+          color="secondary"
+          size="sm"
+          StartIcon={PlusIcon}>
           {t("uninstall")}
         </Button>
       );
@@ -59,7 +67,7 @@ export function AppInstallButton(props: AppInstallButtonProps) {
                 key={user.id}
                 className="flex h-9 flex-1 items-center space-x-2 pl-3"
                 onSelect={() => {
-                  user.installed ? onUninstall(user.id) : onInstall(user.id);
+                  user.installed ? onUninstall(user.id, user.orgId) : onInstall(user.id, user.orgId);
                 }}>
                 <div className="h-5 w-5">
                   <Avatar
