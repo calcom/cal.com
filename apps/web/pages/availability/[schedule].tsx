@@ -82,7 +82,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
           onChange={(ranges) => append({ ranges })}
           Trigger={
             <Button color="secondary" StartIcon={Plus} data-testid="add-override">
-              Add an override
+              {t("add_an_override")}
             </Button>
           }
         />
