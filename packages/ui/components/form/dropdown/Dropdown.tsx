@@ -40,7 +40,8 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
         sideOffset={sideOffset}
         className={classNames(
           "shadow-dropdown w-50 bg-default border-subtle relative z-10 ml-1.5 origin-top-right rounded-md border text-sm",
-          "[&>*:first-child]:mt-1 [&>*:last-child]:mb-1"
+          "[&>*:first-child]:mt-1 [&>*:last-child]:mb-1",
+          props.className
         )}
         ref={forwardedRef}>
         {children}
@@ -59,7 +60,10 @@ type DropdownMenuItemProps = ComponentProps<(typeof DropdownMenuPrimitive)["Chec
 export const DropdownMenuItem = forwardRef<HTMLDivElement, DropdownMenuItemProps>(
   ({ className = "", ...props }, forwardedRef) => (
     <DropdownMenuPrimitive.Item
-      className={`focus:ring-brand-800 hover:bg-subtle hover:text-emphasis text-default text-sm ring-inset first-of-type:rounded-t-[inherit] last-of-type:rounded-b-[inherit] focus:outline-none focus:ring-1 ${className}`}
+      className={classNames(
+        `focus:ring-brand hover:bg-subtle hover:text-emphasis text-default text-sm ring-inset first-of-type:rounded-t-[inherit] last-of-type:rounded-b-[inherit] hover:cursor-pointer focus:outline-none focus:ring-1`,
+        className
+      )}
       {...props}
       ref={forwardedRef}
     />

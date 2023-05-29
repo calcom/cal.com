@@ -1,0 +1,53 @@
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import { Examples, Example, Note, Title, CustomArgsTable } from "@calcom/storybook/components";
+
+import { AppInstallButton } from "./AppInstallButton";
+
+<Meta title="Organization/AppInstallButton" component={AppInstallButton} />
+
+<Title title="AppInstallButton" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022" />
+
+export const USERS = [
+  {
+    id: "abcde",
+    orgId: "org1",
+    name: "John Doe",
+    avatarURL: "",
+  },
+  {
+    id: "abc",
+    name: "Cal.com Org",
+    avatarURL: "",
+  },
+];
+
+## Structure
+
+<CustomArgsTable of={AppInstallButton} />
+
+<Examples title="AppInstallButton style">
+  <Example title="Single User Not installed" >
+    <AppInstallButton
+      onInstall={(e) => console.log(e)}
+      onUninstall={(e) => console.log(e)}
+      users={[USERS[0]]}
+    />
+  </Example>
+  <Example title="Single User Installed" >
+    <AppInstallButton
+      onInstall={(e) => console.log(e)}
+      onUninstall={(e) => console.log(e)}
+      users={[{ ...USERS[0], installed: true }]}
+    />
+  </Example>
+    <Example title="Multi Users With one Installed" >
+    <AppInstallButton
+      onInstall={(e) => console.log(e)}
+      onUninstall={(e) => console.log(e)}
+      users={[{ ...USERS[0], installed: true },USERS[1]]}
+    />
+  </Example>
+</Examples>
+
+## Usage

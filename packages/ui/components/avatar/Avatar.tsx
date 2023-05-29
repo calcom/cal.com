@@ -39,8 +39,8 @@ export function Avatar(props: AvatarProps) {
     <AvatarPrimitive.Root
       className={classNames(
         "bg-emphasis item-center relative inline-flex aspect-square justify-center overflow-hidden rounded-full",
-        props.className,
-        sizesPropsBySize[size]
+        sizesPropsBySize[size],
+        props.className
       )}>
       <>
         <AvatarPrimitive.Image

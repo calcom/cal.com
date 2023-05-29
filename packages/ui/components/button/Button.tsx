@@ -51,7 +51,7 @@ const buttonClasses = cva(
         destructive: "",
       },
       size: {
-        sm: "px-3 py-2 leading-4 rounded-sm" /** For backwards compatibility */,
+        sm: "px-3 py-2 leading-4 rounded-md" /** For backwards compatibility */,
         base: "h-9 px-4 py-2.5 ",
         lg: "h-[36px] px-4 py-2.5 ",
       },
@@ -136,7 +136,7 @@ const buttonClasses = cva(
       {
         variant: "icon",
         size: "sm",
-        className: "h-6 w-6 !p-1",
+        className: "h-6 w-6 !p-1 ",
       },
       {
         variant: "fab",
@@ -203,7 +203,8 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
             <StartIcon
               className={classNames(
                 variant === "icon" && "h-4 w-4",
-                variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2"
+                variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2",
+                size === "sm" && "ltr:mr-2 ltr:-ml-2 rtl:-mr-2 rtl:ml-2"
               )}
             />
           )}
