@@ -1,7 +1,9 @@
+import { expect, it } from "vitest";
+
+import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+
 import { getLuckyUser } from "@calcom/lib/server";
 import { buildUser } from "@calcom/lib/test/builder";
-
-import { prismaMock } from "../../../../tests/config/singleton";
 
 it("can find lucky user with maximize availability", async () => {
   const user1 = buildUser({
