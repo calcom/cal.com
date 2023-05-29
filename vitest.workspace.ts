@@ -6,7 +6,7 @@ export default defineWorkspace([
     test: {
       include: ["packages/**/*.{test,spec}.{ts,js}", "apps/**/*.{test,spec}.{ts,js}"],
       // TODO: Ignore the api until tests are fixed
-      exclude: ["apps/api/**/*", "**/node_modules/**/*"],
+      exclude: ["apps/api/**/*", "**/node_modules/**/*", "packages/embeds/**/*"],
     },
   },
   {
@@ -15,6 +15,12 @@ export default defineWorkspace([
       include: ["packages/app-store/closecom/**/*.{test,spec}.{ts,js}"],
       environment: "jsdom",
       setupFiles: ["packages/app-store/closecom/test/globals.ts"],
+    },
+  },
+  {
+    test: {
+      include: ["packages/embeds/**/*.{test,spec}.{ts,js}"],
+      environment: "jsdom",
     },
   },
 ]);
