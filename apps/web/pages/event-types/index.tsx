@@ -733,7 +733,7 @@ const CreateFirstEventTypeView = () => {
   );
 };
 
-const SetupOrganizationBanner = () => {
+const SetupOrganizationBanner = ({ closeAction }: { closeAction: () => void }) => {
   const { t } = useLocale();
 
   return (
@@ -745,6 +745,7 @@ const SetupOrganizationBanner = () => {
             StartIcon={X}
             color="minimal"
             className="hover:text-muted absolute top-0 right-0 text-white hover:bg-transparent"
+            onClick={closeAction}
           />
           <div className="flex flex-col gap-2 px-8 pt-8 pb-8">
             <h1 className="text-2xl font-bold">{t("organisation_banner_title")}</h1>
@@ -802,15 +803,22 @@ const EventTypesPage = () => {
   const router = useRouter();
   const { open } = useIntercom();
   const { query } = router;
+  const flags = useFlagMap();
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const [showOrgsBanner, setShowOrgsBanner] = useState(false);
+
+  function closeBanner() {
+    setShowOrgsBanner(false);
+    document.cookie = `calcom-org-banner=1;max-age=${60 * 60 * 24 * 90}`; // 3 months
+    showToast(t("we_wont_show_again"), "success");
+  }
 
   useEffect(() => {
     if (query?.openIntercom && query?.openIntercom === "true") {
       open();
     }
+    setShowOrgsBanner(flags.organizations && !document.cookie.includes("calcom-org-banner=1"));
   }, []);
-
-  const flags = useFlagMap();
 
   return (
     <div>
@@ -822,7 +830,7 @@ const EventTypesPage = () => {
         withoutSeo
         heading={t("event_types_page_title")}
         hideHeadingOnMobile
-        TopNavContainer={flags.organizations && <SetupOrganizationBanner />}
+        TopNavContainer={showOrgsBanner && <SetupOrganizationBanner closeAction={closeBanner} />}
         subtitle={t("event_types_page_subtitle")}
         CTA={<CTA />}>
         <WithQuery
