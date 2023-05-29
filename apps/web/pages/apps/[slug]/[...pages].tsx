@@ -121,6 +121,13 @@ export async function getServerSideProps(
     return route;
   }
   if (route.getServerSideProps) {
+    const { createContext } = await import("@calcom/trpc/server/createContext");
+    const ctx = await createContext(context);
+
+    const trpcRouter = (await import("@calcom/app-store/routing-forms/trpc/_router")).default;
+    const caller = trpcRouter.createCaller(ctx);
+    const { v4: uuidv4 } = await import("uuid");
+
     // TODO: Document somewhere that right now it is just a convention that filename should have appPages in it's name.
     // appPages is actually hardcoded here and no matter the fileName the same variable would be used.
     // We can write some validation logic later on that ensures that [...appPages].tsx file exists
@@ -136,7 +143,11 @@ export async function getServerSideProps(
       }>,
       prisma,
       user,
-      ssrInit
+      ssrInit,
+      {
+        caller,
+        uuidv4,
+      }
     );
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore

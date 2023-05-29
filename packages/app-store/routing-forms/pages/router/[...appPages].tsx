@@ -36,7 +36,10 @@ const querySchema = z
 
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
-  prisma: AppPrisma
+  prisma: AppPrisma,
+  _user: any,
+  _ssrInit: any,
+  { caller, uuidv4 }: { caller: any; uuidv4: any }
 ) {
   const queryParsed = querySchema.safeParse(context.query);
   if (!queryParsed.success) {
@@ -51,6 +54,7 @@ export const getServerSideProps = async function getServerSideProps(
       id: formId,
     },
   });
+
   if (!form) {
     return {
       notFound: true,
@@ -58,13 +62,13 @@ export const getServerSideProps = async function getServerSideProps(
   }
   const serializableForm = await getSerializableForm(form);
 
-  const response: Record<string, Pick<Response[string], "value">> = {};
+  const response: Response = {};
   serializableForm.fields?.forEach((field) => {
     const rawFieldResponse = fieldsResponses[getFieldIdentifier(field)] || "";
-    console.log(field);
     const fieldResponse =
       field.type === "multiselect" ? rawFieldResponse.split(",").map((r) => r.trim()) : rawFieldResponse;
     response[field.id] = {
+      label: field.label,
       value: fieldResponse,
     };
   });
@@ -74,6 +78,12 @@ export const getServerSideProps = async function getServerSideProps(
   if (!decidedAction) {
     throw new Error("No matching route could be found");
   }
+
+  await caller.public.response({
+    formId: form.id,
+    formFillerId: uuidv4(),
+    response: response,
+  });
 
   //TODO: Maybe take action after successful mutation
   if (decidedAction.type === "customPageMessage") {
@@ -98,6 +108,7 @@ export const getServerSideProps = async function getServerSideProps(
       },
     };
   }
+
   return {
     props: {
       form: serializableForm,
