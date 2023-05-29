@@ -23,6 +23,7 @@ import FeedbackEmail from "./templates/feedback-email";
 import type { PasswordReset } from "./templates/forgot-password-email";
 import ForgotPasswordEmail from "./templates/forgot-password-email";
 import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
+import OrganizationEmailVerification from "./templates/organization-email-verification";
 import OrganizerAttendeeCancelledSeatEmail from "./templates/organizer-attendee-cancelled-seat-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
@@ -327,4 +328,8 @@ export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, dow
     );
   }
   await Promise.all(emailsToSend);
+};
+
+export const sendOrganizationEmailVerification = async (email: string, code: string) => {
+  await sendEmail(() => new OrganizationEmailVerification(email, code));
 };

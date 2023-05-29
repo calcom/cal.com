@@ -5,7 +5,7 @@ import { Toaster } from "react-hot-toast";
 
 import { StepCard, Steps } from "@calcom/ui";
 
-export default function WizardLayout({
+export function WizardLayout({
   children,
   maxSteps = 2,
   currentStep = 0,

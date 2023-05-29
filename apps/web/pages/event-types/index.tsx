@@ -747,12 +747,12 @@ const SetupOrganizationBanner = () => {
             className="hover:text-muted absolute top-0 right-0 text-white hover:bg-transparent"
           />
           <div className="flex flex-col gap-2 px-8 pt-8 pb-8">
-            <h1 className="text-2xl font-bold">{t("organisation_banner_title")}</h1>
-            <p className="max-w-2xl">{t("organisation_banner_description")}</p>
+            <h1 className="text-2xl font-bold">{t("organization_banner_title")}</h1>
+            <p className="max-w-2xl">{t("organization_banner_description")}</p>
           </div>
           <div className="flex flex-row gap-2 px-8">
             <Button variant="button" color="secondary">
-              {t("setup_organisation")}
+              {t("setup_organization")}
             </Button>
             <Button
               variant="button"

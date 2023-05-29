@@ -1837,7 +1837,16 @@
   "google_workspace_admin_tooltip":"You must be a Workspace Admin to use this feature",
   "first_event_type_webhook_description": "Create your first webhook for this event type",
   "create_for": "Create for",
-  "setup_organisation": "Setup an Organization",
-  "organisation_banner_description": "Create an environments where your teams can create shared apps, workflows and event types with round-robin and collective scheduling.",
-  "organisation_banner_title": "Manage organizations with multiple teams"
+  "setup_organization": "Setup an Organization",
+  "organization_banner_description": "Create an environments where your teams can create shared apps, workflows and event types with round-robin and collective scheduling.",
+  "organization_banner_title": "Manage organizations with multiple teams",
+  "set_up_your_organization": "Set up your organization",
+  "organizations_description": "Organizations are shared environments where teams can create shared event types, apps, workflows and more.",
+  "organization_url_taken": "This URL is already taken",
+  "must_enter_organization_name": "Must enter an organization name",
+  "must_enter_organization_admin_email": "Must enter the organization's administrator email",
+  "admin_email": "Administrator's email address",
+  "admin_username": "Administrator's username",
+  "organization_name": "Organization name",
+  "organization_url": "Organization URL"
 }
