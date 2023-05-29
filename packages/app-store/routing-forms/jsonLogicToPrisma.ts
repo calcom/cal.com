@@ -43,6 +43,22 @@ const OPERATOR_MAP = {
     operator: "NOT.equals",
     secondaryOperand: "",
   },
+  ">": {
+    operator: "gt",
+    secondaryOperand: null,
+  },
+  ">=": {
+    operator: "gte",
+    secondaryOperand: null,
+  },
+  "<": {
+    operator: "lt",
+    secondaryOperand: null,
+  },
+  "<=": {
+    operator: "lte",
+    secondaryOperand: null,
+  },
   all: {
     operator: "array_contains",
     secondaryOperand: null,
@@ -71,12 +87,21 @@ const convertSingleQueryToPrismaWhereClause = (
     logicData[operatorName] instanceof Array ? logicData[operatorName] : [logicData[operatorName]];
 
   const mainOperand = operatorName !== "in" ? operands[0].var : operands[1].var;
+
   let secondaryOperand = staticSecondaryOperand || (operatorName !== "in" ? operands[1] : operands[0]) || "";
   if (operatorName === "all") {
     secondaryOperand = secondaryOperand.in[1];
   }
+
+  let transformedSecondaryOperand = secondaryOperand;
+  if ([">", ">=", "<", "<="].includes(operatorName)) {
+    transformedSecondaryOperand =
+      typeof secondaryOperand === "string" ? Number(secondaryOperand) : secondaryOperand;
+    console.log("transformedSecondaryOperand", transformedSecondaryOperand, "operator", operatorName);
+  }
+
   const prismaWhere = {
-    response: { path: [mainOperand, "value"], [`${prismaOperator}`]: secondaryOperand },
+    response: { path: [mainOperand, "value"], [`${prismaOperator}`]: transformedSecondaryOperand },
   };
 
   if (isNegation) {

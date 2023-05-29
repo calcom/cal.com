@@ -50,9 +50,14 @@ export function processRoute({
     const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
     const logic = jsonLogicQuery.logic;
     let result = false;
-    const responseValues: Record<string, string | string[]> = {};
+    const responseValues: Record<string, string | number | string[]> = {};
     for (const [uuid, { value }] of Object.entries(response)) {
-      responseValues[uuid] = value;
+      const foundField = form.fields?.find((f) => f.id === uuid);
+      let transformedValue: number | string | string[] = value;
+      if (foundField?.type === "number") {
+        transformedValue = value instanceof Array ? value : Number(value);
+      }
+      responseValues[uuid] = transformedValue;
     }
 
     if (logic) {

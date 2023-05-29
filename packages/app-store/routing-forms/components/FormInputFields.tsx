@@ -54,14 +54,16 @@ export default function FormInputFields(props: Props) {
               required={!!field.required}
               listValues={options}
               data-testid={`form-field-${getFieldIdentifier(field)}`}
-              setValue={(value) => {
+              setValue={(value: number | string | string[]) => {
+                const transformedValue =
+                  field.type === "number" ? (value instanceof Array ? value : Number(value)) : value;
                 setResponse((response) => {
                   response = response || {};
                   return {
                     ...response,
                     [field.id]: {
                       label: field.label,
-                      value,
+                      value: transformedValue,
                     },
                   };
                 });

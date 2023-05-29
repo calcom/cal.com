@@ -164,4 +164,30 @@ describe("jsonLogicToPrisma - Single Query", () => {
       },
     });
   });
+  it("should support greater than operator", () => {
+    const prismaWhere = jsonLogicToPrisma({
+      "logic":{
+        "and":[
+          {
+            ">": [
+              {
+                var:"a0d113a8-8e40-49b7-87b1-7f4ab57d226f"
+              },
+              "100"
+            ]
+          }
+        ]
+      }
+  });
+
+    expect(prismaWhere).toEqual({
+      NOT: {
+        OR: [
+          { response: { path: ["505d3c3c-aa71-4220-93a9-6fd1e1087939", "value"], equals: "abc" } },
+          { response: { path: ["505d3c3c-aa71-4220-93a9-6fd1e1087939", "value"], equals: "abcd" } },
+        ],
+      },
+    });
+  });
+  
 });
