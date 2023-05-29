@@ -483,7 +483,7 @@ export const FormBuilder = function FormBuilder({
                   fieldForm.getValues("editable") === "system" ||
                   fieldForm.getValues("editable") === "system-but-optional"
                 }
-                label="Identifier"
+                label={t("Identifier")}
               />
               <InputField
                 {...fieldForm.register("label")}
