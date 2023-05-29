@@ -1,5 +1,5 @@
-import { expect, it } from "@jest/globals";
 import MockDate from "mockdate";
+import { expect, it } from "vitest";
 
 import { getAggregateWorkingHours } from "@calcom/core/getAggregateWorkingHours";
 
@@ -28,9 +28,9 @@ const HAWAII_AND_NEWYORK_TEAM = [
 /* TODO: Make this test more "professional" */
 it("Sydney and Shiraz can live in harmony 🙏", async () => {
   expect(getAggregateWorkingHours(HAWAII_AND_NEWYORK_TEAM, "COLLECTIVE")).toMatchInlineSnapshot(`
-    Array [
-      Object {
-        "days": Array [
+    [
+      {
+        "days": [
           3,
           4,
           5,
@@ -38,16 +38,16 @@ it("Sydney and Shiraz can live in harmony 🙏", async () => {
         "endTime": 360,
         "startTime": 780,
       },
-      Object {
-        "days": Array [
+      {
+        "days": [
           6,
         ],
         "endTime": 180,
         "startTime": 0,
         "userId": 2,
       },
-      Object {
-        "days": Array [
+      {
+        "days": [
           2,
           3,
           4,
@@ -55,8 +55,8 @@ it("Sydney and Shiraz can live in harmony 🙏", async () => {
         "endTime": 1260,
         "startTime": 780,
       },
-      Object {
-        "days": Array [
+      {
+        "days": [
           5,
         ],
         "endTime": 1260,
@@ -66,9 +66,9 @@ it("Sydney and Shiraz can live in harmony 🙏", async () => {
   `);
 
   expect(getAggregateWorkingHours(HAWAII_AND_NEWYORK_TEAM, "ROUND_ROBIN")).toMatchInlineSnapshot(`
-    Array [
-      Object {
-        "days": Array [
+    [
+      {
+        "days": [
           1,
           2,
           3,
@@ -79,8 +79,8 @@ it("Sydney and Shiraz can live in harmony 🙏", async () => {
         "startTime": 780,
         "userId": 1,
       },
-      Object {
-        "days": Array [
+      {
+        "days": [
           3,
           4,
           5,
@@ -89,16 +89,16 @@ it("Sydney and Shiraz can live in harmony 🙏", async () => {
         "startTime": 0,
         "userId": 1,
       },
-      Object {
-        "days": Array [
+      {
+        "days": [
           6,
         ],
         "endTime": 180,
         "startTime": 0,
         "userId": 2,
       },
-      Object {
-        "days": Array [
+      {
+        "days": [
           2,
           3,
           4,
@@ -107,8 +107,8 @@ it("Sydney and Shiraz can live in harmony 🙏", async () => {
         "startTime": 780,
         "userId": 3,
       },
-      Object {
-        "days": Array [
+      {
+        "days": [
           5,
         ],
         "endTime": 1439,
