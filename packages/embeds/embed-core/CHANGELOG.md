@@ -1,5 +1,11 @@
 # @calcom/embed-core
 
+## 1.2.1
+
+### Patch Changes
+
+- Fix the build for embed-react
+
 ## 1.2.0
 
 ### Minor Changes
