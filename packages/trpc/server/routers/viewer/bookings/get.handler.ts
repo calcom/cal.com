@@ -102,6 +102,15 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
         },
       ],
     },
+    eventTypeIds: {
+      AND: [
+        {
+          eventTypeId: {
+            in: input.filters?.eventTypeIds,
+          },
+        },
+      ],
+    },
   };
 
   const filtersCombined: Prisma.BookingWhereInput[] =
