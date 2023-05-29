@@ -10,7 +10,8 @@ export const PopularAppsSlider = <T extends App>({ items }: { items: T[] }) => {
   return (
     <Slider<T>
       title={t("most_popular")}
-      items={items.filter((app) => !!app.trending)}
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      items={items.filter((app) => !!app.trending).sort((a, b) => b.installCount! - a.installCount!)}
       itemKey={(app) => app.name}
       options={{
         perView: 3,
