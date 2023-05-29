@@ -50,7 +50,6 @@ const handlePayment = async (
       paymentOption
     );
   } else {
-    console.log("Creating payment");
     paymentData = await paymentInstance.create(
       {
         amount: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].price,
