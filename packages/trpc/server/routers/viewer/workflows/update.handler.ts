@@ -66,7 +66,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  const isCurrentUsernamePremium = user && user.metadata && hasKeyInMetadata(user, "isPremium");
+  const isCurrentUsernamePremium = hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
 
   let isTeamsPlan = false;
   if (!isCurrentUsernamePremium) {
