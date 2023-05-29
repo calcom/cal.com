@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 
 import { ImportantText } from "../components/ImportantText";
 import { Message } from "../components/Message";
-import { BaseAppFork, Seed, generateAppFiles } from "../core";
+import { BaseAppFork, generateAppFiles } from "../core";
 import { getApp } from "../utils/getApp";
 
 export default function DeleteForm({ slug, action }: { slug: string; action: "delete" | "delete-template" }) {
@@ -28,7 +28,6 @@ export default function DeleteForm({ slug, action }: { slug: string; action: "de
     if (state === "DELETION_CONFIRMATION_SUCCESSFUL") {
       (async () => {
         await BaseAppFork.delete({ slug, isTemplate });
-        Seed.revert({ slug });
         await generateAppFiles();
         // successMsg({ text: `App with slug ${slug} has been deleted`, done: true });
         setState("DELETION_COMPLETED");

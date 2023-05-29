@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
+import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingByUidOrRescheduleUid } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import prisma from "@calcom/prisma";
@@ -12,10 +13,22 @@ import PageWrapper from "@components/PageWrapper";
 
 type PageProps = inferSSRProps<typeof getServerSideProps>;
 
-export default function Type({ slug, user, booking, away }: PageProps) {
+export default function Type({ slug, user, booking, away, isBrandingHidden }: PageProps) {
   return (
-    <main className="flex justify-center">
-      <Booker username={user} eventSlug={slug} rescheduleBooking={booking} isAway={away} />
+    <main className="flex h-full min-h-[100dvh] items-center justify-center">
+      <BookerSeo
+        username={user}
+        eventSlug={slug}
+        rescheduleUid={booking?.uid}
+        hideBranding={isBrandingHidden}
+      />
+      <Booker
+        username={user}
+        eventSlug={slug}
+        rescheduleBooking={booking}
+        isAway={away}
+        hideBranding={isBrandingHidden}
+      />
     </main>
   );
 }
@@ -30,8 +43,8 @@ const paramsSchema = z.object({ type: z.string(), slug: z.string() });
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(context.params);
   const { rescheduleUid } = context.query;
-  const { ssgInit } = await import("@server/lib/ssg");
-  const ssg = await ssgInit(context);
+  const { ssrInit } = await import("@server/lib/ssr");
+  const ssr = await ssrInit(context);
 
   const team = await prisma.team.findFirst({
     where: {
@@ -39,6 +52,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
     select: {
       id: true,
+      hideBranding: true,
     },
   });
 
@@ -52,14 +66,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (rescheduleUid) {
     booking = await getBookingByUidOrRescheduleUid(`${rescheduleUid}`);
   }
-
+  await ssr.viewer.public.event.prefetch({ username: teamSlug, eventSlug: meetingSlug });
   return {
     props: {
       booking,
       away: false,
       user: teamSlug,
       slug: meetingSlug,
-      trpcState: ssg.dehydrate(),
+      trpcState: ssr.dehydrate(),
+      isBrandingHidden: team?.hideBranding,
     },
   };
 };

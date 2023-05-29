@@ -22,6 +22,7 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { createBooking, createRecurringBooking } from "@calcom/features/bookings/lib";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import {
   getBookingFieldsWithSystemFields,
   SystemField,
@@ -39,7 +40,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
-import { parseDate, parseRecurringDates } from "@calcom/lib/parse-dates";
+import { parseDate, parseDateTimeWithTimeZone, parseRecurringDates } from "@calcom/lib/parse-dates";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { TimeFormat } from "@calcom/lib/timeFormat";
@@ -230,12 +231,16 @@ const BookingPage = ({
     }),
     {}
   );
+
+  const { timezone } = useTimePreferences();
+
   const reserveSlot = () => {
     if (queryDuration) {
       reserveSlotMutation.mutate({
         eventTypeId: eventType.id,
         slotUtcStartDate: dayjs(queryDate).utc().format(),
         slotUtcEndDate: dayjs(queryDate).utc().add(parseInt(queryDuration), "minutes").format(),
+        bookingUid: currentSlotBooking?.uid,
       });
     }
   };
@@ -550,7 +555,7 @@ const BookingPage = ({
           )}>
           <div className="sm:flex">
             {showEventTypeDetails && (
-              <div className="sm:border-subtle  text-default flex flex-col px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6">
+              <div className="sm:border-subtle text-default flex flex-col px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
                   <BookingDescriptionPayment eventType={eventType} t={t} i18n={i18n} />
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
@@ -600,7 +605,7 @@ const BookingPage = ({
                         <Calendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                         {isClientTimezoneAvailable &&
                           typeof booking.startTime === "string" &&
-                          parseDate(dayjs(booking.startTime), i18n.language, {
+                          parseDateTimeWithTimeZone(booking.startTime, i18n.language, timezone, {
                             selectedTimeFormat: timeFormat,
                           })}
                       </p>
@@ -632,7 +637,12 @@ const BookingPage = ({
                         {currentSlotBooking
                           ? eventType.seatsPerTimeSlot - currentSlotBooking.attendees.length
                           : eventType.seatsPerTimeSlot}{" "}
-                        / {eventType.seatsPerTimeSlot} {t("seats_available")}
+                        / {eventType.seatsPerTimeSlot}{" "}
+                        {t("seats_available", {
+                          count: currentSlotBooking
+                            ? eventType.seatsPerTimeSlot - currentSlotBooking.attendees.length
+                            : eventType.seatsPerTimeSlot,
+                        })}
                       </p>
                     </div>
                   )}

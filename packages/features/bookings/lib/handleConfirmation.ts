@@ -30,6 +30,7 @@ export async function handleConfirmation(args: {
       price: number;
       requiresConfirmation: boolean;
       title: string;
+      teamId?: number | null;
     } | null;
     eventTypeId: number | null;
     smsReminderNumber: string | null;
@@ -235,16 +236,17 @@ export async function handleConfirmation(args: {
   }
 
   try {
-    // schedule job for zapier trigger 'when meeting ends'
     const subscribersBookingCreated = await getWebhooks({
-      userId: booking.userId || 0,
-      eventTypeId: booking.eventTypeId || 0,
+      userId: booking.userId,
+      eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+      teamId: booking.eventType?.teamId,
     });
     const subscribersMeetingEnded = await getWebhooks({
-      userId: booking.userId || 0,
-      eventTypeId: booking.eventTypeId || 0,
+      userId: booking.userId,
+      eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+      teamId: booking.eventType?.teamId,
     });
 
     subscribersMeetingEnded.forEach((subscriber) => {

@@ -4,10 +4,12 @@ import { useRouter } from "next/router";
 import type { CSSProperties } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
@@ -16,7 +18,6 @@ import { Alert, Button, EmailField, HeadSeo, PasswordField, TextField } from "@c
 
 import PageWrapper from "@components/PageWrapper";
 
-import { asStringOrNull } from "../lib/asStringOrNull";
 import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
 import { ssrInit } from "../server/lib/ssr";
 
@@ -24,11 +25,10 @@ type FormValues = {
   username: string;
   email: string;
   password: string;
-  passwordcheck: string;
   apiError: string;
 };
 
-export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof getServerSideProps>) {
+export default function Signup({ prepopulateFormValues, token }: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
@@ -76,7 +76,7 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
   return (
     <LicenseRequired>
       <div
-        className="bg-muted flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8"
+        className="bg-muted flex min-h-screen flex-col justify-center "
         style={
           {
             "--cal-brand": "#111827",
@@ -95,7 +95,7 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
           </h2>
         </div>
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-default mx-2 px-4 py-8 shadow sm:rounded-lg sm:px-10">
+          <div className="bg-default mx-2 p-6 shadow sm:rounded-lg lg:p-8">
             <FormProvider {...methods}>
               <form
                 onSubmit={(event) => {
@@ -109,7 +109,7 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
                 }}
                 className="bg-default space-y-6">
                 {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <TextField
                     addOnLeading={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/`}
                     {...register("username")}
@@ -125,32 +125,28 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
                       className: "block text-sm font-medium text-default",
                     }}
                     {...register("password")}
+                    hintErrors={["caplow", "min", "num"]}
                     className="border-default mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
-                  />
-                  <PasswordField
-                    label={t("confirm_password")}
-                    {...register("passwordcheck", {
-                      validate: (value) =>
-                        value === methods.watch("password") || (t("error_password_mismatch") as string),
-                    })}
                   />
                 </div>
                 <div className="flex space-x-2 rtl:space-x-reverse">
-                  <Button type="submit" loading={isSubmitting} className="w-7/12 justify-center">
+                  <Button type="submit" loading={isSubmitting} className="w-full justify-center">
                     {t("create_account")}
                   </Button>
-                  <Button
-                    color="secondary"
-                    className="w-5/12 justify-center"
-                    onClick={() =>
-                      signIn("Cal.com", {
-                        callbackUrl: router.query.callbackUrl
-                          ? `${WEBAPP_URL}/${router.query.callbackUrl}`
-                          : `${WEBAPP_URL}/getting-started`,
-                      })
-                    }>
-                    {t("login_instead")}
-                  </Button>
+                  {!token && (
+                    <Button
+                      color="secondary"
+                      className="w-full justify-center"
+                      onClick={() =>
+                        signIn("Cal.com", {
+                          callbackUrl: router.query.callbackUrl
+                            ? `${WEBAPP_URL}/${router.query.callbackUrl}`
+                            : `${WEBAPP_URL}/getting-started`,
+                        })
+                      }>
+                      {t("login_instead")}
+                    </Button>
+                  )}
                 </div>
               </form>
             </FormProvider>
@@ -163,7 +159,7 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const ssr = await ssrInit(ctx);
-  const token = asStringOrNull(ctx.query.token);
+  const token = z.string().optional().parse(ctx.query.token);
 
   const props = {
     isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
@@ -221,11 +217,27 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     };
   }
 
+  const guessUsernameFromEmail = (email: string) => {
+    const [username] = email.split("@");
+    return username;
+  };
+
+  let username = guessUsernameFromEmail(verificationToken.identifier);
+
+  if (!IS_SELF_HOSTED) {
+    // Im not sure we actually hit this because of next redirects signup to website repo - but just in case this is pretty cool :)
+    const { available, suggestion } = await checkPremiumUsername(username);
+
+    username = available ? username : suggestion || username;
+  }
+
   return {
     props: {
       ...props,
+      token,
       prepopulateFormValues: {
         email: verificationToken.identifier,
+        username,
       },
     },
   };

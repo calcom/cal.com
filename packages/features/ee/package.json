@@ -1,6 +1,6 @@
 {
   "name": "@calcom/ee",
-  "description": "Cal.com Enterprise Edition features",
+  "description": "Cal.com Commercial License features",
   "version": "0.0.0",
   "private": true,
   "license": "See license in LICENSE",

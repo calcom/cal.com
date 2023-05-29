@@ -170,7 +170,7 @@ function EventTypeSingleLayout({
 
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
-    let navigation = getNavigation({
+    const navigation = getNavigation({
       t,
       eventType,
       enabledAppsNumber,
@@ -210,7 +210,7 @@ function EventTypeSingleLayout({
     }
     if (isManagedEventType || isChildrenManagedEventType) {
       // Removing apps and workflows for manageg event types by admins v1
-      navigation = navigation.slice(0, -2);
+      navigation.splice(-2, 1);
     } else {
       navigation.push({
         name: "webhooks",
@@ -238,7 +238,7 @@ function EventTypeSingleLayout({
         <div className="flex items-center justify-end">
           {!eventType.metadata.managedEventConfig && (
             <>
-              <div className="sm:hover:bg-subtle hidden items-center rounded-md px-2 lg:flex">
+              <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 lg:flex">
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"
