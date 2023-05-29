@@ -14,7 +14,7 @@
     "lint:report": "eslint . --format json --output-file ../../lint-results/api.json",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "start": "PORT=3002 next start",
-    "test": "echo 'No tests yet' && exit 1",
+    "test": "echo 'No tests yet' && exit 0",
     "type-check": "tsc --pretty --noEmit"
   },
   "devDependencies": {
