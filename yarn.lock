@@ -4055,15 +4055,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/codesandbox-css-variables-api@workspace:packages/embeds/codesandboxes/embed-react/css-variables-api":
-  version: 0.0.0-use.local
-  resolution: "@calcom/codesandbox-css-variables-api@workspace:packages/embeds/codesandboxes/embed-react/css-variables-api"
-  dependencies:
-    "@calcom/embed-react": "workspace:^"
-    typescript: ^5.0.4
-  languageName: unknown
-  linkType: soft
-
 "@calcom/config@*, @calcom/config@workspace:packages/config":
   version: 0.0.0-use.local
   resolution: "@calcom/config@workspace:packages/config"
@@ -5093,7 +5084,7 @@ __metadata:
     keen-slider: ^6.8.0
     lucide-react: ^0.125.0
     micro: ^10.0.1
-    next: 13.2.4-canary.5
+    next: ~13.2.1
     next-auth: ^4.20.1
     next-i18next: ^11.3.0
     playwright: ^1.31.2
@@ -8196,13 +8187,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/env@npm:13.2.4-canary.5":
-  version: 13.2.4-canary.5
-  resolution: "@next/env@npm:13.2.4-canary.5"
-  checksum: d46767ba464334b8487b671a9b366b25e7c1b6bf262bd66afd62b07b17f52066158fe69b14db3abc8219e1e580cd60e0655af6c71550506770780d1ba28ae92d
-  languageName: node
-  linkType: hard
-
 "@next/eslint-plugin-next@npm:13.2.1":
   version: 13.2.1
   resolution: "@next/eslint-plugin-next@npm:13.2.1"
@@ -8226,13 +8210,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/swc-android-arm-eabi@npm:13.2.4-canary.5":
-  version: 13.2.4-canary.5
-  resolution: "@next/swc-android-arm-eabi@npm:13.2.4-canary.5"
-  conditions: os=android & cpu=arm
-  languageName: node
-  linkType: hard
-
 "@next/swc-android-arm64@npm:13.2.3":
   version: 13.2.3
   resolution: "@next/swc-android-arm64@npm:13.2.3"
@@ -8243,13 +8220,6 @@ __metadata:
 "@next/swc-android-arm64@npm:13.2.4":
   version: 13.2.4
   resolution: "@next/swc-android-arm64@npm:13.2.4"
-  conditions: os=android & cpu=arm64
-  languageName: node
-  linkType: hard
-
-"@next/swc-android-arm64@npm:13.2.4-canary.5":
-  version: 13.2.4-canary.5
-  resolution: "@next/swc-android-arm64@npm:13.2.4-canary.5"
   conditions: os=android & cpu=arm64
   languageName: node
   linkType: hard
@@ -8268,13 +8238,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/swc-darwin-arm64@npm:13.2.4-canary.5":
-  version: 13.2.4-canary.5
-  resolution: "@next/swc-darwin-arm64@npm:13.2.4-canary.5"
-  conditions: os=darwin & cpu=arm64
-  languageName: node
-  linkType: hard
-
 "@next/swc-darwin-x64@npm:13.2.3":
   version: 13.2.3
   resolution: "@next/swc-darwin-x64@npm:13.2.3"
@@ -8285,13 +8248,6 @@ __metadata:
 "@next/swc-darwin-x64@npm:13.2.4":
   version: 13.2.4
   resolution: "@next/swc-darwin-x64@npm:13.2.4"
-  conditions: os=darwin & cpu=x64
-  languageName: node
-  linkType: hard
-
-"@next/swc-darwin-x64@npm:13.2.4-canary.5":
-  version: 13.2.4-canary.5
-  resolution: "@next/swc-darwin-x64@npm:13.2.4-canary.5"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
@@ -8310,13 +8266,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/swc-freebsd-x64@npm:13.2.4-canary.5":
-  version: 13.2.4-canary.5
-  resolution: "@next/swc-freebsd-x64@npm:13.2.4-canary.5"
-  conditions: os=freebsd & cpu=x64
-  languageName: node
-  linkType: hard
-
 "@next/swc-linux-arm-gnueabihf@npm:13.2.3":
   version: 13.2.3
   resolution: "@next/swc-linux-arm-gnueabihf@npm:13.2.3"
@@ -8327,13 +8276,6 @@ __metadata:
 "@next/swc-linux-arm-gnueabihf@npm:13.2.4":
   version: 13.2.4
   resolution: "@next/swc-linux-arm-gnueabihf@npm:13.2.4"
-  conditions: os=linux & cpu=arm
-  languageName: node
-  linkType: hard
-
-"@next/swc-linux-arm-gnueabihf@npm:13.2.4-canary.5":
-  version: 13.2.4-canary.5
-  resolution: "@next/swc-linux-arm-gnueabihf@npm:13.2.4-canary.5"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
@@ -8352,13 +8294,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/swc-linux-arm64-gnu@npm:13.2.4-canary.5":
-  version: 13.2.4-canary.5
-  resolution: "@next/swc-linux-arm64-gnu@npm:13.2.4-canary.5"
-  conditions: os=linux & cpu=arm64 & libc=glibc
-  languageName: node
-  linkType: hard
-
 "@next/swc-linux-arm64-musl@npm:13.2.3":
   version: 13.2.3
   resolution: "@next/swc-linux-arm64-musl@npm:13.2.3"
@@ -8369,13 +8304,6 @@ __metadata:
 "@next/swc-linux-arm64-musl@npm:13.2.4":
   version: 13.2.4
   resolution: "@next/swc-linux-arm64-musl@npm:13.2.4"
-  conditions: os=linux & cpu=arm64 & libc=musl
-  languageName: node
-  linkType: hard
-
-"@next/swc-linux-arm64-musl@npm:13.2.4-canary.5":
-  version: 13.2.4-canary.5
-  resolution: "@next/swc-linux-arm64-musl@npm:13.2.4-canary.5"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
@@ -8394,13 +8322,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/swc-linux-x64-gnu@npm:13.2.4-canary.5":
-  version: 13.2.4-canary.5
-  resolution: "@next/swc-linux-x64-gnu@npm:13.2.4-canary.5"
-  conditions: os=linux & cpu=x64 & libc=glibc
-  languageName: node
-  linkType: hard
-
 "@next/swc-linux-x64-musl@npm:13.2.3":
   version: 13.2.3
   resolution: "@next/swc-linux-x64-musl@npm:13.2.3"
@@ -8411,13 +8332,6 @@ __metadata:
 "@next/swc-linux-x64-musl@npm:13.2.4":
   version: 13.2.4
   resolution: "@next/swc-linux-x64-musl@npm:13.2.4"
-  conditions: os=linux & cpu=x64 & libc=musl
-  languageName: node
-  linkType: hard
-
-"@next/swc-linux-x64-musl@npm:13.2.4-canary.5":
-  version: 13.2.4-canary.5
-  resolution: "@next/swc-linux-x64-musl@npm:13.2.4-canary.5"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
@@ -8436,13 +8350,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/swc-win32-arm64-msvc@npm:13.2.4-canary.5":
-  version: 13.2.4-canary.5
-  resolution: "@next/swc-win32-arm64-msvc@npm:13.2.4-canary.5"
-  conditions: os=win32 & cpu=arm64
-  languageName: node
-  linkType: hard
-
 "@next/swc-win32-ia32-msvc@npm:13.2.3":
   version: 13.2.3
   resolution: "@next/swc-win32-ia32-msvc@npm:13.2.3"
@@ -8457,13 +8364,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/swc-win32-ia32-msvc@npm:13.2.4-canary.5":
-  version: 13.2.4-canary.5
-  resolution: "@next/swc-win32-ia32-msvc@npm:13.2.4-canary.5"
-  conditions: os=win32 & cpu=ia32
-  languageName: node
-  linkType: hard
-
 "@next/swc-win32-x64-msvc@npm:13.2.3":
   version: 13.2.3
   resolution: "@next/swc-win32-x64-msvc@npm:13.2.3"
@@ -8474,13 +8374,6 @@ __metadata:
 "@next/swc-win32-x64-msvc@npm:13.2.4":
   version: 13.2.4
   resolution: "@next/swc-win32-x64-msvc@npm:13.2.4"
-  conditions: os=win32 & cpu=x64
-  languageName: node
-  linkType: hard
-
-"@next/swc-win32-x64-msvc@npm:13.2.4-canary.5":
-  version: 13.2.4-canary.5
-  resolution: "@next/swc-win32-x64-msvc@npm:13.2.4-canary.5"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -29112,77 +29005,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next@npm:13.2.4-canary.5":
-  version: 13.2.4-canary.5
-  resolution: "next@npm:13.2.4-canary.5"
-  dependencies:
-    "@next/env": 13.2.4-canary.5
-    "@next/swc-android-arm-eabi": 13.2.4-canary.5
-    "@next/swc-android-arm64": 13.2.4-canary.5
-    "@next/swc-darwin-arm64": 13.2.4-canary.5
-    "@next/swc-darwin-x64": 13.2.4-canary.5
-    "@next/swc-freebsd-x64": 13.2.4-canary.5
-    "@next/swc-linux-arm-gnueabihf": 13.2.4-canary.5
-    "@next/swc-linux-arm64-gnu": 13.2.4-canary.5
-    "@next/swc-linux-arm64-musl": 13.2.4-canary.5
-    "@next/swc-linux-x64-gnu": 13.2.4-canary.5
-    "@next/swc-linux-x64-musl": 13.2.4-canary.5
-    "@next/swc-win32-arm64-msvc": 13.2.4-canary.5
-    "@next/swc-win32-ia32-msvc": 13.2.4-canary.5
-    "@next/swc-win32-x64-msvc": 13.2.4-canary.5
-    "@swc/helpers": 0.4.14
-    caniuse-lite: ^1.0.30001406
-    postcss: 8.4.14
-    styled-jsx: 5.1.1
-  peerDependencies:
-    "@opentelemetry/api": ^1.4.0
-    fibers: ">= 3.1.0"
-    node-sass: ^6.0.0 || ^7.0.0
-    react: ^18.2.0
-    react-dom: ^18.2.0
-    sass: ^1.3.0
-  dependenciesMeta:
-    "@next/swc-android-arm-eabi":
-      optional: true
-    "@next/swc-android-arm64":
-      optional: true
-    "@next/swc-darwin-arm64":
-      optional: true
-    "@next/swc-darwin-x64":
-      optional: true
-    "@next/swc-freebsd-x64":
-      optional: true
-    "@next/swc-linux-arm-gnueabihf":
-      optional: true
-    "@next/swc-linux-arm64-gnu":
-      optional: true
-    "@next/swc-linux-arm64-musl":
-      optional: true
-    "@next/swc-linux-x64-gnu":
-      optional: true
-    "@next/swc-linux-x64-musl":
-      optional: true
-    "@next/swc-win32-arm64-msvc":
-      optional: true
-    "@next/swc-win32-ia32-msvc":
-      optional: true
-    "@next/swc-win32-x64-msvc":
-      optional: true
-  peerDependenciesMeta:
-    "@opentelemetry/api":
-      optional: true
-    fibers:
-      optional: true
-    node-sass:
-      optional: true
-    sass:
-      optional: true
-  bin:
-    next: dist/bin/next
-  checksum: 47616f1ebbf0e716ca67313d247d56f646e1f663dcfc99125a0e882ed74a6ebc2c776a7e05438b4e928d38d8dae42933c5b314dfb8e4c0a566edd0e26647335a
-  languageName: node
-  linkType: hard
-
 "next@npm:^13.2.1":
   version: 13.2.3
   resolution: "next@npm:13.2.3"
@@ -37674,16 +37496,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.0.4":
-  version: 5.0.4
-  resolution: "typescript@npm:5.0.4"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 82b94da3f4604a8946da585f7d6c3025fff8410779e5bde2855ab130d05e4fd08938b9e593b6ebed165bda6ad9292b230984f10952cf82f0a0ca07bbeaa08172
-  languageName: node
-  linkType: hard
-
 "typescript@patch:typescript@^4.9.3#~builtin<compat/typescript>":
   version: 4.9.5
   resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=23ec76"
@@ -37701,16 +37513,6 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 3e2ab0772908676d9b9cb83398c70003a3b08e1c6b3b122409df9f4b520f2fdaefa20c3d7d57dce283fed760ac94b3ce94d4a7fa875127b67852904425a1f0dc
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@^5.0.4#~builtin<compat/typescript>":
-  version: 5.0.4
-  resolution: "typescript@patch:typescript@npm%3A5.0.4#~builtin<compat/typescript>::version=5.0.4&hash=1f5320"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 6a1fe9a77bb9c5176ead919cc4a1499ee63e46b4e05bf667079f11bf3a8f7887f135aa72460a4c3b016e6e6bb65a822cb8689a6d86cbfe92d22cc9f501f09213
   languageName: node
   linkType: hard
 

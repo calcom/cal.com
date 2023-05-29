@@ -3,8 +3,8 @@ import { useEffect } from "react";
 import { useState } from "react";
 import ReactDom from "react-dom";
 
-// Because we don't import from @calcom/embed-react, it isn't able to test if the build is successful or not and thus npm package would work or not correctly.
-// There is test/api.types-test.ts which verifies that the types from built package are correctly generated and exported.
+// Because we don't import from @calcom/embed-react, this file isn't able to test if the build is successful or not and thus npm package would work or not correctly.
+// There are tests in test/built which verifiy that the types from built package are correctly generated and exported correctly.
 import Cal, { getCalApi } from "./src/index";
 
 const api = getCalApi();

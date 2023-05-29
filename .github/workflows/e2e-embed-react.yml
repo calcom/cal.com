@@ -26,6 +26,7 @@ jobs:
       - uses: ./.github/actions/cache-build
       - name: Run Tests
         run: yarn test-e2e:embed-react
+        run: yarn workspace @calcom/embed-react packaged:tests
         env:
           DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
       - name: Upload Test Results

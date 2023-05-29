@@ -8,10 +8,6 @@
 	  "declaration": true,
 	  "jsx": "preserve",
 	  "outDir": "dist",
-	  "paths": {
-		"@calcom/embed-core": ["../embed-core/src"],
-		"@calcom/embed-snippet": ["../embed-snippet/src"]
-	  }
 	},
 	"include": ["**/*.ts"],
   }

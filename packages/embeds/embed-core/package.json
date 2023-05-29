@@ -15,7 +15,7 @@
     "embed-web-start": "yarn workspace @calcom/web start",
     "__build": "yarn tailwind && vite build && tsc --emitDeclarationOnly --declarationDir dist && cp -r ../../../apps/web/public/embed ./dist/",
     "__dev": "yarn tailwind && vite build --mode development",
-    "build": "NEXT_PUBLIC_EMBED_FINGER_PRINT=$(git rev-parse --short HEAD) yarn __build",
+    "build": "rm -rf dist && NEXT_PUBLIC_EMBED_FINGER_PRINT=$(git rev-parse --short HEAD) yarn __build",
     "build-preview": "PREVIEW_BUILD=1 yarn __build ",
     "vite": "vite",
     "tailwind": "yarn tailwindcss -i ./src/styles.css -o ./src/tailwind.generated.css",
@@ -29,7 +29,8 @@
     "embed-tests": "yarn playwright test --config=playwright/config/playwright.config.ts",
     "embed-tests-quick": "QUICK=true yarn embed-tests",
     "embed-tests-update-snapshots:ci": "yarn embed-tests-quick --update-snapshots",
-    "prepack": "NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn build",
+    "withEmbedPublishEnv": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn",
+    "prepack": "yarn withEmbedPublishEnv build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf ../../../apps/web/public/embed"
   },
   "files": [
