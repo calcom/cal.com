@@ -78,7 +78,36 @@ const tabs: VerticalTabItemProps[] = [
     name: "organisation",
     href: "/settings/organisation",
     icon: Building,
-    children: [],
+    children: [
+      {
+        name: "profile",
+        href: "/settings/organisation/profile",
+      },
+      {
+        name: "general",
+        href: "/settings/organisation/general",
+      },
+      {
+        name: "members",
+        href: "/settings/organisation/members",
+      },
+      {
+        name: "appearance",
+        href: "/settings/organisation/appearance",
+      },
+      {
+        name: "billing",
+        href: "/settings/organisation/billing",
+      },
+      {
+        name: "saml_config",
+        href: "/settings/organisation/sso",
+      },
+      {
+        name: "developer",
+        href: "/settings/organisation/developer",
+      },
+    ],
   },
   {
     name: "teams",
@@ -130,9 +159,7 @@ const useTabs = () => {
 
   // check if name is in adminRequiredKeys
   return tabs.filter((tab) => {
-    if (session.data?.user.organizationId && organisationRequiredKeys.includes(tab.name)) {
-      return true;
-    }
+    if (organisationRequiredKeys.includes(tab.name)) return !!session.data?.user?.organizationId;
 
     if (isAdmin) return true;
     return !adminRequiredKeys.includes(tab.name);
