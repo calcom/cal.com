@@ -13,6 +13,7 @@ export const ZCreateInputSchema = z.object({
   adminEmail: z.string().email(),
   adminUsername: z.string(),
   check: z.boolean().default(true),
+  language: z.string().optional(),
 });
 
 export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;

@@ -97,7 +97,7 @@ export const VerifyCodeDialog = ({
 };
 
 export const CreateANewOrganizationForm = () => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
   const returnToParsed = querySchema.safeParse(router.query);
@@ -300,7 +300,11 @@ export const CreateANewOrganizationForm = () => {
         setIsOpenDialog={setShowVerifyCode}
         email={watchAdminEmail}
         onSuccess={() => {
-          createOrganizationMutation.mutate({ ...newOrganizationFormMethods.getValues(), check: false });
+          createOrganizationMutation.mutate({
+            ...newOrganizationFormMethods.getValues(),
+            language: i18n.language,
+            check: false,
+          });
         }}
       />
     </>

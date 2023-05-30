@@ -3,6 +3,7 @@ import { totp } from "otplib";
 
 import { sendOrganizationEmailVerification } from "@calcom/emails";
 import { IS_ORGANIZATION_BILLING_ENABLED } from "@calcom/lib/constants";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -19,7 +20,7 @@ type CreateOptions = {
 };
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
-  const { slug, name, logo, adminEmail, adminUsername, check } = input;
+  const { slug, name, logo, adminEmail, adminUsername, check, language } = input;
 
   const userCollisions = await prisma.user.findFirst({
     where: {
@@ -71,6 +72,8 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
     return { user: createOwnerOrg };
   } else {
+    const language = await getTranslation(input.language ?? "en", "common");
+
     const secret = createHash("md5")
       .update(adminEmail + process.env.CALENDSO_ENCRYPTION_KEY)
       .digest("hex");
@@ -78,7 +81,13 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     totp.options = { step: 90 };
     const code = totp.generate(secret);
 
-    await sendOrganizationEmailVerification(adminEmail, code);
+    await sendOrganizationEmailVerification({
+      user: {
+        email: adminEmail,
+      },
+      code,
+      language,
+    });
   }
 
   // Sync Services: Close.com
