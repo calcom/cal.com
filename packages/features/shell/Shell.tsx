@@ -41,6 +41,7 @@ import {
   HeadSeo,
   Logo,
   SkeletonText,
+  Tooltip,
   showToast,
   useCalcomTheme,
 } from "@calcom/ui";
@@ -330,11 +331,11 @@ function UserDropdown({ small }: { small?: boolean }) {
             </span>
             {!small && (
               <span className="flex flex-grow items-center truncate">
-                <span className="flex-grow truncate text-sm leading-none">
-                  <span className="text-emphasis mb-1 block truncate font-medium leading-none">
+                <span className="flex-grow truncate text-sm">
+                  <span className="text-emphasis mb-1 block truncate pb-1 font-medium leading-none">
                     {user.name || "Nameless User"}
                   </span>
-                  <span className="text-default truncate font-normal leading-none">
+                  <span className="text-default truncate pb-1 font-normal leading-none">
                     {user.username
                       ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
                         ? `cal.com/${user.username}`
@@ -639,6 +640,7 @@ const NavigationItem: React.FC<{
 
   return (
     <Fragment>
+      <Tooltip side="right" content={t(item.name)} className="lg:hidden">
       <Link
         href={item.href}
         aria-label={t(item.name)}
@@ -667,6 +669,7 @@ const NavigationItem: React.FC<{
           <SkeletonText className="h-3 w-32" />
         )}
       </Link>
+      </Tooltip>
       {item.child &&
         isCurrent({ router, isChild, item }) &&
         item.child.map((item, index) => <NavigationItem index={index} key={item.name} item={item} isChild />)}
