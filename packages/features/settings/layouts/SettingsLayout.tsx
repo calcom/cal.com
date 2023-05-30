@@ -28,6 +28,7 @@ import {
   ChevronRight,
   Plus,
   Menu,
+  Building,
 } from "@calcom/ui/components/icon";
 
 const tabs: VerticalTabItemProps[] = [
@@ -74,6 +75,12 @@ const tabs: VerticalTabItemProps[] = [
     ],
   },
   {
+    name: "organisation",
+    href: "/settings/organisation",
+    icon: Building,
+    children: [],
+  },
+  {
     name: "teams",
     href: "/settings/teams",
     icon: Users,
@@ -103,6 +110,7 @@ tabs.find((tab) => {
 
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
+const organisationRequiredKeys = ["organisation"];
 
 const useTabs = () => {
   const session = useSession();
@@ -122,6 +130,10 @@ const useTabs = () => {
 
   // check if name is in adminRequiredKeys
   return tabs.filter((tab) => {
+    if (session.data?.user.organizationId && organisationRequiredKeys.includes(tab.name)) {
+      return true;
+    }
+
     if (isAdmin) return true;
     return !adminRequiredKeys.includes(tab.name);
   });

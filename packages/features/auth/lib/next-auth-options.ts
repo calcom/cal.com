@@ -84,6 +84,11 @@ const providers: Provider[] = [
           password: true,
           twoFactorEnabled: true,
           twoFactorSecret: true,
+          organization: {
+            select: {
+              id: true,
+            },
+          },
           teams: {
             include: {
               team: true,
@@ -172,6 +177,7 @@ const providers: Provider[] = [
         name: user.name,
         role: validateRole(user.role),
         belongsToActiveTeam: hasActiveTeams,
+        organizationId: user.organization?.id,
       };
     },
   }),
@@ -397,6 +403,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: user.role,
           impersonatedByUID: user?.impersonatedByUID,
           belongsToActiveTeam: user?.belongsToActiveTeam,
+          organizationId: user?.organizationId,
         };
       }
 
@@ -434,6 +441,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: existingUser.role,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
+          organizationId: existingUser.organizationId,
         };
       }
 
@@ -452,6 +460,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: token.role as UserPermissionRole,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
+          organizationId: token.organizationId as number,
         },
       };
       return calendsoSession;

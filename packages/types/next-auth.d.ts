@@ -18,6 +18,7 @@ declare module "next-auth" {
     belongsToActiveTeam?: boolean;
     username?: PrismaUser["username"];
     role?: PrismaUser["role"] | "INACTIVE_ADMIN";
+    organizationId?: number;
   }
 }
 
@@ -30,5 +31,6 @@ declare module "next-auth/jwt" {
     role?: UserPermissionRole | "INACTIVE_ADMIN" | null;
     impersonatedByUID?: number | null;
     belongsToActiveTeam?: boolean;
+    organizationId?: number;
   }
 }
