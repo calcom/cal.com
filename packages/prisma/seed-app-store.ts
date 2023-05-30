@@ -222,6 +222,12 @@ async function createApp(
 export default async function main() {
   // Calendar apps
   await createApp("apple-calendar", "applecalendar", ["calendar"], "apple_calendar");
+  if (process.env.BASECAMP3_CLIENT_ID && process.env.BASECAMP3_CLIENT_SECRET) {
+    await createApp("basecamp3", "basecamp3", ["other"], "basecamp3_other", {
+      client_id: process.env.BASECAMP3_CLIENT_ID,
+      client_secret: process.env.BASECAMP3_CLIENT_SECRET,
+    });
+  }
   await createApp("caldav-calendar", "caldavcalendar", ["calendar"], "caldav_calendar");
   try {
     const { client_secret, client_id, redirect_uris } = JSON.parse(
