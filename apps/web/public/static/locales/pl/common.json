@@ -1807,5 +1807,8 @@
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Zamierzasz obciążyć uczestnika kwotą {{amount, currency}}. Czy na pewno chcesz kontynuować?",
   "charge_attendee": "Pobierz od uczestnika opłatę w wysokości {{amount, currency}}",
-  "email_invite_team": "Zaproszono {{email}}"
+  "payment_app_commission": "Wymagaj płatności ({{paymentFeePercentage}}% + {{fee, currency}} prowizji od transakcji)",
+  "email_invite_team": "Zaproszono {{email}}",
+  "email_invite_team_bulk": "Zaproszono {{userCount}} użytkowników",
+  "error_collecting_card": "Błąd podczas pobierania karty"
 }
