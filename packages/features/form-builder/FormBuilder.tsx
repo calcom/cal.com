@@ -185,6 +185,27 @@ export const FormBuilder = function FormBuilder({
         },
       ]);
     }
+
+    const crossButton = (index: number) => {
+      return (
+        <Button
+          type="button"
+          className="ml-3 p-0 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
+          size="sm"
+          color="minimal"
+          StartIcon={X}
+          onClick={() => {
+            if (!value) {
+              return;
+            }
+            const newOptions = [...value];
+            newOptions.splice(index, 1);
+            onChange(newOptions);
+          }}
+        />
+      );
+    };
+
     return (
       <div className={className}>
         <Label>{label}</Label>
@@ -193,7 +214,7 @@ export const FormBuilder = function FormBuilder({
             {value?.map((option, index) => (
               <li key={index}>
                 <div className="flex items-center">
-                  <Input
+                  <InputField
                     required
                     value={option.label}
                     onChange={(e) => {
@@ -205,26 +226,11 @@ export const FormBuilder = function FormBuilder({
                       });
                       onChange(value);
                     }}
+                    addOnSuffix={value.length > 2 && !readOnly && crossButton(index)}
                     readOnly={readOnly}
                     placeholder={`Enter Option ${index + 1}`}
+                    containerClassName="w-full"
                   />
-                  {value.length > 2 && !readOnly && (
-                    <Button
-                      type="button"
-                      className="mb-2 -ml-8 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
-                      size="sm"
-                      color="minimal"
-                      StartIcon={X}
-                      onClick={() => {
-                        if (!value) {
-                          return;
-                        }
-                        const newOptions = [...value];
-                        newOptions.splice(index, 1);
-                        onChange(newOptions);
-                      }}
-                    />
-                  )}
                 </div>
               </li>
             ))}
