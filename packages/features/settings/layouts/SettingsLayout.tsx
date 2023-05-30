@@ -201,7 +201,7 @@ const SettingsSidebarContainer = ({
                       alt="User Avatar"
                     />
                   )}
-                  <p className="text-sm font-medium leading-5 truncate">{t(tab.name)}</p>
+                  <p className="truncate text-sm font-medium leading-5">{t(tab.name)}</p>
                 </div>
               </div>
               <div className="my-3 space-y-0.5">
@@ -226,7 +226,7 @@ const SettingsSidebarContainer = ({
                     {tab && tab.icon && (
                       <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
                     )}
-                    <p className="text-sm font-medium leading-5 truncate">{t(tab.name)}</p>
+                    <p className="truncate text-sm font-medium leading-5">{t(tab.name)}</p>
                   </div>
                 </Link>
                 {teams &&
