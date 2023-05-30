@@ -1834,5 +1834,7 @@
   "add_an_override": "Dodaj zamenu",
   "import_from_google_workspace": "Uvezi korisnike sa Google Workspace",
   "connect_google_workspace": "Poveži Google Workspace",
-  "google_workspace_admin_tooltip": "Morate da budete Workspace administrator da biste koristili ovu opciju"
+  "google_workspace_admin_tooltip": "Morate da budete Workspace administrator da biste koristili ovu opciju",
+  "first_event_type_webhook_description": "Napravite svoj prvi webhook za ovaj tip događaja",
+  "create_for": "Napravi za"
 }
