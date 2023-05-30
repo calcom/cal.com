@@ -126,7 +126,9 @@ export interface App {
   /** only required for "usage-based" billing. % of commission for paid bookings */
   commission?: number;
   licenseRequired?: boolean;
-  isProOnly?: boolean;
+  teamsPlanRequired?: {
+    upgradeUrl: string;
+  };
   appData?: AppData;
   /**
    * @deprecated

@@ -5,10 +5,9 @@ import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
 import classNames from "@calcom/lib/classNames";
-import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
-import { ToggleGroup, useCalcomTheme } from "@calcom/ui";
+import { ToggleGroup } from "@calcom/ui";
 import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
@@ -23,21 +22,20 @@ import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from ".
 import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
 import { useEvent } from "./utils/event";
+import { useBrandColors } from "./utils/use-brand-colors";
 
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
 const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
   ssr: false,
 });
 
-const useBrandColors = ({ brandColor, darkBrandColor }: { brandColor?: string; darkBrandColor?: string }) => {
-  const brandTheme = useGetBrandingColours({
-    lightVal: brandColor,
-    darkVal: darkBrandColor,
-  });
-  useCalcomTheme(brandTheme);
-};
-
-const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: BookerProps) => {
+const BookerComponent = ({
+  username,
+  eventSlug,
+  month,
+  rescheduleBooking,
+  hideBranding = false,
+}: BookerProps) => {
   const { t } = useLocale();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
@@ -61,6 +59,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
   useBrandColors({
     brandColor: event.data?.profile.brandColor,
     darkBrandColor: event.data?.profile.darkBrandColor,
+    theme: event.data?.profile.theme,
   });
 
   useInitializeBookerStore({
@@ -209,7 +208,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             "mt-auto mb-6 pt-6 [&_img]:h-[15px]",
             layout === "small_calendar" ? "block" : "hidden"
           )}>
-          <PoweredBy logoOnly />
+          {!hideBranding ? <PoweredBy logoOnly /> : null}
         </m.span>
       </div>
 

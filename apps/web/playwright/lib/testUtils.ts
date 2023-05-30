@@ -15,6 +15,9 @@ type Request = IncomingMessage & { body?: unknown };
 type RequestHandlerOptions = { req: Request; res: ServerResponse };
 type RequestHandler = (opts: RequestHandlerOptions) => void;
 
+export const testEmail = "test@example.com";
+export const testName = "Test Testson";
+
 export function createHttpServer(opts: { requestHandler?: RequestHandler } = {}) {
   const {
     requestHandler = ({ res }) => {
@@ -133,8 +136,8 @@ export async function bookFirstEvent(page: Page) {
 
 export const bookTimeSlot = async (page: Page, opts?: { name?: string; email?: string }) => {
   // --- fill form
-  await page.fill('[name="name"]', opts?.name ?? "Test Testson");
-  await page.fill('[name="email"]', opts?.email ?? "test@example.com");
+  await page.fill('[name="name"]', opts?.name ?? testName);
+  await page.fill('[name="email"]', opts?.email ?? testEmail);
   await page.press('[name="email"]', "Enter");
 };
 // Provide an standalone localize utility not managed by next-i18n

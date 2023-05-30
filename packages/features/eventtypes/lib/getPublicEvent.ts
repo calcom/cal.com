@@ -54,6 +54,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
           weekStart: true,
           brandColor: true,
           darkBrandColor: true,
+          theme: true,
         },
       },
     },
@@ -80,6 +81,7 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
         metadata: true,
         brandColor: true,
         darkBrandColor: true,
+        theme: true,
       },
     });
 
@@ -113,6 +115,7 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
         image: `${WEBAPP_URL}/${users[0].username}/avatar.png`,
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
+        theme: null,
       },
     };
   }
@@ -179,6 +182,7 @@ function getProfileFromEvent(event: Event) {
     logo: !team ? undefined : team.logo,
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
+    theme: profile.theme,
   };
 }
 

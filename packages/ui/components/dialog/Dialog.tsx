@@ -1,6 +1,6 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
-import type { ReactNode } from "react";
+import type { PropsWithChildren, ReactNode } from "react";
 import React, { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
@@ -61,7 +61,7 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
   size?: "xl" | "lg" | "md";
   type?: "creation" | "confirmation";
   title?: string;
-  description?: string | JSX.Element | undefined;
+  description?: string | JSX.Element | null;
   closeText?: string;
   actionDisabled?: boolean;
   Icon?: SVGComponent;
@@ -134,8 +134,11 @@ export function DialogHeader(props: DialogHeaderProps) {
   );
 }
 
-export function DialogFooter(props: { children: ReactNode }) {
-  return <div className="mt-7 flex justify-end space-x-2 rtl:space-x-reverse ">{props.children}</div>;
+// TODO: add divider
+export function DialogFooter(props: PropsWithChildren<{ showDivider?: boolean }>) {
+  return (
+    <div className={classNames("mt-7 flex justify-end space-x-2 rtl:space-x-reverse")}>{props.children}</div>
+  );
 }
 
 DialogContent.displayName = "DialogContent";

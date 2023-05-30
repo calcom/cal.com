@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState, useRef } from "react";
 import type {
   ArrayPath,
   Control,
@@ -28,7 +28,7 @@ import {
   Select,
   SkeletonText,
   Switch,
-  Checkbox
+  Checkbox,
 } from "@calcom/ui";
 import { Copy, Plus, Trash } from "@calcom/ui/components/icon";
 
@@ -198,7 +198,9 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 }}
               />
             )}
-            {index !== 0 && <RemoveTimeButton index={index} remove={remove} className="text-default mx-2 border-none" />}
+            {index !== 0 && (
+              <RemoveTimeButton index={index} remove={remove} className="text-default mx-2 border-none" />
+            )}
           </div>
         </Fragment>
       ))}
@@ -380,6 +382,38 @@ const CopyTimes = ({
 }) => {
   const [selected, setSelected] = useState<number[]>([]);
   const { i18n, t } = useLocale();
+  const itteratablesByKeyRef = useRef<(HTMLInputElement | HTMLButtonElement)[]>([]);
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+  const handleKeyDown = (event: KeyboardEvent) => {
+    const itteratables = itteratablesByKeyRef.current;
+    const isActionRequired =
+      event.key === "Tab" || event.key === "ArrowUp" || event.key === "ArrowDown" || event.key === "Enter";
+    if (!isActionRequired || !itteratables.length) return;
+    event.preventDefault();
+    const currentFocused = document.activeElement as HTMLInputElement | HTMLButtonElement;
+    let currentIndex = itteratables.findIndex((checkbox) => checkbox === currentFocused);
+    if (event.key === "Enter") {
+      if (currentIndex === -1) return;
+      currentFocused.click();
+      return;
+    }
+    if (currentIndex === -1) {
+      itteratables[0].focus();
+    } else {
+      // Move focus based on the arrow key pressed
+      if (event.key === "ArrowUp") {
+        currentIndex = (currentIndex - 1 + itteratables.length) % itteratables.length;
+      } else if (event.key === "ArrowDown" || event.key === "Tab") {
+        currentIndex = (currentIndex + 1) % itteratables.length;
+      }
+      itteratables[currentIndex].focus();
+    }
+  };
 
   return (
     <div className="space-y-2 py-2">
@@ -388,16 +422,21 @@ const CopyTimes = ({
         <ol className="space-y-2">
           <li key="select all">
             <label className="text-default flex w-full items-center justify-between">
-              <span className="px-1">{t('select_all')}</span>
+              <span className="px-1">{t("select_all")}</span>
               <Checkbox
-                description={""}
-                value={t('select_all')}
+                description=""
+                value={t("select_all")}
                 checked={selected.length === 7}
                 onChange={(e) => {
                   if (e.target.checked) {
                     setSelected([0, 1, 2, 3, 4, 5, 6]);
                   } else if (!e.target.checked) {
                     setSelected([]);
+                  }
+                }}
+                ref={(ref) => {
+                  if (ref) {
+                    itteratablesByKeyRef.current.push(ref as HTMLInputElement);
                   }
                 }}
               />
@@ -410,7 +449,7 @@ const CopyTimes = ({
                 <label className="text-default flex w-full items-center justify-between">
                   <span className="px-1">{weekday}</span>
                   <Checkbox
-                    description={""}
+                    description=""
                     value={weekdayIndex}
                     checked={selected.includes(weekdayIndex) || disabled === weekdayIndex}
                     disabled={disabled === weekdayIndex}
@@ -418,7 +457,13 @@ const CopyTimes = ({
                       if (e.target.checked && !selected.includes(weekdayIndex)) {
                         setSelected(selected.concat([weekdayIndex]));
                       } else if (!e.target.checked && selected.includes(weekdayIndex)) {
-                        setSelected(selected.filter(item => item !== weekdayIndex));
+                        setSelected(selected.filter((item) => item !== weekdayIndex));
+                      }
+                    }}
+                    ref={(ref) => {
+                      if (ref && disabled !== weekdayIndex) {
+                        //we don't need to iterate over disabled elements
+                        itteratablesByKeyRef.current.push(ref as HTMLInputElement);
                       }
                     }}
                   />
@@ -430,10 +475,24 @@ const CopyTimes = ({
       </div>
       <hr className="border-subtle" />
       <div className="space-x-2 px-2 rtl:space-x-reverse">
-        <Button color="minimal" onClick={() => onCancel()}>
+        <Button
+          color="minimal"
+          onClick={() => onCancel()}
+          ref={(ref) => {
+            if (ref) {
+              itteratablesByKeyRef.current.push(ref as HTMLButtonElement);
+            }
+          }}>
           {t("cancel")}
         </Button>
-        <Button color="primary" onClick={() => onClick(selected)}>
+        <Button
+          color="primary"
+          onClick={() => onClick(selected)}
+          ref={(ref) => {
+            if (ref) {
+              itteratablesByKeyRef.current.push(ref as HTMLButtonElement);
+            }
+          }}>
           {t("apply")}
         </Button>
       </div>

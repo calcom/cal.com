@@ -56,6 +56,9 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
     );
   }
 
+  // slug is a route parameter, we don't want to forward it to the next route
+  const { slug: _slug, ...queryParamsToForward } = router.query;
+
   const EventTypes = () => (
     <ul className="border-subtle rounded-md border">
       {team.eventTypes.map((type, index) => (
@@ -67,7 +70,10 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
           )}>
           <div className="px-6 py-4 ">
             <Link
-              href={`/team/${team.slug}/${type.slug}`}
+              href={{
+                pathname: `/team/${team.slug}/${type.slug}`,
+                query: queryParamsToForward,
+              }}
               onClick={async () => {
                 sdkActionManager?.fire("eventTypeSelected", {
                   eventType: type,
@@ -117,7 +123,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
           {!isBioEmpty && (
             <>
               <div
-                className=" text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                 dangerouslySetInnerHTML={{ __html: team.safeBio }}
               />
             </>
@@ -146,7 +152,13 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
                     color="minimal"
                     EndIcon={ArrowRight}
                     className="dark:hover:bg-darkgray-200"
-                    href={`/team/${team.slug}?members=1`}
+                    href={{
+                      pathname: `/team/${team.slug}`,
+                      query: {
+                        members: "1",
+                        ...queryParamsToForward,
+                      },
+                    }}
                     shallow={true}>
                     {t("book_a_team_member")}
                   </Button>
@@ -207,6 +219,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       team: { ...team, safeBio, members },
+      themeBasis: team.slug,
       trpcState: ssr.dehydrate(),
       markdownStrippedBio,
     },
