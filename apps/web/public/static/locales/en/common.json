@@ -1524,6 +1524,7 @@
   "edit_keys": "Edit Keys",
   "admin_apps_description": "Enable apps for your instance of Cal",
   "no_available_apps": "There are no available apps",
+  "available_apps_description": "View popular apps below and explore more in our App Store",
   "no_available_apps_description": "Please ensure there are apps in your deployment under 'packages/app-store'",
   "no_apps": "There are no apps enabled in this instance of Cal",
   "apps_settings": "Apps settings",

@@ -17,6 +17,7 @@ export default function AppCard({
   children,
   setAppData,
   returnTo,
+  isUninstalledApp,
 }: {
   app: RouterOutputs["viewer"]["apps"][number];
   description?: React.ReactNode;
@@ -29,13 +30,13 @@ export default function AppCard({
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
-    <div className={`border-subtle mb-4 mt-2 rounded-md border ${!app.enabled && "grayscale"}`}>
-      <div className="p-4 text-sm sm:p-6">
+    <div className={`border-subtle mt-4 rounded-md border ${!app.enabled && "grayscale"}`}>
+      <div className={`text-sm sm:${isUninstalledApp ? "p-5" : "p-4"}`}>
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
           {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
           <Link href={"/apps/" + app.slug} className="mr-3 h-auto w-10 rounded-sm">
             <img
-              className={classNames(app?.logo.includes("-dark") && "dark:invert", "w-full min-w-[40px]")}
+              className={classNames(app?.logo.includes("-dark") && "dark:invert", "w-full min-w-[32px]")}
               src={app?.logo}
               alt={app?.name}
             />
@@ -70,7 +71,7 @@ export default function AppCard({
       </div>
       <div ref={animationRef}>
         {app?.isInstalled && switchChecked && <hr className="border-subtle" />}
-        {app?.isInstalled && switchChecked ? <div className="p-4 text-sm sm:px-8">{children}</div> : null}
+        {app?.isInstalled && switchChecked ? <div className="p-5">{children}</div> : null}
       </div>
     </div>
   );
