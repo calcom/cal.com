@@ -57,6 +57,17 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
     name: "dateOverrides",
   });
 
+  const fieldsUpdated: { id: string; ranges: TimeRange[] }[] = [];
+
+  fields.forEach((range) => {
+    range.ranges.forEach((timeRange) => {
+      fieldsUpdated.push({
+        id: range.id,
+        ranges: [timeRange],
+      });
+    });
+  });
+
   const { t } = useLocale();
   return (
     <div className="p-6">
@@ -74,7 +85,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
           excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
           remove={remove}
           update={update}
-          items={fields}
+          items={fieldsUpdated}
           workingHours={workingHours}
         />
         <DateOverrideInputDialog

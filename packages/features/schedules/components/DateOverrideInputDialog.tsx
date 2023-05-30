@@ -1,10 +1,11 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
+import { useKeyPress } from "@calcom/lib/hooks/useKeyPress";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import type { WorkingHours } from "@calcom/types/schedule";
@@ -39,21 +40,7 @@ const DateOverrideForm = ({
   value?: TimeRange[];
   onClose?: () => void;
 }) => {
-  useEffect(() => {
-    window.addEventListener("keydown", (evt) => {
-      if (evt.key === "Shift") {
-        setShiftDown(true);
-      }
-    });
-
-    window.addEventListener("keyup", (evt) => {
-      if (evt.key === "Shift") {
-        setShiftDown(false);
-      }
-    });
-  }, []);
-
-  const [shiftDown, setShiftDown] = useState<boolean>(false);
+  const shiftPressed = useKeyPress("Shift");
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
   const { t, i18n, isLocaleReady } = useLocale();
   const [datesUnavailable, setDatesUnavailable] = useState(
@@ -93,7 +80,7 @@ const DateOverrideForm = ({
   };
 
   const changeDate = (newDate: Dayjs) => {
-    if (shiftDown) {
+    if (shiftPressed) {
       if (!endDate || endDate.date > newDate.date) {
         setDate(newDate);
       } else {
