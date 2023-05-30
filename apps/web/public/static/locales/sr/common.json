@@ -1818,5 +1818,21 @@
   "image_size_limit_exceed": "Otpremljena slika ne sme da prevazilazi ograničenje od 5mb",
   "inline_embed": "Ugradi neposredno",
   "load_inline_content": "Direktno učitava vaš tip događaja neposredno sa vašim ostalim sadržajem na veb sajtu.",
-  "floating_pop_up_button": "Plutajuće iskačuće dugme"
+  "floating_pop_up_button": "Plutajuće iskačuće dugme",
+  "floating_button_trigger_modal": "Postavlja plutajuće dugme na vaš sajt koje pokreće modal sa vašim tipom događaja.",
+  "pop_up_element_click": "Iskačući prozor preko klika na element",
+  "open_dialog_with_element_click": "Otvara Cal dijalog prozor kada neko klikne na element.",
+  "need_help_embedding": "Potrebna vam je pomoć? Pogledajte naše vodiče za ugrađivanje Cal-a na Wix, Squarespace ili WordPress, pogledajte naša često postavljana pitanja, ili istražite napredne opcije za ugrađivanje.",
+  "book_my_cal": "Zakaži moj Cal",
+  "invite_as": "Pozovi kao",
+  "form_updated_successfully": "Formular je uspešno ažuriran.",
+  "email_not_cal_member_cta": "Pridružite se našem timu",
+  "disable_attendees_confirmation_emails": "Onemogući podrazumevane imejlove za potvrdu za polaznike",
+  "disable_attendees_confirmation_emails_description": "Najmanje jedan radni tok je aktivan na ovom tipu događaja koji šalje imejl polaznicima kada je događaj zakazan.",
+  "disable_host_confirmation_emails": "Onemogući podrazumevane imejlove za potvrdu za domaćina",
+  "disable_host_confirmation_emails_description": "Najmanje jedan radni tok je aktivan na ovom tipu događaja koji šalje imejl domaćinima kada je događaj zakazan.",
+  "add_an_override": "Dodaj zamenu",
+  "import_from_google_workspace": "Uvezi korisnike sa Google Workspace",
+  "connect_google_workspace": "Poveži Google Workspace",
+  "google_workspace_admin_tooltip": "Morate da budete Workspace administrator da biste koristili ovu opciju"
 }
