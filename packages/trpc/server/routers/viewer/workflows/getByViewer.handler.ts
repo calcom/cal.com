@@ -80,12 +80,13 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
 
   let workflowGroups: WorkflowGroup[] = [];
 
+  const image = user?.username ? `${CAL_URL}/${user.username}/avatar.png` : undefined;
   workflowGroups.push({
     teamId: null,
     profile: {
       slug: user.username,
       name: user.name,
-      image: user.avatar || undefined,
+      image,
     },
     workflows: userWorkflows,
     metadata: {

@@ -1807,6 +1807,7 @@
   "email_invite_team": "{{email}} a été invité",
   "error_collecting_card": "Erreur lors de la collecte de la carte",
   "image_size_limit_exceed": "L'image téléchargée ne doit pas dépasser 5 Mo",
+  "unauthorized_workflow_error_message": "{{errorCode}} : Vous n'êtes pas autorisé à activer ou désactiver ce workflow",
   "inline_embed": "Intégration en ligne",
   "load_inline_content": "Charge votre type d'événement directement en ligne avec le contenu de votre site web.",
   "floating_pop_up_button": "Bouton pop-up flottant",
