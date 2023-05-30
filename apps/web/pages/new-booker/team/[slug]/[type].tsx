@@ -13,11 +13,22 @@ import PageWrapper from "@components/PageWrapper";
 
 type PageProps = inferSSRProps<typeof getServerSideProps>;
 
-export default function Type({ slug, user, booking, away }: PageProps) {
+export default function Type({ slug, user, booking, away, isBrandingHidden }: PageProps) {
   return (
     <main className="flex h-full min-h-[100dvh] items-center justify-center">
-      <BookerSeo username={user} eventSlug={slug} rescheduleUid={booking?.uid} />
-      <Booker username={user} eventSlug={slug} rescheduleBooking={booking} isAway={away} />
+      <BookerSeo
+        username={user}
+        eventSlug={slug}
+        rescheduleUid={booking?.uid}
+        hideBranding={isBrandingHidden}
+      />
+      <Booker
+        username={user}
+        eventSlug={slug}
+        rescheduleBooking={booking}
+        isAway={away}
+        hideBranding={isBrandingHidden}
+      />
     </main>
   );
 }
@@ -41,6 +52,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
     select: {
       id: true,
+      hideBranding: true,
     },
   });
 
@@ -62,6 +74,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       user: teamSlug,
       slug: meetingSlug,
       trpcState: ssr.dehydrate(),
+      isBrandingHidden: team?.hideBranding,
     },
   };
 };

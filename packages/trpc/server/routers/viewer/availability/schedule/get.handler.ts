@@ -56,7 +56,10 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     id: schedule.id,
     name: schedule.name,
     isManaged: schedule.userId !== user.id,
-    workingHours: getWorkingHours({ timeZone: schedule.timeZone || undefined, utcOffset: 0 }, schedule.availability || []),
+    workingHours: getWorkingHours(
+      { timeZone: schedule.timeZone || undefined, utcOffset: 0 },
+      schedule.availability || []
+    ),
     schedule: schedule.availability,
     availability: convertScheduleToAvailability(schedule).map((a) =>
       a.map((startAndEnd) => ({

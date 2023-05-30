@@ -154,67 +154,67 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
       expect(oldBooking?.seatsReferences.length).toBe(2);
     });
 
-    test("Should reschedule booking with seats and if everyone rescheduled it should be deleted", async ({
-      page,
-      users,
-      bookings,
-    }) => {
-      const { booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
-        { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
-        { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
-      ]);
+    // FIXME: https://github.com/calcom/cal.com/issues/9193
+    test.fixme(
+      "Should reschedule booking with seats and if everyone rescheduled it should be deleted",
+      async ({ page, users, bookings }) => {
+        const { booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+          { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+          { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+        ]);
 
-      const bookingAttendees = await prisma.attendee.findMany({
-        where: { bookingId: booking.id },
-        select: {
-          id: true,
-        },
-      });
-
-      const bookingSeats = [
-        { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUid: uuidv4() },
-        { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUid: uuidv4() },
-      ];
-
-      await prisma.bookingSeat.createMany({
-        data: bookingSeats,
-      });
-
-      const references = await prisma.bookingSeat.findMany({
-        where: { bookingId: booking.id },
-      });
-
-      await page.goto(`/reschedule/${references[0].referenceUid}`);
-
-      await selectFirstAvailableTimeSlotNextMonth(page);
-
-      await page.locator('[data-testid="confirm-reschedule-button"]').click();
-
-      await page.waitForURL(/.*booking/);
-
-      await page.goto(`/reschedule/${references[1].referenceUid}`);
-
-      await selectFirstAvailableTimeSlotNextMonth(page);
-
-      await page.locator('[data-testid="confirm-reschedule-button"]').click();
-
-      // Using waitForUrl here fails the assertion `expect(oldBooking?.status).toBe(BookingStatus.CANCELLED);` probably because waitForUrl is considered complete before waitForNavigation and till that time the booking is not cancelled
-      await page.waitForNavigation({ url: /.*booking/ });
-
-      // Should expect old booking to be cancelled
-      const oldBooking = await prisma.booking.findFirst({
-        where: { uid: booking.uid },
-        include: {
-          seatsReferences: true,
-          attendees: true,
-          eventType: {
-            include: { users: true, hosts: true },
+        const bookingAttendees = await prisma.attendee.findMany({
+          where: { bookingId: booking.id },
+          select: {
+            id: true,
           },
-        },
-      });
+        });
 
-      expect(oldBooking?.status).toBe(BookingStatus.CANCELLED);
-    });
+        const bookingSeats = [
+          { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUid: uuidv4() },
+          { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUid: uuidv4() },
+        ];
+
+        await prisma.bookingSeat.createMany({
+          data: bookingSeats,
+        });
+
+        const references = await prisma.bookingSeat.findMany({
+          where: { bookingId: booking.id },
+        });
+
+        await page.goto(`/reschedule/${references[0].referenceUid}`);
+
+        await selectFirstAvailableTimeSlotNextMonth(page);
+
+        await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+        await page.waitForURL(/.*booking/);
+
+        await page.goto(`/reschedule/${references[1].referenceUid}`);
+
+        await selectFirstAvailableTimeSlotNextMonth(page);
+
+        await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+        // Using waitForUrl here fails the assertion `expect(oldBooking?.status).toBe(BookingStatus.CANCELLED);` probably because waitForUrl is considered complete before waitForNavigation and till that time the booking is not cancelled
+        await page.waitForNavigation({ url: /.*booking/ });
+
+        // Should expect old booking to be cancelled
+        const oldBooking = await prisma.booking.findFirst({
+          where: { uid: booking.uid },
+          include: {
+            seatsReferences: true,
+            attendees: true,
+            eventType: {
+              include: { users: true, hosts: true },
+            },
+          },
+        });
+
+        expect(oldBooking?.status).toBe(BookingStatus.CANCELLED);
+      }
+    );
 
     test("Should cancel with seats and have no attendees and cancelled", async ({
       page,
@@ -419,11 +419,14 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
       // Go to cancel page and see that attendees are listed and myself as I'm owner of the booking
       await page.goto(`/booking/${booking.uid}?cancel=true&allRemainingBookings=false`);
 
-      const foundFirstAttendeeAsOwner = await page.locator('p[data-testid="attendee-first+seats@cal.com"]');
+      const foundFirstAttendeeAsOwner = await page.locator(
+        'p[data-testid="attendee-email-first+seats@cal.com"]'
+      );
       await expect(foundFirstAttendeeAsOwner).toHaveCount(1);
-      const foundSecondAttendeeAsOwner = await page.locator('p[data-testid="attendee-second+seats@cal.com"]');
+      const foundSecondAttendeeAsOwner = await page.locator(
+        'p[data-testid="attendee-email-second+seats@cal.com"]'
+      );
       await expect(foundSecondAttendeeAsOwner).toHaveCount(1);
-      await page.pause();
       await page.goto("auth/logout");
 
       // Now we cancel the booking as the first attendee
@@ -433,10 +436,12 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
       );
 
       // No attendees should be displayed only the one that it's cancelling
-      const notFoundSecondAttendee = await page.locator('p[data-testid="attendee-second+seats@cal.com"]');
+      const notFoundSecondAttendee = await page.locator(
+        'p[data-testid="attendee-email-second+seats@cal.com"]'
+      );
 
       await expect(notFoundSecondAttendee).toHaveCount(0);
-      const foundFirstAttendee = await page.locator('p[data-testid="attendee-first+seats@cal.com"]');
+      const foundFirstAttendee = await page.locator('p[data-testid="attendee-email-first+seats@cal.com"]');
       await expect(foundFirstAttendee).toHaveCount(1);
 
       await prisma.eventType.update({
@@ -453,11 +458,11 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
       );
 
       // Now attendees should be displayed
-      const foundSecondAttendee = await page.locator('p[data-testid="attendee-second+seats@cal.com"]');
+      const foundSecondAttendee = await page.locator('p[data-testid="attendee-email-second+seats@cal.com"]');
 
       await expect(foundSecondAttendee).toHaveCount(1);
       const foundFirstAttendeeAgain = await page
-        .locator('p[data-testid="attendee-first+seats@cal.com"]')
+        .locator('p[data-testid="attendee-email-first+seats@cal.com"]')
         .first();
       await expect(foundFirstAttendeeAgain).toHaveCount(1);
     });

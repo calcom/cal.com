@@ -14,6 +14,7 @@ type WebhookRouterHandlerCache = {
   edit?: typeof import("./edit.handler").editHandler;
   delete?: typeof import("./delete.handler").deleteHandler;
   testTrigger?: typeof import("./testTrigger.handler").testTriggerHandler;
+  getByViewer?: typeof import("./getByViewer.handler").getByViewerHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: WebhookRouterHandlerCache = {};
@@ -114,6 +115,23 @@ export const webhookRouter = router({
     return UNSTABLE_HANDLER_CACHE.testTrigger({
       ctx,
       input,
+    });
+  }),
+
+  getByViewer: webhookProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getByViewer) {
+      UNSTABLE_HANDLER_CACHE.getByViewer = await import("./getByViewer.handler").then(
+        (mod) => mod.getByViewerHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getByViewer) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getByViewer({
+      ctx,
     });
   }),
 });

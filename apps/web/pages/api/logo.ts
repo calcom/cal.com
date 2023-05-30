@@ -13,6 +13,9 @@ import {
   MSTILE_ICON,
   WEBAPP_URL,
 } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
+
+const log = logger.getChildLogger({ prefix: ["[api/logo]"] });
 
 function removePort(url: string) {
   return url.replace(/:\d+$/, "");
@@ -102,35 +105,40 @@ function isValidLogoType(type: string): type is LogoType {
 }
 
 async function getTeamLogos(subdomain: string) {
-  if (
-    // if not cal.com
-    IS_SELF_HOSTED ||
-    // missing subdomain (empty string)
-    !subdomain ||
-    // in SYSTEM_SUBDOMAINS list
-    SYSTEM_SUBDOMAINS.includes(subdomain)
-  ) {
+  try {
+    if (
+      // if not cal.com
+      IS_SELF_HOSTED ||
+      // missing subdomain (empty string)
+      !subdomain ||
+      // in SYSTEM_SUBDOMAINS list
+      SYSTEM_SUBDOMAINS.includes(subdomain)
+    ) {
+      throw new Error("No custom logo needed");
+    }
+    // load from DB
+    const { default: prisma } = await import("@calcom/prisma");
+    const team = await prisma.team.findUnique({
+      where: {
+        slug: subdomain,
+      },
+      select: {
+        appLogo: true,
+        appIconLogo: true,
+      },
+    });
+
+    return {
+      appLogo: team?.appLogo,
+      appIconLogo: team?.appIconLogo,
+    };
+  } catch (error) {
+    if (error instanceof Error) log.debug(error.message);
     return {
       appLogo: undefined,
       appIconLogo: undefined,
     };
   }
-  // load from DB
-  const { default: prisma } = await import("@calcom/prisma");
-  const team = await prisma.team.findUnique({
-    where: {
-      slug: subdomain,
-    },
-    select: {
-      appLogo: true,
-      appIconLogo: true,
-    },
-  });
-
-  return {
-    appLogo: team?.appLogo,
-    appIconLogo: team?.appIconLogo,
-  };
 }
 
 /**
@@ -153,23 +161,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const logoDefinition = logoDefinitions[type];
   const filteredLogo = teamLogos[logoDefinition.source] ?? logoDefinition.fallback;
 
-  const response = await fetch(filteredLogo);
-  const arrayBuffer = await response.arrayBuffer();
-  let buffer = Buffer.from(arrayBuffer);
+  try {
+    const response = await fetch(filteredLogo);
+    const arrayBuffer = await response.arrayBuffer();
+    let buffer = Buffer.from(arrayBuffer);
 
-  // If we need to resize the team logos (via Next.js' built-in image processing)
-  if (teamLogos[logoDefinition.source] && logoDefinition.w) {
-    const { detectContentType, optimizeImage } = await import("next/dist/server/image-optimizer");
-    buffer = await optimizeImage({
-      buffer,
-      contentType: detectContentType(buffer) ?? "image/jpeg",
-      quality: 100,
-      width: logoDefinition.w,
-      height: logoDefinition.h, // optional
-    });
+    // If we need to resize the team logos (via Next.js' built-in image processing)
+    if (teamLogos[logoDefinition.source] && logoDefinition.w) {
+      const { detectContentType, optimizeImage } = await import("next/dist/server/image-optimizer");
+      buffer = await optimizeImage({
+        buffer,
+        contentType: detectContentType(buffer) ?? "image/jpeg",
+        quality: 100,
+        width: logoDefinition.w,
+        height: logoDefinition.h, // optional
+      });
+    }
+
+    res.setHeader("Content-Type", response.headers.get("content-type") as string);
+    res.setHeader("Cache-Control", "s-maxage=86400");
+    res.send(buffer);
+  } catch (error) {
+    res.statusCode = 404;
+    res.json({ error: "Failed fetching logo" });
   }
-
-  res.setHeader("Content-Type", response.headers.get("content-type") as string);
-  res.setHeader("Cache-Control", "s-maxage=86400");
-  res.send(buffer);
 }
