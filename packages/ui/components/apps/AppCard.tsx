@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
+import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
@@ -16,6 +17,7 @@ interface AppCardProps {
   app: App;
   credentials?: Credential[];
   searchText?: string;
+  userAdminTeams?: UserAdminTeams;
 }
 
 export function AppCard({ app, credentials, searchText }: AppCardProps) {

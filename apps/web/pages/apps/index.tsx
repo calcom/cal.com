@@ -5,6 +5,7 @@ import { useState } from "react";
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getUserAdminTeams from "@calcom/features/ee/teams/lib/getUserAdminTeams";
+import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
@@ -101,7 +102,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const session = await getServerSession({ req, res });
 
-  let appStore, userAdminTeams: [] | Awaited<Promise<ReturnType<typeof getUserAdminTeams>>>;
+  let appStore, userAdminTeams: UserAdminTeams;
   if (session?.user?.id) {
     appStore = await getAppRegistryWithCredentials(session.user.id);
     userAdminTeams = await getUserAdminTeams(session.user.id);

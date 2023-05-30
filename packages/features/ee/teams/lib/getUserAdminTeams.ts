@@ -23,3 +23,5 @@ const getUserAdminTeams = async (userId: number) => {
 };
 
 export default getUserAdminTeams;
+
+export type UserAdminTeams = Awaited<Promise<ReturnType<typeof getUserAdminTeams>>> | [];
