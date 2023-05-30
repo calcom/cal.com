@@ -192,6 +192,11 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       notFound: true,
     };
   }
+  await prisma.verificationToken.delete({
+    where: {
+      token,
+    },
+  });
 
   const existingUser = await prisma.user.findFirst({
     where: {
