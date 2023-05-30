@@ -10,10 +10,10 @@ export const ZCreateInputSchema = z.object({
     .optional()
     .nullable()
     .transform((v) => v || null),
-  admin: z.object({
-    email: z.string().email(),
-    username: z.string(),
-  }),
+  adminEmail: z.string().email(),
+  adminUsername: z.string(),
+  check: z.boolean().default(true),
+  language: z.string().optional(),
 });
 
 export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;

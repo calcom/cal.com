@@ -266,7 +266,7 @@ model Team {
   parentId            Int?
   parent              Team?            @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
   children            Team[]           @relation("organization")
-  scopedMembers       User[]           @relation("scope")
+  orgUsers            User[]           @relation("scope")
   webhooks            Webhook[]
 }
 

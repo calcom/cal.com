@@ -26,7 +26,5 @@ export const verifyCodeHandler = async ({ ctx, input }: VerifyCodeOptions) => {
 
   const isValidToken = totp.check(code, secret);
 
-  console.log({ email, code, isValidToken });
-
   return isValidToken;
 };
