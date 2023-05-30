@@ -11,7 +11,7 @@ import { useFilterQuery } from "../lib/useFilterQuery";
 export const TeamsMemberFilter = () => {
   const { t } = useLocale();
   const session = useSession();
-  const { data: query, pushItemToKey, removeItemByKeyAndValue, removeByKey } = useFilterQuery();
+  const { data: query, pushItemToKey, removeItemByKeyAndValue, removeByKey, removeAllQueryParams } = useFilterQuery();
   const { data } = trpc.viewer.teams.list.useQuery();
   const [dropdownTitle, setDropdownTitle] = useState<string>(t("all_bookings_filter_label"));
 
@@ -38,7 +38,7 @@ export const TeamsMemberFilter = () => {
           checked={!query.teamIds && !query.userIds?.includes(session.data?.user.id || 0)}
           onChange={() => {
             setDropdownTitle(t("all_bookings_filter_label"));
-            removeByKey("teamIds"); // Always clear on toggle  or not toggle (seems weird but when you know the behviour it works well )
+            removeAllQueryParams();
           }}
           className="text-primary-600 focus:ring-primary-500 border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
         />
@@ -57,7 +57,7 @@ export const TeamsMemberFilter = () => {
           id="yourBookings"
           type="checkbox"
           disabled={session.status === "loading"}
-          checked={query.userIds?.includes(session.data?.user.id || 0)}
+          checked={!!query.userIds?.includes(session.data?.user.id || 0)}
           onChange={(e) => {
             setDropdownTitle(t("your_bookings_filter_label"));
             if (e.target.checked) {

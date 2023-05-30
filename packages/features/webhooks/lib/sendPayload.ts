@@ -16,7 +16,7 @@ export type EventTypeInfo = {
   length?: number | null;
 };
 
-type WebhookDataType = CalendarEvent &
+export type WebhookDataType = CalendarEvent &
   EventTypeInfo & {
     metadata?: { [key: string]: string };
     bookingId?: number;
@@ -27,6 +27,7 @@ type WebhookDataType = CalendarEvent &
     rescheduleEndTime?: string;
     triggerEvent: string;
     createdAt: string;
+    downloadLink?: string;
   };
 
 function getZapierPayload(data: CalendarEvent & EventTypeInfo & { status?: string }): string {

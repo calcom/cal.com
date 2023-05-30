@@ -33,6 +33,7 @@ import {
 } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -42,6 +43,7 @@ import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/rem
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { deleteScheduledWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 
+import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
@@ -74,7 +76,6 @@ import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
 
 import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
-import sendPayload from "../../webhooks/lib/sendPayload";
 import getBookingResponsesSchema from "./getBookingResponsesSchema";
 
 const translator = short();
@@ -306,11 +307,11 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 
   return {
     ...eventType,
-    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-    recurringEvent: parseRecurringEvent(eventType.recurringEvent),
-    customInputs: customInputSchema.array().parse(eventType.customInputs || []),
-    locations: (eventType.locations ?? []) as LocationObject[],
-    bookingFields: getBookingFieldsWithSystemFields(eventType),
+    metadata: EventTypeMetaDataSchema.parse(eventType?.metadata || {}),
+    recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
+    customInputs: customInputSchema.array().parse(eventType?.customInputs || []),
+    locations: (eventType?.locations ?? []) as LocationObject[],
+    bookingFields: getBookingFieldsWithSystemFields(eventType || {}),
   };
 };
 
@@ -490,7 +491,7 @@ function getBookingData({
             }
           }
         });
-
+  debugger;
   const reqBody = bookingDataSchema.parse(req.body);
   if ("customInputs" in reqBody) {
     if (reqBody.customInputs) {
@@ -586,7 +587,7 @@ async function handler(
     ...eventType,
     bookingFields: getBookingFieldsWithSystemFields(eventType),
   };
-
+  debugger;
   const {
     recurringCount,
     allRecurringDates,
@@ -675,7 +676,7 @@ async function handler(
           ...user,
           isFixed,
         }))
-      : eventType.users;
+      : eventType.users || [];
   // loadUsers allows type inferring
   let users: (Awaited<ReturnType<typeof loadUsers>>[number] & {
     isFixed?: boolean;
@@ -1488,6 +1489,9 @@ async function handler(
        * so if you modify it in a inner function it will be modified in the outer function
        * deep cloning evt to avoid this
        */
+      if (!evt?.uid) {
+        evt.uid = booking?.uid ?? null;
+      }
       const copyEvent = cloneDeep(evt);
       copyEvent.uid = booking.uid;
       await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
@@ -1944,7 +1948,11 @@ async function handler(
             originalEvent: results[0].originalEvent,
           };
 
-          const googleCalResult = results.find((result) => result.type === "google_calendar");
+          // Find index of google_calendar inside createManager.referencesToCreate
+          const googleCalIndex = createManager.referencesToCreate.findIndex(
+            (ref) => ref.type === "google_calendar"
+          );
+          const googleCalResult = results[googleCalIndex];
 
           if (!googleCalResult) {
             results.push({
@@ -1958,6 +1966,20 @@ async function handler(
             results.push({
               ...googleMeetResult,
               success: true,
+            });
+
+            // Add google_meet to referencesToCreate in the same index as google_calendar
+            createManager.referencesToCreate[googleCalIndex] = {
+              ...createManager.referencesToCreate[googleCalIndex],
+              meetingUrl: googleCalResult.createdEvent.hangoutLink,
+            };
+
+            // Also create a new referenceToCreate with type video for google_meet
+            createManager.referencesToCreate.push({
+              type: "google_meet_video",
+              meetingUrl: googleCalResult.createdEvent.hangoutLink,
+              uid: googleCalResult.uid,
+              credentialId: createManager.referencesToCreate[googleCalIndex].credentialId,
             });
           } else if (googleCalResult && !googleCalResult.createdEvent?.hangoutLink) {
             results.push({
@@ -2075,20 +2097,50 @@ async function handler(
         videoCallUrl: getVideoCallUrlFromCalEvent(evt),
       }
     : undefined;
+
+  const eventTypeInfo: EventTypeInfo = {
+    eventTitle: eventType.title,
+    eventDescription: eventType.description,
+    requiresConfirmation: requiresConfirmation || null,
+    price: paymentAppData.price,
+    currency: eventType.currency,
+    length: eventType.length,
+  };
+  const webhookData = {
+    ...evt,
+    ...eventTypeInfo,
+    bookingId: booking?.id,
+    rescheduleUid,
+    rescheduleStartTime: originalRescheduledBooking?.startTime
+      ? dayjs(originalRescheduledBooking?.startTime).utc().format()
+      : undefined,
+    rescheduleEndTime: originalRescheduledBooking?.endTime
+      ? dayjs(originalRescheduledBooking?.endTime).utc().format()
+      : undefined,
+    metadata: { ...metadata, ...reqBody.metadata },
+    eventTypeId,
+    status: "ACCEPTED",
+    smsReminderNumber: booking?.smsReminderNumber || undefined,
+  };
+  const subscriberOptions: GetSubscriberOptions = {
+    userId: organizerUser.id,
+    eventTypeId,
+    triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+    teamId: eventType.team?.id,
+  };
+
   if (isConfirmedByDefault) {
     const eventTrigger: WebhookTriggerEvents = rescheduleUid
       ? WebhookTriggerEvents.BOOKING_RESCHEDULED
       : WebhookTriggerEvents.BOOKING_CREATED;
-    const subscriberOptions = {
-      userId: organizerUser.id,
-      eventTypeId,
-      triggerEvent: eventTrigger,
-    };
+
+    subscriberOptions.triggerEvent = eventTrigger;
 
     const subscriberOptionsMeetingEnded = {
       userId: organizerUser.id,
       eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+      teamId: eventType.team?.id,
     };
 
     try {
@@ -2106,48 +2158,14 @@ async function handler(
       log.error("Error while running scheduledJobs for booking", error);
     }
 
-    try {
-      // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-      const subscribers = await getWebhooks(subscriberOptions);
-      console.log("evt:", {
-        ...evt,
-        metadata: reqBody.metadata,
-      });
-      const bookingId = booking?.id;
-
-      const eventTypeInfo: EventTypeInfo = {
-        eventTitle: eventType.title,
-        eventDescription: eventType.description,
-        requiresConfirmation: requiresConfirmation || null,
-        price: paymentAppData.price,
-        currency: eventType.currency,
-        length: eventType.length,
-      };
-
-      const promises = subscribers.map((sub) =>
-        sendPayload(sub.secret, eventTrigger, new Date().toISOString(), sub, {
-          ...evt,
-          ...eventTypeInfo,
-          bookingId,
-          rescheduleUid,
-          rescheduleStartTime: originalRescheduledBooking?.startTime
-            ? dayjs(originalRescheduledBooking?.startTime).utc().format()
-            : undefined,
-          rescheduleEndTime: originalRescheduledBooking?.endTime
-            ? dayjs(originalRescheduledBooking?.endTime).utc().format()
-            : undefined,
-          metadata: { ...metadata, ...reqBody.metadata },
-          eventTypeId,
-          status: "ACCEPTED",
-          smsReminderNumber: booking?.smsReminderNumber || undefined,
-        }).catch((e) => {
-          console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
-        })
-      );
-      await Promise.all(promises);
-    } catch (error) {
-      log.error("Error while sending webhook", error);
-    }
+    // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
+    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+  } else if (eventType.requiresConfirmation) {
+    // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
+    const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
+    subscriberOptions.triggerEvent = eventTrigger;
+    webhookData.status = "PENDING";
+    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
 
   // Avoid passing referencesToCreate with id unique constrain values

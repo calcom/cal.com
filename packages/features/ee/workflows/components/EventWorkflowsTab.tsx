@@ -23,6 +23,7 @@ type ItemProps = {
     id: number;
     title: string;
   };
+  isChildrenManagedEventType: boolean;
 };
 
 const WorkflowListItem = (props: ItemProps) => {
@@ -70,9 +71,12 @@ const WorkflowListItem = (props: ItemProps) => {
         showToast(message, "error");
       }
       if (err.data?.code === "UNAUTHORIZED") {
-        // TODO: Add missing translation
-        const message = `${err.data.code}: You are not authorized to enable or disable this workflow`;
-        showToast(message, "error");
+        showToast(
+          t("unauthorized_workflow_error_message", {
+            errorCode: err.data.code,
+          }),
+          "error"
+        );
       }
     },
   });
@@ -137,18 +141,33 @@ const WorkflowListItem = (props: ItemProps) => {
           })}
         </div>
       </div>
-      <div className="flex-none">
-        <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
-          <Button type="button" color="minimal" className="mr-4">
-            <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
-            <ExternalLink className="text-default -mt-[2px] h-4 w-4 stroke-2" />
-          </Button>
-        </Link>
-      </div>
-      <Tooltip content={t("turn_off") as string}>
-        <div className="ltr:mr-2 rtl:ml-2">
+      {!workflow.readOnly && (
+        <div className="flex-none">
+          <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
+            <Button type="button" color="minimal" className="mr-4">
+              <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
+              <ExternalLink className="text-default -mt-[2px] h-4 w-4 stroke-2" />
+            </Button>
+          </Link>
+        </div>
+      )}
+      <Tooltip
+        content={
+          t(
+            workflow.readOnly && props.isChildrenManagedEventType
+              ? "locked_by_admin"
+              : isActive
+              ? "turn_off"
+              : "turn_on"
+          ) as string
+        }>
+        <div className="flex items-center ltr:mr-2 rtl:ml-2">
+          {workflow.readOnly && props.isChildrenManagedEventType && (
+            <Lock className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
+          )}
           <Switch
             checked={isActive}
+            disabled={workflow.readOnly}
             onCheckedChange={() => {
               activateEventTypeMutation.mutate({ workflowId: workflow.id, eventTypeId: eventType.id });
             }}
@@ -169,9 +188,14 @@ type Props = {
 function EventWorkflowsTab(props: Props) {
   const { workflows, eventType } = props;
   const { t } = useLocale();
+  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
+    eventType,
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
+  );
   const { data, isLoading } = trpc.viewer.workflows.list.useQuery({
     teamId: eventType.team?.id,
-    userId: eventType.userId || undefined,
+    userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
   });
   const router = useRouter();
   const [sortedWorkflows, setSortedWorkflows] = useState<Array<WorkflowType>>([]);
@@ -179,7 +203,11 @@ function EventWorkflowsTab(props: Props) {
   useEffect(() => {
     if (data?.workflows) {
       const activeWorkflows = workflows.map((workflowOnEventType) => {
-        return workflowOnEventType;
+        const dataWf = data.workflows.find((wf) => wf.id === workflowOnEventType.id);
+        return {
+          ...workflowOnEventType,
+          readOnly: isChildrenManagedEventType && dataWf?.teamId ? true : dataWf?.readOnly ?? false,
+        } as WorkflowType;
       });
       const disabledWorkflows = data.workflows.filter(
         (workflow) =>
@@ -210,12 +238,6 @@ function EventWorkflowsTab(props: Props) {
     },
   });
 
-  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
-    eventType,
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
-
   return (
     <LicenseRequired>
       {!isLoading ? (
@@ -223,6 +245,7 @@ function EventWorkflowsTab(props: Props) {
           {isManagedEventType && (
             <Alert
               severity="neutral"
+              className="mb-2"
               title={t("locked_for_members")}
               message={t("locked_workflows_description")}
             />
@@ -232,7 +255,12 @@ function EventWorkflowsTab(props: Props) {
               <div className="space-y-4">
                 {sortedWorkflows.map((workflow) => {
                   return (
-                    <WorkflowListItem key={workflow.id} workflow={workflow} eventType={props.eventType} />
+                    <WorkflowListItem
+                      key={workflow.id}
+                      workflow={workflow}
+                      eventType={props.eventType}
+                      isChildrenManagedEventType
+                    />
                   );
                 })}
               </div>
@@ -244,19 +272,13 @@ function EventWorkflowsTab(props: Props) {
                 headline={t("workflows")}
                 description={t("no_workflows_description")}
                 buttonRaw={
-                  isChildrenManagedEventType && !isManagedEventType ? (
-                    <Button StartIcon={Lock} color="secondary" disabled>
-                      {t("locked_by_admin")}
-                    </Button>
-                  ) : (
-                    <Button
-                      target="_blank"
-                      color="secondary"
-                      onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
-                      loading={createMutation.isLoading}>
-                      {t("create_workflow")}
-                    </Button>
-                  )
+                  <Button
+                    target="_blank"
+                    color="secondary"
+                    onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
+                    loading={createMutation.isLoading}>
+                    {t("create_workflow")}
+                  </Button>
                 }
               />
             </div>

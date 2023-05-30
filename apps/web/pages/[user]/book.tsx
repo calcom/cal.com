@@ -293,6 +293,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     props: {
       away: user.away,
       profile,
+      // Dynamic group has no theme preference right now. It uses system theme.
+      themeBasis: isDynamicGroupBooking ? null : user.username,
       eventType: eventTypeObject,
       booking,
       currentSlotBooking: currentSlotBooking,

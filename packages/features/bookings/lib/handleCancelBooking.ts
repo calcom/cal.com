@@ -19,6 +19,7 @@ import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { handleRefundError } from "@calcom/lib/payment/handleRefundError";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
@@ -306,8 +307,9 @@ async function handler(req: CustomRequest) {
   // Send Webhook call if hooked to BOOKING.CANCELLED
   const subscriberOptions = {
     userId: bookingToDelete.userId,
-    eventTypeId: (bookingToDelete.eventTypeId as number) || 0,
+    eventTypeId: bookingToDelete.eventTypeId as number,
     triggerEvent: eventTrigger,
+    teamId: bookingToDelete.eventType?.teamId,
   };
 
   const eventTypeInfo: EventTypeInfo = {
@@ -504,6 +506,7 @@ async function handler(req: CustomRequest) {
       );
 
       if (videoCredential) {
+        logger.debug("videoCredential inside cancel booking handler", videoCredential);
         apiDeletes.push(deleteMeeting(videoCredential, uid));
       }
     }
@@ -628,12 +631,6 @@ async function handler(req: CustomRequest) {
     return { message: "Booking successfully cancelled." };
   }
 
-  const attendeeDeletes = prisma.attendee.deleteMany({
-    where: {
-      bookingId: bookingToDelete.id,
-    },
-  });
-
   const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
     where: {
       bookingId: bookingToDelete.id,
@@ -658,7 +655,7 @@ async function handler(req: CustomRequest) {
     });
   });
 
-  const prismaPromises: Promise<unknown>[] = [attendeeDeletes, bookingReferenceDeletes];
+  const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
 
   await Promise.all(prismaPromises.concat(apiDeletes));
 
