@@ -1,6 +1,6 @@
 import Head from "next/head";
 
-import { CreateANewOrganizationForm } from "@calcom/features/ee/organizations/components";
+import { AboutOrganizationForm } from "@calcom/features/ee/organizations/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WizardLayout } from "@calcom/ui";
 
@@ -11,16 +11,19 @@ const CreateNewOrganizationPage = () => {
   return (
     <>
       <Head>
-        <title>{t("set_up_your_organization")}</title>
-        <meta name="description" content={t("organizations_description")} />
+        <title>About your organization</title>
+        <meta
+          name="description"
+          content="Organizations are shared environments where you can create multiple teams with shared members, event types, apps, workflows and more."
+        />
       </Head>
-      <CreateANewOrganizationForm />
+      <AboutOrganizationForm />
     </>
   );
 };
 const LayoutWrapper = (page: React.ReactElement) => {
   return (
-    <WizardLayout currentStep={1} maxSteps={4}>
+    <WizardLayout currentStep={2} maxSteps={4}>
       {page}
     </WizardLayout>
   );
