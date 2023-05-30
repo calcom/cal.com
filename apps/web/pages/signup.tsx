@@ -181,18 +181,22 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     };
   }
 
-  const verificationToken = await prisma.verificationToken.findUnique({
+  const verificationToken = await prisma.verificationToken.findFirst({
     where: {
       token,
+      expires: {
+        gte: new Date(),
+      },
     },
   });
 
-  if (!verificationToken || verificationToken.expires < new Date()) {
+  if (!verificationToken) {
     return {
       notFound: true,
     };
   }
-  await prisma.verificationToken.delete({
+
+  await prisma.verificationToken.deleteMany({
     where: {
       token,
     },
