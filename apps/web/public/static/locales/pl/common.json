@@ -1806,5 +1806,6 @@
   "confirm_your_details": "Potwierdź swoje dane",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Zamierzasz obciążyć uczestnika kwotą {{amount, currency}}. Czy na pewno chcesz kontynuować?",
+  "charge_attendee": "Pobierz od uczestnika opłatę w wysokości {{amount, currency}}",
   "email_invite_team": "Zaproszono {{email}}"
 }
