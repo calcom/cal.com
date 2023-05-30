@@ -1810,7 +1810,7 @@
   "add_an_override": "添加替代",
   "import_from_google_workspace": "从 Google Workspace 导入用户",
   "connect_google_workspace": "连接 Google Workspace",
-  "google_workspace_admin_tooltip": "您必须是工作区管理员才能使用此功能",
+  "google_workspace_admin_tooltip": "您必须是 Workspace 管理员才能使用此功能",
   "first_event_type_webhook_description": "为此活动类型创建第一个 Webhook",
   "create_for": "创建"
 }
