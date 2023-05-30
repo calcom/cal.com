@@ -35,7 +35,7 @@ const Component = ({
   email,
   tos,
   privacy,
-  isProOnly,
+  teamsPlanRequired,
   descriptionItems,
   isTemplate,
   dependencies,
@@ -129,7 +129,10 @@ const Component = ({
                 className="bg-subtle text-emphasis rounded-md p-1 text-xs capitalize">
                 {categories[0]}
               </Link>{" "}
-              • {t("published_by", { author })}
+              •{" "}
+              <a target="_blank" rel="noreferrer" href={website}>
+                {t("published_by", { author })}
+              </a>
             </h2>
             {isTemplate && (
               <Badge variant="red" className="mt-4">
@@ -150,8 +153,8 @@ const Component = ({
               {!isGlobal && (
                 <InstallAppButton
                   type={type}
-                  isProOnly={isProOnly}
                   disableInstall={disableInstall}
+                  teamsPlanRequired={teamsPlanRequired}
                   render={({ useDefaultComponent, ...props }) => {
                     if (useDefaultComponent) {
                       props = {
@@ -190,8 +193,8 @@ const Component = ({
           ) : (
             <InstallAppButton
               type={type}
-              isProOnly={isProOnly}
               disableInstall={disableInstall}
+              teamsPlanRequired={teamsPlanRequired}
               render={({ useDefaultComponent, ...props }) => {
                 if (useDefaultComponent) {
                   props = {
@@ -241,7 +244,9 @@ const Component = ({
         </div>
         <h4 className="text-emphasis mt-8 font-semibold ">{t("pricing")}</h4>
         <span className="text-default">
-          {price === 0 ? (
+          {teamsPlanRequired ? (
+            t("teams_plan_required")
+          ) : price === 0 ? (
             t("free_to_use_apps")
           ) : (
             <>
@@ -255,7 +260,7 @@ const Component = ({
           )}
         </span>
 
-        <h4 className="text-emphasis mt-8 mb-2 font-semibold ">{t("learn_more")}</h4>
+        <h4 className="text-emphasis mt-8 mb-2 font-semibold ">{t("contact")}</h4>
         <ul className="prose-sm -ml-1 -mr-1 leading-5">
           {docs && (
             <li>
@@ -357,7 +362,7 @@ export default function App(props: {
   tos?: string;
   privacy?: string;
   licenseRequired: AppType["licenseRequired"];
-  isProOnly: AppType["isProOnly"];
+  teamsPlanRequired: AppType["teamsPlanRequired"];
   descriptionItems?: Array<string | { iframe: IframeHTMLAttributes<HTMLIFrameElement> }>;
   isTemplate?: boolean;
   disableInstall?: boolean;

@@ -1,12 +1,18 @@
 import * as RadixToggleGroup from "@radix-ui/react-toggle-group";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { Tooltip } from "@calcom/ui";
 
 interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps, "type"> {
-  options: { value: string; label: string | ReactNode; disabled?: boolean; tooltip?: string }[];
+  options: {
+    value: string;
+    label: string | ReactNode;
+    disabled?: boolean;
+    tooltip?: string;
+    iconLeft?: ReactNode;
+  }[];
   isFullWidth?: boolean;
 }
 
@@ -29,7 +35,7 @@ const OptionalTooltipWrapper = ({
 
 export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: ToggleGroupProps) => {
   const [value, setValue] = useState<string | undefined>(props.defaultValue);
-  const [activeToggleElement, setActiveToggleElement] = useState<null | HTMLButtonElement>(null);
+  const activeRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     if (value && onValueChange) onValueChange(value);
@@ -48,9 +54,15 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
         )}>
         {/* Active toggle. It's a separate element so we can animate it nicely. */}
         <span
+          ref={activeRef}
           aria-hidden
-          className="bg-emphasis absolute top-[4px] bottom-[4px] left-0 z-[0] rounded-[4px] transition-all"
-          style={{ left: activeToggleElement?.offsetLeft, width: activeToggleElement?.offsetWidth }}
+          className={classNames(
+            "bg-emphasis absolute top-[4px] bottom-[4px] left-0 z-[0] rounded-[4px]",
+            // Disable the animation until after initial render, that way when the component would
+            // rerender the styles are immediately set and we don't see a flash moving the element
+            // into position because of the animation.
+            activeRef?.current && "transition-all"
+          )}
         />
         {options.map((option) => (
           <OptionalTooltipWrapper key={option.value} tooltipText={option.tooltip}>
@@ -65,12 +77,19 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
                 isFullWidth && "w-full"
               )}
               ref={(node) => {
-                if (node && value === option.value && activeToggleElement !== node) {
-                  setActiveToggleElement(node);
+                if (node && value === option.value) {
+                  // Sets position of active toggle element with inline styles.
+                  // This way we trigger as little rerenders as possible.
+                  if (!activeRef.current || activeRef?.current.style.left === `${node.offsetLeft}px`) return;
+                  activeRef.current.style.left = `${node.offsetLeft}px`;
+                  activeRef.current.style.width = `${node.offsetWidth}px`;
                 }
                 return node;
               }}>
-              {option.label}
+              <div className="item-center flex justify-center ">
+                {option.iconLeft && <span className="mr-2 flex h-4 w-4 items-center">{option.iconLeft}</span>}
+                {option.label}
+              </div>
             </RadixToggleGroup.Item>
           </OptionalTooltipWrapper>
         ))}

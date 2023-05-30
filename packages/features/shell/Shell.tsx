@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState, useRef, useLayoutEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
@@ -24,6 +24,7 @@ import getBrandColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { trpc } from "@calcom/trpc/react";
+import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 import {
@@ -40,6 +41,7 @@ import {
   HeadSeo,
   Logo,
   SkeletonText,
+  Tooltip,
   showToast,
   useCalcomTheme,
 } from "@calcom/ui";
@@ -138,6 +140,27 @@ function useRedirectToOnboardingIfNeeded() {
 
 const Layout = (props: LayoutProps) => {
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
+  const bannerRef = useRef<HTMLDivElement | null>(null);
+  const [bannersHeight, setBannersHeight] = useState<number>(0);
+
+  useLayoutEffect(() => {
+    const resizeObserver = new ResizeObserver((entries) => {
+      const { offsetHeight } = entries[0].target as HTMLElement;
+      setBannersHeight(offsetHeight);
+    });
+
+    const currentBannerRef = bannerRef.current;
+
+    if (currentBannerRef) {
+      resizeObserver.observe(currentBannerRef);
+    }
+
+    return () => {
+      if (currentBannerRef) {
+        resizeObserver.unobserve(currentBannerRef);
+      }
+    };
+  }, [bannerRef]);
 
   return (
     <>
@@ -153,14 +176,14 @@ const Layout = (props: LayoutProps) => {
 
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
-      <div className="flex min-h-screen flex-col">
-        <div className="divide-y divide-black">
+      <div style={{ paddingTop: `${bannersHeight}px` }} className="flex min-h-screen flex-col">
+        <div ref={bannerRef} className="fixed top-0 z-10 w-full divide-y divide-black">
           <TeamsUpgradeBanner />
           <ImpersonatingBanner />
           <AdminPasswordBanner />
         </div>
         <div className="flex flex-1" data-testid="dashboard-shell">
-          {props.SidebarContainer || <SideBarContainer />}
+          {props.SidebarContainer || <SideBarContainer bannersHeight={bannersHeight} />}
           <div className="flex w-0 flex-1 flex-col">
             <MainContainer {...props} />
           </div>
@@ -246,8 +269,9 @@ export default function Shell(props: LayoutProps) {
 
 function UserDropdown({ small }: { small?: boolean }) {
   const { t } = useLocale();
-  const query = useMeQuery();
-  const user = query.data;
+  const { data: user } = useMeQuery();
+  const { data: avatar } = useAvatarQuery();
+
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -294,24 +318,24 @@ function UserDropdown({ small }: { small?: boolean }) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   className="rounded-full"
-                  src={WEBAPP_URL + "/" + user.username + "/avatar.png"}
+                  src={avatar?.avatar || WEBAPP_URL + "/" + user.username + "/avatar.png"}
                   alt={user.username || "Nameless User"}
                 />
               }
               {!user.away && (
-                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-muted bg-green-500" />
+                <div className="border-muted absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 bg-green-500" />
               )}
               {user.away && (
-                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-muted bg-yellow-500" />
+                <div className="border-muted absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 bg-yellow-500" />
               )}
             </span>
             {!small && (
               <span className="flex flex-grow items-center truncate">
                 <span className="flex-grow truncate text-sm">
-                  <span className="text-emphasis mb-1 pb-1 block truncate font-medium leading-none">
+                  <span className="text-emphasis mb-1 block truncate pb-1 font-medium leading-none">
                     {user.name || "Nameless User"}
                   </span>
-                  <span className="text-default pb-1 truncate font-normal leading-none">
+                  <span className="text-default truncate pb-1 font-normal leading-none">
                     {user.username
                       ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
                         ? `cal.com/${user.username}`
@@ -616,6 +640,7 @@ const NavigationItem: React.FC<{
 
   return (
     <Fragment>
+      <Tooltip side="right" content={t(item.name)} className="lg:hidden">
       <Link
         href={item.href}
         aria-label={t(item.name)}
@@ -644,6 +669,7 @@ const NavigationItem: React.FC<{
           <SkeletonText className="h-3 w-32" />
         )}
       </Link>
+      </Tooltip>
       {item.child &&
         isCurrent({ router, isChild, item }) &&
         item.child.map((item, index) => <NavigationItem index={index} key={item.name} item={item} isChild />)}
@@ -664,7 +690,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "pwa:pb-2.5 bg-muted border-subtle fixed bottom-0 z-30 -mx-4 flex w-full border border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-2.5 bg-muted border-subtle fixed bottom-0 z-30 -mx-4 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
@@ -731,7 +757,15 @@ const MobileNavigationMoreItem: React.FC<{
   );
 };
 
-function SideBarContainer() {
+type SideBarContainerProps = {
+  bannersHeight: number;
+};
+
+type SideBarProps = {
+  bannersHeight: number;
+};
+
+function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
   const { status } = useSession();
   const router = useRouter();
 
@@ -740,13 +774,15 @@ function SideBarContainer() {
   // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
   if (status !== "loading" && status !== "authenticated") return null;
   if (router.route.startsWith("/v2/settings/")) return null;
-  return <SideBar />;
+  return <SideBar bannersHeight={bannersHeight} />;
 }
 
-function SideBar() {
+function SideBar({ bannersHeight }: SideBarProps) {
   return (
     <div className="relative">
-      <aside className="desktop-transparent bg-muted border-muted top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-4">
+      <aside
+        style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
+        className="desktop-transparent bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-4">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-6 ">
           <header className="items-center justify-between md:hidden lg:flex">
             <Link href="/event-types" className="px-2">

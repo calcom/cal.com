@@ -151,6 +151,7 @@ export const getCachedResults = async (
      * TODO: Migrate credential type or appId
      */
     const passedSelectedCalendars = selectedCalendars.filter((sc) => sc.integration === type);
+    if (!passedSelectedCalendars.length) return [];
     /** We extract external Ids so we don't cache too much */
     const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
     /** If we don't then we actually fetch external calendars (which can be very slow) */
@@ -280,7 +281,7 @@ export const createEvent = async (
         if (error?.calError) {
           calError = error.calError;
         }
-        log.error("createEvent failed", error, calEvent);
+        log.error("createEvent failed", JSON.stringify(error), calEvent);
         // @TODO: This code will be off till we can investigate an error with it
         //https://github.com/calcom/cal.com/issues/3949
         // await sendBrokenIntegrationEmail(calEvent, "calendar");

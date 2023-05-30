@@ -13,7 +13,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import { authedProcedure } from "../../../trpc";
+import authedProcedure from "../../../procedures/authedProcedure";
 import { commonBookingSchema } from "./types";
 
 export const bookingsProcedure = authedProcedure

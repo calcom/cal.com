@@ -108,7 +108,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
 });
 
 export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
   const PERIOD_TYPES = [
@@ -149,11 +149,24 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
   const bookingLimitsLocked = shouldLockDisableProps("bookingLimits");
   const durationLimitsLocked = shouldLockDisableProps("durationLimits");
   const periodTypeLocked = shouldLockDisableProps("periodType");
+  const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
 
   const optionsPeriod = [
     { value: 1, label: t("calendar_days") },
     { value: 0, label: t("business_days") },
   ];
+
+  // offsetStart toggle is client-side only, opened by default if offsetStart is set
+  const offsetStartValue = useWatch({
+    control: formMethods.control,
+    name: "offsetStart",
+  });
+  const [offsetToggle, setOffsetToggle] = useState(() => offsetStartValue > 0);
+
+  // Preview how the offset will affect start times
+  const offsetOriginalTime = new Date();
+  offsetOriginalTime.setHours(9, 0, 0, 0);
+  const offsetAdjustedTime = new Date(offsetOriginalTime.getTime() + offsetStartValue * 60 * 1000);
 
   return (
     <div className="space-y-8">
@@ -432,6 +445,32 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           </SettingsToggle>
         )}
       />
+      <hr className="border-subtle" />
+      <SettingsToggle
+        title={t("offset_toggle")}
+        description={t("offset_toggle_description")}
+        {...offsetStartLockedProps}
+        checked={offsetToggle}
+        onCheckedChange={(active) => {
+          setOffsetToggle(active);
+          if (!active) {
+            formMethods.setValue("offsetStart", 0);
+          }
+        }}>
+        <TextField
+          required
+          type="number"
+          {...offsetStartLockedProps}
+          label={t("offset_start")}
+          defaultValue={eventType.offsetStart}
+          {...formMethods.register("offsetStart")}
+          addOnSuffix={<>{t("minutes")}</>}
+          hint={t("offset_start_description", {
+            originalTime: offsetOriginalTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
+            adjustedTime: offsetAdjustedTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
+          })}
+        />
+      </SettingsToggle>
     </div>
   );
 };
