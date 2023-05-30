@@ -4,7 +4,7 @@ export interface NewOrganizationFormValues {
   name: string;
   slug: string;
   logo: string;
-  admin: PendingMember;
+  adminEmail: string;
 }
 
 export interface PendingMember {
