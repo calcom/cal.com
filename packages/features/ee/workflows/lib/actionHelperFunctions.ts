@@ -56,3 +56,19 @@ export function getWhatsappTemplateForAction(action: WorkflowActions, template: 
       return whatsappReminderTemplate(true, action)
   }
 }
+
+export function getWhatsappTemplateFunction(template: WorkflowTemplates): typeof whatsappReminderTemplate {
+  switch(template) {
+    case "CANCELLED":
+      return whatsappEventCancelledTemplate
+    case "COMPLETED":
+      return whatsappEventCompletedTemplate
+    case "RESCHEDULED":
+      return whatsappEventRescheduledTemplate
+    case "CUSTOM":
+    case "REMINDER":
+      return whatsappReminderTemplate
+    default:
+      return whatsappReminderTemplate
+  }
+}

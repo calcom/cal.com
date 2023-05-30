@@ -3,16 +3,12 @@ import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@prisma/cli
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
-import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
-import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
 import * as twilio from "../lib/reminders/smsProviders/twilioProvider";
-import type { VariablesType } from "../lib/reminders/templates/customTemplate";
-import customTemplate from "../lib/reminders/templates/customTemplate";
-import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
+import { getWhatsappTemplateFunction } from "../lib/actionHelperFunctions";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
@@ -21,7 +17,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  //delete all scheduled sms reminders where scheduled date is past current date
+  //delete all scheduled whatsapp reminders where scheduled date is past current date
   await prisma.workflowReminder.deleteMany({
     where: {
       method: WorkflowMethods.WHATSAPP,
@@ -81,52 +77,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       const senderID = getSenderId(sendTo, reminder.workflowStep.sender);
 
-      const locale =
-        reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE ||
-        reminder.workflowStep.action === WorkflowActions.WHATSAPP_ATTENDEE
-          ? reminder.booking?.attendees[0].locale
-          : reminder.booking?.user?.locale;
-
-      let message: string | null = reminder.workflowStep.reminderBody;
-
-      if (reminder.workflowStep.reminderBody) {
-        const { responses } = getCalEventResponses({
-          bookingFields: reminder.booking.eventType?.bookingFields ?? null,
-          booking: reminder.booking,
-        });
-
-        const variables: VariablesType = {
-          eventName: reminder.booking?.eventType?.title,
-          organizerName: reminder.booking?.user?.name || "",
-          attendeeName: reminder.booking?.attendees[0].name,
-          attendeeEmail: reminder.booking?.attendees[0].email,
-          eventDate: dayjs(reminder.booking?.startTime).tz(timeZone),
-          eventEndTime: dayjs(reminder.booking?.endTime).tz(timeZone),
-          timeZone: timeZone,
-          location: reminder.booking?.location || "",
-          additionalNotes: reminder.booking?.description,
-          responses: responses,
-          meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl,
-          cancelLink: `/booking/${reminder.booking.uid}?cancel=true`,
-          rescheduleLink: `/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
-        };
-        const customMessage = customTemplate(
-          reminder.workflowStep.reminderBody || "",
-          variables,
-          locale || ""
-        );
-        message = customMessage.text;
-      } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
-        message = smsReminderTemplate(
-          false,
-          reminder.workflowStep.action,
-          reminder.booking?.startTime.toISOString() || "",
-          reminder.booking?.eventType?.title || "",
-          timeZone || "",
-          attendeeName || "",
-          userName
-        );
-      }
+      const templateFunction = getWhatsappTemplateFunction(reminder.workflowStep.template)
+      const message = templateFunction(
+        false,
+        reminder.workflowStep.action,
+        reminder.booking?.startTime.toISOString() || "",
+        reminder.booking?.eventType?.title || "",
+        timeZone || "",
+        attendeeName || "",
+        userName
+      );
 
       if (message?.length && message?.length > 0 && sendTo) {
         const scheduledSMS = await twilio.scheduleSMS(sendTo, message, reminder.scheduledDate, senderID, true);
