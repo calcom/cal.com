@@ -129,7 +129,6 @@ export interface App {
   teamsPlanRequired?: {
     upgradeUrl: string;
   };
-  isProOnly?: boolean;
   appData?: AppData;
   /**
    * @deprecated
@@ -150,6 +149,8 @@ export type AppFrontendPayload = Omit<App, "key"> & {
     name?: string;
     installed?: boolean;
   }[];
+  /** Number of users who currently have this App installed */
+  installCount?: number;
 };
 
 export type AppMeta = App;

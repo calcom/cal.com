@@ -22,6 +22,8 @@ export const getHandler = async ({ ctx: _ctx, input }: GetOptions) => {
       active: true,
       eventTriggers: true,
       secret: true,
+      teamId: true,
+      userId: true,
     },
   });
 };
