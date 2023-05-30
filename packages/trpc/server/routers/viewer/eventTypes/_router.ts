@@ -2,7 +2,8 @@ import { z } from "zod";
 
 import { logP } from "@calcom/lib/perf";
 
-import { authedProcedure, router } from "../../../trpc";
+import authedProcedure from "../../../procedures/authedProcedure";
+import { router } from "../../../trpc";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
@@ -39,7 +40,7 @@ export const eventTypesRouter = router({
       throw new Error("Failed to load handler");
     }
 
-    const timer = logP(`getByViewer(${ctx.user.email})`);
+    const timer = logP(`getByViewer(${ctx.user.id})`);
 
     const result = await UNSTABLE_HANDLER_CACHE.getByViewer({
       ctx,

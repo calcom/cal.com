@@ -254,6 +254,9 @@ export default function CreateEventTypeDialog({
                   />
                 )}
                 <RadioArea.Group
+                  onValueChange={(val: SchedulingType) => {
+                    form.setValue("schedulingType", val);
+                  }}
                   className={classNames(
                     "mt-1 flex gap-4",
                     isAdmin && flags["managed-event-types"] && "flex-col"
@@ -290,11 +293,11 @@ export default function CreateEventTypeDialog({
               </div>
             )}
           </div>
-          <div className="mt-8 flex flex-row-reverse gap-x-2">
+          <div className="mt-8 flex justify-end gap-x-2">
+            <DialogClose />
             <Button type="submit" loading={createMutation.isLoading}>
               {t("continue")}
             </Button>
-            <DialogClose />
           </div>
         </Form>
       </DialogContent>

@@ -41,6 +41,16 @@ export const EventTypeMetaDataSchema = z
     apps: z.object(appDataSchemas).partial().optional(),
     additionalNotesRequired: z.boolean().optional(),
     disableSuccessPage: z.boolean().optional(),
+    disableStandardEmails: z
+      .object({
+        confirmation: z
+          .object({
+            host: z.boolean().optional(),
+            attendee: z.boolean().optional(),
+          })
+          .optional(),
+      })
+      .optional(),
     managedEventConfig: z
       .object({
         unlockedFields: z.custom<{ [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true }>().optional(),
@@ -491,6 +501,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   price: true,
   slug: true,
   length: true,
+  offsetStart: true,
   locations: true,
   hidden: true,
   availability: true,
