@@ -2,6 +2,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import { IS_SELF_HOSTED, LOGO, LOGO_ICON, WEBAPP_URL } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
+
+const log = logger.getChildLogger({ prefix: ["[api/logo]"] });
 
 function removePort(url: string) {
   return url.replace(/:\d+$/, "");
@@ -51,7 +54,7 @@ async function getTeamLogos(subdomain: string) {
       appIconLogo: team.appIconLogo || `${WEBAPP_URL}${LOGO_ICON}`,
     };
   } catch (error) {
-    if (error instanceof Error) console.error(error.message);
+    if (error instanceof Error) log.debug(error.message);
     return {
       appLogo: `${WEBAPP_URL}${LOGO}`,
       appIconLogo: `${WEBAPP_URL}${LOGO_ICON}`,
@@ -76,10 +79,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const filteredLogo = parsedQuery?.icon ? appIconLogo : appLogo;
 
-  const response = await fetch(filteredLogo);
-  const arrayBuffer = await response.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-  res.setHeader("Content-Type", response.headers.get("content-type") as string);
-  res.setHeader("Cache-Control", "s-maxage=86400");
-  res.send(buffer);
+  try {
+    const response = await fetch(filteredLogo);
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    res.setHeader("Content-Type", response.headers.get("content-type") as string);
+    res.setHeader("Cache-Control", "s-maxage=86400");
+    res.send(buffer);
+  } catch (error) {
+    res.statusCode = 404;
+    res.json({ error: "Failed fetching logo" });
+  }
 }
