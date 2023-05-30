@@ -11,13 +11,13 @@ import { ToggleGroup } from "@calcom/ui";
 import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
-import { Away } from "./components/Away";
 import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
 import { EventMeta } from "./components/EventMeta";
 import { LargeCalendar } from "./components/LargeCalendar";
 import { LargeViewHeader } from "./components/LargeViewHeader";
 import { BookerSection } from "./components/Section";
+import { Away, NotFound } from "./components/Unavailable";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
@@ -91,6 +91,10 @@ const BookerComponent = ({
       timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [layout]);
+
+  if (event.isSuccess && !event.data) {
+    return <NotFound />;
+  }
 
   return (
     <>
