@@ -79,10 +79,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const filteredLogo = parsedQuery?.icon ? appIconLogo : appLogo;
 
-  const response = await fetch(filteredLogo);
-  const arrayBuffer = await response.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-  res.setHeader("Content-Type", response.headers.get("content-type") as string);
-  res.setHeader("Cache-Control", "s-maxage=86400");
-  res.send(buffer);
+  try {
+    const response = await fetch(filteredLogo);
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    res.setHeader("Content-Type", response.headers.get("content-type") as string);
+    res.setHeader("Cache-Control", "s-maxage=86400");
+    res.send(buffer);
+  } catch (error) {
+    res.statusCode = 404;
+    res.json({ error: "Failed fetching logo" });
+  }
 }
