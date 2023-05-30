@@ -376,6 +376,8 @@
   "booking_rescheduled": "Booking Rescheduled",
   "recording_ready":"Recording Download Link Ready",
   "booking_created": "Booking Created",
+  "booking_rejected":"Booking Rejected",
+  "booking_requested":"Booking Requested",
   "meeting_ended": "Meeting Ended",
   "form_submitted": "Form Submitted",
   "event_triggers": "Event Triggers",
