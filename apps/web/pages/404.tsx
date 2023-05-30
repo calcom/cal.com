@@ -291,7 +291,7 @@ export default function Custom404() {
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
-                          <Slack strokeWidth="1.5" fill="currentColor" className="h-6 w-6" />
+                          <Slack strokeWidth="1.5" fill="currentColor" className="h-6 w-6 dark:text-white" />
                         </span>
                       </div>
                       <div className="min-w-0 flex-1">
