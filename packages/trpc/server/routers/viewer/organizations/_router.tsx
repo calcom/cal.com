@@ -6,6 +6,7 @@ import { ZVerifyEmailInputSchema } from "./verifyEmail.schema";
 
 type OrganizationsRouterHandlerCache = {
   create?: typeof import("./create.handler").createHandler;
+  listCurrent?: typeof import("./list.handler").listHandler;
   verifyCode?: typeof import("./verifyCode.handler").verifyCodeHandler;
   verifyEmail?: typeof import("./verifyEmail.handler").verifyEmailHandler;
 };
@@ -60,6 +61,20 @@ export const viewerOrganizationsRouter = router({
     return UNSTABLE_HANDLER_CACHE.verifyEmail({
       ctx,
       input,
+    });
+  }),
+  listCurrent: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.listCurrent) {
+      UNSTABLE_HANDLER_CACHE.listCurrent = await import("./list.handler").then((mod) => mod.listHandler);
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.listCurrent) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.listCurrent({
+      ctx,
     });
   }),
 });
