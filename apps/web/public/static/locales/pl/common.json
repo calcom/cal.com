@@ -1715,6 +1715,7 @@
   "switch_weekly": "Przełącz na widok tygodniowy",
   "switch_multiday": "Przełącz na widok dzienny",
   "num_locations": "Lokalizacje do wyboru: {{num}}",
+  "select_on_next_step": "Wybierz następny krok",
   "this_meeting_has_not_started_yet": "To spotkanie jeszcze się nie rozpoczęło",
   "this_app_requires_connected_account": "Aplikacja {{appName}} wymaga podłączonego konta {{dependencyName}}",
   "connect_app": "Podłącz {{dependencyName}}",
@@ -1744,6 +1745,7 @@
   "locked_apps_description": "Członkowie będą mogli sprawdzić aktywne aplikacje, ale nie będą mogli edytować ich ustawień",
   "locked_webhooks_description": "Członkowie będą mogli sprawdzić aktywne webhooki, ale nie będą mogli edytować ich ustawień",
   "locked_workflows_description": "Członkowie będą mogli sprawdzić aktywne przepływy pracy, ale nie będą mogli edytować ich ustawień",
+  "locked_by_admin": "Zablokowane przez administratora zespołu",
   "app_not_connected": "Nie podłączono konta {{appName}}.",
   "connect_now": "Podłącz teraz",
   "managed_event_dialog_confirm_button_one": "Zastąp i poinformuj {{count}} członka",
@@ -1801,5 +1803,8 @@
   "seats_and_no_show_fee_error": "Obecnie nie można udostępnić miejsc ani naliczyć opłaty za niestawienie się.",
   "complete_your_booking": "Ukończ rezerwację",
   "complete_your_booking_subject": "Ukończ rezerwację: {{title}} dnia {{date}}",
+  "confirm_your_details": "Potwierdź swoje dane",
+  "currency_string": "{{amount, currency}}",
+  "charge_card_dialog_body": "Zamierzasz obciążyć uczestnika kwotą {{amount, currency}}. Czy na pewno chcesz kontynuować?",
   "email_invite_team": "Zaproszono {{email}}"
 }
