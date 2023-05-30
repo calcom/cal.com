@@ -1813,5 +1813,7 @@
   "error_collecting_card": "Błąd podczas pobierania karty",
   "image_size_limit_exceed": "Przesłany obraz nie powinien być większy niż 5 MB.",
   "floating_pop_up_button": "Pływający przycisk wyskakujący",
-  "invite_as": "Zaproś jako"
+  "invite_as": "Zaproś jako",
+  "form_updated_successfully": "Formularz zaktualizowany pomyślnie.",
+  "email_not_cal_member_cta": "Dołącz do zespołu"
 }
