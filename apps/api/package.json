@@ -11,17 +11,13 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "PORT=3002 next dev",
     "lint": "eslint . --ignore-path .gitignore",
-    "lint:report": "eslint . --format json --output-file ../../lint-results/api.json",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "start": "PORT=3002 next start",
-    "test": "jest --detectOpenHandles --passWithNoTests",
     "type-check": "tsc --pretty --noEmit"
   },
   "devDependencies": {
     "@calcom/tsconfig": "*",
     "@calcom/types": "*",
-    "babel-jest": "^28.1.0",
-    "jest": "^28.1.0",
     "node-mocks-http": "^1.11.0"
   },
   "dependencies": {
