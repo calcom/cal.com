@@ -1816,6 +1816,7 @@
   "email_invite_team_bulk": "{{userCount}} users have been invited",
   "error_collecting_card": "Error collecting card",
   "image_size_limit_exceed": "Uploaded image shouldn't exceed 5mb size limit",
+  "unauthorized_workflow_error_message": "{{errorCode}}: You are not authorized to enable or disable this workflow",
   "inline_embed": "Inline Embed",
   "load_inline_content": "Loads your event type directly inline with your other website content.",
   "floating_pop_up_button": "Floating pop-up button",
