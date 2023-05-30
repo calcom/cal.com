@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2]
+        shard: [1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/dangerous-git-checkout
@@ -34,7 +34,7 @@ jobs:
       - name: Seed Test DB
         run: yarn db-seed
       - name: Run Tests
-        run: NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/web --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+        run: yarn e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
         env:
           DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
       - name: Upload Test Results
