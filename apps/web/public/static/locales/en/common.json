@@ -1349,6 +1349,7 @@
   "route_to_the_right_person": "Route to the right person based on the answers to your form",
   "form_description": "Create your form to route a booker",
   "copy_link_to_form": "Copy link to form",
+  "copy_link_to_headless_router": "Copy link to headless router",
   "theme": "Theme",
   "theme_applies_note": "This only applies to your public booking pages",
   "theme_light": "Light",

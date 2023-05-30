@@ -173,6 +173,16 @@ export default function RoutingForms({
                                 />
                                 <FormAction
                                   routingForm={form}
+                                  action="copyRedirectUrl"
+                                  color="secondary"
+                                  variant="icon"
+                                  StartIcon={LinkIcon}
+                                  disabled={false}
+                                  tooltip={t("copy_link_to_headless_router")}
+                                />
+
+                                <FormAction
+                                  routingForm={form}
                                   action="embed"
                                   color="secondary"
                                   variant="icon"
