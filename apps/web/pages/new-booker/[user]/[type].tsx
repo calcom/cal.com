@@ -66,7 +66,15 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     booking = await getBookingByUidOrRescheduleUid(`${rescheduleUid}`);
   }
 
-  await ssr.viewer.public.event.prefetch({ username: user, eventSlug: slug });
+  // We use this to both prefetch the query on the server,
+  // as well as to check if the event exist, so we c an show a 404 otherwise.
+  const eventData = await ssr.viewer.public.event.fetch({ username: user, eventSlug: slug });
+
+  if (!eventData) {
+    return {
+      notFound: true,
+    };
+  }
 
   return {
     props: {
@@ -107,7 +115,15 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     booking = await getBookingByUidOrRescheduleUid(`${rescheduleUid}`);
   }
 
-  await ssr.viewer.public.event.prefetch({ username, eventSlug: slug });
+  // We use this to both prefetch the query on the server,
+  // as well as to check if the event exist, so we c an show a 404 otherwise.
+  const eventData = await ssr.viewer.public.event.fetch({ username, eventSlug: slug });
+
+  if (!eventData) {
+    return {
+      notFound: true,
+    };
+  }
 
   return {
     props: {
