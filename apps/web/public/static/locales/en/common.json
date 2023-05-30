@@ -195,6 +195,7 @@
   "page_doesnt_exist": "This page does not exist.",
   "check_spelling_mistakes_or_go_back": "Check for spelling mistakes or go back to the previous page.",
   "404_page_not_found": "404: This page could not be found.",
+  "booker_event_not_found": "We could not find the event you are trying to book.",
   "getting_started": "Getting Started",
   "15min_meeting": "15 Min Meeting",
   "30min_meeting": "30 Min Meeting",
