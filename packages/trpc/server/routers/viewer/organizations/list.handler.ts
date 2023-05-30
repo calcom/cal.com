@@ -16,7 +16,7 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: "You do not belong to an organization" });
   }
 
-  const memberships = await ctx.prisma.membership.findMany({
+  const membership = await ctx.prisma.membership.findFirst({
     where: {
       team: {
         id: ctx.user.organization.id,
@@ -27,9 +27,11 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
     },
   });
 
-  return memberships.map(({ team, ...membership }) => ({
-    role: membership.role,
-    accepted: membership.accepted,
-    ...team,
-  }));
+  return {
+    user: {
+      role: membership?.role,
+      accepted: membership?.accepted,
+    },
+    ...membership?.team,
+  };
 };

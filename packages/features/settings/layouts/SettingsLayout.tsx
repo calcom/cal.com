@@ -75,37 +75,37 @@ const tabs: VerticalTabItemProps[] = [
     ],
   },
   {
-    name: "organisation",
-    href: "/settings/organisation",
+    name: "organization",
+    href: "/settings/organizations",
     icon: Building,
     children: [
       {
         name: "profile",
-        href: "/settings/organisation/profile",
+        href: "/settings/organizations/profile",
       },
       {
         name: "general",
-        href: "/settings/organisation/general",
+        href: "/settings/organizations/general",
       },
       {
         name: "members",
-        href: "/settings/organisation/members",
+        href: "/settings/organizations/members",
       },
       {
         name: "appearance",
-        href: "/settings/organisation/appearance",
+        href: "/settings/organizations/appearance",
       },
       {
         name: "billing",
-        href: "/settings/organisation/billing",
+        href: "/settings/organizations/billing",
       },
       {
         name: "saml_config",
-        href: "/settings/organisation/sso",
+        href: "/settings/organizations/sso",
       },
       {
         name: "developer",
-        href: "/settings/organisation/developer",
+        href: "/settings/organizations/developer",
       },
     ],
   },
@@ -139,7 +139,7 @@ tabs.find((tab) => {
 
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
-const organisationRequiredKeys = ["organisation"];
+const organizationRequiredKeys = ["organization"];
 
 const useTabs = () => {
   const session = useSession();
@@ -159,7 +159,7 @@ const useTabs = () => {
 
   // check if name is in adminRequiredKeys
   return tabs.filter((tab) => {
-    if (organisationRequiredKeys.includes(tab.name)) return !!session.data?.user?.organizationId;
+    if (organizationRequiredKeys.includes(tab.name)) return !!session.data?.user?.organizationId;
 
     if (isAdmin) return true;
     return !adminRequiredKeys.includes(tab.name);

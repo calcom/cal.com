@@ -1,11 +1,13 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZCreateInputSchema } from "./create.schema";
+import { ZUpdateInputSchema } from "./update.schema";
 import { ZVerifyCodeInputSchema } from "./verifyCode.schema";
 
 type OrganizationsRouterHandlerCache = {
   create?: typeof import("./create.handler").createHandler;
   listCurrent?: typeof import("./list.handler").listHandler;
+  update?: typeof import("./update.handler").updateHandler;
   verifyCode?: typeof import("./verifyCode.handler").verifyCodeHandler;
 };
 
@@ -40,6 +42,21 @@ export const viewerOrganizationsRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.verifyCode({
+      ctx,
+      input,
+    });
+  }),
+  update: authedProcedure.input(ZUpdateInputSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.update) {
+      UNSTABLE_HANDLER_CACHE.update = await import("./update.handler").then((mod) => mod.updateHandler);
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.update) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.update({
       ctx,
       input,
     });
