@@ -35,6 +35,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
+  // Delete token from DB after it has been used
+  await prisma.verificationToken.delete({
+    where: {
+      id: foundToken?.id,
+    },
+  });
+
   const hasCompletedOnboarding = user.completedOnboarding;
 
   res.redirect(`${WEBAPP_URL}/${hasCompletedOnboarding ? "/event-types" : "/getting-started"}`);

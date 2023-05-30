@@ -14,7 +14,7 @@ export const shouldVerifyEmailHandler = async ({ ctx }: ShouldVerifyEmailType) =
   const obj = {
     id: user.id,
     email: user.email,
-    isVerified: (isVerified && isCalProvider) || !isCalProvider,
+    isVerified: isVerified || !isCalProvider,
   };
 
   return obj;

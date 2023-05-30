@@ -40,7 +40,7 @@ export const sendEmailVerification = async ({ email, language, username }: Verif
     data: {
       identifier: email,
       token,
-      expires: new Date(new Date().setHours(23)), // +1 day
+      expires: new Date(Date.now() + 24 * 3600 * 1000), // +1 day
     },
   });
 
