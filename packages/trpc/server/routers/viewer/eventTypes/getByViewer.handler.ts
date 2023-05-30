@@ -217,13 +217,11 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     eventTypeGroups: eventTypeGroups.filter((groupBy) => !!groupBy.eventTypes?.length),
     // so we can show a dropdown when the user has teams
     profiles: eventTypeGroups.map((group) => ({
+      ...group.profile,
+      ...group.metadata,
       teamId: group.teamId,
       membershipRole: group.membershipRole,
-      profile: {
-        ...group.profile,
-        image: `${CAL_URL}/${group.profile.slug}/avatar.png`,
-      },
-      ...group.metadata,
+      image: `${CAL_URL}/${group.profile.slug}/avatar.png`,
     })),
   };
 };
