@@ -18,7 +18,7 @@ interface VerifyEmailType {
 }
 
 export const sendEmailVerification = async ({ email, language, username }: VerifyEmailType) => {
-  const token: string = randomBytes(32).toString("hex");
+  const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
 
   const sendEmailVerificationEnabled = await prisma.feature.findFirst({
