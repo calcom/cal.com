@@ -16,6 +16,7 @@ import {
   EventTypeMetaDataSchema,
   customInputSchema,
   userMetadata as userMetadataSchema,
+  bookerLayouts,
 } from "@calcom/prisma/zod-utils";
 
 const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
@@ -126,7 +127,7 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
         theme: null,
-        bookerLayouts: users[0].defaultBookerLayouts || defaultEventBookerLayouts,
+        bookerLayouts: bookerLayouts.parse(users[0].defaultBookerLayouts || defaultEventBookerLayouts),
       },
     };
   }
@@ -157,7 +158,7 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
 
   return {
     ...event,
-    bookerLayouts: event.bookerLayouts as BookerLayoutSettings,
+    bookerLayouts: bookerLayouts.parse(event.bookerLayouts),
     description: markdownToSafeHTML(event.description),
     metadata: EventTypeMetaDataSchema.parse(event.metadata || {}),
     customInputs: customInputSchema.array().parse(event.customInputs || []),
@@ -195,8 +196,9 @@ function getProfileFromEvent(event: Event) {
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
     theme: profile.theme,
-    bookerLayouts:
-      event.bookerLayouts || ("defaultBookerLayouts" in profile ? profile.defaultBookerLayouts : null),
+    bookerLayouts: bookerLayouts.parse(
+      event.bookerLayouts || ("defaultBookerLayouts" in profile ? profile.defaultBookerLayouts : null)
+    ),
   };
 }
 
