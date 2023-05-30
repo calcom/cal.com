@@ -5,14 +5,18 @@ import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
+import type { TConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
+
 type ConnectedCalendarsOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
+  input: TConnectedCalendarsInputSchema;
 };
 
-export const connectedCalendarsHandler = async ({ ctx }: ConnectedCalendarsOptions) => {
+export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalendarsOptions) => {
   const { user } = ctx;
+  const onboarding = input?.onboarding || false;
 
   const userCredentials = await prisma.credential.findMany({
     where: {
@@ -55,7 +59,7 @@ export const connectedCalendarsHandler = async ({ ctx }: ConnectedCalendarsOptio
       */
     const { integration = "", externalId = "", credentialId } = connectedCalendars[0].primary ?? {};
     // Select the first calendar matching the primary by default since that will also be the destination calendar
-    if (externalId) {
+    if (onboarding && externalId) {
       const calendarIndex = (connectedCalendars[0].calendars || []).findIndex(
         (item) => item.externalId === externalId && item.integration === integration
       );
@@ -90,7 +94,7 @@ export const connectedCalendarsHandler = async ({ ctx }: ConnectedCalendarsOptio
       // If destinationCalendar is out of date, update it with the first primary connected calendar
       const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
       // Select the first calendar matching the primary by default since that will also be the destination calendar
-      if (externalId) {
+      if (onboarding && externalId) {
         const calendarIndex = (connectedCalendars[0].calendars || []).findIndex(
           (item) => item.externalId === externalId && item.integration === integration
         );
@@ -109,7 +113,7 @@ export const connectedCalendarsHandler = async ({ ctx }: ConnectedCalendarsOptio
           externalId,
         },
       });
-    } else if (!destinationCal.isSelected) {
+    } else if (onboarding && !destinationCal.isSelected) {
       // Mark the destination calendar as selected in the calendar list
       // We use every so that we can exit early once we find the matching calendar
       connectedCalendars.every((cal) => {
