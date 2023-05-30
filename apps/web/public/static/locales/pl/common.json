@@ -759,6 +759,8 @@
   "length": "Długość",
   "minimum_booking_notice": "Minimalne powiadomienie",
   "offset_toggle": "Opóźnij czasy rozpoczęcia",
+  "offset_toggle_description": "Przesuń przedziały czasowe wyświetlane rezerwującym o określoną liczbę minut",
+  "offset_start": "Przesuń o",
   "slot_interval": "Przedziały czasowe",
   "slot_interval_default": "Użyj długości zdarzenia (domyślnie)",
   "delete_event_type": "Usunąć typ wydarzenia?",
