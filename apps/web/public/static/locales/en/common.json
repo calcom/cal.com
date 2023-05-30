@@ -1812,7 +1812,6 @@
   "complete_your_booking": "Complete your booking",
   "complete_your_booking_subject": "Complete your booking: {{title}} on {{date}}",
   "confirm_your_details": "Confirm your details",
-  "email_invite_team": "{{email}} has been invited",
   "copy_invite_link": "Copy invite link",
   "edit_invite_link": "Edit link settings",
   "invite_link_copied": "Invite link copied",
@@ -1823,7 +1822,7 @@
   "seven_days": "7 days",
   "thirty_days": "30 days",
   "never_expire": "Never expires",
-  "team_invite_received": "You have been invited to join {{teamName}}"
+  "team_invite_received": "You have been invited to join {{teamName}}",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "You are about to charge the attendee {{amount, currency}}. Are you sure you want to continue?",
   "charge_attendee": "Charge attendee {{amount, currency}}",
