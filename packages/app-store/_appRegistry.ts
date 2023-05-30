@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
@@ -35,6 +37,7 @@ export async function getAppRegistry() {
     select: { dirName: true, slug: true, categories: true, enabled: true },
   });
   const apps = [] as App[];
+  const mostPopularApps = await getMostPopularApps();
   for await (const dbapp of dbApps) {
     const app = await getAppWithMetadata(dbapp);
     if (!app) continue;
@@ -47,6 +50,7 @@ export async function getAppRegistry() {
       category: app.category || "other",
       installed:
         true /* All apps from DB are considered installed by default. @TODO: Add and filter our by `enabled` property */,
+      installCount: mostPopularApps[dbapp.slug] || 0,
     });
   }
   return apps;
@@ -82,6 +86,7 @@ export async function getAppRegistryWithCredentials(userId: number) {
     credentials: Credential[];
     isDefault?: boolean;
   })[];
+  const mostPopularApps = await getMostPopularApps();
   for await (const dbapp of dbApps) {
     const app = await getAppWithMetadata(dbapp);
     if (!app) continue;
@@ -108,10 +113,33 @@ export async function getAppRegistryWithCredentials(userId: number) {
       categories: dbapp.categories,
       credentials: dbapp.credentials,
       installed: true,
+      installCount: mostPopularApps[dbapp.slug] || 0,
       isDefault: usersDefaultApp === dbapp.slug,
       ...(app.dependencies && { dependencyData }),
     });
   }
 
   return apps;
+}
+
+async function getMostPopularApps() {
+  const mostPopularApps = z.array(z.object({ appId: z.string(), installCount: z.number() })).parse(
+    await prisma.$queryRaw`
+    SELECT
+      c."appId",
+      COUNT(*)::integer AS "installCount"
+    FROM
+      "Credential" c
+    WHERE
+      c."appId" IS NOT NULL
+    GROUP BY
+      c."appId"
+    ORDER BY
+      "installCount" DESC
+    `
+  );
+  return mostPopularApps.reduce((acc, { appId, installCount }) => {
+    acc[appId] = installCount;
+    return acc;
+  }, {} as Record<string, number>);
 }
