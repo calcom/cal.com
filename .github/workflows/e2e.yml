@@ -4,7 +4,7 @@ on:
 jobs:
   e2e:
     timeout-minutes: 20
-    name: E2E tests
+    name: E2E tests (${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: buildjet-4vcpu-ubuntu-2204
     services:
       postgres:
@@ -14,6 +14,10 @@ jobs:
           POSTGRES_DB: calendso
         ports:
           - 5432:5432
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/dangerous-git-checkout
@@ -23,13 +27,15 @@ jobs:
       - uses: ./.github/actions/env-read-file
       - uses: ./.github/actions/cache-db
       - uses: ./.github/actions/cache-build
+      - name: Seed Test DB
+        run: yarn db-seed
       - name: Run Tests
-        run: yarn test-e2e
+        run: yarn e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
         env:
           DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
       - name: Upload Test Results
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
-          name: test-results
+          name: test-results-${{ matrix.shard }}_${{ strategy.job-total }}
           path: test-results
