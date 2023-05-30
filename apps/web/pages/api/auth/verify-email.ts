@@ -15,7 +15,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const foundToken = await prisma.verificationToken.findFirst({
     where: {
       token,
-      type: "VERIFY_ACCOUNT",
     },
   });
 

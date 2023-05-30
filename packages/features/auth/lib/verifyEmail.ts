@@ -6,7 +6,7 @@ import logger from "@calcom/lib/logger";
 import rateLimit from "@calcom/lib/rateLimit";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
-import { TokenType } from "@calcom/prisma/enums";
+import { TRPCError } from "@calcom/trpc/server";
 
 const log = logger.getChildLogger({ prefix: [`[[Auth] `] });
 
@@ -40,7 +40,6 @@ export const sendEmailVerification = async ({ email, language, username }: Verif
     data: {
       identifier: email,
       token,
-      type: TokenType.VERIFY_ACCOUNT,
       expires: new Date(new Date().setHours(23)), // +1 day
     },
   });
@@ -52,7 +51,11 @@ export const sendEmailVerification = async ({ email, language, username }: Verif
   const { isRateLimited } = limiter.check(10, email); // 10 requests per minute
 
   if (isRateLimited) {
-    throw new Error("Too many requests");
+    throw new TRPCError({
+      code: "TOO_MANY_REQUESTS",
+      message: "An unexpected error occurred, please try again later.",
+      cause: "Too many requests",
+    });
   }
 
   await sendEmailVerificationLink({
