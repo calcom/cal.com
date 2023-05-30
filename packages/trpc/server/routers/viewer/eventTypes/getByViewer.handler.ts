@@ -173,10 +173,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     .map((eventType) => eventType)
     .filter((evType) => evType.schedulingType !== SchedulingType.MANAGED);
 
-  let image = user.avatar || undefined
-  if (image && user?.username) {
-    image = `${CAL_URL}/${user.username}/avatar.png`
-  }
+  const image = user?.username ? `${CAL_URL}/${user.username}/avatar.png` : undefined;
 
   eventTypeGroups.push({
     teamId: null,
