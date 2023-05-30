@@ -1815,5 +1815,8 @@
   "floating_pop_up_button": "Pływający przycisk wyskakujący",
   "invite_as": "Zaproś jako",
   "form_updated_successfully": "Formularz zaktualizowany pomyślnie.",
-  "email_not_cal_member_cta": "Dołącz do zespołu"
+  "email_not_cal_member_cta": "Dołącz do zespołu",
+  "add_an_override": "Dodaj zastąpienie",
+  "import_from_google_workspace": "Importuj użytkowników z usługi Google Workspace",
+  "create_for": "Utwórz dla"
 }
