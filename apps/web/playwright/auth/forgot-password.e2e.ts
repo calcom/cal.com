@@ -29,9 +29,7 @@ test("Can reset forgotten password", async ({ page, users }) => {
   // Click text=Submit
   await page.click('button[type="submit"]');
 
-  await page.waitForSelector("text=Password updated", {
-    timeout: 3000,
-  });
+  await page.waitForSelector("text=Password updated");
 
   await expect(page.locator(`text=Password updated`)).toBeVisible();
   // Click button:has-text("Login")

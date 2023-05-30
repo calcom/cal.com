@@ -344,6 +344,7 @@ test.describe("Routing Forms", () => {
       const routingForm = user.routingForms[0];
       page.goto(`apps/routing-forms/form-edit/${routingForm.id}`);
       await page.click('[data-testid="test-preview"]');
+      await page.waitForLoadState("networkidle");
 
       // //event redirect
       await page.fill('[data-testid="form-field-Test field"]', "event-routing");
