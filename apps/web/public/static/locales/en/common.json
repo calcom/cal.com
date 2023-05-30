@@ -365,6 +365,7 @@
   "user_dynamic_booking_disabled": "Some of the users in the group have currently disabled dynamic group bookings",
   "allow_dynamic_booking_tooltip": "Group booking links that can be created dynamically by adding multiple usernames with a '+'. example: '{{appName}}/bailey+peer'",
   "allow_dynamic_booking": "Allow attendees to book you through dynamic group bookings",
+  "dynamic_booking": "Dynamic group links",
   "email": "Email",
   "email_placeholder": "jdoe@example.com",
   "full_name": "Full name",
