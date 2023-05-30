@@ -27,7 +27,7 @@ function extractDomainFromEmail(email: string) {
 }
 
 export const CreateANewOrganizationForm = () => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
   const returnToParsed = querySchema.safeParse(router.query);
@@ -122,6 +122,7 @@ export const CreateANewOrganizationForm = () => {
                       onClick={() => {
                         verifyEmailMutation.mutate({
                           email: newOrganizationFormMethods.getValues("admin.email"),
+                          language: i18n.language,
                         });
                       }}>
                       Send code
