@@ -2,6 +2,7 @@ import { createHash } from "crypto";
 import { totp } from "otplib";
 
 import { sendOrganizationEmailVerification } from "@calcom/emails/email-manager";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -30,7 +31,15 @@ export const verifyEmailHandler = async ({ ctx, input }: VerifyEmailOptions) => 
 
   console.log({ email, code });
 
-  await sendOrganizationEmailVerification(email, code);
+  const language = await getTranslation(input.language ?? "en", "common");
+
+  await sendOrganizationEmailVerification({
+    user: {
+      email,
+    },
+    code,
+    language,
+  });
 
   return { emailSent: true };
 };
