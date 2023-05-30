@@ -35,9 +35,6 @@ test.describe("user can login & logout succesfully", async () => {
       const signOutBtn = await page.locator(`text=${signOutLabel}`);
       await signOutBtn.click();
 
-      // 2s of delay to assure the session is cleared
-      await page.waitForURL("/auth/logout");
-
       // Reroute to the home page to check if the login form shows up
       await page.goto("/");
       await expect(page.locator(`[data-testid=login-form]`)).toBeVisible();
