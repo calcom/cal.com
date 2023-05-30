@@ -77,9 +77,9 @@ const BookerLayoutFields = ({ settings, onChange, showUserSettings }: BookerLayo
   const { isLoading: isUserLoading, data: user } = useMeQuery();
   const [isOverridingSettings, setIsOverridingSettings] = useState(false);
 
-  const defaultLayout = settings?.defaultLayout || "month_view";
   const disableFields = showUserSettings && !isOverridingSettings;
   const shownSettings = disableFields ? user?.defaultBookerLayouts : settings;
+  const defaultLayout = shownSettings?.defaultLayout || "month_view";
 
   // Converts the settings array into a boolean object, which can be used as form values.
   const toggleValues: BookerLayoutState = bookerLayoutOptions.reduce((layouts, layout) => {
@@ -155,6 +155,7 @@ const BookerLayoutFields = ({ settings, onChange, showUserSettings }: BookerLayo
         )}>
         <Label>{t("bookerlayout_default_title")}</Label>
         <RadioGroup.Root
+          key={defaultLayout}
           className="border-default flex w-full gap-2 rounded-md border p-1"
           defaultValue={defaultLayout}
           onValueChange={(layout: BookerLayouts) => onDefaultLayoutChange(layout)}>

@@ -7,7 +7,7 @@ import { shallow } from "zustand/shallow";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
-import type { BookerLayouts } from "@calcom/prisma/zod-utils";
+import { bookerLayoutOptions, type BookerLayouts } from "@calcom/prisma/zod-utils";
 import { ToggleGroup } from "@calcom/ui";
 import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 
@@ -54,7 +54,10 @@ const BookerComponent = ({
   );
   const extraDays = layout === "column_view" ? (isTablet ? 2 : 4) : 0;
   const onLayoutToggle = useCallback((newLayout: BookerLayout) => setLayout(newLayout), [setLayout]);
-  const bookerLayouts = event.data?.profile?.bookerLayouts;
+  const bookerLayouts = event.data?.profile?.bookerLayouts || {
+    defaultLayout: "month_view",
+    enabledLayouts: bookerLayoutOptions,
+  };
   const animationScope = useBookerResizeAnimation(layout, bookerState);
 
   useBrandColors({
@@ -70,7 +73,7 @@ const BookerComponent = ({
     eventId: event?.data?.id,
     rescheduleUid,
     rescheduleBooking,
-    layout: bookerLayouts?.defaultLayout || "month_view",
+    layout: bookerLayouts.defaultLayout,
   });
 
   useEffect(() => {
