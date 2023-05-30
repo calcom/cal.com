@@ -1,5 +1,26 @@
 # @calcom/embed-react
 
+## 1.1.1
+
+### Patch Changes
+
+- Fix the build for embed-react
+- Updated dependencies
+  - @calcom/embed-snippet@1.0.9
+  - @calcom/embed-core@1.2.1
+
+## 1.1.0
+
+### Minor Changes
+
+- Fix missing types for @calcom/embed-react. Also, release support for floatingButton config parameter. Though the support is available using embed.js already, for users using getCalApi the TypeScript types would report that config isn't supported.
+
+### Patch Changes
+
+- Updated dependencies
+  - @calcom/embed-core@1.2.0
+  - @calcom/embed-snippet@1.0.8
+
 ## 1.0.12
 
 ### Patch Changes

@@ -1,7 +1,7 @@
 {
   "name": "@calcom/embed-react",
   "sideEffects": false,
-  "version": "1.0.12",
+  "version": "1.1.1",
   "description": "Embed Cal Link as a React Component",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
@@ -27,7 +27,7 @@
   },
   "main": "./dist/Cal.umd.js",
   "module": "./dist/Cal.es.js",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/embed-react/src/index.d.ts",
   "peerDependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
