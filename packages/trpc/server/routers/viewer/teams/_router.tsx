@@ -32,6 +32,7 @@ type TeamsRouterHandlerCache = {
   listMembers?: typeof import("./listMembers.handler").listMembersHandler;
   hasTeamPlan?: typeof import("./hasTeamPlan.handler").hasTeamPlanHandler;
   listInvites?: typeof import("./listInvites.handler").listInvitesHandler;
+  getUserAdminTeams?: typeof import("./getUserAdminTeams.handler").getUserAdminTeamsHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: TeamsRouterHandlerCache = {};
@@ -331,6 +332,23 @@ export const viewerTeamsRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.listInvites({
+      ctx,
+    });
+  }),
+
+  getUserAdminTeams: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getUserAdminTeams) {
+      UNSTABLE_HANDLER_CACHE.getUserAdminTeams = await import("./getUserAdminTeams.handler").then(
+        (mod) => mod.getUserAdminTeamsHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getUserAdminTeams) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getUserAdminTeams({
       ctx,
     });
   }),
