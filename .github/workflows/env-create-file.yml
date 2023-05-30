@@ -43,7 +43,7 @@ jobs:
       - uses: ozaytsev86/create-env-file@v1
         with:
           file-name: ${{ github.workspace }}/gh.env
-      - uses: actions/cache@v3
+      - uses: buildjet/cache@v3
         id: env-cache
         with:
           path: gh.env
