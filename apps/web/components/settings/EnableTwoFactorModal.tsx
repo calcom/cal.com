@@ -156,7 +156,9 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
                 <img src={dataUri} alt="" />
               }
             </div>
-            <p className="text-center font-mono text-xs">{secret}</p>
+            <p data-testid="two-factor-secret" className="text-center font-mono text-xs">
+              {secret}
+            </p>
           </>
         </WithStep>
         <Form handleSubmit={handleEnable} form={form}>
@@ -164,7 +166,11 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
             <div className="mb-4">
               <TwoFactor center />
 
-              {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
+              {errorMessage && (
+                <p data-testid="error-submitting-code" className="mt-1 text-sm text-red-700">
+                  {errorMessage}
+                </p>
+              )}
             </div>
           </WithStep>
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
@@ -178,12 +184,16 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
               </Button>
             </WithStep>
             <WithStep step={SetupStep.DisplayQrCode} current={step}>
-              <Button type="submit" className="ms-2 me-2" onClick={() => setStep(SetupStep.EnterTotpCode)}>
+              <Button
+                type="submit"
+                data-testid="goto-otp-screen"
+                className="ms-2 me-2"
+                onClick={() => setStep(SetupStep.EnterTotpCode)}>
                 {t("continue")}
               </Button>
             </WithStep>
             <WithStep step={SetupStep.EnterTotpCode} current={step}>
-              <Button type="submit" className="ms-2 me-2" disabled={isSubmitting}>
+              <Button type="submit" className="ms-2 me-2" data-testid="enable-2fa" disabled={isSubmitting}>
                 {t("enable")}
               </Button>
             </WithStep>
