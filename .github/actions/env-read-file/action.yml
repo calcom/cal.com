@@ -4,7 +4,7 @@ runs:
   using: "composite"
   steps:
     - name: Create env file
-      uses: actions/cache@v3
+      uses: buildjet/cache@v3
       id: env-cache
       with:
         path: gh.env
