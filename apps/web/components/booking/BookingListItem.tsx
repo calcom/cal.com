@@ -123,7 +123,8 @@ function BookingListItem(booking: BookingItemProps) {
       disabled: mutation.isLoading,
     },
     // For bookings with payment, only confirm if the booking is paid for
-    ...((isPending && !booking?.eventType?.price) || (!!booking?.eventType?.price && booking.paid)
+    ...((isPending && !paymentAppData.enabled) ||
+    (paymentAppData.enabled && !!paymentAppData.price && booking.paid)
       ? [
           {
             id: "confirm",
