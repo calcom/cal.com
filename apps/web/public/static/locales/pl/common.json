@@ -1811,5 +1811,7 @@
   "email_invite_team": "Zaproszono {{email}}",
   "email_invite_team_bulk": "Zaproszono {{userCount}} użytkowników",
   "error_collecting_card": "Błąd podczas pobierania karty",
-  "image_size_limit_exceed": "Przesłany obraz nie powinien być większy niż 5 MB."
+  "image_size_limit_exceed": "Przesłany obraz nie powinien być większy niż 5 MB.",
+  "floating_pop_up_button": "Pływający przycisk wyskakujący",
+  "invite_as": "Zaproś jako"
 }
