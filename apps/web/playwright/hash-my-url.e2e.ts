@@ -15,7 +15,6 @@ test.fixme("hash my url", () => {
     await users.deleteAll();
   });
   test("generate url hash", async ({ page }) => {
-    // await page.pause();
     await page.goto("/event-types");
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="event-types"]');
