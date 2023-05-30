@@ -77,12 +77,13 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
   const userWebhooks = user.webhooks;
   let webhookGroups: WebhookGroup[] = [];
 
+  const image = user?.username ? `${CAL_URL}/${user.username}/avatar.png` : undefined;
   webhookGroups.push({
     teamId: null,
     profile: {
       slug: user.username,
       name: user.name,
-      image: user.avatar || undefined,
+      image,
     },
     webhooks: userWebhooks,
     metadata: {
