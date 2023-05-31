@@ -1815,5 +1815,6 @@
   "email_invite_team": "{{email}} recebeu um convite",
   "email_invite_team_bulk": "{{userCount}} usuários foram convidados",
   "error_collecting_card": "Erro ao coletar cartão",
-  "image_size_limit_exceed": "A imagem carregada não deve ultrapassar o limite de 5 MB"
+  "image_size_limit_exceed": "A imagem carregada não deve ultrapassar o limite de 5 MB",
+  "inline_embed": "Incorporar embutido"
 }
