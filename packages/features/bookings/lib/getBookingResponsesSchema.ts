@@ -177,7 +177,8 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "phone") {
-          if (!phoneSchema.safeParse(value).success) {
+          const phoneNumber = value && value.startsWith("+") ? value : `+${value}`
+          if (!phoneSchema.safeParse(phoneNumber).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
           }
           return;
@@ -208,7 +209,8 @@ function preprocess<T extends z.ZodType>({
             if (optionValue) {
               // `typeOfOptionInput` can be any of the main types. So, we the same validations should run for `optionValue`
               if (typeOfOptionInput === "phone") {
-                if (!phoneSchema.safeParse(optionValue).success) {
+                const phoneNumber = optionValue && optionValue.startsWith("+") ? optionValue : `+${optionValue}`
+                if (!phoneSchema.safeParse(phoneNumber).success) {
                   ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
                 }
               }

@@ -27,8 +27,13 @@ function getDefaultSender(whatsapp = false) {
   return defaultSender 
 }
 
-function getSMSRecipient(phoneNumber: string, whatsapp = false) {
+function getSMSRecipient(phone: string, whatsapp = false) {
+  const phoneNumber = phone.startsWith("+") ? phone : `+${phone}`
   return whatsapp ? `whatsapp:${phoneNumber}` : phoneNumber;
+}
+
+function getSMSSender(sender: string, whatsapp = false) {
+  return whatsapp ? getDefaultSender(whatsapp) : sender.startsWith("+") ? sender : `+${sender}`;
 }
 
 export const sendSMS = async (phoneNumber: string, body: string, sender: string, whatsapp = false) => {
@@ -37,7 +42,7 @@ export const sendSMS = async (phoneNumber: string, body: string, sender: string,
     body: body,
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
     to: getSMSRecipient(phoneNumber, whatsapp),
-    from: sender ? sender : getDefaultSender(whatsapp),
+    from: getSMSSender(sender, whatsapp),
   });
 
   return response;
@@ -51,7 +56,7 @@ export const scheduleSMS = async (phoneNumber: string, body: string, scheduledDa
     to: getSMSRecipient(phoneNumber, whatsapp),
     scheduleType: "fixed",
     sendAt: scheduledDate,
-    from: sender ? sender : getDefaultSender(whatsapp),
+    from: getSMSSender(sender, whatsapp),
   });
 
   return response;

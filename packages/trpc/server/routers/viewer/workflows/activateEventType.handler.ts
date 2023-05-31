@@ -6,6 +6,10 @@ import {
   deleteScheduledSMSReminder,
   scheduleSMSReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
+import {
+  deleteScheduledWhatsappReminder,
+  scheduleWhatsappReminder,
+} from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
@@ -114,6 +118,8 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
       } else if (reminder.method === WorkflowMethods.SMS) {
         deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+      }  else if (reminder.method === WorkflowMethods.WHATSAPP) {
+        deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
       }
     });
 
@@ -205,6 +211,23 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
           );
         } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
           await scheduleSMSReminder(
+            bookingInfo,
+            step.sendTo,
+            eventTypeWorkflow.trigger,
+            step.action,
+            {
+              time: eventTypeWorkflow.time,
+              timeUnit: eventTypeWorkflow.timeUnit,
+            },
+            step.reminderBody || "",
+            step.id,
+            step.template,
+            step.sender || SENDER_ID,
+            booking.userId,
+            eventTypeWorkflow.teamId
+          );
+        } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
+          await scheduleWhatsappReminder(
             bookingInfo,
             step.sendTo,
             eventTypeWorkflow.trigger,
