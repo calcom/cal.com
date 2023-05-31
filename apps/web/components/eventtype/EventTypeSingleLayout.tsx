@@ -45,6 +45,7 @@ import {
   Users,
   ExternalLink,
   Code,
+  Copy,
   Trash,
   MoreHorizontal,
   Loader,
@@ -306,6 +307,15 @@ function EventTypeSingleLayout({
                   tooltip={t("embed")}
                 />
               </>
+            )}
+            {!isManagedEventType && !isChildrenManagedEventType && (
+              <Button
+                color="secondary"
+                variant="icon"
+                StartIcon={Copy}
+                tooltip={t("duplicate")}
+                onClick={() => router.push(`/event-types?dialog=duplicate&title=${eventType.title}&description=${eventType.description}&slug=${eventType.slug}&id=${eventType.id}&length=${eventType.length}&pageSlug=${team ? `team/${team.slug}` : eventType.users[0].username}`)}
+              />
             )}
             {!isChildrenManagedEventType && (
               <Button
