@@ -98,6 +98,9 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
  *       404:
  *         description: User not found | Team not found | Team has no members
  */
+interface MemberRoles {
+  [userId: string]: MembershipRole;
+}
 
 const availabilitySchema = z
   .object({
@@ -135,7 +138,7 @@ async function handler(req: NextApiRequest) {
     where: { id: { in: allMemberIds } },
     select: availabilityUserSelect,
   });
-  const memberRoles = team.members.reduce((acc, membership) => {
+  const memberRoles: MemberRoles = team.members.reduce((acc, membership) => {
     acc[membership.userId] = membership.role;
     return acc;
   }, {});
