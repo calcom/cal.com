@@ -238,20 +238,34 @@ function EventTypeSingleLayout({
         <div className="flex items-center justify-end">
           {!eventType.metadata.managedEventConfig && (
             <>
-              <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 lg:flex">
-                <Skeleton
-                  as={Label}
-                  htmlFor="hiddenSwitch"
-                  className="mt-2 hidden cursor-pointer self-center whitespace-nowrap pr-2 sm:inline">
-                  {t("hide_from_profile")}
-                </Skeleton>
-                <Switch
-                  id="hiddenSwitch"
-                  checked={formMethods.watch("hidden")}
-                  onCheckedChange={(e) => {
-                    formMethods.setValue("hidden", e);
-                  }}
-                />
+              <div
+                className={classNames(
+                  "sm:hover:bg-muted hidden cursor-pointer items-center rounded-md",
+                  formMethods.watch("hidden") ? "px-2" : "",
+                  "lg:flex"
+                )}>
+                {formMethods.watch("hidden") && (
+                  <Skeleton
+                    as={Label}
+                    htmlFor="hiddenSwitch"
+                    className="mt-2 hidden cursor-pointer self-center whitespace-nowrap pr-2 sm:inline">
+                    {t("hidden")}
+                  </Skeleton>
+                )}
+                <Tooltip
+                  content={
+                    formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")
+                  }>
+                  <div className="self-center rounded-md p-2">
+                    <Switch
+                      id="hiddenSwitch"
+                      checked={!formMethods.watch("hidden")}
+                      onCheckedChange={(e) => {
+                        formMethods.setValue("hidden", !e);
+                      }}
+                    />
+                  </div>
+                </Tooltip>
               </div>
               <VerticalDivider className="hidden lg:block" />
             </>
@@ -344,18 +358,18 @@ function EventTypeSingleLayout({
                 </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <div className="sm:hover:bg-subtle flex h-9 flex-row items-center justify-between py-2 px-4">
+              <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between py-2 px-4">
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"
                   className="mt-2 inline cursor-pointer self-center pr-2 ">
-                  {t("hide_from_profile")}
+                  {formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")}
                 </Skeleton>
                 <Switch
                   id="hiddenSwitch"
-                  checked={formMethods.watch("hidden")}
+                  checked={!formMethods.watch("hidden")}
                   onCheckedChange={(e) => {
-                    formMethods.setValue("hidden", e);
+                    formMethods.setValue("hidden", !e);
                   }}
                 />
               </div>

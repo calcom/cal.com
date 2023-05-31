@@ -139,4 +139,5 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       .then(() => console.info("Booking pages revalidated"))
       .catch((e) => console.error(e));
   }
+  return input;
 };

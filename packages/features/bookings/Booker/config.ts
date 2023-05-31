@@ -124,6 +124,8 @@ export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerStat
   useEffect(() => {
     const animationConfig = resizeAnimationConfig[layout][state] || resizeAnimationConfig[layout].default;
 
+    if (!animationScope.current) return;
+
     const animatedProperties = {
       height: animationConfig?.height || "auto",
     };
