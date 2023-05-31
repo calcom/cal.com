@@ -118,7 +118,7 @@ async function getTeamLogos(subdomain: string) {
     }
     // load from DB
     const { default: prisma } = await import("@calcom/prisma");
-    const team = await prisma.team.findUnique({
+    const team = await prisma.team.findFirst({
       where: {
         slug: subdomain,
       },
