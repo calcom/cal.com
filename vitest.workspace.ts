@@ -1,6 +1,7 @@
 import { defineWorkspace } from "vitest/config";
 
 const packagedEmbedTestsOnly = process.argv.includes("--packaged-embed-tests-only");
+console.log("packagedEmbedTestsOnly", packagedEmbedTestsOnly, "process.argv", process.argv);
 // defineWorkspace provides a nice type hinting DX
 const workspaces = packagedEmbedTestsOnly
   ? [
