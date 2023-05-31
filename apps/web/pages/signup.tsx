@@ -34,6 +34,7 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
   const telemetry = useTelemetry();
 
   const methods = useForm<FormValues>({
+    mode: "onChange",
     defaultValues: prepopulateFormValues,
   });
   const {
@@ -124,7 +125,17 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
                     labelProps={{
                       className: "block text-sm font-medium text-default",
                     }}
-                    {...register("password")}
+                    {...register("password", {
+                      required: true,
+                      minLength: {
+                        message: t("password_hint_min"),
+                        value: 7,
+                      },
+                      pattern: {
+                        message: "Should contain a number, uppercase and lowercase letters",
+                        value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
+                      },
+                    })}
                     hintErrors={["caplow", "min", "num"]}
                     className="border-default mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                   />
