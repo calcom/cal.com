@@ -20,12 +20,15 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const price = getAppData("price");
   const currency = getAppData("currency");
   const [selectedCurrency, setSelectedCurrency] = useState(
-    currencyOptions.find((c) => c.value === currency) || { label: "", value: "" }
+    currencyOptions.find((c) => c.value === currency) || {
+      label: currencyOptions[0].label,
+      value: currencyOptions[0].value,
+    }
   );
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions?.find((option) => paymentOption === option.value) || {
-    label: "",
-    value: "",
+    label: paymentOptions[0].label,
+    value: paymentOptions[0].value,
   };
   const seatsEnabled = !!eventType.seatsPerTimeSlot;
   const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
@@ -86,7 +89,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   }}
                 />
               </div>
-              {/* @TODO: To be released in follow up PR */}
+
               <div className="mt-2 w-60">
                 <label className="text-default block text-sm font-medium" htmlFor="currency">
                   Payment option
