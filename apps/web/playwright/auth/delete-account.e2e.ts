@@ -13,6 +13,7 @@ test("Can delete user account", async ({ page, users }) => {
   await page.waitForSelector("[data-testid=dashboard-shell]");
 
   await page.goto(`/settings/my-account/profile`);
+  await page.waitForLoadState("networkidle");
   await page.click("[data-testid=delete-account]");
   if (!user.username) throw Error(`Test user doesn't have a username`);
 
