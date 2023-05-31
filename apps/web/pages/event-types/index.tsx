@@ -11,6 +11,7 @@ import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
+import { OrganizationEventTypeFilter } from "@calcom/features/eventtypes/components/OrganizationEventTypeFilter";
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -44,6 +45,7 @@ import {
   HeadSeo,
   Skeleton,
   Label,
+  VerticalDivider,
 } from "@calcom/ui";
 import {
   ArrowDown,
@@ -780,6 +782,15 @@ const CTA = () => {
   );
 };
 
+const Actions = () => {
+  return (
+    <div className="flex items-center">
+      <OrganizationEventTypeFilter />
+      <VerticalDivider />
+    </div>
+  );
+};
+
 const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
 
 const EventTypesPage = () => {
@@ -806,6 +817,7 @@ const EventTypesPage = () => {
         heading={t("event_types_page_title")}
         hideHeadingOnMobile
         subtitle={t("event_types_page_subtitle")}
+        beforeCTAactions={<Actions />}
         CTA={<CTA />}>
         <WithQuery
           customLoader={<SkeletonLoader />}
