@@ -26,7 +26,7 @@ export const AboutOrganizationForm = () => {
   const updateOrganizationMutation = trpc.viewer.organizations.update.useMutation({
     onSuccess: (data) => {
       if (data.update) {
-        router.push(`/settings/organizations/${orgId}/set-password`);
+        router.push(`/settings/organizations/${orgId}/onboard-admins`);
       }
     },
     onError: (err) => {

@@ -46,7 +46,7 @@ export const SetPasswordForm = () => {
   const updateOrganizationMutation = trpc.viewer.organizations.update.useMutation({
     onSuccess: (data) => {
       if (data.update) {
-        router.push(`/settings/organizations/${orgId}/invite-admins`);
+        router.push(`/settings/organizations/${orgId}/about`);
       }
     },
     onError: (err) => {

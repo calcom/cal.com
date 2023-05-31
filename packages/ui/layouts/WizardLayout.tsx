@@ -3,15 +3,16 @@ import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
-import { StepCard, Steps } from "@calcom/ui";
+import { StepCard, Steps, Button } from "@calcom/ui";
 
 export function WizardLayout({
   children,
   maxSteps = 2,
   currentStep = 0,
+  isOptionalCallback,
 }: {
   children: React.ReactNode;
-} & { maxSteps?: number; currentStep?: number }) {
+} & { maxSteps?: number; currentStep?: number; isOptionalCallback?: () => void }) {
   const [meta, setMeta] = useState({ title: "", subtitle: " " });
   const router = useRouter();
   const { title, subtitle } = meta;
@@ -43,6 +44,13 @@ export function WizardLayout({
             <StepCard>{children}</StepCard>
           </div>
         </div>
+        {isOptionalCallback && (
+          <div className="mt-4 flex justify-center">
+            <Button color="minimal" onClick={isOptionalCallback}>
+              I&apos;ll do this later
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

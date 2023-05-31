@@ -38,6 +38,7 @@ export const AddNewOrgAdminsForm = () => {
           );
         }
       }
+      router.push(`/settings/organizations/${orgId}/add-teams`);
     },
     onError: (error) => {
       showToast(error.message, "error");

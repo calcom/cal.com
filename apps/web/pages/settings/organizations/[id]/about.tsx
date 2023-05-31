@@ -26,7 +26,7 @@ const AboutOrganizationPage = () => {
 };
 const LayoutWrapper = (page: React.ReactElement) => {
   return (
-    <WizardLayout currentStep={2} maxSteps={5}>
+    <WizardLayout currentStep={3} maxSteps={5}>
       {page}
     </WizardLayout>
   );

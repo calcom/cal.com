@@ -121,7 +121,7 @@ export const CreateANewOrganizationForm = () => {
           email: data.user.email,
           password: data.user.password,
         });
-        router.push(`/settings/organizations/${data.user.organizationId}/about`);
+        router.push(`/settings/organizations/${data.user.organizationId}/set-password`);
       }
     },
     onError: (err) => {

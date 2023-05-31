@@ -16,7 +16,7 @@ type UpdateOptions = {
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const { logo, bio, orgId, password } = input;
-  debugger;
+
   const userMembership = await prisma.membership.findFirst({
     where: {
       userId: ctx.user.id,

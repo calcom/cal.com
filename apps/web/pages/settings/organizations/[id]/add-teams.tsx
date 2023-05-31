@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 
-import { AddNewOrgAdminsForm } from "@calcom/features/ee/organizations/components";
+import { AddNewTeamsForm } from "@calcom/features/ee/organizations/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WizardLayout } from "@calcom/ui";
 
@@ -14,26 +14,28 @@ const OnboardTeamMembersPage = () => {
   return (
     <>
       <Head>
-        <title>Invite your organization admins</title>
+        <title>Create your teams</title>
         <meta
           name="description"
-          content="These admins will have access to all teams in your organization. You can add team admins and members later."
+          content="Start scheduling together by adding your team members to your organization"
         />
       </Head>
-      <AddNewOrgAdminsForm />
+      <AddNewTeamsForm />
     </>
   );
 };
 
 OnboardTeamMembersPage.getLayout = (page: React.ReactElement) => (
-  <WizardLayout
-    currentStep={4}
-    maxSteps={5}
-    isOptionalCallback={() => {
-      window.location.replace(`/getting-started`);
-    }}>
-    {page}
-  </WizardLayout>
+  <>
+    <WizardLayout
+      currentStep={5}
+      maxSteps={5}
+      isOptionalCallback={() => {
+        window.location.replace(`/getting-started`);
+      }}>
+      {page}
+    </WizardLayout>
+  </>
 );
 
 OnboardTeamMembersPage.PageWrapper = PageWrapper;
