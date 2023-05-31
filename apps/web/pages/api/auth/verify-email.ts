@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!foundToken) {
-    res.status(401).json({ message: "No token found" });
+    return res.status(401).json({ message: "No token found" });
   }
 
   if (dayjs(foundToken?.expires).isBefore(dayjs())) {
