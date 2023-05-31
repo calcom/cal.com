@@ -135,7 +135,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             data-testid="username-input"
           />
           {currentUsername !== inputUsernameValue && (
-            <div className="absolute right-[2px] top-6 flex flex-row">
+            <div className="absolute right-[2px] top-7 flex flex-row">
               <span className={classNames("mx-2 py-2.5")}>
                 {usernameIsAvailable ? <Check className="h-4 w-4" /> : <></>}
               </span>
