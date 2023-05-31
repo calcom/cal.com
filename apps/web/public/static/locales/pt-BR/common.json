@@ -761,7 +761,7 @@
   "offset_toggle": "Deslocar horas de início",
   "offset_toggle_description": "Desloca na quantidade de minutos especificada as alocações de tempo mostradas aos reservantes",
   "offset_start": "Deslocar em",
-  "offset_start_description": "ex.: serão mostrados espaços de tempo aos seus reservantes à(s) {{ adjustedTime }} em vez de {{ originalTime }}",
+  "offset_start_description": "ex.: serão mostradas alocações de tempo aos seus reservantes à(s) {{ adjustedTime }} em vez de {{ originalTime }}",
   "slot_interval": "Intervalos de tempo",
   "slot_interval_default": "Usar a duração do evento (padrão)",
   "delete_event_type": "Excluir tipo de evento?",
