@@ -332,7 +332,11 @@ const SettingsSidebarContainer = ({
                               textClassNames="px-3 text-emphasis font-medium text-sm"
                               disableChevron
                             />
-                            {(team.role === MembershipRole.OWNER || team.role === MembershipRole.ADMIN) && (
+                            {(team.role === MembershipRole.OWNER ||
+                              team.role === MembershipRole.ADMIN ||
+                              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                              // @ts-ignore this exists wtf?
+                              (team.isOrgAdmin && team.isOrgAdmin)) && (
                               <>
                                 {/* TODO */}
                                 {/* <VerticalTabItem
@@ -347,20 +351,25 @@ const SettingsSidebarContainer = ({
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
                                   disableChevron
                                 />
-                                <VerticalTabItem
-                                  name={t("billing")}
-                                  href={`/settings/teams/${team.id}/billing`}
-                                  textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  disableChevron
-                                />
-                                {HOSTED_CAL_FEATURES && (
-                                  <VerticalTabItem
-                                    name={t("saml_config")}
-                                    href={`/settings/teams/${team.id}/sso`}
-                                    textClassNames="px-3 text-emphasis font-medium text-sm"
-                                    disableChevron
-                                  />
-                                )}
+                                {/* Hide if there is a parent ID */}
+                                {!team.parentId ? (
+                                  <>
+                                    <VerticalTabItem
+                                      name={t("billing")}
+                                      href={`/settings/teams/${team.id}/billing`}
+                                      textClassNames="px-3 text-emphasis font-medium text-sm"
+                                      disableChevron
+                                    />
+                                    {HOSTED_CAL_FEATURES && (
+                                      <VerticalTabItem
+                                        name={t("saml_config")}
+                                        href={`/settings/teams/${team.id}/sso`}
+                                        textClassNames="px-3 text-emphasis font-medium text-sm"
+                                        disableChevron
+                                      />
+                                    )}
+                                  </>
+                                ) : null}
                               </>
                             )}
                           </CollapsibleContent>
