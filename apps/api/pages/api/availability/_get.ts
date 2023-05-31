@@ -99,7 +99,7 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
  *         description: User not found | Team not found | Team has no members
  */
 interface MemberRoles {
-  [userId: number]: MembershipRole;
+  [userId: number | string]: MembershipRole;
 }
 
 const availabilitySchema = z
