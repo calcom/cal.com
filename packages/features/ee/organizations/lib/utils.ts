@@ -7,6 +7,7 @@ export function extractDomainFromEmail(email: string) {
   return out.split(".")[0];
 }
 
-export function extractDomainFromWebsiteUrl() {
-  return process.env.NEXT_PUBLIC_WEBSITE_URL?.replace("https://", "")?.replace("http://", "") as string;
-}
+export const extractDomainFromWebsiteUrl = process.env.NEXT_PUBLIC_WEBSITE_URL?.replace(
+  "https://",
+  ""
+)?.replace("http://", "") as string;

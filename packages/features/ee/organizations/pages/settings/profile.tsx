@@ -178,7 +178,7 @@ const OrgProfileView = () => {
                   label={t("team_url")}
                   value={currentOrganisation.slug ?? ""}
                   disabled
-                  addOnSuffix={extractDomainFromWebsiteUrl()}
+                  addOnSuffix={extractDomainFromWebsiteUrl}
                 />
               </div>
               <div className="mt-8">
