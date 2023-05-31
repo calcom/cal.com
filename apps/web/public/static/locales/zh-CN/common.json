@@ -272,7 +272,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}} 仍然需要确认或拒绝每个定期会议预约。",
   "meeting_is_scheduled": "该会议已安排",
   "meeting_is_scheduled_recurring": "定期活动已被安排",
-  "submitted": "您的预约已经提交",
   "submitted_recurring": "您的定期会议已提交",
   "booking_submitted": "您的预约已经提交",
   "booking_submitted_recurring": "您的定期会议已提交",
