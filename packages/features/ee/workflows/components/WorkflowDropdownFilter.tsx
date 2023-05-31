@@ -50,7 +50,7 @@ export const WorkflowDropdownFilter = () => {
               <Avatar
                 alt={team?.name}
                 imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)}
-                size="sm"
+                size="xs"
               />
             }>
             <TextContainer>{team.name}</TextContainer>
@@ -63,9 +63,7 @@ export const WorkflowDropdownFilter = () => {
 };
 
 const ImageContainer = ({ children }: { children: ReactNode }) => {
-  return (
-    <div className="text-default flex h-6 w-6 items-center justify-center ltr:mr-2 rtl:ml-2">{children}</div>
-  );
+  return <div className="text-default flex items-center justify-center ltr:mr-2 rtl:ml-2">{children}</div>;
 };
 
 const DropdownItemContainer = ({
