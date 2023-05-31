@@ -139,10 +139,10 @@ async function handler(req: NextApiRequest) {
     acc[membership.userId] = membership.role;
     return acc;
   }, {});
-  // check if the user is a team Admin or Owner, if it is a team request
+  // check if the user is a team Admin or Owner, if it is a team request, or a system Admin
   const isUserAdminOrOwner =
-    memberRoles[userId] === MembershipRole.Admin || memberRoles[userId] === MembershipRole.Owner;
-  if (!isAdmin && !isUserAdminOrOwner) throw new HttpError({ statusCode: 403, message: "Forbidden" });
+    memberRoles[userId] === MembershipRole.Admin || memberRoles[userId] === MembershipRole.Owner || isAdmin;
+  if (!isUserAdminOrOwner) throw new HttpError({ statusCode: 403, message: "Forbidden" });
   const availabilities = members.map(async (user) => {
     return {
       userId: user.id,
