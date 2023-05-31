@@ -1820,5 +1820,21 @@
   "load_inline_content": "Tải trực tiếp loại sự kiện của bạn ở dạng nội tuyến với nội dung khác trên website của bạn.",
   "floating_pop_up_button": "Nút popup dạng nổi",
   "floating_button_trigger_modal": "Đặt một nút dạng nổi trên website giúp kích hoạt chế độ với loại sự kiện này.",
-  "pop_up_element_click": "Popup thông qua nhấp chuột trong phần tử"
+  "pop_up_element_click": "Popup thông qua nhấp chuột trong phần tử",
+  "open_dialog_with_element_click": "Mở hộp thoại Cal khi ai đó nhấp vào một phần tử.",
+  "need_help_embedding": "Cần trợ giúp? Xem hướng dẫn của chúng tôi dành cho việc nhúng Cal trên Wix, Squarespace hoặc WordPress, xem qua những câu hỏi thường gặp của chúng tôi, hoặc khám phá thêm các tuỳ chọn nhúng nâng cao.",
+  "book_my_cal": "Đặt lịch Cal của tôi",
+  "invite_as": "Mời ở vai trò",
+  "form_updated_successfully": "Đã cập nhật biểu mẫu thành công.",
+  "email_not_cal_member_cta": "Gia nhập nhóm của bạn",
+  "disable_attendees_confirmation_emails": "Vô hiệu hoá những email xác nhận mặc định dành cho người tham dự",
+  "disable_attendees_confirmation_emails_description": "Ít nhất một tiến độ công việc đang hoạt động ở loại sự kiện này, và tiến độ này sẽ gửi email đến những người tham dự khi sự kiện này được đặt lịch.",
+  "disable_host_confirmation_emails": "Vô hiệu hoá những email xác nhận mặc định dành cho chủ toạ",
+  "disable_host_confirmation_emails_description": "Ít nhất một tiến độ công việc đang hoạt động ở loại sự kiện này, và tiến độ này sẽ gửi email đến chủ toạ khi sự kiện này được đặt lịch.",
+  "add_an_override": "Thêm ngày ghi đè",
+  "import_from_google_workspace": "Nhập người dùng từ Google Workspace",
+  "connect_google_workspace": "Kết nối Google Workspace",
+  "google_workspace_admin_tooltip": "Bạn phải là một Quản trị viên của Workspace mới dùng được tính năng này",
+  "first_event_type_webhook_description": "Tạo webhook đầu tiên của bạn cho loại sự kiện này",
+  "create_for": "Tạo cho"
 }
