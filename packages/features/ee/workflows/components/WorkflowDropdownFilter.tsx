@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
+import { classNames } from "@calcom/lib";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -19,29 +20,30 @@ export const WorkflowDropdownFilter = () => {
 
   return (
     <AnimatedPopover text={dropdownTitle}>
-      <div className="mx-2 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1">
+      <div className="ml-2 flex flex-col gap-0.5 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1">
         <DropdownItemContainer
+          isSelected={dropdownTitle === t("all_apps")}
           icon={<Layers className="h-4 w-4" />}
           onClick={() => {
             setDropdownTitle(t("all_apps"));
             removeAllQueryParams();
           }}>
           <TextContainer>{t("all_apps")}</TextContainer>
-          {dropdownTitle === t("all_apps") && <Check className="h-4 w-4" />}
         </DropdownItemContainer>
         <DropdownItemContainer
+          isSelected={dropdownTitle === t("yours")}
           icon={<User className="h-4 w-4" />}
           onClick={() => {
             setDropdownTitle(t("yours"));
             pushItemToKey("userIds", session.data?.user.id || 0);
           }}>
           <TextContainer>{t("yours")}</TextContainer>
-          {dropdownTitle === t("yours") && <Check className="h-4 w-4" />}
         </DropdownItemContainer>
 
         {teams?.map((team, idx) => (
           <DropdownItemContainer
             key={idx}
+            isSelected={dropdownTitle === team.name}
             onClick={() => {
               setDropdownTitle(team.name);
               pushItemToKey("teamIds", team.id);
@@ -54,7 +56,6 @@ export const WorkflowDropdownFilter = () => {
               />
             }>
             <TextContainer>{team.name}</TextContainer>
-            {dropdownTitle === team.name && <Check className="h-4 w-4" />}
           </DropdownItemContainer>
         ))}
       </div>
@@ -70,18 +71,26 @@ const DropdownItemContainer = ({
   children,
   icon,
   onClick,
+  isSelected,
 }: {
   children: ReactNode;
   icon: ReactNode;
   onClick: () => void;
+  isSelected: boolean;
 }) => {
   return (
     <div
       role="button"
       onClick={onClick}
-      className="item-center focus-within:bg-subtle hover:bg-muted flex rounded-md py-[6px] pl-4 pr-2 hover:cursor-pointer">
+      className={classNames(
+        "item-center focus-within:bg-subtle hover:bg-muted flex rounded-md py-2.5 pl-4 pr-2 hover:cursor-pointer",
+        isSelected && "bg-emphasis hover:bg-emphasis"
+      )}>
       <ImageContainer>{icon}</ImageContainer>
-      <div className="flex w-full items-center justify-between">{children}</div>
+      <div className="flex w-full items-center justify-between">
+        {children}
+        {isSelected && <Check className="h-4 w-4" />}
+      </div>
     </div>
   );
 };
