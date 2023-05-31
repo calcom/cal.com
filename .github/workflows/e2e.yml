@@ -27,8 +27,6 @@ jobs:
       - uses: ./.github/actions/env-read-file
       - uses: ./.github/actions/cache-db
       - uses: ./.github/actions/cache-build
-      - name: Seed Test DB
-        run: yarn db-seed
       - name: Run Tests
         run: yarn e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
         env:
