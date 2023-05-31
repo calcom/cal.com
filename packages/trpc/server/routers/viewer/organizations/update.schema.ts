@@ -11,6 +11,7 @@ export const ZUpdateInputSchema = z.object({
     .optional()
     .nullable()
     .transform((v) => v || null),
+  password: z.string().optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

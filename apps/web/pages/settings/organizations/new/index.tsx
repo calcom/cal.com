@@ -20,7 +20,7 @@ const CreateNewOrganizationPage = () => {
 };
 const LayoutWrapper = (page: React.ReactElement) => {
   return (
-    <WizardLayout currentStep={1} maxSteps={4}>
+    <WizardLayout currentStep={1} maxSteps={5}>
       {page}
     </WizardLayout>
   );

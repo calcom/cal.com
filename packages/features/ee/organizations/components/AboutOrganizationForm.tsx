@@ -1,16 +1,21 @@
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Form, ImageUploader, Alert, Label, TextAreaField } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
+const querySchema = z.object({
+  id: z.string(),
+});
+
 export const AboutOrganizationForm = () => {
   const { t } = useLocale();
   const router = useRouter();
-  const { id: orgId } = router.query;
+  const { id: orgId } = querySchema.parse(router.query);
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
 
   const aboutOrganizationFormMethods = useForm<{
@@ -21,7 +26,7 @@ export const AboutOrganizationForm = () => {
   const updateOrganizationMutation = trpc.viewer.organizations.update.useMutation({
     onSuccess: (data) => {
       if (data.update) {
-        router.push(`/settings/organizations/${data.user.org}/set-password`);
+        router.push(`/settings/organizations/${orgId}/set-password`);
       }
     },
     onError: (err) => {
@@ -80,13 +85,19 @@ export const AboutOrganizationForm = () => {
             control={aboutOrganizationFormMethods.control}
             name="bio"
             render={({ field: { value } }) => (
-              <TextAreaField
-                name="bio"
-                defaultValue={value}
-                onChange={(e) => {
-                  aboutOrganizationFormMethods.setValue("bio", e?.target.value);
-                }}
-              />
+              <>
+                <TextAreaField
+                  name="about"
+                  defaultValue={value}
+                  onChange={(e) => {
+                    aboutOrganizationFormMethods.setValue("bio", e?.target.value);
+                  }}
+                />
+                <p className="text-subtle text-sm">
+                  A few sentences about your organization. This will appear on your organization public
+                  profile page.
+                </p>
+              </>
             )}
           />
         </div>
