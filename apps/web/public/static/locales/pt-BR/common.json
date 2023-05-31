@@ -1831,5 +1831,10 @@
   "disable_attendees_confirmation_emails_description": "Pelo menos um fluxo de trabalho está ativo neste tipo de evento, que envia um e-mail aos participantes quando o evento for reservado.",
   "disable_host_confirmation_emails": "Desative e-mails de confirmação padrão para hosts",
   "disable_host_confirmation_emails_description": "Pelo menos um fluxo de trabalho está ativo neste tipo de evento, que envia um e-mail aos hosts quando o evento for reservado.",
-  "add_an_override": "Adicionar uma substituição"
+  "add_an_override": "Adicionar uma substituição",
+  "import_from_google_workspace": "Importar usuários do Google Workspace",
+  "connect_google_workspace": "Conectar com o Google Workspace",
+  "google_workspace_admin_tooltip": "Você deve ser administrador do Google Workspace para usar este recurso",
+  "first_event_type_webhook_description": "Crie seu primeiro webhook para este tipo de evento",
+  "create_for": "Criar para"
 }
