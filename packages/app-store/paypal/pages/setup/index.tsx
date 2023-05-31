@@ -175,12 +175,12 @@ export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
                 </li>
                 <li>Choose a name for your application.</li>
                 <li>Select Online payments solution.</li>
-                <li>Choose No for Using online platform.</li>
+                <li>Choose &quot;No&quot; for &quot;Using online platform&quot;.</li>
                 <li>CheckoutAPI as integration product.</li>
-                <li>Accept terms and Create APP</li>
+                <li>Accept terms and Create APP.</li>
                 <li>Go back to dashboard, click on new app and copy the credentials.</li>
                 <li>Paste them on the required field and save them.</li>
-                <li>You&apos;re all setup</li>
+                <li>You&apos;re all setup.</li>
               </ol>
             </div>
           </div>
