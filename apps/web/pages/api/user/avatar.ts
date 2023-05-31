@@ -29,7 +29,7 @@ async function getIdentityData(req: NextApiRequest) {
     };
   }
   if (teamname) {
-    const team = await prisma.team.findUnique({
+    const team = await prisma.team.findFirst({
       where: { slug: teamname },
       select: { logo: true },
     });
