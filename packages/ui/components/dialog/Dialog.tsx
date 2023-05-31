@@ -1,6 +1,6 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
-import type { PropsWithChildren, ReactNode } from "react";
+import type { ReactNode } from "react";
 import React, { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
@@ -93,7 +93,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
           {type === "creation" && (
             <div>
               <DialogHeader title={title} subtitle={props.description} />
-              <div className="flex flex-col space-y-6">{children}</div>
+              <div className="flex flex-col">{children}</div>
             </div>
           )}
           {type === "confirmation" && (
@@ -105,7 +105,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               )}
               <div className="w-full">
                 <DialogHeader title={title} subtitle={props.description} />
-                <div className="flex flex-col space-y-6">{children}</div>
+                <div className="flex  space-y-6">{children}</div>
               </div>
             </div>
           )}
@@ -134,10 +134,14 @@ export function DialogHeader(props: DialogHeaderProps) {
   );
 }
 
-// TODO: add divider
-export function DialogFooter(props: PropsWithChildren<{ showDivider?: boolean }>) {
+export function DialogFooter(props: { children: ReactNode; className?: string; showDivider?: boolean }) {
   return (
-    <div className={classNames("mt-7 flex justify-end space-x-2 rtl:space-x-reverse")}>{props.children}</div>
+    <div className={classNames("bg-default", props.className)}>
+      {props.showDivider && <hr className="border-subtle absolute right-0 w-full" />}
+      <div className={classNames("bg-default mt-6 flex justify-end space-x-2 rtl:space-x-reverse")}>
+        {props.children}
+      </div>
+    </div>
   );
 }
 

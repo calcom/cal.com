@@ -12,7 +12,7 @@ runs:
   steps:
     - name: Cache database
       id: cache-db
-      uses: actions/cache@v3
+      uses: buildjet/cache@v3
       env:
         cache-name: cache-db
         key-1: ${{ hashFiles('packages/prisma/schema.prisma', 'packages/prisma/migrations/**/**.sql', 'packages/prisma/*.ts') }}

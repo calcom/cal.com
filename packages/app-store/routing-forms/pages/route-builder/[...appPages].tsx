@@ -139,7 +139,7 @@ const Route = ({
           }
           className="mb-6">
           <div className="-mt-3">
-            <Link href={`/${appUrl}/route-builder/${route.id}`}>
+            <Link href={`${appUrl}/route-builder/${route.id}`}>
               <Badge variant="gray">
                 <span className="font-semibold">{route.name}</span>
               </Badge>
