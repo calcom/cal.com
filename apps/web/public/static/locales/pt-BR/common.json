@@ -1817,5 +1817,8 @@
   "error_collecting_card": "Erro ao coletar cartão",
   "image_size_limit_exceed": "A imagem carregada não deve ultrapassar o limite de 5 MB",
   "inline_embed": "Incorporar embutido",
-  "load_inline_content": "Carrega seu tipo de evento embutido diretamente no conteúdo restante do site."
+  "load_inline_content": "Carrega seu tipo de evento embutido diretamente no conteúdo restante do site.",
+  "floating_pop_up_button": "Botão pop-up flutuante",
+  "floating_button_trigger_modal": "Insere um botão flutuante no seu site para ativar um modal com seu tipo de evento.",
+  "pop_up_element_click": "Pop-up ao clicar em elemento"
 }
