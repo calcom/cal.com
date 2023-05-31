@@ -18,6 +18,7 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
 
   const membership = await ctx.prisma.membership.findFirst({
     where: {
+      userId: ctx.user.id,
       team: {
         id: ctx.user.organization.id,
       },
