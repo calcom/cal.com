@@ -57,6 +57,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
             location.search
           ),
       ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
+      ...(variables.teamId && { teamId: variables.teamId }),
     };
     const stateStr = encodeURIComponent(JSON.stringify(state));
     const searchParams = `?state=${stateStr}`;
@@ -70,7 +71,6 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
 
     const json = await res.json();
     const externalUrl = /https?:\/\//.test(json.url) && !json.url.startsWith(window.location.origin);
-
     if (!isOmniInstall) {
       gotoUrl(json.url, json.newTab);
       return { setupPending: externalUrl || json.url.endsWith("/setup") };
