@@ -1825,5 +1825,7 @@
   "need_help_embedding": "Precisa de ajuda? Confira nosso guia para incorporar o Cal no Wix, Squarespace ou WordPress. Consulte as perguntas frequentes ou explore opções de incorporação avançadas.",
   "book_my_cal": "Reservar meu Cal",
   "invite_as": "Convidar como",
-  "form_updated_successfully": "Formulário atualizado com êxito."
+  "form_updated_successfully": "Formulário atualizado com êxito.",
+  "email_not_cal_member_cta": "Ingresse na sua equipe",
+  "disable_attendees_confirmation_emails": "Desative os e-mails de confirmação padrão para participantes"
 }
