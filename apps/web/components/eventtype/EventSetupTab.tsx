@@ -1,8 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import { Trans } from "next-i18next";
-import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
@@ -10,7 +8,7 @@ import type { MultiValue } from "react-select";
 import { z } from "zod";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
-import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
+import { getEventLocationType, LocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import cx from "@calcom/lib/classNames";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -29,7 +27,7 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
-import { Edit2, Check, X, Plus } from "@calcom/ui/components/icon";
+import { Edit2, X, Plus } from "@calcom/ui/components/icon";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import type { SingleValueLocationOption, LocationOption } from "@components/ui/form/LocationSelect";
@@ -231,7 +229,8 @@ export const EventSetupTab = (
       : undefined;
 
     const { locationDetails, locationAvailable } = getLocationInfo(props);
-
+    const [showSelect, setShowSelect] = useState(false);
+    console.log(validLocations, "validLocations");
     return (
       <div className="w-full">
         {validLocations.length === 0 && (
@@ -252,11 +251,12 @@ export const EventSetupTab = (
                     return;
                   }
                   locationFormMethods.setValue("locationType", newLocationType);
-                  if (eventLocationType.organizerInputType) {
-                    openLocationModal(newLocationType);
-                  } else {
-                    saveLocation(newLocationType);
-                  }
+                  saveLocation(newLocationType);
+                  // if (eventLocationType.organizerInputType) {
+                  //   openLocationModal(newLocationType);
+                  // } else {
+                  //   saveLocation(newLocationType);
+                  // }
                 }
               }}
             />
@@ -315,7 +315,7 @@ export const EventSetupTab = (
                 </li>
               );
             })}
-            {validLocations.some(
+            {/* {validLocations.some(
               (location) =>
                 location.type === MeetLocationType && destinationCalendar?.integration !== "google_calendar"
             ) && (
@@ -333,16 +333,16 @@ export const EventSetupTab = (
                   </p>
                 </Trans>
               </div>
-            )}
-            {isChildrenManagedEventType && !locationAvailable && locationDetails && (
+            )} */}
+            {/* {isChildrenManagedEventType && !locationAvailable && locationDetails && (
               <p className="pl-1 text-sm leading-none text-red-600">
                 {t("app_not_connected", { appName: locationDetails.name })}{" "}
                 <a className="underline" href={`${CAL_URL}/apps/${locationDetails.slug}`}>
                   {t("connect_now")}
                 </a>
               </p>
-            )}
-            {validLocations.length > 0 && !isManagedEventType && !isChildrenManagedEventType && (
+            )} */}
+            {/* {validLocations.length > 0 && !isManagedEventType && !isChildrenManagedEventType && (
               <li>
                 <Button
                   data-testid="add-location"
@@ -352,8 +352,38 @@ export const EventSetupTab = (
                   {t("add_location")}
                 </Button>
               </li>
-            )}
+            )} */}
           </ul>
+        )}
+        {showSelect && (
+          <LocationSelect
+            placeholder="Select location of meeting"
+            options={locationOptions}
+            isSearchable={false}
+            className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+            menuPlacement="auto"
+            onChange={(e: SingleValueLocationOption) => {
+              if (e?.value) {
+                const newLocationType = e.value;
+                const eventLocationType = getEventLocationType(newLocationType);
+                if (!eventLocationType) {
+                  return;
+                }
+                locationFormMethods.setValue("locationType", newLocationType);
+                saveLocation(newLocationType);
+              }
+              setShowSelect(false);
+            }}
+          />
+        )}
+        {validLocations.length > 0 && (
+          <Button
+            data-testid="add-location"
+            StartIcon={Plus}
+            color="minimal"
+            onClick={() => setShowSelect(!showSelect)}>
+            {!showSelect ? "Add Location" : "Remove Location"}
+          </Button>
         )}
       </div>
     );
