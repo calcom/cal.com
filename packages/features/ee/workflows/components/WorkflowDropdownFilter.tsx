@@ -26,7 +26,7 @@ export const WorkflowDropdownFilter = () => {
             setDropdownTitle(t("all_apps"));
             removeAllQueryParams();
           }}>
-          <div>{t("all_apps")}</div>
+          <TextContainer>{t("all_apps")}</TextContainer>
           {dropdownTitle === t("all_apps") && <Check className="h-4 w-4" />}
         </DropdownItemContainer>
         <DropdownItemContainer
@@ -35,7 +35,7 @@ export const WorkflowDropdownFilter = () => {
             setDropdownTitle(t("yours"));
             pushItemToKey("userIds", session.data?.user.id || 0);
           }}>
-          <div>{t("yours")}</div>
+          <TextContainer>{t("yours")}</TextContainer>
           {dropdownTitle === t("yours") && <Check className="h-4 w-4" />}
         </DropdownItemContainer>
 
@@ -47,9 +47,13 @@ export const WorkflowDropdownFilter = () => {
               pushItemToKey("teamIds", team.id);
             }}
             icon={
-              <Avatar alt="" imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)} size="sm" />
+              <Avatar
+                alt={team?.name}
+                imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)}
+                size="sm"
+              />
             }>
-            <div>{team.name}</div>
+            <TextContainer>{team.name}</TextContainer>
             {dropdownTitle === team.name && <Check className="h-4 w-4" />}
           </DropdownItemContainer>
         ))}
@@ -82,4 +86,8 @@ const DropdownItemContainer = ({
       <div className="flex w-full items-center justify-between">{children}</div>
     </div>
   );
+};
+
+const TextContainer = ({ children }: { children: string }) => {
+  return <div className="text-default truncate text-sm font-medium">{children}</div>;
 };
