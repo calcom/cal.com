@@ -18,11 +18,16 @@ type CreateOptions = {
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const { slug, name, logo } = input;
-
+  const currentOrgId = ctx.user.organization?.id;
   // TODO: Handle this for orgs too. Schema needs to be changed CAL-1825
   const slugCollisions = await prisma.team.findFirst({
     where: {
       slug: slug,
+      parentId: currentOrgId
+        ? {
+            equals: currentOrgId,
+          }
+        : null,
     },
   });
 
@@ -47,7 +52,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     return duplicatedRequest;
   }
 
-  let parentId: number | null;
+  let parentId: number | null = null;
   // If the user in session is part of an org. check permissions
   if (ctx.user.organization?.id) {
     if (!isOrganisationAdmin(ctx.user.id, ctx.user.organization.id)) {
