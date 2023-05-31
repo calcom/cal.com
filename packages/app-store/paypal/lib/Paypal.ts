@@ -300,6 +300,7 @@ class Paypal {
 
     // Webhook event should be parsable
     if (!parseRequest.success) {
+      console.error(parseRequest.error);
       throw new Error("Request is malformed");
     }
 
@@ -313,10 +314,14 @@ class Paypal {
     });
 
     const bodyToString = stringy.slice(0, -1) + `,"webhook_event":${options.body.webhook_event}` + "}";
+
     try {
       const response = await fetch(url, {
         method: "POST",
-        headers: options.headers,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.accessToken}`,
+        },
         body: bodyToString,
       });
 
@@ -324,7 +329,7 @@ class Paypal {
         throw response;
       }
       const data = await response.json();
-      const parsedResponse = JSON.parse(data);
+
       if (data.verification_status !== "SUCCESS") {
         throw data;
       }
@@ -399,7 +404,6 @@ const webhookEventVerifyRequestSchema = z.object({
       webhook_id: z.string(),
     })
     .required(),
-  headers: headersSchema,
 });
 
 export type WebhookEventVerifyRequest = z.infer<typeof webhookEventVerifyRequestSchema>;

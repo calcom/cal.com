@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
+import getRawBody from "raw-body";
 import * as z from "zod";
 
 import { paypalCredentialKeysSchema } from "@calcom/app-store/paypal/lib";
@@ -17,6 +18,12 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 async function getEventType(id: number) {
   return prisma.eventType.findUnique({
     where: {
@@ -31,6 +38,7 @@ async function getEventType(id: number) {
 
 export async function handlePaymentSuccess(
   payload: z.infer<typeof eventSchema>,
+  rawPayload: string,
   webhookHeaders: WebHookHeadersType
 ) {
   const payment = await prisma.payment.findFirst({
@@ -86,18 +94,14 @@ export async function handlePaymentSuccess(
   const paypalClient = new Paypal(credentials);
   await paypalClient.getAccessToken();
   await paypalClient.verifyWebhook({
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${paypalClient.accessToken}`,
-    },
     body: {
       auth_algo: webhookHeaders["paypal-auth-algo"],
       cert_url: webhookHeaders["paypal-cert-url"],
       transmission_id: webhookHeaders["paypal-transmission-id"],
       transmission_sig: webhookHeaders["paypal-transmission-sig"],
       transmission_time: webhookHeaders["paypal-transmission-time"],
-      webhook_event: JSON.stringify(payload),
       webhook_id: webhookId,
+      webhook_event: rawPayload,
     },
   });
 
@@ -204,24 +208,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method !== "POST") {
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
     }
-    const { body, headers } = req;
+
+    const bodyRaw = await getRawBody(req);
+    const headers = req.headers;
+    const bodyAsString = bodyRaw.toString();
 
     const parseHeaders = webhookHeadersSchema.safeParse(headers);
     if (!parseHeaders.success) {
       console.error(parseHeaders.error);
       throw new HttpCode({ statusCode: 400, message: "Bad Request" });
     }
-    const parse = eventSchema.safeParse(body);
+    const parse = eventSchema.safeParse(JSON.parse(bodyAsString));
     if (!parse.success) {
       console.error(parse.error);
-      console.error(JSON.stringify(parse.error));
       throw new HttpCode({ statusCode: 400, message: "Bad Request" });
     }
 
     const { data: parsedPayload } = parse;
 
     if (parsedPayload.event_type === "CHECKOUT.ORDER.APPROVED") {
-      return await handlePaymentSuccess(parsedPayload, parseHeaders.data);
+      return await handlePaymentSuccess(parsedPayload, bodyAsString, parseHeaders.data);
     }
   } catch (_err) {
     const err = getErrorFromUnknown(_err);

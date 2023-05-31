@@ -97,7 +97,6 @@ export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
       console.log("Failed to create webhook", webhookId);
       return false;
     }
-    console.log({ webhookId });
     saveKeysMutation.mutate({
       credentialId,
       key: {

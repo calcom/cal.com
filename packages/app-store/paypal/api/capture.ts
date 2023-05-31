@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
-import { findPaymentCredentials } from "@calcom/app-store/paypal/api/webhook";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
+import { findPaymentCredentials } from "@calcom/features/ee/payments/api/paypal-webhook";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 
@@ -48,10 +48,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // capture payment
     const capture = await paypalClient.captureOrder(token);
+
     if (!capture) {
       res.redirect(`/booking/${bookingUid}?paypalPaymentStatus=failed`);
     }
-    if (capture) res.redirect(`/booking/${bookingUid}?paypalPaymentStatus=success`);
+    res.redirect(`/booking/${bookingUid}?paypalPaymentStatus=success`);
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
 
