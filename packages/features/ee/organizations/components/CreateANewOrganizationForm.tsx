@@ -1,19 +1,17 @@
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Avatar,
   Button,
   Form,
-  ImageUploader,
   TextField,
   Alert,
   Label,
@@ -100,30 +98,30 @@ export const CreateANewOrganizationForm = () => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
-  const returnToParsed = querySchema.safeParse(router.query);
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const [showVerifyCode, setShowVerifyCode] = useState(false);
-
-  const returnToParam =
-    (returnToParsed.success ? getSafeRedirectUrl(returnToParsed.data.returnTo) : "/settings/organizations") ||
-    "/settings/organizations";
 
   const newOrganizationFormMethods = useForm<{
     name: string;
     slug: string;
-    logo: string;
     adminEmail: string;
     adminUsername: string;
   }>();
   const watchAdminEmail = newOrganizationFormMethods.watch("adminEmail");
 
   const createOrganizationMutation = trpc.viewer.organizations.create.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data.checked) {
         setShowVerifyCode(true);
       } else if (data.user) {
-        telemetry.event(telemetryEventTypes.team_created);
-        router.push(`/settings/organizations/${data.user.id}/set-password`);
+        telemetry.event(telemetryEventTypes.org_created);
+        await signIn("credentials", {
+          redirect: false,
+          callbackUrl: "/",
+          email: data.user.email,
+          password: data.user.password,
+        });
+        router.push(`/settings/organizations/${data.user.organizationId}/about`);
       }
     },
     onError: (err) => {
@@ -248,41 +246,7 @@ export const CreateANewOrganizationForm = () => {
 
         <input hidden {...newOrganizationFormMethods.register("adminUsername")} />
 
-        <div className="mb-5">
-          <Controller
-            control={newOrganizationFormMethods.control}
-            name="logo"
-            render={({ field: { value } }) => (
-              <>
-                <Label>Organization Logo</Label>
-                <div className="flex items-center">
-                  <Avatar alt="" imageSrc={value || null} gravatarFallbackMd5="newTeam" size="lg" />
-                  <div className="ms-4">
-                    <ImageUploader
-                      target="avatar"
-                      id="avatar-upload"
-                      buttonMsg={t("update")}
-                      handleAvatarChange={(newAvatar: string) => {
-                        newOrganizationFormMethods.setValue("logo", newAvatar);
-                        newOrganizationFormMethods.reset();
-                      }}
-                      imageSrc={value}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-          />
-        </div>
-
         <div className="flex space-x-2 rtl:space-x-reverse">
-          <Button
-            disabled={createOrganizationMutation.isLoading}
-            color="secondary"
-            href={returnToParam}
-            className="w-full justify-center">
-            {t("cancel")}
-          </Button>
           <Button
             disabled={
               newOrganizationFormMethods.formState.isSubmitting || createOrganizationMutation.isLoading

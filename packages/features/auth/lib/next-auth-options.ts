@@ -82,6 +82,7 @@ const providers: Provider[] = [
           metadata: true,
           identityProvider: true,
           password: true,
+          organizationId: true,
           twoFactorEnabled: true,
           twoFactorSecret: true,
           organization: {
@@ -177,7 +178,7 @@ const providers: Provider[] = [
         name: user.name,
         role: validateRole(user.role),
         belongsToActiveTeam: hasActiveTeams,
-        organizationId: user.organization?.id,
+        organizationId: user.organizationId,
       };
     },
   }),
@@ -359,6 +360,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             username: true,
             name: true,
             email: true,
+            organizationId: true,
             role: true,
             teams: {
               include: {

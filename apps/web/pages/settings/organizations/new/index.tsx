@@ -6,7 +6,7 @@ import { WizardLayout } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
-const CreateNewTeamPage = () => {
+const CreateNewOrganizationPage = () => {
   const { t } = useLocale();
   return (
     <>
@@ -20,13 +20,13 @@ const CreateNewTeamPage = () => {
 };
 const LayoutWrapper = (page: React.ReactElement) => {
   return (
-    <WizardLayout currentStep={1} maxSteps={2}>
+    <WizardLayout currentStep={1} maxSteps={4}>
       {page}
     </WizardLayout>
   );
 };
 
-CreateNewTeamPage.getLayout = LayoutWrapper;
-CreateNewTeamPage.PageWrapper = PageWrapper;
+CreateNewOrganizationPage.getLayout = LayoutWrapper;
+CreateNewOrganizationPage.PageWrapper = PageWrapper;
 
-export default CreateNewTeamPage;
+export default CreateNewOrganizationPage;

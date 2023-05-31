@@ -65,7 +65,6 @@ testBothBookers.describe("pro user", () => {
   });
 
   test("pro user's page has at least 2 visible events", async ({ page }) => {
-    // await page.pause();
     const $eventTypes = page.locator("[data-testid=event-types] > *");
     expect(await $eventTypes.count()).toBeGreaterThanOrEqual(2);
   });

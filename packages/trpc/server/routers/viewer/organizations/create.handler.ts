@@ -2,6 +2,7 @@ import { createHash } from "crypto";
 import { totp } from "otplib";
 
 import { sendOrganizationEmailVerification } from "@calcom/emails";
+import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { IS_ORGANIZATION_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
@@ -19,8 +20,8 @@ type CreateOptions = {
   input: TCreateInputSchema;
 };
 
-export const createHandler = async ({ ctx, input }: CreateOptions) => {
-  const { slug, name, logo, adminEmail, adminUsername, check, language } = input;
+export const createHandler = async ({ input }: CreateOptions) => {
+  const { slug, name, adminEmail, adminUsername, check } = input;
 
   const userCollisions = await prisma.user.findFirst({
     where: {
@@ -41,16 +42,21 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   if (slugCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
   if (userCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "admin_email_taken" });
 
+  const password = createHash("md5")
+    .update(adminEmail + process.env.CALENDSO_ENCRYPTION_KEY)
+    .digest("hex");
+  const hashedPassword = await hashPassword(password);
+
   if (check === false) {
     const createOwnerOrg = await prisma.user.create({
       data: {
         username: adminUsername,
         email: adminEmail,
         emailVerified: new Date(),
+        password: hashedPassword,
         organization: {
           create: {
             name,
-            logo,
             ...(!IS_ORGANIZATION_BILLING_ENABLED && { slug }),
             metadata: {
               requestedSlug: slug,
@@ -70,7 +76,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     });
 
-    return { user: createOwnerOrg };
+    return { user: { ...createOwnerOrg, password } };
   } else {
     const language = await getTranslation(input.language ?? "en", "common");
 

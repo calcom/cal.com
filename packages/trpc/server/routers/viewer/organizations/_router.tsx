@@ -29,6 +29,21 @@ export const viewerOrganizationsRouter = router({
       input,
     });
   }),
+  update: authedProcedure.input(ZUpdateInputSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.update) {
+      UNSTABLE_HANDLER_CACHE.update = await import("./update.handler").then((mod) => mod.updateHandler);
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.update) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.update({
+      ctx,
+      input,
+    });
+  }),
   verifyCode: authedProcedure.input(ZVerifyCodeInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.verifyCode) {
       UNSTABLE_HANDLER_CACHE.verifyCode = await import("./verifyCode.handler").then(

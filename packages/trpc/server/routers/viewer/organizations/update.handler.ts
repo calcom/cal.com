@@ -7,6 +7,7 @@ import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
+import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TUpdateInputSchema } from "./update.schema";
