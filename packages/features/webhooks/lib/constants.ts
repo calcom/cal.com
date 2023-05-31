@@ -6,8 +6,6 @@ export const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP = {
   core: [
     WebhookTriggerEvents.BOOKING_CANCELLED,
     WebhookTriggerEvents.BOOKING_CREATED,
-    WebhookTriggerEvents.BOOKING_REJECTED,
-    WebhookTriggerEvents.BOOKING_REQUESTED,
     WebhookTriggerEvents.BOOKING_RESCHEDULED,
     WebhookTriggerEvents.BOOKING_PAID,
     WebhookTriggerEvents.MEETING_ENDED,
