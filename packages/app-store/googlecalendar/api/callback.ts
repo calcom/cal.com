@@ -44,15 +44,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   createAppCredential({ appId: "google-calendar", type: "google_calendar" }, key, req);
 
-  // await prisma.credential.create({
-  //   data: {
-  //     type: "google_calendar",
-  //     key,
-  //     userId: req.session.user.id,
-  //     appId: "google-calendar",
-  //   },
-  // });
-
   if (state?.installGoogleVideo) {
     const existingGoogleMeetCredential = await prisma.credential.findFirst({
       where: {
@@ -62,14 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!existingGoogleMeetCredential) {
-      await prisma.credential.create({
-        data: {
-          type: "google_video",
-          key: {},
-          userId: req.session.user.id,
-          appId: "google-meet",
-        },
-      });
+      createAppCredential({ appId: "google-meet", type: "google_video" }, {}, req);
 
       res.redirect(
         getSafeRedirectUrl(CAL_URL + "/apps/installed/conferencing?hl=google-meet") ??
