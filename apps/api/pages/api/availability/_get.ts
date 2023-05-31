@@ -99,7 +99,7 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
  *         description: User not found | Team not found | Team has no members
  */
 interface MemberRoles {
-  [userId: string]: MembershipRole;
+  [userId: number]: MembershipRole;
 }
 
 const availabilitySchema = z
@@ -138,13 +138,16 @@ async function handler(req: NextApiRequest) {
     where: { id: { in: allMemberIds } },
     select: availabilityUserSelect,
   });
+  const numUserId = Number(userId);
   const memberRoles: MemberRoles = team.members.reduce((acc: MemberRoles, membership) => {
-    acc[membership.userId] = membership.role;
+    acc[membership.numUserId] = membership.role;
     return acc;
   }, {} as MemberRoles);
   // check if the user is a team Admin or Owner, if it is a team request, or a system Admin
   const isUserAdminOrOwner =
-    memberRoles[userId] === MembershipRole.Admin || memberRoles[userId] === MembershipRole.Owner || isAdmin;
+    memberRoles[numUserId] === MembershipRole.Admin ||
+    memberRoles[numUserId] === MembershipRole.Owner ||
+    isAdmin;
   if (!isUserAdminOrOwner) throw new HttpError({ statusCode: 403, message: "Forbidden" });
   const availabilities = members.map(async (user) => {
     return {
