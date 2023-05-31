@@ -22,8 +22,8 @@ const JitsiVideoApiAdapter = (): VideoApiAdapter => {
       const meetingID = meetingPattern
         .replaceAll("{uuid}", uuidv4())
         .replaceAll("{Title}", eventData.title)
-        .replaceAll("{Type}", eventData.type)
-        .replaceAll("{Attendees}", eventData.attendees.map((a) => a.name).join("-"))
+        .replaceAll("{Event Type Title}", eventData.type)
+        .replaceAll("{Scheduler}", eventData.attendees.map((a) => a.name).join("-"))
         .replaceAll("{Organizer}", eventData.organizer.name)
         .replaceAll("{Location}", eventData.location || "")
         .replaceAll("{Team}", eventData.team?.name || "")
