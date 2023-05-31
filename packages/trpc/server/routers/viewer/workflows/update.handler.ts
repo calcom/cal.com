@@ -6,13 +6,13 @@ import {
   scheduleEmailReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import {
-  deleteScheduledWhatsappReminder,
-  scheduleWhatsappReminder
-} from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager"
-import {
   deleteScheduledSMSReminder,
   scheduleSMSReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
+import {
+  deleteScheduledWhatsappReminder,
+  scheduleWhatsappReminder,
+} from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import { IS_SELF_HOSTED, SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import type { PrismaClient } from "@calcom/prisma/client";
@@ -214,7 +214,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     } else if (reminder.method === WorkflowMethods.SMS) {
       deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
     } else if (reminder.method === WorkflowMethods.WHATSAPP) {
-      deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId)
+      deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
     }
   });
 
@@ -769,7 +769,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   // Remove or add booking field for sms reminder number
   const smsReminderNumberNeeded =
-    activeOn.length && steps.some((step) => step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.WHATSAPP_ATTENDEE);
+    activeOn.length &&
+    steps.some(
+      (step) =>
+        step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.WHATSAPP_ATTENDEE
+    );
 
   for (const removedEventType of removedEventTypes) {
     await removeSmsReminderFieldForBooking({
@@ -783,7 +787,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       await upsertSmsReminderFieldForBooking({
         workflowId: id,
         isSmsReminderNumberRequired: steps.some(
-          (s) => (s.action === WorkflowActions.SMS_ATTENDEE || s.action === WorkflowActions.WHATSAPP_ATTENDEE) && s.numberRequired
+          (s) =>
+            (s.action === WorkflowActions.SMS_ATTENDEE || s.action === WorkflowActions.WHATSAPP_ATTENDEE) &&
+            s.numberRequired
         ),
         eventTypeId,
       });

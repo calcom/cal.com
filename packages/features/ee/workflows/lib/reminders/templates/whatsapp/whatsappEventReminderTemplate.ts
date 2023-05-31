@@ -27,7 +27,7 @@ export const whatsappReminderTemplate = (
 
   const templateOne = `Hi${
     name ? ` ${name}` : ``
-  }, this is a reminder that your meeting (${eventName}) with ${attendee} is on ${eventDate} at ${startTime} ${timeZone}.`;
+  }, this is a reminder that your meeting *(${eventName})* with ${attendee} is on ${eventDate} at ${startTime} ${timeZone}.`;
 
   //Twilio supports up to 1600 characters
   if (templateOne.length <= 1600) return templateOne;

@@ -232,7 +232,9 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         },
       ].concat(userEventType.children.map((ch) => ({ workflowId, eventTypeId: ch.id }))),
     });
-    const requiresAttendeeNumber = (action: WorkflowActions) => action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE;
+    const requiresAttendeeNumber = (action: WorkflowActions) =>
+      action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE;
+
     if (eventTypeWorkflow.steps.some((step) => requiresAttendeeNumber(step.action))) {
       const isSmsReminderNumberRequired = eventTypeWorkflow.steps.some((step) => {
         return requiresAttendeeNumber(step.action) && step.numberRequired;

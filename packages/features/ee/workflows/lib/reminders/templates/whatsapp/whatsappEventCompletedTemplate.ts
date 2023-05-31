@@ -26,7 +26,7 @@ export const whatsappEventCompletedTemplate = (
 
   const templateOne = `Hi${
     name ? ` ${name}` : ``
-  }, thank you for attending the event (${eventName}) on ${eventDate} at ${startTime} ${timeZone}.`;
+  }, thank you for attending the event *(${eventName})* on ${eventDate} at ${startTime} ${timeZone}.`;
 
   //Twilio supports up to 1600 characters
   if (templateOne.length <= 1600) return templateOne;
