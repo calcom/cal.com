@@ -166,7 +166,10 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       rescheduleUid,
       rescheduleBooking,
       layout: layout || "month_view",
+      // Preselect today's date in week / column view, since they use this to show the week title.
+      selectedDate: ["week_view", "column_view"].includes(layout) ? dayjs().format("YYYY-MM-DD") : null,
     });
+
     // Unset selected timeslot if user is rescheduling. This could happen
     // if the user reschedules a booking right after the confirmation page.
     // In that case the time would still be store in the store, this way we
