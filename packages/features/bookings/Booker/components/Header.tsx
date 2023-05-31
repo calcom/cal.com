@@ -84,28 +84,26 @@ const LayoutToggle = ({
   const { t } = useLocale();
 
   return (
-    <div className="[&>div]:bg-muted z-10">
-      <ToggleGroup
-        onValueChange={onLayoutToggle}
-        defaultValue={layout}
-        options={[
-          {
-            value: "small_calendar",
-            label: <Calendar width="16" height="16" />,
-            tooltip: t("switch_monthly"),
-          },
-          {
-            value: "large_calendar",
-            label: <Grid width="16" height="16" />,
-            tooltip: t("switch_weekly"),
-          },
-          {
-            value: "large_timeslots",
-            label: <Columns width="16" height="16" />,
-            tooltip: t("switch_multiday"),
-          },
-        ]}
-      />
-    </div>
+    <ToggleGroup
+      onValueChange={onLayoutToggle}
+      defaultValue={layout}
+      options={[
+        {
+          value: "small_calendar",
+          label: <Calendar width="16" height="16" />,
+          tooltip: t("switch_monthly"),
+        },
+        {
+          value: "large_calendar",
+          label: <Grid width="16" height="16" />,
+          tooltip: t("switch_weekly"),
+        },
+        {
+          value: "large_timeslots",
+          label: <Columns width="16" height="16" />,
+          tooltip: t("switch_multiday"),
+        },
+      ]}
+    />
   );
 };
