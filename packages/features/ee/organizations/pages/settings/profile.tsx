@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
+import { ExternalLink, Link, LinkIcon, Trash2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState, useLayoutEffect } from "react";
@@ -26,8 +27,8 @@ import {
   showToast,
   TextField,
   Editor,
+  LinkIconButton,
 } from "@calcom/ui";
-import { Trash2 } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
 
@@ -35,12 +36,6 @@ const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
 const orgProfileFormSchema = z.object({
   name: z.string(),
-  slug: z
-    .string()
-    .regex(regex, {
-      message: "Url can only have alphanumeric characters(a-z, 0-9) and hyphen(-) symbol.",
-    })
-    .min(1, { message: "Url cannot be left empty" }),
   logo: z.string(),
   bio: z.string(),
 });
@@ -92,7 +87,7 @@ const OrgProfileView = () => {
     (currentOrganisation.user.role === MembershipRole.OWNER ||
       currentOrganisation.user.role === MembershipRole.ADMIN);
 
-  // const permalink = `${WEBAPP_URL}/team/${currentOrganisation?.slug}`;
+  const permalink = `${currentOrganisation?.slug}.cal.com`;
 
   const isBioEmpty =
     !currentOrganisation ||
@@ -176,26 +171,15 @@ const OrgProfileView = () => {
                   </div>
                 )}
               />
-              {/* IDK how this is working in the current org implemntation @leo/@sean to touch up on this when public page url has been created */}
-
-              {/* <Controller
-                control={form.control}
-                name="slug"
-                render={({ field: { value } }) => (
-                  <div className="mt-8">
-                    <TextField
-                      name="slug"
-                      label={t("team_url")}
-                      value={value}
-                      addOnLeading={`${WEBAPP_URL}/team/`}
-                      onChange={(e) => {
-                        form.clearErrors("slug");
-                        form.setValue("slug", e?.target.value);
-                      }}
-                    />
-                  </div>
-                )}
-              /> */}
+              <div className="mt-8">
+                <TextField
+                  name="slug"
+                  label={t("team_url")}
+                  value={currentOrganisation.slug ?? ""}
+                  disabled
+                  addOnSuffix=".cal.com"
+                />
+              </div>
               <div className="mt-8">
                 <Label>{t("about")}</Label>
                 <Editor
@@ -230,8 +214,8 @@ const OrgProfileView = () => {
                 )}
               </div>
               {/* IDK how this is working in the current org implemntation @leo/@sean to touch up on this when public page url has been created */}
-              {/* <div className="">
-                <Link href={permalink} passHref={true} target="_blank">
+              <div className="">
+                <Link href={permalink} target="_blank">
                   <LinkIconButton Icon={ExternalLink}>{t("preview")}</LinkIconButton>
                 </Link>
                 <LinkIconButton
@@ -242,7 +226,7 @@ const OrgProfileView = () => {
                   }}>
                   {t("copy_link_team")}
                 </LinkIconButton>
-              </div> */}
+              </div>
             </div>
           )}
           <hr className="border-subtle my-8 border" />
