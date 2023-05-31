@@ -1819,5 +1819,6 @@
   "inline_embed": "Nội tuyến đã nhúng",
   "load_inline_content": "Tải trực tiếp loại sự kiện của bạn ở dạng nội tuyến với nội dung khác trên website của bạn.",
   "floating_pop_up_button": "Nút popup dạng nổi",
-  "floating_button_trigger_modal": "Đặt một nút dạng nổi trên website giúp kích hoạt chế độ với loại sự kiện này."
+  "floating_button_trigger_modal": "Đặt một nút dạng nổi trên website giúp kích hoạt chế độ với loại sự kiện này.",
+  "pop_up_element_click": "Popup thông qua nhấp chuột trong phần tử"
 }
