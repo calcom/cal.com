@@ -272,7 +272,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}} усе одно має підтверджувати або відхиляти кожне бронювання періодичної наради.",
   "meeting_is_scheduled": "Цю нараду заплановано",
   "meeting_is_scheduled_recurring": "Періодичні заходи заплановано",
-  "submitted": "Ваше бронювання надіслано",
   "submitted_recurring": "Вашу періодичну нараду надіслано",
   "booking_submitted": "Ваше бронювання надіслано",
   "booking_submitted_recurring": "Вашу періодичну нараду надіслано",

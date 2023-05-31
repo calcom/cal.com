@@ -261,7 +261,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}} mangler stadig at bekræfte eller afvise hver booking af det tilbagevendende møde.",
   "meeting_is_scheduled": "Dette møde er planlagt",
   "meeting_is_scheduled_recurring": "De tilbagevendende begivenheder er planlagt",
-  "submitted": "Din booking er blevet indsendt",
   "submitted_recurring": "Dit tilbagevendende møde er blevet indsendt",
   "booking_submitted": "Din booking er blevet indsendt",
   "booking_submitted_recurring": "Dit tilbagevendende møde er blevet indsendt",
