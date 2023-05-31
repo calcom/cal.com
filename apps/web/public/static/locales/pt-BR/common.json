@@ -1821,5 +1821,8 @@
   "floating_pop_up_button": "Botão pop-up flutuante",
   "floating_button_trigger_modal": "Insere um botão flutuante no seu site para ativar um modal com seu tipo de evento.",
   "pop_up_element_click": "Pop-up ao clicar em elemento",
-  "open_dialog_with_element_click": "Abra uma caixa de diálogo quando alguém clicar em um elemento."
+  "open_dialog_with_element_click": "Abra uma caixa de diálogo quando alguém clicar em um elemento.",
+  "need_help_embedding": "Precisa de ajuda? Confira nosso guia para incorporar o Cal no Wix, Squarespace ou WordPress. Consulte as perguntas frequentes ou explore opções de incorporação avançadas.",
+  "book_my_cal": "Reservar meu Cal",
+  "invite_as": "Convidar como"
 }
