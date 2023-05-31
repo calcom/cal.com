@@ -1812,5 +1812,12 @@
   "charge_card_dialog_body": "Bạn sắp sửa thu phí người tham gia một khoản {{amount, currency}}. Bạn có chắc chắn muốn tiếp tục?",
   "charge_attendee": "Thu phí người tham gia một khoản {{amount, currency}}",
   "payment_app_commission": "Yêu cầu thanh toán ({{paymentFeePercentage}}% + {{fee, currency}} hoa hồng cho mỗi giao dịch)",
-  "email_invite_team": "{{email}} đã được mời"
+  "email_invite_team": "{{email}} đã được mời",
+  "email_invite_team_bulk": "{{userCount}} người dùng đã được mời",
+  "error_collecting_card": "Lỗi khi thu thập thẻ",
+  "image_size_limit_exceed": "Ảnh tải lên không được vượt quá giới hạn kích cỡ 5mb",
+  "inline_embed": "Nội tuyến đã nhúng",
+  "load_inline_content": "Tải trực tiếp loại sự kiện của bạn ở dạng nội tuyến với nội dung khác trên website của bạn.",
+  "floating_pop_up_button": "Nút popup dạng nổi",
+  "floating_button_trigger_modal": "Đặt một nút dạng nổi trên website giúp kích hoạt chế độ với loại sự kiện này."
 }
