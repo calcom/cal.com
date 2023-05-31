@@ -1,9 +1,9 @@
-import { expect, it, describe } from "@jest/globals";
+import { describe, expect, it, afterEach, vi } from "vitest";
 
 import { jsonLogicToPrisma } from "../../jsonLogicToPrisma";
 
 afterEach(() => {
-  jest.resetAllMocks();
+  vi.resetAllMocks();
 });
 
 describe("jsonLogicToPrisma - Single Query", () => {

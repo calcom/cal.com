@@ -38,5 +38,6 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     appTheme: user?.appTheme,
     hideBranding: user.hideBranding,
     metadata: user.metadata,
+    allowDynamicBooking: user.allowDynamicBooking,
   };
 };
