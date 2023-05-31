@@ -178,7 +178,7 @@ test.describe("Embed Code Generator Tests", () => {
     test.beforeEach(async ({ page }) => {
       await page.goto(`/event-types`);
       await Promise.all([
-        page.locator('[href*="/event-types/"]').first().click(),
+        page.locator('a[href*="/event-types/"]').first().click(),
         page.waitForURL((url) => url.pathname.startsWith("/event-types/")),
       ]);
     });

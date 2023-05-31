@@ -248,7 +248,7 @@ model Team {
   /// @zod.min(1)
   name                String
   /// @zod.min(1)
-  slug                String?          @unique
+  slug                String?
   logo                String?
   appLogo             String?
   appIconLogo         String?
@@ -268,9 +268,11 @@ model Team {
   parentId            Int?
   parent              Team?            @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
   children            Team[]           @relation("organization")
-  scopedMembers       User[]           @relation("scope")
+  orgUsers            User[]           @relation("scope")
   webhooks            Webhook[]
   credentials         Credential[]
+
+  @@unique([slug, parentId])
 }
 
 enum MembershipRole {
@@ -510,7 +512,9 @@ enum PaymentOption {
 enum WebhookTriggerEvents {
   BOOKING_CREATED
   BOOKING_RESCHEDULED
+  BOOKING_REQUESTED
   BOOKING_CANCELLED
+  BOOKING_REJECTED
   FORM_SUBMITTED
   MEETING_ENDED
   RECORDING_READY

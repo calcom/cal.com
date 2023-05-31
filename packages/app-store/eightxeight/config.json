@@ -4,12 +4,10 @@
   "slug": "eightxeight",
   "type": "eightxeight_video",
   "logo": "icon.svg",
-  "url": "https://cal.com/apps/eightxeight",
+  "url": "https://github.com/shivamklr",
   "variant": "conferencing",
-  "categories": [
-    "video"
-  ],
-  "publisher": "shivamklr",
+  "categories": ["video"],
+  "publisher": "Shivam Kalra",
   "email": "shivamkalra98@gmail.com",
   "appData": {
     "location": {

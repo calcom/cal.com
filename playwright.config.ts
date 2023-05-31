@@ -11,12 +11,12 @@ const outputDir = path.join(__dirname, "test-results");
 // Dev Server on local can be slow to start up and process requests. So, keep timeouts really high on local, so that tests run reliably locally
 
 // So, if not in CI, keep the timers high, if the test is stuck somewhere and there is unnecessary wait developer can see in browser that it's stuck
-const DEFAULT_NAVIGATION_TIMEOUT = process.env.CI ? 15000 : 50000;
-const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 15000 : 50000;
+const DEFAULT_NAVIGATION_TIMEOUT = process.env.CI ? 30000 : 120000;
+const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 30000 : 120000;
 
 // Test Timeout can hit due to slow expect, slow navigation.
 // So, it should me much higher than sum of expect and navigation timeouts as there can be many async expects and navigations in a single test
-const DEFAULT_TEST_TIMEOUT = process.env.CI ? 60000 : 120000;
+const DEFAULT_TEST_TIMEOUT = process.env.CI ? 60000 : 240000;
 
 const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
 
@@ -25,7 +25,8 @@ const IS_EMBED_REACT_TEST = process.argv.some((a) => a.startsWith("--project=@ca
 
 const webServer: PlaywrightTestConfig["webServer"] = [
   {
-    command: "NEXT_PUBLIC_IS_E2E=1 yarn workspace @calcom/web start -p 3000",
+    command:
+      "NEXT_PUBLIC_IS_E2E=1 NODE_OPTIONS='--dns-result-order=ipv4first' yarn workspace @calcom/web start -p 3000",
     port: 3000,
     timeout: 60_000,
     reuseExistingServer: !process.env.CI,
