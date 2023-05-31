@@ -123,6 +123,7 @@
     "stripe": "^9.16.0",
     "superjson": "1.9.1",
     "tailwindcss-radix": "^2.6.0",
+    "trpc-openapi": "^1.2.0",
     "turndown": "^7.1.1",
     "uuid": "^8.3.2",
     "web3": "^1.7.5",
