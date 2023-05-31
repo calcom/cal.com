@@ -13,6 +13,7 @@ import { AnimatedPopover, Avatar, CreateButton, showToast } from "@calcom/ui";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderList";
+import { WorkflowDropdownFilter } from "../components/WorkflowDropdownFilter";
 import type { WorkflowType } from "../components/WorkflowListPage";
 import WorkflowList from "../components/WorkflowListPage";
 
@@ -124,11 +125,14 @@ function WorkflowsPage() {
             allWorkflowsData.workflows.length &&
             profileOptions ? (
               <div className="mb-4 flex">
-                <Filter
-                  profiles={query.data.profiles}
-                  checked={checkedFilterItems}
-                  setChecked={setCheckedFilterItems}
-                />
+                <div className="flex gap-2">
+                  <Filter
+                    profiles={query.data.profiles}
+                    checked={checkedFilterItems}
+                    setChecked={setCheckedFilterItems}
+                  />
+                  <WorkflowDropdownFilter />
+                </div>
                 <div className="ml-auto">
                   <CreateButton
                     subtitle={t("new_workflow_subtitle").toUpperCase()}
