@@ -5,6 +5,7 @@ import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 import { availabilityUserSelect } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 
 /**
@@ -134,7 +135,14 @@ async function handler(req: NextApiRequest) {
     where: { id: { in: allMemberIds } },
     select: availabilityUserSelect,
   });
-  if (!isAdmin) throw new HttpError({ statusCode: 403, message: "Forbidden" });
+  const memberRoles = team.members.reduce((acc, membership) => {
+    acc[membership.userId] = membership.role;
+    return acc;
+  }, {});
+  // check if the user is a team Admin or Owner, if it is a team request
+  const isUserAdminOrOwner =
+    memberRoles[userId] === MembershipRole.Admin || memberRoles[userId] === MembershipRole.Owner;
+  if (!isAdmin && !isUserAdminOrOwner) throw new HttpError({ statusCode: 403, message: "Forbidden" });
   const availabilities = members.map(async (user) => {
     return {
       userId: user.id,
