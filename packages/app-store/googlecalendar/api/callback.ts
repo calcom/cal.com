@@ -5,6 +5,7 @@ import { WEBAPP_URL, CAL_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
+import createAppCredential from "../../_utils/createAppCredential";
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -41,14 +42,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     key = token.res?.data;
   }
 
-  await prisma.credential.create({
-    data: {
-      type: "google_calendar",
-      key,
-      userId: req.session.user.id,
-      appId: "google-calendar",
-    },
-  });
+  createAppCredential({ appId: "google-calendar", type: "google_calendar" }, key, req);
+
+  // await prisma.credential.create({
+  //   data: {
+  //     type: "google_calendar",
+  //     key,
+  //     userId: req.session.user.id,
+  //     appId: "google-calendar",
+  //   },
+  // });
 
   if (state?.installGoogleVideo) {
     const existingGoogleMeetCredential = await prisma.credential.findFirst({
