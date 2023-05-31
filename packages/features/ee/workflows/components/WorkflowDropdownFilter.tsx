@@ -19,7 +19,7 @@ export const WorkflowDropdownFilter = () => {
 
   return (
     <AnimatedPopover text={dropdownTitle}>
-      <div className="[&>*:first-child]:mt-1 [&>*:last-child]:mb-1">
+      <div className="mx-2 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1">
         <DropdownItemContainer
           icon={<Layers className="h-4 w-4" />}
           onClick={() => {
@@ -79,7 +79,7 @@ const DropdownItemContainer = ({
     <div
       role="button"
       onClick={onClick}
-      className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] hover:cursor-pointer">
+      className="item-center focus-within:bg-subtle hover:bg-muted flex rounded-md py-[6px] pl-4 pr-2 hover:cursor-pointer">
       <ImageContainer>{icon}</ImageContainer>
       <div className="flex w-full items-center justify-between">{children}</div>
     </div>
