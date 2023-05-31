@@ -4996,6 +4996,7 @@ __metadata:
     react-intl: ^5.25.1
     react-live-chat-loader: ^2.7.3
     react-multi-email: ^0.5.3
+    react-phone-input-2: ^2.15.1
     react-phone-number-input: ^3.2.7
     react-schemaorg: ^2.0.0
     react-select: ^5.7.0
@@ -17328,7 +17329,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"classnames@npm:^2.2.5":
+"classnames@npm:^2.2.5, classnames@npm:^2.2.6":
   version: 2.3.2
   resolution: "classnames@npm:2.3.2"
   checksum: 2c62199789618d95545c872787137262e741f9db13328e216b093eea91c85ef2bfb152c1f9e63027204e2559a006a92eb74147d46c800a9f96297ae1d9f96f4e
@@ -26976,6 +26977,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lodash.memoize@npm:^4.1.2":
+  version: 4.1.2
+  resolution: "lodash.memoize@npm:4.1.2"
+  checksum: 9ff3942feeccffa4f1fafa88d32f0d24fdc62fd15ded5a74a5f950ff5f0c6f61916157246744c620173dddf38d37095a92327d5fd3861e2063e736a5c207d089
+  languageName: node
+  linkType: hard
+
 "lodash.merge@npm:^4.6.2":
   version: 4.6.2
   resolution: "lodash.merge@npm:4.6.2"
@@ -26997,10 +27005,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lodash.reduce@npm:^4.6.0":
+  version: 4.6.0
+  resolution: "lodash.reduce@npm:4.6.0"
+  checksum: 81f2a1045440554f8427f895ef479f1de5c141edd7852dde85a894879312801efae0295116e5cf830c531c1a51cdab8f3628c3ad39fa21a9874bb9158d9ea075
+  languageName: node
+  linkType: hard
+
 "lodash.startcase@npm:^4.4.0":
   version: 4.4.0
   resolution: "lodash.startcase@npm:4.4.0"
   checksum: c03a4a784aca653845fe09d0ef67c902b6e49288dc45f542a4ab345a9c406a6dc194c774423fa313ee7b06283950301c1221dd2a1d8ecb2dac8dfbb9ed5606b5
+  languageName: node
+  linkType: hard
+
+"lodash.startswith@npm:^4.2.1":
+  version: 4.2.1
+  resolution: "lodash.startswith@npm:4.2.1"
+  checksum: 1847371cbf6f32c4125a555847aff8a1ff1a977f40882b0ad4e2656a32e364793cfa7602915c9165cc0bba61fbd802e561888126d242faadcf3fc77215bab19b
   languageName: node
   linkType: hard
 
@@ -30827,21 +30849,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.34.0":
-  version: 1.34.0
-  resolution: "playwright-core@npm:1.34.0"
-  checksum: 1821ab254b3c756e52c144c26cae7250dd5a1c779277cdd583bd289501d45cceaea40a8185ebf7eaa56b8291e4a042e3eef65f511da2306349c275794c9a582d
+"playwright-core@npm:1.33.0":
+  version: 1.33.0
+  resolution: "playwright-core@npm:1.33.0"
+  bin:
+    playwright: cli.js
+  checksum: 5fb7bda06a8b73b56b85b5a0b8f711211dde57a375d9379289e22239b2de879c6d93c8fdc9ba44b932bf100914ab1ca1a55697ad88440fdd0a39101fc020b77f
   languageName: node
   linkType: hard
 
 "playwright@npm:^1.31.2":
-  version: 1.34.0
-  resolution: "playwright@npm:1.34.0"
+  version: 1.33.0
+  resolution: "playwright@npm:1.33.0"
   dependencies:
-    playwright-core: 1.34.0
+    playwright-core: 1.33.0
   bin:
     playwright: cli.js
-  checksum: 5e5586e7c4e42f206526fe4306e35c68b7af353d6e3701c9e1045940aa3a916ac50b0b7c27a8eaeb3831ddc4f1146a367f98a5b6b841f977e9770b925e81877f
+  checksum: fb3934c56ed749cf412ea35b82052f013872d7f7b7747ab7042580af473dfc1b038956a31c132ee8c0098f74150c75e2073e9c737fd4c1ed54700a23fffc079f
   languageName: node
   linkType: hard
 
@@ -32291,12 +32315,12 @@ __metadata:
   linkType: hard
 
 "react-fast-marquee@npm:^1.3.5":
-  version: 1.6.0
-  resolution: "react-fast-marquee@npm:1.6.0"
+  version: 1.5.2
+  resolution: "react-fast-marquee@npm:1.5.2"
   peerDependencies:
     react: ">= 16.8.0 || 18.0.0"
     react-dom: ">= 16.8.0 || 18.0.0"
-  checksum: f448341d30ef417292d8f7618d4931190a6d4aa353fbd276da4dcecc49bb6a7a32962f9cc74fe0af2ea9617d7b453ed3efccf7a0e8709a8b66e04ec04f4ae18c
+  checksum: 2db7a61470a9e02707aa5a80792ec009a8694ef7283b01e30ec516893297794d7f466ae3230c59773bab357684803767c1ffab875175471c41b28a5055345130
   languageName: node
   linkType: hard
 
@@ -32523,6 +32547,23 @@ __metadata:
   peerDependencies:
     react-native: "*"
   checksum: 24ef81493a642b9359c1e8048de4da84fb554ffcf35677f9d8b11956d700faa4b9ac9d74f56aee67dd8d8b4ef6d9879e7431848785880ada657f8bec0211b00a
+  languageName: node
+  linkType: hard
+
+"react-phone-input-2@npm:^2.15.1":
+  version: 2.15.1
+  resolution: "react-phone-input-2@npm:2.15.1"
+  dependencies:
+    classnames: ^2.2.6
+    lodash.debounce: ^4.0.8
+    lodash.memoize: ^4.1.2
+    lodash.reduce: ^4.6.0
+    lodash.startswith: ^4.2.1
+    prop-types: ^15.7.2
+  peerDependencies:
+    react: ^16.12.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^20.0.0 || ^21.0.0
+    react-dom: ^16.12.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^20.0.0 || ^21.0.0
+  checksum: 60cee455c7044da648a23312cae0077b4108dd24e26173a954904123decefae9875a1f8225a722a6c4d74c37b18ad3038ec6c302b64857f75089e544e8d48847
   languageName: node
   linkType: hard
 
