@@ -131,8 +131,6 @@ ${getRichDescription(this.calEvent)}
     return this.getFormattedRecipientTime({
       time: this.calEvent.startTime,
       format,
-      locale: this.getLocale(),
-      timeZone: this.getTimezone(),
     });
   }
 
@@ -140,8 +138,6 @@ ${getRichDescription(this.calEvent)}
     return this.getFormattedRecipientTime({
       time: this.calEvent.endTime,
       format,
-      locale: this.getLocale(),
-      timeZone: this.getTimezone(),
     });
   }
 

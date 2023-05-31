@@ -52,8 +52,6 @@ export default class AttendeeDailyVideoDownloadRecordingEmail extends BaseEmail 
     return this.getFormattedRecipientTime({
       time: this.calEvent.startTime,
       format,
-      locale: this.getLocale(),
-      timeZone: this.getTimezone(),
     });
   }
 
@@ -61,8 +59,6 @@ export default class AttendeeDailyVideoDownloadRecordingEmail extends BaseEmail 
     return this.getFormattedRecipientTime({
       time: this.calEvent.endTime,
       format,
-      locale: this.getLocale(),
-      timeZone: this.getTimezone(),
     });
   }
 

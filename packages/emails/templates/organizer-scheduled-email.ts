@@ -129,8 +129,6 @@ ${callToAction}
     return this.getFormattedRecipientTime({
       time: this.calEvent.startTime,
       format,
-      locale: this.getLocale(),
-      timeZone: this.getTimezone(),
     });
   }
 
@@ -138,8 +136,6 @@ ${callToAction}
     return this.getFormattedRecipientTime({
       time: this.calEvent.endTime,
       format,
-      locale: this.getLocale(),
-      timeZone: this.getTimezone(),
     });
   }
 

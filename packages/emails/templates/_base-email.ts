@@ -20,6 +20,10 @@ export default class BaseEmail {
     return "";
   }
 
+  protected getLocale(): string {
+    return "";
+  }
+
   /** @deprecated use `getFormattedRecipientTime` */
   protected getRecipientTime(time: string): Dayjs;
   protected getRecipientTime(time: string, format: string): string;
@@ -29,18 +33,8 @@ export default class BaseEmail {
     return date;
   }
 
-  protected getFormattedRecipientTime({
-    time,
-    format,
-    locale,
-    timeZone,
-  }: {
-    time: string;
-    format: string;
-    locale: string;
-    timeZone: string;
-  }) {
-    return dayjs(time).tz(timeZone).locale(locale).format(format);
+  protected getFormattedRecipientTime({ time, format }: { time: string; format: string }) {
+    return dayjs(time).tz(this.getTimezone()).locale(this.getLocale()).format(format);
   }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
