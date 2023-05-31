@@ -1824,5 +1824,6 @@
   "open_dialog_with_element_click": "Abra uma caixa de diálogo quando alguém clicar em um elemento.",
   "need_help_embedding": "Precisa de ajuda? Confira nosso guia para incorporar o Cal no Wix, Squarespace ou WordPress. Consulte as perguntas frequentes ou explore opções de incorporação avançadas.",
   "book_my_cal": "Reservar meu Cal",
-  "invite_as": "Convidar como"
+  "invite_as": "Convidar como",
+  "form_updated_successfully": "Formulário atualizado com êxito."
 }
