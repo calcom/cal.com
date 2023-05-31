@@ -117,7 +117,7 @@ const availabilitySchema = z
   );
 
 async function handler(req: NextApiRequest) {
-  const { prisma, isAdmin } = req;
+  const { prisma, isAdmin, userId: reqUserId } = req;
   const { username, userId, eventTypeId, dateTo, dateFrom, teamId } = availabilitySchema.parse(req.query);
   if (!teamId)
     return getUserAvailability({
@@ -138,15 +138,14 @@ async function handler(req: NextApiRequest) {
     where: { id: { in: allMemberIds } },
     select: availabilityUserSelect,
   });
-  const numUserId = Number(userId);
   const memberRoles: MemberRoles = team.members.reduce((acc: MemberRoles, membership) => {
-    acc[membership.numUserId] = membership.role;
+    acc[membership.userId] = membership.role;
     return acc;
   }, {} as MemberRoles);
   // check if the user is a team Admin or Owner, if it is a team request, or a system Admin
   const isUserAdminOrOwner =
-    memberRoles[numUserId] === MembershipRole.Admin ||
-    memberRoles[numUserId] === MembershipRole.Owner ||
+    memberRoles[reqUserId] == MembershipRole.ADMIN ||
+    memberRoles[reqUserId] == MembershipRole.OWNER ||
     isAdmin;
   if (!isUserAdminOrOwner) throw new HttpError({ statusCode: 403, message: "Forbidden" });
   const availabilities = members.map(async (user) => {
