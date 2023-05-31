@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (dayjs(foundToken?.expires).isBefore(dayjs())) {
-    res.status(401).json({ message: "Token expired" });
+    return res.status(401).json({ message: "Token expired" });
   }
 
   const user = await prisma.user.update({
