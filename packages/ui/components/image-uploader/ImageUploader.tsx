@@ -29,6 +29,7 @@ const useFileReader = (options: UseFileReaderProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<DOMException | null>(null);
+
   const [result, setResult] = useState<string | ArrayBuffer | null>(null);
 
   useEffect(() => {
@@ -122,15 +123,36 @@ export default function ImageUploader({
   const { t } = useLocale();
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-
+  const [isDragging, setIsDragging] = useState(false);
   const [{ result }, setFile] = useFileReader({
     method: "readAsDataURL",
   });
+  console.log(isDragging);
 
   useEffect(() => {
     if (props.imageSrc) setImageSrc(props.imageSrc);
   }, [props.imageSrc]);
+  useEffect(() => {
+    window.addEventListener("dragover", (e) => {
+      e.preventDefault();
+    });
 
+    window.addEventListener("drop", handleDrop);
+    window.addEventListener("dragenter", () => {
+      setIsDragging(true);
+    });
+
+    return () => {
+      window.removeEventListener("dragover", (e) => {
+        e.preventDefault();
+      });
+
+      window.removeEventListener("drop", handleDrop);
+      window.removeEventListener("dragenter", () => {
+        setIsDragging(true);
+      });
+    };
+  }, []);
   const onInputFile = (e: FileEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) {
       return;
@@ -145,7 +167,20 @@ export default function ImageUploader({
       setFile(file);
     }
   };
-
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const droppedfile = e.dataTransfer.files[0];
+    if (droppedfile && droppedfile.type.startsWith("image/")) {
+      if (droppedfile.size > 5 * 1000000) {
+        showToast(t("image_size_limit_exceed"), "error");
+      } else {
+        setFile(droppedfile);
+      }
+    } else {
+      showToast(t("please_select_a_image"), "error");
+    }
+    setIsDragging(false);
+  };
   const showCroppedImage = useCallback(
     async (croppedAreaPixels: Area | null) => {
       try {
@@ -206,7 +241,7 @@ export default function ImageUploader({
                 className="text-default pointer-events-none absolute mt-4 opacity-0 "
                 accept="image/*"
               />
-              {t("choose_a_file")}
+              {!isDragging ? t("choose_a_file") : t("drop_your_file")}
             </label>
           </div>
         </div>
