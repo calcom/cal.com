@@ -90,7 +90,7 @@ const DisableTwoFactorAuthModal = ({
           </div>
 
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <Button type="submit" className="ms-2 me-2" disabled={isDisabling}>
+            <Button type="submit" className="ms-2 me-2" data-testid="disable-2fa" disabled={isDisabling}>
               {t("disable")}
             </Button>
             <Button color="secondary" onClick={onCancel}>
