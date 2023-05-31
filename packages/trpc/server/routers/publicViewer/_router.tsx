@@ -6,7 +6,6 @@ import { slotsRouter } from "../viewer/slots/_router";
 import { ZEventInputSchema } from "./event.schema";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
-import z from "zod";
 
 type PublicViewerRouterHandlerCache = {
   session?: typeof import("./session.handler").sessionHandler;
@@ -37,9 +36,7 @@ export const publicViewerRouter = router({
     });
   }),
 
-  i18n: publicProcedure
-  .use(localeMiddleware)
-  .query(async ({ ctx }) => {
+  i18n: publicProcedure.use(localeMiddleware).query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.i18n) {
       UNSTABLE_HANDLER_CACHE.i18n = await import("./i18n.handler").then((mod) => mod.i18nHandler);
     }
@@ -121,14 +118,7 @@ export const publicViewerRouter = router({
 
   // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
-  event: publicProcedure
-    .meta({ openapi: { method: 'GET', path: '/api/v2/say-hello' } })
-    .input(ZEventInputSchema)
-    .output(z.object({
-      ctx: z.object(),
-      input: z.object(),
-    }))
-    .query(async ({ ctx, input }) => {
+  event: publicProcedure.input(ZEventInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.event) {
       UNSTABLE_HANDLER_CACHE.event = await import("./event.handler").then((mod) => mod.eventHandler);
     }
