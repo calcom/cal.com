@@ -1828,6 +1828,8 @@
   "form_updated_successfully": "Formulário atualizado com êxito.",
   "email_not_cal_member_cta": "Ingresse na sua equipe",
   "disable_attendees_confirmation_emails": "Desative os e-mails de confirmação padrão para participantes",
-  "disable_attendees_confirmation_emails_description": "Pelo menos um fluxo de trabalho está ativo neste tipo de evento, que envia um e-mail aos participantes quando for reservado.",
-  "disable_host_confirmation_emails": "Desative e-mails de confirmação padrão para hosts"
+  "disable_attendees_confirmation_emails_description": "Pelo menos um fluxo de trabalho está ativo neste tipo de evento, que envia um e-mail aos participantes quando o evento for reservado.",
+  "disable_host_confirmation_emails": "Desative e-mails de confirmação padrão para hosts",
+  "disable_host_confirmation_emails_description": "Pelo menos um fluxo de trabalho está ativo neste tipo de evento, que envia um e-mail aos hosts quando o evento for reservado.",
+  "add_an_override": "Adicionar uma substituição"
 }
