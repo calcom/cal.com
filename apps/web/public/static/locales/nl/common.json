@@ -267,7 +267,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}} moet nog steeds elke boeking van de terugkerende afspraak bevestigen of weigeren.",
   "meeting_is_scheduled": "Deze afspraak is ingeboekt",
   "meeting_is_scheduled_recurring": "De terugkerende gebeurtenissen zijn gepland",
-  "submitted": "Verzonden",
   "submitted_recurring": "Uw terugkerende afspraak is verzonden",
   "booking_submitted": "Afspraak Verzonden",
   "booking_submitted_recurring": "Uw terugkerende afspraak is verzonden",

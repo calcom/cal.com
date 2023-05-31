@@ -272,7 +272,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}} deve ancora confermare o rifiutare ciascuna prenotazione della riunione ricorrente.",
   "meeting_is_scheduled": "Questo incontro è in programma",
   "meeting_is_scheduled_recurring": "Gli eventi ricorrenti sono programmati",
-  "submitted": "Inviato",
   "submitted_recurring": "La tua riunione ricorrente è stata inviata",
   "booking_submitted": "Prenotazione Inviata",
   "booking_submitted_recurring": "La tua riunione ricorrente è stata inviata",

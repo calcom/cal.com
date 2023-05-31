@@ -272,7 +272,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}} isimli kullanıcının yinelenen toplantıyla ilgili her rezervasyonu onaylaması veya reddetmesi gerekiyor.",
   "meeting_is_scheduled": "Toplantı planlandı",
   "meeting_is_scheduled_recurring": "Yinelenen etkinlikler planlandı",
-  "submitted": "Rezervasyonunuz gönderildi",
   "submitted_recurring": "Yinelenen toplantınız gönderildi",
   "booking_submitted": "Rezervasyonunuz gönderildi",
   "booking_submitted_recurring": "Yinelenen toplantınız gönderildi",

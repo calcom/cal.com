@@ -272,7 +272,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}} vẫn cần xác nhận hoặc từ chối mỗi cuộc đặt hẹn cho cuộc họp định kỳ.",
   "meeting_is_scheduled": "Cuộc họp này đã được lên lịch",
   "meeting_is_scheduled_recurring": "Những sự kiện định kỳ đã được lên lịch",
-  "submitted": "Lịch hẹn của bạn đã được gửi",
   "submitted_recurring": "Cuộc họp định kỳ của bạn đã được gửi đi",
   "booking_submitted": "Lịch hẹn của bạn đã được gửi",
   "booking_submitted_recurring": "Cuộc họp định kỳ của bạn đã được gửi đi",
