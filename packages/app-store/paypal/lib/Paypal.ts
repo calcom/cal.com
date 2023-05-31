@@ -145,7 +145,7 @@ class Paypal {
           if (!payment) {
             throw new Error("Payment not found");
           }
-          console.log("B4 Updating");
+
           await prisma?.payment.update({
             where: {
               id: payment?.id,

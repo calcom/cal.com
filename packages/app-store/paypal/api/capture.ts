@@ -52,7 +52,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!capture) {
       res.redirect(`/booking/${bookingUid}?paypalPaymentStatus=failed`);
     }
-    res.redirect(`/booking/${bookingUid}?paypalPaymentStatus=success`);
+    if (IS_PRODUCTION) {
+      res.redirect(`/booking/${bookingUid}?paypalPaymentStatus=success`);
+    } else {
+      // For cal.dev, paypal sandbox doesn't send webhooks
+      const updateBooking = prisma?.booking.update({
+        where: {
+          uid: bookingUid,
+        },
+        data: {
+          paid: true,
+        },
+      });
+      const updatePayment = prisma?.payment.update({
+        where: {
+          id: booking?.id,
+        },
+        data: {
+          success: true,
+        },
+      });
+      await Promise.all([updateBooking, updatePayment]);
+      res.redirect(`/booking/${bookingUid}?paypalPaymentStatus=success`);
+    }
     return;
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
