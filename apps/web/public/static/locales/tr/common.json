@@ -760,6 +760,7 @@
   "minimum_booking_notice": "Minimum Bildirim",
   "offset_toggle": "Ofset başlangıç ​​saatleri",
   "offset_toggle_description": "Belirli bir dakika sayısına göre rezervasyon yapanlara gösterilen ofset zaman aralıkları",
+  "offset_start": "Ofset",
   "offset_start_description": "örneğin; bu işlem rezervasyon yapan kişinin zaman aralıklarını {{ originalTime }} yerine {{ adjustedTime }} olarak görmesine neden olur",
   "slot_interval": "Zaman dilimi aralıkları",
   "slot_interval_default": "Etkinlik uzunluğunu kullan (varsayılan)",
