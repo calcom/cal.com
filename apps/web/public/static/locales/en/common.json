@@ -273,7 +273,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}} still needs to confirm or reject each booking of the recurring meeting.",
   "meeting_is_scheduled": "This meeting is scheduled",
   "meeting_is_scheduled_recurring": "The recurring events are scheduled",
-  "submitted": "Your booking has been submitted",
   "submitted_recurring": "Your recurring meeting has been submitted",
   "booking_submitted": "Your booking has been submitted",
   "booking_submitted_recurring": "Your recurring meeting has been submitted",
