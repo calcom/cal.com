@@ -60,7 +60,7 @@ export default function MercadoPagoSetup(props: IMercadoPagoSetupProps) {
   const saveKeysMutation = trpc.viewer.appsRouter.updateAppCredentials.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
-      // router.push("/event-types");
+      router.push("/event-types");
     },
     onError: (error) => {
       showToast(error.message, "error");

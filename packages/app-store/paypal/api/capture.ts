@@ -53,6 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.redirect(`/booking/${bookingUid}?paypalPaymentStatus=failed`);
     }
     res.redirect(`/booking/${bookingUid}?paypalPaymentStatus=success`);
+    return;
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
 

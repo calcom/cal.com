@@ -2,6 +2,8 @@ import type { Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
+import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
+
 class Paypal {
   url: string;
   clientId: string;
@@ -111,18 +113,6 @@ class Paypal {
     return {} as CreateOrderResponse;
   }
 
-  async getOrder(): Promise<any> {
-    console.log("Paypal update");
-  }
-
-  async updateOrder(): Promise<any> {
-    console.log("Paypal refund");
-  }
-
-  async confirmOrder(): Promise<any> {
-    console.log("Paypal confirm order");
-  }
-
   async captureOrder(orderId: string): Promise<boolean> {
     try {
       await this.getAccessToken();
@@ -199,7 +189,7 @@ class Paypal {
     };
 
     const body = {
-      url: `https://51cc-200-76-22-226.ngrok-free.app/api/integrations/paypal/webhook`,
+      url: `${WEBAPP_URL}/api/integrations/paypal/webhook`,
       event_types: [
         {
           name: "CHECKOUT.ORDER.APPROVED",
@@ -386,11 +376,6 @@ interface CreateOrderResponse {
   payment_source: PaymentSource;
   links: Link[];
 }
-
-const headersSchema = z.object({
-  "Content-Type": z.string(),
-  Authorization: z.string(),
-});
 
 const webhookEventVerifyRequestSchema = z.object({
   body: z
