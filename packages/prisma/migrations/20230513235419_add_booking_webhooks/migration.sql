@@ -7,5 +7,3 @@
 
 
 ALTER TYPE "WebhookTriggerEvents" ADD VALUE 'BOOKING_PAID';
-ALTER TYPE "WebhookTriggerEvents" ADD VALUE 'BOOKING_REJECTED';
-ALTER TYPE "WebhookTriggerEvents" ADD VALUE 'BOOKING_REQUESTED';
