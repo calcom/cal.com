@@ -272,7 +272,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}}님은 여전히 각 되풀이 회의 예약을 확인 또는 거부해야 합니다.",
   "meeting_is_scheduled": "회의 일정이 잡혔습니다.",
   "meeting_is_scheduled_recurring": "되풀이 이벤트가 예약되었습니다",
-  "submitted": "제출됨",
   "submitted_recurring": "되풀이 회의가 제출되었습니다",
   "booking_submitted": "예약 전송",
   "booking_submitted_recurring": "되풀이 회의가 제출되었습니다",

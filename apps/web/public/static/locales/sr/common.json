@@ -272,7 +272,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}} i dalje mora da potvrdi ili odbije svaki od zakazanih ponavljajućih sastanaka.",
   "meeting_is_scheduled": "Ovaj sastanak je rezervisan",
   "meeting_is_scheduled_recurring": "Ponavljajući događaji su zakazani",
-  "submitted": "Vaš upit za rezervaciju je upravo poslat",
   "submitted_recurring": "Vaš ponavljajući sastanak je poslat",
   "booking_submitted": "Vaš upit za rezervaciju je upravo poslat",
   "booking_submitted_recurring": "Vaš ponavljajući sastanak je poslat",
