@@ -105,7 +105,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let appStore, userAdminTeams: UserAdminTeams;
   if (session?.user?.id) {
     appStore = await getAppRegistryWithCredentials(session.user.id);
-    userAdminTeams = await getUserAdminTeams(session.user.id);
+    userAdminTeams = await getUserAdminTeams({ userId: session.user.id, getUserInfo: true });
   } else {
     appStore = await getAppRegistry();
     userAdminTeams = [];
@@ -120,8 +120,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
     return c;
   }, {} as Record<string, number>);
-
-  console.log("🚀 ~ file: index.tsx:103 ~ getServerSideProps ~ userAdminTeams:", userAdminTeams);
 
   return {
     props: {

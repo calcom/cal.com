@@ -9,7 +9,7 @@ type ListOptions = {
 };
 
 export const getUserAdminTeamsHandler = async ({ ctx }: ListOptions) => {
-  const teams = await getUserAdminTeams(ctx.user.id);
+  const teams = await getUserAdminTeams({ userId: ctx.user.id });
 
   return teams;
 };
