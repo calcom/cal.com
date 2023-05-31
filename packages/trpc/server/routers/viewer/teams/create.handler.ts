@@ -70,8 +70,10 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       metadata: {
         requestedSlug: slug,
       },
-      ...(parentId && { parentId }),
       ...(!IS_TEAM_BILLING_ENABLED && { slug }),
+      parent: {
+        connect: parentId ? { id: parentId } : undefined,
+      },
     },
   });
 
