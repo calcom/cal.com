@@ -258,7 +258,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}} må fortsatt bekrefte eller avvise hver booking av det gjentakende møtet.",
   "meeting_is_scheduled": "Møtet er planlagt",
   "meeting_is_scheduled_recurring": "De gjentagende hendelsene er planlagt",
-  "submitted": "Din booking er sendt inn",
   "submitted_recurring": "Ditt gjentakende møte er sendt inn",
   "booking_submitted": "Din booking er sendt inn",
   "booking_submitted_recurring": "Ditt gjentakende møte er sendt inn",

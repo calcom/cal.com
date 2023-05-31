@@ -267,7 +267,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "لا يزال {{user}} بحاجة إلى تأكيد كل حجز للاجتماع المتكرر أو رفضه.",
   "meeting_is_scheduled": "تمت جدولة هذا الاجتماع",
   "meeting_is_scheduled_recurring": "تم جدولة الأحداث المتكررة",
-  "submitted": "تم إرسال الحجز الخاص بك",
   "submitted_recurring": "تم إرسال الاجتماع المتكرر الخاص بك",
   "booking_submitted": "تم إرسال الحجز الخاص بك",
   "booking_submitted_recurring": "تم إرسال الاجتماع المتكرر الخاص بك",

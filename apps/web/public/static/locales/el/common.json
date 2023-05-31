@@ -132,7 +132,6 @@
   "add_another_calendar": "Προσθήκη άλλου ημερολογίου",
   "email_sign_in_subject": "Ο σύνδεσμος εισόδου για {{appName}}",
   "meeting_is_scheduled": "Η συνάντηση έχει προγραμματιστεί",
-  "submitted": "Η κράτησή σας έχει υποβληθεί",
   "booking_submitted": "Η κράτησή σας έχει υποβληθεί",
   "booking_confirmed": "Η κράτησή σας έχει επιβεβαιωθεί",
   "booking_confirmed_recurring": "Η επαναλαμβανόμενη συνάντησή σας έχει επιβεβαιωθεί",
