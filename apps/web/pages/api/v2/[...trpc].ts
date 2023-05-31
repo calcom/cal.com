@@ -2,12 +2,12 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { createOpenApiNextHandler } from 'trpc-openapi';
 
 import { createContext } from "@calcom/trpc/server/createContext";
-import { viewerRouter } from "@calcom/trpc/server/routers/viewer/_router";
+import { featureFlagRouter } from "@calcom/features/flags/server/router";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // Handle incoming OpenAPI requests
   return createOpenApiNextHandler({
-    router: viewerRouter,
+    router: featureFlagRouter,
     createContext,
   })(req, res);
 };

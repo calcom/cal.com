@@ -7,7 +7,18 @@ import { router } from "@calcom/trpc/server/trpc";
 import { getFeatureFlagMap } from "./utils";
 
 export const featureFlagRouter = router({
-  list: publicProcedure.query(async ({ ctx }) => {
+  list: publicProcedure
+  .meta({ openapi: { method: 'GET', path: '/test-trpc-openapi' } })
+  .input(z.void())
+  .output(z.array(
+      z.object({
+        slug: z.string(),
+        enabled: z.boolean(),
+        description: z.string(),
+      }),
+    ),
+  )
+  .query(async ({ ctx }) => {
     const { prisma } = ctx;
     return prisma.feature.findMany({
       orderBy: { slug: "asc" },
