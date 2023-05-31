@@ -190,7 +190,7 @@ const InstallAppButtonChild = ({
     },
   });
 
-  if (!userAdminTeams) {
+  if (!userAdminTeams.length) {
     return (
       <Button
         color="secondary"
@@ -231,7 +231,9 @@ const InstallAppButtonChild = ({
                 />
               )}
               onClick={() => {
-                mutation.mutate(addAppMutationInput);
+                mutation.mutate(
+                  team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }
+                );
               }}>
               <p>{team.name}</p>
             </DropdownItem>

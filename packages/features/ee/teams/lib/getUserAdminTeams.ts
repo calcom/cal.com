@@ -19,7 +19,7 @@ const getUserAdminTeams = async ({ userId, getUserInfo }: { userId: number; getU
     },
   });
 
-  if (getUserInfo) {
+  if (teams.length && getUserInfo) {
     const user = await prisma.user.findUnique({
       where: {
         id: userId,
