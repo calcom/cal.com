@@ -13,6 +13,7 @@ import {
   Label,
   Meta,
   Select,
+  SettingsToggle,
   showToast,
   SkeletonButton,
   SkeletonContainer,
@@ -120,6 +121,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         value: user.weekStart,
         label: nameOfDay(localeProp, user.weekStart === "Sunday" ? 0 : 1),
       },
+      allowDynamicBooking: user.allowDynamicBooking ?? true,
     },
   });
   const {
@@ -213,6 +215,22 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           </>
         )}
       />
+      <div className="mt-8">
+        <Controller
+          name="allowDynamicBooking"
+          control={formMethods.control}
+          render={() => (
+            <SettingsToggle
+              title={t("dynamic_booking")}
+              description={t("allow_dynamic_booking")}
+              checked={formMethods.getValues("allowDynamicBooking")}
+              onCheckedChange={(checked) => {
+                formMethods.setValue("allowDynamicBooking", checked, { shouldDirty: true });
+              }}
+            />
+          )}
+        />
+      </div>
       <Button disabled={isDisabled} color="primary" type="submit" className="mt-8">
         <>{t("update")}</>
       </Button>
