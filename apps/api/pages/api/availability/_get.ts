@@ -138,10 +138,10 @@ async function handler(req: NextApiRequest) {
     where: { id: { in: allMemberIds } },
     select: availabilityUserSelect,
   });
-  const memberRoles: MemberRoles = team.members.reduce((acc, membership) => {
+  const memberRoles: MemberRoles = team.members.reduce((acc: MemberRoles, membership) => {
     acc[membership.userId] = membership.role;
     return acc;
-  }, {});
+  }, {} as MemberRoles);
   // check if the user is a team Admin or Owner, if it is a team request, or a system Admin
   const isUserAdminOrOwner =
     memberRoles[userId] === MembershipRole.Admin || memberRoles[userId] === MembershipRole.Owner || isAdmin;
