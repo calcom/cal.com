@@ -84,4 +84,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   // Sync Services: Close.com
   if (prevOrganisation) closeComUpdateTeam(prevOrganisation, updatedOrganisation);
+
+  return updatedOrganisation;
 };

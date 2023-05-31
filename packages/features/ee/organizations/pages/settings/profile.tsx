@@ -31,6 +31,7 @@ import {
 } from "@calcom/ui";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
+import { extractDomainFromWebsiteUrl } from "../../lib/utils";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
@@ -177,7 +178,7 @@ const OrgProfileView = () => {
                   label={t("team_url")}
                   value={currentOrganisation.slug ?? ""}
                   disabled
-                  addOnSuffix=".cal.com"
+                  addOnSuffix={extractDomainFromWebsiteUrl()}
                 />
               </div>
               <div className="mt-8">

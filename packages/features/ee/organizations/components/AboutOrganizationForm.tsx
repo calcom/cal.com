@@ -20,8 +20,8 @@ export const AboutOrganizationForm = () => {
 
   const updateOrganizationMutation = trpc.viewer.organizations.update.useMutation({
     onSuccess: (data) => {
-      if (data.update) {
-        router.push(`/settings/organizations/${data.user.org}/set-password`);
+      if (data) {
+        router.push(`/settings/organizations/${orgId}/set-password`);
       }
     },
     onError: (err) => {
@@ -36,7 +36,7 @@ export const AboutOrganizationForm = () => {
         handleSubmit={(v) => {
           if (!updateOrganizationMutation.isLoading) {
             setServerErrorMessage(null);
-            updateOrganizationMutation.mutate({ ...v, orgId });
+            updateOrganizationMutation.mutate({ ...v });
           }
         }}>
         <div className="mb-5">
