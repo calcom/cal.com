@@ -267,7 +267,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}} по-прежнему должен(-на) будет подтвердить или отклонить бронирование каждой повторяющейся встречи.",
   "meeting_is_scheduled": "Встреча запланирована",
   "meeting_is_scheduled_recurring": "Повторяющиеся события запланированы",
-  "submitted": "Отправлено",
   "submitted_recurring": "Сведения о вашей повторяющейся встрече отправлены",
   "booking_submitted": "Бронирование отправлено",
   "booking_submitted_recurring": "Сведения о вашей повторяющейся встрече отправлены",

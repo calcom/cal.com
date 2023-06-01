@@ -267,7 +267,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}} は、まだ繰り返しミーティングの各予約を確認または拒否する必要があります。",
   "meeting_is_scheduled": "このミーティングは予定されています",
   "meeting_is_scheduled_recurring": "繰り返しイベントがスケジュールされています",
-  "submitted": "予約が送信されました",
   "submitted_recurring": "繰り返しミーティングが送信されました",
   "booking_submitted": "予約が送信されました",
   "booking_submitted_recurring": "繰り返しミーティングが送信されました",
