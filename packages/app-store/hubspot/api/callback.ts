@@ -4,8 +4,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import prisma from "@calcom/prisma";
 
+import createAppCredential from "../../_utils/createAppCredential";
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -46,14 +46,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // set expiry date as offset from current time.
   hubspotToken.expiryDate = Math.round(Date.now() + hubspotToken.expiresIn * 1000);
-  await prisma.credential.create({
-    data: {
-      type: "hubspot_other_calendar",
-      key: hubspotToken as any,
-      userId: req.session.user.id,
-      appId: "hubspot",
-    },
-  });
+
+  createAppCredential({ appId: "hubspot", type: "hubspot_other_calendar" }, hubspotToken as any, req);
 
   const state = decodeOAuthState(req);
   res.redirect(
