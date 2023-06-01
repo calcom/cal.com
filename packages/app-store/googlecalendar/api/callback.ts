@@ -5,7 +5,6 @@ import { WEBAPP_URL, CAL_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
-import createAppCredential from "../../_utils/createAppCredential";
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -42,7 +41,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     key = token.res?.data;
   }
 
-  createAppCredential({ appId: "google-calendar", type: "google_calendar" }, key, req);
+  await prisma.credential.create({
+    data: {
+      type: "google_calendar",
+      key,
+      userId: req.session.user.id,
+      appId: "google-calendar",
+    },
+  });
 
   if (state?.installGoogleVideo) {
     const existingGoogleMeetCredential = await prisma.credential.findFirst({
@@ -53,7 +59,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!existingGoogleMeetCredential) {
-      createAppCredential({ appId: "google-meet", type: "google_video" }, {}, req);
+      await prisma.credential.create({
+        data: {
+          type: "google_video",
+          key: {},
+          userId: req.session.user.id,
+          appId: "google-meet",
+        },
+      });
 
       res.redirect(
         getSafeRedirectUrl(CAL_URL + "/apps/installed/conferencing?hl=google-meet") ??
