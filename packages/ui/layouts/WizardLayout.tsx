@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { StepCard, Steps, Button } from "@calcom/ui";
 
 export function WizardLayout({
@@ -13,6 +14,7 @@ export function WizardLayout({
 }: {
   children: React.ReactNode;
 } & { maxSteps?: number; currentStep?: number; isOptionalCallback?: () => void }) {
+  const { t } = useLocale();
   const [meta, setMeta] = useState({ title: "", subtitle: " " });
   const router = useRouter();
   const { title, subtitle } = meta;
@@ -47,7 +49,7 @@ export function WizardLayout({
         {isOptionalCallback && (
           <div className="mt-4 flex justify-center">
             <Button color="minimal" onClick={isOptionalCallback}>
-              I&apos;ll do this later
+              {t("ill_do_this_later")}
             </Button>
           </div>
         )}

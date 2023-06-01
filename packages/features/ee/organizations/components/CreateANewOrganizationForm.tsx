@@ -100,7 +100,7 @@ export const VerifyCodeDialog = ({
                     });
                   }
                 }}>
-                Verify
+                {t("verify")}
               </Button>
             </DialogFooter>
           </div>

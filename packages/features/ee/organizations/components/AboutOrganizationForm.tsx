@@ -59,7 +59,7 @@ export const AboutOrganizationForm = () => {
             name="logo"
             render={() => (
               <>
-                <Label>Organization Logo</Label>
+                <Label>{t("organization_logo")}</Label>
                 <div className="flex items-center">
                   <Avatar alt="" imageSrc={image || null} gravatarFallbackMd5="newTeam" size="lg" />
                   <div className="ms-4">
@@ -93,10 +93,7 @@ export const AboutOrganizationForm = () => {
                     aboutOrganizationFormMethods.setValue("bio", e?.target.value);
                   }}
                 />
-                <p className="text-subtle text-sm">
-                  A few sentences about your organization. This will appear on your organization public
-                  profile page.
-                </p>
+                <p className="text-subtle text-sm">{t("organization_about_description")}</p>
               </>
             )}
           />

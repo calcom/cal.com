@@ -1,7 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,13 +13,10 @@ const querySchema = z.object({
 });
 
 export const AddNewTeamsForm = () => {
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
   const router = useRouter();
   const { id: orgId } = querySchema.parse(router.query);
   const [counter, setCounter] = useState(1);
-  const newAdminsFormMethods = useForm<{
-    teamNames: string[];
-  }>();
 
   const [inputValues, setInputValues] = useState<string[]>([""]);
 
@@ -75,7 +71,7 @@ export const AddNewTeamsForm = () => {
         color="secondary"
         disabled={createTeamsMutation.isLoading}
         onClick={handleCounterIncrease}>
-        Add a team
+        {t("add_a_team")}
       </Button>
       <Button
         EndIcon={ArrowRight}
@@ -94,7 +90,7 @@ export const AddNewTeamsForm = () => {
             }
           }
         }}>
-        Continue
+        {t("continue")}
       </Button>
     </>
   );

@@ -1865,5 +1865,8 @@
   "invite_organization_admins_description": "These admins will have access to all teams in your organization. You can add team admins and members later.",
   "set_a_password": "Set a password",
   "set_a_password_description": "This will create a new user account with your organization email and this password.",
+  "organization_logo": "Organization Logo",
+  "organization_about_description": "A few sentences about your organization. This will appear on your organization public profile page.",
+  "ill_do_this_later": "I'll do this later",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
