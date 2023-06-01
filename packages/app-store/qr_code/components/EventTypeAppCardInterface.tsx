@@ -14,8 +14,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const [enabled, setEnabled] = useState(getAppData("enabled"));
   const [additionalParameters, setAdditionalParameters] = useState("");
 
-  const url = additionalParameters !== "" ? `&${additionalParameters}` : "";
-  const eventTypeURL = eventType.URL + url;
+  const query = additionalParameters !== "" ? `?${additionalParameters}` : "";
+  const eventTypeURL = eventType.URL + query;
 
   function QRCode({ size, data }: { size: number; data: string }) {
     const QR_URL = "https://api.qrserver.com/v1/create-qr-code/?size=" + size + "&data=" + data;
