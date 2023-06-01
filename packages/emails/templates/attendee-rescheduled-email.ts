@@ -19,7 +19,7 @@ export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
         calEvent: this.calEvent,
         attendee: this.attendee,
       }),
-      text: this.getTextBody("event_has_been_rescheduled", "emailed_you_and_any_other_attendees"),
+      text: this.getTextBody("event_has_been_rescheduled", this.calEvent.attendees.length > 1 ? "emailed_you_and_any_other_attendees" : "emailed_you"),
     };
   }
 }

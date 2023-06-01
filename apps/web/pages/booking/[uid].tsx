@@ -271,7 +271,7 @@ export default function Success(props: SuccessProps) {
     if (bookingInfo.attendees.length > 1) {
       return t("emailed_you_and_attendees" + titleSuffix);
     } else {
-      return t("email_all_details" + titleSuffix);
+      return t("email_you" + titleSuffix);
     }
   }
 

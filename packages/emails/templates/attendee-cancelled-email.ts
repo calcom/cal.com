@@ -15,7 +15,7 @@ export default class AttendeeCancelledEmail extends AttendeeScheduledEmail {
         calEvent: this.calEvent,
         attendee: this.attendee,
       }),
-      text: this.getTextBody("event_request_cancelled", "emailed_you_and_any_other_attendees"),
+      text: this.getTextBody("event_request_cancelled", this.calEvent.attendees.length > 1 ? "emailed_you_and_any_other_attendees" : "emailed_you"),
     };
   }
 }

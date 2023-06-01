@@ -42,7 +42,7 @@ export default class BrokenIntegrationEmail extends BaseEmail {
 
   protected getTextBody(
     title = "",
-    subtitle = "emailed_you_and_any_other_attendees",
+    subtitle = this.calEvent.attendees.length > 1 ? "emailed_you_and_any_other_attendees" : "emailed_you",
     extraInfo = "",
     callToAction = ""
   ): string {
