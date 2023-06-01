@@ -39,5 +39,6 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     metadata: user.metadata,
     dailyDigestEnabled: user.dailyDigestEnabled,
     dailyDigestTime: user.dailyDigestTime,
+    allowDynamicBooking: user.allowDynamicBooking,
   };
 };

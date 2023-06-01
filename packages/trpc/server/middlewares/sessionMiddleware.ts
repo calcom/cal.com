@@ -69,6 +69,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       role: true,
       dailyDigestEnabled: true,
       dailyDigestTime: true,
+      allowDynamicBooking: true,
     },
   });
 

@@ -1,19 +1,20 @@
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
+import { describe, expect, test, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { buildBooking, buildEventType, buildWebhook } from "@calcom/lib/test/builder";
 import prisma from "@calcom/prisma";
 
-import { prismaMock } from "../../../../../tests/config/singleton";
+import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 import handler from "../../../pages/api/bookings/_post";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
-jest.mock("@calcom/features/webhooks/lib/sendPayload");
-jest.mock("@calcom/lib/server/i18n", () => {
+vi.mock("@calcom/features/webhooks/lib/sendPayload");
+vi.mock("@calcom/lib/server/i18n", () => {
   return {
     getTranslation: (key: string) => key,
   };
@@ -151,7 +152,7 @@ describe("POST /api/bookings", () => {
     });
   });
 
-  xdescribe("Success", () => {
+  describe("Success", () => {
     describe("Regular event-type", () => {
       test("Creates one single booking", async () => {
         const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
