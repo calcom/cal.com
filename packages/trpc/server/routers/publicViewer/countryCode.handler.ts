@@ -7,6 +7,6 @@ type CountryCodeOptions = {
 export const countryCodeHandler = async ({ ctx }: CountryCodeOptions) => {
   const { req } = ctx;
 
-  const countryCode: string | string[] = req?.headers?.["x-vercel-ip-country"] ?? "";
+  const countryCode: string | string[] = req?.headers?.["x-vercel-ip-country"] ?? "IN";
   return { countryCode: Array.isArray(countryCode) ? countryCode[0] : countryCode };
 };

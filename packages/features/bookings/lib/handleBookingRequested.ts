@@ -16,9 +16,9 @@ import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calenda
 const log = logger.getChildLogger({ prefix: ["[handleConfirmation] book:user"] });
 
 /**
- * Supposed to do whatever is needed when a booking is confirmed.
+ * Supposed to do whatever is needed when a booking is requested.
  */
-export async function handleConfirmation(args: {
+export async function handleBookingRequested(args: {
   user: EventManagerUser & { username: string | null };
   evt: CalendarEvent;
   recurringEventId?: string;
