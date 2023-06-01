@@ -26,9 +26,11 @@ type InviteMemberOptions = {
 };
 
 async function checkPermissions(userId: number, teamId: number, isOrg?: boolean) {
+  // Checks if the team they are inviteing to IS the org. Not a child team
   if (isOrg) {
     if (!(await isOrganisationAdmin(userId, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
   } else {
+    // TODO: do some logic here to check if the user is inviting a NEW user to a team that ISNT in the same org
     if (!(await isTeamAdmin(userId, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 }
@@ -86,17 +88,19 @@ function checkInputEmailIsValid(email: string) {
 
 async function createNewUserConnectToOrgIfExists(
   usernameOrEmail: string,
-  input: InviteMemberOptions["input"]
+  input: InviteMemberOptions["input"],
+  parentId?: number | null
 ) {
   await prisma.user.create({
     data: {
       email: usernameOrEmail,
       invitedTo: input.teamId,
-      ...(input.isOrg && { organizationId: input.teamId }),
+      ...((parentId || input.isOrg) && { organizationId: parentId || input.teamId }), // If the user is invited to a child team, they are automatically added to the parent org
       teams: {
         create: {
           teamId: input.teamId,
           role: input.role as MembershipRole,
+          ...(parentId && { accepted: true }), // If the user is invited to a child team, they are automatically accepted
         },
       },
     },
@@ -193,12 +197,12 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       checkInputEmailIsValid(usernameOrEmail);
 
       // valid email given, create User and add to team
-      await createNewUserConnectToOrgIfExists(usernameOrEmail, input);
+      await createNewUserConnectToOrgIfExists(usernameOrEmail, input, team.parentId);
 
       await sendVerificationEmail(usernameOrEmail, team, translation, ctx, input);
     } else {
       // create provisional membership
-      await createProvitionalMembership(input, invitee, parentId);
+      await createProvitionalMembership(input, invitee, team.id);
 
       let sendTo = usernameOrEmail;
       if (!isEmail(usernameOrEmail)) {
@@ -241,7 +245,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   });
   if (IS_TEAM_BILLING_ENABLED) {
     if (team.parentId) {
-      await updateQuantitySubscriptionFromStripe(input.teamId);
+      await updateQuantitySubscriptionFromStripe(team.parentId);
     } else {
       await updateQuantitySubscriptionFromStripe(input.teamId);
     }
