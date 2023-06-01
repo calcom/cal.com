@@ -263,7 +263,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "כל הזמנה לפגישה החוזרת צריכה לקבל אישור או דחייה מ-{{user}}.",
   "meeting_is_scheduled": "נקבע מועד לפגישה זו",
   "meeting_is_scheduled_recurring": "נקבע מועד לאירועים החוזרים",
-  "submitted": "ההזמנה שלך נשלחה",
   "submitted_recurring": "הפגישה החוזרת נשלחה",
   "booking_submitted": "ההזמנה שלך נשלחה",
   "booking_submitted_recurring": "הפגישה החוזרת נשלחה",
