@@ -1,6 +1,7 @@
 import type { TFunction } from "next-i18next";
 
 import dayjs from "@calcom/dayjs";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import {
@@ -21,9 +22,13 @@ export const BaseScheduledEmail = (
     timeZone: string;
     includeAppsStatus?: boolean;
     t: TFunction;
+    locale: string;
+    timeFormat: TimeFormat | undefined;
   } & Partial<React.ComponentProps<typeof BaseEmailHtml>>
 ) => {
-  const { t, timeZone } = props;
+  const { t, timeZone, locale, timeFormat: timeFormat_ } = props;
+
+  const timeFormat = timeFormat_ ?? TimeFormat.TWELVE_HOUR;
 
   function getRecipientStart(format: string) {
     return dayjs(props.calEvent.startTime).tz(timeZone).format(format);
@@ -73,7 +78,7 @@ export const BaseScheduledEmail = (
       )}
       <Info label={t("rejection_reason")} description={props.calEvent.rejectionReason} withSpacer />
       <Info label={t("what")} description={props.calEvent.title} withSpacer />
-      <WhenInfo calEvent={props.calEvent} t={t} timeZone={timeZone} />
+      <WhenInfo timeFormat={timeFormat} calEvent={props.calEvent} t={t} timeZone={timeZone} locale={locale} />
       <WhoInfo calEvent={props.calEvent} t={t} />
       <LocationInfo calEvent={props.calEvent} t={t} />
       <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />

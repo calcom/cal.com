@@ -139,7 +139,7 @@ const Route = ({
           }
           className="mb-6">
           <div className="-mt-3">
-            <Link href={`/${appUrl}/route-builder/${route.id}`}>
+            <Link href={`${appUrl}/route-builder/${route.id}`}>
               <Badge variant="gray">
                 <span className="font-semibold">{route.name}</span>
               </Badge>
@@ -175,7 +175,7 @@ const Route = ({
               </div>
               <Select
                 isDisabled={disabled}
-                className="block w-full flex-grow px-2"
+                className="data-testid-select-routing-action block w-full flex-grow px-2"
                 required
                 value={RoutingPages.find((page) => page.value === route.action?.type)}
                 onChange={(item) => {

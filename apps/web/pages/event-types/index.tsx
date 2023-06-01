@@ -42,6 +42,8 @@ import {
   CreateButton,
   HorizontalTabs,
   HeadSeo,
+  Skeleton,
+  Label,
 } from "@calcom/ui";
 import {
   ArrowDown,
@@ -352,6 +354,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 
   const firstItem = types[0];
   const lastItem = types[types.length - 1];
+  const isManagedEventPrefix = () => {
+    return deleteDialogTypeSchedulingType === SchedulingType.MANAGED ? "_managed" : "";
+  };
   return (
     <div className="bg-default border-subtle mb-16 flex overflow-hidden rounded-md border">
       <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
@@ -413,7 +418,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         {!isManagedEventType && (
                           <>
                             {type.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
-                            <Tooltip content={t("show_eventtype_on_profile")}>
+                            <Tooltip
+                              content={type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")}>
                               <div className="self-center rounded-md p-2">
                                 <Switch
                                   name="Hidden"
@@ -487,21 +493,23 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                       {t("duplicate")}
                                     </DropdownItem>
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem className="outline-none">
-                                    <EmbedButton
-                                      as={DropdownItem}
-                                      type="button"
-                                      StartIcon={Code}
-                                      className="w-full rounded-none"
-                                      embedUrl={encodeURIComponent(embedLink)}>
-                                      {t("embed")}
-                                    </EmbedButton>
-                                  </DropdownMenuItem>
                                 </>
+                              )}
+                              {!isManagedEventType && (
+                                <DropdownMenuItem className="outline-none">
+                                  <EmbedButton
+                                    as={DropdownItem}
+                                    type="button"
+                                    StartIcon={Code}
+                                    className="w-full rounded-none"
+                                    embedUrl={encodeURIComponent(embedLink)}>
+                                    {t("embed")}
+                                  </EmbedButton>
+                                </DropdownMenuItem>
                               )}
                               {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
                               {(group.metadata?.readOnly === false || group.metadata.readOnly === null) &&
-                                isManagedEventType && (
+                                !isChildrenManagedEventType && (
                                   <>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem>
@@ -533,27 +541,31 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     </DropdownMenuTrigger>
                     <DropdownMenuPortal>
                       <DropdownMenuContent>
-                        <DropdownMenuItem className="outline-none">
-                          <DropdownItem
-                            href={calLink}
-                            target="_blank"
-                            StartIcon={ExternalLink}
-                            className="w-full rounded-none">
-                            {t("preview")}
-                          </DropdownItem>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="outline-none">
-                          <DropdownItem
-                            data-testid={"event-type-duplicate-" + type.id}
-                            onClick={() => {
-                              navigator.clipboard.writeText(calLink);
-                              showToast(t("link_copied"), "success");
-                            }}
-                            StartIcon={Clipboard}
-                            className="w-full rounded-none text-left">
-                            {t("copy_link")}
-                          </DropdownItem>
-                        </DropdownMenuItem>
+                        {!isManagedEventType && (
+                          <>
+                            <DropdownMenuItem className="outline-none">
+                              <DropdownItem
+                                href={calLink}
+                                target="_blank"
+                                StartIcon={ExternalLink}
+                                className="w-full rounded-none">
+                                {t("preview")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="outline-none">
+                              <DropdownItem
+                                data-testid={"event-type-duplicate-" + type.id}
+                                onClick={() => {
+                                  navigator.clipboard.writeText(calLink);
+                                  showToast(t("link_copied"), "success");
+                                }}
+                                StartIcon={Clipboard}
+                                className="w-full rounded-none text-left">
+                                {t("copy_link")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+                          </>
+                        )}
                         {isNativeShare ? (
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
@@ -574,36 +586,64 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             </DropdownItem>
                           </DropdownMenuItem>
                         ) : null}
-                        <DropdownMenuItem className="outline-none">
-                          <DropdownItem
-                            onClick={() => router.push("/event-types/" + type.id)}
-                            StartIcon={Edit}
-                            className="w-full rounded-none">
-                            {t("edit")}
-                          </DropdownItem>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="outline-none">
-                          <DropdownItem
-                            onClick={() => openDuplicateModal(type, group)}
-                            StartIcon={Copy}
-                            data-testid={"event-type-duplicate-" + type.id}>
-                            {t("duplicate")}
-                          </DropdownItem>
-                        </DropdownMenuItem>
+                        {!readOnly && (
+                          <DropdownMenuItem className="outline-none">
+                            <DropdownItem
+                              onClick={() => router.push("/event-types/" + type.id)}
+                              StartIcon={Edit}
+                              className="w-full rounded-none">
+                              {t("edit")}
+                            </DropdownItem>
+                          </DropdownMenuItem>
+                        )}
+                        {!isManagedEventType && !isChildrenManagedEventType && (
+                          <DropdownMenuItem className="outline-none">
+                            <DropdownItem
+                              onClick={() => openDuplicateModal(type, group)}
+                              StartIcon={Copy}
+                              data-testid={"event-type-duplicate-" + type.id}>
+                              {t("duplicate")}
+                            </DropdownItem>
+                          </DropdownMenuItem>
+                        )}
+                        {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
+                        {(group.metadata?.readOnly === false || group.metadata.readOnly === null) &&
+                          !isChildrenManagedEventType && (
+                            <>
+                              <DropdownMenuItem className="outline-none">
+                                <DropdownItem
+                                  color="destructive"
+                                  onClick={() => {
+                                    setDeleteDialogOpen(true);
+                                    setDeleteDialogTypeId(type.id);
+                                    setDeleteDialogSchedulingType(type.schedulingType);
+                                  }}
+                                  StartIcon={Trash}
+                                  className="w-full rounded-none">
+                                  {t("delete")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="outline-none">
-                          <DropdownItem
-                            color="destructive"
-                            onClick={() => {
-                              setDeleteDialogOpen(true);
-                              setDeleteDialogTypeId(type.id);
-                              setDeleteDialogSchedulingType(type.schedulingType);
-                            }}
-                            StartIcon={Trash}
-                            className="w-full rounded-none">
-                            {t("delete")}
-                          </DropdownItem>
-                        </DropdownMenuItem>
+                        {!isManagedEventType && (
+                          <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between py-2 px-4">
+                            <Skeleton
+                              as={Label}
+                              htmlFor="hiddenSwitch"
+                              className="mt-2 inline cursor-pointer self-center pr-2 ">
+                              {type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")}
+                            </Skeleton>
+                            <Switch
+                              id="hiddenSwitch"
+                              name="Hidden"
+                              checked={!type.hidden}
+                              onCheckedChange={() => {
+                                setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
+                              }}
+                            />
+                          </div>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenuPortal>
                   </Dropdown>
@@ -616,36 +656,24 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <ConfirmationDialogContent
           variety="danger"
-          title={t(
-            `delete_${deleteDialogTypeSchedulingType === SchedulingType.MANAGED && "managed"}_event_type`
-          )}
-          confirmBtnText={t(
-            `confirm_delete_${
-              deleteDialogTypeSchedulingType === SchedulingType.MANAGED && "managed"
-            }_event_type`
-          )}
-          loadingText={t(
-            `confirm_delete_${
-              deleteDialogTypeSchedulingType === SchedulingType.MANAGED && "managed"
-            }_event_type`
-          )}
+          title={t(`delete${isManagedEventPrefix()}_event_type`)}
+          confirmBtnText={t(`confirm_delete_event_type`)}
+          loadingText={t(`confirm_delete_event_type`)}
           onConfirm={(e) => {
             e.preventDefault();
             deleteEventTypeHandler(deleteDialogTypeId);
           }}>
           <p className="mt-5">
-            {t(
-              `delete_${
-                deleteDialogTypeSchedulingType === SchedulingType.MANAGED && "managed"
-              }_event_type_description`
-            )}
-          </p>
-          <p className="mt-5">
             <Trans
-              i18nKey={`delete_${
-                deleteDialogTypeSchedulingType === SchedulingType.MANAGED && "managed"
-              }_event_type_warning`}
-            />
+              i18nKey={`delete${isManagedEventPrefix()}_event_type_description`}
+              components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
+              <ul>
+                <li>Members assigned to this event type will also have their event types deleted.</li>
+                <li>
+                  Anyone who they&apos;ve shared their link with will no longer be able to book using it.
+                </li>
+              </ul>
+            </Trans>
           </p>
         </ConfirmationDialogContent>
       </Dialog>

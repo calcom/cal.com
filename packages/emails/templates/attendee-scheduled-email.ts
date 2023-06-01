@@ -113,7 +113,7 @@ ${this.t(
 )}
 ${this.t(subtitle)}
 
-${getRichDescription(this.calEvent)}
+${getRichDescription(this.calEvent, this.t)}
 `.trim();
   }
 

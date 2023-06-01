@@ -25,6 +25,7 @@ interface handleChildrenEventTypesProps {
   oldEventType: {
     children?: { userId: number | null }[] | null | undefined;
     team: { name: string } | null;
+    workflows?: { workflowId: number }[];
   } | null;
   hashedLink: string | undefined;
   connectedLink: { id: number } | null;
@@ -145,6 +146,9 @@ export default async function handleChildrenEventTypes({
   const newUserIds = currentUserIds?.filter((id) => !previousUserIds?.includes(id));
   const oldUserIds = currentUserIds?.filter((id) => previousUserIds?.includes(id));
 
+  // Calculate if there are new workflows for which assigned members will get too
+  const currentWorkflowIds = eventType.workflows?.map((wf) => wf.workflowId);
+
   // Define hashedLink query input
   const hashedLinkQuery = (userId: number) => {
     return hashedLink
@@ -190,13 +194,11 @@ export default async function handleChildrenEventTypes({
             },
             parentId,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
-            // Reserved for v2
-            /*
-            workflows: eventType.workflows && {
-              createMany: {
-                data: eventType.workflows?.map((wf) => ({ ...wf, eventTypeId: undefined })),
-              },
+            workflows: currentWorkflowIds && {
+              create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
             },
+            // Reserved for future releases
+            /*
             webhooks: eventType.webhooks && {
               createMany: {
                 data: eventType.webhooks?.map((wh) => ({ ...wh, eventTypeId: undefined })),
@@ -221,7 +223,7 @@ export default async function handleChildrenEventTypes({
     });
 
     // Update event types for old users
-    await prisma.$transaction(
+    const oldEventTypes = await prisma.$transaction(
       oldUserIds.map((userId) => {
         return prisma.eventType.update({
           where: {
@@ -246,21 +248,30 @@ export default async function handleChildrenEventTypes({
       })
     );
 
-    // Reserved for v2
-    /*const updatedOldWorkflows = await prisma.workflow.updateMany({
-      where: {
-        userId: {
-          in: oldUserIds,
-        },
-      },
-      data: {
-        ...eventType.workflows,
-      },
-    });
-    console.log(
-      "handleChildrenEventTypes:updatedOldWorkflows",
-      JSON.stringify({ updatedOldWorkflows }, null, 2)
-    );
+    if (currentWorkflowIds?.length) {
+      await prisma.$transaction(
+        currentWorkflowIds.flatMap((wfId) => {
+          return oldEventTypes.map((oEvTy) => {
+            return prisma.workflowsOnEventTypes.upsert({
+              create: {
+                eventTypeId: oEvTy.id,
+                workflowId: wfId,
+              },
+              update: {},
+              where: {
+                workflowId_eventTypeId: {
+                  eventTypeId: oEvTy.id,
+                  workflowId: wfId,
+                },
+              },
+            });
+          });
+        })
+      );
+    }
+
+    // Reserved for future releases
+    /**
     const updatedOldWebhooks = await prisma.webhook.updateMany({
       where: {
         userId: {

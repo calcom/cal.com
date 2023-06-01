@@ -20,7 +20,7 @@ env:
   INPUT_ENV_PAYMENT_FEE_FIXED: 10
   INPUT_ENV_SAML_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
   INPUT_ENV_SAML_ADMINS: pro@example.com
-  INPUT_ENV_NEXTAUTH_URL: http://127.0.0.1:3000/api/auth
+  INPUT_ENV_NEXTAUTH_URL: http://localhost:3000
   INPUT_ENV_NEXT_PUBLIC_IS_E2E: 1
   # INPUT_ENV_EMAIL_FROM: e2e@cal.com
   # INPUT_ENV_EMAIL_SERVER_HOST: ${{ secrets.CI_EMAIL_SERVER_HOST }}
@@ -36,14 +36,14 @@ env:
 
 jobs:
   create_env_file:
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ozaytsev86/create-env-file@v1
         with:
           file-name: ${{ github.workspace }}/gh.env
-      - uses: actions/cache@v3
+      - uses: buildjet/cache@v3
         id: env-cache
         with:
           path: gh.env
