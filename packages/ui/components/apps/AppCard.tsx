@@ -114,6 +114,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       userAdminTeams={userAdminTeams}
                       {...props}
                       addAppMutationInput={{ type: app.type, variant: app.variant, slug: app.slug }}
+                      appCategories={app.categories}
                     />
                   );
                 }}
@@ -140,6 +141,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                     <InstallAppButtonChild
                       userAdminTeams={userAdminTeams}
                       addAppMutationInput={{ type: app.type, variant: app.variant, slug: app.slug }}
+                      appCategories={app.categories}
                       {...props}
                     />
                   );
@@ -170,10 +172,12 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
 const InstallAppButtonChild = ({
   userAdminTeams,
   addAppMutationInput,
+  appCategories,
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
   addAppMutationInput: { type: string; variant: string; slug: string };
+  appCategories: string[];
 } & ButtonProps) => {
   const { t } = useLocale();
   const router = useRouter();
@@ -190,7 +194,7 @@ const InstallAppButtonChild = ({
     },
   });
 
-  if (!userAdminTeams.length) {
+  if (!userAdminTeams?.length || appCategories.some((category) => category === "calendar")) {
     return (
       <Button
         color="secondary"
