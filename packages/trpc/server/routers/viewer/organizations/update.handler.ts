@@ -1,4 +1,3 @@
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -15,7 +14,7 @@ type UpdateOptions = {
 };
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
-  const { logo, bio, orgId, password } = input;
+  const { logo, bio, orgId } = input;
 
   const userMembership = await prisma.membership.findFirst({
     where: {
@@ -28,23 +27,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     },
   });
 
-  // TODO test this check works
   if (!userMembership || userMembership.role !== MembershipRole.OWNER)
     throw new TRPCError({ code: "BAD_REQUEST", message: "not_authorized" });
-
-  if (password) {
-    const hashedPassword = await hashPassword(password);
-    await prisma.user.update({
-      where: {
-        id: ctx.user.id,
-      },
-      data: {
-        password: hashedPassword,
-      },
-    });
-
-    return { update: true };
-  }
 
   await prisma.team.update({
     where: {

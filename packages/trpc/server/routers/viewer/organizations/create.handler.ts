@@ -43,7 +43,7 @@ export const createHandler = async ({ input }: CreateOptions) => {
   if (userCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "admin_email_taken" });
 
   const password = createHash("md5")
-    .update(adminEmail + process.env.CALENDSO_ENCRYPTION_KEY)
+    .update(`${adminEmail}${process.env.CALENDSO_ENCRYPTION_KEY}`)
     .digest("hex");
   const hashedPassword = await hashPassword(password);
 

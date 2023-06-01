@@ -26,5 +26,7 @@ export const verifyCodeHandler = async ({ ctx, input }: VerifyCodeOptions) => {
 
   const isValidToken = totp.check(code, secret);
 
+  if (!isValidToken) throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_code" });
+
   return isValidToken;
 };

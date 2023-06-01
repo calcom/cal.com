@@ -3,7 +3,6 @@ import { useRouter } from "next/router";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -14,18 +13,14 @@ import {
   Form,
   TextField,
   Alert,
-  Label,
   Dialog,
   DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
+  Label,
 } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
-
-const querySchema = z.object({
-  returnTo: z.string(),
-});
+import { ArrowRight, Info } from "@calcom/ui/components/icon";
 
 function extractDomainFromEmail(email: string) {
   let out = "";
@@ -41,21 +36,30 @@ export const VerifyCodeDialog = ({
   setIsOpenDialog,
   email,
   onSuccess,
-  onError,
 }: {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   email: string;
-  onSuccess: () => void;
-  onError?: () => void;
+  onSuccess: (isVerified: boolean) => void;
 }) => {
   const { t } = useLocale();
+  // Not using the mutation isLoading flag because after verifying we submit the underlying org creation form
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const [inputCode, setInputCode] = useState("");
 
   const verifyCodeMutation = trpc.viewer.organizations.verifyCode.useMutation({
-    onSuccess,
-    onError,
+    onSuccess: (data) => {
+      setIsLoading(false);
+      onSuccess(data);
+    },
+    onError: (err) => {
+      setIsLoading(false);
+      if (err.message === "invalid_code") {
+        setError("The code provided is not valid, try again");
+      }
+    },
   });
 
   return (
@@ -68,21 +72,32 @@ export const VerifyCodeDialog = ({
             <TextField
               id="code"
               placeholder="123456"
-              required
               onChange={(e) => {
                 setInputCode(e?.target.value);
               }}
             />
-
+            {error && (
+              <div className="mt-2 flex items-center gap-x-2 text-sm text-red-700">
+                <div>
+                  <Info className="h-3 w-3" />
+                </div>
+                <p>{error}</p>
+              </div>
+            )}
             <DialogFooter>
               <DialogClose />
               <Button
-                disabled={verifyCodeMutation.isLoading}
+                disabled={isLoading}
                 onClick={() => {
-                  verifyCodeMutation.mutate({
-                    code: inputCode,
-                    email,
-                  });
+                  if (inputCode === "") {
+                    setError("The code is a required field");
+                  } else {
+                    setIsLoading(true);
+                    verifyCodeMutation.mutate({
+                      code: inputCode,
+                      email,
+                    });
+                  }
                 }}>
                 Verify
               </Button>
@@ -127,10 +142,7 @@ export const CreateANewOrganizationForm = () => {
     onError: (err) => {
       if (err.message === "admin_email_taken") {
         newOrganizationFormMethods.setError("adminEmail", { type: "custom", message: "Already being used" });
-      } else {
-        setServerErrorMessage(err.message);
-      }
-      if (err.message === "organization_url_taken") {
+      } else if (err.message === "organization_url_taken") {
         newOrganizationFormMethods.setError("slug", { type: "custom", message: t("organization_url_taken") });
       } else {
         setServerErrorMessage(err.message);
@@ -142,6 +154,7 @@ export const CreateANewOrganizationForm = () => {
     <>
       <Form
         form={newOrganizationFormMethods}
+        id="createOrg"
         handleSubmit={(v) => {
           if (!createOrganizationMutation.isLoading) {
             setServerErrorMessage(null);
@@ -254,6 +267,7 @@ export const CreateANewOrganizationForm = () => {
             color="primary"
             EndIcon={ArrowRight}
             type="submit"
+            form="createOrg"
             className="w-full justify-center">
             {t("continue")}
           </Button>
@@ -263,12 +277,14 @@ export const CreateANewOrganizationForm = () => {
         isOpenDialog={showVerifyCode}
         setIsOpenDialog={setShowVerifyCode}
         email={watchAdminEmail}
-        onSuccess={() => {
-          createOrganizationMutation.mutate({
-            ...newOrganizationFormMethods.getValues(),
-            language: i18n.language,
-            check: false,
-          });
+        onSuccess={(isVerified) => {
+          if (isVerified) {
+            createOrganizationMutation.mutate({
+              ...newOrganizationFormMethods.getValues(),
+              language: i18n.language,
+              check: false,
+            });
+          }
         }}
       />
     </>
