@@ -215,6 +215,35 @@ async function runTestStepsCommonForTeamAndUserEventType(
     await rescheduleFromTheLinkOnPage({ page, bookerVariant });
     await expectErrorToBeThereFor({ page, name: "rescheduleReason" });
   });
+
+  // e2e Test for Phone Number Input
+  await addQuestionAndSave({
+    page,
+    question: {
+      name: "phone_number",
+      type: "Phone",
+      label: "Phone Number",
+      placeholder: "9999999999",
+      required: true,
+    },
+  });
+
+  await test.step('Try to book without providing "Phone Number" response', async () => {
+    await doOnFreshPreview(page, context, bookerVariant, async (page) => {
+      await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
+      await expectErrorToBeThereFor({ page, name: "phone_number" });
+    });
+  });
+
+  await test.step('Try to book with an Invalid "Phone Number" response', async () => {
+    await doOnFreshPreview(page, context, bookerVariant, async (page) => {
+      const formBuilderFieldLocator = page.locator('[data-fob-field-name="phone_number"]');
+
+      await formBuilderFieldLocator.locator('[name="phone_number"]').fill("91 9999");
+      await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
+      await expectErrorToBeThereFor({ page, name: "phone_number" });
+    });
+  });
 }
 
 async function expectSystemFieldsToBeThere(page: Page) {
