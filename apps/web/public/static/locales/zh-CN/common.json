@@ -1340,7 +1340,7 @@
   "exchange_version_2013_SP1": "2013 SP1",
   "exchange_version_2015": "2015",
   "exchange_version_2016": "2016",
-  "routing_forms_description": "创建表格以将参与者引导到正确的目的地",
+  "routing_forms_description": "创建表格以将参与者引导到正确的目标",
   "routing_forms_send_email_owner": "向所有者发送电子邮件",
   "routing_forms_send_email_owner_description": "提交表单后向所有者发送电子邮件",
   "add_new_form": "添加新表格",

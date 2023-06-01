@@ -1340,7 +1340,6 @@
   "exchange_version_2013_SP1": "2013 SP1",
   "exchange_version_2015": "2015",
   "exchange_version_2016": "2016",
-  "routing_forms_description": "Aqui pode ver todos os formulários e rotas que criou.",
   "routing_forms_send_email_owner": "Enviar e-mail ao proprietário",
   "routing_forms_send_email_owner_description": "Envia um e-mail ao proprietário quando o formulário for submetido",
   "add_new_form": "Adicionar novo formulário",
