@@ -34,6 +34,13 @@ export function TimezoneSelect({
     });
   }, [components]);
 
+  // We use modifiedTimezones in place of the allTimezones object replacing any underscores in the curly braces
+  // with spaces and removing the America/Detroit timezone, adding the America/New_York timezone instead.
+  const modifiedTimezones = useMemo(() => {
+    const { "America/Detroit": _, ...rest } = allTimezones;
+    return { ...rest, "America/New_York": "New York" };
+  }, []);
+
   return (
     <BaseSelect
       className={className}
@@ -41,29 +48,35 @@ export function TimezoneSelect({
       isDisabled={isLoading}
       {...reactSelectProps}
       timezones={{
-        ...allTimezones,
+        ...modifiedTimezones,
         ...addCitiesToDropdown(cities),
         "America/Asuncion": "Asuncion",
       }}
       onInputChange={handleInputChange}
       {...props}
-      formatOptionLabel={(option) => <p className="truncate">{(option as ITimezoneOption).value}</p>}
+      formatOptionLabel={(option) => (
+        <p className="truncate">{(option as ITimezoneOption).value.replace(/_/g, " ")}</p>
+      )}
       getOptionLabel={(option) => handleOptionLabel(option as ITimezoneOption, cities)}
       classNames={{
         ...timezoneClassNames,
         input: (state) =>
-          classNames("text-emphasis h-6", timezoneClassNames?.input && timezoneClassNames.input(state)),
+          classNames(
+            "text-emphasis h-6 md:max-w-[145px] max-w-[250px]",
+            timezoneClassNames?.input && timezoneClassNames.input(state)
+          ),
         option: (state) =>
           classNames(
-            "bg-default flex cursor-pointer justify-between py-2.5 px-3 rounded-none text-default ",
+            "bg-default flex !cursor-pointer justify-between py-2.5 px-3 rounded-none text-default ",
             state.isFocused && "bg-subtle",
-            state.isSelected && "bg-emphasis text-default",
+            state.isSelected && "bg-emphasis",
             timezoneClassNames?.option && timezoneClassNames.option(state)
           ),
         placeholder: (state) => classNames("text-muted", state.isFocused && "hidden"),
         dropdownIndicator: () => "text-default",
         control: (state) =>
           classNames(
+            "!cursor-pointer",
             variant === "default"
               ? "px-3 py-2 bg-default border-default !min-h-9 text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-2 focus-within:ring-emphasis hover:border-emphasis rounded-md border gap-1"
               : "text-sm gap-1",

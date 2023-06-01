@@ -12,31 +12,32 @@ type DeleteOptions = {
 
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   const { id } = input;
-  input.eventTypeId
-    ? await prisma.eventType.update({
-        where: {
-          id: input.eventTypeId,
-        },
-        data: {
-          webhooks: {
-            delete: {
-              id,
-            },
-          },
-        },
-      })
-    : await prisma.user.update({
-        where: {
-          id: ctx.user.id,
-        },
-        data: {
-          webhooks: {
-            delete: {
-              id,
-            },
-          },
-        },
-      });
+
+  const andCondition: Partial<{ id: string; eventTypeId: number; teamId: number; userId: number }>[] = [
+    { id: id },
+  ];
+
+  if (input.eventTypeId) {
+    andCondition.push({ eventTypeId: input.eventTypeId });
+  } else if (input.teamId) {
+    andCondition.push({ teamId: input.teamId });
+  } else {
+    andCondition.push({ userId: ctx.user.id });
+  }
+
+  const webhookToDelete = await prisma.webhook.findFirst({
+    where: {
+      AND: andCondition,
+    },
+  });
+
+  if (webhookToDelete) {
+    await prisma.webhook.delete({
+      where: {
+        id: webhookToDelete.id,
+      },
+    });
+  }
 
   return {
     id,
