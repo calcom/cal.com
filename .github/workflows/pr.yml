@@ -66,6 +66,12 @@ jobs:
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 
+  build-without-database:
+    name: Production build (without database)
+    needs: env
+    uses: ./.github/workflows/production-build-without-database.yml
+    secrets: inherit
+
   e2e:
     name: E2E tests
     needs: [changes, lint, build]

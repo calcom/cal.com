@@ -51,7 +51,7 @@ export const Select = <
         dropdownIndicator: () => "text-default",
         control: (state) =>
           cx(
-            "bg-default border-default !min-h-9 h-9 text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-2 focus-within:ring-emphasis hover:border-emphasis rounded-md border ",
+            "bg-default border-default !min-h-9 h-9 text-sm leading-4 placeholder:text-sm placeholder:font-normal dark:focus:border-emphasis focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default hover:border-emphasis rounded-md border",
             state.isMulti
               ? variant === "checkbox"
                 ? "px-3 py-2 h-fit"

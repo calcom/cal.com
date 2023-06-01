@@ -146,7 +146,7 @@ const Days = ({
             <div key={`e-${idx}`} />
           ) : props.isLoading ? (
             <button
-              className=" bg-muted text-muted opcaity-50 absolute top-0 left-0 right-0 bottom-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium"
+              className="bg-muted text-muted absolute top-0 left-0 right-0 bottom-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-50"
               key={`e-${idx}`}
               disabled>
               <SkeletonText className="h-4 w-5" />

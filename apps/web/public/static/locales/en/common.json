@@ -273,7 +273,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}} still needs to confirm or reject each booking of the recurring meeting.",
   "meeting_is_scheduled": "This meeting is scheduled",
   "meeting_is_scheduled_recurring": "The recurring events are scheduled",
-  "submitted": "Your booking has been submitted",
   "submitted_recurring": "Your recurring meeting has been submitted",
   "booking_submitted": "Your booking has been submitted",
   "booking_submitted_recurring": "Your recurring meeting has been submitted",
@@ -365,6 +364,7 @@
   "user_dynamic_booking_disabled": "Some of the users in the group have currently disabled dynamic group bookings",
   "allow_dynamic_booking_tooltip": "Group booking links that can be created dynamically by adding multiple usernames with a '+'. example: '{{appName}}/bailey+peer'",
   "allow_dynamic_booking": "Allow attendees to book you through dynamic group bookings",
+  "dynamic_booking": "Dynamic group links",
   "email": "Email",
   "email_placeholder": "jdoe@example.com",
   "full_name": "Full name",
@@ -375,6 +375,8 @@
   "booking_rescheduled": "Booking Rescheduled",
   "recording_ready":"Recording Download Link Ready",
   "booking_created": "Booking Created",
+  "booking_rejected":"Booking Rejected",
+  "booking_requested":"Booking Requested",
   "meeting_ended": "Meeting Ended",
   "form_submitted": "Form Submitted",
   "event_triggers": "Event Triggers",
@@ -1838,5 +1840,7 @@
   "connect_google_workspace":"Connect Google Workspace",
   "google_workspace_admin_tooltip":"You must be a Workspace Admin to use this feature",
   "first_event_type_webhook_description": "Create your first webhook for this event type",
-  "create_for": "Create for"
+  "create_for": "Create for",
+  "additional_url_parameters": "Additional URL parameters",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
