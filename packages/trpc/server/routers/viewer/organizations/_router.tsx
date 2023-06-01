@@ -11,6 +11,7 @@ type OrganizationsRouterHandlerCache = {
   update?: typeof import("./update.handler").updateHandler;
   verifyCode?: typeof import("./verifyCode.handler").verifyCodeHandler;
   createTeams?: typeof import("./createTeams.handler").createTeamsHandler;
+  checkIfOrgNeedsUpgrade?: typeof import("./checkIfOrgNeedsUpgrade.handler").checkIfOrgNeedsUpgradeHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: OrganizationsRouterHandlerCache = {};
@@ -93,5 +94,18 @@ export const viewerOrganizationsRouter = router({
     return UNSTABLE_HANDLER_CACHE.listCurrent({
       ctx,
     });
+  }),
+  checkIfOrgNeedsUpgrade: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.checkIfOrgNeedsUpgrade) {
+      UNSTABLE_HANDLER_CACHE.checkIfOrgNeedsUpgrade = await import("./checkIfOrgNeedsUpgrade.handler").then(
+        (mod) => mod.checkIfOrgNeedsUpgradeHandler
+      );
+    }
+
+    if (!UNSTABLE_HANDLER_CACHE.checkIfOrgNeedsUpgrade) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.checkIfOrgNeedsUpgrade({ ctx });
   }),
 });

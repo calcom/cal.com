@@ -7,7 +7,7 @@ import { showToast, TopBanner } from "@calcom/ui";
 export function TeamsUpgradeBanner() {
   const { t } = useLocale();
   const router = useRouter();
-  const { data } = trpc.viewer.organizations.checkIfOrgNeedsUpgrade.useQuery();
+  const { data } = trpc.viewer.teams.getUpgradeable.useQuery();
   const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
     onSuccess(data) {
       router.push(data.url);
@@ -23,7 +23,7 @@ export function TeamsUpgradeBanner() {
 
   return (
     <TopBanner
-      text={t("org_upgrade_banner_description", { teamName: membership.team.name })}
+      text={t("team_upgrade_banner_description", { teamName: membership.team.name })}
       variant="warning"
       actions={
         <button
@@ -31,7 +31,7 @@ export function TeamsUpgradeBanner() {
           onClick={() => {
             publishTeamMutation.mutate({ teamId: membership.team.id });
           }}>
-          {t("org_upgrade_banner_action")}
+          {t("team_upgrade_banner_action")}
         </button>
       }
     />

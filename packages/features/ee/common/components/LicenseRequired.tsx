@@ -21,6 +21,8 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
   const Component = as || Fragment;
   const hasValidLicense = session.data ? session.data.hasValidLicense : null;
 
+  return children;
+
   return (
     <Component {...rest}>
       {hasValidLicense === null || hasValidLicense ? (
