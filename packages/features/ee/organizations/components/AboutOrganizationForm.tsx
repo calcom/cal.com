@@ -17,6 +17,7 @@ export const AboutOrganizationForm = () => {
   const router = useRouter();
   const { id: orgId } = querySchema.parse(router.query);
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
+  const [image, setImage] = useState("");
 
   const aboutOrganizationFormMethods = useForm<{
     logo: string;
@@ -56,22 +57,21 @@ export const AboutOrganizationForm = () => {
           <Controller
             control={aboutOrganizationFormMethods.control}
             name="logo"
-            render={({ field: { value } }) => (
+            render={() => (
               <>
                 <Label>Organization Logo</Label>
                 <div className="flex items-center">
-                  <Avatar alt="" imageSrc={value || null} gravatarFallbackMd5="newTeam" size="lg" />
+                  <Avatar alt="" imageSrc={image || null} gravatarFallbackMd5="newTeam" size="lg" />
                   <div className="ms-4">
                     <ImageUploader
                       target="avatar"
                       id="avatar-upload"
                       buttonMsg={t("update")}
                       handleAvatarChange={(newAvatar: string) => {
-                        debugger;
+                        setImage(newAvatar);
                         aboutOrganizationFormMethods.setValue("logo", newAvatar);
-                        aboutOrganizationFormMethods.reset();
                       }}
-                      imageSrc={value}
+                      imageSrc={image}
                     />
                   </div>
                 </div>
