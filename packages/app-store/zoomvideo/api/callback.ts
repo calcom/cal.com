@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
+import createAppCredential from "../../_utils/createAppCredential";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { getZoomAppKeys } from "../lib";
 
@@ -69,20 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await prisma.credential.deleteMany({ where: { id: { in: credentialIdsToDelete }, userId } });
   }
 
-  await prisma.user.update({
-    where: {
-      id: req.session?.user.id,
-    },
-    data: {
-      credentials: {
-        create: {
-          type: "zoom_video",
-          key: responseBody,
-          appId: "zoom",
-        },
-      },
-    },
-  });
+  createAppCredential({ appId: "zoom", type: "zoom_video" }, responseBody, req);
 
   res.redirect(getInstalledAppPath({ variant: "conferencing", slug: "zoom" }));
 }
