@@ -331,7 +331,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                         {form.routers.map((router) => {
                           return (
                             <div key={router.id} className="mr-2">
-                              <Link href={`/${appUrl}/route-builder/${router.id}`}>
+                              <Link href={`${appUrl}/route-builder/${router.id}`}>
                                 <Badge variant="gray">{router.name}</Badge>
                               </Link>
                             </div>
@@ -353,7 +353,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                         {connectedForms.map((router) => {
                           return (
                             <div key={router.id} className="mr-2">
-                              <Link href={`/${appUrl}/route-builder/${router.id}`}>
+                              <Link href={`${appUrl}/route-builder/${router.id}`}>
                                 <Badge variant="default">{router.name}</Badge>
                               </Link>
                             </div>
