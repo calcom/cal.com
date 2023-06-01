@@ -19,7 +19,6 @@ type CreateOptions = {
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const { slug, name, logo } = input;
   const currentOrgId = ctx.user.organization?.id;
-  // TODO: Handle this for orgs too. Schema needs to be changed CAL-1825
   const slugCollisions = await prisma.team.findFirst({
     where: {
       slug: slug,
