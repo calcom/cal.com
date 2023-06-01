@@ -224,7 +224,12 @@ const IntegrationsContainer = ({
   handleDisconnect,
 }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
-  const query = trpc.viewer.integrations.useQuery({ variant, exclude, onlyInstalled: true });
+  const query = trpc.viewer.integrations.useQuery({
+    variant,
+    exclude,
+    onlyInstalled: true,
+    includeTeamInstalledApps: true,
+  });
   const emptyIcon = {
     calendar: Calendar,
     conferencing: Video,
