@@ -1843,5 +1843,6 @@
   "create_for": "Create for",
   "setup_organisation": "Setup an Organization",
   "organisation_banner_description": "Create an environments where your teams can create shared apps, workflows and event types with round-robin and collective scheduling.",
-  "organisation_banner_title": "Manage organizations with multiple teams"
+  "organisation_banner_title": "Manage organizations with multiple teams",
+  "additional_url_parameters":"Additional URL parameters"
 }
