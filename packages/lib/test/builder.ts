@@ -193,6 +193,8 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     completedOnboarding: false,
     createdDate: new Date(),
     credentials: [],
+    dailyDigestEnabled: false,
+    dailyDigestTime: null,
     darkBrandColor: "#fafafa",
     defaultScheduleId: null,
     destinationCalendar: null,
