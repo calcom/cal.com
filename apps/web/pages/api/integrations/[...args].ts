@@ -14,12 +14,14 @@ const defaultIntegrationAddHandler = async ({
   supportsMultipleInstalls,
   appType,
   user,
+  teamId = undefined,
   createCredential,
 }: {
   slug: string;
   supportsMultipleInstalls: boolean;
   appType: string;
   user?: Session["user"];
+  teamId?: number;
   createCredential: AppDeclarativeHandler["createCredential"];
 }) => {
   if (!user?.id) {
@@ -36,14 +38,14 @@ const defaultIntegrationAddHandler = async ({
       throw new Error("App is already installed");
     }
   }
-  await createCredential({ user: user, appType, slug });
+  await createCredential({ user: user, appType, slug, teamId });
 };
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // Check that user is authenticated
   req.session = await getServerSession({ req, res });
 
-  const { args } = req.query;
+  const { args, teamId } = req.query;
 
   if (!Array.isArray(args)) {
     return res.status(404).json({ message: `API route not found` });
@@ -66,7 +68,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         await revalidateCalendarCache(res.revalidate, req.session?.user?.username);
       }
     } else {
-      await defaultIntegrationAddHandler({ user: req.session?.user, ...handler });
+      await defaultIntegrationAddHandler({ user: req.session?.user, teamId: Number(teamId), ...handler });
       if (handler.appType.includes("calendar") && req.session?.user?.username) {
         await revalidateCalendarCache(res.revalidate, req.session?.user?.username);
       }
