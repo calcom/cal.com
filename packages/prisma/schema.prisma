@@ -268,6 +268,10 @@ model Team {
   children            Team[]           @relation("organization")
   orgUsers            User[]           @relation("scope")
   webhooks            Webhook[]
+  locale              String?
+  timeFormat          Int?
+  timeZone            String           @default("Europe/London")
+  weekStart           String           @default("Sunday")
 
   @@unique([slug, parentId])
 }
