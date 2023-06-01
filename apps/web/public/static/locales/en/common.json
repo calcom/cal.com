@@ -264,6 +264,7 @@
   "add_another_calendar": "Add another calendar",
   "other": "Other",
   "email_sign_in_subject": "Your sign-in link for {{appName}}",
+  "email_all_details": "We emailed you with all the details",
   "emailed_you_and_attendees": "We emailed you and the other attendees a calendar invitation with all the details.",
   "emailed_you_and_attendees_recurring": "We emailed you and the other attendees a calendar invitation for the first of these recurring events.",
   "emailed_you_and_any_other_attendees": "You and any other attendees have been emailed with this information.",
