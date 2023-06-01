@@ -1856,5 +1856,6 @@
   "organization_url": "Organization URL",
   "organization_verify_header" :"Verify your organization email",
   "organization_verify_email_body":"Please use the code below to verify your email address to continue setting up your organization.",
-  "additional_url_parameters":"Additional URL parameters"
+  "additional_url_parameters": "Additional URL parameters",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
