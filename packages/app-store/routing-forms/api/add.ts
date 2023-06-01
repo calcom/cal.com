@@ -9,12 +9,13 @@ const handler: AppDeclarativeHandler = {
   slug: appConfig.slug,
   supportsMultipleInstalls: false,
   handlerType: "add",
-  createCredential: async ({ user, appType, slug }) => {
+  createCredential: async ({ user, appType, slug, teamId }) => {
     return await prisma.credential.create({
       data: {
         type: appType,
         key: {},
-        userId: user.id,
+        // userId: user.id,
+        ...(teamId ? { teamId } : { userId: user.id }),
         appId: slug,
       },
     });
