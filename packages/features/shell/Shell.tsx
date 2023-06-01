@@ -12,6 +12,7 @@ import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
@@ -29,6 +30,7 @@ import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 import {
+  Avatar,
   Button,
   Credits,
   Dropdown,
@@ -272,6 +274,7 @@ function UserDropdown({ small }: { small?: boolean }) {
   const { t } = useLocale();
   const { data: user } = useMeQuery();
   const { data: avatar } = useAvatarQuery();
+  const orgBranding = useOrgBrandingValues();
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -339,8 +342,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                   <span className="text-default truncate pb-1 font-normal leading-none">
                     {user.username
                       ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
-                        ? `cal.com/${user.username}`
-                        : `/${user.username}`
+                        ? `${orgBranding && orgBranding.slug}cal.com/${user.username}`
+                        : `${orgBranding && orgBranding.slug}/${user.username}`
                       : "No public page"}
                   </span>
                 </span>
@@ -779,6 +782,7 @@ function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
 }
 
 function SideBar({ bannersHeight }: SideBarProps) {
+  const orgBranding = useOrgBrandingValues();
   return (
     <div className="relative">
       <aside
@@ -787,7 +791,14 @@ function SideBar({ bannersHeight }: SideBarProps) {
         <div className="flex h-full flex-col justify-between py-3 lg:pt-6 ">
           <header className="items-center justify-between md:hidden lg:flex">
             <Link href="/event-types" className="px-2">
-              <Logo small />
+              {orgBranding ? (
+                <div className="flex items-center gap-2 font-medium">
+                  <Avatar alt="" imageSrc={orgBranding.logo} gravatarFallbackMd5="newTeam" size="sm" />
+                  <p className="text text-sm">{orgBranding.name}</p>
+                </div>
+              ) : (
+                <Logo small />
+              )}
             </Link>
             <div className="flex space-x-2 rtl:space-x-reverse">
               <button
