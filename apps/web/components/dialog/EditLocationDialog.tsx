@@ -277,7 +277,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     displayLocationPublicly,
                   };
                 }
-                console.log(details, "details");
                 saveLocation(newLocation, details);
                 setShowLocationModal(false);
                 setSelectedLocation?.(undefined);
