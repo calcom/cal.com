@@ -1281,7 +1281,6 @@
   "exchange_authentication_standard": "Grundlæggende autentificering",
   "exchange_authentication_ntlm": "NTLM autentificering",
   "exchange_compression": "GZip komprimering",
-  "routing_forms_description": "Du kan se alle former og ruter du har oprettet her.",
   "routing_forms_send_email_owner": "Send e-mail til Ejer",
   "routing_forms_send_email_owner_description": "Sender en e-mail til ejeren når formularen er indsendt",
   "add_new_form": "Tilføj ny formular",
