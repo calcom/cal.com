@@ -1840,5 +1840,6 @@
   "connect_google_workspace":"Connect Google Workspace",
   "google_workspace_admin_tooltip":"You must be a Workspace Admin to use this feature",
   "first_event_type_webhook_description": "Create your first webhook for this event type",
-  "create_for": "Create for"
+  "create_for": "Create for",
+  "additional_url_parameters":"Additional URL parameters"
 }
