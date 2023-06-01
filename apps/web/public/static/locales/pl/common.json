@@ -271,7 +271,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "Użytkownik {{user}} nadal musi potwierdzić lub odrzucić każdą rezerwację spotkania cyklicznego.",
   "meeting_is_scheduled": "To spotkanie jest zaplanowane",
   "meeting_is_scheduled_recurring": "Wydarzenia cykliczne zostały zaplanowane",
-  "submitted": "Twoja rezerwacja została wysłana",
   "submitted_recurring": "Twoje wydarzenie cykliczne zostało wysłane",
   "booking_submitted": "Twoja rezerwacja została wysłana",
   "booking_submitted_recurring": "Twoje wydarzenie cykliczne zostało wysłane",

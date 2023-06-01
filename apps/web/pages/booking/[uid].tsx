@@ -283,7 +283,9 @@ export default function Success(props: SuccessProps) {
     darkBrandColor: props.profile.darkBrandColor,
   });
   const title = t(
-    `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
+    `booking_${needsConfirmation ? "booking_submitted" : "confirmed"}${
+      props.recurringBookings ? "_recurring" : ""
+    }`
   );
 
   const locationToDisplay = getSuccessPageLocationMessage(
@@ -368,7 +370,7 @@ export default function Success(props: SuccessProps) {
                     {needsConfirmation && !isCancelled
                       ? props.recurringBookings
                         ? t("submitted_recurring")
-                        : t("submitted")
+                        : t("booking_submitted")
                       : isCancelled
                       ? seatReferenceUid
                         ? t("no_longer_attending")
