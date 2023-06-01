@@ -96,6 +96,7 @@ const querySchema = z.object({
 });
 
 export default function Success(props: SuccessProps) {
+  const { referer } = props;
   const { t } = useLocale();
   const router = useRouter();
   const {
@@ -310,7 +311,7 @@ export default function Success(props: SuccessProps) {
       {userIsOwner && !isEmbed && (
         <div className="mt-2 ml-4 -mb-4">
           <Link
-            href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
+            href={allRemainingBookings ? "/bookings/recurring" : referer ?? "/bookings/upcoming"}
             className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
             <ChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
           </Link>
@@ -965,10 +966,25 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const session = await getServerSession(context);
   let tz: string | null = null;
+  let referer: string | null = null;
 
   if (session) {
     const user = await ssr.viewer.me.fetch();
     tz = user.timeZone;
+  }
+
+  // Check if the referer header exists
+  if (context.req.headers.referer) {
+    // Create a new URL object from the referer header
+    const refererURL = new URL(context.req.headers.referer);
+    // Check if the host of the current request matches the host of the referer
+    if (context.req.headers.host === refererURL.host) {
+      // Check if the resolved URL is different from the referer's pathname
+      if (context.resolvedUrl !== refererURL.pathname) {
+        // Assign the referer value to the referer variable
+        referer = context.req.headers.referer;
+      }
+    }
   }
 
   const parsedQuery = querySchema.safeParse(context.query);
@@ -1105,6 +1121,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
       paymentStatus: payment,
+      referer,
       ...(tz && { tz }),
     },
   };
