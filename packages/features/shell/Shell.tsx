@@ -12,6 +12,7 @@ import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
+import { OrgUpgradeBanner } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
@@ -179,6 +180,7 @@ const Layout = (props: LayoutProps) => {
       <div style={{ paddingTop: `${bannersHeight}px` }} className="flex min-h-screen flex-col">
         <div ref={bannerRef} className="fixed top-0 z-10 w-full divide-y divide-black">
           <TeamsUpgradeBanner />
+          <OrgUpgradeBanner />
           <ImpersonatingBanner />
           <AdminPasswordBanner />
         </div>
