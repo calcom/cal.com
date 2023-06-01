@@ -1841,5 +1841,6 @@
   "google_workspace_admin_tooltip":"You must be a Workspace Admin to use this feature",
   "first_event_type_webhook_description": "Create your first webhook for this event type",
   "create_for": "Create for",
-  "additional_url_parameters":"Additional URL parameters"
+  "additional_url_parameters": "Additional URL parameters",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
