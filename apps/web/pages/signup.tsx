@@ -1,9 +1,11 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import type { CSSProperties } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
+import type { infer as ZodInfer } from "zod";
 import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -21,20 +23,29 @@ import PageWrapper from "@components/PageWrapper";
 import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
 import { ssrInit } from "../server/lib/ssr";
 
-type FormValues = {
-  username: string;
-  email: string;
-  password: string;
-  apiError: string;
-};
-
 export default function Signup({ prepopulateFormValues, token }: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
 
-  const methods = useForm<FormValues>({
+  const signupFormSchema = z.object({
+    username: z.string(),
+    email: z.string().email(),
+    password: z
+      .string()
+      .min(7, { message: "Password should have a minimum length of 7 characters" })
+      .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/, {
+        message: "Password should contain a number, uppercase and lowercase letters",
+      })
+      .refine((value) => value !== "", { message: "Password is required" }),
+    apiError: z.string().optional(),
+  });
+
+  type SignupFormValues = ZodInfer<typeof signupFormSchema>;
+
+  const methods = useForm<SignupFormValues>({
     mode: "onChange",
+    resolver: zodResolver(signupFormSchema),
     defaultValues: prepopulateFormValues,
   });
   const {
@@ -49,7 +60,7 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
     }
   };
 
-  const signUp: SubmitHandler<FormValues> = async (data) => {
+  const signUp: SubmitHandler<SignupFormValues> = async (data) => {
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
         ...data,
@@ -118,6 +129,7 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
                   />
                   <EmailField
                     {...register("email")}
+                    required
                     disabled={prepopulateFormValues?.email}
                     className="disabled:bg-emphasis disabled:hover:cursor-not-allowed"
                   />
@@ -125,17 +137,8 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
                     labelProps={{
                       className: "block text-sm font-medium text-default",
                     }}
-                    {...register("password", {
-                      required: true,
-                      minLength: {
-                        message: t("password_hint_min"),
-                        value: 7,
-                      },
-                      pattern: {
-                        message: "Should contain a number, uppercase and lowercase letters",
-                        value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
-                      },
-                    })}
+                    {...register("password")}
+                    required
                     hintErrors={["caplow", "min", "num"]}
                     className="border-default mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                   />
