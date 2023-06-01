@@ -17,7 +17,6 @@ import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import {
-  Button,
   Label,
   Select,
   SettingsToggle,
@@ -27,9 +26,11 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
-import { Edit2, X, Plus } from "@calcom/ui/components/icon";
+import { Input } from "@calcom/ui";
+import { Edit2, X } from "@calcom/ui/components/icon";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
+import { AddLocation } from "@components/eventtype/AddLocation";
 import type { SingleValueLocationOption, LocationOption } from "@components/ui/form/LocationSelect";
 import LocationSelect from "@components/ui/form/LocationSelect";
 
@@ -230,7 +231,11 @@ export const EventSetupTab = (
 
     const { locationDetails, locationAvailable } = getLocationInfo(props);
     const [showSelect, setShowSelect] = useState(false);
-    console.log(validLocations, "validLocations");
+    const [showAddressSelect, setShowAddressSelect] = useState(false);
+    const [selectedEventLocationType, setSelectedEventLocationType] = useState(null);
+    console.log(selectedEventLocationType, "selecct");
+    console.log(locationFormMethods.getValues(), "ss");
+
     return (
       <div className="w-full">
         {validLocations.length === 0 && (
@@ -266,10 +271,11 @@ export const EventSetupTab = (
           <ul ref={animationRef}>
             {validLocations.map((location, index) => {
               const eventLocationType = getEventLocationType(location.type);
+              console.log(eventLocationType, "es");
               if (!eventLocationType) {
                 return null;
               }
-
+              console.log(location);
               const eventLabel =
                 location[eventLocationType.defaultValueVariable] || t(eventLocationType.label);
 
@@ -366,17 +372,48 @@ export const EventSetupTab = (
               if (e?.value) {
                 const newLocationType = e.value;
                 const eventLocationType = getEventLocationType(newLocationType);
+                console.log(eventLocationType, "e");
+                if (eventLocationType?.organizerInputType) {
+                  setSelectedEventLocationType(eventLocationType);
+                  setShowAddressSelect(true);
+                }
+
                 if (!eventLocationType) {
                   return;
                 }
                 locationFormMethods.setValue("locationType", newLocationType);
-                saveLocation(newLocationType);
+                // saveLocation(newLocationType);
               }
-              setShowSelect(false);
             }}
           />
         )}
-        {validLocations.length > 0 && (
+        {showAddressSelect && (
+          <div className="px-4">
+            <Input
+              ref={animationRef}
+              type="text"
+              placeholder={selectedEventLocationType.messageForOrganizer}
+              {...locationFormMethods.register(selectedEventLocationType.variable)}
+              onBlur={(e) => {
+                const inputName = selectedEventLocationType.variable;
+                const inputValue = e.target.value;
+                const details = {
+                  address: inputValue,
+                };
+                // locationFormMethods.setValue(inputName, inputValue);
+                setShowAddressSelect(false);
+                formMethods.setValue(
+                  "locations",
+                  formMethods
+                    .getValues("locations")
+                    .concat({ type: selectedEventLocationType.type, ...details })
+                );
+                setShowSelect(false);
+              }}
+            />
+          </div>
+        )}
+        {/* {validLocations.length > 0 && (
           <Button
             data-testid="add-location"
             StartIcon={Plus}
@@ -384,7 +421,12 @@ export const EventSetupTab = (
             onClick={() => setShowSelect(!showSelect)}>
             {!showSelect ? "Add Location" : "Remove Location"}
           </Button>
-        )}
+        )} */}
+        <AddLocation
+          locationOptions={locationOptions}
+          locationFormMethods={formMethods}
+          defaultValues={formMethods.getValues("locations")}
+        />
       </div>
     );
   };
