@@ -5,6 +5,7 @@ import type { NextApiResponse, GetServerSidePropsContext } from "next";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { validateIntervalLimitOrder } from "@calcom/lib";
+import logger from "@calcom/lib/logger";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -287,7 +288,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   });
   const res = ctx.res as NextApiResponse;
   if (typeof res?.revalidate !== "undefined") {
-    await res?.revalidate(`/${ctx.user.username}/${eventType.slug}`);
+    try {
+      await res?.revalidate(`/${ctx.user.username}/${eventType.slug}`);
+    } catch (e) {
+      // if reach this it is because the event type page has not been created, so it is not possible to revalidate it
+      logger.debug((e as Error)?.message);
+    }
   }
   return { eventType };
 };

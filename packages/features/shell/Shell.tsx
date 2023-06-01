@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
-import React, { Fragment, useEffect, useState, useRef, useLayoutEffect } from "react";
+import React, { Fragment, useEffect, useState, useRef } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
@@ -21,6 +21,7 @@ import AdminPasswordBanner from "@calcom/features/users/components/AdminPassword
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
+import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { trpc } from "@calcom/trpc/react";
@@ -143,7 +144,7 @@ const Layout = (props: LayoutProps) => {
   const bannerRef = useRef<HTMLDivElement | null>(null);
   const [bannersHeight, setBannersHeight] = useState<number>(0);
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
       const { offsetHeight } = entries[0].target as HTMLElement;
       setBannersHeight(offsetHeight);
