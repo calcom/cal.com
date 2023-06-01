@@ -31,7 +31,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
   const mutation = useMutation<
     AddAppMutationData,
     Error,
-    { type?: App["type"]; variant?: string; slug?: string; isOmniInstall?: boolean } | ""
+    { type?: App["type"]; variant?: string; slug?: string; isOmniInstall?: boolean; teamId?: number } | ""
   >(async (variables) => {
     let type: string | null | undefined;
     let isOmniInstall;
@@ -57,10 +57,12 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
             location.search
           ),
       ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
-      ...(variables.teamId && { teamId: variables.teamId }),
+      ...(variables && variables.teamId && { teamId: variables.teamId }),
     };
     const stateStr = encodeURIComponent(JSON.stringify(state));
-    const searchParams = `?state=${stateStr}`;
+    const searchParams = `?state=${stateStr}${
+      variables && variables.teamId ? `&teamId=${variables.teamId}` : ""
+    }`;
 
     const res = await fetch(`/api/integrations/${type}/add` + searchParams);
 
