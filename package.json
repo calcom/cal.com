@@ -93,7 +93,7 @@
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
     "lucide-react": "^0.171.0",
-    "turbo": "^1.8.3"
+    "turbo": "^1.10.1"
   },
   "resolutions": {
     "@apidevtools/json-schema-ref-parser": "9.0.9",
