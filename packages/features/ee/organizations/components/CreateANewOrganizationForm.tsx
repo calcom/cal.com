@@ -89,6 +89,7 @@ export const VerifyCodeDialog = ({
               <Button
                 disabled={isLoading}
                 onClick={() => {
+                  setError("");
                   if (inputCode === "") {
                     setError("The code is a required field");
                   } else {
