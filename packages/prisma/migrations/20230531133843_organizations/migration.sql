@@ -25,10 +25,16 @@ ALTER TABLE "users" ADD COLUMN     "organizationId" INTEGER;
 CREATE UNIQUE INDEX "Team_slug_parentId_key" ON "Team"("slug", "parentId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Team_slug_parentId_key_null" ON "Team"("slug", ("parentId" IS NULL)) WHERE "parentId" IS NULL;
+
+-- CreateIndex
 CREATE UNIQUE INDEX "users_email_username_key" ON "users"("email", "username");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_username_organizationId_key" ON "users"("username", "organizationId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_username_organizationId_key_null" ON "users"("username", ("organizationId" IS NULL)) WHERE "organizationId" IS NULL;
 
 -- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Team"("id") ON DELETE SET NULL ON UPDATE CASCADE;

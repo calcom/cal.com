@@ -267,7 +267,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}} muss noch die Terminreihe des wiederkehrenden Termins bestätigen oder ablehnen.",
   "meeting_is_scheduled": "Dieser Termin ist geplant",
   "meeting_is_scheduled_recurring": "Ihr wiederkehrender Termin wurde geplant",
-  "submitted": "Ihr Termin wurde gebucht",
   "submitted_recurring": "Ihr wiederkehrender Termin wurde gebucht",
   "booking_submitted": "Ihre Buchung wurde versandt",
   "booking_submitted_recurring": "Ihre wiederkehrende Buchung wurde versandt",

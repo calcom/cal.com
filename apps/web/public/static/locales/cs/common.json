@@ -267,7 +267,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "Uživatel {{user}} ještě nepotvrdil ani neodmítl jednotlivé rezervace opakované schůzky.",
   "meeting_is_scheduled": "Schůzka naplánována",
   "meeting_is_scheduled_recurring": "Opakované události byly naplánovány",
-  "submitted": "Vaše rezervace byla odeslána",
   "submitted_recurring": "Opakovaná schůzka byla odeslána",
   "booking_submitted": "Vaše rezervace byla odeslána",
   "booking_submitted_recurring": "Opakovaná schůzka byla odeslána",
