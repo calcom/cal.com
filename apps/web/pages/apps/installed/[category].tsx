@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useCallback, useReducer, useState } from "react";
 import z from "zod";
@@ -119,6 +120,8 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
     undefined
   );
+  const session = useSession();
+  console.log("🚀 ~ file: [category].tsx:125 ~ IntegrationsList ~ session:", session);
 
   const onSuccessCallback = useCallback(() => {
     setBulkUpdateModal(true);
@@ -135,72 +138,95 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
     },
   });
 
+  const ChildAppCard = ({ item }) => {
+    const appSlug = item?.slug;
+    const appIsDefault =
+      appSlug === defaultConferencingApp?.appSlug ||
+      (appSlug === "daily-video" && !defaultConferencingApp?.appSlug);
+    return (
+      <AppListCard
+        key={item.name}
+        description={item.description}
+        title={item.name}
+        logo={item.logo}
+        isDefault={appIsDefault}
+        shouldHighlight
+        slug={item.slug}
+        invalidCredential={item?.invalidCredentialIds ? item.invalidCredentialIds.length > 0 : false}
+        credentialOwner={item.credentialOwner}
+        actions={
+          <div className="flex  justify-end">
+            <Dropdown modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button StartIcon={MoreHorizontal} variant="icon" color="secondary" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {!appIsDefault && variant === "conferencing" && (
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      color="secondary"
+                      StartIcon={Video}
+                      onClick={() => {
+                        const locationType = getEventLocationTypeFromApp(item?.locationOption?.value ?? "");
+                        if (locationType?.linkType === "static") {
+                          setLocationType({ ...locationType, slug: appSlug });
+                        } else {
+                          updateDefaultAppMutation.mutate({
+                            appSlug,
+                          });
+                          setBulkUpdateModal(true);
+                        }
+                      }}>
+                      {t("change_default_conferencing_app")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                )}
+                <ConnectOrDisconnectIntegrationMenuItem
+                  credentialIds={item.credentialIds}
+                  type={item.type}
+                  isGlobal={item.isGlobal}
+                  installed
+                  invalidCredentialIds={item.invalidCredentialIds}
+                  handleDisconnect={handleDisconnect}
+                />
+              </DropdownMenuContent>
+            </Dropdown>
+          </div>
+        }>
+        <AppSettings slug={item.slug} />
+      </AppListCard>
+    );
+  };
+
+  const appsWithTeamCredentials = data.items.filter((app) => app.teams);
+  const cardsForAppsWithTeams = appsWithTeamCredentials.map((app) => {
+    const appCards = [];
+
+    appCards.push(<ChildAppCard item={app} />);
+    for (const team of app.teams) {
+      appCards.push(
+        <ChildAppCard
+          item={{
+            ...app,
+            credentialIds: [team.credentialId],
+            credentialOwner: { name: team.name, avatar: team.logo },
+          }}
+        />
+      );
+    }
+    return appCards;
+  });
+
   const { t } = useLocale();
   return (
     <>
       <List>
+        {cardsForAppsWithTeams.map((apps) => apps.map((cards) => cards))}
         {data.items
           .filter((item) => item.invalidCredentialIds)
           .map((item) => {
-            const appSlug = item?.slug;
-            const appIsDefault =
-              appSlug === defaultConferencingApp?.appSlug ||
-              (appSlug === "daily-video" && !defaultConferencingApp?.appSlug);
-            return (
-              <AppListCard
-                key={item.name}
-                description={item.description}
-                title={item.name}
-                logo={item.logo}
-                isDefault={appIsDefault}
-                shouldHighlight
-                slug={item.slug}
-                invalidCredential={item.invalidCredentialIds.length > 0}
-                actions={
-                  <div className="flex  justify-end">
-                    <Dropdown modal={false}>
-                      <DropdownMenuTrigger asChild>
-                        <Button StartIcon={MoreHorizontal} variant="icon" color="secondary" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        {!appIsDefault && variant === "conferencing" && (
-                          <DropdownMenuItem>
-                            <DropdownItem
-                              type="button"
-                              color="secondary"
-                              StartIcon={Video}
-                              onClick={() => {
-                                const locationType = getEventLocationTypeFromApp(
-                                  item?.locationOption?.value ?? ""
-                                );
-                                if (locationType?.linkType === "static") {
-                                  setLocationType({ ...locationType, slug: appSlug });
-                                } else {
-                                  updateDefaultAppMutation.mutate({
-                                    appSlug,
-                                  });
-                                  setBulkUpdateModal(true);
-                                }
-                              }}>
-                              {t("change_default_conferencing_app")}
-                            </DropdownItem>
-                          </DropdownMenuItem>
-                        )}
-                        <ConnectOrDisconnectIntegrationMenuItem
-                          credentialIds={item.credentialIds}
-                          type={item.type}
-                          isGlobal={item.isGlobal}
-                          installed
-                          invalidCredentialIds={item.invalidCredentialIds}
-                          handleDisconnect={handleDisconnect}
-                        />
-                      </DropdownMenuContent>
-                    </Dropdown>
-                  </div>
-                }>
-                <AppSettings slug={item.slug} />
-              </AppListCard>
-            );
+            if (!item.teams) return <ChildAppCard item={item} />;
           })}
       </List>
       {locationType && (

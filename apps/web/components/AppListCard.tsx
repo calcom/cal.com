@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import { Badge, ListItemText } from "@calcom/ui";
+import { Badge, ListItemText, Avatar } from "@calcom/ui";
 import { AlertCircle } from "@calcom/ui/components/icon";
 
 type ShouldHighlight = { slug: string; shouldHighlight: true } | { shouldHighlight?: never; slug?: never };
@@ -19,6 +19,10 @@ type AppListCardProps = {
   isTemplate?: boolean;
   invalidCredential?: boolean;
   children?: ReactNode;
+  credentialOwner?: {
+    name: string;
+    avatar?: string;
+  };
 } & ShouldHighlight;
 
 const schema = z.object({ hl: z.string().optional() });
@@ -36,6 +40,7 @@ export default function AppListCard(props: AppListCardProps) {
     isTemplate,
     invalidCredential,
     children,
+    credentialOwner,
   } = props;
   const {
     data: { hl },
@@ -84,6 +89,16 @@ export default function AppListCard(props: AppListCardProps) {
             </div>
           )}
         </div>
+        {credentialOwner && (
+          <div>
+            <Badge variant="gray">
+              <div className="flex items-center">
+                <Avatar className="mr-2" size="sm" imageSrc={credentialOwner.avatar} />
+                {credentialOwner.name}
+              </div>
+            </Badge>
+          </div>
+        )}
 
         {actions}
       </div>

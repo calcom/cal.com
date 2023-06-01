@@ -47,7 +47,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = enabledApps.map(
     ({ credentials: _, credential: _1, key: _2 /* don't leak to frontend */, ...app }) => {
-      const credentialIds = credentials.filter((c) => c.type === app.type).map((c) => c.id);
+      const credentialIds = credentials.filter((c) => c.type === app.type && !c.teamId).map((c) => c.id);
       const invalidCredentialIds = credentials
         .filter((c) => c.type === app.type && c.invalid)
         .map((c) => c.id);
@@ -59,6 +59,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         });
       return {
         ...app,
+        ...(teams.length && { credentialOwner: { name: user.name, avatar: user.avatar } }),
         credentialIds,
         invalidCredentialIds,
         teams,
