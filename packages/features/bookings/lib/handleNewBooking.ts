@@ -489,7 +489,6 @@ function getBookingData({
             }
           }
         });
-  debugger;
   const reqBody = bookingDataSchema.parse(req.body);
   if ("customInputs" in reqBody) {
     if (reqBody.customInputs) {
@@ -585,7 +584,6 @@ async function handler(
     ...eventType,
     bookingFields: getBookingFieldsWithSystemFields(eventType),
   };
-  debugger;
   const {
     recurringCount,
     allRecurringDates,
