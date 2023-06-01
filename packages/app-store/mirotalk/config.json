@@ -4,11 +4,9 @@
   "slug": "mirotalk",
   "type": "mirotalk_video",
   "logo": "icon.svg",
-  "url": "https://cal.com/apps/mirotalk",
+  "url": "https://cal.com/",
   "variant": "conferencing",
-  "categories": [
-    "video"
-  ],
+  "categories": ["video"],
   "publisher": "Cal.com, Inc.",
   "email": "support@cal.com",
   "appData": {

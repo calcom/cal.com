@@ -35,7 +35,12 @@ export const EventMeta = () => {
       {!isLoading && !!event && (
         <m.div {...fadeInUp} layout transition={{ ...fadeInUp.transition, delay: 0.3 }}>
           <EventMembers schedulingType={event.schedulingType} users={event.users} profile={event.profile} />
-          <EventTitle className="mt-2 mb-8">{event?.title}</EventTitle>
+          <EventTitle className="my-2">{event?.title}</EventTitle>
+          {event.description && (
+            <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
+              <div dangerouslySetInnerHTML={{ __html: event.description }} />
+            </EventMetaBlock>
+          )}
           <div className="space-y-4 font-medium">
             {rescheduleBooking && (
               <EventMetaBlock icon={Calendar}>

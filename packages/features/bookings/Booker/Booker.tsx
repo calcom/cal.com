@@ -11,13 +11,13 @@ import { ToggleGroup } from "@calcom/ui";
 import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
-import { Away } from "./components/Away";
 import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
 import { EventMeta } from "./components/EventMeta";
 import { LargeCalendar } from "./components/LargeCalendar";
 import { LargeViewHeader } from "./components/LargeViewHeader";
 import { BookerSection } from "./components/Section";
+import { Away, NotFound } from "./components/Unavailable";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
@@ -92,6 +92,10 @@ const BookerComponent = ({
     }
   }, [layout]);
 
+  if (event.isSuccess && !event.data) {
+    return <NotFound />;
+  }
+
   return (
     <>
       {/*
@@ -99,7 +103,7 @@ const BookerComponent = ({
         since that's not a valid option, so it would set the layout to null.
       */}
       {!isMobile && (
-        <div className="[&>div]:bg-muted fixed top-2 right-3 z-10">
+        <div className="[&>div]:bg-default fixed top-2 right-3 z-10">
           <ToggleGroup
             onValueChange={onLayoutToggle}
             defaultValue={layout}
@@ -129,7 +133,7 @@ const BookerComponent = ({
           className={classNames(
             // Sets booker size css variables for the size of all the columns.
             ...getBookerSizeClassNames(layout, bookerState),
-            "bg-muted grid max-w-full auto-rows-fr items-start overflow-clip dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
+            "bg-default grid max-w-full auto-rows-fr items-start overflow-clip dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
             layout === "small_calendar" && "border-subtle rounded-md border"
           )}>
           <AnimatePresence>
