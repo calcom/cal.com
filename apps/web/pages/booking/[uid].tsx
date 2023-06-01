@@ -268,11 +268,11 @@ export default function Success(props: SuccessProps) {
       }
       return t("needs_to_be_confirmed_or_rejected" + titleSuffix);
     }
-    if(bookingInfo.attendees.length > 1){
+    if (bookingInfo.attendees.length > 1) {
       return t("emailed_you_and_attendees" + titleSuffix);
+    } else {
+      return t("email_all_details" + titleSuffix);
     }
-    return t("email_all_details" + titleSuffix);
-    
   }
 
   // This is a weird case where the same route can be opened in booking flow as a success page or as a booking detail page from the app
