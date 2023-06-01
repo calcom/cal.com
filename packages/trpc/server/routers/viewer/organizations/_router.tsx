@@ -1,6 +1,7 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZCreateInputSchema } from "./create.schema";
+import { ZCreateTeamsSchema } from "./createTeams.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZVerifyCodeInputSchema } from "./verifyCode.schema";
 
@@ -9,6 +10,7 @@ type OrganizationsRouterHandlerCache = {
   listCurrent?: typeof import("./list.handler").listHandler;
   update?: typeof import("./update.handler").updateHandler;
   verifyCode?: typeof import("./verifyCode.handler").verifyCodeHandler;
+  createTeams?: typeof import("./createTeams.handler").createTeamsHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: OrganizationsRouterHandlerCache = {};
@@ -61,17 +63,19 @@ export const viewerOrganizationsRouter = router({
       input,
     });
   }),
-  update: authedProcedure.input(ZUpdateInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.update) {
-      UNSTABLE_HANDLER_CACHE.update = await import("./update.handler").then((mod) => mod.updateHandler);
+  createTeams: authedProcedure.input(ZCreateTeamsSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.createTeams) {
+      UNSTABLE_HANDLER_CACHE.createTeams = await import("./createTeams.handler").then(
+        (mod) => mod.createTeamsHandler
+      );
     }
 
     // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.update) {
+    if (!UNSTABLE_HANDLER_CACHE.createTeams) {
       throw new Error("Failed to load handler");
     }
 
-    return UNSTABLE_HANDLER_CACHE.update({
+    return UNSTABLE_HANDLER_CACHE.createTeams({
       ctx,
       input,
     });

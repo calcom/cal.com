@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
+import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
@@ -17,6 +18,20 @@ type UpdateOptions = {
   };
   input: TUpdateInputSchema;
 };
+
+async function updateAdminPassword(userId: number, password?: string) {
+  if (password) {
+    const hashedPassword = await hashPassword(password);
+    await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    });
+  }
+}
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // A user can only have one org so we pass in their currentOrgId here
@@ -38,6 +53,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const prevOrganisation = await prisma.team.findFirst({
     where: {
       id: currentOrgId,
+    },
+    select: {
+      metadata: true,
+      name: true,
+      slug: true,
     },
   });
 
@@ -82,8 +102,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     data,
   });
 
+  updateAdminPassword(ctx.user.id, input.password);
+
   // Sync Services: Close.com
   if (prevOrganisation) closeComUpdateTeam(prevOrganisation, updatedOrganisation);
 
-  return updatedOrganisation;
+  return { update: true, userId: ctx.user.id };
 };
