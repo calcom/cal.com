@@ -2,8 +2,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import prisma from "@calcom/prisma";
 
+import createAppCredential from "../../_utils/createAppCredential";
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -65,14 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   responseBody.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in); // set expiry date in seconds
   delete responseBody.expires_in;
 
-  await prisma.credential.create({
-    data: {
-      type: "office365_calendar",
-      key: responseBody,
-      userId: req.session?.user.id,
-      appId: "office365-calendar",
-    },
-  });
+  createAppCredential({ appId: "office365-calendar", type: "office365_calendar" }, {}, req);
 
   const state = decodeOAuthState(req);
   return res.redirect(
