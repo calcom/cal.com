@@ -65,7 +65,7 @@ const useDefaultCountry = () => {
     retry: false,
     onSuccess: (data) => {
       if (isSupportedCountry(data?.countryCode)) {
-        setDefaultCountry(data.countryCode);
+        setDefaultCountry(data.countryCode.toLowerCase());
       }
     },
   });
