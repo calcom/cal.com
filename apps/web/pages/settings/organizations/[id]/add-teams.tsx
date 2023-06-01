@@ -7,7 +7,7 @@ import { WizardLayout } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
-const OnboardTeamMembersPage = () => {
+const AddNewTeamsPage = () => {
   const { t } = useLocale();
   const router = useRouter();
   if (!router.isReady) return null;
@@ -25,7 +25,7 @@ const OnboardTeamMembersPage = () => {
   );
 };
 
-OnboardTeamMembersPage.getLayout = (page: React.ReactElement) => (
+AddNewTeamsPage.getLayout = (page: React.ReactElement) => (
   <>
     <WizardLayout
       currentStep={5}
@@ -38,6 +38,6 @@ OnboardTeamMembersPage.getLayout = (page: React.ReactElement) => (
   </>
 );
 
-OnboardTeamMembersPage.PageWrapper = PageWrapper;
+AddNewTeamsPage.PageWrapper = PageWrapper;
 
-export default OnboardTeamMembersPage;
+export default AddNewTeamsPage;
