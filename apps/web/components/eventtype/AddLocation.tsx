@@ -32,8 +32,9 @@ const LocationInput = (props: {
       {...remainingProps}
       onBlur={(e) => {
         const inputValue = e.target.value;
+        console.log(inputValue, eventLocationType, "onBllur");
         const details = {
-          address: inputValue,
+          [eventLocationType.defaultValueVariable]: inputValue,
         };
         locationFormMethods.setValue(
           "locations",
@@ -41,6 +42,12 @@ const LocationInput = (props: {
             .getValues("locations")
             .concat({ type: props.eventLocationType.type, ...details })
         );
+        locationFormMethods.unregister([
+          "locationType",
+          "locationLink",
+          "locationAddress",
+          "locationPhoneNumber",
+        ]);
         props.closeFields();
       }}
     />
@@ -74,6 +81,13 @@ export const AddLocation = (props) => {
               const latestLocationType = e.value;
               const eventLocationType = getEventLocationType(latestLocationType);
               console.log(latestLocationType, eventLocationType, "sss");
+              if (!eventLocationType?.organizerInputType) {
+                props.saveLocation(latestLocationType);
+                setAddLocationState((prevState) => ({
+                  ...prevState,
+                  showLocationSelect: false,
+                }));
+              }
               if (!eventLocationType) {
                 return;
               }
@@ -83,7 +97,6 @@ export const AddLocation = (props) => {
                   showAddressField: true,
                   selectedLocationType: eventLocationType,
                 }));
-                props.locationFormMethods.setValue("locationType", latestLocationType);
               }
             }
           }}
@@ -92,27 +105,29 @@ export const AddLocation = (props) => {
 
       {addLocationState.showAddressField && (
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        <LocationInput
-          eventLocationType={addLocationState.selectedLocationType}
-          locationFormMethods={props.locationFormMethods}
-          ref={animateFieldRef}
-          id="locationInput"
-          required
-          placeholder={addLocationState.selectedLocationType?.messageForOrganizer}
-          className="my-2"
-          defaultValue={
-            defaultLocation
-              ? defaultLocation[addLocationState.selectedLocationType?.defaultValueVariable]
-              : undefined
-          }
-          closeFields={() => {
-            setAddLocationState((prevState) => ({
-              ...prevState,
-              showAddressField: false,
-              showLocationSelect: false,
-            }));
-          }}
-        />
+        <div className="px-4">
+          <LocationInput
+            eventLocationType={addLocationState.selectedLocationType}
+            locationFormMethods={props.locationFormMethods}
+            ref={animateFieldRef}
+            id="locationInput"
+            required
+            placeholder={addLocationState.selectedLocationType?.messageForOrganizer}
+            className="my-2"
+            defaultValue={
+              defaultLocation
+                ? defaultLocation[addLocationState.selectedLocationType?.defaultValueVariable]
+                : undefined
+            }
+            closeFields={() => {
+              setAddLocationState((prevState) => ({
+                ...prevState,
+                showAddressField: false,
+                showLocationSelect: false,
+              }));
+            }}
+          />
+        </div>
       )}
       <Button
         data-testid="add-location"

@@ -422,11 +422,14 @@ export const EventSetupTab = (
             {!showSelect ? "Add Location" : "Remove Location"}
           </Button>
         )} */}
-        <AddLocation
-          locationOptions={locationOptions}
-          locationFormMethods={formMethods}
-          defaultValues={formMethods.getValues("locations")}
-        />
+        {validLocations.length > 0 && (
+          <AddLocation
+            locationOptions={locationOptions}
+            locationFormMethods={formMethods}
+            defaultValues={formMethods.getValues("locations")}
+            saveLocation={saveLocation}
+          />
+        )}
       </div>
     );
   };
