@@ -19,6 +19,8 @@ type UpdateOptions = {
   input: TUpdateInputSchema;
 };
 
+// @Leo - looking at this the more i think this should be its own route. This is for updating a org that is used elsehwere and
+// resetting password kinda polutes updateing an entire org. It could lead to API parameter manipulation down the line.
 async function updateAdminPassword(userId: number, password?: string) {
   if (password) {
     const hashedPassword = await hashPassword(password);
@@ -45,9 +47,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const userConflict = await prisma.team.findMany({
       where: {
         slug: input.slug,
+        parent: {
+          id: currentOrgId,
+        },
       },
     });
-    if (userConflict.some((t) => t.id !== currentOrgId)) return;
+    if (userConflict.some((t) => t.id !== currentOrgId))
+      throw new TRPCError({ code: "CONFLICT", message: "Slug already in use." });
   }
 
   const prevOrganisation = await prisma.team.findFirst({
