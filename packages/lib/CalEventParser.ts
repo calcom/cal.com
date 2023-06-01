@@ -180,6 +180,9 @@ export const getRescheduleLink = (calEvent: CalendarEvent): string => {
 export const getRichDescription = (calEvent: CalendarEvent, t_?: TFunction /*, attendee?: Person*/) => {
   const t = t_ ?? calEvent.organizer.language.translate;
 
+  const additionalNotes = getAdditionalNotes(calEvent, t);
+  const containsAdditionalNotes = Boolean(additionalNotes);
+
   return `
 ${getCancellationReason(calEvent, t)}
 ${getWhat(calEvent, t)}
@@ -188,7 +191,7 @@ ${getWho(calEvent, t)}
 ${t("where")}:
 ${getLocation(calEvent)}
 ${getDescription(calEvent, t)}
-${getAdditionalNotes(calEvent, t)}
+${containsAdditionalNotes ? additionalNotes : ""}
 ${getUserFieldsResponses(calEvent)}
 ${getAppsStatus(calEvent, t)}
 ${
