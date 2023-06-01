@@ -9,6 +9,7 @@ import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
 import { useBookerStore } from "../store";
+import type { BookerLayout } from "../types";
 
 export function Header({ extraDays, isMobile }: { extraDays: number; isMobile: boolean }) {
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
@@ -17,7 +18,10 @@ export function Header({ extraDays, isMobile }: { extraDays: number; isMobile: b
   const isSmallCalendar = layout === "small_calendar";
   const selectedDate = dayjs(selectedDateString);
 
-  const onLayoutToggle = useCallback((newLayout: BookerLayout) => setLayout(newLayout), [setLayout]);
+  const onLayoutToggle = useCallback(
+    (newLayout: string) => setLayout(newLayout as BookerLayout),
+    [setLayout]
+  );
 
   if (isMobile) return null;
 
