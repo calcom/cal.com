@@ -4,6 +4,7 @@ import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
+import type { TFunction } from "next-i18next";
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
@@ -92,6 +93,40 @@ interface IEventTypePaymentCredentialType {
   };
   key: Prisma.JsonValue;
 }
+
+type BookingSeat = Prisma.BookingSeatGetPayload<{
+  include: {
+    booking: true;
+    attendee: true;
+  };
+}> | null;
+
+type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
+
+type Invitee = {
+  email: string;
+  name: string;
+  timeZone: string;
+  language: { locale: string; translate: TFunction };
+};
+
+type BookingHandlerData = {
+  bookingData: ReturnType<typeof getBookingData>;
+  evt: CalendarEvent;
+  eventType: Awaited<ReturnType<typeof getEventTypeFromDB>>;
+  invitee: Invitee[];
+  organizerUser: Awaited<ReturnType<typeof loadUsers>>[number];
+  originalRescheduledBooking: BookingType;
+  language: string;
+  // Derived from language available in getBookingData. We can avoid passing this param.
+  tAttendees: TFunction;
+  bookingSeat: BookingSeat;
+  req: NextApiRequest;
+  paymentAppData: ReturnType<typeof getPaymentAppData>;
+  //TODO: Make it sure that the value is derived from threshold based require confirmation
+  requiresConfirmation: boolean;
+  bookerUserId: number | undefined;
+};
 
 /**
  * Refreshes a Credential with fresh data from the database.
@@ -216,7 +251,7 @@ function checkForConflicts(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType,
   return false;
 }
 
-const getEventTypesFromDB = async (eventTypeId: number) => {
+const getEventTypeFromDB = async (eventTypeId: number) => {
   const eventType = await prisma.eventType.findUniqueOrThrow({
     where: {
       id: eventTypeId,
@@ -318,7 +353,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 type IsFixedAwareUser = User & { isFixed: boolean; credentials: Credential[] };
 
 async function ensureAvailableUsers(
-  eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
+  eventType: Awaited<ReturnType<typeof getEventTypeFromDB>> & {
     users: IsFixedAwareUser[];
   },
   input: { dateFrom: string; dateTo: string; timeZone: string },
@@ -436,7 +471,7 @@ function getBookingData({
 }: {
   req: NextApiRequest;
   isNotAnApiCall: boolean;
-  eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>;
+  eventType: Awaited<ReturnType<typeof getEventTypeFromDB>>;
 }) {
   const responsesSchema = getBookingResponsesSchema({
     eventType: {
@@ -491,7 +526,7 @@ function getBookingData({
             }
           }
         });
-  debugger;
+
   const reqBody = bookingDataSchema.parse(req.body);
   if ("customInputs" in reqBody) {
     if (reqBody.customInputs) {
@@ -539,7 +574,7 @@ function getCustomInputsResponses(
     responses?: Record<string, any>;
     customInputs?: z.infer<typeof bookingCreateSchemaLegacyPropsForApi>["customInputs"];
   },
-  eventTypeCustomInputs: Awaited<ReturnType<typeof getEventTypesFromDB>>["customInputs"]
+  eventTypeCustomInputs: Awaited<ReturnType<typeof getEventTypeFromDB>>["customInputs"]
 ) {
   const customInputsResponses = {} as NonNullable<CalendarEvent["customInputs"]>;
   if ("customInputs" in reqBody) {
@@ -576,24 +611,31 @@ async function handler(
   }
 ) {
   const { userId } = req;
-
+  const bookerUserId = userId;
+  debugger;
   // handle dynamic user
   let eventType =
     !req.body.eventTypeId && !!req.body.eventTypeSlug
       ? getDefaultEvent(req.body.eventTypeSlug)
-      : await getEventTypesFromDB(req.body.eventTypeId);
+      : await getEventTypeFromDB(req.body.eventTypeId);
 
   eventType = {
     ...eventType,
     bookingFields: getBookingFieldsWithSystemFields(eventType),
   };
+
+  const bookingData = getBookingData({
+    req,
+    isNotAnApiCall,
+    eventType,
+  });
+
   const {
     recurringCount,
     allRecurringDates,
     currentRecurringIndex,
     noEmail,
     eventTypeId,
-    eventTypeSlug,
     hasHashedBookingLink,
     language,
     appsStatus: reqAppsStatus,
@@ -605,11 +647,7 @@ async function handler(
     smsReminderNumber,
     rescheduleReason,
     ...reqBody
-  } = getBookingData({
-    req,
-    isNotAnApiCall,
-    eventType,
-  });
+  } = bookingData;
 
   const tAttendees = await getTranslation(language ?? "en", "common");
   const tGuests = await getTranslation("en", "common");
@@ -656,31 +694,14 @@ async function handler(
     throw new HttpError({ statusCode: 400, message: error.message });
   }
 
-  const loadUsers = async () =>
-    !eventTypeId
-      ? await prisma.user.findMany({
-          where: {
-            username: {
-              in: dynamicUserList,
-            },
-          },
-          select: {
-            ...userSelect.select,
-            credentials: true, // Don't leak to client
-            metadata: true,
-          },
-        })
-      : eventType.hosts?.length
-      ? eventType.hosts.map(({ user, isFixed }) => ({
-          ...user,
-          isFixed,
-        }))
-      : eventType.users || [];
   // loadUsers allows type inferring
   let users: (Awaited<ReturnType<typeof loadUsers>>[number] & {
     isFixed?: boolean;
     metadata?: Prisma.JsonValue;
-  })[] = await loadUsers();
+  })[] = await loadUsers({
+    eventType,
+    dynamicUserList,
+  });
 
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
@@ -837,9 +858,6 @@ async function handler(
     return guestArray;
   }, [] as typeof invitee);
 
-  const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
-  const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
-
   const bookingLocation = getLocationValueForDB(locationBodyString, eventType.locations);
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
@@ -919,9 +937,25 @@ async function handler(
   };
 
   let rescheduleUid = reqBody.rescheduleUid;
-  let bookingSeat: Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null = null;
-  type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
+
+  let bookingSeat: BookingSeat = null;
   let originalRescheduledBooking: BookingType = null;
+
+  const bookingHandlerData = {
+    bookingData,
+    evt,
+    eventType,
+    invitee,
+    organizerUser,
+    originalRescheduledBooking,
+    language,
+    tAttendees,
+    bookingSeat,
+    req,
+    paymentAppData,
+    requiresConfirmation,
+    bookerUserId,
+  };
 
   if (rescheduleUid) {
     // rescheduleUid can be bookingUid and bookingSeatUid
@@ -949,26 +983,8 @@ async function handler(
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot && (reqBody.bookingUid || rescheduleUid)) {
-    const newBooking = await handleSeats({
-      rescheduleUid,
-      reqBody,
-      evt,
-      eventType,
-      invitee,
-      organizerUser,
-      originalRescheduledBooking,
-      bookerEmail,
-      tAttendees,
-      bookingSeat,
-      req,
-      rescheduleReason,
-      noEmail,
-      additionalNotes,
-      reqAppsStatus,
-      language,
-      paymentAppData,
-      smsReminderNumber,
-    });
+    const newBooking = await handleSeats(bookingHandlerData);
+
     if (newBooking) {
       req.statusCode = 201;
       return newBooking;
@@ -999,23 +1015,7 @@ async function handler(
 
   let booking: (Booking & { appsStatus?: AppsStatus[] }) | null = null;
   try {
-    booking = await createBooking({
-      originalRescheduledBooking,
-      evt,
-      eventType,
-      bookerEmail,
-      eventTypeId,
-      eventTypeSlug,
-      reqBody,
-      userId,
-      requiresConfirmation,
-      paymentAppData,
-      responses,
-      smsReminderNumber,
-      uid,
-      organizerUser,
-      rescheduleReason,
-    });
+    booking = await createBooking(bookingHandlerData);
 
     // @NOTE: Add specific try catch for all subsequent async calls to avoid error
     // Sync Services
@@ -1562,22 +1562,26 @@ const findBookingQuery = async (bookingId: number) => {
 };
 
 async function createBooking({
+  bookingData: {
+    responses,
+    rescheduleReason,
+    smsReminderNumber,
+    eventTypeSlug,
+    email: bookerEmail,
+    ...reqBody
+  },
   originalRescheduledBooking,
   evt,
   eventType,
-  bookerEmail,
-  eventTypeId,
-  eventTypeSlug,
-  reqBody,
-  userId,
+  bookerUserId: userId,
   requiresConfirmation,
   paymentAppData,
-  responses,
-  smsReminderNumber,
-  uid,
   organizerUser,
-  rescheduleReason,
-}) {
+}: BookingHandlerData) {
+  const eventTypeId = eventType.id;
+  const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
+  const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
+
   if (originalRescheduledBooking) {
     evt.title = originalRescheduledBooking?.title || evt.title;
     evt.description = originalRescheduledBooking?.description || evt.description;
@@ -1724,8 +1728,8 @@ async function createBooking({
 function handleAppsStatus(
   results: EventResult<AdditionalInformation>[],
   booking: (Booking & { appsStatus?: AppsStatus[] }) | null,
-  reqAppsStatus,
-  evt
+  reqAppsStatus: BookingHandlerData["bookingData"]["appsStatus"],
+  evt: BookingHandlerData["evt"]
 ) {
   // Taking care of apps status
   const resultStatus: AppsStatus[] = results.map((app) => ({
@@ -1761,25 +1765,27 @@ function handleAppsStatus(
 }
 
 const handleSeats = async ({
-  rescheduleUid,
-  reqBody,
+  bookingData: {
+    rescheduleUid,
+    appsStatus: reqAppsStatus,
+    smsReminderNumber,
+    notes: additionalNotes,
+    rescheduleReason,
+    email: bookerEmail,
+    noEmail,
+    ...reqBody
+  },
   evt,
   eventType,
   invitee,
   organizerUser,
   originalRescheduledBooking,
-  bookerEmail,
+  language,
   tAttendees,
   bookingSeat,
-  req,
-  rescheduleReason,
-  noEmail,
-  additionalNotes,
-  reqAppsStatus,
-  language,
+  bookerUserId,
   paymentAppData,
-  smsReminderNumber,
-}) => {
+}: BookingHandlerData) => {
   let resultBooking:
     | (Partial<Booking> & {
         appsStatus?: AppsStatus[];
@@ -1892,7 +1898,7 @@ const handleSeats = async ({
     if (!bookingSeat) {
       // if no bookingSeat is given and the userId != owner, 401.
       // TODO: Next step; Evaluate ownership, what about teams?
-      if (booking.user?.id !== req.userId) {
+      if (booking.user?.id !== bookerUserId) {
         throw new HttpError({ statusCode: 401 });
       }
 
@@ -2336,7 +2342,7 @@ const handleSeats = async ({
 };
 
 /* Used for seats bookings to update evt object with video data */
-const addVideoCallDataToEvt = (bookingReferences: BookingReference[], evt) => {
+const addVideoCallDataToEvt = (bookingReferences: BookingReference[], evt: BookingHandlerData["evt"]) => {
   const videoCallReference = bookingReferences.find((reference) => reference.type.includes("_video"));
 
   if (videoCallReference) {
@@ -2398,3 +2404,30 @@ const lastAttendeeDeleteBooking = async (
   }
   return deletedReferences;
 };
+
+const loadUsers = async ({
+  eventType,
+  dynamicUserList,
+}: {
+  eventType: Awaited<ReturnType<typeof getEventTypeFromDB>>;
+  dynamicUserList: string | string[];
+}) =>
+  !eventType.id
+    ? await prisma.user.findMany({
+        where: {
+          username: {
+            in: dynamicUserList,
+          },
+        },
+        select: {
+          ...userSelect.select,
+          credentials: true, // Don't leak to client
+          metadata: true,
+        },
+      })
+    : eventType.hosts?.length
+    ? eventType.hosts.map(({ user, isFixed }) => ({
+        ...user,
+        isFixed,
+      }))
+    : eventType.users || [];
