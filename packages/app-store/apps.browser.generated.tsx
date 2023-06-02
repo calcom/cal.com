@@ -23,6 +23,7 @@ export const EventTypeAddonMap = {
   fathom: dynamic(() => import("./fathom/components/EventTypeAppCardInterface")),
   ga4: dynamic(() => import("./ga4/components/EventTypeAppCardInterface")),
   giphy: dynamic(() => import("./giphy/components/EventTypeAppCardInterface")),
+  "google-recaptcha-v3": dynamic(() => import("./google-recaptcha-v3/components/EventTypeAppCardInterface")),
   gtm: dynamic(() => import("./gtm/components/EventTypeAppCardInterface")),
   metapixel: dynamic(() => import("./metapixel/components/EventTypeAppCardInterface")),
   plausible: dynamic(() => import("./plausible/components/EventTypeAppCardInterface")),

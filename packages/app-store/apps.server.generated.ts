@@ -19,6 +19,7 @@ export const apiHandlers = {
   fathom: import("./fathom/api"),
   ga4: import("./ga4/api"),
   giphy: import("./giphy/api"),
+  "google-recaptcha-v3": import("./google-recaptcha-v3/api"),
   googlecalendar: import("./googlecalendar/api"),
   googlevideo: import("./googlevideo/api"),
   gtm: import("./gtm/api"),

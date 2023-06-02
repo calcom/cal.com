@@ -6,6 +6,7 @@ import { appKeysSchema as dailyvideo_zod_ts } from "./dailyvideo/zod";
 import { appKeysSchema as fathom_zod_ts } from "./fathom/zod";
 import { appKeysSchema as ga4_zod_ts } from "./ga4/zod";
 import { appKeysSchema as giphy_zod_ts } from "./giphy/zod";
+import { appKeysSchema as google_recaptcha_v3_zod_ts } from "./google-recaptcha-v3/zod";
 import { appKeysSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
 import { appKeysSchema as gtm_zod_ts } from "./gtm/zod";
 import { appKeysSchema as hubspot_zod_ts } from "./hubspot/zod";
@@ -36,6 +37,7 @@ export const appKeysSchemas = {
   fathom: fathom_zod_ts,
   ga4: ga4_zod_ts,
   giphy: giphy_zod_ts,
+  "google-recaptcha-v3": google_recaptcha_v3_zod_ts,
   googlecalendar: googlecalendar_zod_ts,
   gtm: gtm_zod_ts,
   hubspot: hubspot_zod_ts,

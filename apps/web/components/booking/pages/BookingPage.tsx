@@ -36,6 +36,7 @@ import { bookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
+import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
@@ -53,6 +54,7 @@ import useRouterQuery from "@lib/hooks/useRouterQuery";
 
 import type { Gate, GateState } from "@components/Gates";
 import Gates from "@components/Gates";
+import GoogleRecaptchaV3 from "@components/GoogleRecaptchaV3";
 import BookingDescription from "@components/booking/BookingDescription";
 
 import type { BookPageProps } from "../../../pages/[user]/book";
@@ -231,8 +233,21 @@ const BookingPage = ({
     }),
     {}
   );
+  const [bookingConfirmEnabled, setBookingConfirmEnabled] = useState<boolean>(false);
+
+  const { data: googleRecaptchaV3App } = useApp("google-recaptcha-v3");
+  const googleRecaptchaV3AppInstalled = useMemo(
+    () => Boolean(googleRecaptchaV3App && googleRecaptchaV3App.isInstalled !== 0),
+    [googleRecaptchaV3App]
+  );
 
   const { timezone } = useTimePreferences();
+
+  useEffect(() => {
+    if (googleRecaptchaV3AppInstalled) {
+      setBookingConfirmEnabled(false);
+    }
+  }, [googleRecaptchaV3AppInstalled]);
 
   const reserveSlot = () => {
     if (queryDuration) {
@@ -554,6 +569,13 @@ const BookingPage = ({
             "border-booker sm:border-booker-width rounded-md"
           )}>
           <div className="sm:flex">
+            {googleRecaptchaV3AppInstalled && process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_SITE_KEY && (
+              <GoogleRecaptchaV3
+                siteKey={process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_SITE_KEY}
+                onVerificationFail={() => setBookingConfirmEnabled(false)}
+                onVerificationSuccess={() => setBookingConfirmEnabled(true)}
+              />
+            )}
             {showEventTypeDetails && (
               <div className="sm:border-subtle text-default flex flex-col px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
@@ -671,6 +693,7 @@ const BookingPage = ({
                     {t("cancel")}
                   </Button>
                   <Button
+                    disabled={!bookingConfirmEnabled}
                     type="submit"
                     data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
                     loading={mutation.isLoading || recurringMutation.isLoading}>
