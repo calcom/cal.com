@@ -15,6 +15,9 @@ type Request = IncomingMessage & { body?: unknown };
 type RequestHandlerOptions = { req: Request; res: ServerResponse };
 type RequestHandler = (opts: RequestHandlerOptions) => void;
 
+export const testEmail = "test@example.com";
+export const testName = "Test Testson";
+
 export function createHttpServer(opts: { requestHandler?: RequestHandler } = {}) {
   const {
     requestHandler = ({ res }) => {
@@ -114,10 +117,8 @@ async function bookEventOnThisPage(page: Page) {
   await bookTimeSlot(page);
 
   // Make sure we're navigated to the success page
-  await page.waitForNavigation({
-    url(url) {
-      return url.pathname.startsWith("/booking");
-    },
+  await page.waitForURL((url) => {
+    return url.pathname.startsWith("/booking");
   });
   await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 }
@@ -135,8 +136,8 @@ export async function bookFirstEvent(page: Page) {
 
 export const bookTimeSlot = async (page: Page, opts?: { name?: string; email?: string }) => {
   // --- fill form
-  await page.fill('[name="name"]', opts?.name ?? "Test Testson");
-  await page.fill('[name="email"]', opts?.email ?? "test@example.com");
+  await page.fill('[name="name"]', opts?.name ?? testName);
+  await page.fill('[name="email"]', opts?.email ?? testEmail);
   await page.press('[name="email"]', "Enter");
 };
 // Provide an standalone localize utility not managed by next-i18n
@@ -156,10 +157,8 @@ export const createNewEventType = async (page: Page, args: { eventTitle: string 
   await page.fill("[name=length]", "10");
   await page.click("[type=submit]");
 
-  await page.waitForNavigation({
-    url(url) {
-      return url.pathname !== "/event-types";
-    },
+  await page.waitForURL((url) => {
+    return url.pathname !== "/event-types";
   });
 };
 

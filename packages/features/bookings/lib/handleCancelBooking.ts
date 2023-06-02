@@ -1,5 +1,4 @@
 import type { Prisma, WebhookTriggerEvents, WorkflowReminder } from "@prisma/client";
-import { BookingStatus, MembershipRole, WorkflowMethods } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import appStore from "@calcom/app-store";
@@ -19,11 +18,14 @@ import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { handleRefundError } from "@calcom/lib/payment/handleRefundError";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { BookingStatus, MembershipRole, WorkflowMethods } from "@calcom/prisma/enums";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 async function getBookingToDelete(id: number | undefined, uid: string | undefined) {
   return await prisma.booking.findUnique({
@@ -304,8 +306,9 @@ async function handler(req: CustomRequest) {
   // Send Webhook call if hooked to BOOKING.CANCELLED
   const subscriberOptions = {
     userId: bookingToDelete.userId,
-    eventTypeId: (bookingToDelete.eventTypeId as number) || 0,
+    eventTypeId: bookingToDelete.eventTypeId as number,
     triggerEvent: eventTrigger,
+    teamId: bookingToDelete.eventType?.teamId,
   };
 
   const eventTypeInfo: EventTypeInfo = {
@@ -502,6 +505,7 @@ async function handler(req: CustomRequest) {
       );
 
       if (videoCredential) {
+        logger.debug("videoCredential inside cancel booking handler", videoCredential);
         apiDeletes.push(deleteMeeting(videoCredential, uid));
       }
     }
@@ -591,14 +595,16 @@ async function handler(req: CustomRequest) {
     }
 
     // Posible to refactor TODO:
-    const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore];
+    const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore]();
     if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
       console.warn(`payment App service of type ${paymentApp} is not implemented`);
       return null;
     }
 
-    const PaymentService = paymentApp.lib.PaymentService;
-    const paymentInstance = new PaymentService(paymentAppCredential);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const PaymentService = paymentApp.lib.PaymentService as unknown as any;
+    const paymentInstance = new PaymentService(paymentAppCredential) as IAbstractPaymentService;
+
     try {
       await paymentInstance.refund(successPayment.id);
     } catch (error) {
@@ -624,12 +630,6 @@ async function handler(req: CustomRequest) {
     return { message: "Booking successfully cancelled." };
   }
 
-  const attendeeDeletes = prisma.attendee.deleteMany({
-    where: {
-      bookingId: bookingToDelete.id,
-    },
-  });
-
   const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
     where: {
       bookingId: bookingToDelete.id,
@@ -652,7 +652,7 @@ async function handler(req: CustomRequest) {
     });
   });
 
-  const prismaPromises: Promise<unknown>[] = [attendeeDeletes, bookingReferenceDeletes];
+  const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
 
   await Promise.all(prismaPromises.concat(apiDeletes));
 

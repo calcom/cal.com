@@ -17,9 +17,7 @@ test("Can reset forgotten password", async ({ page, users }) => {
 
   // Press Enter
   await Promise.all([
-    page.waitForNavigation({
-      url: (u) => u.pathname.startsWith("/auth/forgot-password/"),
-    }),
+    page.waitForURL((u) => u.pathname.startsWith("/auth/forgot-password/")),
     page.press('input[name="email"]', "Enter"),
   ]);
 
@@ -31,14 +29,12 @@ test("Can reset forgotten password", async ({ page, users }) => {
   // Click text=Submit
   await page.click('button[type="submit"]');
 
-  await page.waitForSelector("text=Password updated", {
-    timeout: 3000,
-  });
+  await page.waitForSelector("text=Password updated");
 
   await expect(page.locator(`text=Password updated`)).toBeVisible();
   // Click button:has-text("Login")
   await Promise.all([
-    page.waitForNavigation({ url: (u) => u.pathname.startsWith("/auth/login") }),
+    page.waitForURL((u) => u.pathname.startsWith("/auth/login")),
     page.click('a:has-text("Login")'),
   ]);
 

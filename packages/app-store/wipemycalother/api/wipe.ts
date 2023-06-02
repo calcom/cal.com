@@ -1,9 +1,9 @@
-import { BookingStatus } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import queue from "queue";
 import { z, ZodError } from "zod";
 
 import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import { Reschedule } from "../lib";
 

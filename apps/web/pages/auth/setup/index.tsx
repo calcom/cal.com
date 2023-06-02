@@ -1,4 +1,3 @@
-import { UserPermissionRole } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -8,6 +7,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Meta, WizardForm } from "@calcom/ui";
 
@@ -157,10 +157,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  let deploymentKey = await getDeploymentKey(prisma);
+  const deploymentKey = await prisma.deployment.findUnique({
+    where: { id: 1 },
+    select: { licenseKey: true },
+  });
 
   // Check existant CALCOM_LICENSE_KEY env var and acccount for it
-  if (!!process.env.CALCOM_LICENSE_KEY && !deploymentKey) {
+  if (!!process.env.CALCOM_LICENSE_KEY && !deploymentKey?.licenseKey) {
     await prisma.deployment.upsert({
       where: { id: 1 },
       update: {
@@ -172,10 +175,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         agreedLicenseAt: new Date(),
       },
     });
-    deploymentKey = await getDeploymentKey(prisma);
   }
 
-  const isFreeLicense = deploymentKey === "";
+  const isFreeLicense = (await getDeploymentKey(prisma)) === "";
 
   return {
     props: {

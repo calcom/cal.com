@@ -4,6 +4,8 @@ import { ListItemNode, ListNode } from "@lexical/list";
 import { TRANSFORMERS } from "@lexical/markdown";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
+import LexicalErrorBoundary from "@lexical/react/LexicalErrorBoundary";
+import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
@@ -78,15 +80,23 @@ export const Editor = (props: TextEditorProps) => {
             setFirstRender={props.setFirstRender}
           />
           <div
-            className={classNames("editor-inner scroll-bar", !editable && "bg-muted")}
+            className={classNames("editor-inner scroll-bar", !editable && "!bg-subtle")}
             style={{ height: props.height }}>
             <RichTextPlugin
-              contentEditable={<ContentEditable style={{ height: props.height }} className="editor-input" />}
+              contentEditable={
+                <ContentEditable
+                  readOnly={!editable}
+                  style={{ height: props.height }}
+                  className="editor-input"
+                />
+              }
               placeholder={<div className="text-muted -mt-11 p-3 text-sm">{props.placeholder || ""}</div>}
+              ErrorBoundary={LexicalErrorBoundary}
             />
             <ListPlugin />
             <LinkPlugin />
             <AutoLinkPlugin />
+            <HistoryPlugin />
             <MarkdownShortcutPlugin
               transformers={
                 props.disableLists

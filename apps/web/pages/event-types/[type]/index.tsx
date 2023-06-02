@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { PeriodType, SchedulingType } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { Trans } from "next-i18next";
 import { useEffect, useState } from "react";
@@ -19,6 +18,7 @@ import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { Prisma } from "@calcom/prisma/client";
+import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -39,8 +39,8 @@ import { EventLimitsTab } from "@components/eventtype/EventLimitsTab";
 import { EventRecurringTab } from "@components/eventtype/EventRecurringTab";
 import { EventSetupTab } from "@components/eventtype/EventSetupTab";
 import { EventTeamTab } from "@components/eventtype/EventTeamTab";
-import { EventTeamWebhooksTab } from "@components/eventtype/EventTeamWebhooksTab";
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
+import { EventWebhooksTab } from "@components/eventtype/EventWebhooksTab";
 import EventWorkflowsTab from "@components/eventtype/EventWorkfowsTab";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -51,6 +51,7 @@ export type FormValues = {
   eventName: string;
   slug: string;
   length: number;
+  offsetStart: number;
   description: string;
   disableGuests: boolean;
   requiresConfirmation: boolean;
@@ -211,6 +212,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     bookingLimits: eventType.bookingLimits || undefined,
     durationLimits: eventType.durationLimits || undefined,
     length: eventType.length,
+    offsetStart: eventType.offsetStart,
     hidden: eventType.hidden,
     periodDates: {
       startDate: periodDates.startDate,
@@ -255,6 +257,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             )
             .optional(),
           length: z.union([z.string().transform((val) => +val), z.number()]).optional(),
+          offsetStart: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           bookingFields: eventTypeBookingFields,
         })
         // TODO: Add schema for other fields later.
@@ -306,7 +309,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         workflows={eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow)}
       />
     ),
-    webhooks: <EventTeamWebhooksTab eventType={eventType} team={team} />,
+    webhooks: <EventWebhooksTab eventType={eventType} />,
   } as const;
 
   const handleSubmit = async (values: FormValues) => {

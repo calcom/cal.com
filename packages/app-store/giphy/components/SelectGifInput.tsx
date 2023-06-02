@@ -1,8 +1,8 @@
-import { PencilAltIcon, PlusIcon, XIcon } from "@heroicons/react/solid";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
+import { Edit, Plus, X } from "@calcom/ui/components/icon";
 
 import { SearchDialog } from "./SearchDialog";
 
@@ -24,11 +24,11 @@ export default function SelectGifInput(props: ISelectGifInput) {
       )}
       <div className="flex">
         {selectedGif ? (
-          <Button color="minimal" type="button" StartIcon={PencilAltIcon} onClick={() => setShowDialog(true)}>
+          <Button color="minimal" type="button" StartIcon={Edit} onClick={() => setShowDialog(true)}>
             Change
           </Button>
         ) : (
-          <Button color="minimal" type="button" StartIcon={PlusIcon} onClick={() => setShowDialog(true)}>
+          <Button color="minimal" type="button" StartIcon={Plus} onClick={() => setShowDialog(true)}>
             Add from Giphy
           </Button>
         )}
@@ -37,7 +37,7 @@ export default function SelectGifInput(props: ISelectGifInput) {
           <Button
             color="destructive"
             type="button"
-            StartIcon={XIcon}
+            StartIcon={X}
             onClick={() => {
               setSelectedGif("");
               props.onChange("");

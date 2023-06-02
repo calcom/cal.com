@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { IdentityProvider } from "@prisma/client";
 import { signOut } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import { useRef, useState } from "react";
@@ -13,6 +12,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
@@ -203,6 +203,7 @@ const ProfileView = () => {
       <ProfileForm
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
+        isLoading={mutation.isLoading}
         onSubmit={(values) => {
           if (values.email !== user.email && isCALIdentityProviver) {
             setTempFormValues(values);
@@ -314,10 +315,12 @@ const ProfileForm = ({
   defaultValues,
   onSubmit,
   extraField,
+  isLoading = false,
 }: {
   defaultValues: FormValues;
   onSubmit: (values: FormValues) => void;
   extraField?: React.ReactNode;
+  isLoading: boolean;
 }) => {
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
@@ -390,7 +393,7 @@ const ProfileForm = ({
           setFirstRender={setFirstRender}
         />
       </div>
-      <Button disabled={isDisabled} color="primary" className="mt-8" type="submit">
+      <Button loading={isLoading} disabled={isDisabled} color="primary" className="mt-8" type="submit">
         {t("update")}
       </Button>
     </Form>

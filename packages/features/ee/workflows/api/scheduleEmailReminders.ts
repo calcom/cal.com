@@ -1,5 +1,4 @@
 /* Schedule any workflow reminder that falls within 72 hours for email */
-import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@prisma/client";
 import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -8,6 +7,7 @@ import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
@@ -102,10 +102,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     where: {
       method: WorkflowMethods.EMAIL,
       scheduled: false,
-      cancelled: false,
       scheduledDate: {
         lte: dayjs().add(72, "hour").toISOString(),
       },
+      OR: [{ cancelled: false }, { cancelled: null }],
     },
     include: {
       workflowStep: true,

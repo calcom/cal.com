@@ -1,7 +1,6 @@
-import { MembershipRole } from "@prisma/client";
-
 import { CAL_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -81,12 +80,13 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
 
   let workflowGroups: WorkflowGroup[] = [];
 
+  const image = user?.username ? `${CAL_URL}/${user.username}/avatar.png` : undefined;
   workflowGroups.push({
     teamId: null,
     profile: {
       slug: user.username,
       name: user.name,
-      image: user.avatar || undefined,
+      image,
     },
     workflows: userWorkflows,
     metadata: {

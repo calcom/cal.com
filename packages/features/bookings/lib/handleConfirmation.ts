@@ -1,5 +1,4 @@
 import type { Prisma, PrismaClient, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
-import { BookingStatus, WebhookTriggerEvents } from "@prisma/client";
 
 import { scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import type { EventManagerUser } from "@calcom/core/EventManager";
@@ -10,6 +9,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
+import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
@@ -30,6 +30,7 @@ export async function handleConfirmation(args: {
       price: number;
       requiresConfirmation: boolean;
       title: string;
+      teamId?: number | null;
     } | null;
     eventTypeId: number | null;
     smsReminderNumber: string | null;
@@ -235,16 +236,17 @@ export async function handleConfirmation(args: {
   }
 
   try {
-    // schedule job for zapier trigger 'when meeting ends'
     const subscribersBookingCreated = await getWebhooks({
-      userId: booking.userId || 0,
-      eventTypeId: booking.eventTypeId || 0,
+      userId: booking.userId,
+      eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+      teamId: booking.eventType?.teamId,
     });
     const subscribersMeetingEnded = await getWebhooks({
-      userId: booking.userId || 0,
-      eventTypeId: booking.eventTypeId || 0,
+      userId: booking.userId,
+      eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+      teamId: booking.eventType?.teamId,
     });
 
     subscribersMeetingEnded.forEach((subscriber) => {

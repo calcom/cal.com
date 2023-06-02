@@ -1,8 +1,8 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
-import { AppCategories } from "@prisma/client";
 
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { getLocalAppMetadata } from "@calcom/app-store/utils";
+import { AppCategories } from "@calcom/prisma/enums";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TListLocalInputSchema } from "./listLocal.schema";
@@ -67,7 +67,7 @@ export const listLocalHandler = async ({ ctx, input }: ListLocalOptions) => {
     // `typeof val === 'undefined'` is always slower than !== undefined comparison
     // it is important to avoid string to string comparisons as much as we can
     if (keysSchema !== undefined) {
-      // TODO: Remove the Object.values and reduce to improve the performance.
+      // TODO: Why don't we parse with schema here? Not doing it makes default() not work in schema.
       Object.values(keysSchema.keyof()._def.values).reduce((keysObject, key) => {
         keys[key as string] = "";
         return keysObject;

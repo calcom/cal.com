@@ -1,4 +1,3 @@
-import { BookingStatus } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -13,6 +12,7 @@ import { formatTime } from "@calcom/lib/date-fns";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { ActionType } from "@calcom/ui";
@@ -29,7 +29,7 @@ import {
   TableActions,
   TextAreaField,
 } from "@calcom/ui";
-import { Check, Clock, MapPin, RefreshCcw, Send, Slash, X, CreditCard } from "@calcom/ui/components/icon";
+import { Check, Clock, MapPin, RefreshCcw, Send, Ban, X, CreditCard } from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -119,11 +119,12 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setRejectionDialogIsOpen(true);
       },
-      icon: Slash,
+      icon: Ban,
       disabled: mutation.isLoading,
     },
     // For bookings with payment, only confirm if the booking is paid for
-    ...((isPending && !booking?.eventType?.price) || (!!booking?.eventType?.price && booking.paid)
+    ...((isPending && !paymentAppData.enabled) ||
+    (paymentAppData.enabled && !!paymentAppData.price && booking.paid)
       ? [
           {
             id: "confirm",
@@ -318,6 +319,7 @@ function BookingListItem(booking: BookingItemProps) {
             <DialogClose />
             <Button
               disabled={mutation.isLoading}
+              data-testid="rejection-confirm"
               onClick={() => {
                 bookingConfirm(false);
               }}>
