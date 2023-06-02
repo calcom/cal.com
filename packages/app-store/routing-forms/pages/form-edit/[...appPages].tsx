@@ -378,7 +378,7 @@ const FormEdit = ({
               StartIcon={Plus}
               color="secondary"
               onClick={addField}>
-              Add form
+              Add field
             </Button>
           </div>
         ) : null}
