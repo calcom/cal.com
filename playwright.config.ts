@@ -104,7 +104,7 @@ const config: PlaywrightTestConfig = {
     {
       name: "@calcom/embed-core",
       testDir: "./packages/embeds/embed-core/",
-      testMatch: /.*\.(e2e|test)\.tsx?/,
+      testMatch: /.*\.e2e\.tsx?/,
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
@@ -116,7 +116,7 @@ const config: PlaywrightTestConfig = {
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
-      testMatch: /.*\.(e2e|test)\.tsx?/,
+      testMatch: /.*\.e2e\.tsx?/,
       use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3101/" },
     },
     {
