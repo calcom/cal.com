@@ -1,9 +1,9 @@
-import Head from "next/head";
+import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 
 import { AddNewTeamsForm } from "@calcom/features/ee/organizations/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WizardLayout } from "@calcom/ui";
+import { WizardLayout, Meta } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -13,25 +13,19 @@ const AddNewTeamsPage = () => {
   if (!router.isReady) return null;
   return (
     <>
-      <Head>
-        <title>Create your teams</title>
-        <meta
-          name="description"
-          content="Start scheduling together by adding your team members to your organization"
-        />
-      </Head>
+      <Meta title={t("create_your_teams")} description={t("create_your_teams_description")} />
       <AddNewTeamsForm />
     </>
   );
 };
 
-AddNewTeamsPage.getLayout = (page: React.ReactElement) => (
+AddNewTeamsPage.getLayout = (page: React.ReactElement, router: NextRouter) => (
   <>
     <WizardLayout
       currentStep={5}
       maxSteps={5}
       isOptionalCallback={() => {
-        window.location.replace(`/getting-started`);
+        router.push(`/getting-started`);
       }}>
       {page}
     </WizardLayout>

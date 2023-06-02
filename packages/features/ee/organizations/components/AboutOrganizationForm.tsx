@@ -39,27 +39,26 @@ export const AboutOrganizationForm = () => {
     <>
       <Form
         form={aboutOrganizationFormMethods}
+        className="space-y-5"
         handleSubmit={(v) => {
           if (!updateOrganizationMutation.isLoading) {
             setServerErrorMessage(null);
             updateOrganizationMutation.mutate({ ...v, orgId });
           }
         }}>
-        <div className="mb-5">
-          {serverErrorMessage && (
-            <div className="mb-4">
-              <Alert severity="error" message={serverErrorMessage} />
-            </div>
-          )}
-        </div>
+        {serverErrorMessage && (
+          <div>
+            <Alert severity="error" message={serverErrorMessage} />
+          </div>
+        )}
 
-        <div className="mb-5">
+        <div>
           <Controller
             control={aboutOrganizationFormMethods.control}
             name="logo"
             render={() => (
               <>
-                <Label>Organization Logo</Label>
+                <Label>{t("organization_logo")}</Label>
                 <div className="flex items-center">
                   <Avatar alt="" imageSrc={image || null} gravatarFallbackMd5="newTeam" size="lg" />
                   <div className="ms-4">
@@ -80,7 +79,7 @@ export const AboutOrganizationForm = () => {
           />
         </div>
 
-        <div className="mb-5">
+        <div>
           <Controller
             control={aboutOrganizationFormMethods.control}
             name="bio"
@@ -93,10 +92,7 @@ export const AboutOrganizationForm = () => {
                     aboutOrganizationFormMethods.setValue("bio", e?.target.value);
                   }}
                 />
-                <p className="text-subtle text-sm">
-                  A few sentences about your organization. This will appear on your organization public
-                  profile page.
-                </p>
+                <p className="text-subtle text-sm">{t("organization_about_description")}</p>
               </>
             )}
           />

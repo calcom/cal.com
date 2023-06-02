@@ -2,6 +2,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
+import useDigitInput from "react-digit-input";
 import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,6 +20,7 @@ import {
   DialogFooter,
   DialogHeader,
   Label,
+  Input,
 } from "@calcom/ui";
 import { ArrowRight, Info } from "@calcom/ui/components/icon";
 
@@ -46,8 +48,14 @@ export const VerifyCodeDialog = ({
   // Not using the mutation isLoading flag because after verifying we submit the underlying org creation form
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [value, onChange] = useState("");
 
-  const [inputCode, setInputCode] = useState("");
+  const digits = useDigitInput({
+    acceptedCharacters: /^[0-9]$/,
+    length: 6,
+    value,
+    onChange,
+  });
 
   const verifyCodeMutation = trpc.viewer.organizations.verifyCode.useMutation({
     onSuccess: (data) => {
@@ -57,25 +65,40 @@ export const VerifyCodeDialog = ({
     onError: (err) => {
       setIsLoading(false);
       if (err.message === "invalid_code") {
-        setError("The code provided is not valid, try again");
+        setError(t("code_provided_invalid"));
       }
     },
   });
 
+  const digitClassName = "h-12 w-12 !text-xl text-center";
+
   return (
-    <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
+    <Dialog
+      open={isOpenDialog}
+      onOpenChange={(open) => {
+        onChange("");
+        setIsOpenDialog(open);
+      }}>
       <DialogContent className="sm:max-w-md">
         <div className="flex flex-row">
           <div className="w-full">
-            <DialogHeader title="Verify your email" subtitle={`Enter the 6 digit code we sent to ${email}`} />
-            <Label htmlFor="code">Code</Label>
-            <TextField
-              id="code"
-              placeholder="123456"
-              onChange={(e) => {
-                setInputCode(e?.target.value);
-              }}
-            />
+            <DialogHeader title={t("verify_your_email")} subtitle={t("enter_digit_code", { email })} />
+            <Label htmlFor="code">{t("code")}</Label>
+            <div className="flex flex-row justify-between">
+              <Input
+                className={digitClassName}
+                name="2fa1"
+                inputMode="decimal"
+                {...digits[0]}
+                autoFocus
+                autoComplete="one-time-code"
+              />
+              <Input className={digitClassName} name="2fa2" inputMode="decimal" {...digits[1]} />
+              <Input className={digitClassName} name="2fa3" inputMode="decimal" {...digits[2]} />
+              <Input className={digitClassName} name="2fa4" inputMode="decimal" {...digits[3]} />
+              <Input className={digitClassName} name="2fa5" inputMode="decimal" {...digits[4]} />
+              <Input className={digitClassName} name="2fa6" inputMode="decimal" {...digits[5]} />
+            </div>
             {error && (
               <div className="mt-2 flex items-center gap-x-2 text-sm text-red-700">
                 <div>
@@ -90,17 +113,17 @@ export const VerifyCodeDialog = ({
                 disabled={isLoading}
                 onClick={() => {
                   setError("");
-                  if (inputCode === "") {
+                  if (value === "") {
                     setError("The code is a required field");
                   } else {
                     setIsLoading(true);
                     verifyCodeMutation.mutate({
-                      code: inputCode,
+                      code: value,
                       email,
                     });
                   }
                 }}>
-                Verify
+                {t("verify")}
               </Button>
             </DialogFooter>
           </div>
@@ -142,7 +165,10 @@ export const CreateANewOrganizationForm = () => {
     },
     onError: (err) => {
       if (err.message === "admin_email_taken") {
-        newOrganizationFormMethods.setError("adminEmail", { type: "custom", message: "Already being used" });
+        newOrganizationFormMethods.setError("adminEmail", {
+          type: "custom",
+          message: t("email_already_used"),
+        });
       } else if (err.message === "organization_url_taken") {
         newOrganizationFormMethods.setError("slug", { type: "custom", message: t("organization_url_taken") });
       } else {
