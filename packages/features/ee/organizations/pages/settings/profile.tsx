@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
-import { ExternalLink, Link, LinkIcon, Trash2 } from "lucide-react";
+import { LinkIcon, Trash2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState, useLayoutEffect } from "react";
@@ -98,7 +98,7 @@ const OrgProfileView = () => {
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
       await utils.viewer.teams.list.invalidate();
-      showToast(t("your_team_disbanded_successfully"), "success");
+      showToast(t("your_org_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
     },
   });
@@ -109,7 +109,7 @@ const OrgProfileView = () => {
 
   return (
     <>
-      <Meta title={t("profile")} description={t("profile_team_description")} />
+      <Meta title={t("profile")} description={t("profile_org_description")} />
       {!isLoading && (
         <>
           {isOrgAdminOrOwner ? (
@@ -178,7 +178,7 @@ const OrgProfileView = () => {
                   label={t("team_url")}
                   value={currentOrganisation.slug ?? ""}
                   disabled
-                  addOnSuffix={extractDomainFromWebsiteUrl}
+                  addOnSuffix={`.${extractDomainFromWebsiteUrl}`}
                 />
               </div>
               <div className="mt-8">
@@ -192,7 +192,7 @@ const OrgProfileView = () => {
                   setFirstRender={setFirstRender}
                 />
               </div>
-              <p className="text-default mt-2 text-sm">{t("team_description")}</p>
+              <p className="text-default mt-2 text-sm">{t("org_description")}</p>
               <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
                 {t("update")}
               </Button>
@@ -214,11 +214,7 @@ const OrgProfileView = () => {
                   </>
                 )}
               </div>
-              {/* IDK how this is working in the current org implemntation @leo/@sean to touch up on this when public page url has been created */}
               <div className="">
-                <Link href={permalink} target="_blank">
-                  <LinkIconButton Icon={ExternalLink}>{t("preview")}</LinkIconButton>
-                </Link>
                 <LinkIconButton
                   Icon={LinkIcon}
                   onClick={() => {
@@ -237,15 +233,15 @@ const OrgProfileView = () => {
             <Dialog>
               <DialogTrigger asChild>
                 <Button color="destructive" className="border" StartIcon={Trash2}>
-                  {t("disband_team")}
+                  {t("disband_org")}
                 </Button>
               </DialogTrigger>
               <ConfirmationDialogContent
                 variety="danger"
-                title={t("disband_team")}
-                confirmBtnText={t("confirm_disband_team")}
+                title={t("disband_org")}
+                confirmBtnText={t("confirm")}
                 onConfirm={deleteTeam}>
-                {t("disband_team_confirmation_message")}
+                {t("disband_org_confirmation_message")}
               </ConfirmationDialogContent>
             </Dialog>
           ) : null}
