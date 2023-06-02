@@ -267,7 +267,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}} 仍需確認或拒絕定期會議的每個預約。",
   "meeting_is_scheduled": "會議時間已預定",
   "meeting_is_scheduled_recurring": "定期活動已預定",
-  "submitted": "已送出預約",
   "submitted_recurring": "您的定期會議已提交",
   "booking_submitted": "已提出預約",
   "booking_submitted_recurring": "您的定期會議已提交",
