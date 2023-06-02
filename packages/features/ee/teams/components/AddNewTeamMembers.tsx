@@ -99,7 +99,6 @@ export const AddNewTeamMembersForm = ({
       </div>
       <MemberInvitationModal
         isOpen={memberInviteModal}
-        orgMembers={orgMembers}
         onExit={() => setMemberInviteModal(false)}
         onSubmit={(values) => {
           inviteMemberMutation.mutate({
