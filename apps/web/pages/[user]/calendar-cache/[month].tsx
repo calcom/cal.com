@@ -6,13 +6,13 @@
 import type { GetStaticPaths, GetStaticProps, InferGetStaticPropsType } from "next";
 import { z } from "zod";
 
-import { getCachedResults } from "@calcom/core";
+import getCalendarsEvents from "@calcom/core/getCalendarsEvents";
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 
 const paramsSchema = z.object({ user: z.string(), month: z.string() });
 export const getStaticProps: GetStaticProps<
-  { results: Awaited<ReturnType<typeof getCachedResults>> },
+  { results: Awaited<ReturnType<typeof getCalendarsEvents>> },
   { user: string }
 > = async (context) => {
   const { user: username, month } = paramsSchema.parse(context.params);
@@ -34,7 +34,7 @@ export const getStaticProps: GetStaticProps<
   console.log(dayjs(month, "YYYY-MM").isSame(dayjs(), "month"), startDate, endDate);
   try {
     const results = userWithCredentials?.credentials
-      ? await getCachedResults(
+      ? await getCalendarsEvents(
           userWithCredentials?.credentials,
           startDate,
           endDate,
