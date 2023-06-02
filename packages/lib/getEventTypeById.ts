@@ -257,7 +257,6 @@ export default async function getEventTypeById({
         )?.default_currency || "usd",
     },
     giphy: getEventTypeAppData(eventTypeWithParsedMetadata, "giphy", true),
-    rainbow: getEventTypeAppData(eventTypeWithParsedMetadata, "rainbow", true),
   };
 
   // TODO: How to extract metadata schema from _EventTypeModel to be able to parse it?
