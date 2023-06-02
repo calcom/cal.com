@@ -1821,5 +1821,18 @@
   "pop_up_element_click": "ينبثق عبر النقر على العنصر",
   "open_dialog_with_element_click": "افتح مربع الحوار الخاص بك عندما ينقر شخص على عنصر ما.",
   "need_help_embedding": "بحاجة إلى مساعدة؟ راجع أدلتنا لإدراج Cal على Wix، Squarespace، أو WordPress، تحقق من أسئلتنا المشتركة، أو استكشف خيارات متقدمة متضمنة.",
-  "book_my_cal": "ثبّت الحجز في رزنامتي"
+  "book_my_cal": "ثبّت الحجز في رزنامتي",
+  "invite_as": "دعوة باسم",
+  "form_updated_successfully": "تم تحديث الاستمارة بنجاح.",
+  "email_not_cal_member_cta": "انضم إلى فريقك",
+  "disable_attendees_confirmation_emails": "تعطيل رسائل التأكيد الافتراضية للحضور",
+  "disable_attendees_confirmation_emails_description": "يوجد مسار عمل واحد على الأقل نشط في هذا النوع من الأحداث يقوم بإرسال رسائل إلكترونية إلى الحاضرين عند حجز الحدث.",
+  "disable_host_confirmation_emails": "تعطيل رسائل التأكيد الافتراضية لمضيف",
+  "disable_host_confirmation_emails_description": "يوجد مسار عمل واحد على الأقل نشط في هذا النوع من الأحداث يقوم بإرسال رسائل إلكترونية إلى المضيف عند حجز الحدث.",
+  "add_an_override": "إضافة تجاوز",
+  "import_from_google_workspace": "استيراد المستخدمين من مساحة عمل Google",
+  "connect_google_workspace": "ربط مساحة عمل Google",
+  "google_workspace_admin_tooltip": "يجب أن تكون مشرفًا على مساحة العمل لاستخدام هذه الميزة",
+  "first_event_type_webhook_description": "قم بإنشاء أول شبكة ويب هوك لهذا النوع من الفعاليات",
+  "create_for": "إنشاء من أجل"
 }
