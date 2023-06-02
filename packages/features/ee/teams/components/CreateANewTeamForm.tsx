@@ -100,10 +100,7 @@ export const CreateANewTeamForm = () => {
                 name="slug"
                 placeholder="acme"
                 label={t("team_url")}
-                addOnLeading={`${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace("https://", "")?.replace(
-                  "http://",
-                  ""
-                )}/team/`}
+                addOnLeading={`${extractDomainFromWebsiteUrl}/team/`}
                 defaultValue={value}
                 onChange={(e) => {
                   newTeamFormMethods.setValue("slug", slugify(e?.target.value), {
