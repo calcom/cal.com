@@ -26,7 +26,6 @@ import { defaultResponder } from "@calcom/lib/server";
  *             required:
  *               - eventTypeId
  *               - start
- *               - end
  *               - name
  *               - email
  *               - timeZone
