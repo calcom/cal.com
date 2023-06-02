@@ -27,12 +27,13 @@ type DeleteCredentialOptions = {
 };
 
 export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOptions) => {
-  const { id, externalId } = input;
+  const { id, externalId, teamId } = input;
+  console.log("🚀 ~ file: deleteCredential.handler.ts:31 ~ deleteCredentialHandler ~ input:", input);
 
   const credential = await prisma.credential.findFirst({
     where: {
       id: id,
-      userId: ctx.user.id,
+      OR: [{ userId: ctx.user.id }, { teamId }],
     },
     select: {
       key: true,

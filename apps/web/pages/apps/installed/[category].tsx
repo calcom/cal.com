@@ -55,9 +55,10 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
   isGlobal?: boolean;
   installed?: boolean;
   invalidCredentialIds?: number[];
-  handleDisconnect: (credentialId: number) => void;
+  teamId?: number;
+  handleDisconnect: (credentialId: number, teamId?: number) => void;
 }) {
-  const { type, credentialIds, isGlobal, installed, handleDisconnect } = props;
+  const { type, credentialIds, isGlobal, installed, handleDisconnect, teamId } = props;
   const { t } = useLocale();
   const [credentialId] = credentialIds;
 
@@ -71,7 +72,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
       <DropdownMenuItem>
         <DropdownItem
           color="destructive"
-          onClick={() => handleDisconnect(credentialId)}
+          onClick={() => handleDisconnect(credentialId, teamId)}
           disabled={isGlobal}
           StartIcon={Trash}>
           {t("remove_app")}
@@ -121,7 +122,6 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
     undefined
   );
   const session = useSession();
-  console.log("🚀 ~ file: [category].tsx:125 ~ IntegrationsList ~ session:", session);
 
   const onSuccessCallback = useCallback(() => {
     setBulkUpdateModal(true);
@@ -189,6 +189,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
                   installed
                   invalidCredentialIds={item.invalidCredentialIds}
                   handleDisconnect={handleDisconnect}
+                  teamId={item.credentialOwner ? item.credentialOwner?.teamId : undefined}
                 />
               </DropdownMenuContent>
             </Dropdown>
@@ -210,7 +211,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
           item={{
             ...app,
             credentialIds: [team.credentialId],
-            credentialOwner: { name: team.name, avatar: team.logo },
+            credentialOwner: { name: team.name, avatar: team.logo, teamId: team.teamId },
           }}
         />
       );
@@ -350,8 +351,8 @@ export default function InstalledApps() {
     updateData({ isOpen: false, credentialId: null });
   };
 
-  const handleDisconnect = (credentialId: number) => {
-    updateData({ isOpen: true, credentialId });
+  const handleDisconnect = (credentialId: number, teamId?: number) => {
+    updateData({ isOpen: true, credentialId, teamId });
   };
 
   return (
@@ -373,6 +374,7 @@ export default function InstalledApps() {
         handleModelClose={handleModelClose}
         isOpen={data.isOpen}
         credentialId={data.credentialId}
+        teamId={data.teamId}
       />
     </>
   );

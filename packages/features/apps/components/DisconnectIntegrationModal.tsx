@@ -7,13 +7,16 @@ interface DisconnectIntegrationModalProps {
   credentialId: number | null;
   isOpen: boolean;
   handleModelClose: () => void;
+  teamId?: number;
 }
 
 export default function DisconnectIntegrationModal({
   credentialId,
   isOpen,
   handleModelClose,
+  teamId,
 }: DisconnectIntegrationModalProps) {
+  console.log("🚀 ~ file: DisconnectIntegrationModal.tsx:19 ~ teamId:", teamId);
   const { t } = useLocale();
   const utils = trpc.useContext();
 
@@ -43,7 +46,7 @@ export default function DisconnectIntegrationModal({
             color="primary"
             onClick={() => {
               if (credentialId) {
-                mutation.mutate({ id: credentialId });
+                mutation.mutate({ id: credentialId, teamId });
               }
             }}>
             {t("yes_remove_app")}
