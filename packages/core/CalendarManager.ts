@@ -233,11 +233,7 @@ export const getBusyCalendarTimes = async (
   const months = getMonths(dateFrom, dateTo);
   try {
     if (coldStart) {
-      // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
-      const startDate = dayjs(dateFrom).subtract(11, "hours").format();
-      // Add 14 hours from the start date to avoid problems in UTC+ time zones.
-      const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
-      results = await getCalendarsEvents(withCredentials, startDate, endDate, selectedCalendars);
+      results = await getCalendarsEvents(withCredentials, dateFrom, dateTo, selectedCalendars);
       logger.info("Generating calendar cache in background");
       // on cold start the calendar cache page generated in the background
       Promise.all(months.map((month) => createCalendarCachePage(username, month)));
