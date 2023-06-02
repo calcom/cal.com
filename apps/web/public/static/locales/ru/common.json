@@ -1830,5 +1830,10 @@
   "disable_attendees_confirmation_emails_description": "В этом типе события активен по крайней мере один рабочий процесс, который при бронировании события отправляет участникам сообщение по электронной почте.",
   "disable_host_confirmation_emails": "Отключить для организатора подтверждение по электронной почте по умолчанию",
   "disable_host_confirmation_emails_description": "В этом типе события активен по крайней мере один рабочий процесс, который при бронировании события отправляет организатору сообщение по электронной почте.",
-  "add_an_override": "Добавить переопределение"
+  "add_an_override": "Добавить переопределение",
+  "import_from_google_workspace": "Импортировать пользователей из Google Workspace",
+  "connect_google_workspace": "Подключить Google Workspace",
+  "google_workspace_admin_tooltip": "Эту функцию может использовать только администратор Workspace",
+  "first_event_type_webhook_description": "Создайте первый вебхук для этого типа событий",
+  "create_for": "Создать для"
 }
