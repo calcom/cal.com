@@ -134,7 +134,8 @@ export async function getBusyTimes(params: {
     logger.debug(
       `Connected Calendars get took ${
         endConnectedCalendarsGet - startConnectedCalendarsGet
-      } ms for user ${username}`
+      } ms for user ${username}`,
+      calendarBusyTimes
     );
     busyTimes.push(
       ...calendarBusyTimes.map((value) => ({

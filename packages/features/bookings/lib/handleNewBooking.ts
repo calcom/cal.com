@@ -339,7 +339,7 @@ const getEventTypeFromDB = async (eventTypeId: number) => {
       },
     },
   });
-
+  log.debug("Found EventType in DB:", JSON.stringify(eventType));
   return {
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType?.metadata || {}),
@@ -394,7 +394,7 @@ async function ensureAvailableUsers(
       continue;
     }
 
-    console.log("calendarBusyTimes==>>>", bufferedBusyTimes);
+    log.debug("calendarBusyTimes==>>>", bufferedBusyTimes);
 
     let foundConflict = false;
     try {
@@ -612,7 +612,7 @@ async function handler(
 ) {
   const { userId } = req;
   const bookerUserId = userId;
-  debugger;
+
   // handle dynamic user
   let eventType =
     !req.body.eventTypeId && !!req.body.eventTypeSlug
@@ -1153,6 +1153,8 @@ async function handler(
 
     // Use EventManager to conditionally use all needed integrations.
     const createManager = await eventManager.create(evt);
+
+    log.debug("CreateManager:", JSON.stringify(createManager));
 
     // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -1720,7 +1722,7 @@ async function createBooking({
     });
   }
 
-  log.debug("Created an entry in Booking Table");
+  log.debug("Creating an entry in Booking Table:", JSON.stringify(createBookingObj));
 
   return prisma.booking.create(createBookingObj);
 }

@@ -21,7 +21,12 @@
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, test, expect, vi } from "vitest";
+import { describe, test, expect, vi, beforeEach } from "vitest";
+
+import CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
+import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+import reminderSchedulerMock from "../../../../tests/libs/__mocks__/reminderScheduler";
+import { createBookingScenario, getDate, getGoogleCalendarCredential, TestData } from "./getSchedule.test";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
@@ -32,9 +37,48 @@ vi.mock("@calcom/lib/server/i18n", () => ({
   },
 }));
 
+vi.mock("@calcom/app-store", () => ({
+  default: {
+    dailyvideo: () => {
+      return new Promise((resolve, reject) => {
+        resolve({
+          lib: {
+            VideoApiAdapter: () => ({
+              createMeeting: () => {
+                return Promise.resolve({
+                  type: "daily_video",
+                  id: "dailyEventName",
+                  password: "dailyvideopass",
+                  url: "http://dailyvideo.example.com",
+                });
+              },
+            }),
+          },
+        });
+      });
+    },
+  },
+}));
+
+function enableEmailFeature() {
+  prismaMock.feature.findMany.mockResolvedValue([
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    {
+      slug: "emails",
+      // It's a kill switch
+      enabled: false,
+    },
+  ]);
+}
+
 describe("handleNewBooking", () => {
+  beforeEach(() => {
+    global.E2E_EMAILS = [];
+  });
   describe("Called by Frontend", () => {
-    test("Basic test", async () => {
+    test("should create a successful booking", async () => {
+      enableEmailFeature();
       const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "POST",
@@ -46,7 +90,7 @@ describe("handleNewBooking", () => {
           },
           start: "2023-06-06T04:15:00Z",
           end: "2023-06-06T04:30:00Z",
-          eventTypeId: 25,
+          eventTypeId: 1,
           eventTypeSlug: "no-confirmation",
           timeZone: "Asia/Calcutta",
           language: "en",
@@ -57,7 +101,68 @@ describe("handleNewBooking", () => {
           hashedLink: null,
         },
       });
-      expect(await handleNewBooking(req)).toBe(true);
+
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
+        {
+          start: `${plus2DateString}T04:45:00.000Z`,
+          end: `${plus2DateString}T23:00:00.000Z`,
+        },
+      ]);
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      prismaMock.booking.create.mockImplementation(function (booking) {
+        return booking.data;
+      });
+      const scenarioData = {
+        hosts: [],
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 45,
+            length: 45,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          },
+        ],
+        apps: [TestData.apps.googleCalendar],
+      };
+      createBookingScenario(scenarioData);
+
+      const createdBooking = await handleNewBooking(req);
+      expect(createdBooking.responses).toContain({
+        email: "d@e.com",
+        name: "d",
+      });
+
+      expect(createdBooking).toContain({
+        location: "integrations:daily",
+      });
+
+      // TODO: Verify in workflows related tables @carina
+      expect(reminderSchedulerMock.scheduleWorkflowReminders.mock.lastCall?.[0]).toContain({
+        workflows: undefined,
+        smsReminderNumber: null,
+        hideBranding: false,
+        isFirstRecurringEvent: true,
+        isRescheduleEvent: false,
+        requiresConfirmation: false,
+      });
+      console.log(global.E2E_EMAILS);
+      expect(global.E2E_EMAILS).toHaveLength(2);
     });
   });
 });

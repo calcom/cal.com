@@ -19,13 +19,18 @@ import type { BookingStatus } from "@calcom/prisma/enums";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
 
+import CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
+import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+
 // TODO: Mock properly
 prismaMock.eventType.findUnique.mockResolvedValue(null);
 prismaMock.user.findMany.mockResolvedValue([]);
 
 vi.mock("@calcom/lib/constants", () => ({
   IS_PRODUCTION: true,
-  WEBAPP_URL: "http://localhost:3000"
+  WEBAPP_URL: "http://localhost:3000",
+  APP_NAME: "cal.com",
+  BASE_URL: "http://localhost:3000",
 }));
 
 declare global {
@@ -77,7 +82,7 @@ const Timezones = {
   "+6:00": "Asia/Dhaka",
 };
 
-const TestData = {
+export const TestData = {
   selectedCalendars: {
     google: {
       integration: "google_calendar",
@@ -1167,7 +1172,7 @@ describe("getSchedule", () => {
   });
 });
 
-function getGoogleCalendarCredential() {
+export function getGoogleCalendarCredential() {
   return {
     type: "google_calendar",
     key: {
@@ -1221,16 +1226,20 @@ function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
   });
 
   logger.silly("TestData: Creating EventType", eventTypes);
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  prismaMock.eventType.findUnique.mockImplementation(({ where }) => {
+  const eventTypeMockImplementation = ({ where }) => {
     return new Promise((resolve) => {
       const eventType = eventTypesWithUsers.find((e) => e.id === where.id) as unknown as PrismaEventType & {
         users: PrismaUser[];
       };
       resolve(eventType);
     });
-  });
+  };
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  prismaMock.eventType.findUnique.mockImplementation(eventTypeMockImplementation);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  prismaMock.eventType.findUniqueOrThrow.mockImplementation(eventTypeMockImplementation);
 }
 
 async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[]) {
@@ -1297,7 +1306,8 @@ function addUsers(users: InputUser[]) {
     }) as unknown as PrismaUser[]
   );
 }
-type ScenarioData = {
+
+export type ScenarioData = {
   // TODO: Support multiple bookings and add tests with that.
   bookings?: InputBooking[];
   users: InputUser[];
@@ -1312,7 +1322,7 @@ type ScenarioData = {
   }[];
 };
 
-function createBookingScenario(data: ScenarioData) {
+export function createBookingScenario(data: ScenarioData) {
   logger.silly("TestData: Creating Scenario", data);
 
   addUsers(data.users);
@@ -1348,7 +1358,9 @@ function createBookingScenario(data: ScenarioData) {
  * - `monthIncrement` adds the increment to current month
  * - `yearIncrement` adds the increment to current year
  */
-const getDate = (param: { dateIncrement?: number; monthIncrement?: number; yearIncrement?: number } = {}) => {
+export const getDate = (
+  param: { dateIncrement?: number; monthIncrement?: number; yearIncrement?: number } = {}
+) => {
   let { dateIncrement, monthIncrement, yearIncrement } = param;
   dateIncrement = dateIncrement || 0;
   monthIncrement = monthIncrement || 0;

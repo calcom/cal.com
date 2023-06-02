@@ -231,8 +231,10 @@ export const getBusyCalendarTimes = async (
   const months = getMonths(dateFrom, dateTo);
   try {
     if (coldStart) {
+      console.log("going to call");
       results = await getCachedResults(withCredentials, dateFrom, dateTo, selectedCalendars);
-      logger.info("Generating calendar cache in background");
+      console.log("Generating calendar cache in background");
+
       // on cold start the calendar cache page generated in the background
       Promise.all(months.map((month) => createCalendarCachePage(username, month)));
     } else {

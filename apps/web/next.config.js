@@ -215,6 +215,11 @@ const nextConfig = {
         destination: "/new-booker/team/:slug/:type",
         has: [{ type: "cookie", key: "new-booker-enabled" }],
       },
+      {
+        source: "/d/:link/:slug",
+        destination: "/new-booker/d/:link/:slug",
+        has: [{ type: "cookie", key: "new-booker-enabled" }],
+      },
     ];
   },
   async headers() {

@@ -38,10 +38,10 @@ export default class BaseEmail {
       console.warn("Skipped Sending Email due to active Kill Switch");
       return new Promise((r) => r("Skipped Sending Email due to active Kill Switch"));
     }
-    if (process.env.NEXT_PUBLIC_IS_E2E) {
+    if (process.env.NEXT_PUBLIC_IS_E2E || process.env.NEXT_PUBLIC_UNIT_TESTS) {
       global.E2E_EMAILS = global.E2E_EMAILS || [];
       global.E2E_EMAILS.push(this.getNodeMailerPayload());
-      console.log("Skipped Sending Email as NEXT_PUBLIC_IS_E2E==1");
+      console.log("Skipped Sending Email as NEXT_PUBLIC_IS_E2E or process.env.NEXT_PUBLIC_UNIT_TESTS is set");
       return new Promise((r) => r("Skipped sendEmail for E2E"));
     }
 
@@ -51,7 +51,6 @@ export default class BaseEmail {
       ...payload,
       ...(parseSubject.success && { subject: decodeHTML(parseSubject.data) }),
     };
-
     new Promise((resolve, reject) =>
       createTransport(this.getMailerOptions().transport).sendMail(
         payloadWithUnEscapedSubject,
