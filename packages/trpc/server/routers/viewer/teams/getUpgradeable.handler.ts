@@ -25,11 +25,7 @@ export const getUpgradeableHandler = async ({ ctx }: GetUpgradeableOptions) => {
       },
     },
     include: {
-      team: {
-        include: {
-          children: true,
-        },
-      },
+      team: true,
     },
   });
 
@@ -37,7 +33,7 @@ export const getUpgradeableHandler = async ({ ctx }: GetUpgradeableOptions) => {
   teams = teams.filter((m) => {
     const metadata = teamMetadataSchema.safeParse(m.team.metadata);
     if (metadata.success && metadata.data?.subscriptionId) return false;
-    if (m.team.children.length > 0) return false; // We also dont return ORGs as it will be handled in OrgUpgradeBanner
+    if (metadata.success && metadata.data?.isOrganization) return false; // We also dont return ORGs as it will be handled in OrgUpgradeBanner
     return true;
   });
   return teams;
