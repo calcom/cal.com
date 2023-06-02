@@ -544,14 +544,14 @@ export const FormBuilder = function FormBuilder({
                   );
                 }}
               />
+              <DialogFooter className="relative mt-8" showDivider>
+                <DialogClose color="secondary">{t("cancel")}</DialogClose>
+                <Button data-testid="field-add-save" type="submit" form="form-builder">
+                  {isFieldEditMode ? t("save") : t("add")}
+                </Button>
+              </DialogFooter>
             </Form>
           </div>
-          <DialogFooter className="relative rounded px-8 pb-6" showDivider>
-            <DialogClose color="secondary">{t("cancel")}</DialogClose>
-            <Button data-testid="field-add-save" type="submit" form="form-builder">
-              {isFieldEditMode ? t("save") : t("add")}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
