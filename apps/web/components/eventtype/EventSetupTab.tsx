@@ -10,7 +10,6 @@ import { z } from "zod";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, LocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import cx from "@calcom/lib/classNames";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -27,7 +26,6 @@ import {
   SkeletonText,
 } from "@calcom/ui";
 import { Input } from "@calcom/ui";
-import { Edit2, X } from "@calcom/ui/components/icon";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { AddLocation } from "@components/eventtype/AddLocation";
@@ -138,7 +136,7 @@ export const EventSetupTab = (
   const openLocationModal = (type: EventLocationType["type"]) => {
     const option = getLocationFromType(type, locationOptions);
     setSelectedLocation(option);
-    setShowLocationModal(true);
+    // setShowLocationModal(true);
   };
 
   const removeLocation = (selectedLocation: (typeof eventType.locations)[number]) => {
@@ -267,7 +265,7 @@ export const EventSetupTab = (
             />
           </div>
         )}
-        {validLocations.length > 0 && (
+        {/*{validLocations.length > 0 && (
           <ul ref={animationRef}>
             {validLocations.map((location, index) => {
               const eventLocationType = getEventLocationType(location.type);
@@ -280,48 +278,58 @@ export const EventSetupTab = (
                 location[eventLocationType.defaultValueVariable] || t(eventLocationType.label);
 
               return (
+                <SavedLocationField 
+                  location={location} 
+                  index={index} 
+                  eventLocationType={eventLocationType}
+                  eventLabel={eventLabel}
+                  locationFormMethods={locationFormMethods}
+                  openLocationModal={openLocationModal}
+                  setEditingLocationType={setEditingLocationType}
+                  removeLocation={removeLocation}
+                />
                 <li
-                  key={`${location.type}${index}`}
-                  className="border-default text-default mb-2 h-9 rounded-md border py-1.5 px-2 hover:cursor-pointer">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <img
-                        src={eventLocationType.iconUrl}
-                        className={cx(
-                          "h-4 w-4",
-                          // invert all the icons except app icons
-                          eventLocationType.iconUrl &&
-                            !eventLocationType.iconUrl.startsWith("/app-store") &&
-                            "dark:invert"
-                        )}
-                        alt={`${eventLocationType.label} logo`}
-                      />
-                      <span className="line-clamp-1 ms-1 text-sm">{eventLabel}</span>
-                    </div>
-                    <div className="flex">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          locationFormMethods.setValue("locationType", location.type);
-                          locationFormMethods.unregister("locationLink");
-                          locationFormMethods.unregister("locationAddress");
-                          locationFormMethods.unregister("locationPhoneNumber");
-                          setEditingLocationType(location.type);
-                          openLocationModal(location.type);
-                        }}
-                        aria-label={t("edit")}
-                        className="hover:text-emphasis text-subtle mr-1 p-1">
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                      <button type="button" onClick={() => removeLocation(location)} aria-label={t("remove")}>
-                        <X className="border-l-1 hover:text-emphasis text-subtle h-6 w-6 pl-1 " />
-                      </button>
-                    </div>
-                  </div>
-                </li>
+      key={`${location.type}${index}`}
+      className="border-default text-default mb-2 h-9 rounded-md border py-1.5 px-2 hover:cursor-pointer">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <img
+            src={eventLocationType.iconUrl}
+            className={cx(
+              "h-4 w-4",
+              // invert all the icons except app icons
+              eventLocationType.iconUrl &&
+                !eventLocationType.iconUrl.startsWith("/app-store") &&
+                "dark:invert"
+            )}
+            alt={`${eventLocationType.label} logo`}
+          />
+          <span className="line-clamp-1 ms-1 text-sm">{eventLabel}</span>
+        </div>
+        <div className="flex">
+          <button
+            type="button"
+            onClick={() => {
+              locationFormMethods.setValue("locationType", location.type);
+              locationFormMethods.unregister("locationLink");
+              locationFormMethods.unregister("locationAddress");
+              locationFormMethods.unregister("locationPhoneNumber");
+              setEditingLocationType(location.type);
+              openLocationModal(location.type);
+            }}
+            aria-label={t("edit")}
+            className="hover:text-emphasis text-subtle mr-1 p-1">
+            <Edit2 className="h-4 w-4" />
+          </button>
+          <button type="button" onClick={() => removeLocation(location)} aria-label={t("remove")}>
+            <X className="border-l-1 hover:text-emphasis text-subtle h-6 w-6 pl-1 " />
+          </button>
+        </div>
+      </div>
+    </li>
               );
             })}
-            {/* {validLocations.some(
+            {validLocations.some(
               (location) =>
                 location.type === MeetLocationType && destinationCalendar?.integration !== "google_calendar"
             ) && (
@@ -339,16 +347,16 @@ export const EventSetupTab = (
                   </p>
                 </Trans>
               </div>
-            )} */}
-            {/* {isChildrenManagedEventType && !locationAvailable && locationDetails && (
+            )}
+            {isChildrenManagedEventType && !locationAvailable && locationDetails && (
               <p className="pl-1 text-sm leading-none text-red-600">
                 {t("app_not_connected", { appName: locationDetails.name })}{" "}
                 <a className="underline" href={`${CAL_URL}/apps/${locationDetails.slug}`}>
                   {t("connect_now")}
                 </a>
               </p>
-            )} */}
-            {/* {validLocations.length > 0 && !isManagedEventType && !isChildrenManagedEventType && (
+            )}
+            {validLocations.length > 0 && !isManagedEventType && !isChildrenManagedEventType && (
               <li>
                 <Button
                   data-testid="add-location"
@@ -358,9 +366,9 @@ export const EventSetupTab = (
                   {t("add_location")}
                 </Button>
               </li>
-            )} */}
+            )}
           </ul>
-        )}
+        )}*/}
         {showSelect && (
           <LocationSelect
             placeholder="Select location of meeting"
@@ -428,6 +436,20 @@ export const EventSetupTab = (
             locationFormMethods={formMethods}
             defaultValues={formMethods.getValues("locations")}
             saveLocation={saveLocation}
+            selection={
+              selectedLocation
+                ? {
+                    value: selectedLocation.value,
+                    label: t(selectedLocation.label),
+                    icon: selectedLocation.icon,
+                  }
+                : undefined
+            }
+            setSelectedLocation={setSelectedLocation}
+            setEditingLocationType={setEditingLocationType}
+            openLocationModal={openLocationModal}
+            removeLocation={removeLocation}
+            // showEditSelect={showLocationModal}
           />
         )}
       </div>
