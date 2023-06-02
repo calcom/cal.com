@@ -110,7 +110,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
 
   return (
     <div>
-      <div className="flex items-center rounded-md">
+      <div className="flex rounded-md">
         <div className="relative w-full">
           <TextField
             ref={usernameRef}
