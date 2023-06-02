@@ -272,7 +272,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}} måste fortfarande bekräfta eller avvisa varje bokning av det återkommande mötet.",
   "meeting_is_scheduled": "Mötet är schemalagt",
   "meeting_is_scheduled_recurring": "De återkommande händelserna har schemalagts",
-  "submitted": "Din bokning har skickats in",
   "submitted_recurring": "Ditt återkommande möte har skickats",
   "booking_submitted": "Din bokning har skickats in",
   "booking_submitted_recurring": "Ditt återkommande möte har skickats",
