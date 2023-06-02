@@ -31,7 +31,7 @@ const defaultIntegrationAddHandler = async ({
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
         appId: slug,
-        userId: user.id,
+        ...(teamId ? { AND: [{ userId: user.id }, { teamId }] } : { userId: user.id }),
       },
     });
     if (alreadyInstalled) {
