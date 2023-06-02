@@ -31,7 +31,6 @@ export const getStaticProps: GetStaticProps<
   const startDate = dayjs.utc(month, "YYYY-MM").startOf("day").subtract(11, "hours").format();
   // Add 14 hours from the start date to avoid problems in UTC+ time zones.
   const endDate = dayjs.utc(month, "YYYY-MM").endOf("month").add(14, "hours").format();
-  console.log(dayjs(month, "YYYY-MM").isSame(dayjs(), "month"), startDate, endDate);
   try {
     const results = userWithCredentials?.credentials
       ? await getCachedResults(
