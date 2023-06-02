@@ -1,3 +1,4 @@
+import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 
 import { AddNewTeamsForm } from "@calcom/features/ee/organizations/components";
@@ -18,13 +19,13 @@ const AddNewTeamsPage = () => {
   );
 };
 
-AddNewTeamsPage.getLayout = (page: React.ReactElement) => (
+AddNewTeamsPage.getLayout = (page: React.ReactElement, router: NextRouter) => (
   <>
     <WizardLayout
       currentStep={5}
       maxSteps={5}
       isOptionalCallback={() => {
-        window.location.replace(`/getting-started`);
+        router.push(`/getting-started`);
       }}>
       {page}
     </WizardLayout>

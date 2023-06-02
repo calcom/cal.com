@@ -1,3 +1,4 @@
+import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 
 import { AddNewOrgAdminsForm } from "@calcom/features/ee/organizations/components";
@@ -21,12 +22,12 @@ const OnboardTeamMembersPage = () => {
   );
 };
 
-OnboardTeamMembersPage.getLayout = (page: React.ReactElement) => (
+OnboardTeamMembersPage.getLayout = (page: React.ReactElement, router: NextRouter) => (
   <WizardLayout
     currentStep={4}
     maxSteps={5}
     isOptionalCallback={() => {
-      window.location.replace(`/getting-started`);
+      router.push(`/settings/organizations/${router.query.id}/add-teams`);
     }}>
     {page}
   </WizardLayout>

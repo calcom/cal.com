@@ -39,21 +39,20 @@ export const AboutOrganizationForm = () => {
     <>
       <Form
         form={aboutOrganizationFormMethods}
+        className="space-y-5"
         handleSubmit={(v) => {
           if (!updateOrganizationMutation.isLoading) {
             setServerErrorMessage(null);
             updateOrganizationMutation.mutate({ ...v, orgId });
           }
         }}>
-        <div className="mb-5">
-          {serverErrorMessage && (
-            <div className="mb-4">
-              <Alert severity="error" message={serverErrorMessage} />
-            </div>
-          )}
-        </div>
+        {serverErrorMessage && (
+          <div>
+            <Alert severity="error" message={serverErrorMessage} />
+          </div>
+        )}
 
-        <div className="mb-5">
+        <div>
           <Controller
             control={aboutOrganizationFormMethods.control}
             name="logo"
@@ -80,7 +79,7 @@ export const AboutOrganizationForm = () => {
           />
         </div>
 
-        <div className="mb-5">
+        <div>
           <Controller
             control={aboutOrganizationFormMethods.control}
             name="bio"

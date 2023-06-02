@@ -55,15 +55,18 @@ export const AddNewTeamsForm = () => {
             key={index}
             value={inputValues[index]}
             onChange={(e) => handleInputChange(index, e.target.value)}
+            addOnClassname="bg-transparent p-0 border-l-0"
+            addOnSuffix={
+              index > 0 && (
+                <Button
+                  color="minimal"
+                  className="group/remove mx-2 px-0 hover:bg-transparent"
+                  onClick={() => handleRemoveInput(index)}>
+                  <X className="bg-subtle text group-hover/remove:text-inverted group-hover/remove:bg-inverted h-5 w-5 rounded-full p-1" />
+                </Button>
+              )
+            }
           />
-          {index > 0 && (
-            <Button
-              color="minimal"
-              className="absolute top-2 right-2 m-0 flex h-auto p-0"
-              onClick={() => handleRemoveInput(index)}>
-              <X className="bg-subtle text h-5 w-5 rounded-full p-1" />
-            </Button>
-          )}
         </div>
       ))}
       <Button
