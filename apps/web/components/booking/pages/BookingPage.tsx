@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
@@ -503,7 +503,7 @@ const BookingPage = ({
   const showEventTypeDetails = (isEmbed && !embedUiConfig.hideEventTypeDetails) || !isEmbed;
 
   return (
-    <>
+    <div>
       <Head>
         <title>
           {rescheduleUid
@@ -665,7 +665,7 @@ const BookingPage = ({
         </div>
       </main>
       <Toaster position="bottom-right" />
-      </>
+      </div>
   );
 };
 

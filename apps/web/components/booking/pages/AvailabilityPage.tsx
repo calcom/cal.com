@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
@@ -128,7 +128,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   );
 
   return (
-    <>
+    <div>
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
@@ -285,7 +285,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
         </main>
       </div>
       <Toaster position="bottom-right" />
-      </>
+      </div>
   );
 };
 
