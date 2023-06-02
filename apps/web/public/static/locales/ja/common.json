@@ -1325,7 +1325,7 @@
   "exchange_version_2013_SP1": "2013 SP1",
   "exchange_version_2015": "2015",
   "exchange_version_2016": "2016",
-  "routing_forms_description": "作成したすべてのフォームとルートをここで確認できます",
+  "routing_forms_description": "出席者を正しい目的地に案内するためのフォームを作成します。",
   "routing_forms_send_email_owner": "所有者にメールを送信",
   "routing_forms_send_email_owner_description": "フォームの送信時に所有者にメールを送信します",
   "add_new_form": "新しいフォームを追加",
