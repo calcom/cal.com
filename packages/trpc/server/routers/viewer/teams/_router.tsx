@@ -7,6 +7,7 @@ import { ZDeleteInputSchema } from "./delete.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
+import { ZGetUserAdminTeamsInputSchema } from "./getUserAdminTeams.schema";
 import { ZInviteMemberInputSchema } from "./inviteMember.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { ZPublishInputSchema } from "./publish.schema";
@@ -336,7 +337,7 @@ export const viewerTeamsRouter = router({
     });
   }),
 
-  getUserAdminTeams: authedProcedure.query(async ({ ctx }) => {
+  getUserAdminTeams: authedProcedure.input(ZGetUserAdminTeamsInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.getUserAdminTeams) {
       UNSTABLE_HANDLER_CACHE.getUserAdminTeams = await import("./getUserAdminTeams.handler").then(
         (mod) => mod.getUserAdminTeamsHandler
@@ -350,6 +351,7 @@ export const viewerTeamsRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.getUserAdminTeams({
       ctx,
+      input,
     });
   }),
 });
