@@ -6,8 +6,8 @@ import { useRouter } from "next/router";
 import type { AppImageProps, MeetingImageProps } from "@calcom/lib/OgImages";
 import { constructAppImage, constructGenericImage, constructMeetingImage } from "@calcom/lib/OgImages";
 import { getBrowserInfo } from "@calcom/lib/browser/browser.utils";
-import { APP_NAME } from "@calcom/lib/constants";
-import { seoConfig, getSeoImage } from "@calcom/lib/next-seo.config";
+import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { seoConfig, getSeoImage, buildCanonical } from "@calcom/lib/next-seo.config";
 import { truncateOnWord } from "@calcom/lib/text";
 
 export type HeadSeoProps = {
@@ -73,16 +73,17 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   // The below code sets the defaultUrl for our canonical tags
 
   // Get the current URL from the window object
-  const url = getBrowserInfo()?.url;
+  const { url } = getBrowserInfo();
   // Check if the URL is from cal.com
   const isCalcom =
     url && (new URL(url).hostname.endsWith("cal.com") || new URL(url).hostname.endsWith("cal.dev"));
   // Get the router's path
   const path = useRouter().asPath;
-  // Build the canonical URL using the router's path, without query parameters. Note: on homepage it omits the trailing slash
-  const calcomCanonical = `https://cal.com${path === "/" ? "" : path}`.split("?")[0];
+  const selfHostedOrigin = WEBSITE_URL || "https://cal.com";
   // Set the default URL to either the current URL (if self-hosted) or https://cal.com canonical URL
-  const defaultUrl = isCalcom ? calcomCanonical : url;
+  const defaultUrl = isCalcom
+    ? buildCanonical({ path, origin: "https://cal.com" })
+    : buildCanonical({ path, origin: selfHostedOrigin });
 
   const {
     title,
