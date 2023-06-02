@@ -16,12 +16,16 @@ export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
 
 export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   const { t } = useLocale();
-  const { data: eventTypeApps, isLoading } = trpc.viewer.apps.useQuery({
+  const { data: eventTypeApps, isLoading } = trpc.viewer.integrations.useQuery({
     extendsFeature: "EventType",
+    ...(eventType.team && { teamId: eventType.team.id }),
   });
+  console.log("🚀 ~ file: EventAppsTab.tsx:22 ~ EventAppsTab ~ data:", eventTypeApps);
+
   const methods = useFormContext<FormValues>();
-  const installedApps = eventTypeApps?.filter((app) => app.credentials.length);
-  const notInstalledApps = eventTypeApps?.filter((app) => !app.credentials.length);
+  const installedApps = eventTypeApps?.items.filter((app) => app.credentialIds.length) || [];
+  console.log("🚀 ~ file: EventAppsTab.tsx:28 ~ EventAppsTab ~ installedApps:", installedApps);
+  const notInstalledApps = eventTypeApps?.items.filter((app) => !app.credentialIds.length) || [];
   const allAppsData = methods.watch("metadata")?.apps || {};
 
   const setAllAppsData = (_allAppsData: typeof allAppsData) => {
@@ -62,6 +66,45 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     t("locked_fields_member_description")
   );
 
+  const appsWithTeamCredentials = eventTypeApps?.items.filter((app) => app.teams.length) || [];
+  console.log(
+    "🚀 ~ file: EventAppsTab.tsx:70 ~ EventAppsTab ~ appsWithTeamCredentials:",
+    appsWithTeamCredentials
+  );
+  const cardsForAppsWithTeams = appsWithTeamCredentials.map((app) => {
+    const appCards = [];
+
+    appCards.push(
+      <EventTypeAppCard
+        getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
+        setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+        key={app.slug}
+        app={app}
+        eventType={eventType}
+      />
+    );
+    for (const team of app.teams) {
+      appCards.push(
+        <EventTypeAppCard
+          getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
+          setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+          key={app.slug}
+          app={{
+            ...app,
+            credentialIds: [team.credentialId],
+            credentialOwner: { name: team.name, avatar: team.logo, teamId: team.teamId },
+          }}
+          eventType={eventType}
+        />
+      );
+    }
+    return appCards;
+  });
+  console.log(
+    "🚀 ~ file: EventAppsTab.tsx:95 ~ cardsForAppsWithTeams ~ cardsForAppsWithTeams:",
+    cardsForAppsWithTeams
+  );
+
   return (
     <>
       <div>
@@ -92,15 +135,18 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               }
             />
           ) : null}
-          {installedApps?.map((app) => (
-            <EventTypeAppCard
-              getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
-              setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
-              key={app.slug}
-              app={app}
-              eventType={eventType}
-            />
-          ))}
+          {cardsForAppsWithTeams.map((apps) => apps.map((cards) => cards))}
+          {installedApps
+            ?.filter((app) => !app.teams.length)
+            .map((app) => (
+              <EventTypeAppCard
+                getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
+                setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+                key={app.slug}
+                app={app}
+                eventType={eventType}
+              />
+            ))}
         </div>
       </div>
       {!shouldLockDisableProps("apps").disabled && (

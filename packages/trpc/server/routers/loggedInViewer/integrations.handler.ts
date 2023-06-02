@@ -14,14 +14,15 @@ type IntegrationsOptions = {
 
 export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) => {
   const { user } = ctx;
-  const { variant, exclude, onlyInstalled, includeTeamInstalledApps } = input;
+  const { variant, exclude, onlyInstalled, includeTeamInstalledApps, extendsFeature, teamId } = input;
   let { credentials } = user,
     userAdminTeams = [];
 
-  if (includeTeamInstalledApps) {
+  if (includeTeamInstalledApps || teamId) {
     // Get app credentials that the user is an admin or owner to
     userAdminTeams = await prisma.team.findMany({
       where: {
+        ...(teamId && { id: teamId }),
         members: {
           some: {
             id: user.userId,
@@ -36,6 +37,10 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         logo: true,
       },
     });
+    console.log(
+      "🚀 ~ file: integrations.handler.ts:40 ~ integrationsHandler ~ userAdminTeams:",
+      userAdminTeams
+    );
     const teamAppCredentials = [];
     userAdminTeams.forEach((teamApp) => {
       teamAppCredentials.push(...teamApp.credentials.flat());
@@ -81,6 +86,15 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
 
   if (onlyInstalled) {
     apps = apps.flatMap((item) => (item.credentialIds.length > 0 || item.isGlobal ? [item] : []));
+  }
+
+  if (extendsFeature) {
+    apps = apps
+      .filter((app) => app.extendsFeature?.includes(input.extendsFeature))
+      .map((app) => ({
+        ...app,
+        isInstalled: !!app.credentialIds?.length,
+      }));
   }
   return {
     items: apps,

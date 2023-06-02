@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { classNames } from "@calcom/lib";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Switch } from "@calcom/ui";
+import { Switch, Badge, Avatar } from "@calcom/ui";
 
 import type { SetAppDataGeneric } from "../EventTypeAppContext";
 import type { eventTypeAppCardZod } from "../eventTypeAppCardZod";
@@ -31,7 +31,7 @@ export default function AppCard({
   return (
     <div className={`border-subtle mb-4 mt-2 rounded-md border ${!app.enabled && "grayscale"}`}>
       <div className="p-4 text-sm sm:p-6">
-        <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
+        <div className="flex w-full flex-col items-center gap-2 sm:flex-row sm:gap-0">
           {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
           <Link href={"/apps/" + app.slug} className="mr-3 h-auto w-10 rounded-sm">
             <img
@@ -46,26 +46,43 @@ export default function AppCard({
               {description || app?.description}
             </p>
           </div>
-          {app?.isInstalled ? (
-            <div className="ml-auto flex items-center">
-              <Switch
-                disabled={!app.enabled}
-                onCheckedChange={(enabled) => {
-                  if (switchOnClick) {
-                    switchOnClick(enabled);
-                  }
-                  setAppData("enabled", enabled);
-                }}
-                checked={switchChecked}
+          <div className="ml-auto flex space-x-2">
+            {app.credentialOwner && (
+              <div className="ml-auto">
+                <Badge variant="gray">
+                  <div className="flex items-center">
+                    <Avatar
+                      className="mr-2"
+                      alt={app.credentialOwner.name}
+                      size="sm"
+                      imageSrc={app.credentialOwner.avatar}
+                    />
+                    {app.credentialOwner.name}
+                  </div>
+                </Badge>
+              </div>
+            )}
+            {app?.isInstalled ? (
+              <div className="ml-auto flex items-center">
+                <Switch
+                  disabled={!app.enabled}
+                  onCheckedChange={(enabled) => {
+                    if (switchOnClick) {
+                      switchOnClick(enabled);
+                    }
+                    setAppData("enabled", enabled);
+                  }}
+                  checked={switchChecked}
+                />
+              </div>
+            ) : (
+              <OmniInstallAppButton
+                className="ml-auto flex items-center"
+                appId={app.slug}
+                returnTo={returnTo}
               />
-            </div>
-          ) : (
-            <OmniInstallAppButton
-              className="ml-auto flex items-center"
-              appId={app.slug}
-              returnTo={returnTo}
-            />
-          )}
+            )}
+          </div>
         </div>
       </div>
       <div ref={animationRef}>

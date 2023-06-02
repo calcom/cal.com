@@ -5,6 +5,8 @@ export const ZIntegrationsInputSchema = z.object({
   exclude: z.array(z.string()).optional(),
   onlyInstalled: z.boolean().optional(),
   includeTeamInstalledApps: z.boolean().optional(),
+  extendsFeature: z.literal("EventType").optional(),
+  teamId: z.number().optional(),
 });
 
 export type TIntegrationsInputSchema = z.infer<typeof ZIntegrationsInputSchema>;
