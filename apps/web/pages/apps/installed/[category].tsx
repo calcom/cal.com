@@ -1,4 +1,3 @@
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useCallback, useReducer, useState } from "react";
 import z from "zod";
@@ -121,7 +120,6 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
     undefined
   );
-  const session = useSession();
 
   const onSuccessCallback = useCallback(() => {
     setBulkUpdateModal(true);
@@ -325,6 +323,7 @@ type querySchemaType = z.infer<typeof querySchema>;
 type ModalState = {
   isOpen: boolean;
   credentialId: null | number;
+  teamId?: number;
 };
 
 export default function InstalledApps() {
