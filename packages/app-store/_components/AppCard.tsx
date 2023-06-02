@@ -18,7 +18,7 @@ export default function AppCard({
   setAppData,
   returnTo,
 }: {
-  app: RouterOutputs["viewer"]["apps"][number];
+  app: RouterOutputs["viewer"]["apps"][number] & { credentialOwner: { name: string; avatar?: string } };
   description?: React.ReactNode;
   switchChecked?: boolean;
   switchOnClick?: (e: boolean) => void;
