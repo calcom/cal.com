@@ -128,7 +128,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   );
 
   return (
-    <div>
+    <>
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
@@ -285,7 +285,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
         </main>
       </div>
       <Toaster position="bottom-right" />
-      </div>
+    </>
   );
 };
 

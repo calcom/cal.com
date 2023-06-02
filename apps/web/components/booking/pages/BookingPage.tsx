@@ -503,7 +503,7 @@ const BookingPage = ({
   const showEventTypeDetails = (isEmbed && !embedUiConfig.hideEventTypeDetails) || !isEmbed;
 
   return (
-    <div>
+    <>
       <Head>
         <title>
           {rescheduleUid
@@ -665,7 +665,7 @@ const BookingPage = ({
         </div>
       </main>
       <Toaster position="bottom-right" />
-      </div>
+    </>
   );
 };
 
