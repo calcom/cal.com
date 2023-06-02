@@ -91,7 +91,7 @@ async function createNewUserConnectToOrgIfExists(
   input: InviteMemberOptions["input"],
   parentId?: number | null
 ) {
-  await prisma.user.create({
+  const createdUser = await prisma.user.create({
     data: {
       email: usernameOrEmail,
       invitedTo: input.teamId,
@@ -105,6 +105,18 @@ async function createNewUserConnectToOrgIfExists(
       },
     },
   });
+
+  // We also need to create the membership in the parent org if it exists
+  if (parentId) {
+    await prisma.membership.create({
+      data: {
+        teamId: parentId,
+        userId: createdUser.id,
+        role: input.role as MembershipRole,
+        accepted: true,
+      },
+    });
+  }
 }
 
 async function createProvitionalMembership(
