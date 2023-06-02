@@ -793,7 +793,7 @@ function SideBar({ bannersHeight }: SideBarProps) {
             <Link href="/event-types" className="px-2">
               {orgBranding ? (
                 <div className="flex items-center gap-2 font-medium">
-                  <Avatar alt="" imageSrc={orgBranding.logo || "/org_avatar.png"} size="sm" />
+                  {orgBranding.logo && <Avatar alt="" imageSrc={orgBranding.logo} size="sm" />}
                   <p className="text text-sm">{orgBranding.name}</p>
                 </div>
               ) : (
