@@ -1,4 +1,4 @@
-import { PaperclipIcon, UserIcon, Users } from "lucide-react";
+import { BuildingIcon, PaperclipIcon, UserIcon, Users } from "lucide-react";
 import { Trans } from "next-i18next";
 import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { RouterOutputs } from "@calcom/trpc";
 import {
   Button,
   Checkbox as CheckboxField,
@@ -26,6 +27,7 @@ import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
 type MemberInvitationModalProps = {
   isOpen: boolean;
   onExit: () => void;
+  orgMembers?: RouterOutputs["viewer"]["organizations"]["getMembers"];
   onSubmit: (values: NewMemberForm) => void;
   members: PendingMember[];
 };
@@ -45,6 +47,7 @@ type ModalMode = "INDIVIDUAL" | "BULK";
 
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
+
   const [modalImportMode, setModalInputMode] = useState<ModalMode>("INDIVIDUAL");
   const options: MembershipRoleOption[] = useMemo(() => {
     return [
@@ -53,6 +56,25 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       { value: MembershipRole.OWNER, label: t("owner") },
     ];
   }, [t]);
+
+  const toggleGroupOptions = useMemo(() => {
+    const array = [
+      {
+        value: "INDIVIDUAL",
+        label: t("invite_team_individual_segment"),
+        iconLeft: <UserIcon />,
+      },
+      { value: "BULK", label: t("invite_team_bulk_segment"), iconLeft: <Users /> },
+    ];
+    if (props.orgMembers) {
+      array.unshift({
+        value: "ORGANIZATION",
+        label: t("organization"),
+        iconLeft: <BuildingIcon />,
+      });
+    }
+    return array;
+  }, [t, props.orgMembers]);
 
   const newMemberFormMethods = useForm<NewMemberForm>();
 
@@ -92,14 +114,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             isFullWidth={true}
             onValueChange={(val) => setModalInputMode(val as ModalMode)}
             defaultValue="INDIVIDUAL"
-            options={[
-              {
-                value: "INDIVIDUAL",
-                label: t("invite_team_individual_segment"),
-                iconLeft: <UserIcon />,
-              },
-              { value: "BULK", label: t("invite_team_bulk_segment"), iconLeft: <Users /> },
-            ]}
+            options={toggleGroupOptions}
           />
         </div>
 

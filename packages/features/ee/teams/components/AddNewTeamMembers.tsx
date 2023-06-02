@@ -44,6 +44,7 @@ export const AddNewTeamMembersForm = ({
   const showDialog = router.query.inviteModal === "true";
   const [memberInviteModal, setMemberInviteModal] = useState(showDialog);
   const utils = trpc.useContext();
+
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess(data) {
       await utils.viewer.teams.get.invalidate();
@@ -98,6 +99,7 @@ export const AddNewTeamMembersForm = ({
       </div>
       <MemberInvitationModal
         isOpen={memberInviteModal}
+        orgMembers={orgMembers}
         onExit={() => setMemberInviteModal(false)}
         onSubmit={(values) => {
           inviteMemberMutation.mutate({
