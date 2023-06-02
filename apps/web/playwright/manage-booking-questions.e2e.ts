@@ -238,8 +238,8 @@ async function runTestStepsCommonForTeamAndUserEventType(
   await test.step('Try to book with an Invalid "Phone Number" response', async () => {
     await doOnFreshPreview(page, context, bookerVariant, async (page) => {
       const formBuilderFieldLocator = page.locator('[data-fob-field-name="phone_number"]');
-
-      await formBuilderFieldLocator.locator('[name="phone_number"]').fill("91 9999");
+      await formBuilderFieldLocator.locator('[name="how_are_you"]').fill("I am great!");
+      await formBuilderFieldLocator.locator('[name="phone_number"]').fill("+91 9999");
       await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
       await expectErrorToBeThereFor({ page, name: "phone_number" });
     });
