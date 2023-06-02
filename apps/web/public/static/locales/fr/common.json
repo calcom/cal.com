@@ -269,7 +269,6 @@
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}} doit encore confirmer ou refuser chaque réservation du rendez-vous récurrent.",
   "meeting_is_scheduled": "Le rendez-vous est planifié",
   "meeting_is_scheduled_recurring": "Les événements récurrents sont planifiés",
-  "submitted": "Votre réservation a été envoyée",
   "submitted_recurring": "Votre rendez-vous récurrent a été envoyé",
   "booking_submitted": "Votre réservation a été envoyée",
   "booking_submitted_recurring": "Votre rendez-vous récurrent a été envoyé",
