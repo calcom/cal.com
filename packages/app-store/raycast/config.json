@@ -4,10 +4,10 @@
   "slug": "raycast",
   "type": "raycast_other",
   "logo": "icon.svg",
-  "url": "https://cal.com/apps/raycast",
+  "url": "https://github.com/eluce2",
   "variant": "other",
   "categories": ["other"],
-  "publisher": "eluce2",
+  "publisher": "Eric Luce",
   "email": "info@restlessmindstech.com",
   "description": "Quickly share your Cal.com meeting links with Raycast",
   "__createdUsingCli": true
