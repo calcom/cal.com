@@ -187,8 +187,10 @@ function getUrlSearchParamsToForward(response: Response, fields: NonNullable<Pro
       // If for some reason, the field isn't there, let's just
       return;
     }
+    const valueAsStringOrStringArray =
+      typeof fieldResponse.value === "number" ? String(fieldResponse.value) : fieldResponse.value;
     paramsFromResponse[getFieldIdentifier(foundField) as keyof typeof paramsFromResponse] =
-      fieldResponse.value;
+      valueAsStringOrStringArray;
   });
 
   // Build query params from current URL. It excludes route params
