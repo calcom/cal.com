@@ -468,6 +468,13 @@ function getBookingData({
           if (val.responses) {
             const unwantedProps: string[] = [];
             legacyProps.forEach((legacyProp) => {
+              if (typeof val[legacyProp as keyof typeof val] !== "undefined") {
+                console.error(
+                  `Deprecated: Unexpected falsy value for: ${unwantedProps.join(
+                    ","
+                  )}. They can't be used with \`responses\`. This will become a 400 error in the future.`
+                );
+              }
               if (val[legacyProp as keyof typeof val]) {
                 unwantedProps.push(legacyProp);
               }
@@ -489,7 +496,24 @@ function getBookingData({
             }
           }
         });
+
   const reqBody = bookingDataSchema.parse(req.body);
+
+  // Work with Typescript to require reqBody.end
+  type ReqBodyWithoutEnd = z.infer<typeof bookingDataSchema>;
+  type ReqBodyWithEnd = ReqBodyWithoutEnd & { end: string };
+
+  const reqBodyWithEnd = (reqBody: ReqBodyWithoutEnd): reqBody is ReqBodyWithEnd => {
+    // Use the event length to auto-set the event end time.
+    if (!Object.prototype.hasOwnProperty.call(reqBody, "end")) {
+      reqBody.end = dayjs.utc(reqBody.start).add(eventType.length, "minutes").format();
+    }
+    return true;
+  };
+  if (!reqBodyWithEnd(reqBody)) {
+    throw new Error("Internal Error.");
+  }
+  // reqBody.end is no longer an optional property.
   if ("customInputs" in reqBody) {
     if (reqBody.customInputs) {
       // Check if required custom inputs exist
@@ -667,7 +691,7 @@ async function handler(
             metadata: true,
           },
         })
-      : !!eventType.hosts?.length
+      : eventType.hosts?.length
       ? eventType.hosts.map(({ user, isFixed }) => ({
           ...user,
           isFixed,
@@ -731,14 +755,17 @@ async function handler(
     defaultLocationUrl = firstUsersMetadata?.defaultConferencingApp?.appLink;
   }
 
-  if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
+  if (
+    Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
+    Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
+  ) {
     const startAsDate = dayjs(reqBody.start).toDate();
-    await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
-  }
-
-  if (eventType && eventType.hasOwnProperty("durationLimits") && eventType?.durationLimits) {
-    const startAsDate = dayjs(reqBody.start).toDate();
-    await checkDurationLimits(eventType.durationLimits, startAsDate, eventType.id);
+    if (eventType.bookingLimits) {
+      await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
+    }
+    if (eventType.durationLimits) {
+      await checkDurationLimits(eventType.durationLimits, startAsDate, eventType.id);
+    }
   }
 
   if (!eventType.seatsPerTimeSlot) {
@@ -911,7 +938,7 @@ async function handler(
     requiresConfirmation: requiresConfirmation ?? false,
     eventTypeId: eventType.id,
     // if seats are not enabled we should default true
-    seatsShowAttendees: !!eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
+    seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
   };
 
