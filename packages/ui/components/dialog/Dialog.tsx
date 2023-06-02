@@ -138,7 +138,7 @@ export function DialogFooter(props: { children: ReactNode; className?: string; s
   return (
     <div className={classNames("bg-default", props.className)}>
       {props.showDivider && <hr className="border-subtle absolute right-0 w-full" />}
-      <div className={classNames("bg-default flex justify-end space-x-2 pt-6 rtl:space-x-reverse")}>
+      <div className={classNames("bg-default flex justify-end space-x-2 pt-4 rtl:space-x-reverse")}>
         {props.children}
       </div>
     </div>
