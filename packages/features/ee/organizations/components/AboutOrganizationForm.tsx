@@ -60,7 +60,7 @@ export const AboutOrganizationForm = () => {
               <>
                 <Label>{t("organization_logo")}</Label>
                 <div className="flex items-center">
-                  <Avatar alt="" imageSrc={image || null} gravatarFallbackMd5="newTeam" size="lg" />
+                  <Avatar alt="" imageSrc={image || "/org_avatar.png"} size="lg" />
                   <div className="ms-4">
                     <ImageUploader
                       target="avatar"
