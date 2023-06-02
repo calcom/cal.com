@@ -1,18 +1,32 @@
 import Link from "next/link";
 import type { IframeHTMLAttributes } from "react";
 import React, { useState } from "react";
+import { useRouter } from "next/router";
+import { CAL_URL } from "@calcom/lib/constants";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton, AppDependencyComponent } from "@calcom/app-store/components";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import Shell from "@calcom/features/shell/Shell";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
+import type { ButtonProps } from "@calcom/ui";
+import type { AppFrontendPayload as App } from "@calcom/types/App";
 import { Button, showToast, SkeletonButton, SkeletonText, HeadSeo, Badge } from "@calcom/ui";
+import {
+  Dropdown,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuPortal,
+  DropdownMenuLabel,
+  DropdownItem,
+  Avatar,
+} from "@calcom/ui";
 import { BookOpen, Check, ExternalLink, File, Flag, Mail, Plus, Shield } from "@calcom/ui/components/icon";
 
 /* These app slugs all require Google Cal to be installed */
@@ -43,6 +57,8 @@ const Component = ({
   const { t, i18n } = useLocale();
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
 
+  // const session = useSession();
+
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       if (data?.setupPending) return;
@@ -68,6 +84,9 @@ const Component = ({
       },
     }
   );
+  const userAdminTeams = trpc.viewer.teams.getUserAdminTeams.useQuery({
+    getUserInfo: true,
+  });
 
   const dependencyData = trpc.viewer.appsRouter.queryForDependencies.useQuery(dependencies, {
     enabled: !!dependencies,
@@ -141,7 +160,7 @@ const Component = ({
             )}
           </header>
         </div>
-        {!appCredentials.isLoading ? (
+        {!appCredentials.isLoading && !userAdminTeams.isLoading ? (
           isGlobal ||
           (existingCredentials.length > 0 && allowedMultipleInstalls ? (
             <div className="flex space-x-3">
@@ -166,16 +185,18 @@ const Component = ({
                       };
                     }
                     return (
-                      <Button
-                        StartIcon={Plus}
-                        {...props}
-                        // @TODO: Overriding color and size prevent us from
-                        // having to duplicate InstallAppButton for now.
-                        color="primary"
-                        size="base"
-                        data-testid="install-app-button">
-                        {t("install_another")}
-                      </Button>
+                      <InstallAppButtonChild appCategories={categories} userAdminTeams={userAdminTeams.data} addAppMutationInput={{ type, variant, slug }} multiInstall {...props} />
+
+                      // <Button
+                      //   StartIcon={Plus}
+                      //   {...props}
+                      //   // @TODO: Overriding color and size prevent us from
+                      //   // having to duplicate InstallAppButton for now.
+                      //   color="primary"
+                      //   size="base"
+                      //   data-testid="install-app-button">
+                      //   {t("install_another")}
+                      // </Button>
                     );
                   }}
                 />
@@ -206,15 +227,16 @@ const Component = ({
                   };
                 }
                 return (
-                  <Button
-                    data-testid="install-app-button"
-                    {...props}
-                    // @TODO: Overriding color and size prevent us from
-                    // having to duplicate InstallAppButton for now.
-                    color="primary"
-                    size="base">
-                    {t("install_app")}
-                  </Button>
+                  <InstallAppButtonChild appCategories={categories} userAdminTeams={userAdminTeams.data} addAppMutationInput={{type, variant, slug}} {...props} />
+                  // <Button
+                  //   data-testid="install-app-button"
+                  //   {...props}
+                  //   // @TODO: Overriding color and size prevent us from
+                  //   // having to duplicate InstallAppButton for now.
+                  //   color="primary"
+                  //   size="base">
+                  //   {t("install_app")}
+                  // </Button>
                 );
               }}
             />
@@ -385,3 +407,83 @@ export default function App(props: {
     </Shell>
   );
 }
+
+const InstallAppButtonChild = ({
+  userAdminTeams,
+  addAppMutationInput,
+  appCategories,
+  multiInstall,
+  ...props
+}: {
+  userAdminTeams?: UserAdminTeams;
+  addAppMutationInput: { type: App["type"]; variant: string; slug: string };
+  appCategories: string[];
+  multiInstall?: boolean;
+} & ButtonProps) => {
+  const { t } = useLocale();
+  const router = useRouter();
+
+  const mutation = useAddAppMutation(null, {
+    onSuccess: (data) => {
+      if (data?.setupPending) return;
+      showToast(t("app_successfully_installed"), "success");
+    },
+    onError: (error) => {
+      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+    },
+  });
+
+  if (!userAdminTeams?.length || appCategories.some((category) => category === "calendar")) {
+    return <Button
+      data-testid="install-app-button"
+      {...props}
+      // @TODO: Overriding color and size prevent us from
+      // having to duplicate InstallAppButton for now.
+      color="primary"
+      size="base">
+      {multiInstall ? t("install_another") : t("install_app")}
+    </Button>
+    
+  }
+
+  return (
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <Button
+          data-testid="install-app-button"
+          {...props}
+          // @TODO: Overriding color and size prevent us from
+          // having to duplicate InstallAppButton for now.
+          color="primary"
+          size="base">
+          {multiInstall ? t("install_another") : t("install_app")}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuPortal>
+        <DropdownMenuContent>
+          <DropdownMenuLabel>{t("install_app_on")}</DropdownMenuLabel>
+          {userAdminTeams.map((team) => (
+            <DropdownItem
+              type="button"
+              key={team.id}
+              StartIcon={(props) => (
+                <Avatar
+                  alt={team.logo || ""}
+                  imageSrc={team.logo || `${CAL_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
+                  size="sm"
+                  {...props}
+                />
+              )}
+              onClick={() => {
+                mutation.mutate(
+                  team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }
+                );
+              }}>
+              <p>{team.name}</p>
+            </DropdownItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenuPortal>
+    </Dropdown>
+  );
+};
