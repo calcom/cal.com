@@ -3,6 +3,7 @@ import { debounce, noop } from "lodash";
 import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
 
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
@@ -35,6 +36,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
+  const orgBranding = useOrgBrandingValues();
 
   const debouncedApiCall = useMemo(
     () =>
@@ -117,8 +119,15 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             name="username"
             value={inputUsernameValue}
             addOnLeading={
-              <>{process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/</>
+              <>
+                {`${orgBranding && orgBranding.slug + "."}${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(
+                  "https://",
+                  ""
+                ).replace("http://", "")}`}
+                /
+              </>
             }
+            disabled={!!orgBranding}
             autoComplete="none"
             autoCapitalize="none"
             autoCorrect="none"
