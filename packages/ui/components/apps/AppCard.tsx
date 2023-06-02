@@ -176,7 +176,7 @@ const InstallAppButtonChild = ({
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
-  addAppMutationInput: { type: string; variant: string; slug: string };
+  addAppMutationInput: { type: App["type"]; variant: string; slug: string };
   appCategories: string[];
 } & ButtonProps) => {
   const { t } = useLocale();
