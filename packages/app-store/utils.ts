@@ -37,16 +37,6 @@ const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
 
 export type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
 
-export const InstalledAppVariants = [
-  "conferencing",
-  "calendar",
-  "payment",
-  "analytics",
-  "automation",
-  "other",
-  "web3",
-] as const;
-
 export const ALL_APPS = Object.values(ALL_APPS_MAP);
 
 export function getLocationGroupedOptions(integrations: ReturnType<typeof getApps>, t: TFunction) {
