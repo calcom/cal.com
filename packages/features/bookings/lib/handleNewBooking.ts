@@ -884,9 +884,16 @@ async function handler(
   const calEventUserFieldsResponses =
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
 
+  const createStaticTitle = () => {
+    return eventNameObject.eventType + ' by ' + eventNameObject.host
+  }
+
   let evt: CalendarEvent = {
     type: eventType.title,
-    title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
+    title: (eventType.seatsPerTimeSlot) ? 
+      createStaticTitle():getEventName(eventNameObject), // currently used as a 
+      //fixed text '[ event name ] by [ host name ]' for event having seats, 
+      //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
     additionalNotes,
     customInputs,
@@ -1564,7 +1571,7 @@ async function handler(
     } catch (error) {
       log.error("Error while scheduling workflow reminders", error);
     }
-
+    
     return resultBooking;
   };
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
