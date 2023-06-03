@@ -25,7 +25,18 @@ type AppCategoryEntry = {
 };
 
 const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryEntry[] => {
+  // Manually sorted alphabetically, but leaving "Other" at the end
   return [
+    {
+      name: "analytics",
+      href: getHref(baseURL, "analytics", useQueryParam),
+      icon: BarChart,
+    },
+    {
+      name: "automation",
+      href: getHref(baseURL, "automation", useQueryParam),
+      icon: Share2,
+    },
     {
       name: "calendar",
       href: getHref(baseURL, "calendar", useQueryParam),
@@ -37,19 +48,19 @@ const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryE
       icon: Video,
     },
     {
+      name: "crm",
+      href: getHref(baseURL, "crm", useQueryParam),
+      icon: Contact,
+    },
+    {
+      name: "messaging",
+      href: getHref(baseURL, "messaging", useQueryParam),
+      icon: Mail,
+    },
+    {
       name: "payment",
       href: getHref(baseURL, "payment", useQueryParam),
       icon: CreditCard,
-    },
-    {
-      name: "automation",
-      href: getHref(baseURL, "automation", useQueryParam),
-      icon: Share2,
-    },
-    {
-      name: "analytics",
-      href: getHref(baseURL, "analytics", useQueryParam),
-      icon: BarChart,
     },
     {
       name: "web3",
@@ -60,16 +71,6 @@ const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryE
       name: "other",
       href: getHref(baseURL, "other", useQueryParam),
       icon: Grid,
-    },
-    {
-      name: "crm",
-      href: getHref(baseURL, "crm", useQueryParam),
-      icon: Contact,
-    },
-    {
-      name: "messaging",
-      href: getHref(baseURL, "messaging", useQueryParam),
-      icon: Mail,
     },
   ];
 };
