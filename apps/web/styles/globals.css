@@ -288,10 +288,6 @@ select:focus {
 /* hide chat bubble on mobile */
 @media only screen and (max-width: 768px) {
 
-  *{
-    touch-action: pan-y pan-x;
-  }
-
   /* Intercom FAB*/
   #launcher {
     display: none !important;
