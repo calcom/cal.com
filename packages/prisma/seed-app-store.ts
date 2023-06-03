@@ -4,10 +4,11 @@
  */
 import type { Prisma } from "@prisma/client";
 import dotEnv from "dotenv";
-import fs from "fs";
-import path from "path";
+
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 
 import prisma from ".";
+import { AppCategories } from "./enums";
 
 dotEnv.config({ path: "../../.env.appStore" });
 
@@ -345,21 +346,22 @@ export default async function main() {
     });
   }
 
-  const generatedApps = JSON.parse(
-    fs.readFileSync(path.join(__dirname, "seed-app-store.config.json"), "utf8")
-  );
-  for (let i = 0; i < generatedApps.length; i++) {
-    const generatedApp = generatedApps[i];
-    if (generatedApp.isTemplate && process.argv[2] !== "seed-templates") {
+  for (const [, app] of Object.entries(appStoreMetadata)) {
+    if (app.isTemplate && process.argv[2] !== "seed-templates") {
       continue;
     }
+
+    const validatedCategories = app.categories.filter(
+      (category): category is AppCategories => category in AppCategories
+    );
+
     await createApp(
-      generatedApp.slug,
-      generatedApp.dirName,
-      generatedApp.categories,
-      generatedApp.type,
+      app.slug,
+      app.dirName ?? app.slug,
+      validatedCategories,
+      app.type,
       undefined,
-      generatedApp.isTemplate
+      app.isTemplate
     );
   }
 
