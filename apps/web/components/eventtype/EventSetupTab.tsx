@@ -151,6 +151,7 @@ export const EventSetupTab = (
   };
 
   const saveLocation = (newLocationType: EventLocationType["type"], details = {}) => {
+    
     const locationType = editingLocationType !== "" ? editingLocationType : newLocationType;
     const existingIdx = formMethods.getValues("locations").findIndex((loc) => locationType === loc.type);
     if (existingIdx !== -1) {
