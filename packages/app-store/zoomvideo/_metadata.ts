@@ -7,7 +7,7 @@ export const metadata = {
   name: "Zoom Video",
   description: _package.description,
   type: "zoom_video",
-  categories: ["video"],
+  categories: ["conferencing"],
   variant: "conferencing",
   logo: "icon.svg",
   publisher: "Cal.com",

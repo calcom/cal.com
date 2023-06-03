@@ -9,7 +9,7 @@ export const metadata = {
   type: "daily_video",
   variant: "conferencing",
   url: "https://daily.co",
-  categories: ["video"],
+  categories: ["conferencing"],
   logo: "icon.svg",
   publisher: "Cal.com",
   category: "video",

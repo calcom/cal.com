@@ -7,7 +7,7 @@ export const metadata = {
   description: _package.description,
   installed: true,
   category: "other",
-  categories: ["other"],
+  categories: ["automation"],
   logo: "icon.svg",
   label: "Vital",
   publisher: "Vital",

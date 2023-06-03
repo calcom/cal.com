@@ -8,7 +8,7 @@ export const metadata = {
   type: "tandem_video",
   title: "Tandem Video",
   variant: "conferencing",
-  categories: ["video"],
+  categories: ["conferencing"],
   slug: "tandem",
   category: "video",
   logo: "icon.svg",

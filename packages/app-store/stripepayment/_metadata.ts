@@ -11,8 +11,8 @@ export const metadata = {
     process.env.STRIPE_PRIVATE_KEY
   ),
   slug: "stripe",
-  category: "payment",
-  categories: ["payment"],
+  category: "payments",
+  categories: ["payments"],
   logo: "icon.svg",
   publisher: "Cal.com",
   title: "Stripe",

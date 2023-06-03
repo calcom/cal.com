@@ -7,7 +7,7 @@ export const metadata = {
   description: _package.description,
   installed: true,
   category: "other",
-  categories: ["other"],
+  categories: ["automation"],
   // If using static next public folder, can then be referenced from the base URL (/).
   logo: "icon-dark.svg",
   publisher: "Cal.com",

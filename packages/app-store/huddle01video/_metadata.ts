@@ -9,7 +9,7 @@ export const metadata = {
   installed: true,
   type: "huddle01_video",
   variant: "conferencing",
-  categories: ["video", "web3"],
+  categories: ["conferencing"],
   logo: "icon.svg",
   publisher: "huddle01.com",
   url: "https://huddle01.com",
