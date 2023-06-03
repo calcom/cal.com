@@ -84,8 +84,8 @@
   /* Brand shenanigans
       -> These will be computed for the users theme at runtime.
     */
-  --cal-brand: #111827;
-  --cal-brand-emphasis: #101010;
+  --cal-brand: white;
+  --cal-brand-emphasis: #e1e1e1;
   --cal-brand-text: black;
 }
 
@@ -179,7 +179,7 @@ html.todesktop-platform-darwin.light main.bg-default{
   background: rgba(255,255,255,0.8) !important
 }
 
-/* 
+/*
 html.todesktop aside a {
   height: 28px;
   padding: 0px 8px;
@@ -498,4 +498,16 @@ select:focus {
   -webkit-appearance: none;
 }
 
+.react-tel-input .country-list .country:hover,
+.react-tel-input .country-list .country.highlight {
+  @apply !bg-emphasis;
+}
 
+.react-tel-input .flag-dropdown .selected-flag,
+.react-tel-input .flag-dropdown.open .selected-flag {
+  @apply !bg-default;
+}
+
+.react-tel-input .flag-dropdown {
+  @apply !border-r-default !border-y-0 !border-l-0 left-0.5;
+}

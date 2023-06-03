@@ -1,9 +1,9 @@
-import { SchedulingType } from "@prisma/client";
 import { get } from "lodash";
 import React from "react";
 import type z from "zod";
 
 import type { Prisma } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { _EventTypeModel } from "@calcom/prisma/zod/eventtype";
 import { Tooltip } from "@calcom/ui";
 import { Lock } from "@calcom/ui/components/icon";

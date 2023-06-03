@@ -1,8 +1,8 @@
 import type { Prisma, Credential } from "@prisma/client";
-import { PeriodType, SchedulingType } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { userSelect } from "@calcom/prisma/selects";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -63,6 +63,7 @@ const commons = {
   periodType: PeriodType.UNLIMITED,
   periodDays: null,
   slotInterval: null,
+  offsetStart: 0,
   locations: [{ type: DailyLocationType }],
   customInputs,
   disableGuests: true,

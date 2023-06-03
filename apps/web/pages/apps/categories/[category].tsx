@@ -1,4 +1,4 @@
-import { AppCategories } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import type { GetStaticPropsContext, InferGetStaticPropsType } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -7,6 +7,7 @@ import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
+import { AppCategories } from "@calcom/prisma/enums";
 import { AppCard, SkeletonText } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
@@ -53,6 +54,20 @@ Apps.PageWrapper = PageWrapper;
 
 export const getStaticPaths = async () => {
   const paths = Object.keys(AppCategories);
+
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+  } catch (e: unknown) {
+    if (e instanceof Prisma.PrismaClientInitializationError) {
+      // Database is not available at build time. Make sure we fall back to building these pages on demand
+      return {
+        paths: [],
+        fallback: "blocking",
+      };
+    } else {
+      throw e;
+    }
+  }
 
   return {
     paths: paths.map((category) => ({ params: { category } })),

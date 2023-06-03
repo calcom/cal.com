@@ -8,6 +8,8 @@ import {
   bookTimeSlot,
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,
+  testEmail,
+  testName,
 } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
@@ -31,10 +33,8 @@ testBothBookers.describe("free user", (bookerVariant) => {
     // eslint-disable-next-line playwright/no-conditional-in-test
     if (bookerVariant !== "new-booker") {
       // Navigate to book page
-      await page.waitForNavigation({
-        url(url) {
-          return url.pathname.endsWith("/book");
-        },
+      await page.waitForURL((url) => {
+        return url.pathname.endsWith("/book");
       });
     }
 
@@ -65,7 +65,6 @@ testBothBookers.describe("pro user", () => {
   });
 
   test("pro user's page has at least 2 visible events", async ({ page }) => {
-    // await page.pause();
     const $eventTypes = page.locator("[data-testid=event-types] > *");
     expect(await $eventTypes.count()).toBeGreaterThanOrEqual(2);
   });
@@ -84,40 +83,44 @@ testBothBookers.describe("pro user", () => {
     await page.waitForSelector('[data-testid="bookings"]');
     await page.locator('[data-testid="edit_booking"]').nth(0).click();
     await page.locator('[data-testid="reschedule"]').click();
-    await page.waitForNavigation({
-      url: (url) => {
-        const bookingId = url.searchParams.get("rescheduleUid");
-        return !!bookingId;
-      },
+    await page.waitForURL((url) => {
+      const bookingId = url.searchParams.get("rescheduleUid");
+      return !!bookingId;
     });
     await selectSecondAvailableTimeSlotNextMonth(page);
     // --- fill form
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
-    await page.waitForNavigation({
-      url(url) {
-        return url.pathname.startsWith("/booking");
-      },
+    await page.waitForURL((url) => {
+      return url.pathname.startsWith("/booking");
     });
   });
 
-  test("Can cancel the recently created booking and rebook the same timeslot", async ({ page, users }) => {
+  test("Can cancel the recently created booking and rebook the same timeslot", async ({
+    page,
+    users,
+  }, testInfo) => {
+    // Because it tests the entire booking flow + the cancellation + rebooking
+    test.setTimeout(testInfo.timeout * 3);
     await bookFirstEvent(page);
+    await expect(page.locator(`[data-testid="attendee-email-${testEmail}"]`)).toHaveText(testEmail);
+    await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
 
     const [pro] = users.get();
     await pro.login();
 
     await page.goto("/bookings/upcoming");
     await page.locator('[data-testid="cancel"]').first().click();
-    await page.waitForNavigation({
-      url: (url) => {
-        return url.pathname.startsWith("/booking");
-      },
+    await page.waitForURL((url) => {
+      return url.pathname.startsWith("/booking/");
     });
     await page.locator('[data-testid="cancel"]').click();
 
     const cancelledHeadline = await page.locator('[data-testid="cancelled-headline"]').innerText();
 
-    await expect(cancelledHeadline).toBe("This event is cancelled");
+    expect(cancelledHeadline).toBe("This event is cancelled");
+
+    await expect(page.locator(`[data-testid="attendee-email-${testEmail}"]`)).toHaveText(testEmail);
+    await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
 
     await page.goto(`/${pro.username}`);
     await bookFirstEvent(page);
@@ -134,7 +137,7 @@ testBothBookers.describe("pro user", () => {
     await page.goto("/bookings/unconfirmed");
     await Promise.all([
       page.click('[data-testid="confirm"]'),
-      page.waitForResponse((response) => response.url().includes("/api/trpc/viewer.bookings.confirm")),
+      page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm")),
     ]);
     // This is the only booking in there that needed confirmation and now it should be empty screen
     await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
@@ -158,7 +161,7 @@ testBothBookers.describe("pro user", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     additionalGuests.forEach(async (email) => {
-      await expect(page.locator(`[data-testid="attendee-${email}"]`)).toHaveText(email);
+      await expect(page.locator(`[data-testid="attendee-email-${email}"]`)).toHaveText(email);
     });
   });
 });

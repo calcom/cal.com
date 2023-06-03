@@ -1,8 +1,7 @@
-import { MembershipRole } from "@prisma/client";
-
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 

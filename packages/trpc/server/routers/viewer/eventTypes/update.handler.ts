@@ -1,10 +1,13 @@
 import type { PrismaClient } from "@prisma/client";
-import { Prisma, SchedulingType } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { validateIntervalLimitOrder } from "@calcom/lib";
+import logger from "@calcom/lib/logger";
+import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -43,6 +46,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     // eslint-disable-next-line
     teamId,
     bookingFields,
+    offsetStart,
     ...rest
   } = input;
 
@@ -100,6 +104,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     data.durationLimits = durationLimits;
   }
 
+  if (offsetStart !== undefined) {
+    if (offsetStart < 0) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Offset start time must be zero or greater." });
+    }
+    data.offsetStart = offsetStart;
+  }
+
   if (schedule) {
     // Check that the schedule belongs to the user
     const userScheduleQuery = await ctx.prisma.schedule.findFirst({
@@ -138,6 +149,44 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
       })),
     };
+  }
+
+  if (input.metadata?.disableStandardEmails) {
+    //check if user is allowed to disabled standard emails
+
+    const workflows = await ctx.prisma.workflow.findMany({
+      where: {
+        activeOn: {
+          some: {
+            eventTypeId: input.id,
+          },
+        },
+        trigger: WorkflowTriggerEvents.NEW_EVENT,
+      },
+      include: {
+        steps: true,
+      },
+    });
+
+    if (input.metadata?.disableStandardEmails.confirmation?.host) {
+      if (
+        !workflows.find(
+          (workflow) => !!workflow.steps.find((step) => step.action === WorkflowActions.EMAIL_HOST)
+        )
+      ) {
+        input.metadata.disableStandardEmails.confirmation.host = false;
+      }
+    }
+
+    if (input.metadata?.disableStandardEmails.confirmation?.attendee) {
+      if (
+        !workflows.find(
+          (workflow) => !!workflow.steps.find((step) => step.action === WorkflowActions.EMAIL_ATTENDEE)
+        )
+      ) {
+        input.metadata.disableStandardEmails.confirmation.attendee = false;
+      }
+    }
   }
 
   if (input?.price || input.metadata?.apps?.stripe?.price) {
@@ -208,6 +257,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             userId: true,
           },
         },
+        workflows: {
+          select: {
+            workflowId: true,
+          },
+        },
         team: {
           select: {
             name: true,
@@ -234,7 +288,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   });
   const res = ctx.res as NextApiResponse;
   if (typeof res?.revalidate !== "undefined") {
-    await res?.revalidate(`/${ctx.user.username}/${eventType.slug}`);
+    try {
+      await res?.revalidate(`/${ctx.user.username}/${eventType.slug}`);
+    } catch (e) {
+      // if reach this it is because the event type page has not been created, so it is not possible to revalidate it
+      logger.debug((e as Error)?.message);
+    }
   }
   return { eventType };
 };

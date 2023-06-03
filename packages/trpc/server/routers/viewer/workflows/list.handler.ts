@@ -1,9 +1,8 @@
-import { MembershipRole } from "@prisma/client";
-
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
 // import dayjs from "@calcom/dayjs";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TListInputSchema } from "./list.schema";
@@ -44,6 +43,12 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
               select: {
                 id: true,
                 title: true,
+                parentId: true,
+                _count: {
+                  select: {
+                    children: true,
+                  },
+                },
               },
             },
           },
@@ -76,6 +81,12 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
               select: {
                 id: true,
                 title: true,
+                parentId: true,
+                _count: {
+                  select: {
+                    children: true,
+                  },
+                },
               },
             },
           },
@@ -121,6 +132,12 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
             select: {
               id: true,
               title: true,
+              parentId: true,
+              _count: {
+                select: {
+                  children: true,
+                },
+              },
             },
           },
         },

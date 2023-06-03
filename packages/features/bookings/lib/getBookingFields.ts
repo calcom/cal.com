@@ -2,6 +2,7 @@ import type { EventTypeCustomInput, EventType, Prisma, Workflow } from "@prisma/
 import { z } from "zod";
 
 import slugify from "@calcom/lib/slugify";
+import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 import {
   BookingFieldType,
   customInputSchema,
@@ -42,15 +43,6 @@ export const getSmsReminderNumberSource = ({
 });
 
 type Fields = z.infer<typeof eventTypeBookingFields>;
-
-const EventTypeCustomInputType = {
-  TEXT: "TEXT",
-  TEXTLONG: "TEXTLONG",
-  NUMBER: "NUMBER",
-  BOOL: "BOOL",
-  RADIO: "RADIO",
-  PHONE: "PHONE",
-} as const;
 
 export const SystemField = z.enum([
   "name",
