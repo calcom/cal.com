@@ -103,7 +103,7 @@ export default function RoutingForms({
         description={t("routing_forms_are_a_great_way")}
         features={features}
         background="/tips/routing-forms"
-        isParentLoading={isLoading && <SkeletonLoaderTeamList />}
+        isParentLoading={<SkeletonLoaderTeamList />}
         buttons={
           <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
             <ButtonGroup>

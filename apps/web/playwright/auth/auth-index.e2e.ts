@@ -1,5 +1,4 @@
 import { test } from "../lib/fixtures";
-import { todo } from "../lib/testUtils";
 
 test.describe("Can signup from a team invite", async () => {
   test.beforeEach(async ({ users }) => {
@@ -96,5 +95,3 @@ test.describe("Can signup from a team invite", async () => {
     expect(createdUser.teams[0].accepted).toBe(true);*/
   });
 });
-
-todo("Can login using 2FA");

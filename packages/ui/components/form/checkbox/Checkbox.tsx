@@ -1,3 +1,4 @@
+import { useId } from "@radix-ui/react-id";
 import type { InputHTMLAttributes } from "react";
 import React, { forwardRef } from "react";
 
@@ -16,6 +17,7 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
 const CheckboxField = forwardRef<HTMLInputElement, Props>(
   ({ label, description, error, disabled, ...rest }, ref) => {
     const descriptionAsLabel = !label || rest.descriptionAsLabel;
+    const id = useId();
     return (
       <div className="block items-center sm:flex">
         {label && (
@@ -26,7 +28,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                 className: classNames("flex text-sm font-medium text-emphasis"),
                 ...(!descriptionAsLabel
                   ? {
-                      htmlFor: rest.id,
+                      htmlFor: rest.id ? rest.id : id,
                     }
                   : {}),
               },
@@ -52,6 +54,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     ref={ref}
                     type="checkbox"
                     disabled={disabled}
+                    id={rest.id ? rest.id : id}
                     className={classNames(
                       "text-primary-600 focus:ring-primary-500 border-default bg-default h-4 w-4 rounded ltr:mr-2 rtl:ml-2",
                       !error && disabled

@@ -34,6 +34,13 @@ export function TimezoneSelect({
     });
   }, [components]);
 
+  // We use modifiedTimezones in place of the allTimezones object replacing any underscores in the curly braces
+  // with spaces and removing the America/Detroit timezone, adding the America/New_York timezone instead.
+  const modifiedTimezones = useMemo(() => {
+    const { "America/Detroit": _, ...rest } = allTimezones;
+    return { ...rest, "America/New_York": "New York" };
+  }, []);
+
   return (
     <BaseSelect
       className={className}
@@ -41,13 +48,15 @@ export function TimezoneSelect({
       isDisabled={isLoading}
       {...reactSelectProps}
       timezones={{
-        ...allTimezones,
+        ...modifiedTimezones,
         ...addCitiesToDropdown(cities),
         "America/Asuncion": "Asuncion",
       }}
       onInputChange={handleInputChange}
       {...props}
-      formatOptionLabel={(option) => <p className="truncate">{(option as ITimezoneOption).value}</p>}
+      formatOptionLabel={(option) => (
+        <p className="truncate">{(option as ITimezoneOption).value.replace(/_/g, " ")}</p>
+      )}
       getOptionLabel={(option) => handleOptionLabel(option as ITimezoneOption, cities)}
       classNames={{
         ...timezoneClassNames,
