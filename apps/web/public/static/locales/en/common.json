@@ -1842,5 +1842,7 @@
   "first_event_type_webhook_description": "Create your first webhook for this event type",
   "create_for": "Create for",
   "additional_url_parameters": "Additional URL parameters",
+  "crm": "CRM",
+  "messaging": "Messaging",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

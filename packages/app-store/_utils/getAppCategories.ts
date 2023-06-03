@@ -1,5 +1,16 @@
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { Calendar, Video, CreditCard, Share2, BarChart, Grid } from "@calcom/ui/components/icon";
+import type { AppCategories } from "@calcom/prisma/enums";
+import type { LucideIcon } from "@calcom/ui/components/icon";
+import {
+  Calendar,
+  Video,
+  CreditCard,
+  Share2,
+  BarChart,
+  Grid,
+  Mail,
+  Contact,
+} from "@calcom/ui/components/icon";
 
 function getHref(baseURL: string, category: string, useQueryParam: boolean) {
   const baseUrlParsed = new URL(baseURL, WEBAPP_URL);
@@ -7,7 +18,13 @@ function getHref(baseURL: string, category: string, useQueryParam: boolean) {
   return useQueryParam ? `${baseUrlParsed.toString()}` : `${baseURL}/${category}`;
 }
 
-const getAppCategories = (baseURL: string, useQueryParam: boolean) => {
+type AppCategoryEntry = {
+  name: AppCategories;
+  href: string;
+  icon: LucideIcon;
+};
+
+const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryEntry[] => {
   return [
     {
       name: "calendar",
@@ -43,6 +60,16 @@ const getAppCategories = (baseURL: string, useQueryParam: boolean) => {
       name: "other",
       href: getHref(baseURL, "other", useQueryParam),
       icon: Grid,
+    },
+    {
+      name: "crm",
+      href: getHref(baseURL, "crm", useQueryParam),
+      icon: Contact,
+    },
+    {
+      name: "messaging",
+      href: getHref(baseURL, "messaging", useQueryParam),
+      icon: Mail,
     },
   ];
 };
