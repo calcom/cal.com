@@ -8,7 +8,7 @@ import type { MultiValue } from "react-select";
 import { z } from "zod";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
-import { getEventLocationType, LocationType } from "@calcom/app-store/locations";
+import { getEventLocationType, LocationType, MeetLocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -25,12 +25,10 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
-import { Input } from "@calcom/ui";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { AddLocation } from "@components/eventtype/AddLocation";
-import type { SingleValueLocationOption, LocationOption } from "@components/ui/form/LocationSelect";
-import LocationSelect from "@components/ui/form/LocationSelect";
+import type { LocationOption } from "@components/ui/form/LocationSelect";
 
 const getLocationFromType = (
   type: EventLocationType["type"],
@@ -231,104 +229,10 @@ export const EventSetupTab = (
     const [showSelect, setShowSelect] = useState(false);
     const [showAddressSelect, setShowAddressSelect] = useState(false);
     const [selectedEventLocationType, setSelectedEventLocationType] = useState(null);
-    console.log(selectedEventLocationType, "selecct");
-    console.log(locationFormMethods.getValues(), "ss");
-
     return (
       <div className="w-full">
-        {validLocations.length === 0 && (
-          <div className="flex">
-            <LocationSelect
-              placeholder={t("select")}
-              options={locationOptions}
-              isDisabled={shouldLockDisableProps("locations").disabled}
-              defaultValue={defaultValue}
-              isSearchable={false}
-              className="block w-full min-w-0 flex-1 rounded-sm text-sm"
-              menuPlacement="auto"
-              onChange={(e: SingleValueLocationOption) => {
-                if (e?.value) {
-                  const newLocationType = e.value;
-                  const eventLocationType = getEventLocationType(newLocationType);
-                  if (!eventLocationType) {
-                    return;
-                  }
-                  locationFormMethods.setValue("locationType", newLocationType);
-                  saveLocation(newLocationType);
-                  // if (eventLocationType.organizerInputType) {
-                  //   openLocationModal(newLocationType);
-                  // } else {
-                  //   saveLocation(newLocationType);
-                  // }
-                }
-              }}
-            />
-          </div>
-        )}
-        {/*{validLocations.length > 0 && (
+        {validLocations.length > 0 && (
           <ul ref={animationRef}>
-            {validLocations.map((location, index) => {
-              const eventLocationType = getEventLocationType(location.type);
-              console.log(eventLocationType, "es");
-              if (!eventLocationType) {
-                return null;
-              }
-              console.log(location);
-              const eventLabel =
-                location[eventLocationType.defaultValueVariable] || t(eventLocationType.label);
-
-              return (
-                <SavedLocationField 
-                  location={location} 
-                  index={index} 
-                  eventLocationType={eventLocationType}
-                  eventLabel={eventLabel}
-                  locationFormMethods={locationFormMethods}
-                  openLocationModal={openLocationModal}
-                  setEditingLocationType={setEditingLocationType}
-                  removeLocation={removeLocation}
-                />
-                <li
-      key={`${location.type}${index}`}
-      className="border-default text-default mb-2 h-9 rounded-md border py-1.5 px-2 hover:cursor-pointer">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center">
-          <img
-            src={eventLocationType.iconUrl}
-            className={cx(
-              "h-4 w-4",
-              // invert all the icons except app icons
-              eventLocationType.iconUrl &&
-                !eventLocationType.iconUrl.startsWith("/app-store") &&
-                "dark:invert"
-            )}
-            alt={`${eventLocationType.label} logo`}
-          />
-          <span className="line-clamp-1 ms-1 text-sm">{eventLabel}</span>
-        </div>
-        <div className="flex">
-          <button
-            type="button"
-            onClick={() => {
-              locationFormMethods.setValue("locationType", location.type);
-              locationFormMethods.unregister("locationLink");
-              locationFormMethods.unregister("locationAddress");
-              locationFormMethods.unregister("locationPhoneNumber");
-              setEditingLocationType(location.type);
-              openLocationModal(location.type);
-            }}
-            aria-label={t("edit")}
-            className="hover:text-emphasis text-subtle mr-1 p-1">
-            <Edit2 className="h-4 w-4" />
-          </button>
-          <button type="button" onClick={() => removeLocation(location)} aria-label={t("remove")}>
-            <X className="border-l-1 hover:text-emphasis text-subtle h-6 w-6 pl-1 " />
-          </button>
-        </div>
-      </div>
-    </li>
-              );
-            })}
             {validLocations.some(
               (location) =>
                 location.type === MeetLocationType && destinationCalendar?.integration !== "google_calendar"
@@ -356,102 +260,29 @@ export const EventSetupTab = (
                 </a>
               </p>
             )}
-            {validLocations.length > 0 && !isManagedEventType && !isChildrenManagedEventType && (
-              <li>
-                <Button
-                  data-testid="add-location"
-                  StartIcon={Plus}
-                  color="minimal"
-                  onClick={() => setShowLocationModal(true)}>
-                  {t("add_location")}
-                </Button>
-              </li>
-            )}
           </ul>
-        )}*/}
-        {showSelect && (
-          <LocationSelect
-            placeholder="Select location of meeting"
-            options={locationOptions}
-            isSearchable={false}
-            className="block w-full min-w-0 flex-1 rounded-sm text-sm"
-            menuPlacement="auto"
-            onChange={(e: SingleValueLocationOption) => {
-              if (e?.value) {
-                const newLocationType = e.value;
-                const eventLocationType = getEventLocationType(newLocationType);
-                console.log(eventLocationType, "e");
-                if (eventLocationType?.organizerInputType) {
-                  setSelectedEventLocationType(eventLocationType);
-                  setShowAddressSelect(true);
+        )}
+        <AddLocation
+          locationOptions={locationOptions}
+          locationFormMethods={formMethods}
+          defaultValues={formMethods.getValues("locations")}
+          saveLocation={saveLocation}
+          selection={
+            selectedLocation
+              ? {
+                  value: selectedLocation.value,
+                  label: t(selectedLocation.label),
+                  icon: selectedLocation.icon,
                 }
-
-                if (!eventLocationType) {
-                  return;
-                }
-                locationFormMethods.setValue("locationType", newLocationType);
-                // saveLocation(newLocationType);
-              }
-            }}
-          />
-        )}
-        {showAddressSelect && (
-          <div className="px-4">
-            <Input
-              ref={animationRef}
-              type="text"
-              placeholder={selectedEventLocationType.messageForOrganizer}
-              {...locationFormMethods.register(selectedEventLocationType.variable)}
-              onBlur={(e) => {
-                const inputName = selectedEventLocationType.variable;
-                const inputValue = e.target.value;
-                const details = {
-                  address: inputValue,
-                };
-                // locationFormMethods.setValue(inputName, inputValue);
-                setShowAddressSelect(false);
-                formMethods.setValue(
-                  "locations",
-                  formMethods
-                    .getValues("locations")
-                    .concat({ type: selectedEventLocationType.type, ...details })
-                );
-                setShowSelect(false);
-              }}
-            />
-          </div>
-        )}
-        {/* {validLocations.length > 0 && (
-          <Button
-            data-testid="add-location"
-            StartIcon={Plus}
-            color="minimal"
-            onClick={() => setShowSelect(!showSelect)}>
-            {!showSelect ? "Add Location" : "Remove Location"}
-          </Button>
-        )} */}
-        {validLocations.length > 0 && (
-          <AddLocation
-            locationOptions={locationOptions}
-            locationFormMethods={formMethods}
-            defaultValues={formMethods.getValues("locations")}
-            saveLocation={saveLocation}
-            selection={
-              selectedLocation
-                ? {
-                    value: selectedLocation.value,
-                    label: t(selectedLocation.label),
-                    icon: selectedLocation.icon,
-                  }
-                : undefined
-            }
-            setSelectedLocation={setSelectedLocation}
-            setEditingLocationType={setEditingLocationType}
-            openLocationModal={openLocationModal}
-            removeLocation={removeLocation}
-            // showEditSelect={showLocationModal}
-          />
-        )}
+              : undefined
+          }
+          setSelectedLocation={setSelectedLocation}
+          setEditingLocationType={setEditingLocationType}
+          openLocationModal={openLocationModal}
+          removeLocation={removeLocation}
+          isManagedEventType={isManagedEventType}
+          isChildrenManagedEventType={isChildrenManagedEventType}
+        />
       </div>
     );
   };
