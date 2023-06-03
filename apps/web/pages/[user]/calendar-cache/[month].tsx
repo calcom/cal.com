@@ -3,14 +3,12 @@
  * caching system that NextJS uses SSG pages.
  * TODO: Redirect to user profile on browser
  */
-import type { GetStaticPaths, GetStaticProps } from "next";
+import type { GetStaticPaths, GetStaticProps, InferGetStaticPropsType } from "next";
 import { z } from "zod";
 
 import { getCachedResults } from "@calcom/core";
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-
-const CalendarCache = () => <div />;
 
 const paramsSchema = z.object({ user: z.string(), month: z.string() });
 export const getStaticProps: GetStaticProps<
@@ -29,16 +27,16 @@ export const getStaticProps: GetStaticProps<
       selectedCalendars: true,
     },
   });
-  const startDate = (
-    dayjs(month, "YYYY-MM").isSame(dayjs(), "month") ? dayjs.utc() : dayjs.utc(month, "YYYY-MM")
-  ).startOf("day");
-  const endDate = startDate.endOf("month");
+  // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
+  const startDate = dayjs.utc(month, "YYYY-MM").startOf("day").subtract(11, "hours").format();
+  // Add 14 hours from the start date to avoid problems in UTC+ time zones.
+  const endDate = dayjs.utc(month, "YYYY-MM").endOf("month").add(14, "hours").format();
   try {
     const results = userWithCredentials?.credentials
       ? await getCachedResults(
           userWithCredentials?.credentials,
-          startDate.format(),
-          endDate.format(),
+          startDate,
+          endDate,
           userWithCredentials?.selectedCalendars
         )
       : [];
@@ -64,5 +62,8 @@ export const getStaticPaths: GetStaticPaths = () => {
     fallback: "blocking",
   };
 };
+type Props = InferGetStaticPropsType<typeof getStaticProps>;
+const CalendarCache = (props: Props) =>
+  process.env.NODE_ENV === "development" ? <pre>{JSON.stringify(props, null, "  ")}</pre> : <div />;
 
 export default CalendarCache;
