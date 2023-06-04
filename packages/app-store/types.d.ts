@@ -11,6 +11,12 @@ export type IntegrationOAuthCallbackState = {
   teamId?: number;
 };
 
+export type CredentialOwner = {
+  name: string;
+  avatar?: string;
+  teamId?: number;
+};
+
 type AppScript = { attrs?: Record<string, string> } & { src?: string; content?: string };
 
 export type Tag = {
@@ -35,6 +41,9 @@ export type EventTypeAppCardComponentProps = {
   > & {
     URL: string;
   };
-  app: RouterOutputs["viewer"]["apps"][number];
+  app: RouterOutputs["viewer"]["apps"][number] & {
+    credentialOwner?: CredentialOwner;
+    credentialIds?: number[];
+  };
 };
 export type EventTypeAppCardComponent = React.FC<EventTypeAppCardComponentProps>;
