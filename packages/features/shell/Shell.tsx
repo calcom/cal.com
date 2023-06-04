@@ -646,12 +646,12 @@ const NavigationItem: React.FC<{
           href={item.href}
           aria-label={t(item.name)}
           className={classNames(
-            "hover:bg-emphasis [&[aria-current='page']]:bg-emphasis hover:text-emphasis text-default group flex items-center rounded-md py-2 px-3 text-sm font-medium",
+            `[&[aria-current='page']]:bg-emphasis text-default group flex items-center rounded-md py-2 px-3 text-sm font-medium`,
             isChild
-              ? `[&[aria-current='page']]:text-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
+              ? `[&[aria-current='page']]:text-emphasis hover:text-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
                   props.index === 0 ? "mt-0" : "mt-px"
                 }`
-              : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm"
+              :`${isLocaleReady?"hover:bg-emphasis hover:text-emphasis":"my-[0.395rem]"} [&[aria-current='page']]:text-emphasis mt-0.5 text-sm`
           )}
           aria-current={current ? "page" : undefined}>
           {item.icon && (
@@ -667,7 +667,7 @@ const NavigationItem: React.FC<{
               {item.badge && item.badge}
             </span>
           ) : (
-            <SkeletonText className="h-3 w-32" />
+            <SkeletonText className="ml-2 h-3 w-32" />
           )}
         </Link>
       </Tooltip>
