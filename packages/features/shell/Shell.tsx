@@ -668,7 +668,7 @@ const NavigationItem: React.FC<{
               {item.badge && item.badge}
             </span>
           ) : (
-            <SkeletonText style={{ width: `${item.name.length * 10}px` }} className="h-3" />
+            <SkeletonText style={{ width: `${item.name.length * 10}px` }} className="h-[20px]" />
           )}
         </Link>
       </Tooltip>
