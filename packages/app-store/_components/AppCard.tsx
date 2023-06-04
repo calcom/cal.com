@@ -7,6 +7,7 @@ import { Switch, Badge, Avatar } from "@calcom/ui";
 
 import type { SetAppDataGeneric } from "../EventTypeAppContext";
 import type { eventTypeAppCardZod } from "../eventTypeAppCardZod";
+import type { CredentialOwner } from "../types";
 import OmniInstallAppButton from "./OmniInstallAppButton";
 
 export default function AppCard({
@@ -18,7 +19,7 @@ export default function AppCard({
   setAppData,
   returnTo,
 }: {
-  app: RouterOutputs["viewer"]["apps"][number] & { credentialOwner: { name: string; avatar?: string } };
+  app: RouterOutputs["viewer"]["apps"][number] & { credentialOwner?: CredentialOwner };
   description?: React.ReactNode;
   switchChecked?: boolean;
   switchOnClick?: (e: boolean) => void;
