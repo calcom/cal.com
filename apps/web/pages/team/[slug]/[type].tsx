@@ -139,15 +139,31 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!team || team.eventTypes.length != 1) {
+  if (!team) {
     return {
       notFound: true,
-    } as {
-      notFound: true;
+    };
+  }
+
+  if (!team.eventTypes.length) {
+    return {
+      redirect: {
+        destination: `/team/${slugParam}`,
+        permanent: false,
+      },
     };
   }
 
   const [eventType] = team.eventTypes;
+
+  if (!eventType) {
+    return {
+      redirect: {
+        destination: `/team/${slugParam}`,
+        permanent: false,
+      },
+    };
+  }
 
   const timeZone = eventType.schedule?.timeZone || eventType.timeZone || undefined;
 
