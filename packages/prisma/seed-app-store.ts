@@ -324,7 +324,6 @@ export default async function main() {
     });
   }
 
-  // Web3 apps
   await createApp("huddle01", "huddle01video", ["conferencing"], "huddle01_video");
 
   // Payment apps
