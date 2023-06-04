@@ -229,16 +229,16 @@ const IntegrationsContainer = ({
   const { t } = useLocale();
   const query = trpc.viewer.integrations.useQuery({ variant, exclude, onlyInstalled: true });
 
-  // TODO: Overlap between this and getAppCategories. Extract icon map and share?
+  // TODO: Refactor and reuse getAppCategories?
   const emptyIcon: Record<AppCategories, LucideIcon> = {
     calendar: Calendar,
     conferencing: Video,
     automation: Share2,
     analytics: BarChart,
     payment: CreditCard,
-    web3: BarChart,
+    web3: BarChart, // deprecated
     other: Grid,
-    video: Video,
+    video: Video, // deprecated
     messaging: Mail,
     crm: Contact,
   };

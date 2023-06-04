@@ -26,6 +26,7 @@ type AppCategoryEntry = {
 
 const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryEntry[] => {
   // Manually sorted alphabetically, but leaving "Other" at the end
+  // TODO: Refactor and type with Record<AppCategories, AppCategoryEntry> to enforce consistency
   return [
     {
       name: "analytics",
