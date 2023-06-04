@@ -193,7 +193,7 @@ function EventTypeSingleLayout({
                   : `default_schedule_name`
               }`
             : eventType.scheduleName ?? `default_schedule_name`
-          : `default_schedule_name`,
+          : eventType.scheduleName ?? `default_schedule_name`,
     });
     // If there is a team put this navigation item within the tabs
     if (team) {
