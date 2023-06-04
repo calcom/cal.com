@@ -61,7 +61,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     brandColor: input.brandColor,
     darkBrandColor: input.darkBrandColor,
     theme: input.theme,
-    locale: input.locale,
     timeZone: input.timeZone,
     weekStart: input.weekStart,
     timeFormat: input.timeFormat,
