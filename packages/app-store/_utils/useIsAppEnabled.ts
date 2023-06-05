@@ -43,7 +43,7 @@ const useIsAppEnabled = (app: EventTypeAppCardApp, getAppData: unknown, setAppDa
     setEnabled(newValue);
   };
 
-  return [enabled, updateEnabled];
+  return { enabled, updateEnabled };
 };
 
 export default useIsAppEnabled;
