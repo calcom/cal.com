@@ -33,6 +33,7 @@ const ENDPOINTS = [
   "saml",
   "slots",
   "teams",
+  "organizations",
   "users",
   "viewer",
   "webhook",

@@ -19,7 +19,6 @@ import {
   BooleanToggleGroupField,
   SelectField,
   InputField,
-  Input,
   showToast,
   Switch,
 } from "@calcom/ui";

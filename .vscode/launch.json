@@ -5,11 +5,12 @@
       "type": "node",
       "request": "launch",
       "name": "Next.js Node Debug",
-      "runtimeExecutable": "${workspaceFolder}/node_modules/next/dist/bin/next",
+      "runtimeExecutable": "${userHome}/.yarn/bin/yarn",
+      "runtimeArgs": ["dev"],
       "env": {
         "NODE_OPTIONS": "--inspect"
       },
-      "cwd": "${workspaceFolder}/apps/web",
+      "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "sourceMapPathOverrides": {
         "meteor://💻app/*": "${workspaceFolder}/*",
