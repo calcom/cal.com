@@ -1,7 +1,6 @@
-import { useState } from "react";
-
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
+import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { TextField } from "@calcom/ui";
 
@@ -10,10 +9,10 @@ import type { appDataSchema } from "../zod";
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
   const trackingId = getAppData("trackingId");
-  const [enabled, setEnabled] = useState(getAppData("enabled"));
+  const { enabled, updateEnabled } = useIsAppEnabled(app, getAppData, setAppData);
 
   return (
-    <AppCard setAppData={setAppData} app={app} switchOnClick={setEnabled} switchChecked={enabled}>
+    <AppCard setAppData={setAppData} app={app} switchOnClick={updateEnabled} switchChecked={enabled}>
       <TextField
         name="Pixel ID"
         value={trackingId}

@@ -1,8 +1,8 @@
 import { useRouter } from "next/router";
-import { useState } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
+import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,7 +20,12 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const currency = getAppData("currency");
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions.find((option) => paymentOption === option.value);
-  const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
+  const { enabled: requirePayment, updateEnabled: setRequirePayment } = useIsAppEnabled(
+    app,
+    getAppData,
+    setAppData
+  );
+
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
   const seatsEnabled = !!eventType.seatsPerTimeSlot;

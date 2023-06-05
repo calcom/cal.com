@@ -1,7 +1,6 @@
-import { useState } from "react";
-
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
+import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { TextField } from "@calcom/ui";
 
@@ -11,7 +10,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
   const plausibleUrl = getAppData("PLAUSIBLE_URL");
   const trackingId = getAppData("trackingId");
-  const [enabled, setEnabled] = useState(getAppData("enabled"));
+  const { enabled, updateEnabled } = useIsAppEnabled(app, getAppData, setAppData);
 
   return (
     <AppCard
@@ -19,9 +18,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       app={app}
       switchOnClick={(e) => {
         if (!e) {
-          setEnabled(false);
+          updateEnabled(false);
         } else {
-          setEnabled(true);
+          updateEnabled(true);
         }
       }}
       switchChecked={enabled}>
