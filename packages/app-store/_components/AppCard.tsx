@@ -49,8 +49,7 @@ export default function AppCard({
           <div className="flex flex-col">
             <span className="text-emphasis text-base font-semibold leading-4">{app?.name}</span>
             <p
-              className={`text-default max-w-md truncate pt-2
-              text-sm font-normal ltr:pr-2 rtl:pl-2`}>
+              className="text-default max-w-md truncate pt-2 text-sm font-normal ltr:pr-2 rtl:pl-2">
               {description || app?.description}
             </p>
           </div>
