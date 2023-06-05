@@ -319,6 +319,7 @@ function BookingListItem(booking: BookingItemProps) {
             <DialogClose />
             <Button
               disabled={mutation.isLoading}
+              data-testid="rejection-confirm"
               onClick={() => {
                 bookingConfirm(false);
               }}>

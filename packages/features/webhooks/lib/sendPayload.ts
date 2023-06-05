@@ -16,7 +16,7 @@ export type EventTypeInfo = {
   length?: number | null;
 };
 
-type WebhookDataType = CalendarEvent &
+export type WebhookDataType = CalendarEvent &
   EventTypeInfo & {
     metadata?: { [key: string]: string };
     bookingId?: number;

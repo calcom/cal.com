@@ -131,9 +131,9 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   return booking;
 }
 
-export async function rescheduleEvent(username, frame, page) {
+export async function rescheduleEvent(username: string, frame: Frame, page: Page) {
   await selectFirstAvailableTimeSlotNextMonth(frame, page);
-  await frame.waitForURL((url) => {
+  await frame.waitForURL((url: { pathname: string | string[] }) => {
     return url.pathname.includes(`/${username}/book`);
   });
   // --- fill form
