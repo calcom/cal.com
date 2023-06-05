@@ -1668,6 +1668,7 @@
   "booking_questions_title": "预约问题",
   "booking_questions_description": "自定义预约页面上提出的问题",
   "add_a_booking_question": "添加问题",
+  "identifier": "标识符",
   "duplicate_email": "电子邮件重复",
   "booking_with_payment_cancelled": "无法再为此活动付费",
   "booking_with_payment_cancelled_already_paid": "此预约的退款正在进行中。",

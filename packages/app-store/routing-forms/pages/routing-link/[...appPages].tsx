@@ -82,7 +82,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   }, [customPageMessage]);
 
   const responseMutation = trpc.viewer.appRoutingForms.public.response.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       const decidedActionWithFormResponse = decidedActionWithFormResponseRef.current;
       if (!decidedActionWithFormResponse) {
         return;
@@ -98,7 +98,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       if (decidedAction.type === "customPageMessage") {
         setCustomPageMessage(decidedAction.value);
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
-        router.push(`/${decidedAction.value}?${allURLSearchParams}`);
+        await router.push(`/${decidedAction.value}?${allURLSearchParams}`);
       } else if (decidedAction.type === "externalRedirectUrl") {
         window.parent.location.href = `${decidedAction.value}?${allURLSearchParams}`;
       }
