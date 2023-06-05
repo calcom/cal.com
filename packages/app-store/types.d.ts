@@ -17,6 +17,11 @@ export type CredentialOwner = {
   teamId?: number;
 };
 
+export type EventTypeAppCardApp = RouterOutputs["viewer"]["apps"][number] & {
+  credentialOwner?: CredentialOwner;
+  credentialIds?: number[];
+};
+
 type AppScript = { attrs?: Record<string, string> } & { src?: string; content?: string };
 
 export type Tag = {
@@ -41,9 +46,6 @@ export type EventTypeAppCardComponentProps = {
   > & {
     URL: string;
   };
-  app: RouterOutputs["viewer"]["apps"][number] & {
-    credentialOwner?: CredentialOwner;
-    credentialIds?: number[];
-  };
+  app: EventTypeAppCardApp;
 };
 export type EventTypeAppCardComponent = React.FC<EventTypeAppCardComponentProps>;
