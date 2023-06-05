@@ -37,10 +37,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         logo: true,
       },
     });
-    console.log(
-      "🚀 ~ file: integrations.handler.ts:40 ~ integrationsHandler ~ userAdminTeams:",
-      userAdminTeams
-    );
+
     const teamAppCredentials = [];
     userAdminTeams.forEach((teamApp) => {
       teamAppCredentials.push(...teamApp.credentials.flat());

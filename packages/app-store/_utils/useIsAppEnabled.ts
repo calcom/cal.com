@@ -5,7 +5,6 @@ import type { EventTypeAppCardApp } from "../types";
 const useIsAppEnabled = (app: EventTypeAppCardApp, getAppData: unknown, setAppData: unknown) => {
   const [enabled, setEnabled] = useState(false);
   useEffect(() => {
-    console.log("This hook triggered");
     if (!app.credentialOwner) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore

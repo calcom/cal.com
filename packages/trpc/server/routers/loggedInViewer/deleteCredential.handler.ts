@@ -28,7 +28,6 @@ type DeleteCredentialOptions = {
 
 export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOptions) => {
   const { id, externalId, teamId } = input;
-  console.log("🚀 ~ file: deleteCredential.handler.ts:31 ~ deleteCredentialHandler ~ input:", input);
 
   const credential = await prisma.credential.findFirst({
     where: {
