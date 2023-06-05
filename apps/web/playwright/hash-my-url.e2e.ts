@@ -6,7 +6,7 @@ import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "./lib/testU
 test.describe.configure({ mode: "parallel" });
 
 // TODO: This test is very flaky. Feels like tossing a coin and hope that it won't fail. Needs to be revisited.
-test.fixme("hash my url", () => {
+test.describe("hash my url", () => {
   test.beforeEach(async ({ users }) => {
     const user = await users.create();
     await user.login();
@@ -32,6 +32,7 @@ test.fixme("hash my url", () => {
     // click update
     await page.locator('[data-testid="update-eventtype"]').press("Enter");
 
+    await page.waitForTimeout(1000);
     await page.waitForLoadState("networkidle");
 
     // book using generated url hash
