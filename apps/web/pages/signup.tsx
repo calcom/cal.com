@@ -9,10 +9,10 @@ import { z } from "zod";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import prisma from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert, Button, EmailField, HeadSeo, PasswordField, TextField } from "@calcom/ui";
 
@@ -158,6 +158,8 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
 }
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+  const flags = await getFeatureFlagMap(prisma);
   const ssr = await ssrInit(ctx);
   const token = z.string().optional().parse(ctx.query.token);
 
@@ -168,7 +170,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     prepopulateFormValues: undefined,
   };
 
-  if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
+  if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" || flags["disable-signup"]) {
+    console.log({ flag: flags["disable-signup"] });
+
     return {
       notFound: true,
     };
