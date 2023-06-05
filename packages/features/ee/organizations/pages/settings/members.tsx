@@ -1,4 +1,3 @@
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -62,7 +61,6 @@ function MembersList(props: MembersListProps) {
 const MembersView = () => {
   const { t, i18n } = useLocale();
   const router = useRouter();
-  const session = useSession();
   const utils = trpc.useContext();
   const showDialog = router.query.inviteModal === "true";
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(showDialog);
