@@ -11,4 +11,5 @@ export type AppFlags = {
   "managed-event-types": boolean;
   "booker-layouts": boolean;
   "google-workspace-directory": boolean;
+  "disable-signup": boolean;
 };
