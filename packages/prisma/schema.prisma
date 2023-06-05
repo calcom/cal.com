@@ -111,8 +111,6 @@ model EventType {
   bookingLimits           Json?
   /// @zod.custom(imports.intervalLimitsType)
   durationLimits          Json?
-  /// @zod.custom(imports.bookerLayouts)
-  bookerLayouts           Json?
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -227,8 +225,6 @@ model User {
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
   verifiedNumbers      VerifiedNumber[]
   hosts                Host[]
-  /// @zod.custom(imports.bookerLayouts)
-  defaultBookerLayouts Json?
 
   @@index([email])
   @@index([emailVerified])

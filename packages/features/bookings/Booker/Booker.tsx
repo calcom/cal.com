@@ -108,7 +108,7 @@ const BookerComponent = ({
         since that's not a valid option, so it would set the layout to null.
       */}
       {!isMobile && !!bookerLayouts && bookerLayouts.enabledLayouts.length > 1 && (
-        <div className="[&>div]:bg-default dark:[&>div]:bg-muted top-2 right-3 z-10">
+        <div className="[&>div]:bg-default dark:[&>div]:bg-muted fixed top-2 right-3 z-10">
           <ToggleGroup
             onValueChange={onLayoutToggle}
             value={layout}

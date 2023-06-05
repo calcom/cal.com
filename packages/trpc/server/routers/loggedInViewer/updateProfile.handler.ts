@@ -28,7 +28,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const { user } = ctx;
   const data: Prisma.UserUpdateInput = {
     ...input,
-    defaultBookerLayouts: input.defaultBookerLayouts as Prisma.InputJsonValue,
     metadata: input.metadata as Prisma.InputJsonValue,
   };
 

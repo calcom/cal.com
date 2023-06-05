@@ -48,7 +48,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     teamId,
     bookingFields,
     offsetStart,
-    bookerLayouts,
     ...rest
   } = input;
 
@@ -57,7 +56,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     bookingFields,
-    bookerLayouts: bookerLayouts || undefined,
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
   };
   data.locations = locations ?? undefined;
@@ -114,7 +112,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     data.offsetStart = offsetStart;
   }
 
-  const bookerLayoutsError = validateBookerLayouts(bookerLayouts || null);
+  const bookerLayoutsError = validateBookerLayouts(input.metadata?.bookerLayouts || null);
   if (bookerLayoutsError) {
     // Function returns a translation key, this maps it to an actual English text.
     const errorText = {

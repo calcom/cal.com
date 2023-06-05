@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
-import { bookerLayouts, userMetadata } from "@calcom/prisma/zod-utils";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 
 export const ZUpdateProfileInputSchema = z.object({
   username: z.string().optional(),
@@ -21,7 +21,6 @@ export const ZUpdateProfileInputSchema = z.object({
   timeFormat: z.number().optional(),
   disableImpersonation: z.boolean().optional(),
   metadata: userMetadata.optional(),
-  defaultBookerLayouts: bookerLayouts.optional(),
 });
 
 export type TUpdateProfileInputSchema = z.infer<typeof ZUpdateProfileInputSchema>;

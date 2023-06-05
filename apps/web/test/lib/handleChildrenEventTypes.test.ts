@@ -120,7 +120,6 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
-          bookerLayouts: undefined,
           userId: 4,
         },
       });
@@ -155,7 +154,6 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
-          bookerLayouts: undefined,
           hashedLink: { create: { link: expect.any(String) } },
         },
         where: {
@@ -245,7 +243,6 @@ describe("handleChildrenEventTypes", () => {
           durationLimits: undefined,
           recurringEvent: undefined,
           hashedLink: undefined,
-          bookerLayouts: undefined,
           userId: 4,
         },
       });
@@ -281,7 +278,6 @@ describe("handleChildrenEventTypes", () => {
           durationLimits: undefined,
           recurringEvent: undefined,
           scheduleId: undefined,
-          bookerLayouts: undefined,
         },
         where: {
           userId_parentId: {
@@ -330,7 +326,6 @@ describe("handleChildrenEventTypes", () => {
           durationLimits: undefined,
           recurringEvent: undefined,
           hashedLink: undefined,
-          bookerLayouts: undefined,
           locations: [],
           parentId: 1,
           userId: 5,
@@ -355,7 +350,6 @@ describe("handleChildrenEventTypes", () => {
           hashedLink: undefined,
           workflows: undefined,
           scheduleId: undefined,
-          bookerLayouts: undefined,
         },
         where: {
           userId_parentId: {

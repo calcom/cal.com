@@ -24,6 +24,8 @@ type BookerLayoutSelectorProps = {
   fallbackToUserSettings?: boolean;
 };
 
+const defaultFieldName = "metadata.bookerLayouts";
+
 export const BookerLayoutSelector = ({
   title,
   description,
@@ -33,8 +35,7 @@ export const BookerLayoutSelector = ({
   const { control, getValues } = useFormContext();
   const { t } = useLocale();
   // Only fallback if event current does not have any settings, and the fallbackToUserSettings boolean is set.
-  const shouldShowUserSettings =
-    (fallbackToUserSettings && getValues(name || "bookerLayouts") === null) || false;
+  const shouldShowUserSettings = (fallbackToUserSettings && !getValues(name || defaultFieldName)) || false;
 
   // @TODO: Enable this before merge, so we don't show the settings before release.
   // const flags = useFlagMap();
@@ -51,7 +52,7 @@ export const BookerLayoutSelector = ({
         // That way the settings won't get saved into the event on save, but remain null. Thus keep using
         // the global user's settings.
         control={shouldShowUserSettings ? undefined : control}
-        name={name || "bookerLayouts"}
+        name={name || defaultFieldName}
         render={({ field: { value, onChange } }) => (
           <BookerLayoutFields
             showUserSettings={shouldShowUserSettings}

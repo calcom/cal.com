@@ -102,7 +102,6 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     successRedirectUrl: null,
     bookingFields: [],
     parentId: null,
-    bookerLayouts: null,
     ...eventType,
   };
 };
@@ -218,7 +217,6 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     twoFactorSecret: null,
     verified: false,
     weekStart: "",
-    defaultBookerLayouts: null,
     ...user,
   };
 };
