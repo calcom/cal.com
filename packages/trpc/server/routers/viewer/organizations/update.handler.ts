@@ -1,6 +1,5 @@
 import type { Prisma } from "@prisma/client";
 
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
@@ -18,22 +17,6 @@ type UpdateOptions = {
   };
   input: TUpdateInputSchema;
 };
-
-// @Leo - looking at this the more i think this should be its own route. This is for updating a org that is used elsehwere and
-// resetting password kinda polutes updateing an entire org. It could lead to API parameter manipulation down the line.
-async function updateAdminPassword(userId: number, password?: string) {
-  if (password) {
-    const hashedPassword = await hashPassword(password);
-    await prisma.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        password: hashedPassword,
-      },
-    });
-  }
-}
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // A user can only have one org so we pass in their currentOrgId here
@@ -107,8 +90,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     where: { id: currentOrgId },
     data,
   });
-
-  updateAdminPassword(ctx.user.id, input.password);
 
   // Sync Services: Close.com
   if (prevOrganisation) closeComUpdateTeam(prevOrganisation, updatedOrganisation);
