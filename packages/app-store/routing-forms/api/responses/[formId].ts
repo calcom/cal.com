@@ -39,7 +39,8 @@ async function* getResponses(
         if (value instanceof Array) {
           serializedValue = value.map((val) => escapeCsvText(val)).join(" | ");
         } else {
-          serializedValue = escapeCsvText(value);
+          // value can be a number as well for type Number field
+          serializedValue = escapeCsvText(String(value));
         }
         csvCells.push(serializedValue);
       });

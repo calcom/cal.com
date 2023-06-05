@@ -101,7 +101,7 @@ const BookerComponent = ({
           className={classNames(
             // Sets booker size css variables for the size of all the columns.
             ...getBookerSizeClassNames(layout, bookerState),
-            "bg-muted grid max-w-full auto-rows-fr items-start overflow-clip dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
+            "bg-default dark:bg-muted grid max-w-full auto-rows-fr items-start overflow-clip dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
             layout === "small_calendar" && "border-subtle rounded-md border"
           )}>
           <AnimatePresence>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
-import React, { Fragment, useEffect, useState, useRef, useLayoutEffect } from "react";
+import React, { Fragment, useEffect, useState, useRef } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
@@ -21,6 +21,7 @@ import AdminPasswordBanner from "@calcom/features/users/components/AdminPassword
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
+import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { trpc } from "@calcom/trpc/react";
@@ -143,7 +144,7 @@ const Layout = (props: LayoutProps) => {
   const bannerRef = useRef<HTMLDivElement | null>(null);
   const [bannersHeight, setBannersHeight] = useState<number>(0);
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
       const { offsetHeight } = entries[0].target as HTMLElement;
       setBannersHeight(offsetHeight);
@@ -641,34 +642,34 @@ const NavigationItem: React.FC<{
   return (
     <Fragment>
       <Tooltip side="right" content={t(item.name)} className="lg:hidden">
-      <Link
-        href={item.href}
-        aria-label={t(item.name)}
-        className={classNames(
-          "hover:bg-emphasis [&[aria-current='page']]:bg-emphasis hover:text-emphasis text-default group flex items-center rounded-md py-2 px-3 text-sm font-medium",
-          isChild
-            ? `[&[aria-current='page']]:text-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
-                props.index === 0 ? "mt-0" : "mt-px"
-              }`
-            : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm"
-        )}
-        aria-current={current ? "page" : undefined}>
-        {item.icon && (
-          <item.icon
-            className="h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2 [&[aria-current='page']]:text-inherit"
-            aria-hidden="true"
-            aria-current={current ? "page" : undefined}
-          />
-        )}
-        {isLocaleReady ? (
-          <span className="hidden w-full justify-between lg:flex">
-            <div className="flex">{t(item.name)}</div>
-            {item.badge && item.badge}
-          </span>
-        ) : (
-          <SkeletonText className="h-3 w-32" />
-        )}
-      </Link>
+        <Link
+          href={item.href}
+          aria-label={t(item.name)}
+          className={classNames(
+            "hover:bg-emphasis [&[aria-current='page']]:bg-emphasis hover:text-emphasis text-default group flex items-center rounded-md py-2 px-3 text-sm font-medium",
+            isChild
+              ? `[&[aria-current='page']]:text-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
+                  props.index === 0 ? "mt-0" : "mt-px"
+                }`
+              : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm"
+          )}
+          aria-current={current ? "page" : undefined}>
+          {item.icon && (
+            <item.icon
+              className="h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2 [&[aria-current='page']]:text-inherit"
+              aria-hidden="true"
+              aria-current={current ? "page" : undefined}
+            />
+          )}
+          {isLocaleReady ? (
+            <span className="hidden w-full justify-between lg:flex">
+              <div className="flex">{t(item.name)}</div>
+              {item.badge && item.badge}
+            </span>
+          ) : (
+            <SkeletonText className="h-3 w-32" />
+          )}
+        </Link>
       </Tooltip>
       {item.child &&
         isCurrent({ router, isChild, item }) &&
