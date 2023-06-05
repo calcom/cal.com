@@ -20,11 +20,9 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     extendsFeature: "EventType",
     ...(eventType.team && { teamId: eventType.team.id }),
   });
-  console.log("🚀 ~ file: EventAppsTab.tsx:22 ~ EventAppsTab ~ data:", eventTypeApps);
 
   const methods = useFormContext<FormValues>();
   const installedApps = eventTypeApps?.items.filter((app) => app.credentialIds.length) || [];
-  console.log("🚀 ~ file: EventAppsTab.tsx:28 ~ EventAppsTab ~ installedApps:", installedApps);
   const notInstalledApps = eventTypeApps?.items.filter((app) => !app.credentialIds.length) || [];
   const allAppsData = methods.watch("metadata")?.apps || {};
 
@@ -67,10 +65,6 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   );
 
   const appsWithTeamCredentials = eventTypeApps?.items.filter((app) => app.teams.length) || [];
-  console.log(
-    "🚀 ~ file: EventAppsTab.tsx:70 ~ EventAppsTab ~ appsWithTeamCredentials:",
-    appsWithTeamCredentials
-  );
   const cardsForAppsWithTeams = appsWithTeamCredentials.map((app) => {
     const appCards = [];
 
@@ -100,10 +94,6 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     }
     return appCards;
   });
-  console.log(
-    "🚀 ~ file: EventAppsTab.tsx:95 ~ cardsForAppsWithTeams ~ cardsForAppsWithTeams:",
-    cardsForAppsWithTeams
-  );
 
   return (
     <>
