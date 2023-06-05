@@ -26,7 +26,7 @@ export default class OrganizationEmailVerification extends BaseEmail {
     return {
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: this.orgVerifyInput.user.email,
-      subject: `Verify your email to create an organization`,
+      subject: this.orgVerifyInput.language("verify_email_organization"),
       html: renderEmail("OrganisationAccountVerifyEmail", this.orgVerifyInput),
       text: this.getTextBody(),
     };

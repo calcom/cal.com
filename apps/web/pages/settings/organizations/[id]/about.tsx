@@ -1,9 +1,8 @@
-import Head from "next/head";
 import { useRouter } from "next/router";
 
 import { AboutOrganizationForm } from "@calcom/features/ee/organizations/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WizardLayout } from "@calcom/ui";
+import { WizardLayout, Meta } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -13,13 +12,7 @@ const AboutOrganizationPage = () => {
   if (!router.isReady) return null;
   return (
     <>
-      <Head>
-        <title>About your organization</title>
-        <meta
-          name="description"
-          content="Organizations are shared environments where you can create multiple teams with shared members, event types, apps, workflows and more."
-        />
-      </Head>
+      <Meta title={t("about_your_organization")} description={t("about_your_organization_description")} />
       <AboutOrganizationForm />
     </>
   );

@@ -11,7 +11,6 @@ import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
-import { useFlagMap } from "@calcom/features/flags/context/provider";
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -60,7 +59,6 @@ import {
   Trash,
   Upload,
   Users,
-  X,
 } from "@calcom/ui/components/icon";
 
 import { withQuery } from "@lib/QueryCell";
@@ -754,40 +752,6 @@ const CreateFirstEventTypeView = () => {
   );
 };
 
-const SetupOrganizationBanner = () => {
-  const { t } = useLocale();
-
-  return (
-    <div className="bg-inverted text-inverted relative mx-4 mt-4 h-56 max-w-full rounded-md bg-[url('/noise.svg')] md:mt-8 lg:mx-12">
-      <div className="h-full w-full rounded-md bg-[url('/grid.png')] bg-[length:60%_100%] bg-[100%_0rem] bg-no-repeat">
-        <div className="h-full gap-4 rounded-md bg-[url('/orgs_banner.png')] bg-[length:50%] bg-[120%_4.4rem] bg-no-repeat">
-          <Button
-            variant="icon"
-            StartIcon={X}
-            color="minimal"
-            className="hover:text-muted absolute top-0 right-0 text-white hover:bg-transparent"
-          />
-          <div className="flex flex-col gap-2 px-8 pt-8 pb-8">
-            <h1 className="text-2xl font-bold">{t("organization_banner_title")}</h1>
-            <p className="max-w-2xl">{t("organization_banner_description")}</p>
-          </div>
-          <div className="flex flex-row gap-2 px-8">
-            <Button variant="button" color="secondary">
-              {t("setup_organization")}
-            </Button>
-            <Button
-              variant="button"
-              color="minimal"
-              className="text-inverted hover:text-muted hover:bg-transparent">
-              {t("learn_more")}
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const CTA = () => {
   const { t } = useLocale();
 
@@ -831,8 +795,6 @@ const EventTypesPage = () => {
     }
   }, []);
 
-  const flags = useFlagMap();
-
   return (
     <div>
       <HeadSeo
@@ -843,7 +805,6 @@ const EventTypesPage = () => {
         withoutSeo
         heading={t("event_types_page_title")}
         hideHeadingOnMobile
-        TopNavContainer={flags.organizations && <SetupOrganizationBanner />}
         subtitle={t("event_types_page_subtitle")}
         CTA={<CTA />}>
         <WithQuery

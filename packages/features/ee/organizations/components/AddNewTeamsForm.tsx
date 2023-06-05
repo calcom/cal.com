@@ -1,7 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,13 +13,10 @@ const querySchema = z.object({
 });
 
 export const AddNewTeamsForm = () => {
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
   const router = useRouter();
   const { id: orgId } = querySchema.parse(router.query);
   const [counter, setCounter] = useState(1);
-  const newAdminsFormMethods = useForm<{
-    teamNames: string[];
-  }>();
 
   const [inputValues, setInputValues] = useState<string[]>([""]);
 
@@ -59,15 +55,18 @@ export const AddNewTeamsForm = () => {
             key={index}
             value={inputValues[index]}
             onChange={(e) => handleInputChange(index, e.target.value)}
+            addOnClassname="bg-transparent p-0 border-l-0"
+            addOnSuffix={
+              index > 0 && (
+                <Button
+                  color="minimal"
+                  className="group/remove mx-2 px-0 hover:bg-transparent"
+                  onClick={() => handleRemoveInput(index)}>
+                  <X className="bg-subtle text group-hover/remove:text-inverted group-hover/remove:bg-inverted h-5 w-5 rounded-full p-1" />
+                </Button>
+              )
+            }
           />
-          {index > 0 && (
-            <Button
-              color="minimal"
-              className="absolute top-2 right-2 m-0 flex h-auto p-0"
-              onClick={() => handleRemoveInput(index)}>
-              <X className="bg-subtle text h-5 w-5 rounded-full p-1" />
-            </Button>
-          )}
         </div>
       ))}
       <Button
@@ -75,7 +74,7 @@ export const AddNewTeamsForm = () => {
         color="secondary"
         disabled={createTeamsMutation.isLoading}
         onClick={handleCounterIncrease}>
-        Add a team
+        {t("add_a_team")}
       </Button>
       <Button
         EndIcon={ArrowRight}
@@ -94,7 +93,7 @@ export const AddNewTeamsForm = () => {
             }
           }
         }}>
-        Continue
+        {t("continue")}
       </Button>
     </>
   );
