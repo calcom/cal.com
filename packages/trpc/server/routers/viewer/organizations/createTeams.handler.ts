@@ -17,6 +17,10 @@ type CreateTeamsOptions = {
 export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => {
   const { teamNames, orgId } = input;
 
+  const organization = await prisma.team.findFirst({ where: { id: orgId }, select: { slug: true } });
+
+  if (!organization?.slug) throw new TRPCError({ code: "BAD_REQUEST", message: "no_organization" });
+
   const userMembership = await prisma.membership.findFirst({
     where: {
       userId: ctx.user.id,
@@ -32,7 +36,26 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   if (!userMembership || userMembership.role !== MembershipRole.OWNER)
     throw new TRPCError({ code: "BAD_REQUEST", message: "not_authorized" });
 
+  const [teamSlugs, userSlugs] = await prisma.$transaction([
+    prisma.team.findMany({ where: { parentId: orgId }, select: { slug: true } }),
+    prisma.user.findMany({ where: { organizationId: orgId }, select: { username: true } }),
+  ]);
+
+  const existingSlugs = teamSlugs
+    .flatMap((ts) => ts.slug ?? [])
+    .concat(userSlugs.flatMap((us) => us.username ?? []));
+
+  const duplicatedSlugs = existingSlugs.filter((slug) => teamNames.includes(slug));
+
   await prisma.team.createMany({
-    data: teamNames.map((name) => ({ name, parentId: orgId, slug: slugify(name) })),
+    data: teamNames.flatMap((name) => {
+      if (!duplicatedSlugs.includes(name)) {
+        return { name, parentId: orgId, slug: slugify(name) };
+      } else {
+        return [];
+      }
+    }),
   });
+
+  return { duplicatedSlugs };
 };
