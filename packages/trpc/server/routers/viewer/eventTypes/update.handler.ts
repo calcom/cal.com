@@ -114,14 +114,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const bookerLayoutsError = validateBookerLayouts(input.metadata?.bookerLayouts || null);
   if (bookerLayoutsError) {
-    // Function returns a translation key, this maps it to an actual English text.
-    const errorText = {
-      bookerlayout_error_min_one_enabled: "At least one layout has to be enabled.",
-      bookerlayout_error_default_not_enabled:
-        "The layout you selected as the default view is not part of the enabled layouts.",
-      bookerlayout_error_unknown_layout: "The layout you selected is not a valid layout.",
-    };
-    throw new TRPCError({ code: "BAD_REQUEST", message: errorText[bookerLayoutsError] });
+    const t = await getTranslation("en", "common");
+    throw new TRPCError({ code: "BAD_REQUEST", message: t(bookerLayoutsError) });
   }
 
   if (schedule) {
