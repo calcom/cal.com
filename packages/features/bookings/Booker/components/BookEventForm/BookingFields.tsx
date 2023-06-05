@@ -103,7 +103,7 @@ export const BookingFields = ({
         }
 
         const label = noLabel ? "" : field.label || t(field.defaultLabel || "");
-        const placeholder = field.placeholder.toUpperCase() || t(field.defaultPlaceholder || "").toUpperCase();
+        const placeholder = (field.placeholder !== undefined) ? field.placeholder.toUpperCase() : t((field.defaultPlaceholder ?? '').toUpperCase());
 
         return (
           <FormBuilderField
