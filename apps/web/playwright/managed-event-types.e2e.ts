@@ -11,7 +11,7 @@ test.describe("Managed Event Types tests", () => {
     // Creating the member user of the team
     const memberUser = await users.create();
     // First we work with owner user, logging in
-    await adminUser.login();
+    await adminUser.apiLogin();
     // Making sure page loads completely
     await page.waitForLoadState("networkidle");
     // Let's create a team
@@ -58,7 +58,7 @@ test.describe("Managed Event Types tests", () => {
       // Now we need to accept the invitation as member and come back in as admin to
       // assign the member in the managed event type
       await adminUser.logout();
-      await memberUser.login();
+      await memberUser.apiLogin();
       await page.waitForSelector('[data-testid="event-types"]');
       await page.goto("/teams");
       await page.waitForLoadState("networkidle");
@@ -67,7 +67,7 @@ test.describe("Managed Event Types tests", () => {
       await memberUser.logout();
 
       // Coming back as team owner to assign member user to managed event
-      await adminUser.login();
+      await adminUser.apiLogin();
       await page.waitForLoadState("networkidle");
       await page.locator('[data-testid="event-types"] a[title="managed"]').click();
       await page.locator('[data-testid="vertical-tab-assignment"]').click();
@@ -78,7 +78,7 @@ test.describe("Managed Event Types tests", () => {
       await adminUser.logout();
 
       // Coming back as member user to see if there is a managed event present after assignment
-      await memberUser.login();
+      await memberUser.apiLogin();
       await page.waitForLoadState("networkidle");
       await expect(page.locator('[data-testid="event-types"] a[title="managed"]')).toBeVisible();
     });

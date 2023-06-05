@@ -8,7 +8,7 @@ test("Can delete user account", async ({ page, users }) => {
   const user = await users.create({
     username: "delete-me",
   });
-  await user.login();
+  await user.apiLogin();
 
   await page.waitForSelector("[data-testid=dashboard-shell]");
 

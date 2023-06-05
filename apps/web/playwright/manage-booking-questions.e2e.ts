@@ -244,6 +244,7 @@ async function bookTimeSlot({ page, name, email }: { page: Page; name: string; e
   await page.fill('[name="email"]', email);
   await page.press('[name="email"]', "Enter");
 }
+
 /**
  * 'option' starts from 1
  */
@@ -359,7 +360,7 @@ async function createAndLoginUserWithEventTypes({ users }: { users: ReturnType<t
   const user = await users.create(null, {
     hasTeam: true,
   });
-  await user.login();
+  await user.apiLogin();
   return user;
 }
 

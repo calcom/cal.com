@@ -50,7 +50,7 @@ async function createUserWithSeatedEventAndAttendees(
 testBothBookers.describe("Booking with Seats", (bookerVariant) => {
   test("User can create a seated event (2 seats as example)", async ({ users, page }) => {
     const user = await users.create({ name: "Seated event" });
-    await user.login();
+    await user.apiLogin();
     const eventTitle = "My 2-seated event";
     await createNewSeatedEventType(page, { eventTitle });
     await expect(page.locator(`text=${eventTitle} event type updated successfully`)).toBeVisible();
@@ -60,7 +60,13 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
     const user = await users.create({
       name: "Seated event user",
       eventTypes: [
-        { title: "My 2-seated event", slug, length: 60, seatsPerTimeSlot: 2, seatsShowAttendees: true },
+        {
+          title: "My 2-seated event",
+          slug,
+          length: 60,
+          seatsPerTimeSlot: 2,
+          seatsShowAttendees: true,
+        },
       ],
     });
     await page.goto(`/${user.username}/${slug}`);
@@ -222,7 +228,7 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
       { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
       { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
-    await user.login();
+    await user.apiLogin();
 
     const oldBooking = await prisma.booking.findFirst({
       where: { uid: booking.uid },
@@ -328,7 +334,7 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
       { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
       { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
-    await user.login();
+    await user.apiLogin();
 
     const bookingAttendees = await prisma.attendee.findMany({
       where: { bookingId: booking.id },
@@ -379,7 +385,7 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
       { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
       { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
-    await user.login();
+    await user.apiLogin();
     const bookingWithEventType = await prisma.booking.findFirst({
       where: { uid: booking.uid },
       select: {
