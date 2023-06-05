@@ -198,11 +198,13 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
     );
   };
 
-  const appsWithTeamCredentials = data.items.filter((app) => app.teams);
+  const appsWithTeamCredentials = data.items.filter((app) => app.teams.length);
   const cardsForAppsWithTeams = appsWithTeamCredentials.map((app) => {
     const appCards = [];
 
-    appCards.push(<ChildAppCard item={app} />);
+    if (app.credentialIds.length) {
+      appCards.push(<ChildAppCard item={app} />);
+    }
     for (const team of app.teams) {
       appCards.push(
         <ChildAppCard
@@ -225,7 +227,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
         {data.items
           .filter((item) => item.invalidCredentialIds)
           .map((item) => {
-            if (!item.teams) return <ChildAppCard item={item} />;
+            if (!item.teams.length) return <ChildAppCard item={item} />;
           })}
       </List>
       {locationType && (

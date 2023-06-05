@@ -82,17 +82,20 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
   }
 
   if (onlyInstalled) {
-    apps = apps.flatMap((item) => (item.credentialIds.length > 0 || item.isGlobal ? [item] : []));
+    apps = apps.flatMap((item) =>
+      item.credentialIds.length > 0 || item.teams.length || item.isGlobal ? [item] : []
+    );
   }
 
   if (extendsFeature) {
     apps = apps
-      .filter((app) => app.extendsFeature?.includes(input.extendsFeature))
+      .filter((app) => app.extendsFeature?.includes(extendsFeature))
       .map((app) => ({
         ...app,
         isInstalled: !!app.credentialIds?.length,
       }));
   }
+
   return {
     items: apps,
   };
