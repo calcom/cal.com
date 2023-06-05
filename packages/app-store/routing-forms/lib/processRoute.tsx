@@ -50,13 +50,13 @@ export function processRoute({
     const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
     const logic = jsonLogicQuery.logic;
     let result = false;
-    const responseValues: Record<string, string | string[]> = {};
+    const responseValues: Record<string, Response[string]["value"]> = {};
     for (const [uuid, { value }] of Object.entries(response)) {
       responseValues[uuid] = value;
     }
 
     if (logic) {
-      // Leave the logs for easy debugging of routing form logic test.
+      // Leave the logs for debugging of routing form logic test in production
       console.log("Checking logic with response", logic, responseValues);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       result = jsonLogic.apply(logic as any, responseValues);

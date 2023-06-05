@@ -44,7 +44,6 @@ interface EventMetaProps {
  * Default order in which the event details will be rendered.
  */
 const defaultEventDetailsBlocks = [
-  EventDetailBlocks.DESCRIPTION,
   EventDetailBlocks.REQUIRES_CONFIRMATION,
   EventDetailBlocks.DURATION,
   EventDetailBlocks.OCCURENCES,
@@ -112,16 +111,6 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
         }
 
         switch (block) {
-          case EventDetailBlocks.DESCRIPTION:
-            if (!event.description) return null;
-            return (
-              <EventMetaBlock
-                key={block}
-                contentClassName="break-words max-w-full max-h-[180px] scroll-bar pr-4">
-                <div dangerouslySetInnerHTML={{ __html: event.description }} />
-              </EventMetaBlock>
-            );
-
           case EventDetailBlocks.DURATION:
             return (
               <EventMetaBlock key={block} icon={Clock}>

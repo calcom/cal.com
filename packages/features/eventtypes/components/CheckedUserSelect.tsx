@@ -27,12 +27,6 @@ export const CheckedUserSelect = ({
   return (
     <>
       <Select
-        styles={{
-          option: (styles, { isDisabled }) => ({
-            ...styles,
-            backgroundColor: isDisabled ? "#F5F5F5" : "inherit",
-          }),
-        }}
         name={props.name}
         placeholder={props.placeholder || t("select")}
         isSearchable={false}
