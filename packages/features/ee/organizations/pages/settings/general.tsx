@@ -71,15 +71,11 @@ const GeneralView = ({ currentOrg, isAdminOrOwner, localeProp }: GeneralViewProp
 
   const mutation = trpc.viewer.organizations.update.useMutation({
     onSuccess: async () => {
-      //TODO: Invalidate our previous i18n cache
       reset(getValues());
       showToast(t("settings_updated_successfully"), "success");
     },
     onError: () => {
       showToast(t("error_updating_settings"), "error");
-    },
-    onSettled: async () => {
-      //TODO: Invalidate our previous i18n cach
     },
   });
 
