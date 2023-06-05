@@ -8,8 +8,7 @@ export type AppFlags = {
   teams: boolean;
   webhooks: boolean;
   workflows: boolean;
-  "v2-booking-page": boolean;
   "managed-event-types": boolean;
-  newbooker: boolean;
+  "booker-layouts": boolean;
   "google-workspace-directory": boolean;
 };

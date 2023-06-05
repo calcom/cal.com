@@ -2,7 +2,7 @@ INSERT INTO
   "Feature" (slug, enabled, description, "type")
 VALUES
   (
-    'newbooker',
+    'booker-layouts',
     false,
     'Enable new booker configuration settings for all users',
     'EXPERIMENT'

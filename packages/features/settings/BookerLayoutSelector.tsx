@@ -39,7 +39,7 @@ export const BookerLayoutSelector = ({
 
   // @TODO: Enable this before merge, so we don't show the settings before release.
   // const flags = useFlagMap();
-  // if (flags.newbooker !== true) return null;
+  // if (flags.["booker-layouts"] !== true) return null;
 
   return (
     <>
