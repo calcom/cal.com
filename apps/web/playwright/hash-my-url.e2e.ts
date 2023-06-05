@@ -5,7 +5,6 @@ import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "./lib/testU
 
 test.describe.configure({ mode: "parallel" });
 
-// TODO: This test is very flaky. Feels like tossing a coin and hope that it won't fail. Needs to be revisited.
 test.describe("hash my url", () => {
   test.beforeEach(async ({ users }) => {
     const user = await users.create();
