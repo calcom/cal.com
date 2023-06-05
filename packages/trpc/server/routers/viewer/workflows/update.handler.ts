@@ -416,6 +416,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       if (!hasPaidPlan && !isSMSOrWhatsappAction(oldStep.action) && isSMSOrWhatsappAction(newStep.action)) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
+      const requiresSender = newStep.action === WorkflowActions.SMS_NUMBER || newStep.action === WorkflowActions.WHATSAPP_NUMBER
       await ctx.prisma.workflowStep.update({
         where: {
           id: oldStep.id,
@@ -423,7 +424,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         data: {
           action: newStep.action,
           sendTo:
-            newStep.action === WorkflowActions.SMS_NUMBER /*||
+            requiresSender /*||
                 newStep.action === WorkflowActions.EMAIL_ADDRESS*/
               ? newStep.sendTo
               : null,
