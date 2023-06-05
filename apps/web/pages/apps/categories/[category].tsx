@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import type { GetStaticPropsContext, InferGetStaticPropsType } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -53,6 +54,20 @@ Apps.PageWrapper = PageWrapper;
 
 export const getStaticPaths = async () => {
   const paths = Object.keys(AppCategories);
+
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+  } catch (e: unknown) {
+    if (e instanceof Prisma.PrismaClientInitializationError) {
+      // Database is not available at build time. Make sure we fall back to building these pages on demand
+      return {
+        paths: [],
+        fallback: "blocking",
+      };
+    } else {
+      throw e;
+    }
+  }
 
   return {
     paths: paths.map((category) => ({ params: { category } })),

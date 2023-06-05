@@ -4,7 +4,7 @@
   "slug": "rainbow",
   "type": "rainbow_web3",
   "logo": "icon.svg",
-  "url": "https://cal.com/apps/rainbow",
+  "url": "https://github.com/hexcowboy",
   "variant": "web3",
   "categories": ["web3"],
   "extendsFeature": "EventType",

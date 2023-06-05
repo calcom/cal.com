@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   changes:
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
     permissions:
       pull-requests: read
     outputs:
@@ -66,6 +66,12 @@ jobs:
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 
+  build-without-database:
+    name: Production build (without database)
+    needs: env
+    uses: ./.github/workflows/production-build-without-database.yml
+    secrets: inherit
+
   e2e:
     name: E2E tests
     needs: [changes, lint, build]
@@ -101,7 +107,7 @@ jobs:
   required:
     needs: [lint, type-check, test, build, e2e]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled')
