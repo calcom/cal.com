@@ -219,6 +219,7 @@ type LayoutProps = {
   withoutSeo?: boolean;
   // Gives the ability to include actions to the right of the heading
   actions?: JSX.Element;
+  beforeCTAactions?: JSX.Element;
   smallHeading?: boolean;
   hideHeadingOnMobile?: boolean;
 };
@@ -879,6 +880,7 @@ export function ShellMain(props: LayoutProps) {
                 </p>
               )}
             </div>
+            {props.beforeCTAactions}
             {props.CTA && (
               <div
                 className={classNames(
