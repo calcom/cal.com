@@ -31,7 +31,7 @@ function BasePhoneInput({ name, className = "", onChange, ...rest }: PhoneInputP
         placeholder: rest.placeholder,
       }}
       onChange={(value) => {
-        onChange(value.startsWith("+") ? value : `+${value}`)
+        onChange("+" + value);
       }}
       containerClass={classNames(
         "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",
@@ -65,7 +65,7 @@ const useDefaultCountry = () => {
     retry: false,
     onSuccess: (data) => {
       if (isSupportedCountry(data?.countryCode)) {
-        setDefaultCountry(data.countryCode);
+        setDefaultCountry(data.countryCode.toLowerCase());
       }
     },
   });
