@@ -171,6 +171,10 @@ const nextConfig = {
   async rewrites() {
     return [
       {
+        source: "/org/:slug",
+        destination: "/team/:slug",
+      },
+      {
         source: "/:user/avatar.png",
         destination: "/api/user/avatar?username=:user",
       },

@@ -1,3 +1,4 @@
+import { subteamsRevalidation } from "@calcom/features/ee/organizations/lib/revalidate";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -56,6 +57,6 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
       }
     }),
   });
-
+  subteamsRevalidation(organization.slug);
   return { duplicatedSlugs };
 };
