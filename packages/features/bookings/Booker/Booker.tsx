@@ -101,14 +101,16 @@ const BookerComponent = ({
           className={classNames(
             // Sets booker size css variables for the size of all the columns.
             ...getBookerSizeClassNames(layout, bookerState),
-            "bg-default dark:bg-muted grid max-w-full auto-rows-fr items-start overflow-clip dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
+            "bg-default dark:bg-muted grid max-w-full items-start overflow-clip dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
             layout === "small_calendar" && "border-subtle rounded-md border"
           )}>
           <AnimatePresence>
             <BookerSection area="header">
               <Header extraDays={extraDays} isMobile={isMobile} />
             </BookerSection>
-            <StickyOnDesktop key="meta" className="relative z-10 flex sm:min-h-screen">
+            <StickyOnDesktop
+              key="meta"
+              className={classNames("relative z-10 flex", layout !== "small_calendar" && "sm:min-h-screen")}>
               <BookerSection
                 area="meta"
                 className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">

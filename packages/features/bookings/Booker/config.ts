@@ -64,31 +64,32 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
       minHeight: "450px",
       height: "auto",
       gridTemplateAreas: `
-      "meta header"
-      "meta main"
+      "meta main timeslots"
+      "meta main main"
       `,
       gridTemplateColumns: "var(--booker-meta-width) var(--booker-main-width)",
-      gridTemplateRows: "0px auto",
+      gridTemplateRows: "auto",
     },
     selecting_time: {
       width: "calc(var(--booker-meta-width) + var(--booker-main-width) + var(--booker-timeslots-width))",
       minHeight: "450px",
       height: "auto",
       gridTemplateAreas: `
-      "meta header timeslots"
+      "meta main timeslots"
       "meta main timeslots"
       `,
       gridTemplateColumns: "var(--booker-meta-width) 1fr var(--booker-timeslots-width)",
-      gridTemplateRows: "0px auto",
+      gridTemplateRows: "auto",
     },
   },
   large_calendar: {
     default: {
       width: "100vw",
+      minHeight: "450px",
       height: "100vh",
       gridTemplateAreas: `
-      "meta header"
-      "meta main
+      "meta header header"
+      "meta main main"
       `,
       gridTemplateColumns: "var(--booker-meta-width) 1fr",
       gridTemplateRows: "70px auto",
@@ -97,10 +98,11 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
   large_timeslots: {
     default: {
       width: "100vw",
+      minHeight: "450px",
       height: "100vh",
       gridTemplateAreas: `
-      "meta header"
-      "meta main"
+      "meta header header"
+      "meta main main"
       `,
       gridTemplateColumns: "var(--booker-meta-width) 1fr",
       gridTemplateRows: "70px auto",
@@ -152,8 +154,8 @@ export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerStat
       // Width is animated by the css class instead of via framer motion,
       // because css is better at animating the calcs, framer motion might
       // make some mistakes in that.
-      width: animationConfig?.width || "auto",
       gridTemplateAreas: animationConfig?.gridTemplateAreas,
+      width: animationConfig?.width || "auto",
       gridTemplateColumns: animationConfig?.gridTemplateColumns,
       gridTemplateRows: animationConfig?.gridTemplateRows,
       minHeight: animationConfig?.minHeight,
