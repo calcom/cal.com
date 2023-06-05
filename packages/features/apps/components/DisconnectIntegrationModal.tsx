@@ -16,7 +16,6 @@ export default function DisconnectIntegrationModal({
   handleModelClose,
   teamId,
 }: DisconnectIntegrationModalProps) {
-  console.log("🚀 ~ file: DisconnectIntegrationModal.tsx:19 ~ teamId:", teamId);
   const { t } = useLocale();
   const utils = trpc.useContext();
 

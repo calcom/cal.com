@@ -104,9 +104,6 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                   if (useDefaultComponent) {
                     props = {
                       ...props,
-                      // onClick: () => {
-                      //   mutation.mutate({ type: app.type, variant: app.variant, slug: app.slug });
-                      // },
                     };
                   }
                   return (
@@ -131,9 +128,6 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                   if (useDefaultComponent) {
                     props = {
                       ...props,
-                      // onClick: () => {
-                      //   mutation.mutate({ type: app.type, variant: app.variant, slug: app.slug });
-                      // },
                       disabled: !!props.disabled,
                     };
                   }
