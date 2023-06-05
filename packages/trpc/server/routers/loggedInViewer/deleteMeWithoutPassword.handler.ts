@@ -12,7 +12,7 @@ type DeleteMeWithoutPasswordOptions = {
 };
 
 export const deleteMeWithoutPasswordHandler = async ({ ctx }: DeleteMeWithoutPasswordOptions) => {
-  const user = await prisma.user.findUnique({
+  const user = await prisma.user.findFirst({
     where: {
       email: ctx.user.email.toLowerCase(),
     },

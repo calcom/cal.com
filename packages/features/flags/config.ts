@@ -12,4 +12,5 @@ export type AppFlags = {
   "managed-event-types": boolean;
   organizations: boolean;
   "google-workspace-directory": boolean;
+  "disable-signup": boolean;
 };

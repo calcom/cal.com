@@ -81,7 +81,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
 
   const ActionButtons = () => {
     return usernameIsAvailable && currentUsername !== inputUsernameValue ? (
-      <div className="ms-2 me-2 mt-px flex flex-row space-x-2">
+      <div className="ms-2 me-2 flex flex-row space-x-2">
         <Button
           type="button"
           onClick={() => setOpenDialogSaveUsername(true)}
@@ -151,7 +151,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             </div>
           )}
         </div>
-        <div className="mt-5 hidden md:inline">
+        <div className="mt-7 hidden md:inline">
           <ActionButtons />
         </div>
       </div>
