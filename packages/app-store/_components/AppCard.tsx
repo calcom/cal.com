@@ -30,7 +30,13 @@ export default function AppCard({
 
   return (
     <div
-      className={classNames("border-subtle mb-4", app.isInstalled ? "mt-2" : "mt-6", "rounded-md border", !app.enabled && "grayscale")}>
+      className={classNames(
+        "border-subtle mb-4",
+        app.isInstalled ? "mt-2" : "mt-6",
+        "rounded-md border",
+        !app.enabled && "grayscale",
+        "bg-red-400"
+      )}>
       <div className={classNames(app.isInstalled ? "p-4 text-sm sm:p-4" : "px-5 py-4 text-sm sm:px-5")}>
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
           {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
@@ -46,8 +52,7 @@ export default function AppCard({
           </Link>
           <div className="flex flex-col">
             <span className="text-emphasis text-base font-semibold leading-4">{app?.name}</span>
-            <p
-              className="text-default max-w-md truncate pt-2 text-sm font-normal ltr:pr-2 rtl:pl-2">
+            <p className="text-default max-w-md truncate pt-2 text-sm font-normal ltr:pr-2 rtl:pl-2">
               {description || app?.description}
             </p>
           </div>
