@@ -1,6 +1,8 @@
+import { cFetch } from "@lib/core/http/fetch-wrapper";
+
 const TwoFactorAuthAPI = {
   async setup(password: string) {
-    return fetch("/api/auth/two-factor/totp/setup", {
+    return cFetch("/api/auth/two-factor/totp/setup", {
       method: "POST",
       body: JSON.stringify({ password }),
       headers: {
@@ -10,7 +12,7 @@ const TwoFactorAuthAPI = {
   },
 
   async enable(code: string) {
-    return fetch("/api/auth/two-factor/totp/enable", {
+    return cFetch("/api/auth/two-factor/totp/enable", {
       method: "POST",
       body: JSON.stringify({ code }),
       headers: {
@@ -20,7 +22,7 @@ const TwoFactorAuthAPI = {
   },
 
   async disable(password: string, code: string) {
-    return fetch("/api/auth/two-factor/totp/disable", {
+    return cFetch("/api/auth/two-factor/totp/disable", {
       method: "POST",
       body: JSON.stringify({ password, code }),
       headers: {

@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 
-import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_PREFIX_PATH, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, showToast } from "@calcom/ui";
 import { Copy } from "@calcom/ui/components/icon";
@@ -16,7 +16,7 @@ export default function Error500() {
     <div className="bg-subtle flex h-screen">
       <Head>
         <title>Something unexpected occurred | {APP_NAME}</title>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href={`${WEBAPP_PREFIX_PATH}/favicon.ico`} />
       </Head>
       <div className="rtl: bg-default m-auto rounded-md p-10 text-right ltr:text-left">
         <h1 className="font-cal text-emphasis text-6xl">500</h1>

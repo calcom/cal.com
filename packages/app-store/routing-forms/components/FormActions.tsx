@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
-import { CAL_URL } from "@calcom/lib/constants";
+import { CAL_URL, WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
@@ -409,7 +409,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       href: `${appUrl}/form-edit/${routingForm?.id}`,
     },
     download: {
-      href: `/api/integrations/routing-forms/responses/${routingForm?.id}`,
+      href: `${WEBAPP_PREFIX_PATH}/api/integrations/routing-forms/responses/${routingForm?.id}`,
     },
     _delete: {
       onClick: () => _delete.onAction({ routingForm }),

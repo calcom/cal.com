@@ -7,7 +7,7 @@ import React, { Suspense, useEffect, useState } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
-import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
@@ -115,7 +115,7 @@ const useTabs = () => {
     if (tab.href === "/settings/my-account") {
       tab.name = user?.name || "my_account";
       tab.icon = undefined;
-      tab.avatar = avatar?.avatar || WEBAPP_URL + "/" + session?.data?.user?.username + "/avatar.png";
+      tab.avatar = avatar?.avatar || `${WEBAPP_PREFIX_PATH}/${session?.data?.user?.username}/avatar.png`;
     }
     return tab;
   });
@@ -298,7 +298,7 @@ const SettingsSidebarContainer = ({
                                 {/* TODO */}
                                 {/* <VerticalTabItem
                               name={t("general")}
-                              href={`${WEBAPP_URL}/settings/my-account/appearance`}
+                              href="/settings/my-account/appearance"
                               textClassNames="px-3 text-emphasis font-medium text-sm"
                               disableChevron
                             /> */}
@@ -330,7 +330,7 @@ const SettingsSidebarContainer = ({
                   })}
                 <VerticalTabItem
                   name={t("add_a_team")}
-                  href={`${WEBAPP_URL}/settings/teams/new`}
+                  href="/settings/teams/new"
                   textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
                   icon={Plus}
                   disableChevron

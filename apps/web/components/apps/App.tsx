@@ -8,7 +8,7 @@ import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIn
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import Shell from "@calcom/features/shell/Shell";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
+import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS, WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
@@ -97,7 +97,7 @@ const Component = ({
               ) : (
                 <img
                   key={descriptionItem}
-                  src={descriptionItem}
+                  src={WEBAPP_PREFIX_PATH + descriptionItem}
                   alt={`Screenshot of app ${name}`}
                   className="mr-4 h-auto max-h-80 max-w-[90%] snap-center rounded-md object-contain last:mb-0 md:max-h-min lg:mb-4 lg:mr-0  lg:max-w-full"
                 />
@@ -118,7 +118,7 @@ const Component = ({
             <div className="mb-4 flex items-center">
               <img
                 className={classNames(logo.includes("-dark") && "dark:invert", "min-h-16 min-w-16 h-16 w-16")}
-                src={logo}
+                src={WEBAPP_PREFIX_PATH + logo}
                 alt={name}
               />
               <h1 className="font-cal text-emphasis ml-4 text-3xl">{name}</h1>

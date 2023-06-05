@@ -34,7 +34,7 @@ import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocati
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilder";
 import { bookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, MINUTES_TO_BOOK } from "@calcom/lib/constants";
+import { APP_NAME, MINUTES_TO_BOOK, WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -538,7 +538,7 @@ const BookingPage = ({
               })}{" "}
           | {APP_NAME}
         </title>
-        <link rel="icon" href="/favico.ico" />
+        <link rel="icon" href={`${WEBAPP_PREFIX_PATH}/favicon.ico`} />
       </Head>
       <BookingPageTagManager eventType={eventType} />
       <main

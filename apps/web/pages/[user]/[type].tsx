@@ -2,7 +2,7 @@ import type { GetStaticPaths, GetStaticPropsContext } from "next";
 import { z } from "zod";
 
 import type { LocationObject } from "@calcom/app-store/locations";
-import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED, WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -175,7 +175,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
         brandColor: user.brandColor,
         darkBrandColor: user.darkBrandColor,
         slug: `${user.username}/${eventType.slug}`,
-        image: `${WEBAPP_URL}/${user.username}/avatar.png`,
+        image: `${WEBAPP_PREFIX_PATH}/${user.username}/avatar.png`,
       },
       // Dynamic group has no theme preference right now. It uses system theme.
       themeBasis: user.username,

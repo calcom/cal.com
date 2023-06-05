@@ -1,4 +1,4 @@
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
@@ -25,9 +25,7 @@ export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
       `${this.calEvent.organizer.language.translate("someone_requested_an_event")}`,
       "",
       `${this.calEvent.organizer.language.translate("confirm_or_reject_request")}
-${process.env.NEXT_PUBLIC_WEBAPP_URL} + ${
-        this.calEvent.recurringEvent?.count ? "/bookings/recurring" : "/bookings/upcoming"
-      }`
+${WEBAPP_URL} + ${this.calEvent.recurringEvent?.count ? "/bookings/recurring" : "/bookings/upcoming"}`
     );
   }
 }

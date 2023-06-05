@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -104,7 +104,7 @@ export default function MemberListItem(props: Props) {
           <div className="flex">
             <Avatar
               size="sm"
-              imageSrc={WEBAPP_URL + "/" + props.member.username + "/avatar.png"}
+              imageSrc={`${WEBAPP_PREFIX_PATH}/${props.member.username}/avatar.png`}
               alt={name || ""}
               className="h-10 w-10 rounded-full"
             />

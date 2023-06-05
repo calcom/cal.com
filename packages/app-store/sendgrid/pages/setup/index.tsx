@@ -5,9 +5,12 @@ import { Controller, useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import z from "zod";
 
+import { WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Form, showToast, TextField } from "@calcom/ui";
 import { Check, X } from "@calcom/ui/components/icon";
+
+import { cFetch } from "@lib/core/http/fetch-wrapper";
 
 const formSchema = z.object({
   api_key: z.string(),
@@ -39,7 +42,11 @@ export default function SendgridSetup() {
       <div className="bg-default m-auto rounded p-5 md:w-[520px] md:p-10">
         <div className="flex flex-col space-y-5 md:flex-row md:space-y-0 md:space-x-5">
           <div>
-            <img src="/api/app-store/sendgrid/logo.png" alt="Sendgrid" className="h-12 w-12 max-w-2xl" />
+            <img
+              src={`${WEBAPP_PREFIX_PATH}/api/app-store/sendgrid/logo.png`}
+              alt="Sendgrid"
+              className="h-12 w-12 max-w-2xl"
+            />
           </div>
           <div>
             <h1 className="text-default">{t("provide_api_key")}</h1>
@@ -59,7 +66,7 @@ export default function SendgridSetup() {
               <Form
                 form={form}
                 handleSubmit={async (values) => {
-                  const res = await fetch("/api/integrations/sendgrid/add", {
+                  const res = await cFetch("/api/integrations/sendgrid/add", {
                     method: "POST",
                     body: JSON.stringify(values),
                     headers: {
@@ -116,7 +123,7 @@ export default function SendgridSetup() {
                       if (!check) return;
                       const api_key = form.getValues("api_key");
                       setTestLoading(true);
-                      const res = await fetch("/api/integrations/sendgrid/check", {
+                      const res = await cFetch("/api/integrations/sendgrid/check", {
                         method: "POST",
                         body: JSON.stringify({ api_key }),
                         headers: {

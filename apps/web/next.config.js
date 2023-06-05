@@ -9,16 +9,21 @@ const { i18n } = require("./next-i18next.config");
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
 
+const WEBAPP_PREFIX_PATH = process.env.NEXT_PUBLIC_WEBAPP_PREFIX_PATH?.startsWith("/")
+  ? process.env.NEXT_PUBLIC_WEBAPP_PREFIX_PATH
+  : "";
+const WEBAPP_URL = process.env.NEXT_PUBLIC_WEBAPP_URL + WEBAPP_PREFIX_PATH;
+
 // So we can test deploy previews preview
-if (process.env.VERCEL_URL && !process.env.NEXT_PUBLIC_WEBAPP_URL) {
+if (process.env.VERCEL_URL && !WEBAPP_URL) {
   process.env.NEXT_PUBLIC_WEBAPP_URL = "https://" + process.env.VERCEL_URL;
 }
 // Check for configuration of NEXTAUTH_URL before overriding
-if (!process.env.NEXTAUTH_URL && process.env.NEXT_PUBLIC_WEBAPP_URL) {
-  process.env.NEXTAUTH_URL = process.env.NEXT_PUBLIC_WEBAPP_URL + "/api/auth";
+if (!process.env.NEXTAUTH_URL && WEBAPP_URL) {
+  process.env.NEXTAUTH_URL = WEBAPP_URL + "/api/auth";
 }
 if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
-  process.env.NEXT_PUBLIC_WEBSITE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
+  process.env.NEXT_PUBLIC_WEBSITE_URL = WEBAPP_URL;
 }
 
 if (process.env.CSP_POLICY === "strict" && process.env.NODE_ENV === "production") {
@@ -81,6 +86,7 @@ const pages = glob
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
+  basePath: WEBAPP_PREFIX_PATH,
   i18n,
   productionBrowserSourceMaps: true,
   /* We already do type check on GH actions */

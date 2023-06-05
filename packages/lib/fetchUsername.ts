@@ -1,3 +1,5 @@
+import { cFetch } from "@lib/core/http/fetch-wrapper";
+
 type ResponseUsernameApi = {
   available: boolean;
   premium: boolean;
@@ -6,7 +8,7 @@ type ResponseUsernameApi = {
 };
 
 export async function fetchUsername(username: string) {
-  const response = await fetch("/api/username", {
+  const response = await cFetch("/api/username", {
     credentials: "include",
     method: "POST",
     body: JSON.stringify({

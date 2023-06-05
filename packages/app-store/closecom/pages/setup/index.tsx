@@ -5,9 +5,12 @@ import { Controller, useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import z from "zod";
 
+import { WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Form, showToast, TextField } from "@calcom/ui";
 import { Check, X } from "@calcom/ui/components/icon";
+
+import { cFetch } from "@lib/core/http/fetch-wrapper";
 
 const formSchema = z.object({
   api_key: z.string(),
@@ -41,7 +44,7 @@ export default function CloseComSetup() {
           <div>
             {/* eslint-disable @next/next/no-img-element */}
             <img
-              src="/api/app-store/closecom/icon.svg"
+              src={`${WEBAPP_PREFIX_PATH}/api/app-store/closecom/icon.svg`}
               alt="Apple Calendar"
               className="h-12 w-12 max-w-2xl"
             />
@@ -64,7 +67,7 @@ export default function CloseComSetup() {
               <Form
                 form={form}
                 handleSubmit={async (values) => {
-                  const res = await fetch("/api/integrations/closecom/add", {
+                  const res = await cFetch("/api/integrations/closecom/add", {
                     method: "POST",
                     body: JSON.stringify(values),
                     headers: {
@@ -121,7 +124,7 @@ export default function CloseComSetup() {
                       if (!check) return;
                       const api_key = form.getValues("api_key");
                       setTestLoading(true);
-                      const res = await fetch("/api/integrations/closecom/check", {
+                      const res = await cFetch("/api/integrations/closecom/check", {
                         method: "POST",
                         body: JSON.stringify({ api_key }),
                         headers: {

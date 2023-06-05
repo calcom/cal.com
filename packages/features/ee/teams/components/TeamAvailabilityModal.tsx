@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -39,7 +39,7 @@ export default function TeamAvailabilityModal(props: Props) {
             <div className="flex">
               <Avatar
                 size="md"
-                imageSrc={WEBAPP_URL + "/" + props.member?.username + "/avatar.png"}
+                imageSrc={`${WEBAPP_PREFIX_PATH}/${props.member?.username}/avatar.png`}
                 alt={props.member?.name || ""}
               />
               <div className="flex items-center justify-center ">

@@ -3,6 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { cFetch } from "@calcom/lib/fetch-wrapper";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import logger from "@calcom/lib/logger";
 import { trpc } from "@calcom/trpc/react";
@@ -26,8 +27,7 @@ const wipeMyCalAction = async (props: IWipeMyCalAction) => {
     endDate,
   };
   try {
-    const endpoint = "/api/integrations/wipemycalother/wipe";
-    return fetch(`${process.env.NEXT_PUBLIC_WEBAPP_URL}` + endpoint, {
+    return cFetch("/api/integrations/wipemycalother/wipe", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

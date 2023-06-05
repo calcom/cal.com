@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 
 import { Button, Select, showToast } from "@calcom/ui";
 
+import { cFetch } from "@lib/core/http/fetch-wrapper";
+
 export interface IAppConfigurationProps {
   credentialIds: number[];
 }
@@ -15,7 +17,7 @@ const saveSettings = async ({
   sleepValue: number;
 }) => {
   try {
-    const response = await fetch("/api/integrations/vital/save", {
+    const response = await cFetch("/api/integrations/vital/save", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -55,7 +57,7 @@ const AppConfiguration = (props: IAppConfigurationProps) => {
   const [saveLoading, setSaveLoading] = useState(false);
   useEffect(() => {
     async function getVitalsConfig() {
-      const response = await fetch("/api/integrations/vital/settings", {
+      const response = await cFetch("/api/integrations/vital/settings", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

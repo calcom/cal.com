@@ -12,6 +12,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { Button, TextField } from "@calcom/ui";
 
+import { cFetch } from "@lib/core/http/fetch-wrapper";
+
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
@@ -31,7 +33,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
 
   const submitChangePassword = async ({ password, requestId }: { password: string; requestId: string }) => {
     try {
-      const res = await fetch("/api/auth/reset-password", {
+      const res = await cFetch("/api/auth/reset-password", {
         method: "POST",
         body: JSON.stringify({ requestId: requestId, password: password }),
         headers: {

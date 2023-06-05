@@ -7,6 +7,8 @@ import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button, TextArea } from "@calcom/ui";
 import { X } from "@calcom/ui/components/icon";
 
+import { cFetch } from "@lib/core/http/fetch-wrapper";
+
 type Props = {
   booking: {
     title?: string;
@@ -81,7 +83,7 @@ export default function CancelBooking(props: Props) {
 
                   telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
 
-                  const res = await fetch("/api/cancel", {
+                  const res = await cFetch("/api/cancel", {
                     body: JSON.stringify({
                       uid: booking?.uid,
                       cancellationReason: cancellationReason,

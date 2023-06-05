@@ -16,6 +16,8 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { ChevronRight } from "@calcom/ui/components/icon";
 
+import { cFetch } from "@lib/core/http/fetch-wrapper";
+
 import PageWrapper from "@components/PageWrapper";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -69,7 +71,7 @@ export default function JoinCall(props: JoinCallPageProps) {
   const onRecordingStopped = () => {
     const data = { recordingId: recordingId.current, bookingUID: booking.uid };
 
-    fetch("/api/recorded-daily-video", {
+    cFetch("/api/recorded-daily-video", {
       method: "POST",
       body: JSON.stringify(data),
     }).catch((err) => {

@@ -19,7 +19,14 @@ import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  DESKTOP_APP_LINK,
+  JOIN_SLACK,
+  ROADMAP,
+  WEBAPP_PREFIX_PATH,
+  WEBSITE_URL,
+} from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -106,7 +113,7 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
       router.replace({
         pathname: "/auth/login",
         query: {
-          callbackUrl: `${WEBAPP_URL}${location.pathname}${location.search}`,
+          callbackUrl: location.pathname.replace(WEBAPP_PREFIX_PATH, "") + location.search,
         },
       });
     }
@@ -319,7 +326,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   className="rounded-full"
-                  src={avatar?.avatar || WEBAPP_URL + "/" + user.username + "/avatar.png"}
+                  src={avatar?.avatar || `${WEBAPP_PREFIX_PATH}/${user.username}/avatar.png`}
                   alt={user.username || "Nameless User"}
                 />
               }
@@ -338,7 +345,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   </span>
                   <span className="text-default truncate pb-1 font-normal leading-none">
                     {user.username
-                      ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
+                      ? WEBSITE_URL === "https://cal.com"
                         ? `cal.com/${user.username}`
                         : `/${user.username}`
                       : "No public page"}
@@ -386,7 +393,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                       <DropdownItem
                         target="_blank"
                         rel="noopener noreferrer"
-                        href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
+                        href={`${WEBSITE_URL}/${user.username}`}
                         StartIcon={ExternalLink}>
                         {t("view_public_page")}
                       </DropdownItem>
@@ -397,9 +404,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                         StartIcon={LinkIcon}
                         onClick={(e) => {
                           e.preventDefault();
-                          navigator.clipboard.writeText(
-                            `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`
-                          );
+                          navigator.clipboard.writeText(`${WEBSITE_URL}/${user.username}`);
                           showToast(t("link_copied"), "success");
                         }}>
                         {t("copy_public_page_link")}
@@ -448,7 +453,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   <DropdownItem
                     type="button"
                     StartIcon={(props) => <LogOut aria-hidden="true" {...props} />}
-                    onClick={() => signOut({ callbackUrl: "/auth/logout" })}>
+                    onClick={() => signOut({ callbackUrl: `${WEBAPP_PREFIX_PATH}/auth/logout` })}>
                     {t("sign_out")}
                   </DropdownItem>
                 </DropdownMenuItem>

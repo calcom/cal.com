@@ -2,8 +2,10 @@ import type { UseMutationOptions } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 
 import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_PREFIX_PATH, WEBAPP_URL } from "@calcom/lib/constants";
 import type { App } from "@calcom/types/App";
+
+import { cFetch } from "@lib/core/http/fetch-wrapper";
 
 import getInstalledAppPath from "./getInstalledAppPath";
 
@@ -61,7 +63,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
     const stateStr = encodeURIComponent(JSON.stringify(state));
     const searchParams = `?state=${stateStr}`;
 
-    const res = await fetch(`/api/integrations/${type}/add` + searchParams);
+    const res = await cFetch(`/api/integrations/${type}/add${searchParams}`);
 
     if (!res.ok) {
       const errorBody = await res.json();
@@ -72,7 +74,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
     const externalUrl = /https?:\/\//.test(json.url) && !json.url.startsWith(window.location.origin);
 
     if (!isOmniInstall) {
-      gotoUrl(json.url, json.newTab);
+      gotoUrl(WEBAPP_PREFIX_PATH + json.url, json.newTab);
       return { setupPending: externalUrl || json.url.endsWith("/setup") };
     }
 

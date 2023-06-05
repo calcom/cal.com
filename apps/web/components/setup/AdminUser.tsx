@@ -11,6 +11,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmailField, EmptyScreen, Label, PasswordField, TextField } from "@calcom/ui";
 import { UserCheck } from "@calcom/ui/components/icon";
 
+import { cFetch } from "@lib/core/http/fetch-wrapper";
+
 export const AdminUserContainer = (props: React.ComponentProps<typeof AdminUser> & { userCount: number }) => {
   const { t } = useLocale();
   if (props.userCount > 0)
@@ -72,7 +74,7 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
 
   const onSubmit = formMethods.handleSubmit(async (data: z.infer<typeof formSchema>) => {
     props.onSubmit();
-    const response = await fetch("/api/auth/setup", {
+    const response = await cFetch("/api/auth/setup", {
       method: "POST",
       body: JSON.stringify({
         username: data.username.trim(),
@@ -112,7 +114,7 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
                   <span className="block">{t("username")}</span>
                   {longWebsiteUrl && (
                     <small className="items-centerpx-3 bg-subtle border-default text-subtle mt-2 inline-flex rounded-t-md border border-b-0 py-1 px-3">
-                      {process.env.NEXT_PUBLIC_WEBSITE_URL}
+                      {WEBSITE_URL}
                     </small>
                   )}
                 </Label>
@@ -120,7 +122,7 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
                   addOnLeading={
                     !longWebsiteUrl && (
                       <span className="text-subtle inline-flex items-center rounded-none px-3 text-sm">
-                        {process.env.NEXT_PUBLIC_WEBSITE_URL}/
+                        {WEBSITE_URL}/
                       </span>
                     )
                   }

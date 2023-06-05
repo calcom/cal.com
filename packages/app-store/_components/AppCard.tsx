@@ -2,6 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 
 import { classNames } from "@calcom/lib";
+import { WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Switch } from "@calcom/ui";
 
@@ -36,7 +37,7 @@ export default function AppCard({
           <Link href={"/apps/" + app.slug} className="mr-3 h-auto w-10 rounded-sm">
             <img
               className={classNames(app?.logo.includes("-dark") && "dark:invert", "w-full min-w-[40px]")}
-              src={app?.logo}
+              src={WEBAPP_PREFIX_PATH + app?.logo}
               alt={app?.name}
             />
           </Link>

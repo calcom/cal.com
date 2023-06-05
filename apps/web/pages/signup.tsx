@@ -9,12 +9,14 @@ import { z } from "zod";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
-import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED, WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert, Button, EmailField, HeadSeo, PasswordField, TextField } from "@calcom/ui";
+
+import { cFetch } from "@lib/core/http/fetch-wrapper";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -49,7 +51,7 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
   };
 
   const signUp: SubmitHandler<FormValues> = async (data) => {
-    await fetch("/api/auth/signup", {
+    await cFetch("/api/auth/signup", {
       body: JSON.stringify({
         ...data,
       }),
@@ -110,11 +112,7 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
                 className="bg-default space-y-6">
                 {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
                 <div className="space-y-4">
-                  <TextField
-                    addOnLeading={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/`}
-                    {...register("username")}
-                    required
-                  />
+                  <TextField addOnLeading={`${WEBSITE_URL}/`} {...register("username")} required />
                   <EmailField
                     {...register("email")}
                     disabled={prepopulateFormValues?.email}
@@ -212,7 +210,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     return {
       redirect: {
         permanent: false,
-        destination: "/auth/login?callbackUrl=" + `${WEBAPP_URL}/${ctx.query.callbackUrl}`,
+        destination: `/auth/login?callbackUrl=${WEBAPP_URL}/${ctx.query.callbackUrl}`,
       },
     };
   }

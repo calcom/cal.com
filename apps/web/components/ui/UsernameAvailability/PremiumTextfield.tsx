@@ -5,6 +5,7 @@ import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
+import { WEBAPP_PREFIX_PATH, WEBSITE_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -117,7 +118,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
   const usernameFromStripe = stripeCustomer?.username;
 
-  const paymentLink = `/api/integrations/stripepayment/subscription?intentUsername=${
+  const paymentLink = `${WEBAPP_PREFIX_PATH}/api/integrations/stripepayment/subscription?intentUsername=${
     inputUsernameValue || usernameFromStripe
   }&action=${usernameChangeCondition}&callbackUrl=${router.asPath}`;
 
@@ -197,7 +198,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             isInputUsernamePremium ? "border border-orange-400 " : "",
             "border-default bg-muted text-subtle hidden h-9 items-center rounded-l-md border border-r-0 px-3 text-sm md:inline-flex"
           )}>
-          {process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/
+          {WEBSITE_URL.replace("https://", "").replace("http://", "")}/
         </span>
 
         <div className="relative w-full">

@@ -1,5 +1,6 @@
 import { useSession } from "next-auth/react";
 
+import { WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TopBanner } from "@calcom/ui";
 
@@ -15,7 +16,7 @@ function ImpersonatingBanner() {
         text={t("impersonating_user_warning", { user: data.user.username })}
         variant="warning"
         actions={
-          <a className="border-b border-b-black" href="/auth/logout">
+          <a className="border-b border-b-black" href={`${WEBAPP_PREFIX_PATH}/auth/logout`}>
             {t("impersonating_stop_instructions")}
           </a>
         }

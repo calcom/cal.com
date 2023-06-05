@@ -1,4 +1,5 @@
 import { InstallAppButtonWithoutPlanCheck } from "@calcom/app-store/components";
+import { WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui";
@@ -17,7 +18,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
   return (
     <div className="flex flex-row items-center justify-between p-5">
       <div className="flex items-center space-x-3">
-        <img src={logo} alt={title} className="h-8 w-8" />
+        <img src={WEBAPP_PREFIX_PATH + logo} alt={title} className="h-8 w-8" />
         <p className="text-sm font-bold">{title}</p>
       </div>
       <InstallAppButtonWithoutPlanCheck

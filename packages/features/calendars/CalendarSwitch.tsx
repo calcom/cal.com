@@ -7,6 +7,8 @@ import { trpc } from "@calcom/trpc/react";
 import { showToast, Switch } from "@calcom/ui";
 import { ArrowLeft, RotateCcw } from "@calcom/ui/components/icon";
 
+import { cFetch } from "@lib/core/http/fetch-wrapper";
+
 interface ICalendarSwitchProps {
   title: string;
   externalId: string;
@@ -35,7 +37,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       };
 
       if (isOn) {
-        const res = await fetch("/api/availability/calendar", {
+        const res = await cFetch("/api/availability/calendar", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -47,7 +49,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           throw new Error("Something went wrong");
         }
       } else {
-        const res = await fetch("/api/availability/calendar", {
+        const res = await cFetch("/api/availability/calendar", {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",

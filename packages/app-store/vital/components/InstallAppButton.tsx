@@ -1,10 +1,12 @@
 import { useState } from "react";
 
+import { cFetch } from "@lib/core/http/fetch-wrapper";
+
 import type { InstallAppButtonProps } from "../../types";
 
 export default function InstallAppButton(props: InstallAppButtonProps) {
   const getLinkToken = async () => {
-    const res = await fetch("/api/integrations/vital/token", {
+    const res = await cFetch("/api/integrations/vital/token", {
       method: "POST",
       body: JSON.stringify({}),
       headers: {

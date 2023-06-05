@@ -7,8 +7,7 @@ import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT, WEBAPP_PREFIX_PATH, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
@@ -106,10 +105,10 @@ const ProfileView = () => {
     showToast(t("Your account was deleted"), "success");
 
     setHasDeleteErrors(false); // dismiss any open errors
-    if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {
-      signOut({ callbackUrl: "/auth/logout?survey=true" });
+    if (WEBAPP_URL === "https://app.cal.com") {
+      signOut({ callbackUrl: `${WEBAPP_PREFIX_PATH}/auth/logout?survey=true` });
     } else {
-      signOut({ callbackUrl: "/auth/logout" });
+      signOut({ callbackUrl: `${WEBAPP_PREFIX_PATH}/auth/logout` });
     }
   };
 

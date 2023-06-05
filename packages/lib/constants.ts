@@ -2,13 +2,16 @@ const VERCEL_URL = process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.N
 const RAILWAY_STATIC_URL = process.env.RAILWAY_STATIC_URL ? `https://${process.env.RAILWAY_STATIC_URL}` : "";
 const HEROKU_URL = process.env.HEROKU_APP_NAME ? `https://${process.env.HEROKU_APP_NAME}.herokuapp.com` : "";
 const RENDER_URL = process.env.RENDER_EXTERNAL_URL ? `https://${process.env.RENDER_EXTERNAL_URL}` : "";
+export const WEBAPP_PREFIX_PATH = process.env.NEXT_PUBLIC_WEBAPP_PREFIX_PATH?.startsWith("/")
+  ? process.env.NEXT_PUBLIC_WEBAPP_PREFIX_PATH
+  : "";
 export const WEBAPP_URL =
-  process.env.NEXT_PUBLIC_WEBAPP_URL ||
-  VERCEL_URL ||
-  RAILWAY_STATIC_URL ||
-  HEROKU_URL ||
-  RENDER_URL ||
-  "http://localhost:3000";
+  (process.env.NEXT_PUBLIC_WEBAPP_URL ||
+    VERCEL_URL ||
+    RAILWAY_STATIC_URL ||
+    HEROKU_URL ||
+    RENDER_URL ||
+    "http://localhost:3000") + WEBAPP_PREFIX_PATH;
 /** @deprecated use `WEBAPP_URL` */
 export const BASE_URL = WEBAPP_URL;
 export const WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.com";
@@ -37,15 +40,15 @@ export const TRIAL_LIMIT_DAYS = 14;
 export const HOSTED_CAL_FEATURES = process.env.NEXT_PUBLIC_HOSTED_CAL_FEATURES || !IS_SELF_HOSTED;
 
 /** @deprecated use `WEBAPP_URL` */
-export const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || `https://${process.env.VERCEL_URL}`;
-export const LOGO = "/calcom-logo-white-word.svg";
-export const LOGO_ICON = "/cal-com-icon-white.svg";
-export const FAVICON_16 = "/favicon-16x16.png";
-export const FAVICON_32 = "/favicon-32x32.png";
-export const APPLE_TOUCH_ICON = "/apple-touch-icon.png";
-export const MSTILE_ICON = "/mstile-150x150.png";
-export const ANDROID_CHROME_ICON_192 = "/android-chrome-192x192.png";
-export const ANDROID_CHROME_ICON_256 = "/android-chrome-256x256.png";
+export const NEXT_PUBLIC_BASE_URL = WEBAPP_URL || `https://${process.env.VERCEL_URL}`;
+export const LOGO = `${WEBAPP_PREFIX_PATH}/calcom-logo-white-word.svg`;
+export const LOGO_ICON = `${WEBAPP_PREFIX_PATH}/cal-com-icon-white.svg`;
+export const FAVICON_16 = `${WEBAPP_PREFIX_PATH}/favicon-16x16.png`;
+export const FAVICON_32 = `${WEBAPP_PREFIX_PATH}/favicon-32x32.png`;
+export const APPLE_TOUCH_ICON = `${WEBAPP_PREFIX_PATH}/apple-touch-icon.png`;
+export const MSTILE_ICON = `${WEBAPP_PREFIX_PATH}/mstile-150x150.png`;
+export const ANDROID_CHROME_ICON_192 = `${WEBAPP_PREFIX_PATH}/android-chrome-192x192.png`;
+export const ANDROID_CHROME_ICON_256 = `${WEBAPP_PREFIX_PATH}/android-chrome-256x256.png`;
 export const ROADMAP = "https://cal.com/roadmap";
 export const DESKTOP_APP_LINK = "https://cal.com/download";
 export const JOIN_SLACK = "https://cal.com/slack";

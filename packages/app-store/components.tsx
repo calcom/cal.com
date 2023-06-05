@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import classNames from "@calcom/lib/classNames";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_PREFIX_PATH, WEBAPP_URL } from "@calcom/lib/constants";
 import { CAL_URL } from "@calcom/lib/constants";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
@@ -69,9 +69,9 @@ export const InstallAppButton = (
       "click",
       (e) => {
         if (!user) {
-          router.push(
-            `${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL + location.pathname + location.search}`
-          );
+          const callbackUrl =
+            WEBAPP_URL + location.pathname.replace(WEBAPP_PREFIX_PATH, "") + location.search;
+          router.push(`/auth/login?callbackUrl=${callbackUrl}`);
           e.stopPropagation();
           return;
         }

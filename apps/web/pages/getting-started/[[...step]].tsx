@@ -6,7 +6,7 @@ import type { CSSProperties } from "react";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { Button, StepCard, Steps } from "@calcom/ui";
@@ -120,7 +120,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
         <title>
           {APP_NAME} - {t("getting_started")}
         </title>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href={`${WEBAPP_PREFIX_PATH}/favicon.ico`} />
       </Head>
 
       <div className="mx-auto px-4 py-6 md:py-24">

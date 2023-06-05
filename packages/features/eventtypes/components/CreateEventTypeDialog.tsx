@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -180,11 +181,10 @@ export default function CreateEventTypeDialog({
               }}
             />
 
-            {process.env.NEXT_PUBLIC_WEBSITE_URL !== undefined &&
-            process.env.NEXT_PUBLIC_WEBSITE_URL?.length >= 21 ? (
+            {WEBSITE_URL !== undefined && WEBSITE_URL?.length >= 21 ? (
               <div>
                 <TextField
-                  label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
+                  label={`${t("url")}: ${WEBSITE_URL}`}
                   required
                   addOnLeading={<>/{!isManagedEventType ? pageSlug : t("username_placeholder")}/</>}
                   {...register("slug")}
@@ -204,8 +204,7 @@ export default function CreateEventTypeDialog({
                   required
                   addOnLeading={
                     <>
-                      {process.env.NEXT_PUBLIC_WEBSITE_URL}/
-                      {!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                      {WEBSITE_URL}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
                     </>
                   }
                   {...register("slug")}

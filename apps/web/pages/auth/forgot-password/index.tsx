@@ -11,6 +11,8 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmailField } from "@calcom/ui";
 
+import { cFetch } from "@lib/core/http/fetch-wrapper";
+
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
@@ -29,7 +31,7 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
 
   const submitForgotPasswordRequest = async ({ email }: { email: string }) => {
     try {
-      const res = await fetch("/api/auth/forgot-password", {
+      const res = await cFetch("/api/auth/forgot-password", {
         method: "POST",
         body: JSON.stringify({ email: email, language: i18n.language }),
         headers: {

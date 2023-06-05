@@ -6,6 +6,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, Dialog, DialogClose, DialogContent, DialogFooter, Input } from "@calcom/ui";
 import { Link, Search } from "@calcom/ui/components/icon";
 
+import { cFetch } from "@lib/core/http/fetch-wrapper";
+
 interface ISearchDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
@@ -32,7 +34,7 @@ export const SearchDialog = (props: ISearchDialog) => {
     }
     setIsLoading(true);
     setErrorMessage("");
-    const res = await fetch("/api/integrations/giphy/search", {
+    const res = await cFetch("/api/integrations/giphy/search", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -62,7 +64,7 @@ export const SearchDialog = (props: ISearchDialog) => {
     }
     setIsLoading(true);
     setErrorMessage("");
-    const res = await fetch("/api/integrations/giphy/get", {
+    const res = await cFetch("/api/integrations/giphy/get", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

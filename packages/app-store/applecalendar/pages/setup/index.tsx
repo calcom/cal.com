@@ -3,9 +3,11 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, Form, TextField } from "@calcom/ui";
+
+import { cFetch } from "@lib/core/http/fetch-wrapper";
 
 export default function AppleCalendarSetup() {
   const { t } = useLocale();
@@ -26,7 +28,7 @@ export default function AppleCalendarSetup() {
           <div>
             {/* eslint-disable @next/next/no-img-element */}
             <img
-              src="/api/app-store/applecalendar/icon.svg"
+              src={`${WEBAPP_PREFIX_PATH}/api/app-store/applecalendar/icon.svg`}
               alt="Apple Calendar"
               className="h-12 w-12 max-w-2xl"
             />
@@ -50,7 +52,7 @@ export default function AppleCalendarSetup() {
                 form={form}
                 handleSubmit={async (values) => {
                   setErrorMessage("");
-                  const res = await fetch("/api/integrations/applecalendar/add", {
+                  const res = await cFetch("/api/integrations/applecalendar/add", {
                     method: "POST",
                     body: JSON.stringify(values),
                     headers: {

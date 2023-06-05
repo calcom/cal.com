@@ -1,3 +1,5 @@
+import { WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
+
 interface ThemeLabelProps {
   variant: "light" | "dark" | "system";
   value?: "light" | "dark" | null;
@@ -25,7 +27,7 @@ export default function ThemeLabel(props: ThemeLabelProps) {
         <img
           aria-hidden="true"
           className="cover w-full rounded-lg"
-          src={`/theme-${variant}.svg`}
+          src={`${WEBAPP_PREFIX_PATH}/theme-${variant}.svg`}
           alt={`theme ${variant}`}
         />
       </div>

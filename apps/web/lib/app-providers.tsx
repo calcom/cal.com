@@ -13,6 +13,7 @@ import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
+import { WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
 import { MetaProvider } from "@calcom/ui";
 
@@ -211,8 +212,8 @@ const AppProviders = (props: AppPropsWithChildren) => {
   const isPublicPage = usePublicPage();
 
   const RemainingProviders = (
-    <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <SessionProvider session={session || undefined}>
+    <EventCollectionProvider options={{ apiPath: `${WEBAPP_PREFIX_PATH}/api/collect-events` }}>
+      <SessionProvider session={session || undefined} basePath={`${WEBAPP_PREFIX_PATH}/api/auth`}>
         <CustomI18nextProvider {...props}>
           <TooltipProvider>
             {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}

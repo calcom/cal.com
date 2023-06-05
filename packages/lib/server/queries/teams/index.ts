@@ -1,10 +1,9 @@
 import { Prisma } from "@prisma/client";
 
+import { WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-
-import { WEBAPP_URL } from "../../../constants";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 export async function getTeamWithMembers(id?: number, slug?: string, userId?: number) {
@@ -72,7 +71,7 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
       role: obj.role,
       accepted: obj.accepted,
       disableImpersonation: obj.disableImpersonation,
-      avatar: `${WEBAPP_URL}/${obj.user.username}/avatar.png`,
+      avatar: `${WEBAPP_PREFIX_PATH}/${obj.user.username}/avatar.png`,
     };
   });
 

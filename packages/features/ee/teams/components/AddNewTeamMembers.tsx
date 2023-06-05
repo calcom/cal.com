@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
-import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_PREFIX_PATH, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -169,7 +169,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
         <Avatar
           gravatarFallbackMd5="teamMember"
           size="mdLg"
-          imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
+          imageSrc={`${WEBAPP_PREFIX_PATH}/${member.username}/avatar.png`}
           alt="owner-avatar"
         />
         <div>

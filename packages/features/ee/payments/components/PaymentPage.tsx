@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_PREFIX_PATH, WEBSITE_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -58,7 +58,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
         <title>
           {t("payment")} | {eventName} | {APP_NAME}
         </title>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href={`${WEBAPP_PREFIX_PATH}/favicon.ico`} />
       </Head>
       <main className="mx-auto max-w-3xl py-24">
         <div className="fixed inset-0 z-50 overflow-y-auto scroll-auto">

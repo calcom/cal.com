@@ -5,6 +5,8 @@ import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, showToast } from "@calcom/ui";
 
+import { cFetch } from "@lib/core/http/fetch-wrapper";
+
 const ChangePasswordSection = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -32,7 +34,7 @@ const ChangePasswordSection = () => {
     setErrorMessage(null);
 
     try {
-      const response = await fetch("/api/auth/changepw", {
+      const response = await cFetch("/api/auth/changepw", {
         method: "PATCH",
         body: JSON.stringify({ oldPassword, newPassword }),
         headers: {

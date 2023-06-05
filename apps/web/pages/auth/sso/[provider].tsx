@@ -13,6 +13,7 @@ import {
   samlTenantID,
   samlTenantProduct,
 } from "@calcom/features/ee/sso/lib/saml";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import prisma from "@calcom/prisma";
 
@@ -33,12 +34,12 @@ export default function Provider(props: SSOProviderPageProps) {
       const email = typeof router.query?.email === "string" ? router.query?.email : null;
 
       if (!email) {
-        router.push("/auth/error?error=" + "Email not provided");
+        router.push("/auth/error?error=Email not provided");
         return;
       }
 
       if (!props.isSAMLLoginEnabled) {
-        router.push("/auth/error?error=" + "SAML login not enabled");
+        router.push("/auth/error?error=SAML login not enabled");
         return;
       }
 
@@ -120,7 +121,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (error) {
     return {
       redirect: {
-        destination: "/auth/error?error=" + error,
+        destination: `/auth/error?error=${error}`,
         permanent: false,
       },
     };
@@ -169,8 +170,8 @@ const getStripePremiumUsernameUrl = async ({
         quantity: 1,
       },
     ],
-    success_url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}${successDestination}&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com",
+    success_url: `${WEBAPP_URL}${successDestination}&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: WEBAPP_URL || "https://app.cal.com",
     allow_promotion_codes: true,
   });
 

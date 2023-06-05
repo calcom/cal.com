@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import type { TeamWithMembers } from "@calcom/lib/server/queries/teams";
@@ -27,7 +27,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
         <Avatar
           size="md"
           alt={member.name || ""}
-          imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
+          imageSrc={`${WEBAPP_PREFIX_PATH}/${member.username}/avatar.png`}
         />
         <section className="line-clamp-4 mt-2 w-full space-y-1">
           <p className="text-default font-medium">{member.name}</p>

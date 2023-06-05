@@ -2,11 +2,16 @@ import viteBaseConfig from "../vite.config";
 
 const path = require("path");
 const { defineConfig } = require("vite");
+
+const WEBAPP_PREFIX_PATH = process.env.NEXT_PUBLIC_WEBAPP_PREFIX_PATH?.startsWith("/")
+  ? process.env.NEXT_PUBLIC_WEBAPP_PREFIX_PATH
+  : "";
+
 module.exports = defineConfig((configEnv) => {
   /** @type {import('vite').UserConfig} */
   const config = {
     ...viteBaseConfig,
-    base: "/embed/",
+    base: WEBAPP_PREFIX_PATH + "/embed/",
     build: {
       emptyOutDir: true,
       rollupOptions: {

@@ -17,8 +17,7 @@ import {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Input } from "@calcom/ui";
-import { Button, Dialog, DialogContent, DialogFooter, Form, PhoneInput } from "@calcom/ui";
+import { Button, Dialog, DialogContent, DialogFooter, Form, Input, PhoneInput } from "@calcom/ui";
 import { MapPin } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";

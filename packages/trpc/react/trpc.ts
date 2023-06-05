@@ -1,6 +1,8 @@
 import type { NextPageContext } from "next/types";
 import superjson from "superjson";
 
+import { WEBAPP_PREFIX_PATH, WEBAPP_URL } from "@calcom/lib/constants";
+
 import { httpBatchLink } from "../client/links/httpBatchLink";
 import { httpLink } from "../client/links/httpLink";
 import { loggerLink } from "../client/links/loggerLink";
@@ -73,10 +75,10 @@ export const trpc = createTRPCNext<AppRouter, NextPageContext, "ExperimentalSusp
   config() {
     const url =
       typeof window !== "undefined"
-        ? "/api/trpc"
+        ? `${WEBAPP_PREFIX_PATH}/api/trpc`
         : process.env.VERCEL_URL
         ? `https://${process.env.VERCEL_URL}/api/trpc`
-        : `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
+        : `${WEBAPP_URL}/api/trpc`;
 
     /**
      * If you want to use SSR, you need to use the server's full URL

@@ -12,7 +12,7 @@ import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/featur
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import Shell from "@calcom/features/shell/Shell";
-import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, CAL_URL, WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
@@ -100,7 +100,7 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   const tabs = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
     href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
-    avatar: item.profile.image ?? `${WEBAPP_URL}/${item.profile.slug}/avatar.png`,
+    avatar: item.profile.image ?? `${WEBAPP_PREFIX_PATH}/${item.profile.slug}/avatar.png`,
   }));
   const { data } = useTypedQuery(querySchema);
   const events = eventTypeGroups.filter((item) => item.teamId === data.teamId);
@@ -395,7 +395,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           truncateAfter={4}
                           items={type.users.map((organizer: { name: any; username: any }) => ({
                             alt: organizer.name || "",
-                            image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
+                            image: `${WEBAPP_PREFIX_PATH}/${organizer.username}/avatar.png`,
                             title: organizer.name || "",
                           }))}
                         />
@@ -409,7 +409,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             .flatMap((ch) => ch.users)
                             .map((user: User) => ({
                               alt: user.name || "",
-                              image: `${WEBAPP_URL}/${user.username}/avatar.png`,
+                              image: `${WEBAPP_PREFIX_PATH}/${user.username}/avatar.png`,
                               title: user.name || "",
                             }))}
                         />
@@ -703,7 +703,7 @@ const EventTypeListHeading = ({
       <Avatar
         alt={profile?.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={`${WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
+        imageSrc={`${WEBAPP_PREFIX_PATH}/${profile.slug}/avatar.png` || undefined}
         size="md"
         className="mt-1 inline-flex justify-center"
       />

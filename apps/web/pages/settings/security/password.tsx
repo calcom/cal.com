@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 
 import { identityProviderNameMap } from "@calcom/features/auth/lib/identityProviderNameMap";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
+import { WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
@@ -67,7 +68,7 @@ const PasswordView = () => {
       so this a workaround to hide the banner after updating the password.
       discussion: https://github.com/nextauthjs/next-auth/discussions/4229
       */
-        signOut({ callbackUrl: "/auth/login" });
+        signOut({ callbackUrl: `${WEBAPP_PREFIX_PATH}/auth/login` });
       }
     },
     onError: (error) => {

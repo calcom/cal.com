@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import classNames from "@calcom/lib/classNames";
+import { WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
@@ -45,7 +46,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
     <div className="border-subtle relative flex h-64 flex-col rounded-md border p-5">
       <div className="flex">
         <img
-          src={app.logo}
+          src={WEBAPP_PREFIX_PATH + app.logo}
           alt={app.name + " Logo"}
           className={classNames(
             app.logo.includes("-dark") && "dark:invert",
@@ -139,9 +140,9 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
                   }
                   return (
                     <Button
-                      StartIcon={Plus}
                       color="secondary"
                       className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
+                      StartIcon={Plus}
                       data-testid="install-app-button"
                       {...props}>
                       {t("install")}

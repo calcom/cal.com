@@ -1,7 +1,9 @@
+import { WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
+
 import { HttpError } from "./http-error";
 
 async function http<T>(path: string, config: RequestInit): Promise<T> {
-  const request = new Request(path, config);
+  const request = new Request(WEBAPP_PREFIX_PATH + path, config);
   const response: Response = await fetch(request);
 
   if (!response.ok) {
@@ -59,4 +61,8 @@ export async function remove<T, U>(path: string, body: T, config?: RequestInit):
     ...config,
   };
   return await http<U>(path, init);
+}
+
+export async function cFetch(path: string, config?: RequestInit) {
+  return await fetch(WEBAPP_PREFIX_PATH + path, config);
 }

@@ -5,6 +5,7 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { sendPasswordResetEmail } from "@calcom/emails";
 import { PASSWORD_RESET_EXPIRY_HOURS } from "@calcom/emails/templates/forgot-password-email";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import rateLimit from "@calcom/lib/rateLimit";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -86,7 +87,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       passwordRequest = createdResetPasswordRequest;
     }
 
-    const resetLink = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/forgot-password/${passwordRequest.id}`;
+    const resetLink = `${WEBAPP_URL}/auth/forgot-password/${passwordRequest.id}`;
     await sendPasswordResetEmail({
       language: t,
       user: maybeUser,

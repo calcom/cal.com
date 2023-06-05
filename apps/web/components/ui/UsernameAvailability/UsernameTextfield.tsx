@@ -3,6 +3,7 @@ import { debounce, noop } from "lodash";
 import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
 
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
@@ -116,9 +117,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             ref={usernameRef}
             name="username"
             value={inputUsernameValue}
-            addOnLeading={
-              <>{process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/</>
-            }
+            addOnLeading={<>{WEBSITE_URL.replace("https://", "").replace("http://", "")}/</>}
             autoComplete="none"
             autoCapitalize="none"
             autoCorrect="none"

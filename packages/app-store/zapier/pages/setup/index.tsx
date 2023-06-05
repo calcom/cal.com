@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Toaster } from "react-hot-toast";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast, Tooltip } from "@calcom/ui";
@@ -27,7 +28,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   );
   const [credentialId] = zapierCredentials?.credentialIds || [false];
   const showContent = integrations.data && integrations.isSuccess && credentialId;
-  const isCalDev = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.dev";
+  const isCalDev = WEBAPP_URL === "https://app.cal.dev";
 
   async function createApiKey() {
     const event = { note: "Zapier", expiresAt: null, appId: ZAPIER };

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
+import { WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { Badge, ListItemText } from "@calcom/ui";
@@ -50,7 +51,7 @@ export default function AppListCard(props: AppListCardProps) {
         setHighlight(false);
         const url = new URL(window.location.href);
         url.searchParams.delete("hl");
-        router.replace(url.pathname, undefined, { shallow: true });
+        router.replace(url.pathname.replace(WEBAPP_PREFIX_PATH, ""), undefined, { shallow: true });
       }, 3000);
       timeoutRef.current = timer;
     }
@@ -65,7 +66,7 @@ export default function AppListCard(props: AppListCardProps) {
   return (
     <div className={`${highlight ? "dark:bg-muted bg-yellow-100" : ""}`}>
       <div className="flex gap-x-3 px-5 py-4">
-        {logo ? <img className="h-10 w-10" src={logo} alt={`${title} logo`} /> : null}
+        {logo ? <img className="h-10 w-10" src={WEBAPP_PREFIX_PATH + logo} alt={`${title} logo`} /> : null}
         <div className="flex grow flex-col gap-y-1 truncate">
           <div className="flex items-center gap-x-2">
             <h3 className="text-emphasis truncate text-sm font-semibold">{title}</h3>

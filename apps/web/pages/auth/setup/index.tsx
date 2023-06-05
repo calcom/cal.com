@@ -5,6 +5,7 @@ import { useState } from "react";
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
+import { WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
@@ -108,7 +109,7 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
             appCategoryNavigationContainer: "max-h-[400px] overflow-y-auto md:p-4",
             verticalTabsItem: "!w-48 md:p-4",
           }}
-          baseURL={`/auth/setup?step=${currentStep}`}
+          baseURL={`${WEBAPP_PREFIX_PATH}/auth/setup?step=${currentStep}`}
           useQueryParam={true}
           onSubmit={() => {
             setIsLoading(true);
@@ -124,7 +125,7 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
       <Meta title={t("setup")} description={t("setup_description")} />
       <main className="bg-subtle flex items-center print:h-full md:h-screen">
         <WizardForm
-          href="/auth/setup"
+          href={`${WEBAPP_PREFIX_PATH}/auth/setup`}
           steps={steps}
           nextLabel={t("next_step_text")}
           finishLabel={t("finish")}

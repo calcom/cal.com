@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-import { DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
+import { DOCS_URL, JOIN_SLACK, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HeadSeo } from "@calcom/ui";
 import { BookOpen, Check, ChevronRight, FileText, Slack } from "@calcom/ui/components/icon";
@@ -41,7 +41,7 @@ export default function Custom404() {
   const isSuccessPage = router.asPath.startsWith("/booking");
   const isSubpage = router.asPath.includes("/", 2) || isSuccessPage;
   const isSignup = router.asPath.startsWith("/signup");
-  const isCalcom = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com";
+  const isCalcom = WEBAPP_URL === "https://app.cal.com";
   /**
    * If we're on 404 and the route is insights it means it is disabled
    * TODO: Abstract this for all disabled features
@@ -92,7 +92,7 @@ export default function Custom404() {
       />
       <div className="bg-default min-h-screen px-4" data-testid="404-page">
         <main className="mx-auto max-w-xl pt-16 pb-6 sm:pt-24">
-          {isSignup && process.env.NEXT_PUBLIC_WEBAPP_URL !== "https://app.cal.com" ? (
+          {isSignup && !isCalcom ? (
             <div>
               <div>
                 <p className="text-emphasis text-sm font-semibold uppercase tracking-wide">

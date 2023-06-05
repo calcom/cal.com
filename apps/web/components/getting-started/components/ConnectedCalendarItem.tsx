@@ -1,4 +1,5 @@
 import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
+import { WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 
 interface IConnectedCalendarItem {
   name: string;
@@ -23,7 +24,7 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
   return (
     <>
       <div className="flex flex-row items-center p-4">
-        <img src={logo} alt={name} className="m-1 h-8 w-8" />
+        <img src={WEBAPP_PREFIX_PATH + logo} alt={name} className="m-1 h-8 w-8" />
         <div className="mx-4">
           <p className="font-sans text-sm font-bold leading-5">
             {name}

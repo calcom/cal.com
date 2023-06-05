@@ -8,7 +8,7 @@ import { createRef, forwardRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
 import { components } from "react-select";
 
-import { APP_NAME, EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, EMBED_LIB_URL, WEBAPP_PREFIX_PATH, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Button,
@@ -600,7 +600,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
           className="h-[100vh] border"
           width="100%"
           height="100%"
-          src={`${WEBAPP_URL}/embed/preview.html?embedType=${embedType}&calLink=${calLink}`}
+          src={`${WEBAPP_PREFIX_PATH}/embed/preview.html?embedType=${embedType}&calLink=${calLink}`}
         />
       );
     }),

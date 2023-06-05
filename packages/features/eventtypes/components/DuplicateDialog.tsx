@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -94,10 +95,9 @@ const DuplicateDialog = () => {
               }}
             />
 
-            {process.env.NEXT_PUBLIC_WEBSITE_URL !== undefined &&
-            process.env.NEXT_PUBLIC_WEBSITE_URL?.length >= 21 ? (
+            {WEBSITE_URL !== undefined && WEBSITE_URL?.length >= 21 ? (
               <TextField
-                label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
+                label={`${t("url")}: ${WEBSITE_URL}`}
                 required
                 addOnLeading={<>/{pageSlug}/</>}
                 {...register("slug")}
@@ -111,7 +111,7 @@ const DuplicateDialog = () => {
                 required
                 addOnLeading={
                   <>
-                    {process.env.NEXT_PUBLIC_WEBSITE_URL}/{pageSlug}/
+                    {WEBSITE_URL}/{pageSlug}/
                   </>
                 }
                 {...register("slug")}

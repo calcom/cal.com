@@ -1,6 +1,7 @@
 import { signIn } from "next-auth/react";
 import { useRef } from "react";
 
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Meta, TextField } from "@calcom/ui";
 
@@ -25,7 +26,7 @@ function AdminView() {
           <TextField
             containerClassName="w-full"
             name={t("user_impersonation_heading")}
-            addOnLeading={<>{process.env.NEXT_PUBLIC_WEBSITE_URL}/</>}
+            addOnLeading={<>{WEBSITE_URL}/</>}
             ref={usernameRef}
             hint={t("impersonate_user_tip")}
             defaultValue={undefined}

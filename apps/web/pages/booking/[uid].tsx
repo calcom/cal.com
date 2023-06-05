@@ -30,7 +30,7 @@ import {
   SMS_REMINDER_NUMBER_FIELD,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_PREFIX_PATH } from "@calcom/lib/constants";
 import {
   formatToLocalizedDate,
   formatToLocalizedTime,
@@ -153,7 +153,7 @@ export default function Success(props: SuccessProps) {
 
     router.replace(
       {
-        pathname: router.pathname,
+        pathname: router.pathname.replace(WEBAPP_PREFIX_PATH, ""),
         query: { ...query_ },
       },
       undefined,

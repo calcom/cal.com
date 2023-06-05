@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, ButtonGroup, Label } from "@calcom/ui";

@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import classNames from "@calcom/lib/classNames";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -106,6 +107,8 @@ export default function TeamListItem(props: Props) {
   const isAdmin = props.team.role === MembershipRole.OWNER || props.team.role === MembershipRole.ADMIN;
   const { hideDropdown, setHideDropdown } = props;
 
+  const permalink = `${WEBAPP_URL}/team/${team?.slug}`;
+
   if (!team) return <></>;
 
   const teamInfo = (
@@ -118,9 +121,7 @@ export default function TeamListItem(props: Props) {
       />
       <div className="ms-3 inline-block truncate">
         <span className="text-default text-sm font-bold">{team.name}</span>
-        <span className="text-muted block text-xs">
-          {team.slug ? `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}` : "Unpublished team"}
-        </span>
+        <span className="text-muted block text-xs">{team.slug ? permalink : "Unpublished team"}</span>
       </div>
     </div>
   );
@@ -200,9 +201,7 @@ export default function TeamListItem(props: Props) {
                     <Button
                       color="secondary"
                       onClick={() => {
-                        navigator.clipboard.writeText(
-                          process.env.NEXT_PUBLIC_WEBSITE_URL + "/team/" + team.slug
-                        );
+                        navigator.clipboard.writeText(permalink);
                         showToast(t("link_copied"), "success");
                       }}
                       variant="icon"
@@ -234,11 +233,7 @@ export default function TeamListItem(props: Props) {
                     {!team.slug && <TeamPublishButton teamId={team.id} />}
                     {team.slug && (
                       <DropdownMenuItem>
-                        <DropdownItem
-                          type="button"
-                          target="_blank"
-                          href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`}
-                          StartIcon={ExternalLink}>
+                        <DropdownItem type="button" target="_blank" href={permalink} StartIcon={ExternalLink}>
                           {t("preview_team") as string}
                         </DropdownItem>
                       </DropdownMenuItem>
