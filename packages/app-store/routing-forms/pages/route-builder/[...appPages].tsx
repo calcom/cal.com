@@ -4,6 +4,7 @@ import React, { useCallback, useState } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
 import type { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
+import type { UseFormReturn } from "react-hook-form";
 
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,6 +20,7 @@ import {
   Divider,
 } from "@calcom/ui";
 
+import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
@@ -282,15 +284,13 @@ const Routes = ({
   appUrl,
 }: {
   form: inferSSRProps<typeof getServerSideProps>["form"];
-  // Figure out the type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  hookForm: any;
+  hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   appUrl: string;
 }) => {
-  const { routes: serializedRoutes } = form;
+  const { routes: serializedRoutes } = hookForm.getValues();
   const { t } = useLocale();
 
-  const config = getQueryBuilderConfig(form);
+  const config = getQueryBuilderConfig(hookForm.getValues());
   const [routes, setRoutes] = useState(() => {
     const transformRoutes = () => {
       const _routes = serializedRoutes || [getEmptyRoute()];
@@ -313,7 +313,7 @@ const Routes = ({
   const availableRouters =
     allForms
       ?.filter((router) => {
-        return router.id !== form.id;
+        return router.id !== hookForm.getValues().id;
       })
       .map((router) => {
         return {
