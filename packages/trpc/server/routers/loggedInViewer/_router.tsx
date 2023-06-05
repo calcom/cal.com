@@ -4,6 +4,7 @@ import { ZAppByIdInputSchema } from "./appById.schema";
 import { ZAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
 import { ZAppsInputSchema } from "./apps.schema";
 import { ZAwayInputSchema } from "./away.schema";
+import { ZConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
 import { ZDeleteCredentialInputSchema } from "./deleteCredential.schema";
 import { ZDeleteMeInputSchema } from "./deleteMe.schema";
 import { ZEventTypeOrderInputSchema } from "./eventTypeOrder.schema";
@@ -110,7 +111,7 @@ export const loggedInViewerRouter = router({
     return UNSTABLE_HANDLER_CACHE.away({ ctx, input });
   }),
 
-  connectedCalendars: authedProcedure.query(async ({ ctx }) => {
+  connectedCalendars: authedProcedure.input(ZConnectedCalendarsInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.connectedCalendars) {
       UNSTABLE_HANDLER_CACHE.connectedCalendars = (
         await import("./connectedCalendars.handler")
@@ -122,7 +123,7 @@ export const loggedInViewerRouter = router({
       throw new Error("Failed to load handler");
     }
 
-    return UNSTABLE_HANDLER_CACHE.connectedCalendars({ ctx });
+    return UNSTABLE_HANDLER_CACHE.connectedCalendars({ ctx, input });
   }),
 
   setDestinationCalendar: authedProcedure
