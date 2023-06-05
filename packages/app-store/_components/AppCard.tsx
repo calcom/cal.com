@@ -29,20 +29,30 @@ export default function AppCard({
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
-    <div className={`border-subtle mb-4 mt-2 rounded-md border ${!app.enabled && "grayscale"}`}>
-      <div className="p-4 text-sm sm:p-6">
+    <div
+      className={classNames(
+        "border-subtle mb-4",
+        app.isInstalled ? "mt-2" : "mt-6",
+        "rounded-md border",
+        !app.enabled && "grayscale",
+        "bg-red-400"
+      )}>
+      <div className={classNames(app.isInstalled ? "p-4 text-sm sm:p-4" : "px-5 py-4 text-sm sm:px-5")}>
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
           {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
           <Link href={"/apps/" + app.slug} className="mr-3 h-auto w-10 rounded-sm">
             <img
-              className={classNames(app?.logo.includes("-dark") && "dark:invert", "w-full min-w-[40px]")}
+              className={classNames(
+                app?.logo.includes("-dark") && "dark:invert",
+                `w-full ${app.isInstalled ? "min-w-[42px]" : "min-w-[32.47px]"}`
+              )}
               src={app?.logo}
               alt={app?.name}
             />
           </Link>
           <div className="flex flex-col">
             <span className="text-emphasis text-base font-semibold leading-4">{app?.name}</span>
-            <p className="text-default mb-2 pt-2 text-sm font-normal ltr:pr-2 rtl:pl-2">
+            <p className="text-default max-w-md truncate pt-2 text-sm font-normal ltr:pr-2 rtl:pl-2">
               {description || app?.description}
             </p>
           </div>
@@ -70,7 +80,7 @@ export default function AppCard({
       </div>
       <div ref={animationRef}>
         {app?.isInstalled && switchChecked && <hr className="border-subtle" />}
-        {app?.isInstalled && switchChecked ? <div className="p-4 text-sm sm:px-8">{children}</div> : null}
+        {app?.isInstalled && switchChecked ? <div className="p-4 text-sm sm:px-4">{children}</div> : null}
       </div>
     </div>
   );
