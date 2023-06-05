@@ -106,7 +106,7 @@ To get a local copy up and running, please follow these simple steps.
 
 Here is what you need to be able to run Cal.com.
 
-- Node.js (Version: >=15.x <17)
+- Node.js (Version: >=18.x)
 - PostgreSQL
 - Yarn _(recommended)_
 

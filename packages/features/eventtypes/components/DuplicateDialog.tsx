@@ -1,23 +1,16 @@
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
+import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
+import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  Form,
-  showToast,
-  TextAreaField,
-  TextField,
-} from "@calcom/ui";
+import { Button, Dialog, DialogClose, DialogContent, Form, showToast, TextField, Editor } from "@calcom/ui";
 
 const querySchema = z.object({
   title: z.string(),
@@ -31,7 +24,7 @@ const querySchema = z.object({
 const DuplicateDialog = () => {
   const { t } = useLocale();
   const router = useRouter();
-
+  const [firstRender, setFirstRender] = useState(true);
   const {
     data: { pageSlug, slug, ...defaultValues },
   } = useTypedQuery(querySchema);
@@ -125,10 +118,13 @@ const DuplicateDialog = () => {
               />
             )}
 
-            <TextAreaField
-              label={t("description")}
+            <Editor
+              getText={() => md.render(form.getValues("description") || "")}
+              setText={(value: string) => form.setValue("description", turndown(value))}
+              excludedToolbarItems={["blockType", "link"]}
               placeholder={t("quick_video_meeting")}
-              {...register("description")}
+              firstRender={firstRender}
+              setFirstRender={setFirstRender}
             />
 
             <div className="relative">

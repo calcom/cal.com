@@ -66,7 +66,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (rescheduleUid) {
     booking = await getBookingByUidOrRescheduleUid(`${rescheduleUid}`);
   }
-  await ssr.viewer.public.event.prefetch({ username: teamSlug, eventSlug: meetingSlug });
+
+  // We use this to both prefetch the query on the server,
+  // as well as to check if the event exist, so we c an show a 404 otherwise.
+  const eventData = await ssr.viewer.public.event.fetch({ username: teamSlug, eventSlug: meetingSlug });
+
+  if (!eventData) {
+    return {
+      notFound: true,
+    };
+  }
+
   return {
     props: {
       booking,

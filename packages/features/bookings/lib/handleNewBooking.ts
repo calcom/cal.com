@@ -33,6 +33,7 @@ import {
 } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -41,6 +42,7 @@ import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { getFullName } from "@calcom/features/form-builder/utils";
+import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
@@ -73,7 +75,6 @@ import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
 
 import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
-import sendPayload from "../../webhooks/lib/sendPayload";
 import getBookingResponsesSchema from "./getBookingResponsesSchema";
 
 const translator = short();
@@ -468,6 +469,13 @@ function getBookingData({
           if (val.responses) {
             const unwantedProps: string[] = [];
             legacyProps.forEach((legacyProp) => {
+              if (typeof val[legacyProp as keyof typeof val] !== "undefined") {
+                console.error(
+                  `Deprecated: Unexpected falsy value for: ${unwantedProps.join(
+                    ","
+                  )}. They can't be used with \`responses\`. This will become a 400 error in the future.`
+                );
+              }
               if (val[legacyProp as keyof typeof val]) {
                 unwantedProps.push(legacyProp);
               }
@@ -489,8 +497,24 @@ function getBookingData({
             }
           }
         });
-  debugger;
+
   const reqBody = bookingDataSchema.parse(req.body);
+
+  // Work with Typescript to require reqBody.end
+  type ReqBodyWithoutEnd = z.infer<typeof bookingDataSchema>;
+  type ReqBodyWithEnd = ReqBodyWithoutEnd & { end: string };
+
+  const reqBodyWithEnd = (reqBody: ReqBodyWithoutEnd): reqBody is ReqBodyWithEnd => {
+    // Use the event length to auto-set the event end time.
+    if (!Object.prototype.hasOwnProperty.call(reqBody, "end")) {
+      reqBody.end = dayjs.utc(reqBody.start).add(eventType.length, "minutes").format();
+    }
+    return true;
+  };
+  if (!reqBodyWithEnd(reqBody)) {
+    throw new Error("Internal Error.");
+  }
+  // reqBody.end is no longer an optional property.
   if ("customInputs" in reqBody) {
     if (reqBody.customInputs) {
       // Check if required custom inputs exist
@@ -586,7 +610,6 @@ async function handler(
     ...eventType,
     bookingFields: getBookingFieldsWithSystemFields(eventType),
   };
-  debugger;
   const {
     recurringCount,
     allRecurringDates,
@@ -672,7 +695,7 @@ async function handler(
             metadata: true,
           },
         })
-      : !!eventType.hosts?.length
+      : eventType.hosts?.length
       ? eventType.hosts.map(({ user, isFixed }) => ({
           ...user,
           isFixed,
@@ -736,14 +759,17 @@ async function handler(
     defaultLocationUrl = firstUsersMetadata?.defaultConferencingApp?.appLink;
   }
 
-  if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
+  if (
+    Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
+    Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
+  ) {
     const startAsDate = dayjs(reqBody.start).toDate();
-    await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
-  }
-
-  if (eventType && eventType.hasOwnProperty("durationLimits") && eventType?.durationLimits) {
-    const startAsDate = dayjs(reqBody.start).toDate();
-    await checkDurationLimits(eventType.durationLimits, startAsDate, eventType.id);
+    if (eventType.bookingLimits) {
+      await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
+    }
+    if (eventType.durationLimits) {
+      await checkDurationLimits(eventType.durationLimits, startAsDate, eventType.id);
+    }
   }
 
   if (!eventType.seatsPerTimeSlot) {
@@ -916,7 +942,7 @@ async function handler(
     requiresConfirmation: requiresConfirmation ?? false,
     eventTypeId: eventType.id,
     // if seats are not enabled we should default true
-    seatsShowAttendees: !!eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
+    seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
   };
 
@@ -1603,7 +1629,7 @@ async function handler(
   async function createBooking() {
     if (originalRescheduledBooking) {
       evt.title = originalRescheduledBooking?.title || evt.title;
-      evt.description = originalRescheduledBooking?.description || evt.additionalNotes;
+      evt.description = originalRescheduledBooking?.description || evt.description;
       evt.location = originalRescheduledBooking?.location || evt.location;
     }
 
@@ -2096,16 +2122,44 @@ async function handler(
         videoCallUrl: getVideoCallUrlFromCalEvent(evt),
       }
     : undefined;
+
+  const eventTypeInfo: EventTypeInfo = {
+    eventTitle: eventType.title,
+    eventDescription: eventType.description,
+    requiresConfirmation: requiresConfirmation || null,
+    price: paymentAppData.price,
+    currency: eventType.currency,
+    length: eventType.length,
+  };
+  const webhookData = {
+    ...evt,
+    ...eventTypeInfo,
+    bookingId: booking?.id,
+    rescheduleUid,
+    rescheduleStartTime: originalRescheduledBooking?.startTime
+      ? dayjs(originalRescheduledBooking?.startTime).utc().format()
+      : undefined,
+    rescheduleEndTime: originalRescheduledBooking?.endTime
+      ? dayjs(originalRescheduledBooking?.endTime).utc().format()
+      : undefined,
+    metadata: { ...metadata, ...reqBody.metadata },
+    eventTypeId,
+    status: "ACCEPTED",
+    smsReminderNumber: booking?.smsReminderNumber || undefined,
+  };
+  const subscriberOptions: GetSubscriberOptions = {
+    userId: organizerUser.id,
+    eventTypeId,
+    triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+    teamId: eventType.team?.id,
+  };
+
   if (isConfirmedByDefault) {
     const eventTrigger: WebhookTriggerEvents = rescheduleUid
       ? WebhookTriggerEvents.BOOKING_RESCHEDULED
       : WebhookTriggerEvents.BOOKING_CREATED;
-    const subscriberOptions = {
-      userId: organizerUser.id,
-      eventTypeId,
-      triggerEvent: eventTrigger,
-      teamId: eventType.team?.id,
-    };
+
+    subscriberOptions.triggerEvent = eventTrigger;
 
     const subscriberOptionsMeetingEnded = {
       userId: organizerUser.id,
@@ -2129,48 +2183,14 @@ async function handler(
       log.error("Error while running scheduledJobs for booking", error);
     }
 
-    try {
-      // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-      const subscribers = await getWebhooks(subscriberOptions);
-      console.log("evt:", {
-        ...evt,
-        metadata: reqBody.metadata,
-      });
-      const bookingId = booking?.id;
-
-      const eventTypeInfo: EventTypeInfo = {
-        eventTitle: eventType.title,
-        eventDescription: eventType.description,
-        requiresConfirmation: requiresConfirmation || null,
-        price: paymentAppData.price,
-        currency: eventType.currency,
-        length: eventType.length,
-      };
-
-      const promises = subscribers.map((sub) =>
-        sendPayload(sub.secret, eventTrigger, new Date().toISOString(), sub, {
-          ...evt,
-          ...eventTypeInfo,
-          bookingId,
-          rescheduleUid,
-          rescheduleStartTime: originalRescheduledBooking?.startTime
-            ? dayjs(originalRescheduledBooking?.startTime).utc().format()
-            : undefined,
-          rescheduleEndTime: originalRescheduledBooking?.endTime
-            ? dayjs(originalRescheduledBooking?.endTime).utc().format()
-            : undefined,
-          metadata: { ...metadata, ...reqBody.metadata },
-          eventTypeId,
-          status: "ACCEPTED",
-          smsReminderNumber: booking?.smsReminderNumber || undefined,
-        }).catch((e) => {
-          console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
-        })
-      );
-      await Promise.all(promises);
-    } catch (error) {
-      log.error("Error while sending webhook", error);
-    }
+    // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
+    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+  } else if (eventType.requiresConfirmation) {
+    // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
+    const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
+    subscriberOptions.triggerEvent = eventTrigger;
+    webhookData.status = "PENDING";
+    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
 
   // Avoid passing referencesToCreate with id unique constrain values

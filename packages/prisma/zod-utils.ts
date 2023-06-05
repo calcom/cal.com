@@ -163,7 +163,7 @@ export const stringOrNumber = z.union([
 export const stringToDayjs = z.string().transform((val) => dayjs(val));
 
 export const bookingCreateBodySchema = z.object({
-  end: z.string(),
+  end: z.string().optional(),
   eventTypeId: z.number(),
   eventTypeSlug: z.string().optional(),
   rescheduleUid: z.string().optional(),
