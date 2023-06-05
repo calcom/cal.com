@@ -108,7 +108,7 @@ const BookerComponent = ({
             <BookerSection area="header">
               <Header extraDays={extraDays} isMobile={isMobile} />
             </BookerSection>
-            <StickyOnDesktop key="meta" className="relative z-10 flex min-h-full">
+            <StickyOnDesktop key="meta" className="relative z-10 flex sm:min-h-screen">
               <BookerSection
                 area="meta"
                 className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
