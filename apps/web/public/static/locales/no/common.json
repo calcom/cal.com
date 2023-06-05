@@ -1258,7 +1258,6 @@
   "exchange_authentication_standard": "Enkel autentisering",
   "exchange_authentication_ntlm": "NTLM autentisering",
   "exchange_compression": "GZip komprimering",
-  "routing_forms_description": "Du kan se alle skjemaer og viderekoblinger du har laget her.",
   "routing_forms_send_email_owner": "Send E-post til Eier",
   "routing_forms_send_email_owner_description": "Sender en e-post til eieren når skjemaet er sendt inn",
   "add_new_form": "Legg til nytt skjema",
