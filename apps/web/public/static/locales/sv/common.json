@@ -1142,7 +1142,6 @@
   "event_date_variable": "Händelsedatum",
   "event_time_variable": "Händelsetid",
   "location_variable": "Plats",
-  "additional_notes_variable": "Ytterligare inmatning",
   "app_upgrade_description": "För att kunna använda den här funktionen måste du uppgradera till ett Pro-konto.",
   "invalid_number": "Ogiltigt telefonnummer",
   "navigate": "Navigera",

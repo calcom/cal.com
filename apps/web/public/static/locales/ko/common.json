@@ -1142,7 +1142,6 @@
   "event_date_variable": "이벤트 날짜",
   "event_time_variable": "이벤트 시간",
   "location_variable": "위치",
-  "additional_notes_variable": "추가 참고 사항",
   "app_upgrade_description": "이 기능을 사용하려면 Pro 계정으로 업그레이드해야 합니다.",
   "invalid_number": "유효하지 않은 전화 번호",
   "navigate": "탐색하기",
