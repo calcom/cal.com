@@ -1634,7 +1634,7 @@
   "email_user_cta": "Uitnodiging weergeven",
   "email_no_user_invite_heading": "U bent uitgenodigd om lid te worden van een team op {{appName}}",
   "email_no_user_invite_subheading": "{{invitedBy}} heeft u uitgenodigd om lid te worden van zijn team op {{appName}}. {{appName}} is de gebeurtenissenplanner die u en uw team in staat stelt vergaderingen te plannen zonder heen en weer te e-mailen.",
-  "email_user_invite_subheading": "{{invitedBy}} heeft u uitgenodigd om lid te worden van zijn team '{{teamName}}' op {{appName}}. {{appName}} is de gebeurtenissenplanner die u en uw team in staat stelt vergaderingen te plannen zonder heen en weer te e-mailen.",
+  "email_user_invite_subheading": "{{invitedBy}} heeft u uitgenodigd om lid te worden van zijn team '{{teamName}}' op {{appName}}. {{appName}} is de gebeurtenissenplanner die u en uw team in staat stelt afspraken te plannen zonder heen en weer te e-mailen.",
   "email_no_user_invite_steps_intro": "We doorlopen samen een paar korte stappen en in een mum van tijd kunt u genieten van een stressvrije planning met uw team.",
   "email_no_user_step_one": "Kies uw gebruikersnaam",
   "email_no_user_step_two": "Koppel uw agenda-account",
