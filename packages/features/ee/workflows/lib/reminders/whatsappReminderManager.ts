@@ -35,7 +35,7 @@ export const scheduleWhatsappReminder = async (
   const timeUnit: timeUnitLowerCase | undefined = timeSpan.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
   let scheduledDate = null;
 
-  const senderID = getSenderId(reminderPhone, sender);
+  const senderID = getSenderId(reminderPhone, sender, true);
 
   //WHATSAPP_ATTENDEE action does not need to be verified
   //isVerificationPending is from all already existing workflows (once they edit their workflow, they will also have to verify the number)

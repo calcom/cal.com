@@ -75,7 +75,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           ? reminder.booking?.attendees[0].timeZone
           : reminder.booking?.user?.timeZone;
 
-      const senderID = getSenderId(sendTo, reminder.workflowStep.sender);
+      const senderID = getSenderId(sendTo, reminder.workflowStep.sender, true);
 
       const templateFunction = getWhatsappTemplateFunction(reminder.workflowStep.template)
       const message = templateFunction(

@@ -1,9 +1,11 @@
-import { SENDER_ID } from "@calcom/lib/constants";
+import { SENDER_ID as SMS_SENDER_ID, SENDER_ID_WHATSAPP } from "@calcom/lib/constants";
 
-export function getSenderId(phoneNumber?: string | null, sender?: string | null) {
+export function getSenderId(phoneNumber?: string | null, sender?: string | null, forWhatsapp: boolean = false) {
   const isAlphanumericSenderIdSupported = !noAlphanumericSenderIdSupport.find(
     (code) => code === phoneNumber?.substring(0, code.length)
   );
+
+  const SENDER_ID = forWhatsapp ? SENDER_ID_WHATSAPP : SMS_SENDER_ID
 
   const senderID = isAlphanumericSenderIdSupported ? sender || SENDER_ID : "";
 

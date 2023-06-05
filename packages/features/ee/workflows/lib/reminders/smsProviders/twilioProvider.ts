@@ -27,13 +27,8 @@ function getDefaultSender(whatsapp = false) {
   return defaultSender 
 }
 
-function getSMSRecipient(phone: string, whatsapp = false) {
-  const phoneNumber = phone.startsWith("+") ? phone : `+${phone}`
-  return whatsapp ? `whatsapp:${phoneNumber}` : phoneNumber;
-}
-
-function getSMSSender(sender: string, whatsapp = false) {
-  return whatsapp ? getDefaultSender(whatsapp) : sender.startsWith("+") ? sender : `+${sender}`;
+function getSMSNumber(phone: string, whatsapp = false) {
+  return whatsapp ? `whatsapp:${phone}` : phone;
 }
 
 export const sendSMS = async (phoneNumber: string, body: string, sender: string, whatsapp = false) => {
@@ -41,8 +36,8 @@ export const sendSMS = async (phoneNumber: string, body: string, sender: string,
   const response = await twilio.messages.create({
     body: body,
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
-    to: getSMSRecipient(phoneNumber, whatsapp),
-    from: getSMSSender(sender, whatsapp),
+    to: getSMSNumber(phoneNumber, whatsapp),
+    from: sender ? getSMSNumber(sender, whatsapp) : getDefaultSender(whatsapp),
   });
 
   return response;
@@ -53,10 +48,10 @@ export const scheduleSMS = async (phoneNumber: string, body: string, scheduledDa
   const response = await twilio.messages.create({
     body: body,
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
-    to: getSMSRecipient(phoneNumber, whatsapp),
+    to: getSMSNumber(phoneNumber, whatsapp),
     scheduleType: "fixed",
     sendAt: scheduledDate,
-    from: getSMSSender(sender, whatsapp),
+    from: sender ? getSMSNumber(sender, whatsapp) : getDefaultSender(whatsapp),
   });
 
   return response;

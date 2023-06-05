@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { SENDER_ID } from "@calcom/lib/constants";
+import { SENDER_ID, SENDER_ID_WHATSAPP } from "@calcom/lib/constants";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WorkflowActions } from "@calcom/prisma/enums";
@@ -92,6 +92,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
         setIsPhoneNumberNeeded(true);
         setIsSenderIdNeeded(true);
         setIsEmailAddressNeeded(false);
+        form.resetField("senderId", { defaultValue: SENDER_ID })
       } else if (newValue.value === WorkflowActions.EMAIL_ADDRESS) {
         setIsEmailAddressNeeded(true);
         setIsSenderIdNeeded(false);
@@ -100,14 +101,17 @@ export const AddActionDialog = (props: IAddActionDialog) => {
         setIsSenderIdNeeded(true);
         setIsEmailAddressNeeded(false);
         setIsPhoneNumberNeeded(false);
+        form.resetField("senderId", { defaultValue: SENDER_ID })
       } else if (newValue.value === WorkflowActions.WHATSAPP_NUMBER) {
         setIsPhoneNumberNeeded(true);
         setIsSenderIdNeeded(true);
         setIsEmailAddressNeeded(false);
+        form.resetField("senderId", { defaultValue: SENDER_ID_WHATSAPP })
       } else if (newValue.value === WorkflowActions.WHATSAPP_ATTENDEE) {
         setIsSenderIdNeeded(true);
         setIsEmailAddressNeeded(false);
         setIsPhoneNumberNeeded(false);
+        form.resetField("senderId", { defaultValue: SENDER_ID_WHATSAPP })
       } else {
         setIsSenderIdNeeded(false);
         setIsEmailAddressNeeded(false);

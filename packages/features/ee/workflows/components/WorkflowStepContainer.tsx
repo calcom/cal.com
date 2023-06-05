@@ -6,7 +6,7 @@ import { Controller } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
 import { classNames } from "@calcom/lib";
-import { SENDER_ID } from "@calcom/lib/constants";
+import { SENDER_ID, SENDER_ID_WHATSAPP } from "@calcom/lib/constants";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -83,7 +83,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     step?.action === WorkflowActions.WHATSAPP_ATTENDEE ||
     step?.action === WorkflowActions.WHATSAPP_NUMBER
   )
-  const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(senderNeeded ? true : false);
+  const [isSenderIsNeeded, setIsSenderIsNeeded] = useState(senderNeeded ? true : false);
   useEffect(() => {
     setNumberVerified(
       !!step &&
@@ -402,22 +402,35 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           if (val) {
                             const oldValue = form.getValues(`steps.${step.stepNumber - 1}.action`);
 
-                            if (isSMSOrWhatsappAction(val.value)) {
-                              setIsSenderIdNeeded(true);
+                            const setNumberRequiredConfigs = (phoneNumberIsNeeded: boolean) => {
+                              setIsSenderIsNeeded(true);
                               setIsEmailAddressNeeded(false);
-                              setIsPhoneNumberNeeded(val.value === WorkflowActions.SMS_NUMBER || val.value === WorkflowActions.WHATSAPP_NUMBER);
+                              setIsPhoneNumberNeeded(phoneNumberIsNeeded);
                               setNumberVerified(false);
+                            }
 
+                            if (isSMSAction(val.value)) {
+                              
+                              setNumberRequiredConfigs(val.value === WorkflowActions.SMS_NUMBER)
                               // email action changes to sms action
-                              if (!isSMSOrWhatsappAction(oldValue)) {
+                              if (!isSMSAction(oldValue)) {
                                 form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
                                 form.setValue(`steps.${step.stepNumber - 1}.sender`, SENDER_ID);
                               }
 
                               setIsEmailSubjectNeeded(false);
+                            } else if (isWhatsappAction(val.value)) {
+                              setNumberRequiredConfigs(val.value === WorkflowActions.WHATSAPP_NUMBER);
+
+                              if (!isWhatsappAction(oldValue)) {
+                                form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
+                                form.setValue(`steps.${step.stepNumber - 1}.sender`, SENDER_ID_WHATSAPP);
+                              }
+
+                              setIsEmailSubjectNeeded(false);
                             } else {
                               setIsPhoneNumberNeeded(false);
-                              setIsSenderIdNeeded(false);
+                              setIsSenderIsNeeded(false);
                               setIsEmailAddressNeeded(val.value === WorkflowActions.EMAIL_ADDRESS);
                               setIsEmailSubjectNeeded(true);
                             }
@@ -581,7 +594,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
               )}
               <div className="bg-muted mt-2 rounded-md p-4 pt-0">
-                {isSenderIdNeeded ? (
+                {isSenderIsNeeded ? (
                   <>
                     <div className="pt-4">
                       <Label>{t("sender_id")}</Label>
