@@ -31,7 +31,7 @@ const HorizontalTabItem = function ({ name, href, linkProps, avatar, ...props }:
       href={href}
       {...linkProps}
       className={classNames(
-        isCurrent ? "bg-subtle text-emphasis" : "  hover:bg-subtle hover:text-emphasis text-default ",
+        isCurrent ? "bg-emphasis text-emphasis" : "hover:bg-subtle hover:text-emphasis text-default",
         "inline-flex items-center justify-center whitespace-nowrap rounded-[6px] p-2 text-sm font-medium leading-4 md:mb-0",
         props.disabled && "pointer-events-none !opacity-30",
         props.className

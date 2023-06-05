@@ -136,7 +136,7 @@ test.describe("Routing Forms", () => {
         label: "Test Field",
       });
       const queryString =
-        "firstField=456&Test Field Number=456&Test Field Select=456&Test Field MultiSelect=456&Test Field MultiSelect=789&Test Field Phone=456&Test Field Email=456@example.com";
+        "firstField=456&Test Field Number=456&Test Field Single Selection=456&Test Field Multiple Selection=456&Test Field Multiple Selection=789&Test Field Phone=456&Test Field Email=456@example.com";
 
       await gotoRoutingLink({ page, queryString });
 
@@ -167,8 +167,8 @@ test.describe("Routing Forms", () => {
       // All other params come from prefill URL
       expect(url.searchParams.get("Test Field Number")).toBe("456");
       expect(url.searchParams.get("Test Field Long Text")).toBe("manual-fill");
-      expect(url.searchParams.get("Test Field Select")).toBe("456");
-      expect(url.searchParams.getAll("Test Field MultiSelect")).toMatchObject(["456", "789"]);
+      expect(url.searchParams.get("Test Field Multiple Selection")).toBe("456");
+      expect(url.searchParams.getAll("Test Field Multiple Selection")).toMatchObject(["456", "789"]);
       expect(url.searchParams.get("Test Field Phone")).toBe("456");
       expect(url.searchParams.get("Test Field Email")).toBe("456@example.com");
     });
@@ -447,7 +447,7 @@ async function addAllTypesOfFieldsAndSaveForm(
 
   const { optionsInUi: fieldTypesList } = await verifySelectOptions(
     { selector: ".data-testid-field-type", nth: 0 },
-    ["Email", "Long Text", "MultiSelect", "Number", "Phone", "Select", "Short Text"],
+    ["Email", "Long Text", "Multiple Selection", "Number", "Phone", "Single Selection", "Short Text"],
     page
   );
 
@@ -507,7 +507,7 @@ export async function addOneFieldAndDescriptionAndSaveForm(
   // Verify all Options of SelectBox
   const { optionsInUi: types } = await verifySelectOptions(
     { selector: ".data-testid-field-type", nth: 0 },
-    ["Email", "Long Text", "MultiSelect", "Number", "Phone", "Select", "Short Text"],
+    ["Email", "Long Text", "Multiple Selection", "Number", "Phone", "Single Selection", "Short Text"],
     page
   );
 
