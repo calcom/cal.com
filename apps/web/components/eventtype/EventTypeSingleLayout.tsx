@@ -75,8 +75,7 @@ function getNavigation(props: {
   installedAppsNumber: number;
   availability: AvailabilityOption | undefined;
 }) {
-  const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber, availability } =
-    props;
+  const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber } = props;
   const duration =
     eventType.metadata?.multipleDuration?.map((duration) => ` ${duration}`) || eventType.length;
 
@@ -220,6 +219,7 @@ function EventTypeSingleLayout({
       });
     }
     return navigation;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team, availability]);
 
   const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
