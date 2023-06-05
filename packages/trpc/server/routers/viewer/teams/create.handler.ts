@@ -57,6 +57,16 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     if (!isOrganisationAdmin(ctx.user.id, ctx.user.organization.id)) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
+
+    const nameCollisions = await prisma.user.findFirst({
+      where: {
+        organizationId: ctx.user.organization.id,
+        username: slug,
+      },
+    });
+
+    if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "team_slug_exists_as_user" });
+
     parentId = ctx.user.organization.id;
   }
 
