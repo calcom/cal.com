@@ -37,7 +37,7 @@ export function Header({ extraDays, isMobile }: { extraDays: number; isMobile: b
   return (
     <div className="border-subtle relative z-10 flex border-l border-b p-4">
       <div className="flex items-center gap-3">
-        <h3 className="text-base font-semibold leading-4">
+        <h3 className="min-w-[150px] text-base font-semibold leading-4">
           {selectedDate.format("MMM D")}-{selectedDate.add(extraDays, "days").format("D")},{" "}
           <span className="text-subtle">{selectedDate.format("YYYY")}</span>
         </h3>
