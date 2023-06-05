@@ -5,7 +5,7 @@ import { classNames } from "@calcom/lib";
 import type { BadgeProps } from "../..";
 import { Badge } from "../..";
 import { Divider } from "../divider";
-import { ArrowDown, ArrowUp, Trash } from "../icon";
+import { ArrowDown, ArrowUp, Trash2 } from "../icon";
 
 type Action = { check: () => boolean; fn: () => void };
 export default function FormCard({
@@ -68,7 +68,7 @@ export default function FormCard({
                 deleteField?.fn();
               }}
               color="secondary">
-              <Trash className="text-muted h-4 w-4" />
+              <Trash2 className="text-default h-4 w-4" />
             </button>
           ) : null}
         </div>
