@@ -1713,6 +1713,7 @@
   "spot_popular_event_types": "Spot popular event types",
   "spot_popular_event_types_description": "See which of your event types are receiving the most clicks and bookings",
   "no_responses_yet": "No responses yet",
+  "no_routes_defined": "No routes defined",
   "this_will_be_the_placeholder": "This will be the placeholder",
   "error_booking_event": "An error occured when booking the event, please refresh the page and try again",
   "timeslot_missing_title": "No timeslot selected",
