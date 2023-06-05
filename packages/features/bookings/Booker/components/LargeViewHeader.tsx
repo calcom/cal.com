@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import dayjs from "@calcom/dayjs";
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { Button, ButtonGroup } from "@calcom/ui";
 
 import { useBookerStore } from "../store";
@@ -9,10 +10,10 @@ export function LargeViewHeader({ extraDays }: { extraDays: number }) {
   const layout = useBookerStore((state) => state.layout);
   const selectedDateString = useBookerStore((state) => state.selectedDate);
   const addToSelectedDate = useBookerStore((state) => state.addToSelectedDate);
-  const isLargeTimeslots = layout === "column_view";
+  const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const selectedDate = dayjs(selectedDateString);
 
-  if (!isLargeTimeslots) return null;
+  if (!isColumnView) return null;
 
   return (
     <div className="mt-8 mb-4 flex py-2.5">

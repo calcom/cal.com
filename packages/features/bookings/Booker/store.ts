@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { create } from "zustand";
 
 import dayjs from "@calcom/dayjs";
-import { bookerLayoutOptions } from "@calcom/prisma/zod-utils";
+import { BookerLayouts, bookerLayoutOptions } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerState, BookerLayout } from "./types";
@@ -104,7 +104,7 @@ const checkLayout = (layout: BookerLayout) => {
 export const useBookerStore = create<BookerStore>((set, get) => ({
   state: "loading",
   setState: (state: BookerState) => set({ state }),
-  layout: checkLayout(getQueryParam("layout") as BookerLayout) || "month_view",
+  layout: checkLayout(getQueryParam("layout") as BookerLayout) || BookerLayouts.MONTH_VIEW,
   setLayout: (layout: BookerLayout) => {
     // If we switch to a large layout and don't have a date selected yet,
     // we selected it here, so week title is rendered properly.
@@ -165,7 +165,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       eventId,
       rescheduleUid,
       rescheduleBooking,
-      layout: layout || "month_view",
+      layout: layout || BookerLayouts.MONTH_VIEW,
       // Preselect today's date in week / column view, since they use this to show the week title.
       selectedDate: ["week_view", "column_view"].includes(layout) ? dayjs().format("YYYY-MM-DD") : null,
     });

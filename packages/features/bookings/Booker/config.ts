@@ -2,6 +2,8 @@ import { cubicBezier, useAnimate } from "framer-motion";
 import { useReducedMotion } from "framer-motion";
 import { useEffect } from "react";
 
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
+
 import type { BookerLayout, BookerState } from "./types";
 
 // Framer motion fade in animation configs.
@@ -96,18 +98,18 @@ export const getBookerSizeClassNames = (layout: BookerLayout, bookerState: Booke
     // General sizes, used always
     "[--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
     // Small calendar defaults
-    layout === "month_view" && "[--booker-meta-width:240px]",
+    layout === BookerLayouts.MONTH_VIEW && "[--booker-meta-width:240px]",
     // Meta column get's wider in booking view to fit the full date on a single row in case
     // of a multi occurance event. Also makes form less wide, which also looks better.
-    layout === "month_view" &&
+    layout === BookerLayouts.MONTH_VIEW &&
       bookerState === "booking" &&
       "[--booker-main-width:420px] lg:[--booker-meta-width:340px]",
     // Smaller meta when not in booking view.
-    layout === "month_view" &&
+    layout === BookerLayouts.MONTH_VIEW &&
       bookerState !== "booking" &&
       "[--booker-main-width:480px] lg:[--booker-meta-width:280px]",
     // Fullscreen view settings.
-    layout !== "month_view" &&
+    layout !== BookerLayouts.MONTH_VIEW &&
       "[--booker-main-width:480px] [--booker-meta-width:340px] lg:[--booker-meta-width:424px]",
   ];
 };

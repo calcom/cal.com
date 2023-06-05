@@ -6,7 +6,7 @@ import { Controller, useFormContext } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { BookerLayouts } from "@calcom/prisma/zod-utils";
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { bookerLayoutOptions, type BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Label, Checkbox, Button } from "@calcom/ui";
@@ -80,7 +80,7 @@ const BookerLayoutFields = ({ settings, onChange, showUserSettings }: BookerLayo
 
   const disableFields = showUserSettings && !isOverridingSettings;
   const shownSettings = disableFields ? user?.defaultBookerLayouts : settings;
-  const defaultLayout = shownSettings?.defaultLayout || "month_view";
+  const defaultLayout = shownSettings?.defaultLayout || BookerLayouts.MONTH_VIEW;
 
   // Converts the settings array into a boolean object, which can be used as form values.
   const toggleValues: BookerLayoutState = bookerLayoutOptions.reduce((layouts, layout) => {

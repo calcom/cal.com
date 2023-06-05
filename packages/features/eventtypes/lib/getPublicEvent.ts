@@ -10,13 +10,14 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { PrismaClient } from "@calcom/prisma/client";
-import type { BookerLayoutSettings, BookerLayouts } from "@calcom/prisma/zod-utils";
+import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
   bookerLayoutOptions,
   EventTypeMetaDataSchema,
   customInputSchema,
   userMetadata as userMetadataSchema,
   bookerLayouts,
+  BookerLayouts,
 } from "@calcom/prisma/zod-utils";
 
 const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
@@ -107,7 +108,7 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
 
     const defaultEventBookerLayouts = {
       enabledLayouts: [...bookerLayoutOptions],
-      defaultLayout: "month_view" as BookerLayouts,
+      defaultLayout: BookerLayouts.MONTH_VIEW,
     } as BookerLayoutSettings;
 
     return {
