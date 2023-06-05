@@ -40,7 +40,7 @@ export const AddNewTeamsForm = () => {
 
   const createTeamsMutation = trpc.viewer.organizations.createTeams.useMutation({
     async onSuccess(data) {
-      if (data.duplicatedSlugs) {
+      if (data.duplicatedSlugs.length) {
         showToast(t("duplicated_slugs_warning", { slugs: data.duplicatedSlugs.join(", ") }), "warning");
         setTimeout(() => {
           router.push(`/getting-started`);
