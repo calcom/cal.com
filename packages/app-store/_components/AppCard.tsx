@@ -30,10 +30,8 @@ export default function AppCard({
 
   return (
     <div
-      className={`border-subtle mb-4 ${app.isInstalled ? "mt-2" : "mt-6"} rounded-md border ${
-        !app.enabled && "grayscale"
-      }`}>
-      <div className={`${app.isInstalled ? "p-4 text-sm sm:p-4" : "px-5 py-4 text-sm sm:px-5"}`}>
+      className={classNames("border-subtle mb-4", app.isInstalled ? "mt-2" : "mt-6", "rounded-md border", !app.enabled && "grayscale")}>
+      <div className={classNames(app.isInstalled ? "p-4 text-sm sm:p-4" : "px-5 py-4 text-sm sm:px-5")}>
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
           {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
           <Link href={"/apps/" + app.slug} className="mr-3 h-auto w-10 rounded-sm">
