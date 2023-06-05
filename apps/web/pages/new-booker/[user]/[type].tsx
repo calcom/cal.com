@@ -94,7 +94,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
-  const user = await prisma.user.findUnique({
+  const user = await prisma.user.findFirst({
     where: {
       username,
     },

@@ -46,7 +46,7 @@ export async function getServerSession(options: {
     return cachedSession;
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await prisma.user.findFirst({
     where: {
       email: token.email.toLowerCase(),
     },

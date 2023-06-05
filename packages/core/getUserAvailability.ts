@@ -67,8 +67,8 @@ const getEventType = async (id: number) => {
 
 type EventType = Awaited<ReturnType<typeof getEventType>>;
 
-const getUser = (where: Prisma.UserWhereUniqueInput) =>
-  prisma.user.findUnique({
+const getUser = (where: Prisma.UserWhereInput) =>
+  prisma.user.findFirst({
     where,
     select: {
       ...availabilityUserSelect,
@@ -126,7 +126,7 @@ export async function getUserAvailability(
     throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
   }
 
-  const where: Prisma.UserWhereUniqueInput = {};
+  const where: Prisma.UserWhereInput = {};
   if (username) where.username = username;
   if (userId) where.id = userId;
 
