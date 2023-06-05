@@ -1,6 +1,6 @@
 import type { Prisma, PrismaClient, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
 
-import { scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
+import { scheduleTrigger } from "@calcom/app-store/_utils/nodeScheduler";
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmails } from "@calcom/emails";

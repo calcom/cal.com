@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 } from "uuid";
 
-import { scheduleTrigger } from "@calcom/app-store/make/lib/nodeScheduler";
+import { scheduleTrigger } from "@calcom/app-store/_utils/nodeScheduler";
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";

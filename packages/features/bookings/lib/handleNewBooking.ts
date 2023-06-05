@@ -9,6 +9,7 @@ import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/_utils/nodeScheduler";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
@@ -16,7 +17,6 @@ import { MeetLocationType } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import { getAppFromSlug, getEventTypeAppData } from "@calcom/app-store/utils";
-import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";

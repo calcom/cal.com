@@ -2,7 +2,7 @@ import type { BookingReference, EventType } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
+import { cancelScheduledJobs } from "@calcom/app-store/_utils/nodeScheduler";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";

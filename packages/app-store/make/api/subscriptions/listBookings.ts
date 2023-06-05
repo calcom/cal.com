@@ -1,10 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getHumanReadableLocationValue } from "@calcom/core/location";
-import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { listBookings } from "@calcom/app-store/_utils/nodeScheduler";
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
-import { defaultHandler, defaultResponder, getTranslation } from "@calcom/lib/server";
-import prisma from "@calcom/prisma";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.query.apiKey as string;
@@ -18,74 +16,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!validKey) {
     return res.status(401).json({ message: "API key not valid" });
   }
+  const bookings = await listBookings(validKey);
 
-  try {
-    const bookings = await prisma.booking.findMany({
-      take: 3,
-      where: {
-        userId: validKey.userId,
-      },
-      orderBy: {
-        id: "desc",
-      },
-      select: {
-        title: true,
-        description: true,
-        customInputs: true,
-        responses: true,
-        startTime: true,
-        endTime: true,
-        location: true,
-        cancellationReason: true,
-        status: true,
-        user: {
-          select: {
-            username: true,
-            name: true,
-            email: true,
-            timeZone: true,
-            locale: true,
-          },
-        },
-        eventType: {
-          select: {
-            title: true,
-            description: true,
-            requiresConfirmation: true,
-            price: true,
-            currency: true,
-            length: true,
-            bookingFields: true,
-          },
-        },
-        attendees: {
-          select: {
-            name: true,
-            email: true,
-            timeZone: true,
-          },
-        },
-      },
-    });
-
-    const t = await getTranslation(bookings[0].user?.locale ?? "en", "common");
-
-    const updatedBookings = bookings.map((booking) => {
-      return {
-        ...booking,
-        ...getCalEventResponses({
-          bookingFields: booking.eventType?.bookingFields ?? null,
-          booking,
-        }),
-        location: getHumanReadableLocationValue(booking.location || "", t),
-      };
-    });
-
-    res.status(201).json(updatedBookings);
-  } catch (error) {
-    console.error(error);
+  if (!bookings) {
     return res.status(500).json({ message: "Unable to get bookings." });
   }
+  res.status(201).json(bookings);
 }
 
 export default defaultHandler({

@@ -1,6 +1,75 @@
 import schedule from "node-schedule";
 
+import { getHumanReadableLocationValue } from "@calcom/core/location";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import type { ApiKey } from "@calcom/prisma/client";
+
+export async function listBookings(validKey: ApiKey) {
+  const bookings = await prisma.booking.findMany({
+    take: 3,
+    where: {
+      userId: validKey.userId,
+    },
+    orderBy: {
+      id: "desc",
+    },
+    select: {
+      title: true,
+      description: true,
+      customInputs: true,
+      responses: true,
+      startTime: true,
+      endTime: true,
+      location: true,
+      cancellationReason: true,
+      status: true,
+      user: {
+        select: {
+          username: true,
+          name: true,
+          email: true,
+          timeZone: true,
+          locale: true,
+        },
+      },
+      eventType: {
+        select: {
+          title: true,
+          description: true,
+          requiresConfirmation: true,
+          price: true,
+          currency: true,
+          length: true,
+          bookingFields: true,
+        },
+      },
+      attendees: {
+        select: {
+          name: true,
+          email: true,
+          timeZone: true,
+        },
+      },
+    },
+  });
+
+  const t = await getTranslation(bookings[0].user?.locale ?? "en", "common");
+
+  const updatedBookings = bookings.map((booking) => {
+    return {
+      ...booking,
+      ...getCalEventResponses({
+        bookingFields: booking.eventType?.bookingFields ?? null,
+        booking,
+      }),
+      location: getHumanReadableLocationValue(booking.location || "", t),
+    };
+  });
+
+  return updatedBookings;
+}
 
 export async function scheduleTrigger(
   booking: { id: number; endTime: Date; scheduledJobs: string[] },
