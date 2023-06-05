@@ -1,9 +1,9 @@
-import { extractDomainFromWebsiteUrl } from "ee/organizations/lib/utils";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { extractDomainFromWebsiteUrl } from "@calcom/ee/organizations/lib/utils";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
