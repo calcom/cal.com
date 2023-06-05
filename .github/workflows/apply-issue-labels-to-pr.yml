@@ -1,27 +1,75 @@
 name: "Apply issue labels to PR"
 
 on:
-  pull_request:
-    types: [opened]
+  pull_request_target:
+    types:
+      - opened
+
 
 jobs:
   label_on_pr:
     runs-on: ubuntu-latest
-
+    
     permissions:
+      contents: none
+      issues: read
       pull-requests: write
-
+    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: 16
-
       - name: Apply labels from linked issue to PR
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_DATA: ${{ toJson(github.event.pull_request) }}
-        run: node ./.github/workflows/scripts/apply-issue-labels-to-pr.ts
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            async function getLinkedIssues(owner, repo, prNumber) {
+              const query = `query GetLinkedIssues($owner: String!, $repo: String!, $prNumber: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $prNumber) {
+                    closingIssuesReferences(first: 10) {
+                      nodes {
+                        number
+                        labels(first: 10) {
+                          nodes {
+                            name
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }`;
+
+              const variables = {
+                owner: owner,
+                repo: repo,
+                prNumber: prNumber,
+              };
+
+              const result = await github.graphql(query, variables);
+              return result.repository.pullRequest.closingIssuesReferences.nodes;
+            }
+
+            const pr = context.payload.pull_request;
+            const linkedIssues = await getLinkedIssues(
+              context.repo.owner,
+              context.repo.repo,
+              pr.number
+            );
+
+            const labelsToAdd = new Set();
+            for (const issue of linkedIssues) {
+              if (issue.labels && issue.labels.nodes) {
+                for (const label of issue.labels.nodes) {
+                  labelsToAdd.add(label.name);
+                }
+              }
+            }
+
+            if (labelsToAdd.size) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: Array.from(labelsToAdd),
+              });
+            }

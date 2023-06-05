@@ -39,7 +39,7 @@ export const AvailableTimes = ({
 
   return (
     <div className={classNames("text-default", className)}>
-      <header className="bg-muted before:bg-muted mb-5 flex w-full flex-row items-center font-medium">
+      <header className="bg-default before:bg-default dark:bg-muted dark:before:bg-muted mb-5 flex w-full flex-row items-center font-medium">
         <span className={classNames(isLargeTimeslots && "w-full text-center")}>
           <span className="text-emphasis font-semibold">
             {nameOfDay(i18n.language, Number(date.format("d")), "short")}
