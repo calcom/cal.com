@@ -241,8 +241,8 @@ export default async function getEventTypeById({
   });
 
   const { locations, metadata, ...restEventType } = rawEventType;
-  const newMetadata = EventTypeMetaDataSchema.parse(metadata || {})!;
-  const apps = newMetadata.apps || {};
+  const newMetadata = EventTypeMetaDataSchema.parse(metadata || {}) || {};
+  const apps = newMetadata?.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
   const stripeMetaData = getPaymentAppData(eventTypeWithParsedMetadata, true);
   newMetadata.apps = {

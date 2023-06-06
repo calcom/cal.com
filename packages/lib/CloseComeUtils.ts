@@ -4,6 +4,7 @@ import type {
   CloseComCustomActivityCreate,
   CloseComCustomActivityFieldGet,
   CloseComCustomContactFieldGet,
+  CloseComCustomFieldCreateResponse,
   CloseComFieldOptions,
   CloseComLead,
 } from "./CloseCom";
@@ -97,7 +98,7 @@ export async function getCustomFieldsIds(
     await closeCom.customField[entity].get({
       query: { _fields: ["name", "id"].concat(entity === "activity" ? ["custom_activity_type_id"] : []) },
     });
-  let relevantFields: { [key: string]: any }[];
+  let relevantFields: { id: string; name: string }[];
   if (entity === "activity") {
     relevantFields = (allFields as CloseComCustomActivityFieldGet).data.filter(
       (fie) => fie.custom_activity_type_id === custom_activity_type_id
@@ -108,10 +109,10 @@ export async function getCustomFieldsIds(
   const customFieldsNames = relevantFields.map((fie) => fie.name);
   const customFieldsExist = customFields.map((cusFie) => customFieldsNames.includes(cusFie[0]));
   return await Promise.all(
-    customFieldsExist.map(async (exist, idx) => {
+    customFieldsExist.flatMap(async (exist, idx) => {
       if (!exist && entity !== "shared") {
         const [name, type, required, multiple] = customFields[idx];
-        let created: { [key: string]: any };
+        let created: CloseComCustomFieldCreateResponse["data"];
         if (entity === "activity" && custom_activity_type_id) {
           created = await closeCom.customField[entity].create({
             name,
@@ -142,8 +143,10 @@ export async function getCustomFieldsIds(
           throw Error("Couldn't find the field index");
         }
       }
+      // Return an array with a single undefined value for the case where "exist" is true
+      return "";
     })
-  );
+  ).then((results) => results.filter((id) => id));
 }
 
 export async function getCloseComCustomActivityTypeFieldsIds(
@@ -197,12 +200,14 @@ export async function getCloseComLeadId(
   }
 ): Promise<string> {
   const closeComLeadNames = await closeCom.lead.list({ query: { _fields: ["name", "id"] } });
-  const searchLeadFromCalCom = closeComLeadNames.data.filter((lead) => lead.name === leadInfo.companyName);
+  const searchLeadFromCalCom: CloseComLead[] = closeComLeadNames.data.filter(
+    (lead) => lead.name === leadInfo.companyName
+  );
   if (searchLeadFromCalCom.length === 0) {
     // No Lead exists, create it
     const createdLeadFromCalCom = await closeCom.lead.create(leadInfo);
-    return createdLeadFromCalCom.id;
+    return createdLeadFromCalCom.id ?? "";
   } else {
-    return searchLeadFromCalCom[0].id;
+    return searchLeadFromCalCom[0].id ?? "";
   }
 }

@@ -14,7 +14,7 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import { getAppFromSlug, getEventTypeAppData } from "@calcom/app-store/utils";
+import { getAppFromSlug } from "@calcom/app-store/utils";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
@@ -68,7 +68,13 @@ import {
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
-import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
+import type {
+  AdditionalInformation,
+  AppsStatus,
+  CalendarEvent,
+  IntervalLimit,
+  Person,
+} from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
 
@@ -556,7 +562,7 @@ function getBookingData({
 
 function getCustomInputsResponses(
   reqBody: {
-    responses?: Record<string, any>;
+    responses?: Record<string, object>;
     customInputs?: z.infer<typeof bookingCreateSchemaLegacyPropsForApi>["customInputs"];
   },
   eventTypeCustomInputs: Awaited<ReturnType<typeof getEventTypesFromDB>>["customInputs"]
@@ -760,10 +766,10 @@ async function handler(
   ) {
     const startAsDate = dayjs(reqBody.start).toDate();
     if (eventType.bookingLimits) {
-      await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
+      await checkBookingLimits(eventType.bookingLimits as IntervalLimit, startAsDate, eventType.id);
     }
     if (eventType.durationLimits) {
-      await checkDurationLimits(eventType.durationLimits, startAsDate, eventType.id);
+      await checkDurationLimits(eventType.durationLimits as IntervalLimit, startAsDate, eventType.id);
     }
   }
 
@@ -952,7 +958,6 @@ async function handler(
       },
     });
     if (bookingSeat) {
-      bookingSeat = bookingSeat;
       rescheduleUid = bookingSeat.booking.uid;
     }
     originalRescheduledBooking = await getOriginalRescheduledBooking(
@@ -1778,7 +1783,7 @@ async function handler(
     if (booking && booking.id && eventType.seatsPerTimeSlot) {
       const currentAttendee = booking.attendees.find(
         (attendee) => attendee.email === req.body.responses.email
-      )!;
+      );
 
       // Save description to bookingSeat
       const uniqueAttendeeId = uuid();

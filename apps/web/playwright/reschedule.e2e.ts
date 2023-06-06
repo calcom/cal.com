@@ -39,9 +39,9 @@ testBothBookers.describe("Reschedule Tests", async () => {
 
     const updatedBooking = await booking.self();
 
-    expect(updatedBooking.rescheduled).toBe(true);
-    expect(updatedBooking.cancellationReason).toBe("I can't longer have it");
-    expect(updatedBooking.status).toBe(BookingStatus.CANCELLED);
+    expect(updatedBooking?.rescheduled).toBe(true);
+    expect(updatedBooking?.cancellationReason).toBe("I can't longer have it");
+    expect(updatedBooking?.status).toBe(BookingStatus.CANCELLED);
     await booking.delete();
   });
 
