@@ -11,8 +11,8 @@ test.describe("Onboarding", () => {
   test.describe("Onboarding v2", () => {
     test("Onboarding Flow", async ({ page, users }) => {
       const user = await users.create({ completedOnboarding: false, name: null });
-      await user.login();
-
+      await user.apiLogin();
+      await page.goto("/getting-started");
       // tests whether the user makes it to /getting-started
       // after login with completedOnboarding false
       await page.waitForURL("/getting-started");
