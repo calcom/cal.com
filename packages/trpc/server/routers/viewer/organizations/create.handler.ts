@@ -20,6 +20,32 @@ type CreateOptions = {
   input: TCreateInputSchema;
 };
 
+const vercelCreateDomain = async (domain: string) => {
+  const response = await fetch(
+    `https://api.vercel.com/v8/projects/${process.env.VERCEL_PROJECT_ID}/domains?teamId=${process.env.VERCEL_TEAM_ID}`,
+    {
+      body: `{\n  "name": "${domain}"\n}`,
+      headers: {
+        Authorization: `Bearer ${process.env.VERCEL_AUTH_BEARER_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    }
+  );
+
+  const data = await response.json();
+
+  // Domain is already owned by another team but you can request delegation to access it
+  if (data.error?.code === "forbidden")
+    throw new TRPCError({ code: "CONFLICT", message: "domain_taken_team" });
+
+  // Domain is already being used by a different project
+  if (data.error?.code === "domain_taken")
+    throw new TRPCError({ code: "CONFLICT", message: "domain_taken_project" });
+
+  return true;
+};
+
 export const createHandler = async ({ input }: CreateOptions) => {
   const { slug, name, adminEmail, adminUsername, check } = input;
 
@@ -41,6 +67,8 @@ export const createHandler = async ({ input }: CreateOptions) => {
 
   if (slugCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
   if (userCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "admin_email_taken" });
+
+  await vercelCreateDomain(slug);
 
   const password = createHash("md5")
     .update(`${adminEmail}${process.env.CALENDSO_ENCRYPTION_KEY}`)
