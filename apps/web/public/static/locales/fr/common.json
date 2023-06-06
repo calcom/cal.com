@@ -303,6 +303,7 @@
   "bookerlayout_error_min_one_enabled": "Au moins une mise en page doit être activée.",
   "bookerlayout_error_default_not_enabled": "La mise en page sélectionnée comme vue par défaut ne fait pas partie des mises en page activées.",
   "bookerlayout_error_unknown_layout": "La mise en page que vous avez sélectionnée n'est pas une mise en page valide.",
+  "bookerlayout_override_global_settings": "Vous pouvez gérer cela pour tous vos types d'événements dans <2>Paramètres / Apparence</2> ou <6>l'appliquer uniquement à cet événement</6>.",
   "unexpected_error_try_again": "Une erreur inattendue s'est produite. Veuillez réessayer.",
   "sunday_time_error": "Heure non valide le dimanche",
   "monday_time_error": "Créneau invalide le lundi",
