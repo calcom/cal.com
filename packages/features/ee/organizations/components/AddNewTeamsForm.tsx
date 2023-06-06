@@ -90,11 +90,11 @@ export const AddNewTeamsForm = () => {
         disabled={createTeamsMutation.isLoading}
         onClick={() => {
           if (inputValues.includes("")) {
-            showToast("Team names can't be empty", "error");
+            showToast(t("team_name_empty"), "error");
           } else {
             const duplicates = inputValues.filter((item, index) => inputValues.indexOf(item) !== index);
             if (duplicates.length) {
-              showToast("Team names can't be repeated", "error");
+              showToast("team_names_repeated", "error");
             } else {
               createTeamsMutation.mutate({ orgId, teamNames: inputValues });
             }

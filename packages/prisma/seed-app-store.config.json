@@ -43,12 +43,6 @@
     "type": "campfire_video"
   },
   {
-    "dirName": "rainbow",
-    "categories": ["web3"],
-    "slug": "rainbow",
-    "type": "rainbow_web3"
-  },
-  {
     "dirName": "raycast",
     "categories": ["other"],
     "slug": "raycast",
