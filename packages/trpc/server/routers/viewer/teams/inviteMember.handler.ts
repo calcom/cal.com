@@ -219,7 +219,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
 
   const emailsToInvite = await getEmailsToInvite(input.usernameOrEmail);
 
-  emailsToInvite.forEach(async (usernameOrEmail) => {
+  for (const usernameOrEmail of emailsToInvite) {
     const invitee = await getUserToInviteOrThrowIfExists(usernameOrEmail, input.teamId, input.isOrg);
 
     if (!invitee) {
@@ -273,7 +273,8 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         });
       }
     }
-  });
+  }
+
   if (IS_TEAM_BILLING_ENABLED) {
     if (team.parentId) {
       await updateQuantitySubscriptionFromStripe(team.parentId);
