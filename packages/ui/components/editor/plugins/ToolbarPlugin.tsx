@@ -358,7 +358,8 @@ export default function ToolbarPlugin(props: TextEditorProps) {
         }
       });
     }
-  }, [editor, props, props.updateTemplate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.updateTemplate]);
 
   useEffect(() => {
     if (props.setFirstRender) {
