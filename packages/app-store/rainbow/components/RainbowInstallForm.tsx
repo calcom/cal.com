@@ -20,7 +20,7 @@ const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
 
   return (
     <>
-      <div className="mt-4 block items-center sm:flex">
+      <div className="mt-5 block items-center sm:flex">
         <div className="min-w-48 mb-4 sm:mb-0">
           <label htmlFor="blockchainId" className="text-default flex text-sm font-medium">
             {t("Blockchain")}
@@ -36,7 +36,7 @@ const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
           options={SUPPORTED_CHAINS_FOR_FORM || [{ value: 1, label: "Ethereum" }]}
         />
       </div>
-      <div className="block items-center sm:flex">
+      <div className="mt-5 block items-center pb-4 sm:flex">
         <div className="min-w-48 mb-4 sm:mb-0">
           <label htmlFor="smartContractAddress" className="text-default flex text-sm font-medium">
             {t("token_address")}
@@ -46,7 +46,7 @@ const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
           <div className="relative mt-1 rounded-sm">
             <input
               type="text"
-              className="border-default block w-full rounded-sm text-sm "
+              className="border-default block w-full rounded-sm text-sm"
               placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
               defaultValue={(smartContractAddress || "") as string}
               onChange={(e) => {
