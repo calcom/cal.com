@@ -14,6 +14,7 @@ import {
   selectFirstAvailableTimeSlotNextMonth,
 } from "./lib/testUtils";
 
+test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 async function createUserWithSeatedEvent(users: Fixtures["users"]) {
@@ -50,17 +51,27 @@ async function createUserWithSeatedEventAndAttendees(
 testBothBookers.describe("Booking with Seats", (bookerVariant) => {
   test("User can create a seated event (2 seats as example)", async ({ users, page }) => {
     const user = await users.create({ name: "Seated event" });
-    await user.login();
+    await user.apiLogin();
+    await page.goto("/event-types");
+    // We wait until loading is finished
+    await page.waitForSelector('[data-testid="event-types"]');
     const eventTitle = "My 2-seated event";
     await createNewSeatedEventType(page, { eventTitle });
     await expect(page.locator(`text=${eventTitle} event type updated successfully`)).toBeVisible();
   });
+
   test("Multiple Attendees can book a seated event time slot", async ({ users, page }) => {
     const slug = "my-2-seated-event";
     const user = await users.create({
       name: "Seated event user",
       eventTypes: [
-        { title: "My 2-seated event", slug, length: 60, seatsPerTimeSlot: 2, seatsShowAttendees: true },
+        {
+          title: "My 2-seated event",
+          slug,
+          length: 60,
+          seatsPerTimeSlot: 2,
+          seatsShowAttendees: true,
+        },
       ],
     });
     await page.goto(`/${user.username}/${slug}`);
@@ -93,6 +104,7 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
       await expect(page.locator("[data-testid=success-page]")).toBeHidden();
     });
   });
+
   // TODO: Make E2E test: Attendee #1 should be able to cancel his booking
   // todo("Attendee #1 should be able to cancel his booking");
   // TODO: Make E2E test: Attendee #1 should be able to reschedule his booking
@@ -222,7 +234,7 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
       { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
       { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
-    await user.login();
+    await user.apiLogin();
 
     const oldBooking = await prisma.booking.findFirst({
       where: { uid: booking.uid },
@@ -328,7 +340,7 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
       { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
       { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
-    await user.login();
+    await user.apiLogin();
 
     const bookingAttendees = await prisma.attendee.findMany({
       where: { bookingId: booking.id },
@@ -379,7 +391,7 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
       { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
       { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
-    await user.login();
+    await user.apiLogin();
     const bookingWithEventType = await prisma.booking.findFirst({
       where: { uid: booking.uid },
       select: {
