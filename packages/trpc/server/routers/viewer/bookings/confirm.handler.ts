@@ -4,10 +4,12 @@ import appStore from "@calcom/app-store";
 import { sendDeclinedEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
+import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
+import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
-import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
@@ -304,6 +306,31 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     }
 
     await sendDeclinedEmails(evt);
+    // send BOOKING_REJECTED webhooks
+    const subscriberOptions = {
+      userId: booking.userId,
+      eventTypeId: booking.eventTypeId,
+      triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
+      teamId: booking.eventType?.teamId,
+    };
+    const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REJECTED;
+    const eventTypeInfo: EventTypeInfo = {
+      eventTitle: booking.eventType?.title,
+      eventDescription: booking.eventType?.description,
+      requiresConfirmation: booking.eventType?.requiresConfirmation || null,
+      price: booking.eventType?.price,
+      currency: booking.eventType?.currency,
+      length: booking.eventType?.length,
+    };
+    const webhookData = {
+      ...evt,
+      ...eventTypeInfo,
+      bookingId,
+      eventTypeId: booking.eventType?.id,
+      status: BookingStatus.REJECTED,
+      smsReminderNumber: booking.smsReminderNumber || undefined,
+    };
+    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
 
   const message = "Booking " + confirmed ? "confirmed" : "rejected";

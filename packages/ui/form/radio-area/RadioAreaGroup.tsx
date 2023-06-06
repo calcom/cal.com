@@ -1,59 +1,57 @@
-import React from "react";
+import { useId } from "@radix-ui/react-id";
+import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
+import type { ReactNode } from "react";
 
 import classNames from "@calcom/lib/classNames";
 
-type RadioAreaProps = React.InputHTMLAttributes<HTMLInputElement> & { classNames?: { container?: string } };
+type RadioAreaProps = RadioGroupPrimitive.RadioGroupItemProps & {
+  children: ReactNode;
+  classNames?: { container?: string };
+};
 
-const RadioArea = React.forwardRef<HTMLInputElement, RadioAreaProps>(
-  ({ children, className, classNames: innerClassNames, ...props }, ref) => {
-    return (
-      <label className={classNames("relative flex", className)}>
-        <input
-          ref={ref}
-          className="text-emphasis bg-subtle border-emphasis focus:ring-none peer absolute top-[0.9rem] left-3 align-baseline"
-          type="radio"
-          {...props}
-        />
-        <div
-          className={classNames(
-            "text-default peer-checked:border-emphasis border-subtle rounded-md border p-4 pt-3 pl-10",
-            innerClassNames?.container
-          )}>
-          {children}
-        </div>
-      </label>
-    );
-  }
-);
-type MaybeArray<T> = T[] | T;
-type ChildrenOfType<T extends React.ElementType> = MaybeArray<
-  React.ReactElement<React.ComponentPropsWithoutRef<T>>
->;
-interface RadioAreaGroupProps extends Omit<React.ComponentPropsWithoutRef<"div">, "onChange" | "children"> {
-  onChange?: (value: string) => void;
-  children: ChildrenOfType<typeof RadioArea>;
-}
+const RadioArea = ({ children, className, classNames: innerClassNames, ...props }: RadioAreaProps) => {
+  const radioAreaId = useId();
+  const id = props.id ?? radioAreaId;
 
-const RadioAreaGroup = ({ children, className, onChange, ...passThroughProps }: RadioAreaGroupProps) => {
-  const childrenWithProps = React.Children.map(children, (child) => {
-    if (onChange && React.isValidElement(child)) {
-      return React.cloneElement(child, {
-        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-          onChange(e.target.value);
-        },
-      });
-    }
-    return child;
-  });
   return (
-    <div className={className} {...passThroughProps}>
-      {childrenWithProps}
+    <div
+      className={classNames(
+        "border-subtle [&:has(input:checked)]:border-emphasis relative flex items-start rounded-md border",
+        className
+      )}>
+      <RadioGroupPrimitive.Item
+        id={id}
+        {...props}
+        className={classNames(
+          "hover:bg-subtle border-default focus:ring-emphasis absolute top-[0.9rem] left-3 mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border focus:ring-2",
+          props.disabled && "opacity-60"
+        )}>
+        <RadioGroupPrimitive.Indicator
+          className={classNames(
+            "after:bg-default dark:after:bg-inverted relative flex h-full w-full items-center justify-center rounded-full bg-black after:h-[6px] after:w-[6px] after:rounded-full after:content-['']",
+            props.disabled ? "after:bg-muted" : "bg-black"
+          )}
+        />
+      </RadioGroupPrimitive.Item>
+      <label htmlFor={id} className={classNames("text-default p-4 pt-3 pl-10", innerClassNames?.container)}>
+        {children}
+      </label>
     </div>
   );
 };
 
-RadioAreaGroup.displayName = "RadioAreaGroup";
-RadioArea.displayName = "RadioArea";
+const RadioAreaGroup = ({
+  children,
+  className,
+  onValueChange,
+  ...passThroughProps
+}: RadioGroupPrimitive.RadioGroupProps) => {
+  return (
+    <RadioGroupPrimitive.Root className={className} onValueChange={onValueChange} {...passThroughProps}>
+      {children}
+    </RadioGroupPrimitive.Root>
+  );
+};
 
 const Item = RadioArea;
 const Group = RadioAreaGroup;

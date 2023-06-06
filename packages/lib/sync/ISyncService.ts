@@ -23,19 +23,19 @@ export type ConsoleUserInfoType = UserInfo & {
 };
 
 export interface IUserDeletion<T> {
-  delete(info: T): Promise<any>;
+  delete(info: T): Promise<WebUserInfoType>;
 }
 
 export interface IUserCreation<T> {
-  create(info: T): Promise<any>;
-  update(info: T): Promise<any>;
+  create(info: T): Promise<WebUserInfoType>;
+  update(info: T): Promise<WebUserInfoType>;
   upsert?: never;
 }
 
 export interface IUserUpsertion<T> {
   create?: never;
   update?: never;
-  upsert(info: T): Promise<any>;
+  upsert(info: T): Promise<WebUserInfoType>;
 }
 
 export interface ISyncService {
@@ -50,9 +50,10 @@ export interface ISyncService {
 
 export default class SyncServiceCore {
   protected serviceName: string;
-  protected service: any;
+  protected service: unknown;
   protected log: typeof logger;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(serviceName: string, service: any, log: typeof logger) {
     this.serviceName = serviceName;
     this.log = log;

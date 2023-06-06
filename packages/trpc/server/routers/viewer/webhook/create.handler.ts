@@ -13,7 +13,7 @@ type CreateOptions = {
 };
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
-  if (input.eventTypeId) {
+  if (input.eventTypeId || input.teamId) {
     return await prisma.webhook.create({
       data: {
         id: v4(),

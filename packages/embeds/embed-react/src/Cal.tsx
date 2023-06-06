@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
+import type { PrefillAndIframeAttrsConfig } from "@calcom/embed-core";
+
 import useEmbed from "./useEmbed";
 
 type CalProps = {
@@ -11,7 +13,7 @@ type CalProps = {
     debug?: boolean;
     uiDebug?: boolean;
   };
-  config?: Record<string, string>;
+  config?: PrefillAndIframeAttrsConfig;
   embedJsUrl?: string;
 } & React.HTMLAttributes<HTMLDivElement>;
 

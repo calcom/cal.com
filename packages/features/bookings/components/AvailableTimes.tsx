@@ -39,7 +39,7 @@ export const AvailableTimes = ({
 
   return (
     <div className={classNames("text-default", className)}>
-      <header className="bg-muted before:bg-muted mb-5 flex w-full flex-row items-center font-medium">
+      <header className="bg-default before:bg-default dark:bg-muted dark:before:bg-muted mb-5 flex w-full flex-row items-center font-medium">
         <span className={classNames(isLargeTimeslots && "w-full text-center")}>
           <span className="text-emphasis font-semibold">
             {nameOfDay(i18n.language, Number(date.format("d")), "short")}
@@ -96,7 +96,9 @@ export const AvailableTimes = ({
                     aria-hidden
                   />
                   {slot.attendees ? seatsPerTimeslot - slot.attendees : seatsPerTimeslot}{" "}
-                  {t("seats_available")}
+                  {t("seats_available", {
+                    count: slot.attendees ? seatsPerTimeslot - slot.attendees : seatsPerTimeslot,
+                  })}
                 </p>
               )}
             </Button>
@@ -108,9 +110,9 @@ export const AvailableTimes = ({
 };
 
 export const AvailableTimesSkeleton = () => (
-  <div className="mt-8 flex h-full w-[20%] flex-col only:w-full">
-    {/* Random number of elements between 1 and 10. */}
-    {Array.from({ length: Math.floor(Math.random() * 10) + 1 }).map((_, i) => (
+  <div className="mt-8 flex w-[20%] flex-col only:w-full">
+    {/* Random number of elements between 1 and 6. */}
+    {Array.from({ length: Math.floor(Math.random() * 6) + 1 }).map((_, i) => (
       <SkeletonText className="mb-4 h-6 w-full" key={i} />
     ))}
   </div>

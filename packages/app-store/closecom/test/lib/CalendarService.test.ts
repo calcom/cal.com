@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { expect, vi, afterEach, test } from "vitest";
+
 import CloseCom from "@calcom/lib/CloseCom";
 import {
   getCloseComContactIds,
@@ -7,7 +10,7 @@ import {
 } from "@calcom/lib/CloseComeUtils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-jest.mock("@calcom/lib/CloseCom", () => ({
+vi.mock("@calcom/lib/CloseCom", () => ({
   default: class {
     constructor() {
       /* Mock */
@@ -16,7 +19,7 @@ jest.mock("@calcom/lib/CloseCom", () => ({
 }));
 
 afterEach(() => {
-  jest.resetAllMocks();
+  vi.resetAllMocks();
 });
 
 // getCloseComLeadId
