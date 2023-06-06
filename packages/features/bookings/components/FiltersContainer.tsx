@@ -1,10 +1,11 @@
 import type { ReactNode } from "react";
 import { Fragment } from "react";
 
+import { EventTypeFilter } from "./EventTypeFilter";
 import { PeopleFilter } from "./PeopleFilter";
 import { TeamsMemberFilter } from "./TeamFilter";
 
-type FilterTypes = "teams" | "people";
+type FilterTypes = "teams" | "people" | "eventType";
 
 type Filter = {
   name: FilterTypes;
@@ -24,6 +25,12 @@ const filters: Filter[] = [
     name: "people",
     component: <PeopleFilter />,
     controllingQueryParams: ["usersId"],
+    showByDefault: true,
+  },
+  {
+    name: "eventType",
+    component: <EventTypeFilter />,
+    controllingQueryParams: ["eventTypeId"],
     showByDefault: true,
   },
 ];

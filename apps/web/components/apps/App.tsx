@@ -129,7 +129,10 @@ const Component = ({
                 className="bg-subtle text-emphasis rounded-md p-1 text-xs capitalize">
                 {categories[0]}
               </Link>{" "}
-              • {t("published_by", { author })}
+              •{" "}
+              <a target="_blank" rel="noreferrer" href={website}>
+                {t("published_by", { author })}
+              </a>
             </h2>
             {isTemplate && (
               <Badge variant="red" className="mt-4">
@@ -257,7 +260,7 @@ const Component = ({
           )}
         </span>
 
-        <h4 className="text-emphasis mt-8 mb-2 font-semibold ">{t("learn_more")}</h4>
+        <h4 className="text-emphasis mt-8 mb-2 font-semibold ">{t("contact")}</h4>
         <ul className="prose-sm -ml-1 -mr-1 leading-5">
           {docs && (
             <li>

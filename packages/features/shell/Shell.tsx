@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState, useRef } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
@@ -21,6 +21,7 @@ import AdminPasswordBanner from "@calcom/features/users/components/AdminPassword
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
+import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { trpc } from "@calcom/trpc/react";
@@ -41,6 +42,7 @@ import {
   HeadSeo,
   Logo,
   SkeletonText,
+  Tooltip,
   showToast,
   useCalcomTheme,
 } from "@calcom/ui";
@@ -139,6 +141,27 @@ function useRedirectToOnboardingIfNeeded() {
 
 const Layout = (props: LayoutProps) => {
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
+  const bannerRef = useRef<HTMLDivElement | null>(null);
+  const [bannersHeight, setBannersHeight] = useState<number>(0);
+
+  useIsomorphicLayoutEffect(() => {
+    const resizeObserver = new ResizeObserver((entries) => {
+      const { offsetHeight } = entries[0].target as HTMLElement;
+      setBannersHeight(offsetHeight);
+    });
+
+    const currentBannerRef = bannerRef.current;
+
+    if (currentBannerRef) {
+      resizeObserver.observe(currentBannerRef);
+    }
+
+    return () => {
+      if (currentBannerRef) {
+        resizeObserver.unobserve(currentBannerRef);
+      }
+    };
+  }, [bannerRef]);
 
   return (
     <>
@@ -154,14 +177,14 @@ const Layout = (props: LayoutProps) => {
 
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
-      <div className="flex min-h-screen flex-col">
-        <div className="divide-y divide-black">
+      <div style={{ paddingTop: `${bannersHeight}px` }} className="flex min-h-screen flex-col">
+        <div ref={bannerRef} className="fixed top-0 z-10 w-full divide-y divide-black">
           <TeamsUpgradeBanner />
           <ImpersonatingBanner />
           <AdminPasswordBanner />
         </div>
         <div className="flex flex-1" data-testid="dashboard-shell">
-          {props.SidebarContainer || <SideBarContainer />}
+          {props.SidebarContainer || <SideBarContainer bannersHeight={bannersHeight} />}
           <div className="flex w-0 flex-1 flex-col">
             <MainContainer {...props} />
           </div>
@@ -196,6 +219,7 @@ type LayoutProps = {
   withoutSeo?: boolean;
   // Gives the ability to include actions to the right of the heading
   actions?: JSX.Element;
+  beforeCTAactions?: JSX.Element;
   smallHeading?: boolean;
   hideHeadingOnMobile?: boolean;
 };
@@ -309,11 +333,11 @@ function UserDropdown({ small }: { small?: boolean }) {
             </span>
             {!small && (
               <span className="flex flex-grow items-center truncate">
-                <span className="flex-grow truncate text-sm leading-none">
-                  <span className="text-emphasis mb-1 block truncate font-medium leading-none">
+                <span className="flex-grow truncate text-sm">
+                  <span className="text-emphasis mb-1 block truncate pb-1 font-medium leading-none">
                     {user.name || "Nameless User"}
                   </span>
-                  <span className="text-default truncate font-normal leading-none">
+                  <span className="text-default truncate pb-1 font-normal leading-none">
                     {user.username
                       ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
                         ? `cal.com/${user.username}`
@@ -618,34 +642,37 @@ const NavigationItem: React.FC<{
 
   return (
     <Fragment>
-      <Link
-        href={item.href}
-        aria-label={t(item.name)}
-        className={classNames(
-          "hover:bg-emphasis [&[aria-current='page']]:bg-emphasis hover:text-emphasis text-default group flex items-center rounded-md py-2 px-3 text-sm font-medium",
-          isChild
-            ? `[&[aria-current='page']]:text-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
-                props.index === 0 ? "mt-0" : "mt-px"
-              }`
-            : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm"
-        )}
-        aria-current={current ? "page" : undefined}>
-        {item.icon && (
-          <item.icon
-            className="h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2 [&[aria-current='page']]:text-inherit"
-            aria-hidden="true"
-            aria-current={current ? "page" : undefined}
-          />
-        )}
-        {isLocaleReady ? (
-          <span className="hidden w-full justify-between lg:flex">
-            <div className="flex">{t(item.name)}</div>
-            {item.badge && item.badge}
-          </span>
-        ) : (
-          <SkeletonText className="h-3 w-32" />
-        )}
-      </Link>
+      <Tooltip side="right" content={t(item.name)} className="lg:hidden">
+        <Link
+          href={item.href}
+          aria-label={t(item.name)}
+          className={classNames(
+            "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md py-2 px-3 text-sm font-medium",
+            isChild
+              ? `[&[aria-current='page']]:text-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
+                  props.index === 0 ? "mt-0" : "mt-px"
+                }`
+              : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
+            isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : ""
+          )}
+          aria-current={current ? "page" : undefined}>
+          {item.icon && (
+            <item.icon
+              className="mr-2 h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2 [&[aria-current='page']]:text-inherit"
+              aria-hidden="true"
+              aria-current={current ? "page" : undefined}
+            />
+          )}
+          {isLocaleReady ? (
+            <span className="hidden w-full justify-between lg:flex">
+              <div className="flex">{t(item.name)}</div>
+              {item.badge && item.badge}
+            </span>
+          ) : (
+            <SkeletonText style={{ width: `${item.name.length * 10}px` }} className="h-[20px]" />
+          )}
+        </Link>
+      </Tooltip>
       {item.child &&
         isCurrent({ router, isChild, item }) &&
         item.child.map((item, index) => <NavigationItem index={index} key={item.name} item={item} isChild />)}
@@ -733,7 +760,15 @@ const MobileNavigationMoreItem: React.FC<{
   );
 };
 
-function SideBarContainer() {
+type SideBarContainerProps = {
+  bannersHeight: number;
+};
+
+type SideBarProps = {
+  bannersHeight: number;
+};
+
+function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
   const { status } = useSession();
   const router = useRouter();
 
@@ -742,13 +777,15 @@ function SideBarContainer() {
   // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
   if (status !== "loading" && status !== "authenticated") return null;
   if (router.route.startsWith("/v2/settings/")) return null;
-  return <SideBar />;
+  return <SideBar bannersHeight={bannersHeight} />;
 }
 
-function SideBar() {
+function SideBar({ bannersHeight }: SideBarProps) {
   return (
     <div className="relative">
-      <aside className="desktop-transparent bg-muted border-muted top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-4">
+      <aside
+        style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
+        className="desktop-transparent bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-4">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-6 ">
           <header className="items-center justify-between md:hidden lg:flex">
             <Link href="/event-types" className="px-2">
@@ -844,6 +881,7 @@ export function ShellMain(props: LayoutProps) {
                 </p>
               )}
             </div>
+            {props.beforeCTAactions}
             {props.CTA && (
               <div
                 className={classNames(

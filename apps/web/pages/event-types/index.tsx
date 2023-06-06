@@ -11,6 +11,7 @@ import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
+import { OrganizationEventTypeFilter } from "@calcom/features/eventtypes/components/OrganizationEventTypeFilter";
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -42,6 +43,9 @@ import {
   CreateButton,
   HorizontalTabs,
   HeadSeo,
+  Skeleton,
+  Label,
+  VerticalDivider,
 } from "@calcom/ui";
 import {
   ArrowDown,
@@ -416,7 +420,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         {!isManagedEventType && (
                           <>
                             {type.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
-                            <Tooltip content={t("show_eventtype_on_profile")}>
+                            <Tooltip
+                              content={type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")}>
                               <div className="self-center rounded-md p-2">
                                 <Switch
                                   name="Hidden"
@@ -607,7 +612,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         {(group.metadata?.readOnly === false || group.metadata.readOnly === null) &&
                           !isChildrenManagedEventType && (
                             <>
-                              <DropdownMenuSeparator />
                               <DropdownMenuItem className="outline-none">
                                 <DropdownItem
                                   color="destructive"
@@ -623,6 +627,25 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               </DropdownMenuItem>
                             </>
                           )}
+                        <DropdownMenuSeparator />
+                        {!isManagedEventType && (
+                          <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between py-2 px-4">
+                            <Skeleton
+                              as={Label}
+                              htmlFor="hiddenSwitch"
+                              className="mt-2 inline cursor-pointer self-center pr-2 ">
+                              {type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")}
+                            </Skeleton>
+                            <Switch
+                              id="hiddenSwitch"
+                              name="Hidden"
+                              checked={!type.hidden}
+                              onCheckedChange={() => {
+                                setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
+                              }}
+                            />
+                          </div>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenuPortal>
                   </Dropdown>
@@ -759,6 +782,15 @@ const CTA = () => {
   );
 };
 
+const Actions = () => {
+  return (
+    <div className="flex items-center">
+      <OrganizationEventTypeFilter />
+      <VerticalDivider />
+    </div>
+  );
+};
+
 const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
 
 const EventTypesPage = () => {
@@ -785,6 +817,7 @@ const EventTypesPage = () => {
         heading={t("event_types_page_title")}
         hideHeadingOnMobile
         subtitle={t("event_types_page_subtitle")}
+        beforeCTAactions={<Actions />}
         CTA={<CTA />}>
         <WithQuery
           customLoader={<SkeletonLoader />}

@@ -254,6 +254,9 @@ export default function CreateEventTypeDialog({
                   />
                 )}
                 <RadioArea.Group
+                  onValueChange={(val: SchedulingType) => {
+                    form.setValue("schedulingType", val);
+                  }}
                   className={classNames(
                     "mt-1 flex gap-4",
                     isAdmin && flags["managed-event-types"] && "flex-col"

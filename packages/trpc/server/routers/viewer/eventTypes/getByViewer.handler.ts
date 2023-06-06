@@ -172,13 +172,16 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
   const mergedEventTypes = Object.values(eventTypesHashMap)
     .map((eventType) => eventType)
     .filter((evType) => evType.schedulingType !== SchedulingType.MANAGED);
+
+  const image = user?.username ? `${CAL_URL}/${user.username}/avatar.png` : undefined;
+
   eventTypeGroups.push({
     teamId: null,
     membershipRole: null,
     profile: {
       slug: user.username,
       name: user.name,
-      image: user.avatar || undefined,
+      image,
     },
     eventTypes: orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
     metadata: {
@@ -214,10 +217,11 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     eventTypeGroups: eventTypeGroups.filter((groupBy) => !!groupBy.eventTypes?.length),
     // so we can show a dropdown when the user has teams
     profiles: eventTypeGroups.map((group) => ({
-      teamId: group.teamId,
-      membershipRole: group.membershipRole,
       ...group.profile,
       ...group.metadata,
+      teamId: group.teamId,
+      membershipRole: group.membershipRole,
+      image: `${CAL_URL}/${group.profile.slug}/avatar.png`,
     })),
   };
 };

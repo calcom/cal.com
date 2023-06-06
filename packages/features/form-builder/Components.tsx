@@ -134,7 +134,7 @@ export const Components: Record<BookingFieldType, Component> = {
       const { t } = useLocale();
       value = value || [];
       const inputClassName =
-        "dark:placeholder:text-darkgray-600 focus:border-brand-default border-subtle  block w-full rounded-md border-default text-sm focus:ring-black disabled:bg-emphasis disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-subtle";
+        "dark:placeholder:text-muted focus:border-emphasis border-subtle block w-full rounded-md border-default text-sm focus:ring-black disabled:bg-emphasis disabled:hover:cursor-not-allowed dark:selection:bg-green-500 disabled:dark:text-subtle bg-default";
       return (
         <>
           {value.length ? (
@@ -148,11 +148,11 @@ export const Components: Record<BookingFieldType, Component> = {
                     <EmailField
                       disabled={readOnly}
                       value={value[index]}
+                      className={inputClassName}
                       onChange={(e) => {
                         value[index] = e.target.value;
                         setValue(value);
                       }}
-                      className={inputClassName}
                       placeholder={placeholder}
                       label={<></>}
                       required
@@ -251,7 +251,7 @@ export const Components: Record<BookingFieldType, Component> = {
                     }
                     setValue(newValue);
                   }}
-                  className="dark:bg-darkgray-300 border-subtle text-emphasis h-4 w-4 rounded focus:ring-black ltr:mr-2 rtl:ml-2"
+                  className="border-default dark:border-default hover:bg-subtle checked:hover:bg-brand-default checked:bg-brand-default dark:checked:bg-brand-default dark:bg-darkgray-100 dark:hover:bg-subtle dark:checked:hover:bg-brand-default h-4 w-4 cursor-pointer rounded ltr:mr-2 rtl:ml-2"
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
@@ -310,7 +310,7 @@ export const Components: Record<BookingFieldType, Component> = {
                         type="radio"
                         disabled={readOnly}
                         name={name}
-                        className="dark:bg-darkgray-300 border-subtle text-emphasis h-4 w-4 focus:ring-black ltr:mr-2 rtl:ml-2"
+                        className="dark:checked:bg-brand-default dark:bg-darkgray-100 dark:hover:bg-subtle dark:checked:hover:bg-brand-default focus:border-brand-default focus:ring-brand-default border-emphasis h-4 w-4 cursor-pointer text-[--cal-brand] focus:ring-2 ltr:mr-2 rtl:ml-2"
                         value={option.value}
                         onChange={(e) => {
                           setValue({

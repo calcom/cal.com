@@ -40,6 +40,7 @@ const TwoFactorAuthView = () => {
       {!isCalProvider && <Alert severity="neutral" message={t("2fa_disabled")} />}
       <div className="mt-6 flex items-start space-x-4">
         <Switch
+          data-testid="two-factor-switch"
           disabled={!isCalProvider}
           checked={user?.twoFactorEnabled}
           onCheckedChange={() =>
