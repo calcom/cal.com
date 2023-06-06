@@ -899,6 +899,7 @@
   "availability_updated_successfully": "Planning {{scheduleName}} mis à jour avec succès",
   "schedule_deleted_successfully": "Planning supprimé avec succès",
   "default_schedule_name": "Heures de travail",
+  "member_default_schedule": "Planning par défaut du membre",
   "new_schedule_heading": "Créer un planning de disponibilité",
   "new_schedule_description": "La création de plannings de disponibilité vous permet de gérer la disponibilité pour tous les types d'événements. Ils peuvent être appliqués à un ou plusieurs types d'événements.",
   "requires_ownership_of_a_token": "Nécessite la propriété d'un token appartenant à l'adresse suivante :",

@@ -898,6 +898,7 @@
   "availability_updated_successfully": "{{scheduleName}} スケジュールが正常に更新されました",
   "schedule_deleted_successfully": "スケジュールが正常に削除されました",
   "default_schedule_name": "作業時間",
+  "member_default_schedule": "メンバーのデフォルトのスケジュール",
   "new_schedule_heading": "空き状況のスケジュールを作成する",
   "new_schedule_description": "空き状況のスケジュールを作成すると、各イベントタイプの空き状況を管理できます。空き状況のスケジュールは、イベントの複数のタイプに適用できます。",
   "requires_ownership_of_a_token": "次のアドレスに属するトークンの所有権が必要となります:",

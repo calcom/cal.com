@@ -898,6 +898,7 @@
   "availability_updated_successfully": "עדכון התזמון {{scheduleName}} בוצע בהצלחה",
   "schedule_deleted_successfully": "מחיקת התזמון בוצעה בהצלחה",
   "default_schedule_name": "שעות עבודה",
+  "member_default_schedule": "לוח הזמנים שמוגדר כברירת מחדל עבור החבר/ה",
   "new_schedule_heading": "יצירת לוח זמנים של מועדים פנויים",
   "new_schedule_description": "יצירת לוחות זמנים להצגת זמינות מאפשרת לנהל את הזמינות של סוגי אירועים שונים. ניתן להחיל אותם על סוג אירוע אחד או יותר.",
   "requires_ownership_of_a_token": "מחייב בעלות על טוקן ששייך לכתובת הבאה:",

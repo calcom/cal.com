@@ -898,6 +898,7 @@
   "availability_updated_successfully": "Đã cập nhật thành công lịch {{scheduleName}}",
   "schedule_deleted_successfully": "Đã xóa lịch thành công",
   "default_schedule_name": "Giờ làm việc",
+  "member_default_schedule": "Lịch biểu mặc định của thành viên",
   "new_schedule_heading": "Tạo lịch khả dụng",
   "new_schedule_description": "Tạo lịch khả dụng cho phép bạn quản lý tình trạng \bkhả dụng trên các loại sự kiện. Chúng có thể được áp dụng cho một hoặc nhiều loại sự kiện.",
   "requires_ownership_of_a_token": "Yêu cầu quyền sở hữu mã token thuộc địa chỉ sau:",
