@@ -1301,6 +1301,7 @@
   "download_responses_description": "Téléchargez toutes les réponses à votre formulaire au format CSV.",
   "download": "Télécharger",
   "download_recording": "Télécharger l'enregistrement",
+  "recording_from_your_recent_call": "Un enregistrement de votre appel récent sur {{appName}} est prêt à être téléchargé",
   "create_your_first_form": "Créez votre premier formulaire",
   "create_your_first_form_description": "Avec les formulaires de routage, vous pouvez poser des questions de qualification et rediriger vers la bonne personne ou le bon type d'événement.",
   "create_your_first_webhook": "Créez votre premier webhook",
