@@ -30,6 +30,7 @@ const appStore = {
   facetime: () => import("./facetime"),
   sylapsvideo: () => import("./sylapsvideo"),
   "zoho-bigin": () => import("./zoho-bigin"),
+  telegramvideo: () => import("./telegram"),
 };
 
 export default appStore;
