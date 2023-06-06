@@ -7,6 +7,7 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { WEBAPP_URL } from "../../../constants";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
+
 export async function getTeamWithMembers(id?: number, slug?: string, userId?: number) {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     username: true,
@@ -52,6 +53,13 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
         ...baseEventTypeSelect,
       },
     },
+    inviteToken: {
+      select: {
+        token: true,
+        expires: true,
+        expiresInDays: true,
+      },
+    },
   });
 
   const where: Prisma.TeamFindFirstArgs["where"] = {};
@@ -82,6 +90,7 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
   }));
   return { ...team, eventTypes, members };
 }
+
 // also returns team
 export async function isTeamAdmin(userId: number, teamId: number) {
   return (
@@ -95,6 +104,7 @@ export async function isTeamAdmin(userId: number, teamId: number) {
     })) || false
   );
 }
+
 export async function isTeamOwner(userId: number, teamId: number) {
   return !!(await prisma.membership.findFirst({
     where: {
