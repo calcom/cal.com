@@ -1672,6 +1672,7 @@
   "booking_questions_title": "Booking questions",
   "booking_questions_description": "Customize the questions asked on the booking page",
   "add_a_booking_question": "Add a question",
+  "identifier": "Identifier",
   "duplicate_email": "Email is duplicate",
   "booking_with_payment_cancelled": "Paying for this event is no longer possible",
   "booking_with_payment_cancelled_already_paid": "A refund for this booking payment it's on the way.",
