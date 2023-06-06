@@ -3,7 +3,7 @@ import { totp } from "otplib";
 
 import { sendOrganizationEmailVerification } from "@calcom/emails";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { IS_ORGANIZATION_BILLING_ENABLED } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -43,7 +43,7 @@ export const createHandler = async ({ input }: CreateOptions) => {
   if (userCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "admin_email_taken" });
 
   const password = createHash("md5")
-    .update(adminEmail + process.env.CALENDSO_ENCRYPTION_KEY)
+    .update(`${adminEmail}${process.env.CALENDSO_ENCRYPTION_KEY}`)
     .digest("hex");
   const hashedPassword = await hashPassword(password);
 
@@ -57,7 +57,7 @@ export const createHandler = async ({ input }: CreateOptions) => {
         organization: {
           create: {
             name,
-            ...(!IS_ORGANIZATION_BILLING_ENABLED && { slug }),
+            ...(!IS_TEAM_BILLING_ENABLED && { slug }),
             metadata: {
               requestedSlug: slug,
               isOrganization: true,

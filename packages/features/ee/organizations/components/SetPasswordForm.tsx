@@ -43,7 +43,7 @@ export const SetPasswordForm = () => {
     resolver: zodResolver(formSchema),
   });
 
-  const updateOrganizationMutation = trpc.viewer.organizations.update.useMutation({
+  const setPasswordMutation = trpc.viewer.organizations.setPassword.useMutation({
     onSuccess: (data) => {
       if (data.update) {
         router.push(`/settings/organizations/${orgId}/about`);
@@ -59,9 +59,9 @@ export const SetPasswordForm = () => {
       <Form
         form={setPasswordFormMethods}
         handleSubmit={(v) => {
-          if (!updateOrganizationMutation.isLoading) {
+          if (!setPasswordMutation.isLoading) {
             setServerErrorMessage(null);
-            updateOrganizationMutation.mutate({ ...v, orgId });
+            setPasswordMutation.mutate({ newPassword: v.password });
           }
         }}>
         <div>
@@ -95,7 +95,7 @@ export const SetPasswordForm = () => {
 
         <div className="flex">
           <Button
-            disabled={setPasswordFormMethods.formState.isSubmitting || updateOrganizationMutation.isLoading}
+            disabled={setPasswordFormMethods.formState.isSubmitting || setPasswordMutation.isLoading}
             color="primary"
             EndIcon={ArrowRight}
             type="submit"

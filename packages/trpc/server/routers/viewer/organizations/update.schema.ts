@@ -8,7 +8,6 @@ export const ZUpdateInputSchema = z.object({
     .optional()
     .nullable()
     .transform((v) => v || null),
-  password: z.string().optional(),
   slug: z.string().optional(),
   hideBranding: z.boolean().optional(),
   hideBookATeamMember: z.boolean().optional(),

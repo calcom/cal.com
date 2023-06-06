@@ -1,9 +1,9 @@
-import Head from "next/head";
+import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 
 import { AddNewOrgAdminsForm } from "@calcom/features/ee/organizations/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WizardLayout } from "@calcom/ui";
+import { WizardLayout, Meta } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -13,24 +13,21 @@ const OnboardTeamMembersPage = () => {
   if (!router.isReady) return null;
   return (
     <>
-      <Head>
-        <title>Invite your organization admins</title>
-        <meta
-          name="description"
-          content="These admins will have access to all teams in your organization. You can add team admins and members later."
-        />
-      </Head>
+      <Meta
+        title={t("invite_organization_admins")}
+        description={t("invite_organization_admins_description")}
+      />
       <AddNewOrgAdminsForm />
     </>
   );
 };
 
-OnboardTeamMembersPage.getLayout = (page: React.ReactElement) => (
+OnboardTeamMembersPage.getLayout = (page: React.ReactElement, router: NextRouter) => (
   <WizardLayout
     currentStep={4}
     maxSteps={5}
     isOptionalCallback={() => {
-      window.location.replace(`/getting-started`);
+      router.push(`/settings/organizations/${router.query.id}/add-teams`);
     }}>
     {page}
   </WizardLayout>
