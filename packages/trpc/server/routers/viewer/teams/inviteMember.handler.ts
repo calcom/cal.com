@@ -9,7 +9,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
-import type { User } from "@calcom/prisma/client";
+import type { Team, User } from "@calcom/prisma/client";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -196,6 +196,20 @@ async function sendVerificationEmail(
   }
 }
 
+function checkIfUserIsInDifOrg(
+  invitee: User,
+  team: Team & {
+    parent: Team | null;
+  }
+) {
+  if (invitee.organizationId !== team.parentId) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: `User ${invitee.username} is already a member of another organization.`,
+    });
+  }
+}
+
 export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) => {
   const team = await getTeamOrThrow(input.teamId, input.isOrg);
 
@@ -216,6 +230,8 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
 
       await sendVerificationEmail(usernameOrEmail, team, translation, ctx, input);
     } else {
+      checkIfUserIsInDifOrg(invitee, team);
+
       // create provisional membership
       await createProvitionalMembership(input, invitee, team.id);
 
