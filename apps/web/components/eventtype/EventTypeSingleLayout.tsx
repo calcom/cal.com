@@ -177,6 +177,7 @@ function EventTypeSingleLayout({
       enabledWorkflowsNumber,
       availability,
     });
+
     navigation.splice(1, 0, {
       name: "availability",
       href: `/event-types/${eventType.id}?tabName=availability`,
@@ -184,7 +185,7 @@ function EventTypeSingleLayout({
       info:
         isManagedEventType || isChildrenManagedEventType
           ? eventType.schedule === null
-            ? "Member's default schedule"
+            ? "member_default_schedule"
             : isChildrenManagedEventType
             ? `${
                 eventType.scheduleName
@@ -192,7 +193,7 @@ function EventTypeSingleLayout({
                   : `default_schedule_name`
               }`
             : eventType.scheduleName ?? `default_schedule_name`
-          : `default_schedule_name`,
+          : eventType.scheduleName ?? `default_schedule_name`,
     });
     // If there is a team put this navigation item within the tabs
     if (team) {
@@ -219,8 +220,18 @@ function EventTypeSingleLayout({
       });
     }
     return navigation;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team, availability]);
+  }, [
+    t,
+    eventType,
+    enabledAppsNumber,
+    installedAppsNumber,
+    enabledWorkflowsNumber,
+    availability,
+    isManagedEventType,
+    isChildrenManagedEventType,
+    team,
+    formMethods,
+  ]);
 
   const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
     eventType.slug
@@ -236,7 +247,7 @@ function EventTypeSingleLayout({
       heading={eventType.title}
       CTA={
         <div className="flex items-center justify-end">
-          {!eventType.metadata.managedEventConfig && (
+          {!eventType.metadata?.managedEventConfig && (
             <>
               <div
                 className={classNames(

@@ -34,6 +34,7 @@ const gridAreaClassNameMap: { [key in BookerAreas]: string } = {
   main: "[grid-area:main]",
   meta: "[grid-area:meta]",
   timeslots: "[grid-area:timeslots]",
+  header: "[grid-area:header]",
 };
 
 /**

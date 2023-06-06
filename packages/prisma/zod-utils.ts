@@ -202,7 +202,6 @@ export const bookingCreateBodySchema = z.object({
   metadata: z.record(z.string()),
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
-  ethSignature: z.string().optional(),
   seatReferenceUid: z.string().optional(),
 });
 

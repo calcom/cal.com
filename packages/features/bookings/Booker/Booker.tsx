@@ -1,6 +1,6 @@
 import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
@@ -8,20 +8,18 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { BookerLayouts, bookerLayoutOptions } from "@calcom/prisma/zod-utils";
-import { ToggleGroup } from "@calcom/ui";
-import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
 import { EventMeta } from "./components/EventMeta";
+import { Header } from "./components/Header";
 import { LargeCalendar } from "./components/LargeCalendar";
-import { LargeViewHeader } from "./components/LargeViewHeader";
 import { BookerSection } from "./components/Section";
 import { Away, NotFound } from "./components/Unavailable";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
-import type { BookerLayout, BookerProps } from "./types";
+import type { BookerProps } from "./types";
 import { useEvent } from "./utils/event";
 import { useBrandColors } from "./utils/use-brand-colors";
 
@@ -53,11 +51,11 @@ const BookerComponent = ({
     shallow
   );
   const extraDays = layout === BookerLayouts.COLUMN_VIEW ? (isTablet ? 2 : 4) : 0;
-  const onLayoutToggle = useCallback((newLayout: BookerLayout) => setLayout(newLayout), [setLayout]);
   const bookerLayouts = event.data?.profile?.bookerLayouts || {
     defaultLayout: BookerLayouts.MONTH_VIEW,
     enabledLayouts: bookerLayoutOptions,
   };
+
   const animationScope = useBookerResizeAnimation(layout, bookerState);
 
   useBrandColors({
@@ -103,46 +101,29 @@ const BookerComponent = ({
 
   return (
     <>
-      {/*
-        If we would render this on mobile, it would unset the mobile variant,
-        since that's not a valid option, so it would set the layout to null.
-      */}
-      {!isMobile && !!bookerLayouts && bookerLayouts.enabledLayouts.length > 1 && (
-        <div className="[&>div]:bg-default dark:[&>div]:bg-muted fixed top-2 right-3 z-10">
-          <ToggleGroup
-            onValueChange={onLayoutToggle}
-            value={layout}
-            options={[
-              {
-                value: BookerLayouts.MONTH_VIEW,
-                label: <Calendar width="16" height="16" />,
-                tooltip: t("switch_monthly"),
-              },
-              {
-                value: BookerLayouts.WEEK_VIEW,
-                label: <Grid width="16" height="16" />,
-                tooltip: t("switch_weekly"),
-              },
-              {
-                value: BookerLayouts.COLUMN_VIEW,
-                label: <Columns width="16" height="16" />,
-                tooltip: t("switch_multiday"),
-              },
-            ].filter((v) => bookerLayouts?.enabledLayouts?.includes(v.value as BookerLayouts))}
-          />
-        </div>
-      )}
       <div className="flex h-full w-full flex-col items-center">
         <div
           ref={animationScope}
           className={classNames(
             // Sets booker size css variables for the size of all the columns.
             ...getBookerSizeClassNames(layout, bookerState),
-            "bg-default dark:bg-muted grid max-w-full auto-rows-fr items-start overflow-clip dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
+            "bg-default dark:bg-muted grid max-w-full items-start overflow-clip dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
             layout === BookerLayouts.MONTH_VIEW && "border-subtle rounded-md border"
           )}>
           <AnimatePresence>
-            <StickyOnDesktop key="meta" className="relative z-10 flex min-h-full">
+            <BookerSection area="header">
+              <Header
+                enabledLayouts={bookerLayouts.enabledLayouts}
+                extraDays={extraDays}
+                isMobile={isMobile}
+              />
+            </BookerSection>
+            <StickyOnDesktop
+              key="meta"
+              className={classNames(
+                "relative z-10 flex",
+                layout !== BookerLayouts.MONTH_VIEW && "sm:min-h-screen"
+              )}>
               <BookerSection
                 area="meta"
                 className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
@@ -202,7 +183,6 @@ const BookerComponent = ({
               )}
               ref={timeslotsRef}
               {...fadeInLeft}>
-              {layout === BookerLayouts.COLUMN_VIEW && <LargeViewHeader extraDays={extraDays} />}
               <AvailableTimeSlots
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}

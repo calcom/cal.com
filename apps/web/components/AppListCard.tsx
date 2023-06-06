@@ -60,6 +60,7 @@ export default function AppListCard(props: AppListCardProps) {
         timeoutRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
