@@ -9,11 +9,7 @@ test.afterEach(({ users }) => users.deleteAll());
 test.describe("App Store - Authed", () => {
   test("Browse apple-calendar and try to install", async ({ page, users }) => {
     const pro = await users.create();
-    // await pro.login();
-    const response = await pro.apiLogin();
-    //console.log(await response.json());
-    //console.log(response.status());
-    //console.log(response.headers());
+    await pro.apiLogin();
     await page.goto("/apps/categories/calendar");
     await page.click('[data-testid="app-store-app-card-apple-calendar"]');
     await page.waitForURL("/apps/apple-calendar");

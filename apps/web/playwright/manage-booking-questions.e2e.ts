@@ -15,6 +15,7 @@ async function getLabelText(field: Locator) {
   return await field.locator("label").first().locator("span").first().innerText();
 }
 
+test.describe.configure({ mode: "parallel" });
 test.describe("Manage Booking Questions", () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
@@ -28,7 +29,7 @@ test.describe("Manage Booking Questions", () => {
     }, testInfo) => {
       // Considering there are many steps in it, it would need more than default test timeout
       test.setTimeout(testInfo.timeout * 3);
-      const user = await createAndLoginUserWithEventTypes({ users });
+      const user = await createAndLoginUserWithEventTypes({ users, page });
 
       const webhookReceiver = await addWebhook(user);
 
@@ -51,7 +52,7 @@ test.describe("Manage Booking Questions", () => {
     }, testInfo) => {
       // Considering there are many steps in it, it would need more than default test timeout
       test.setTimeout(testInfo.timeout * 3);
-      const user = await createAndLoginUserWithEventTypes({ users });
+      const user = await createAndLoginUserWithEventTypes({ users, page });
       const team = await prisma.team.findFirst({
         where: {
           members: {
@@ -356,11 +357,20 @@ async function toggleQuestionRequireStatusAndSave({
   await saveEventType(page);
 }
 
-async function createAndLoginUserWithEventTypes({ users }: { users: ReturnType<typeof createUsersFixture> }) {
+async function createAndLoginUserWithEventTypes({
+  users,
+  page,
+}: {
+  users: ReturnType<typeof createUsersFixture>;
+  page: Page;
+}) {
   const user = await users.create(null, {
     hasTeam: true,
   });
   await user.apiLogin();
+  await page.goto("/event-types");
+  // We wait until loading is finished
+  await page.waitForSelector('[data-testid="event-types"]');
   return user;
 }
 

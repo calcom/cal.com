@@ -14,6 +14,7 @@ import {
   selectFirstAvailableTimeSlotNextMonth,
 } from "./lib/testUtils";
 
+test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 async function createUserWithSeatedEvent(users: Fixtures["users"]) {
@@ -51,10 +52,14 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
   test("User can create a seated event (2 seats as example)", async ({ users, page }) => {
     const user = await users.create({ name: "Seated event" });
     await user.apiLogin();
+    await page.goto("/event-types");
+    // We wait until loading is finished
+    await page.waitForSelector('[data-testid="event-types"]');
     const eventTitle = "My 2-seated event";
     await createNewSeatedEventType(page, { eventTitle });
     await expect(page.locator(`text=${eventTitle} event type updated successfully`)).toBeVisible();
   });
+
   test("Multiple Attendees can book a seated event time slot", async ({ users, page }) => {
     const slug = "my-2-seated-event";
     const user = await users.create({
@@ -99,6 +104,7 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
       await expect(page.locator("[data-testid=success-page]")).toBeHidden();
     });
   });
+
   // TODO: Make E2E test: Attendee #1 should be able to cancel his booking
   // todo("Attendee #1 should be able to cancel his booking");
   // TODO: Make E2E test: Attendee #1 should be able to reschedule his booking

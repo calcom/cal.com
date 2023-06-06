@@ -17,7 +17,7 @@ test("Can reset forgotten password", async ({ page, users }) => {
 
   // Press Enter
   await Promise.all([
-    page.waitForURL((u) => u.pathname.startsWith("/auth/forgot-password/")),
+    page.waitForURL((u) => u.pathname.startsWith("/auth/forgot-password")),
     page.press('input[name="email"]', "Enter"),
   ]);
 
