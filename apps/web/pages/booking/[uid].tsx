@@ -279,9 +279,7 @@ export default function Success(props: SuccessProps) {
     darkBrandColor: props.profile.darkBrandColor,
   });
   const title = t(
-    `booking_${needsConfirmation ? "booking_submitted" : "confirmed"}${
-      props.recurringBookings ? "_recurring" : ""
-    }`
+    `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
 
   const locationToDisplay = getSuccessPageLocationMessage(
