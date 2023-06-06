@@ -43,4 +43,4 @@ export interface BookerProps {
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
 export type BookerLayout = "small_calendar" | "large_timeslots" | "large_calendar" | "mobile";
-export type BookerAreas = "calendar" | "timeslots" | "main" | "meta";
+export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";

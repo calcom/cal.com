@@ -50,10 +50,12 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
       minHeight: "0px",
       gridTemplateAreas: `
           "meta"
+          "header"
           "main"
           "timeslots"
         `,
       gridTemplateColumns: "100%",
+      gridTemplateRows: "auto auto auto auto",
     },
   },
   small_calendar: {
@@ -61,31 +63,49 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
       width: "calc(var(--booker-meta-width) + var(--booker-main-width))",
       minHeight: "450px",
       height: "auto",
-      gridTemplateAreas: `"meta main"`,
+      gridTemplateAreas: `
+      "meta main main"
+      "meta main main"
+      `,
       gridTemplateColumns: "var(--booker-meta-width) var(--booker-main-width)",
+      gridTemplateRows: "auto",
     },
     selecting_time: {
       width: "calc(var(--booker-meta-width) + var(--booker-main-width) + var(--booker-timeslots-width))",
       minHeight: "450px",
       height: "auto",
-      gridTemplateAreas: `"meta main timeslots"`,
+      gridTemplateAreas: `
+      "meta main timeslots"
+      "meta main timeslots"
+      `,
       gridTemplateColumns: "var(--booker-meta-width) 1fr var(--booker-timeslots-width)",
+      gridTemplateRows: "auto",
     },
   },
   large_calendar: {
     default: {
       width: "100vw",
+      minHeight: "450px",
       height: "100vh",
-      gridTemplateAreas: `"meta main"`,
+      gridTemplateAreas: `
+      "meta header header"
+      "meta main main"
+      `,
       gridTemplateColumns: "var(--booker-meta-width) 1fr",
+      gridTemplateRows: "70px auto",
     },
   },
   large_timeslots: {
     default: {
       width: "100vw",
+      minHeight: "450px",
       height: "100vh",
-      gridTemplateAreas: `"meta main"`,
+      gridTemplateAreas: `
+      "meta header header"
+      "meta main main"
+      `,
       gridTemplateColumns: "var(--booker-meta-width) 1fr",
+      gridTemplateRows: "70px auto",
     },
   },
 };
@@ -134,28 +154,24 @@ export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerStat
       // Width is animated by the css class instead of via framer motion,
       // because css is better at animating the calcs, framer motion might
       // make some mistakes in that.
-      width: animationConfig?.width || "auto",
       gridTemplateAreas: animationConfig?.gridTemplateAreas,
+      width: animationConfig?.width || "auto",
       gridTemplateColumns: animationConfig?.gridTemplateColumns,
+      gridTemplateRows: animationConfig?.gridTemplateRows,
       minHeight: animationConfig?.minHeight,
     };
 
     // We don't animate if users has set prefers-reduced-motion,
     // or when the layout is mobile.
     if (prefersReducedMotion || layout === "mobile") {
-      animate(
-        animationScope.current,
-        {
-          ...animatedProperties,
-          ...nonAnimatedProperties,
-        },
-        {
-          duration: 0,
-        }
-      );
+      const styles = { ...nonAnimatedProperties, ...animatedProperties };
+      Object.keys(styles).forEach((property) => {
+        animationScope.current.style[property] = styles[property as keyof typeof styles];
+      });
     } else {
-      animate(animationScope.current, nonAnimatedProperties, {
-        duration: 0,
+      Object.keys(nonAnimatedProperties).forEach((property) => {
+        animationScope.current.style[property] =
+          nonAnimatedProperties[property as keyof typeof nonAnimatedProperties];
       });
       animate(animationScope.current, animatedProperties, {
         duration: 0.5,
