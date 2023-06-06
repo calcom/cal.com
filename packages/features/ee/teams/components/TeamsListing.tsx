@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { APP_NAME } from "@calcom/lib/constants";
+import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, ButtonGroup, Label } from "@calcom/ui";
@@ -73,7 +72,7 @@ export function TeamsListing() {
       )}
 
       <UpgradeTip
-        title="calcom_is_better_with_team"
+        title={t("calcom_is_better_with_team", { appName: APP_NAME })}
         description="add_your_team_members"
         features={features}
         background="/tips/teams"
