@@ -32,13 +32,19 @@ export function Header({
     [setLayout]
   );
 
-  if (isMobile) return null;
+  if (isMobile || !enabledLayouts || enabledLayouts.length <= 1) return null;
+
+  // Only reason we create this component, is because it is used 3 times in this component,
+  // and this way we can't forget to update one of the props in all places :)
+  const LayoutToggleWithData = () => (
+    <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
+  );
 
   // In month view we only show the layout toggle.
   if (isMonthView) {
     return (
       <div className="fixed top-3 right-3 z-10">
-        <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} />
+        <LayoutToggleWithData />
       </div>
     );
   }
@@ -70,7 +76,7 @@ export function Header({
       <div className="ml-auto flex gap-3">
         <TimeFormatToggle />
         <div className="fixed top-4 right-4">
-          <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
+          <LayoutToggleWithData />
         </div>
         {/*
           This second layout toggle is hidden, but needed to reserve the correct spot in the DIV
@@ -80,7 +86,7 @@ export function Header({
           while it actuall already was on place. That's why we have this element twice.
         */}
         <div className="pointer-events-none opacity-0" aria-hidden>
-          <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} />
+          <LayoutToggleWithData />
         </div>
       </div>
     </div>
