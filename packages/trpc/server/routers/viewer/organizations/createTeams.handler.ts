@@ -1,6 +1,7 @@
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -17,9 +18,10 @@ type CreateTeamsOptions = {
 export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => {
   const { teamNames, orgId } = input;
 
-  const organization = await prisma.team.findFirst({ where: { id: orgId }, select: { slug: true } });
+  const organization = await prisma.team.findFirst({ where: { id: orgId }, select: { metadata: true } });
+  const metadata = teamMetadataSchema.parse(organization?.metadata);
 
-  if (!organization?.slug) throw new TRPCError({ code: "BAD_REQUEST", message: "no_organization" });
+  if (!metadata?.requestedSlug) throw new TRPCError({ code: "BAD_REQUEST", message: "no_organization" });
 
   const userMembership = await prisma.membership.findFirst({
     where: {
