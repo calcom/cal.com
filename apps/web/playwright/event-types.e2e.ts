@@ -69,7 +69,7 @@ test.describe("Event Types tests", () => {
         '[data-testid="event-types"] a[href^="/event-types/"] >> nth=0'
       );
       const href = await firstElement.getAttribute("href");
-      if (!href) throw new Error("No href found for event type");
+      expect(href).toBeTruthy();
       const [eventTypeId] = new URL(WEBAPP_URL + href).pathname.split("/").reverse();
       const firstTitle = await page.locator(`[data-testid=event-type-title-${eventTypeId}]`).innerText();
       const firstFullSlug = await page.locator(`[data-testid=event-type-slug-${eventTypeId}]`).innerText();

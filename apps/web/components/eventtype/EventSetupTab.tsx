@@ -115,7 +115,7 @@ export const EventSetupTab = (
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
-  const [multipleDuration, setMultipleDuration] = useState(eventType.metadata.multipleDuration);
+  const [multipleDuration, setMultipleDuration] = useState(eventType.metadata?.multipleDuration);
 
   const locationOptions = props.locationOptions.filter((option) => {
     return !team ? option.label !== "Conferencing" : true;
