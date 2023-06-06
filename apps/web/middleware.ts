@@ -3,7 +3,7 @@ import { collectEvents } from "next-collect/server";
 import type { NextMiddleware } from "next/server";
 import { NextResponse, userAgent } from "next/server";
 
-import { getOrgDomain, appHostnames } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { CONSOLE_URL, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { isIpInBanlist } from "@calcom/lib/getIP";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
@@ -11,10 +11,10 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
-  const currentOrgDomain = getOrgDomain(req.headers.get("host") ?? "");
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req.headers.get("host") ?? "");
 
   // Make sure we are in the presence of an organization
-  if (currentOrgDomain !== "app" && !appHostnames.includes(currentOrgDomain)) {
+  if (isValidOrgDomain) {
     // In the presence of an organization, cover its profile page at "/"
     if (url.pathname === "/") {
       // rewrites for org profile page using team profile page
@@ -88,7 +88,7 @@ const middleware: NextMiddleware = async (req) => {
     requestHeaders.set("x-csp-enforce", "true");
   }
 
-  if (currentOrgDomain !== "app" && !appHostnames.includes(currentOrgDomain)) {
+  if (isValidOrgDomain) {
     // Match /:slug to determine if it corresponds to org subteam slug or org user slug
     const [first, slug, ...rest] = url.pathname.split("/");
     // In the presence of an organization, if not team profile, a user or team is being accessed

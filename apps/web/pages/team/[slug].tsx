@@ -193,7 +193,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return {
       props: {
         isUnpublished: true,
-        team: unpublishedTeam,
+        team: { ...unpublishedTeam, createdAt: null },
         trpcState: ssr.dehydrate(),
       },
     } as const;

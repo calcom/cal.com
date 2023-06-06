@@ -14,6 +14,15 @@ export function getOrgDomain(hostname: string) {
   return hostname.replace(`.${currentHostname}` ?? "", "");
 }
 
-export function isValidOrgDomain(hostname: string) {
-  return !appHostnames.includes(getOrgDomain(hostname));
+export function orgDomainConfig(hostname: string) {
+  const currentOrgDomain = getOrgDomain(hostname);
+  return {
+    currentOrgDomain,
+    isValidOrgDomain: currentOrgDomain !== "app" && !appHostnames.includes(currentOrgDomain),
+  };
+}
+
+export function subdomainSuffix() {
+  const urlSplit = WEBAPP_URL.replace("https://", "")?.replace("http://", "").split(".");
+  return urlSplit.length === 3 ? urlSplit.slice(1).join(".") : urlSplit.join(".");
 }

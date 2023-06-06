@@ -10,7 +10,7 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { isValidOrgDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -256,7 +256,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const crypto = await import("crypto");
-  const validOrgDomain = isValidOrgDomain(context.req.headers.host ?? "");
+  const { isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
 
   const usernameList = getUsernameList(context.query.user as string);
   const dataFetchStart = Date.now();
@@ -287,7 +287,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     avatar: `${WEBAPP_URL}/${user.username}/avatar.png`,
   }));
 
-  if (!users.length || (!validOrgDomain && !users.some((user) => user.organizationId === null))) {
+  if (!users.length || (!isValidOrgDomain && !users.some((user) => user.organizationId === null))) {
     return {
       notFound: true,
     } as {
