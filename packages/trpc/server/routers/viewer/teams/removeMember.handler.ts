@@ -42,6 +42,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
   });
 
   if (input.isOrg) {
+    // Deleting membership from all child teams
     await prisma.membership.deleteMany({
       where: {
         team: {
@@ -49,6 +50,11 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
         },
         userId: membership.userId,
       },
+    });
+
+    await prisma.user.update({
+      where: { id: membership.userId },
+      data: { organizationId: null },
     });
   }
 
