@@ -23,7 +23,8 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
 
   const methods = useFormContext<FormValues>();
   const installedApps = eventTypeApps?.items.filter((app) => app.credentialIds.length) || [];
-  const notInstalledApps = eventTypeApps?.items.filter((app) => !app.credentialIds.length) || [];
+  const notInstalledApps =
+    eventTypeApps?.items.filter((app) => !app.credentialIds.length && !app.teams.length) || [];
   const allAppsData = methods.watch("metadata")?.apps || {};
 
   const setAllAppsData = (_allAppsData: typeof allAppsData) => {
@@ -65,18 +66,25 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   );
 
   const appsWithTeamCredentials = eventTypeApps?.items.filter((app) => app.teams.length) || [];
+  console.log(
+    "🚀 ~ file: EventAppsTab.tsx:68 ~ EventAppsTab ~ appsWithTeamCredentials:",
+    appsWithTeamCredentials
+  );
   const cardsForAppsWithTeams = appsWithTeamCredentials.map((app) => {
     const appCards = [];
 
-    appCards.push(
-      <EventTypeAppCard
-        getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
-        setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
-        key={app.slug}
-        app={app}
-        eventType={eventType}
-      />
-    );
+    if (app.credentialIds.length) {
+      appCards.push(
+        <EventTypeAppCard
+          getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
+          setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+          key={app.slug}
+          app={app}
+          eventType={eventType}
+        />
+      );
+    }
+
     for (const team of app.teams) {
       appCards.push(
         <EventTypeAppCard

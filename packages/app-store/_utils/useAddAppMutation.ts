@@ -59,6 +59,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
       ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
       ...(variables && variables.teamId && { teamId: variables.teamId }),
     };
+
     const stateStr = encodeURIComponent(JSON.stringify(state));
     const searchParams = `?state=${stateStr}${
       variables && variables.teamId ? `&teamId=${variables.teamId}` : ""

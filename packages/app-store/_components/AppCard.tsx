@@ -18,6 +18,7 @@ export default function AppCard({
   children,
   setAppData,
   returnTo,
+  teamId,
 }: {
   app: RouterOutputs["viewer"]["apps"][number] & { credentialOwner?: CredentialOwner };
   description?: React.ReactNode;
@@ -26,6 +27,7 @@ export default function AppCard({
   children?: React.ReactNode;
   setAppData: SetAppDataGeneric<typeof eventTypeAppCardZod>;
   returnTo?: string;
+  teamId?: number;
 }) {
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -63,7 +65,7 @@ export default function AppCard({
                 </Badge>
               </div>
             )}
-            {app?.isInstalled ? (
+            {app?.isInstalled || app.credentialOwner ? (
               <div className="ml-auto flex items-center">
                 <Switch
                   disabled={!app.enabled}
@@ -81,6 +83,7 @@ export default function AppCard({
                 className="ml-auto flex items-center"
                 appId={app.slug}
                 returnTo={returnTo}
+                teamId={teamId}
               />
             )}
           </div>
