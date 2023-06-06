@@ -11,6 +11,7 @@ import { ZEventTypeOrderInputSchema } from "./eventTypeOrder.schema";
 import { ZGetCalVideoRecordingsInputSchema } from "./getCalVideoRecordings.schema";
 import { ZGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLinkOfCalVideoRecordings.schema";
 import { ZIntegrationsInputSchema } from "./integrations.schema";
+import { ZLocationOptionsInputSchema } from "./locationOptions.schema";
 import { ZSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
 import { ZSubmitFeedbackInputSchema } from "./submitFeedback.schema";
 import { ZUpdateProfileInputSchema } from "./updateProfile.schema";
@@ -258,7 +259,7 @@ export const loggedInViewerRouter = router({
     return UNSTABLE_HANDLER_CACHE.submitFeedback({ ctx, input });
   }),
 
-  locationOptions: authedProcedure.query(async ({ ctx }) => {
+  locationOptions: authedProcedure.input(ZLocationOptionsInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.locationOptions) {
       UNSTABLE_HANDLER_CACHE.locationOptions = (
         await import("./locationOptions.handler")
@@ -270,7 +271,7 @@ export const loggedInViewerRouter = router({
       throw new Error("Failed to load handler");
     }
 
-    return UNSTABLE_HANDLER_CACHE.locationOptions({ ctx });
+    return UNSTABLE_HANDLER_CACHE.locationOptions({ ctx, input });
   }),
 
   deleteCredential: authedProcedure.input(ZDeleteCredentialInputSchema).mutation(async ({ ctx, input }) => {

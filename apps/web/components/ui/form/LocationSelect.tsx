@@ -11,13 +11,14 @@ export type LocationOption = {
   value: EventLocationType["type"];
   icon?: string;
   disabled?: boolean;
+  teamCredential?: boolean;
 };
 
 export type SingleValueLocationOption = SingleValue<LocationOption>;
 
 export type GroupOptionType = GroupBase<LocationOption>;
 
-const OptionWithIcon = ({ icon, label }: { icon?: string; label: string }) => {
+const OptionWithIcon = ({ icon, label, teamName }: { icon?: string; label: string; teamName?: string }) => {
   return (
     <div className="flex items-center gap-3">
       {icon && (
@@ -28,7 +29,9 @@ const OptionWithIcon = ({ icon, label }: { icon?: string; label: string }) => {
           className={cx("h-3.5 w-3.5", icon && !icon.startsWith("/app-store") && "dark:invert")}
         />
       )}
-      <span className={classNames("text-sm font-medium")}>{label}</span>
+      <span className={classNames("text-sm font-medium")}>
+        {label} {teamName}
+      </span>
     </div>
   );
 };
@@ -39,14 +42,20 @@ export default function LocationSelect(props: Props<LocationOption, false, Group
       name="location"
       id="location-select"
       components={{
-        Option: (props) => (
-          <components.Option {...props}>
-            <OptionWithIcon icon={props.data.icon} label={props.data.label} />
-          </components.Option>
-        ),
+        Option: (props) => {
+          return (
+            <components.Option {...props}>
+              <OptionWithIcon icon={props.data.icon} label={props.data.label} />
+            </components.Option>
+          );
+        },
         SingleValue: (props) => (
           <components.SingleValue {...props}>
-            <OptionWithIcon icon={props.data.icon} label={props.data.label} />
+            <OptionWithIcon
+              icon={props.data.icon}
+              label={props.data.label}
+              teamName={props.team?.name || ""}
+            />
           </components.SingleValue>
         ),
       }}

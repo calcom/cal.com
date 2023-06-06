@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { Trans } from "next-i18next";
 import Link from "next/link";
+import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useEffect } from "react";
 import { Controller, useForm, useWatch, useFormContext } from "react-hook-form";
 import { z } from "zod";
@@ -33,12 +34,13 @@ interface ISetLocationDialog {
   saveLocation: (newLocationType: EventLocationType["type"], details: { [key: string]: string }) => void;
   selection?: LocationOption;
   booking?: BookingItem;
-  isTeamEvent?: boolean;
+  team?: Pick<EventTypeSetupProps, "team">;
   defaultValues?: LocationObject[];
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
   isOpenDialog: boolean;
   setSelectedLocation?: (param: LocationOption | undefined) => void;
   setEditingLocationType?: (param: string) => void;
+  teamId?: number;
 }
 
 const LocationInput = (props: {
@@ -75,7 +77,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     saveLocation,
     selection,
     booking,
-    isTeamEvent,
+    team,
     setShowLocationModal,
     isOpenDialog,
     defaultValues,
@@ -83,7 +85,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     setEditingLocationType,
   } = props;
   const { t } = useLocale();
-  const locationsQuery = trpc.viewer.locationOptions.useQuery();
+  const locationsQuery = trpc.viewer.locationOptions.useQuery({ teamId: team.id });
 
   useEffect(() => {
     if (selection) {
@@ -96,6 +98,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     locationType: z.string(),
     phone: z.string().optional().nullable(),
     locationAddress: z.string().optional(),
+    credentialId: z.number().optional(),
     locationLink: z
       .string()
       .optional()
@@ -278,6 +281,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   };
                 }
 
+                if (values.credentialId) {
+                  details = { ...details, credentialId: values.credentialId };
+                }
                 saveLocation(newLocation, details);
                 setShowLocationModal(false);
                 setSelectedLocation?.(undefined);
@@ -293,7 +299,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 success={({ data }) => {
                   if (!data.length) return null;
                   const locationOptions = [...data].filter((option) => {
-                    return !isTeamEvent ? option.label !== "Conferencing" : true;
+                    return !team ? option.label !== "Conferencing" : true;
                   });
                   if (booking) {
                     locationOptions.map((location) =>
@@ -326,6 +332,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                                   "locationAddress",
                                 ]);
                                 setSelectedLocation?.(val);
+                                locationFormMethods.setValue("credentialId", val.credentialId);
                               }
                             }}
                           />

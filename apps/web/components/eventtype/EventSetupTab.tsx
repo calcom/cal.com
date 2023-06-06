@@ -510,7 +510,7 @@ export const EventSetupTab = (
 
       {/* We portal this modal so we can submit the form inside. Otherwise we get issues submitting two forms at once  */}
       <EditLocationDialog
-        isTeamEvent={!!team}
+        team={team}
         isOpenDialog={showLocationModal}
         setShowLocationModal={setShowLocationModal}
         saveLocation={saveLocation}

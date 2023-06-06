@@ -102,6 +102,7 @@ export const eventTypeLocations = z.array(
     link: z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),
     hostPhoneNumber: z.string().optional(),
+    credentialId: z.number().optional(),
   })
 );
 

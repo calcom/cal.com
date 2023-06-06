@@ -112,6 +112,7 @@ export default async function getEventTypeById({
       team: {
         select: {
           id: true,
+          name: true,
           slug: true,
           members: {
             where: {
