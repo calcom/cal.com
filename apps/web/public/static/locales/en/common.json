@@ -902,6 +902,7 @@
   "availability_updated_successfully": "{{scheduleName}} schedule updated successfully",
   "schedule_deleted_successfully": "Schedule deleted successfully",
   "default_schedule_name": "Working Hours",
+  "member_default_schedule":"Member's default schedule",
   "new_schedule_heading": "Create an availability schedule",
   "new_schedule_description": "Creating availability schedules allows you to manage availability across event types. They can be applied to one or more event types.",
   "requires_ownership_of_a_token": "Requires ownership of a token belonging to the following address:",
