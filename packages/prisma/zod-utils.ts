@@ -306,6 +306,7 @@ export const teamMetadataSchema = z
     paymentId: z.string(),
     subscriptionId: z.string().nullable(),
     subscriptionItemId: z.string().nullable(),
+    isOrganization: z.boolean().nullable(),
   })
   .partial()
   .nullable();
