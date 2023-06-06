@@ -11,8 +11,7 @@ import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import getTimeSlots from "@calcom/lib/slots";
-import { availabilityUserSelect } from "@calcom/prisma";
-import prisma from "@calcom/prisma";
+import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
@@ -140,6 +139,12 @@ export async function getEventType(input: TGetScheduleInputSchema) {
 
 export async function getDynamicEventType(input: TGetScheduleInputSchema) {
   // For dynamic booking, we need to get and update user credentials, schedule and availability in the eventTypeObject as they're required in the new availability logic
+  if (!input.eventTypeSlug) {
+    throw new TRPCError({
+      message: "eventTypeSlug is required for dynamic booking",
+      code: "BAD_REQUEST",
+    });
+  }
   const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
   const users = await prisma.user.findMany({
     where: {

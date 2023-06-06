@@ -223,6 +223,8 @@ const nextConfig = {
       {
         source: "/team/:slug/:type/embed",
         destination: "/new-booker/team/:slug/:type/embed",
+        source: "/d/:link/:slug",
+        destination: "/new-booker/d/:link/:slug",
         has: [{ type: "cookie", key: "new-booker-enabled" }],
       },
     ];

@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import fs from "fs";
 import matter from "gray-matter";
 import MarkdownIt from "markdown-it";
@@ -72,7 +73,7 @@ function SingleAppPage(props: inferSSRProps<typeof getStaticProps>) {
       website={data.url}
       email={data.email}
       licenseRequired={data.licenseRequired}
-      isProOnly={data.isProOnly}
+      teamsPlanRequired={data.teamsPlanRequired}
       descriptionItems={source.data?.items as string[] | undefined}
       isTemplate={data.isTemplate}
       dependencies={data.dependencies}
@@ -88,8 +89,18 @@ function SingleAppPage(props: inferSSRProps<typeof getStaticProps>) {
 }
 
 export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
-  const appStore = await prisma.app.findMany({ select: { slug: true } });
-  const paths = appStore.map(({ slug }) => ({ params: { slug } }));
+  let paths: { params: { slug: string } }[] = [];
+
+  try {
+    const appStore = await prisma.app.findMany({ select: { slug: true } });
+    paths = appStore.map(({ slug }) => ({ params: { slug } }));
+  } catch (e: unknown) {
+    if (e instanceof Prisma.PrismaClientInitializationError) {
+      // Database is not available at build time, but that's ok – we fall back to resolving paths on demand
+    } else {
+      throw e;
+    }
+  }
 
   return {
     paths,

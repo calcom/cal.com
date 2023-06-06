@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import { COMPANY_NAME, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import pkg from "@calcom/web/package.json";
 
-export const CalComVersion = `v.${pkg.version}-${!IS_SELF_HOSTED ? "h" : "sh"}-${
-  process.env.CALCOM_LICENSE_KEY === "" ? "ee" : "ce"
-}`;
+export const CalComVersion = `v.${pkg.version}-${!IS_SELF_HOSTED ? "h" : "sh"}`;
 
 export default function Credits() {
   const [hasMounted, setHasMounted] = useState(false);
