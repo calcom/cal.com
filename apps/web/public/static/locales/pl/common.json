@@ -898,6 +898,7 @@
   "availability_updated_successfully": "Pomyślnie zaktualizowano harmonogram {{scheduleName}}",
   "schedule_deleted_successfully": "Typ wydarzenia usunięty pomyślnie",
   "default_schedule_name": "Godziny pracy",
+  "member_default_schedule": "Domyślny harmonogram członka",
   "new_schedule_heading": "Utwórz harmonogram dostępności",
   "new_schedule_description": "Tworzenie harmonogramów dostępności pozwala zarządzać dostępnością w różnych typach zdarzeń. Można je zastosować do jednego lub kilku typów zdarzeń.",
   "requires_ownership_of_a_token": "Wymaga posiadania tokena należącego do następującego adresu:",

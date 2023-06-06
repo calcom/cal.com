@@ -898,6 +898,7 @@
   "availability_updated_successfully": "تم تحديث جدول {{scheduleName}} بنجاح",
   "schedule_deleted_successfully": "تم حذف الجدول بنجاح",
   "default_schedule_name": "ساعات العمل",
+  "member_default_schedule": "الجدول الزمني الافتراضي للعضو",
   "new_schedule_heading": "إنشاء جدول الأوقات المتاحة",
   "new_schedule_description": "إن إنشاء جداول الأوقات المتاحة يتيح لك إدارة الأوقات المتاحة عبر أنواع الأحداث. يمكن تطبيقها على نوع أو أكثر من أنواع الأحداث.",
   "requires_ownership_of_a_token": "يتطلب امتلاك token يخص العنوان التالي:",

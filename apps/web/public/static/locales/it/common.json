@@ -898,6 +898,7 @@
   "availability_updated_successfully": "Disponibilità aggiornata con successo",
   "schedule_deleted_successfully": "Programma eliminato",
   "default_schedule_name": "Orario lavorativo",
+  "member_default_schedule": "Pianificazione predefinita membro",
   "new_schedule_heading": "Crea un programma di disponibilità",
   "new_schedule_description": "La creazione di programmi di disponibilità consente di gestire la disponibilità per i diversi tipi di eventi. I programmi possono essere applicati a uno o più tipi di evento.",
   "requires_ownership_of_a_token": "Richiede il possesso di un token appartenente al seguente indirizzo:",

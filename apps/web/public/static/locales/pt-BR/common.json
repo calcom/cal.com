@@ -898,6 +898,7 @@
   "availability_updated_successfully": "Agenda {{scheduleName}} criada com êxito",
   "schedule_deleted_successfully": "Agenda removida com êxito",
   "default_schedule_name": "Horas de trabalho",
+  "member_default_schedule": "Agenda padrão do membro",
   "new_schedule_heading": "Criar agenda de disponibilidade",
   "new_schedule_description": "A criação de agendas de disponibilidade permite gerenciar a disponibilidade em tipos de evento. Podem ser aplicadas a um ou mais tipos de evento.",
   "requires_ownership_of_a_token": "Requer que o usuário que agendar tenha um token que pertence ao endereço a seguir:",

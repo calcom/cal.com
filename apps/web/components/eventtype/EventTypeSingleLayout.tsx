@@ -178,6 +178,7 @@ function EventTypeSingleLayout({
       enabledWorkflowsNumber,
       availability,
     });
+
     navigation.splice(1, 0, {
       name: "availability",
       href: `/event-types/${eventType.id}?tabName=availability`,
@@ -185,7 +186,7 @@ function EventTypeSingleLayout({
       info:
         isManagedEventType || isChildrenManagedEventType
           ? eventType.schedule === null
-            ? "Member's default schedule"
+            ? "member_default_schedule"
             : isChildrenManagedEventType
             ? `${
                 eventType.scheduleName
@@ -193,7 +194,7 @@ function EventTypeSingleLayout({
                   : `default_schedule_name`
               }`
             : eventType.scheduleName ?? `default_schedule_name`
-          : `default_schedule_name`,
+          : eventType.scheduleName ?? `default_schedule_name`,
     });
     // If there is a team put this navigation item within the tabs
     if (team) {

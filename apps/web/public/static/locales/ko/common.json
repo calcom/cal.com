@@ -898,6 +898,7 @@
   "availability_updated_successfully": "{{scheduleName}} 일정이 성공적으로 업데이트되었습니다.",
   "schedule_deleted_successfully": "일정이 성공적으로 삭제되었습니다",
   "default_schedule_name": "작업 시간",
+  "member_default_schedule": "회원의 기본 일정",
   "new_schedule_heading": "가용성 일정 생성",
   "new_schedule_description": "가용성 일정을 생성하면 이벤트 유형 전반에 걸쳐 가용성을 관리할 수 있습니다. 하나 이상의 이벤트 유형에 적용할 수 있습니다.",
   "requires_ownership_of_a_token": "다음 주소에 속한 토큰의 소유권이 필요합니다:",
