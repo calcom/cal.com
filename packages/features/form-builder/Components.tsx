@@ -141,6 +141,7 @@ export const Components: Record<FieldType, Component> = {
         return (
           <InputField
             name="name"
+            showAsteriskIndicator={true}
             placeholder={variantField.placeholder}
             label={variantField.label}
             containerClassName="w-full"
@@ -165,6 +166,9 @@ export const Components: Record<FieldType, Component> = {
         <div className="flex space-x-4">
           {variant.fields.map((variantField) => (
             <InputField
+              // Because the container is flex(and thus margin is being computed towards container height), I need to explicitly ensure that margin-bottom for the input becomes 0, which is mb-2 otherwise
+              className="!mb-0"
+              showAsteriskIndicator={true}
               key={variantField.name}
               name={variantField.name}
               readOnly={props.readOnly}
