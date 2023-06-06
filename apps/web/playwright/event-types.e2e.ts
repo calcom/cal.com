@@ -13,7 +13,7 @@ test.describe("Event Types tests", () => {
   testBothBookers.describe("user", (bookerVariant) => {
     test.beforeEach(async ({ page, users }) => {
       const user = await users.create();
-      await user.login();
+      await user.apiLogin();
       await page.goto("/event-types");
       // We wait until loading is finished
       await page.waitForSelector('[data-testid="event-types"]');
