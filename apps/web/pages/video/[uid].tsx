@@ -64,6 +64,7 @@ export default function JoinCall(props: JoinCallPageProps) {
     return () => {
       callFrame.destroy();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onRecordingStopped = () => {
@@ -169,6 +170,7 @@ function ProgressBar(props: ProgressBarProps) {
         intervalRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const prev = startDuration - duration;

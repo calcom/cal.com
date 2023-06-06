@@ -14,7 +14,7 @@ test.describe("BOOKING_CREATED", async () => {
   test("add webhook & test that creating an event triggers a webhook call", async ({
     page,
     users,
-  }, testInfo) => {
+  }, _testInfo) => {
     const webhookReceiver = createHttpServer();
     const user = await users.create();
     const [eventType] = user.eventTypes;
@@ -51,7 +51,8 @@ test.describe("BOOKING_CREATED", async () => {
     });
 
     const [request] = webhookReceiver.requestList;
-    const body = request.body as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body: any = request.body;
 
     // remove dynamic properties that differs depending on where you run the tests
     const dynamic = "[redacted/dynamic]";
@@ -305,6 +306,7 @@ test.describe("BOOKING_REQUESTED", async () => {
       expect(webhookReceiver.requestList.length).toBe(1);
     });
     const [request] = webhookReceiver.requestList;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const body = request.body as any;
 
     // remove dynamic properties that differs depending on where you run the tests
