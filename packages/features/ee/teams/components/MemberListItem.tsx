@@ -44,6 +44,14 @@ const useCurrentUserId = () => {
   return user?.id;
 };
 
+const checkIsOrg = (team: Props["team"]) => {
+  return typeof team?.metadata === "object" &&
+    !Array.isArray(team?.metadata) &&
+    team?.metadata?.isOrganization
+    ? true
+    : false;
+};
+
 export default function MemberListItem(props: Props) {
   const { t } = useLocale();
 
@@ -81,7 +89,11 @@ export default function MemberListItem(props: Props) {
     })();
 
   const removeMember = () =>
-    removeMemberMutation.mutate({ teamId: props.team?.id, memberId: props.member.id });
+    removeMemberMutation.mutate({
+      teamId: props.team?.id,
+      memberId: props.member.id,
+      isOrg: checkIsOrg(props.team),
+    });
 
   const editMode =
     (props.team.membership.role === MembershipRole.OWNER &&

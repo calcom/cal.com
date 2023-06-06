@@ -41,7 +41,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     ? input.usernameOrEmail
     : [input.usernameOrEmail];
 
-  for (const usernameOrEmail of emailsToInvite) {
+  emailsToInvite.forEach(async (usernameOrEmail) => {
     const invitee = await prisma.user.findFirst({
       where: {
         OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
@@ -161,7 +161,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         });
       }
     }
-  }
+  });
   if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(input.teamId);
   return input;
 };

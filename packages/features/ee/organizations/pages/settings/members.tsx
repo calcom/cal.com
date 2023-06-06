@@ -72,7 +72,7 @@ const MembersView = () => {
 
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess(data) {
-      await utils.viewer.teams.get.invalidate();
+      await utils.viewer.organizations.listMembers.invalidate();
       setShowMemberInvitationModal(false);
       if (data.sendEmailInvitation) {
         if (Array.isArray(data.usernameOrEmail)) {
