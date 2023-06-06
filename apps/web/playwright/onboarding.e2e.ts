@@ -76,9 +76,7 @@ test.describe("Onboarding", () => {
 
         const userComplete = await user.self();
 
-        const userCompleteBio = userComplete.bio ? userComplete.bio : "";
-
-        expect(userCompleteBio.replace("<p><br></p>", "").length).toBe(0);
+        expect(userComplete.bio?.replace("<p><br></p>", "").length).toBe(0);
       });
     });
   });

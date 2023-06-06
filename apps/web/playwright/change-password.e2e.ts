@@ -10,12 +10,13 @@ test.describe("Change Password Test", () => {
     await pro.login();
     // Go to http://localhost:3000/settings/security
     await page.goto("/settings/security/password");
-    if (!pro.username) throw Error("Test user doesn't have a username");
+
+    expect(pro.username).toBeTruthy();
 
     await page.waitForLoadState("networkidle");
 
     // Fill form
-    await page.locator('[name="oldPassword"]').fill(pro.username);
+    await page.locator('[name="oldPassword"]').fill(String(pro.username));
 
     const $newPasswordField = page.locator('[name="newPassword"]');
     $newPasswordField.fill(`${pro.username}Aa1111`);
