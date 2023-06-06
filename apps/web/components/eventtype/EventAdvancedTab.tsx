@@ -65,7 +65,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [requiresConfirmation, setRequiresConfirmation] = useState(eventType.requiresConfirmation);
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
-  const noShowFeeEnabled = eventType.metadata.apps?.stripe?.paymentOption === "HOLD";
+  const noShowFeeEnabled = eventType.metadata?.apps?.stripe?.paymentOption === "HOLD";
 
   useEffect(() => {
     !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0]?.id ?? team?.id));
