@@ -121,7 +121,6 @@
   "team_upgrade_banner_description": "Thank you for trialing our new team plan. We noticed your team \"{{teamName}}\" needs to be upgraded.",
   "team_upgrade_banner_action": "Upgrade here",
   "team_upgraded_successfully": "Your team was upgraded successfully!",
-  "org_upgrade_seats_details": "Of the {{memberCount}} members in your Organization, {{unpaidCount}} seat(s) are unpaid. At ${{seatPrice}}/month per seat the estimated total cost of your membership is ${{totalCost}}/month.",
   "org_upgrade_banner_description": "Thank you for trialing our Organization plan. We noticed your Organization \"{{teamName}}\" needs to be upgraded.",
   "org_upgrade_banner_action": "Upgrade here",
   "org_upgraded_successfully": "Your Organization was upgraded successfully!",
