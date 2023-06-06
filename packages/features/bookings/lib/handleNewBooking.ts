@@ -13,7 +13,6 @@ import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_m
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
-import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import { getAppFromSlug, getEventTypeAppData } from "@calcom/app-store/utils";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
@@ -816,12 +815,6 @@ async function handler(
     // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
     users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
   }
-
-  const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
-
-  // @TODO: use the returned address somewhere in booking creation?
-  // const address: string | undefined = await ...
-  await handleEthSignature(rainbowAppData, reqBody.ethSignature);
 
   const [organizerUser] = users;
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
