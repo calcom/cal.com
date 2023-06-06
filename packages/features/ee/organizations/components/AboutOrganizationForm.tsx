@@ -65,7 +65,7 @@ export const AboutOrganizationForm = () => {
                     <ImageUploader
                       target="avatar"
                       id="avatar-upload"
-                      buttonMsg={t("update")}
+                      buttonMsg={t("upload")}
                       handleAvatarChange={(newAvatar: string) => {
                         setImage(newAvatar);
                         aboutOrganizationFormMethods.setValue("logo", newAvatar);
