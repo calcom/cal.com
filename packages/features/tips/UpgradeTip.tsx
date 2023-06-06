@@ -29,7 +29,7 @@ export function UpgradeTip({
   const { isLoading, hasTeamPlan } = useHasTeamPlan();
 
   if (hasTeamPlan) return children;
-  
+
   if (isLoading) return <>{isParentLoading}</>;
 
   return (
