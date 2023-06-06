@@ -40,6 +40,9 @@ async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
     where: {
       id: teamId,
     },
+    include: {
+      parent: true,
+    },
   });
 
   if (!team)
@@ -185,7 +188,7 @@ async function sendVerificationEmail(
       language: translation,
       from: ctx.user.name || `${team.name}'s admin`,
       to: usernameOrEmail,
-      teamName: team.name,
+      teamName: team?.parent?.name || team.name,
       joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
       isCalcomMember: false,
       isOrg: input.isOrg,
@@ -194,11 +197,11 @@ async function sendVerificationEmail(
 }
 
 export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) => {
+  const team = await getTeamOrThrow(input.teamId, input.isOrg);
+
   await checkPermissions(ctx.user.id, input.teamId, input.isOrg);
 
   const translation = await getTranslation(input.language ?? "en", "common");
-
-  const team = await getTeamOrThrow(input.teamId, input.isOrg);
 
   const emailsToInvite = await getEmailsToInvite(input.usernameOrEmail);
 
