@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { create } from "zustand";
 
 import dayjs from "@calcom/dayjs";
+import { BookerLayouts, bookerLayoutOptions } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerState, BookerLayout } from "./types";
@@ -19,6 +20,7 @@ type StoreInitializeType = {
   eventId: number | undefined;
   rescheduleUid: string | null;
   rescheduleBooking: GetBookingType | null | undefined;
+  layout: BookerLayout;
 };
 
 type BookerStore = {
@@ -88,10 +90,8 @@ type BookerStore = {
   setFormValues: (values: Record<string, any>) => void;
 };
 
-const validLayouts: BookerLayout[] = ["large_calendar", "large_timeslots", "small_calendar"];
-
 const checkLayout = (layout: BookerLayout) => {
-  return validLayouts.find((validLayout) => validLayout === layout);
+  return bookerLayoutOptions.find((validLayout) => validLayout === layout);
 };
 
 /**
@@ -104,11 +104,11 @@ const checkLayout = (layout: BookerLayout) => {
 export const useBookerStore = create<BookerStore>((set, get) => ({
   state: "loading",
   setState: (state: BookerState) => set({ state }),
-  layout: checkLayout(getQueryParam("layout") as BookerLayout) || "small_calendar",
+  layout: checkLayout(getQueryParam("layout") as BookerLayout) || BookerLayouts.MONTH_VIEW,
   setLayout: (layout: BookerLayout) => {
     // If we switch to a large layout and don't have a date selected yet,
     // we selected it here, so week title is rendered properly.
-    if (["large_calendar", "large_timeslots"].includes(layout) && !get().selectedDate) {
+    if (["week_view", "column_view"].includes(layout) && !get().selectedDate) {
       set({ selectedDate: dayjs().format("YYYY-MM-DD") });
     }
     return set({ layout });
@@ -147,14 +147,18 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     eventId,
     rescheduleUid = null,
     rescheduleBooking = null,
+    layout,
   }: StoreInitializeType) => {
+    const selectedDateInStore = get().selectedDate;
+
     if (
       get().username === username &&
       get().eventSlug === eventSlug &&
       get().month === month &&
       get().eventId === eventId &&
       get().rescheduleUid === rescheduleUid &&
-      get().rescheduleBooking?.responses.email === rescheduleBooking?.responses.email
+      get().rescheduleBooking?.responses.email === rescheduleBooking?.responses.email &&
+      get().layout === layout
     )
       return;
     set({
@@ -163,7 +167,14 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       eventId,
       rescheduleUid,
       rescheduleBooking,
+      layout: layout || BookerLayouts.MONTH_VIEW,
+      // Preselect today's date in week / column view, since they use this to show the week title.
+      selectedDate:
+        selectedDateInStore || ["week_view", "column_view"].includes(layout)
+          ? dayjs().format("YYYY-MM-DD")
+          : null,
     });
+
     // Unset selected timeslot if user is rescheduling. This could happen
     // if the user reschedules a booking right after the confirmation page.
     // In that case the time would still be store in the store, this way we
@@ -199,9 +210,10 @@ export const useInitializeBookerStore = ({
   eventId,
   rescheduleUid = null,
   rescheduleBooking = null,
+  layout,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
-    initializeStore({ username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking });
-  }, [initializeStore, username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking]);
+    initializeStore({ username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking, layout });
+  }, [initializeStore, username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking, layout]);
 };
