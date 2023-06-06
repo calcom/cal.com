@@ -47,28 +47,6 @@ const vercelCreateDomain = async (domain: string) => {
   return true;
 };
 
-const vercelCheckDomain = async (domain: string) => {
-  const response = await fetch(
-    `https://api.vercel.com/v4/domains/status?name=${domain}.${subdomainSuffix()}&teamId=${
-      process.env.TEAM_ID_VERCEL
-    }`,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN_VERCEL}`,
-        "Content-Type": "application/json",
-      },
-      method: "GET",
-    }
-  );
-
-  const data = await response.json();
-
-  // Domain is not available
-  if (!data.available) throw new TRPCError({ code: "CONFLICT", message: JSON.stringify(data, null, 2) });
-
-  return true;
-};
-
 export const createHandler = async ({ input }: CreateOptions) => {
   const { slug, name, adminEmail, adminUsername, check } = input;
 
@@ -90,8 +68,6 @@ export const createHandler = async ({ input }: CreateOptions) => {
 
   if (slugCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
   if (userCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "admin_email_taken" });
-
-  await vercelCheckDomain(slug);
 
   const password = createHash("md5")
     .update(`${adminEmail}${process.env.CALENDSO_ENCRYPTION_KEY}`)
