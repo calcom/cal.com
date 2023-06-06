@@ -10,4 +10,6 @@ export type AppFlags = {
   workflows: boolean;
   "v2-booking-page": boolean;
   "managed-event-types": boolean;
+  "google-workspace-directory": boolean;
+  "disable-signup": boolean;
 };

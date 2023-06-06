@@ -161,7 +161,7 @@ export const stringOrNumber = z.union([
 export const stringToDayjs = z.string().transform((val) => dayjs(val));
 
 export const bookingCreateBodySchema = z.object({
-  end: z.string(),
+  end: z.string().optional(),
   eventTypeId: z.number(),
   eventTypeSlug: z.string().optional(),
   rescheduleUid: z.string().optional(),
@@ -174,7 +174,6 @@ export const bookingCreateBodySchema = z.object({
   metadata: z.record(z.string()),
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
-  ethSignature: z.string().optional(),
   seatReferenceUid: z.string().optional(),
 });
 
@@ -501,6 +500,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   price: true,
   slug: true,
   length: true,
+  offsetStart: true,
   locations: true,
   hidden: true,
   availability: true,

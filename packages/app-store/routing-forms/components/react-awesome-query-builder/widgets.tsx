@@ -129,7 +129,7 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
       type="number"
       labelSrOnly={remainingProps.noLabel}
       containerClassName="w-full"
-      className="focus:border-brand-default bg-default dark:bg-muted  border-default disabled:bg-emphasis focus:ring-brand block w-full rounded-md text-sm disabled:hover:cursor-not-allowed"
+      className="bg-default border-default disabled:bg-emphasis focus:ring-brand-default dark:focus:border-emphasis block w-full rounded-md text-sm focus:border-neutral-300 disabled:hover:cursor-not-allowed"
       value={value}
       onChange={(e) => {
         setValue(e.target.value);
@@ -157,7 +157,7 @@ const MultiSelectWidget = ({
     };
   });
 
-  const defaultValue = selectItems.filter((item) => value?.includes(item.value));
+  const optionsFromList = selectItems.filter((item) => value?.includes(item.value));
 
   return (
     <Select
@@ -165,7 +165,7 @@ const MultiSelectWidget = ({
       onChange={(items) => {
         setValue(items?.map((item) => item.value));
       }}
-      defaultValue={defaultValue}
+      value={optionsFromList}
       isMulti={true}
       isDisabled={remainingProps.readOnly}
       options={selectItems}
@@ -184,7 +184,7 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
       value: item.value,
     };
   });
-  const defaultValue = selectItems.find((item) => item.value === value);
+  const optionFromList = selectItems.find((item) => item.value === value);
 
   return (
     <Select
@@ -196,7 +196,7 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
         setValue(item.value);
       }}
       isDisabled={remainingProps.readOnly}
-      defaultValue={defaultValue}
+      value={optionFromList}
       options={selectItems}
       {...remainingProps}
     />

@@ -1,4 +1,3 @@
-import { ArrowRightIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 import type { FormEvent } from "react";
 import { useRef, useState } from "react";
@@ -11,6 +10,7 @@ import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
 import { Avatar } from "@calcom/ui";
+import { ArrowRight } from "@calcom/ui/components/icon";
 
 import type { IOnboardingPageProps } from "../../../pages/getting-started/[[...step]]";
 
@@ -24,7 +24,7 @@ interface IUserProfileProps {
 const UserProfile = (props: IUserProfileProps) => {
   const { user } = props;
   const { t } = useLocale();
-  const avatarRef = useRef<HTMLInputElement>(null!);
+  const avatarRef = useRef<HTMLInputElement>(null);
   const { setValue, handleSubmit, getValues } = useForm<FormData>({
     defaultValues: { bio: user?.bio || "" },
   });
@@ -76,7 +76,7 @@ const UserProfile = (props: IUserProfileProps) => {
 
   async function updateProfileHandler(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const enteredAvatar = avatarRef.current.value;
+    const enteredAvatar = avatarRef.current?.value;
     mutation.mutate({
       avatar: enteredAvatar,
     });
@@ -127,14 +127,16 @@ const UserProfile = (props: IUserProfileProps) => {
             id="avatar-upload"
             buttonMsg={t("add_profile_photo")}
             handleAvatarChange={(newAvatar) => {
-              avatarRef.current.value = newAvatar;
+              if (avatarRef.current) {
+                avatarRef.current.value = newAvatar;
+              }
               const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
                 window.HTMLInputElement.prototype,
                 "value"
               )?.set;
               nativeInputValueSetter?.call(avatarRef.current, newAvatar);
               const ev2 = new Event("input", { bubbles: true });
-              avatarRef.current.dispatchEvent(ev2);
+              avatarRef.current?.dispatchEvent(ev2);
               updateProfileHandler(ev2 as unknown as FormEvent<HTMLFormElement>);
               setImageSrc(newAvatar);
             }}
@@ -159,7 +161,7 @@ const UserProfile = (props: IUserProfileProps) => {
         type="submit"
         className="text-inverted mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm">
         {t("finish")}
-        <ArrowRightIcon className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
+        <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </Button>
     </form>
   );

@@ -1,4 +1,3 @@
-import { BadgeCheckIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
@@ -28,7 +27,7 @@ import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, AvatarGroup, HeadSeo } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import { Verified, ArrowRight } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
@@ -104,7 +103,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   delete query.user; // So it doesn't display in the Link (and make tests fail)
   const nameOrUsername = user.name || user.username || "";
 
-  /* 
+  /*
    const telemetry = useTelemetry();
    useEffect(() => {
     if (top !== window) {
@@ -139,7 +138,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
               <Avatar imageSrc={user.avatar} size="xl" alt={nameOrUsername} />
               <h1 className="font-cal text-emphasis mb-1 text-3xl">
                 {nameOrUsername}
-                {user.verified && <BadgeCheckIcon className=" mx-1 -mt-1 inline h-6 w-6 text-blue-500" />}
+                {user.verified && (
+                  <Verified className=" mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black" />
+                )}
               </h1>
               {!isBioEmpty && (
                 <>
@@ -356,6 +357,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       users,
       safeBio,
       profile,
+      // Dynamic group has no theme preference right now. It uses system theme.
+      themeBasis: isDynamicGroup ? null : user.username,
       user: {
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },

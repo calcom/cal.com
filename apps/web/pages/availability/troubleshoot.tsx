@@ -26,7 +26,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
 
   const { data, isLoading } = trpc.viewer.availability.user.useQuery(
     {
-      username: user.username!,
+      username: user.username || "",
       dateFrom: selectedDate.startOf("day").utc().format(),
       dateTo: selectedDate.endOf("day").utc().format(),
       withSource: true,
@@ -53,7 +53,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
         {t("overview_of_day")}{" "}
         <input
           type="date"
-          className="inline h-8 border-none p-0"
+          className="inline h-8 border-none bg-inherit p-0"
           defaultValue={formattedSelectedDate}
           onChange={(e) => {
             if (e.target.value) setSelectedDate(e.target.value);

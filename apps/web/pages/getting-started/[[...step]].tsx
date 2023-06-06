@@ -117,9 +117,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
       }
       key={router.asPath}>
       <Head>
-        <title>
-          {APP_NAME} - {t("getting_started")}
-        </title>
+        <title>{`${APP_NAME} - ${t("getting_started")}`}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 

@@ -71,9 +71,12 @@ const WorkflowListItem = (props: ItemProps) => {
         showToast(message, "error");
       }
       if (err.data?.code === "UNAUTHORIZED") {
-        // TODO: Add missing translation
-        const message = `${err.data.code}: You are not authorized to enable or disable this workflow`;
-        showToast(message, "error");
+        showToast(
+          t("unauthorized_workflow_error_message", {
+            errorCode: err.data.code,
+          }),
+          "error"
+        );
       }
     },
   });
@@ -197,7 +200,7 @@ function EventWorkflowsTab(props: Props) {
         const dataWf = data.workflows.find((wf) => wf.id === workflowOnEventType.id);
         return {
           ...workflowOnEventType,
-          readOnly: isChildrenManagedEventType && dataWf?.teamId ? true : dataWf?.readOnly ?? true,
+          readOnly: isChildrenManagedEventType && dataWf?.teamId ? true : dataWf?.readOnly ?? false,
         } as WorkflowType;
       });
       const disabledWorkflows = data.workflows.filter(

@@ -57,6 +57,7 @@ model EventType {
   /// @zod.custom(imports.eventTypeLocations)
   locations               Json?
   length                  Int
+  offsetStart             Int                     @default(0)
   hidden                  Boolean                 @default(false)
   hosts                   Host[]
   users                   User[]                  @relation("user_eventtype")
@@ -254,6 +255,7 @@ model Team {
   brandColor          String           @default("#292929")
   darkBrandColor      String           @default("#fafafa")
   verifiedNumbers     VerifiedNumber[]
+  webhooks            Webhook[]
 }
 
 enum MembershipRole {
@@ -493,7 +495,9 @@ enum PaymentOption {
 enum WebhookTriggerEvents {
   BOOKING_CREATED
   BOOKING_RESCHEDULED
+  BOOKING_REQUESTED
   BOOKING_CANCELLED
+  BOOKING_REJECTED
   FORM_SUBMITTED
   MEETING_ENDED
   RECORDING_READY
@@ -502,6 +506,7 @@ enum WebhookTriggerEvents {
 model Webhook {
   id              String                 @id @unique
   userId          Int?
+  teamId          Int?
   eventTypeId     Int?
   /// @zod.url()
   subscriberUrl   String
@@ -510,6 +515,7 @@ model Webhook {
   active          Boolean                @default(true)
   eventTriggers   WebhookTriggerEvents[]
   user            User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team            Team?                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   eventType       EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   app             App?                   @relation(fields: [appId], references: [slug], onDelete: Cascade)
   appId           String?
