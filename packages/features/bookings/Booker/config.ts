@@ -2,6 +2,8 @@ import { cubicBezier, useAnimate } from "framer-motion";
 import { useReducedMotion } from "framer-motion";
 import { useEffect } from "react";
 
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
+
 import type { BookerLayout, BookerState } from "./types";
 
 // Framer motion fade in animation configs.
@@ -37,7 +39,7 @@ type ResizeAnimationConfig = {
  * The object is structured as following:
  *
  * The root property of the object: is the name of the layout
- * (mobile, small_calendar, large_calendar, large_timeslots)
+ * (mobile, month_view, week_view, column_view)
  *
  * The values of these properties are objects that define the animation for each state of the booker.
  * The animation have the same properties as you could pass to the animate prop of framer-motion:
@@ -58,7 +60,7 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
       gridTemplateRows: "auto auto auto auto",
     },
   },
-  small_calendar: {
+  month_view: {
     default: {
       width: "calc(var(--booker-meta-width) + var(--booker-main-width))",
       minHeight: "450px",
@@ -82,7 +84,7 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
       gridTemplateRows: "auto",
     },
   },
-  large_calendar: {
+  week_view: {
     default: {
       width: "100vw",
       minHeight: "450px",
@@ -95,7 +97,7 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
       gridTemplateRows: "70px auto",
     },
   },
-  large_timeslots: {
+  column_view: {
     default: {
       width: "100vw",
       minHeight: "450px",
@@ -116,18 +118,18 @@ export const getBookerSizeClassNames = (layout: BookerLayout, bookerState: Booke
     // General sizes, used always
     "[--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
     // Small calendar defaults
-    layout === "small_calendar" && "[--booker-meta-width:240px]",
+    layout === BookerLayouts.MONTH_VIEW && "[--booker-meta-width:240px]",
     // Meta column get's wider in booking view to fit the full date on a single row in case
     // of a multi occurance event. Also makes form less wide, which also looks better.
-    layout === "small_calendar" &&
+    layout === BookerLayouts.MONTH_VIEW &&
       bookerState === "booking" &&
       "[--booker-main-width:420px] lg:[--booker-meta-width:340px]",
     // Smaller meta when not in booking view.
-    layout === "small_calendar" &&
+    layout === BookerLayouts.MONTH_VIEW &&
       bookerState !== "booking" &&
       "[--booker-main-width:480px] lg:[--booker-meta-width:280px]",
     // Fullscreen view settings.
-    layout !== "small_calendar" &&
+    layout !== BookerLayouts.MONTH_VIEW &&
       "[--booker-main-width:480px] [--booker-meta-width:340px] lg:[--booker-meta-width:424px]",
   ];
 };

@@ -1,3 +1,5 @@
+import type { BookerLayouts } from "@calcom/prisma/zod-utils";
+
 import type { GetBookingType } from "../lib/get-booking";
 
 export interface BookerProps {
@@ -42,5 +44,5 @@ export interface BookerProps {
 }
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
-export type BookerLayout = "small_calendar" | "large_timeslots" | "large_calendar" | "mobile";
+export type BookerLayout = BookerLayouts | "mobile";
 export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";

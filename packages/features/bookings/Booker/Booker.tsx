@@ -7,6 +7,7 @@ import { shallow } from "zustand/shallow";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
+import { BookerLayouts, bookerLayoutOptions } from "@calcom/prisma/zod-utils";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
@@ -49,7 +50,11 @@ const BookerComponent = ({
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
     shallow
   );
-  const extraDays = layout === "large_timeslots" ? (isTablet ? 2 : 4) : 0;
+  const extraDays = layout === BookerLayouts.COLUMN_VIEW ? (isTablet ? 2 : 4) : 0;
+  const bookerLayouts = event.data?.profile?.bookerLayouts || {
+    defaultLayout: BookerLayouts.MONTH_VIEW,
+    enabledLayouts: bookerLayoutOptions,
+  };
 
   const animationScope = useBookerResizeAnimation(layout, bookerState);
 
@@ -66,13 +71,14 @@ const BookerComponent = ({
     eventId: event?.data?.id,
     rescheduleUid,
     rescheduleBooking,
+    layout: bookerLayouts.defaultLayout,
   });
 
   useEffect(() => {
     if (isMobile && layout !== "mobile") {
       setLayout("mobile");
     } else if (!isMobile && layout === "mobile") {
-      setLayout("small_calendar");
+      setLayout(BookerLayouts.MONTH_VIEW);
     }
   }, [isMobile, setLayout, layout]);
 
@@ -102,24 +108,32 @@ const BookerComponent = ({
             // Sets booker size css variables for the size of all the columns.
             ...getBookerSizeClassNames(layout, bookerState),
             "bg-default dark:bg-muted grid max-w-full items-start overflow-clip dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
-            layout === "small_calendar" && "border-subtle rounded-md border"
+            layout === BookerLayouts.MONTH_VIEW && "border-subtle rounded-md border"
           )}>
           <AnimatePresence>
             <BookerSection area="header">
-              <Header extraDays={extraDays} isMobile={isMobile} />
+              <Header
+                enabledLayouts={bookerLayouts.enabledLayouts}
+                extraDays={extraDays}
+                isMobile={isMobile}
+              />
             </BookerSection>
             <StickyOnDesktop
               key="meta"
-              className={classNames("relative z-10 flex", layout !== "small_calendar" && "sm:min-h-screen")}>
+              className={classNames(
+                "relative z-10 flex",
+                layout !== BookerLayouts.MONTH_VIEW && "sm:min-h-screen"
+              )}>
               <BookerSection
                 area="meta"
                 className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
                 <EventMeta />
-                {layout !== "small_calendar" && !(layout === "mobile" && bookerState === "booking") && (
-                  <div className=" mt-auto p-5">
-                    <DatePicker />
-                  </div>
-                )}
+                {layout !== BookerLayouts.MONTH_VIEW &&
+                  !(layout === "mobile" && bookerState === "booking") && (
+                    <div className=" mt-auto p-5">
+                      <DatePicker />
+                    </div>
+                  )}
               </BookerSection>
             </StickyOnDesktop>
 
@@ -128,14 +142,14 @@ const BookerComponent = ({
               area="main"
               className="border-subtle sticky top-0 ml-[-1px] h-full p-5 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInLeft}
-              visible={bookerState === "booking" && layout !== "large_timeslots"}>
+              visible={bookerState === "booking" && layout !== BookerLayouts.COLUMN_VIEW}>
               <BookEventForm onCancel={() => setSelectedTimeslot(null)} />
             </BookerSection>
 
             <BookerSection
               key="datepicker"
               area="main"
-              visible={bookerState !== "booking" && layout === "small_calendar"}
+              visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
               {...fadeInLeft}
               initial="visible"
               className="md:border-subtle ml-[-1px] h-full flex-shrink p-5 md:border-l lg:w-[var(--booker-main-width)]">
@@ -146,7 +160,7 @@ const BookerComponent = ({
               key="large-calendar"
               area="main"
               visible={
-                layout === "large_calendar" &&
+                layout === BookerLayouts.WEEK_VIEW &&
                 (bookerState === "selecting_date" || bookerState === "selecting_time")
               }
               className="border-muted sticky top-0 ml-[-1px] h-full md:border-l"
@@ -156,22 +170,22 @@ const BookerComponent = ({
 
             <BookerSection
               key="timeslots"
-              area={{ default: "main", small_calendar: "timeslots" }}
+              area={{ default: "main", month_view: "timeslots" }}
               visible={
-                (layout !== "large_calendar" && bookerState === "selecting_time") ||
-                layout === "large_timeslots"
+                (layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
+                layout === BookerLayouts.COLUMN_VIEW
               }
               className={classNames(
                 "border-subtle flex h-full w-full flex-col p-5 pb-0 md:border-l",
-                layout === "small_calendar" &&
+                layout === BookerLayouts.MONTH_VIEW &&
                   "scroll-bar h-full overflow-auto md:w-[var(--booker-timeslots-width)]",
-                layout !== "small_calendar" && "sticky top-0"
+                layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
               )}
               ref={timeslotsRef}
               {...fadeInLeft}>
               <AvailableTimeSlots
                 extraDays={extraDays}
-                limitHeight={layout === "small_calendar"}
+                limitHeight={layout === BookerLayouts.MONTH_VIEW}
                 seatsPerTimeslot={event.data?.seatsPerTimeSlot}
               />
             </BookerSection>
@@ -182,14 +196,14 @@ const BookerComponent = ({
           key="logo"
           className={classNames(
             "mt-auto mb-6 pt-6 [&_img]:h-[15px]",
-            layout === "small_calendar" ? "block" : "hidden"
+            layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
           )}>
           {!hideBranding ? <PoweredBy logoOnly /> : null}
         </m.span>
       </div>
 
       <BookFormAsModal
-        visible={layout === "large_timeslots" && bookerState === "booking"}
+        visible={layout === BookerLayouts.COLUMN_VIEW && bookerState === "booking"}
         onCancel={() => setSelectedTimeslot(null)}
       />
     </>
