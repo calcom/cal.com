@@ -1794,6 +1794,7 @@
   "complete_your_booking": "أكمل الحجز",
   "complete_your_booking_subject": "أكمل الحجز: {{title}} في {{date}}",
   "confirm_your_details": "تأكيد التفاصيل الخاصة بك",
+  "never_expire": "لا تنتهي الصلاحية أبدًا",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "أنت على وشك استحصال مبلغ {{amount, currency}} من أحد الحضور. هل أنت متأكد من أنك تريد المتابعة؟",
   "charge_attendee": "استحصال مبلغ {{amount, currency}} من أحد الحضور",

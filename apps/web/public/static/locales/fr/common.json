@@ -1817,6 +1817,7 @@
   "complete_your_booking": "Terminer votre réservation",
   "complete_your_booking_subject": "Terminer votre réservation : {{title}} le {{date}}",
   "confirm_your_details": "Confirmez vos coordonnées",
+  "never_expire": "N'expire jamais",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Vous êtes sur le point de facturer {{amount, currency}} au participant. Voulez-vous vraiment continuer ?",
   "charge_attendee": "Facturer {{amount, currency}} au participant",

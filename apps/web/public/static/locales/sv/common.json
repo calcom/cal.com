@@ -1794,6 +1794,7 @@
   "complete_your_booking": "Slutför din bokning",
   "complete_your_booking_subject": "Slutför din bokning: {{title}} {{date}}",
   "confirm_your_details": "Bekräfta dina uppgifter",
+  "never_expire": "Förfaller aldrig",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Du är på väg att debitera deltagaren {{amount, currency}}. Är du säker på att du vill fortsätta?",
   "charge_attendee": "Debitera deltagare {{amount, currency}}",

@@ -1794,6 +1794,7 @@
   "complete_your_booking": "Dokončete svou rezervaci",
   "complete_your_booking_subject": "Dokončete svou rezervaci: {{title}} dne {{date}}",
   "confirm_your_details": "Potvrďte své údaje",
+  "never_expire": "Platnost nikdy neuplyne",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Chystáte se účtovat účastníkovi {{amount, currency}}. Opravdu chcete pokračovat?",
   "charge_attendee": "Naúčtovat účastníkovi {{amount, currency}}",

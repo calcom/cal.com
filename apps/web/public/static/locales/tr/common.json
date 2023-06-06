@@ -1794,6 +1794,7 @@
   "complete_your_booking": "Rezervasyonunuzu tamamlayın",
   "complete_your_booking_subject": "Rezervasyonunuzu tamamlayın: {{title}}, {{date}}",
   "confirm_your_details": "Bilgilerinizi onaylayın",
+  "never_expire": "Süresiz kullanım",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Katılımcıdan {{amount, currency}} tahsil etmek üzeresiniz. Devam etmek istediğinizden emin misiniz?",
   "charge_attendee": "Katılımcıdan {{amount, currency}} ücret tahsil edin",

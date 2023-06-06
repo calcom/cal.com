@@ -1794,6 +1794,7 @@
   "complete_your_booking": "Voltooi uw boeking",
   "complete_your_booking_subject": "Voltooi uw boeking: {{title}} op {{date}}",
   "confirm_your_details": "Bevestig uw gegevens",
+  "never_expire": "Verloopt nooit",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "U staat op het punt om de deelnemer {{amount, currency}} in rekening te brengen. Weet u zeker dat u wilt doorgaan?",
   "charge_attendee": "Deelnemer {{amount, currency}} in rekening brengen",
