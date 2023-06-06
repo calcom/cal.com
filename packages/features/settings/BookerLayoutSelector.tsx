@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
+import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -37,9 +38,8 @@ export const BookerLayoutSelector = ({
   // Only fallback if event current does not have any settings, and the fallbackToUserSettings boolean is set.
   const shouldShowUserSettings = (fallbackToUserSettings && !getValues(name || defaultFieldName)) || false;
 
-  // @TODO: Enable this before merge, so we don't show the settings before release.
-  // const flags = useFlagMap();
-  // if (flags.["booker-layouts"] !== true) return null;
+  const flags = useFlagMap();
+  if (flags["booker-layouts"] !== true) return null;
 
   return (
     <>
