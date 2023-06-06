@@ -898,6 +898,7 @@
   "availability_updated_successfully": "El horario de {{scheduleName}} se actualizó correctamente",
   "schedule_deleted_successfully": "Programación eliminada exitosamente",
   "default_schedule_name": "Horas laborables",
+  "member_default_schedule": "Horario predeterminado del miembro",
   "new_schedule_heading": "Crear un horario de disponibilidad",
   "new_schedule_description": "Crear horarios de disponibilidad le permite gestionar la disponibilidad a través de tipos de eventos. Pueden aplicarse a uno o más tipos de eventos.",
   "requires_ownership_of_a_token": "Requiere la propiedad de un token perteneciente a la siguiente dirección:",
