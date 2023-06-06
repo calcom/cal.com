@@ -40,6 +40,7 @@ const createAppCredential = async (
     } else {
       throw new Error("User does not belong to the team");
     }
+    return;
   }
 
   await prisma.credential.create({
