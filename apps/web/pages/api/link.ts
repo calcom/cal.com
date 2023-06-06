@@ -34,6 +34,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
     where: { uid: bookingUid },
   });
 
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+  });
+
   try {
     /** @see https://trpc.io/docs/server-side-calls */
     const ctx = await createContext({ req, res });
@@ -41,7 +45,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
       ...ctx,
       req,
       res,
-      user: { id: userId },
+      user,
       hasValidLicense: true,
     });
     await caller.bookings.confirm({
