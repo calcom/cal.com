@@ -1,7 +1,7 @@
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 // Define which hostnames are expected for the app
-export const appHostnames = ["cal.com", "cal.dev", "cal-staging.com", "cal.local:3000"];
+export const appHostnames = ["cal.com", "cal.dev", "cal-staging.com", "cal.community", "cal.local:3000"];
 
 export function getOrgDomain(hostname: string) {
   // Find which hostname is being currently used
