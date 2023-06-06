@@ -117,7 +117,7 @@ export default function Bookings() {
         {query.status === "error" && (
           <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
         )}
-        {(query.status === "loading" || query.isPaused) && <SkeletonLoader />}
+        {(query.status === "loading" || query.isPaused) && <SkeletonLoader />} 
         {query.status === "success" && !isEmpty && (
           <>
             {!!bookingsToday.length && status === "upcoming" && (
