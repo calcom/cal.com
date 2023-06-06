@@ -39,11 +39,11 @@ import type { SerializableForm } from "../types/types";
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 
 const newFormModalQuerySchema = z.object({
-  action: z.string(),
+  action: z.literal("new").or(z.literal("duplicate")),
   target: z.string().optional(),
 });
 
-const openModal = (router: NextRouter, option: { target?: string; action: string }) => {
+const openModal = (router: NextRouter, option: z.infer<typeof newFormModalQuerySchema>) => {
   const query = {
     ...router.query,
     dialog: "new-form",
@@ -84,6 +84,9 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
 
   const { action, target } = router.query as z.infer<typeof newFormModalQuerySchema>;
 
+  const formToDuplicate = action === "duplicate" ? target : null;
+  const teamId = action === "new" ? Number(target) : null;
+
   const { register } = hookForm;
   return (
     <Dialog name="new-form" clearQueryParamsOnClose={["target", "action"]}>
@@ -105,7 +108,8 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
               id: formId,
               ...values,
               addFallback: true,
-              duplicateFrom: action === "duplicate" ? target : null,
+              teamId,
+              duplicateFrom: formToDuplicate,
             });
           }}>
           <div className="mt-3 space-y-4">
@@ -416,7 +420,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       loading: _delete.isLoading,
     },
     create: {
-      onClick: () => openModal(router, { action: "new" }),
+      onClick: () => createAction({ router, teamId: null }),
     },
     copyRedirectUrl: {
       onClick: () => {
@@ -486,3 +490,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     </DropdownMenuItem>
   );
 });
+
+export const createAction = ({ router, teamId }: { router: NextRouter; teamId: number | null }) => {
+  openModal(router, { action: "new", target: teamId ? String(teamId) : "" });
+};

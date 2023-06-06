@@ -24,8 +24,9 @@ interface FormMutationHandlerOptions {
 }
 export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOptions) => {
   const { user, prisma } = ctx;
-  const { name, id, description, settings, disabled, addFallback, duplicateFrom, shouldConnect } = input;
-  if (!(await isFormEditAllowed({ userId: user.id, formId: id }))) {
+  const { name, id, description, settings, disabled, addFallback, duplicateFrom, shouldConnect, teamId } =
+    input;
+  if (!(await isFormEditAllowed({ userId: user.id, formId: id, teamId }))) {
     throw new TRPCError({
       code: "FORBIDDEN",
     });
@@ -56,6 +57,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       routes: true,
       fields: true,
       settings: true,
+      teamId: true,
     },
   });
 
@@ -100,6 +102,15 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       // Prisma doesn't allow setting null value directly for JSON. It recommends using JsonNull for that case.
       routes: routes === null ? Prisma.JsonNull : routes,
       id: id,
+      ...(teamId
+        ? {
+            team: {
+              connect: {
+                id: teamId ?? undefined,
+              },
+            },
+          }
+        : null),
     },
     update: {
       disabled: disabled,

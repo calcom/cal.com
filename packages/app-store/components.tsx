@@ -55,7 +55,7 @@ export const InstallAppButton = (
     disableInstall?: boolean;
   } & InstallAppButtonProps
 ) => {
-  const { isLoading: isUserLoading, data: user } = trpc.viewer.me.useQuery();
+  const { isLoading: isUserLoading, teams: user } = trpc.viewer.me.useQuery();
   const router = useRouter();
   const proProtectionElementRef = useRef<HTMLDivElement | null>(null);
   const { isLoading: isTeamPlanStatusLoading, hasTeamPlan } = useHasTeamPlan();
