@@ -898,6 +898,7 @@
   "availability_updated_successfully": "{{scheduleName}} 日程更新成功",
   "schedule_deleted_successfully": "成功刪除行程表",
   "default_schedule_name": "工作時間",
+  "member_default_schedule": "成員的預設行程表",
   "new_schedule_heading": "新增開放時間行程表",
   "new_schedule_description": "新增開放時間行程表，就可以管理每個活動類型的開放時間。可以用在單一或多個活動類型。",
   "requires_ownership_of_a_token": "必須有屬於以下位址的 Token 所有權：",

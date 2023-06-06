@@ -898,6 +898,7 @@
   "availability_updated_successfully": "Beschikbaarheid bijgewerkt",
   "schedule_deleted_successfully": "Planning verwijderd",
   "default_schedule_name": "Werktijden",
+  "member_default_schedule": "Standaardschema lid",
   "new_schedule_heading": "Beschikbaarheidsschema aanmaken",
   "new_schedule_description": "Door beschikbaarheidsschema's te maken kunt u de beschikbaarheid beheren voor verschillende gebeurteenistypes. Ze kunnen worden toegepast op één of meer gebeurtenistypes.",
   "requires_ownership_of_a_token": "Vereist eigendom van een token dat aan het volgende adres toebehoort:",

@@ -898,6 +898,7 @@
   "availability_updated_successfully": "Расписание {{scheduleName}} успешно обновлено",
   "schedule_deleted_successfully": "Расписание успешно удалено",
   "default_schedule_name": "Часы работы",
+  "member_default_schedule": "Расписание участника по умолчанию",
   "new_schedule_heading": "Создать расписание доступности",
   "new_schedule_description": "Расписания доступности позволяют управлять доступностью для различных типов событий. Их можно применять к одному или нескольким типам событий.",
   "requires_ownership_of_a_token": "Нужно быть владельцем токена, относящегося к следующему адресу:",

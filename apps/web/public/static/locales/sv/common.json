@@ -898,6 +898,7 @@
   "availability_updated_successfully": "Schemat för {{scheduleName}} har uppdaterats",
   "schedule_deleted_successfully": "Schemat har tagits bort",
   "default_schedule_name": "Arbetstider",
+  "member_default_schedule": "Medlemmens standardschema",
   "new_schedule_heading": "Skapa ett tillgänglighetsschema",
   "new_schedule_description": "Genom att skapa tillgänglighetsscheman kan du hantera tillgänglighet för olika händelsetyper. De kan tillämpas på en eller flera händelsetyper.",
   "requires_ownership_of_a_token": "Kräver ägande av en token som tillhör följande adress:",

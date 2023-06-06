@@ -898,6 +898,7 @@
   "availability_updated_successfully": "{{scheduleName}} planı başarıyla güncellendi",
   "schedule_deleted_successfully": "Plan başarıyla silindi",
   "default_schedule_name": "Çalışma Saatleri",
+  "member_default_schedule": "Üyenin varsayılan programı",
   "new_schedule_heading": "Müsaitlik planı oluşturun",
   "new_schedule_description": "Müsaitlik planları oluşturmak, farklı etkinlik türleri için müsaitlik durumunuzu yönetmenize olanak tanır. Planlar bir veya daha fazla etkinlik türüne uygulanabilir.",
   "requires_ownership_of_a_token": "Aşağıdaki adrese ait bir token'a sahip olmak gereklidir:",
