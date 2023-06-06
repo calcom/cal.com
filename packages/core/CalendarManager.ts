@@ -151,6 +151,7 @@ export const getCachedResults = async (
      * TODO: Migrate credential type or appId
      */
     const passedSelectedCalendars = selectedCalendars.filter((sc) => sc.integration === type);
+    if (!passedSelectedCalendars.length) return [];
     /** We extract external Ids so we don't cache too much */
     const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
     /** If we don't then we actually fetch external calendars (which can be very slow) */
@@ -231,7 +232,11 @@ export const getBusyCalendarTimes = async (
   const months = getMonths(dateFrom, dateTo);
   try {
     if (coldStart) {
-      results = await getCachedResults(withCredentials, dateFrom, dateTo, selectedCalendars);
+      // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
+      const startDate = dayjs(dateFrom).subtract(11, "hours").format();
+      // Add 14 hours from the start date to avoid problems in UTC+ time zones.
+      const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
+      results = await getCachedResults(withCredentials, startDate, endDate, selectedCalendars);
       logger.info("Generating calendar cache in background");
       // on cold start the calendar cache page generated in the background
       Promise.all(months.map((month) => createCalendarCachePage(username, month)));

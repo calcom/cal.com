@@ -39,10 +39,10 @@ test.describe("Managed Event Types tests", () => {
       await page.click("[data-testid=new-event-type-dropdown]");
       await page.click("[data-testid=option-team-1]");
       // Expecting we can add a managed event type as team owner
-      await expect(page.locator('input[value="MANAGED"]')).toBeVisible();
+      await expect(page.locator('button[value="MANAGED"]')).toBeVisible();
 
       // Actually creating a managed event type to test things further
-      await page.click('input[value="MANAGED"]');
+      await page.click('button[value="MANAGED"]');
       await page.fill("[name=title]", "managed");
       await page.click("[type=submit]");
     });

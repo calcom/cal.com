@@ -30,7 +30,7 @@ export function UpgradeTip({
 
   if (hasTeamPlan) return children;
 
-  if (isParentLoading || isLoading) return <>{isParentLoading}</>;
+  if (isLoading) return <>{isParentLoading}</>;
 
   return (
     <>
