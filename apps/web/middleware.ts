@@ -14,19 +14,11 @@ const middleware: NextMiddleware = async (req) => {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req.headers.get("host") ?? "");
 
   // Make sure we are in the presence of an organization
-  if (isValidOrgDomain) {
+  if (isValidOrgDomain && url.pathname === "/") {
     // In the presence of an organization, cover its profile page at "/"
-    if (url.pathname === "/") {
-      // rewrites for org profile page using team profile page
-      if (
-        url.pathname.indexOf("/api") === -1 &&
-        url.pathname.indexOf("/auth") === -1 &&
-        url.pathname.indexOf("/apps") === -1
-      ) {
-        url.pathname = `/org/${currentOrgDomain}`;
-        return NextResponse.rewrite(url);
-      }
-    }
+    // rewrites for org profile page using team profile page
+    url.pathname = `/org/${currentOrgDomain}`;
+    return NextResponse.rewrite(url);
   }
 
   if (!url.pathname.startsWith("/api")) {

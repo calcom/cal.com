@@ -12,7 +12,6 @@ const querySchema = z.object({
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const parsedQuery = querySchema.safeParse(req.query);
-  debugger;
 
   if (!parsedQuery.success) throw new HttpError({ statusCode: 400, message: parsedQuery.error.message });
 
