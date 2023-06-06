@@ -30,6 +30,33 @@ export enum Frequency {
   SECONDLY = 6,
 }
 
+export enum BookerLayouts {
+  MONTH_VIEW = "month_view",
+  WEEK_VIEW = "week_view",
+  COLUMN_VIEW = "column_view",
+}
+
+export const bookerLayoutOptions = [
+  BookerLayouts.MONTH_VIEW,
+  BookerLayouts.WEEK_VIEW,
+  BookerLayouts.COLUMN_VIEW,
+];
+
+const layoutOptions = z.union([
+  z.literal(bookerLayoutOptions[0]),
+  z.literal(bookerLayoutOptions[1]),
+  z.literal(bookerLayoutOptions[2]),
+]);
+
+export const bookerLayouts = z
+  .object({
+    enabledLayouts: z.array(layoutOptions),
+    defaultLayout: layoutOptions,
+  })
+  .nullable();
+
+export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
+
 export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);
 
 export const EventTypeMetaDataSchema = z
@@ -67,6 +94,7 @@ export const EventTypeMetaDataSchema = z
         useHostSchedulesForTeamEvent: z.boolean().optional(),
       })
       .optional(),
+    bookerLayouts: bookerLayouts.optional(),
   })
   .nullable();
 
@@ -268,6 +296,7 @@ export const userMetadata = z
         appLink: z.string().optional(),
       })
       .optional(),
+    defaultBookerLayouts: bookerLayouts.optional(),
   })
   .nullable();
 

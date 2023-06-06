@@ -1049,6 +1049,7 @@
   "new_event_trigger": "lorsqu'un nouvel événement est réservé",
   "email_host_action": "envoyer un e-mail à l'hôte",
   "email_attendee_action": "envoyer un e-mail aux participants",
+  "sms_attendee_action": "Envoyer un SMS au participant",
   "sms_number_action": "envoyer un SMS à un numéro spécifique",
   "workflows": "Workflows",
   "new_workflow_btn": "Nouveau workflow",
