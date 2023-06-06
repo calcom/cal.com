@@ -149,6 +149,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     rescheduleBooking = null,
     layout,
   }: StoreInitializeType) => {
+    const selectedDateInStore = get().selectedDate;
+
     if (
       get().username === username &&
       get().eventSlug === eventSlug &&
@@ -167,7 +169,10 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       rescheduleBooking,
       layout: layout || BookerLayouts.MONTH_VIEW,
       // Preselect today's date in week / column view, since they use this to show the week title.
-      selectedDate: ["week_view", "column_view"].includes(layout) ? dayjs().format("YYYY-MM-DD") : null,
+      selectedDate:
+        selectedDateInStore || ["week_view", "column_view"].includes(layout)
+          ? dayjs().format("YYYY-MM-DD")
+          : null,
     });
 
     // Unset selected timeslot if user is rescheduling. This could happen
