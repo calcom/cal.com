@@ -3,6 +3,7 @@ import { totp } from "otplib";
 
 import { sendOrganizationEmailVerification } from "@calcom/emails";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
@@ -22,11 +23,11 @@ type CreateOptions = {
 
 const vercelCreateDomain = async (domain: string) => {
   const response = await fetch(
-    `https://api.vercel.com/v8/projects/${process.env.VERCEL_PROJECT_ID}/domains?teamId=${process.env.VERCEL_TEAM_ID}`,
+    `https://api.vercel.com/v8/projects/${process.env.PROJECT_ID_VERCEL}/domains?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
-      body: `{\n  "name": "${domain}"\n}`,
+      body: `{\n  "name": "${domain}.${subdomainSuffix()}"\n}`,
       headers: {
-        Authorization: `Bearer ${process.env.VERCEL_AUTH_BEARER_TOKEN}`,
+        Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN_VERCEL}`,
         "Content-Type": "application/json",
       },
       method: "POST",
