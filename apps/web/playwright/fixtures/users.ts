@@ -233,7 +233,7 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
           },
         });
       }
-      const userFixture = createUserFixture(user, store.page!);
+      const userFixture = createUserFixture(user, store.page);
       store.users.push(userFixture);
       return userFixture;
     },
@@ -261,6 +261,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
 
   // self is a reflective method that return the Prisma object that references this fixture.
   const self = async () =>
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     (await prisma.user.findUnique({
       where: { id: store.user.id },
       include: { eventTypes: true },
@@ -284,7 +285,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         data: { metadata: { debug: message } },
       });
     },
-    delete: async () => (await prisma.user.delete({ where: { id: store.user.id } }))!,
+    delete: async () => await prisma.user.delete({ where: { id: store.user.id } }),
   };
 };
 

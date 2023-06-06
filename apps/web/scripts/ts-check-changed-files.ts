@@ -1,5 +1,9 @@
 import { execSync } from "child_process";
 
+type Err = {
+  stdout: string;
+};
+
 const diff = execSync(`git diff --name-only origin/main HEAD`).toString();
 
 const files = diff
@@ -18,7 +22,7 @@ try {
 
   console.log("😻 No errors!");
 } catch (_err) {
-  const err = _err as any;
+  const err = _err as Err;
 
   const output = err.stdout.toString() as string;
 

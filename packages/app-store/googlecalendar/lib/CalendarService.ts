@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Prisma } from "@prisma/client";
 import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
@@ -71,7 +72,7 @@ export default class GoogleCalendarService implements Calendar {
   };
 
   async createEvent(calEventRaw: CalendarEvent): Promise<NewCalendarEventType> {
-    const eventAttendees = calEventRaw.attendees.map(({ id, ...rest }) => ({
+    const eventAttendees = calEventRaw.attendees.map(({ id: _id, ...rest }) => ({
       ...rest,
       responseStatus: "accepted",
     }));
@@ -175,7 +176,7 @@ export default class GoogleCalendarService implements Calendar {
   async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const myGoogleAuth = await this.auth.getToken();
-      const eventAttendees = event.attendees.map(({ id, ...rest }) => ({
+      const eventAttendees = event.attendees.map(({ ...rest }) => ({
         ...rest,
         responseStatus: "accepted",
       }));
@@ -206,9 +207,8 @@ export default class GoogleCalendarService implements Calendar {
               ? event.destinationCalendar.externalId
               : event.organizer.email,
           },
-          // eslint-disable-next-line
-          ...eventAttendees,
-          ...teamMembers,
+          ...(eventAttendees as any),
+          ...(teamMembers as any),
         ],
         reminders: {
           useDefault: true,

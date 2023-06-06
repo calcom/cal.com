@@ -121,8 +121,10 @@ export default function ExchangeSetup() {
                           options={authenticationMethods}
                           defaultValue={authenticationMethods[0]}
                           onChange={async (authentication) => {
-                            onChange(authentication?.value);
-                            form.setValue("authenticationMethod", authentication!.value);
+                            if (authentication) {
+                              onChange(authentication.value);
+                              form.setValue("authenticationMethod", authentication.value);
+                            }
                           }}
                         />
                       )}
@@ -137,7 +139,9 @@ export default function ExchangeSetup() {
                           defaultValue={exchangeVersions[7]}
                           onChange={async (version) => {
                             onChange(version?.value);
-                            form.setValue("exchangeVersion", version!.value);
+                            if (version) {
+                              form.setValue("exchangeVersion", version.value);
+                            }
                           }}
                         />
                       )}

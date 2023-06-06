@@ -22,7 +22,7 @@ export const AnimatedPopover = ({
   React.useEffect(() => {
     const handleResize = () => {
       const halfWidth = window.innerWidth / 2;
-      const { x, y } = ref?.current?.getBoundingClientRect() || {
+      const { x } = ref?.current?.getBoundingClientRect() || {
         x: 0,
         y: 0,
       };

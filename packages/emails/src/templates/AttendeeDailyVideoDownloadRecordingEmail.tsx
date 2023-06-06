@@ -1,6 +1,6 @@
 import type { TFunction } from "next-i18next";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, APP_NAME, COMPANY_NAME } from "@calcom/lib/constants";
 
 import { V2BaseEmailHtml, CallToAction } from "../components";
 
@@ -55,7 +55,7 @@ export const AttendeeDailyVideoDownloadRecordingEmail = (
         <>{props.language("hi_user_name", { name: props.name })},</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "40px" }}>
-        <>{props.language("recording_from_your_recent_call")}</>
+        <>{props.language("recording_from_your_recent_call", { appName: APP_NAME })}</>
       </p>
 
       <div
@@ -91,7 +91,7 @@ export const AttendeeDailyVideoDownloadRecordingEmail = (
         <>{props.language("happy_scheduling")},</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px", marginTop: "0px" }}>
-        <>{props.language("the_calcom_team")}</>
+        <>{props.language("the_calcom_team", { companyName: COMPANY_NAME })}</>
       </p>
     </V2BaseEmailHtml>
   );
