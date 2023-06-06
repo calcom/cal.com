@@ -902,6 +902,7 @@
   "availability_updated_successfully": "Распоред {{scheduleName}} је успешно ажуриран",
   "schedule_deleted_successfully": "Raspored uspešno izbrisan",
   "default_schedule_name": "Radno vreme",
+  "member_default_schedule": "Podrazumevani raspored člana",
   "new_schedule_heading": "Napravi raspored dostupnosti",
   "new_schedule_description": "Kreiranje rasporeda dostupnosti vam omogućava da upravljate dostupnošću za različite tipove događaja. Mogu se primeniti na jedan ili više tipova događaja.",
   "requires_ownership_of_a_token": "Potrebno je vlasništvo tokena koji pripada sledećoj adresi:",

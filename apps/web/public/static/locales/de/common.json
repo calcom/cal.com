@@ -898,6 +898,7 @@
   "availability_updated_successfully": "{{scheduleName}} Zeitplan erfolgreich aktualisiert",
   "schedule_deleted_successfully": "Verfügbarkeitsplan erfolgreich gelöscht",
   "default_schedule_name": "Arbeitszeiten",
+  "member_default_schedule": "Standardverfügbarkeitsplan des Mitglieds",
   "new_schedule_heading": "Erstelle einen Verfügbarkeitsplan",
   "new_schedule_description": "Das Erstellen eines Verfügbarkeitsplan sorgt dafür, dass Ihre Verfügbarkeit bei mehreren Termintypen genutzt werden kann.",
   "requires_ownership_of_a_token": "Erfordert Besitz eines Tokens, das zu der folgenden Adresse gehört:",

@@ -898,6 +898,7 @@
   "availability_updated_successfully": "{{scheduleName}} 日程更新成功",
   "schedule_deleted_successfully": "已成功删除时间表",
   "default_schedule_name": "工作时间",
+  "member_default_schedule": "成员的默认日程安排",
   "new_schedule_heading": "创建可预约时间表",
   "new_schedule_description": "通过创建可预约的时间表，可以管理不同活动类型的可预约时间。这些时间表可以应用于一个或多个活动类型。",
   "requires_ownership_of_a_token": "需要属于以下地址的令牌的所有权:",

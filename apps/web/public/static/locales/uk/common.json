@@ -898,6 +898,7 @@
   "availability_updated_successfully": "Розклад «{{scheduleName}}» оновлено",
   "schedule_deleted_successfully": "Розклад видалено",
   "default_schedule_name": "Робочі години",
+  "member_default_schedule": "Розклад учасника за замовчуванням",
   "new_schedule_heading": "Створення розкладу доступності",
   "new_schedule_description": "Розклад доступності дає змогу керувати своєю доступністю для участі в заходах різних типів. Його можна застосовувати як до одного, так і до кількох різних типів заходів.",
   "requires_ownership_of_a_token": "Потрібен токен, що належить такій адресі:",

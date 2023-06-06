@@ -898,6 +898,7 @@
   "availability_updated_successfully": "Plán {{scheduleName}} byl úspěšně aktualizován",
   "schedule_deleted_successfully": "Plán byl úspěšně odstraněn",
   "default_schedule_name": "Pracovní doba",
+  "member_default_schedule": "Výchozí rozvrh člena",
   "new_schedule_heading": "Vytvořit plán dostupnosti",
   "new_schedule_description": "Vytvoření plánů dostupnosti vám umožní spravovat dostupnost mezi typy událostí. Mohou být použity pro jeden nebo více typů událostí.",
   "requires_ownership_of_a_token": "Vyžaduje vlastnictví tokenu, který patří následující adrese:",
