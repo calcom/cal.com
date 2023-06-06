@@ -262,13 +262,17 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
   // self is a reflective method that return the Prisma object that references this fixture.
   const self = async () =>
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    (await prisma.user.findUnique({ where: { id: store.user.id }, include: { eventTypes: true } }))!;
+    (await prisma.user.findUnique({
+      where: { id: store.user.id },
+      include: { eventTypes: true },
+    }))!;
   return {
     id: user.id,
     username: user.username,
     eventTypes: user.eventTypes,
     routingForms: user.routingForms,
     self,
+    apiLogin: async () => apiLogin({ ...(await self()), password: user.username }, store.page),
     login: async () => login({ ...(await self()), password: user.username }, store.page),
     logout: async () => {
       await page.goto("/auth/logout");
@@ -276,7 +280,10 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     getPaymentCredential: async () => getPaymentCredential(store.page),
     // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
     debug: async (message: string | Record<string, JSONValue>) => {
-      await prisma.user.update({ where: { id: store.user.id }, data: { metadata: { debug: message } } });
+      await prisma.user.update({
+        where: { id: store.user.id },
+        data: { metadata: { debug: message } },
+      });
     },
     delete: async () => await prisma.user.delete({ where: { id: store.user.id } }),
   };
@@ -340,6 +347,28 @@ export async function login(
 
   // Moving away from waiting 2 seconds, as it is not a reliable way to expect session to be started
   await page.waitForLoadState("networkidle");
+}
+
+export async function apiLogin(
+  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "password" | "email">>,
+  page: Page
+) {
+  const csrfToken = await page
+    .context()
+    .request.get("/api/auth/csrf")
+    .then((response) => response.json())
+    .then((json) => json.csrfToken);
+  const data = {
+    email: user.email ?? `${user.username}@example.com`,
+    password: user.password ?? user.username!,
+    callbackURL: "http://localhost:3000/",
+    redirect: "false",
+    json: "true",
+    csrfToken,
+  };
+  return page.context().request.post("/api/auth/callback/credentials", {
+    data,
+  });
 }
 
 export async function getPaymentCredential(page: Page) {
