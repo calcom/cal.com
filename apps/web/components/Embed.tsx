@@ -8,6 +8,7 @@ import { createRef, forwardRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
 import { components } from "react-select";
 
+import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { APP_NAME, EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
@@ -47,6 +48,8 @@ type PreviewState = {
     brandColor: string;
   };
   hideEventTypeDetails: boolean;
+  // @todo: import proper type once other branch is merged.
+  layout: BookerLayout;
 };
 const queryParamsForDialog = ["embedType", "embedTabName", "embedUrl"];
 
@@ -129,11 +132,13 @@ const getEmbedUIInstructionString = ({
   theme,
   brandColor,
   hideEventTypeDetails,
+  layout,
 }: {
   apiName: string;
   theme?: string;
   brandColor: string;
   hideEventTypeDetails: boolean;
+  layout: string;
 }) => {
   theme = theme !== "auto" ? theme : undefined;
   return getInstructionString({
@@ -147,6 +152,7 @@ const getEmbedUIInstructionString = ({
         },
       },
       hideEventTypeDetails: hideEventTypeDetails,
+      layout,
     },
   });
 };
@@ -260,6 +266,7 @@ const getEmbedTypeSpecificString = ({
     theme: PreviewState["theme"];
     brandColor: string;
     hideEventTypeDetails: boolean;
+    layout: BookerLayout;
   };
   if (embedFramework === "react") {
     uiInstructionStringArg = {
@@ -267,6 +274,7 @@ const getEmbedTypeSpecificString = ({
       theme: previewState.theme,
       brandColor: previewState.palette.brandColor,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
+      layout: previewState.layout,
     };
   } else {
     uiInstructionStringArg = {
@@ -274,6 +282,7 @@ const getEmbedTypeSpecificString = ({
       theme: previewState.theme,
       brandColor: previewState.palette.brandColor,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
+      layout: previewState.layout,
     };
   }
   if (!frameworkCodes[embedType]) {
@@ -798,6 +807,13 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     { value: Theme.light, label: "Light Theme" },
   ];
 
+  // @TODO: Change option names to enum and correct values once other PR is merged.
+  const layoutOptions = [
+    { value: "small_calendar", label: "Month view" },
+    { value: "large_calendar", label: "Week view" },
+    { value: "large_timeslots", label: "Column view" },
+  ];
+
   const FloatingPopupPositionOptions = [
     {
       value: "bottom-right",
@@ -1070,6 +1086,25 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         </div>
                       </Label>
                     ))}
+                    <Label className="mb-6">
+                      <div className="mb-2">Layout</div>
+                      <Select
+                        className="w-full"
+                        defaultValue={layoutOptions[0]}
+                        onChange={(option) => {
+                          if (!option) {
+                            return;
+                          }
+                          setPreviewState((previewState) => {
+                            return {
+                              ...previewState,
+                              layout: option.value,
+                            };
+                          });
+                        }}
+                        options={layoutOptions}
+                      />
+                    </Label>
                   </div>
                 </CollapsibleContent>
               </Collapsible>

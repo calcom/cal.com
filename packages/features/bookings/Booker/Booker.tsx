@@ -103,7 +103,7 @@ const BookerComponent = ({
         If we would render this on mobile, it would unset the mobile variant,
         since that's not a valid option, so it would set the layout to null.
       */}
-      {!isMobile && (
+      {!isMobile && !isEmbed && (
         <div className="[&>div]:bg-default dark:[&>div]:bg-muted fixed top-2 right-3 z-10">
           <ToggleGroup
             onValueChange={onLayoutToggle}
