@@ -45,7 +45,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
       ...ctx,
       req,
       res,
-      user,
+      user: { ...user, locale: user?.locale ?? "en" },
       hasValidLicense: true,
     });
     await caller.bookings.confirm({
