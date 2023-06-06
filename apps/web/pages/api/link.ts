@@ -26,7 +26,7 @@ const decryptedSchema = z.object({
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
   const { action, token, reason } = querySchema.parse(req.query);
-  const { bookingUid } = decryptedSchema.parse(
+  const { bookingUid, userId } = decryptedSchema.parse(
     JSON.parse(symmetricDecrypt(decodeURIComponent(token), process.env.CALENDSO_ENCRYPTION_KEY || ""))
   );
 
@@ -37,7 +37,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
   try {
     /** @see https://trpc.io/docs/server-side-calls */
     const ctx = await createContext({ req, res });
-    const caller = viewerRouter.createCaller({ ...ctx, req, res });
+    const caller = viewerRouter.createCaller({
+      ...ctx,
+      req,
+      res,
+      user: { id: userId },
+      hasValidLicense: true,
+    });
     await caller.bookings.confirm({
       bookingId: booking.id,
       recurringEventId: booking.recurringEventId || undefined,
