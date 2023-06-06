@@ -90,7 +90,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         <Alert
           className="mt-1"
           severity="error"
-          message={<>{methods.formState.errors[props.name]!.message}</>}
+          message={<>{methods.formState.errors[props.name]?.message}</>}
         />
       )}
     </div>
@@ -186,7 +186,7 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
         <Alert
           className="mt-1"
           severity="error"
-          message={<>{methods.formState.errors[props.name]!.message}</>}
+          message={<>{methods.formState.errors[props.name]?.message}</>}
         />
       )}
     </div>

@@ -27,16 +27,16 @@ export const getStaticProps: GetStaticProps<
       selectedCalendars: true,
     },
   });
-  const startDate = (
-    dayjs(month, "YYYY-MM").isSame(dayjs(), "month") ? dayjs.utc() : dayjs.utc(month, "YYYY-MM")
-  ).startOf("day");
-  const endDate = startDate.endOf("month");
+  // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
+  const startDate = dayjs.utc(month, "YYYY-MM").startOf("day").subtract(11, "hours").format();
+  // Add 14 hours from the start date to avoid problems in UTC+ time zones.
+  const endDate = dayjs.utc(month, "YYYY-MM").endOf("month").add(14, "hours").format();
   try {
     const results = userWithCredentials?.credentials
       ? await getCalendarsEvents(
           userWithCredentials?.credentials,
-          startDate.format(),
-          endDate.format(),
+          startDate,
+          endDate,
           userWithCredentials?.selectedCalendars
         )
       : [];

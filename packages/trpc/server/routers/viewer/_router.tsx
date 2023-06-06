@@ -1,4 +1,3 @@
-import ethRouter from "@calcom/app-store/rainbow/trpc/router";
 import app_RoutingForms from "@calcom/app-store/routing-forms/trpc-router";
 import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
@@ -43,7 +42,6 @@ export const viewerRouter = mergeRouters(
     // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
     // After that there would just one merge call here for all the apps.
     appRoutingForms: app_RoutingForms,
-    eth: ethRouter,
     features: featureFlagRouter,
     appsRouter,
     users: userAdminRouter,

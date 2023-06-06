@@ -1,5 +1,6 @@
 import type { Page, Route } from "@playwright/test";
 import { expect } from "@playwright/test";
+import type { DefaultBodyType } from "msw";
 import { rest } from "msw";
 import { setupServer } from "msw/node";
 import { v4 as uuidv4 } from "uuid";
@@ -42,7 +43,7 @@ const addOauthBasedIntegration = async function ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     verify: (config: { requestHeaders: any; params: URLSearchParams; code: string }) => {
       status: number;
-      body: any;
+      body: DefaultBodyType;
     };
   };
 }) {
