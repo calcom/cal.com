@@ -64,7 +64,7 @@ const vercelCheckDomain = async (domain: string) => {
   const data = await response.json();
 
   // Domain is not available
-  if (!data.available) throw new TRPCError({ code: "CONFLICT", message: "domain_taken_team" });
+  if (!data.available) throw new TRPCError({ code: "CONFLICT", message: JSON.stringify(data, null, 2) });
 
   return true;
 };
