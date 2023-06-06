@@ -1,11 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { v4 } from "uuid";
 
-import { scheduleTrigger } from "@calcom/app-store/_utils/nodeScheduler";
+import { addSubscription } from "@calcom/app-store/_utils/nodeScheduler";
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
-import prisma from "@calcom/prisma";
-import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.query.apiKey as string;
@@ -22,41 +19,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const { subscriberUrl, triggerEvent } = req.body;
 
-  try {
-    const createSubscription = await prisma.webhook.create({
-      data: {
-        id: v4(),
-        userId: validKey.userId,
-        eventTriggers: [triggerEvent],
-        subscriberUrl,
-        active: true,
-        appId: "make",
-      },
-    });
+  const createAppSubscription = await addSubscription({
+    appApiKey: validKey,
+    triggerEvent: triggerEvent,
+    subscriberUrl: subscriberUrl,
+    appId: "make",
+  });
 
-    if (triggerEvent === WebhookTriggerEvents.MEETING_ENDED) {
-      //schedule job for already existing bookings
-      const bookings = await prisma.booking.findMany({
-        where: {
-          userId: validKey.userId,
-          startTime: {
-            gte: new Date(),
-          },
-          status: BookingStatus.ACCEPTED,
-        },
-      });
-
-      for (const booking of bookings) {
-        scheduleTrigger(booking, createSubscription.subscriberUrl, {
-          id: createSubscription.id,
-          appId: createSubscription.appId,
-        });
-      }
-    }
-    res.status(200).json(createSubscription);
-  } catch (error) {
+  if (!createAppSubscription) {
     return res.status(500).json({ message: "Could not create subscription." });
   }
+
+  res.status(200).json(createAppSubscription);
 }
 
 export default defaultHandler({

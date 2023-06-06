@@ -1,16 +1,66 @@
 import schedule from "node-schedule";
+import { v4 } from "uuid";
 
 import { getHumanReadableLocationValue } from "@calcom/core/location";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import type { ApiKey } from "@calcom/prisma/client";
+import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
-export async function listBookings(validKey: ApiKey) {
+export async function addSubscription({
+  appApiKey,
+  triggerEvent,
+  subscriberUrl,
+  appId,
+}: {
+  appApiKey: ApiKey;
+  triggerEvent: WebhookTriggerEvents;
+  subscriberUrl: string;
+  appId: string;
+}) {
+  const createSubscription = await prisma.webhook.create({
+    data: {
+      id: v4(),
+      userId: appApiKey.userId,
+      eventTriggers: [triggerEvent],
+      subscriberUrl,
+      active: true,
+      appId: appId,
+    },
+  });
+  console.log("createSubscription", createSubscription);
+  if (triggerEvent === WebhookTriggerEvents.MEETING_ENDED) {
+    //schedule job for already existing bookings
+    const bookings = await prisma.booking.findMany({
+      where: {
+        userId: appApiKey.userId,
+        startTime: {
+          gte: new Date(),
+        },
+        status: BookingStatus.ACCEPTED,
+      },
+    });
+
+    for (const booking of bookings) {
+      console.log("booking", booking);
+      scheduleTrigger(booking, createSubscription.subscriberUrl, {
+        id: createSubscription.id,
+        appId: createSubscription.appId,
+      });
+    }
+  }
+  if (!createSubscription) {
+    throw new Error(`Unable to create a webhook for app ${appId} for the event ${triggerEvent}`);
+  }
+  return createSubscription;
+}
+
+export async function listBookings(appApiKey: ApiKey) {
   const bookings = await prisma.booking.findMany({
     take: 3,
     where: {
-      userId: validKey.userId,
+      userId: appApiKey.userId,
     },
     orderBy: {
       id: "desc",
