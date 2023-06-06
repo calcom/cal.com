@@ -30,6 +30,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     ...input,
     metadata: input.metadata as Prisma.InputJsonValue,
   };
+
   let isPremiumUsername = false;
   if (input.username) {
     const username = slugify(input.username);

@@ -27,7 +27,6 @@ export const EventTypeAddonMap = {
   metapixel: dynamic(() => import("./metapixel/components/EventTypeAppCardInterface")),
   plausible: dynamic(() => import("./plausible/components/EventTypeAppCardInterface")),
   qr_code: dynamic(() => import("./qr_code/components/EventTypeAppCardInterface")),
-  rainbow: dynamic(() => import("./rainbow/components/EventTypeAppCardInterface")),
   stripepayment: dynamic(() => import("./stripepayment/components/EventTypeAppCardInterface")),
   "booking-pages-tag": dynamic(() =>
     import("./templates/booking-pages-tag/components/EventTypeAppCardInterface")
