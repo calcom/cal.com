@@ -44,12 +44,25 @@ export function processWorkingHours({
 }
 
 export function processDateOverride({ item, timeZone }: { item: DateOverride; timeZone: string }) {
-  const date = dayjs.utc(item.date).tz(timeZone);
+  const date = dayjs.utc(item.date);
+
+  const startTime = dayjs(item.startTime).utc().subtract(dayjs().tz(timeZone).utcOffset(), "minute");
+  const endTime = dayjs(item.endTime).utc().subtract(dayjs().tz(timeZone).utcOffset(), "minute");
+
   return {
-    start: date.hour(item.startTime.getUTCHours()).minute(item.startTime.getUTCMinutes()).second(0),
-    end: date.hour(item.endTime.getUTCHours()).minute(item.endTime.getUTCMinutes()).second(0),
+    start: date.hour(startTime.hour()).minute(startTime.minute()).second(0).tz(timeZone),
+    end: date.hour(endTime.hour()).minute(endTime.minute()).second(0).tz(timeZone),
   };
 }
+
+// logic before, in case we need to revert
+// export function processDateOverride({ item, timeZone }: { item: DateOverride; timeZone: string }) {
+//   const date = dayjs.utc(item.date).tz(timeZone);
+//   return {
+//     start: date.hour(item.startTime.getUTCHours()).minute(item.startTime.getUTCMinutes()).second(0),
+//     end: date.hour(item.endTime.getUTCHours()).minute(item.endTime.getUTCMinutes()).second(0),
+//   };
+// }
 
 export function buildDateRanges({
   availability,

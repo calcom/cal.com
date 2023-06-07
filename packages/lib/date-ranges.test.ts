@@ -69,6 +69,9 @@ describe("buildDateRanges", () => {
 
     const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
 
+    // it fails:
+    // results is length of 2
+    // date override is correct but working hours from the 12th is also there
     expect(results.length).toBe(1);
 
     expect(results[0]).toEqual({
