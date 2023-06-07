@@ -242,6 +242,8 @@ export class Cal {
       urlInstance.pathname = `${urlInstance.pathname}/embed`;
     }
     urlInstance.searchParams.set("embed", this.namespace);
+    // @TODO: This somehow adds the layout to the url, making the dynamic layouts work.
+    // urlInstance.searchParams.set("layout", "week_view");
     if (config.debug) {
       urlInstance.searchParams.set("debug", "" + config.debug);
     }

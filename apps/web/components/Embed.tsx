@@ -595,7 +595,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
       { calLink: string; embedType: EmbedType; previewState: PreviewState }
-    >(function Preview({ calLink, embedType }, ref) {
+    >(function Preview({ calLink, embedType, previewState }, ref) {
       if (ref instanceof Function || !ref) {
         return null;
       }
@@ -609,7 +609,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
           className="h-[100vh] border"
           width="100%"
           height="100%"
-          src={`${WEBAPP_URL}/embed/preview.html?embedType=${embedType}&calLink=${calLink}`}
+          src={`${WEBAPP_URL}/embed/preview.html?embedType=${embedType}&layout=${previewState.layout}&calLink=${calLink}`}
         />
       );
     }),
