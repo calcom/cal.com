@@ -5,6 +5,7 @@ import { useState } from "react";
 import useDigitInput from "react-digit-input";
 import { Controller, useForm } from "react-hook-form";
 
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -77,6 +78,7 @@ export const VerifyCodeDialog = ({
       open={isOpenDialog}
       onOpenChange={(open) => {
         onChange("");
+        setError("");
         setIsOpenDialog(open);
       }}>
       <DialogContent className="sm:max-w-md">
@@ -268,10 +270,7 @@ export const CreateANewOrganizationForm = () => {
                 name="slug"
                 label={t("organization_url")}
                 placeholder="acme"
-                addOnSuffix={`.${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace("https://", "")?.replace(
-                  "http://",
-                  ""
-                )}`}
+                addOnSuffix={`.${subdomainSuffix()}`}
                 defaultValue={value}
                 onChange={(e) => {
                   newOrganizationFormMethods.setValue("slug", slugify(e?.target.value), {
