@@ -3,6 +3,7 @@ import { collectEvents } from "next-collect/server";
 import type { NextMiddleware } from "next/server";
 import { NextResponse, userAgent } from "next/server";
 
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { CONSOLE_URL, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { isIpInBanlist } from "@calcom/lib/getIP";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
@@ -10,6 +11,15 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req.headers.get("host") ?? "");
+
+  // Make sure we are in the presence of an organization
+  if (isValidOrgDomain && url.pathname === "/") {
+    // In the presence of an organization, cover its profile page at "/"
+    // rewrites for org profile page using team profile page
+    url.pathname = `/org/${currentOrgDomain}`;
+    return NextResponse.rewrite(url);
+  }
 
   if (!url.pathname.startsWith("/api")) {
     //
@@ -70,6 +80,25 @@ const middleware: NextMiddleware = async (req) => {
     requestHeaders.set("x-csp-enforce", "true");
   }
 
+  if (isValidOrgDomain) {
+    // Match /:slug to determine if it corresponds to org subteam slug or org user slug
+    const [first, slug, ...rest] = url.pathname.split("/");
+    // In the presence of an organization, if not team profile, a user or team is being accessed
+    if (first === "" && rest.length === 0) {
+      // Fetch the corresponding subteams for the entered organization
+      const getSubteams = await fetch(`${WEBAPP_URL}/api/organizations/${currentOrgDomain}/subteams`);
+      if (getSubteams.ok) {
+        const data = await getSubteams.json();
+        // Treat entered slug as a team if found in the subteams fetched
+        if (data.slugs.includes(slug)) {
+          // Rewriting towards /team/:slug to bring up the team profile within the org
+          url.pathname = `/team/${slug}`;
+          return NextResponse.rewrite(url);
+        }
+      }
+    }
+  }
+
   return NextResponse.next({
     request: {
       headers: requestHeaders,
@@ -79,6 +108,8 @@ const middleware: NextMiddleware = async (req) => {
 
 export const config = {
   matcher: [
+    "/",
+    "/:path*",
     "/api/collect-events/:path*",
     "/api/auth/:path*",
     "/apps/routing_forms/:path*",

@@ -3,7 +3,8 @@ import { totp } from "otplib";
 
 import { sendOrganizationEmailVerification } from "@calcom/emails";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { IS_PRODUCTION, IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -18,6 +19,32 @@ type CreateOptions = {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TCreateInputSchema;
+};
+
+const vercelCreateDomain = async (domain: string) => {
+  const response = await fetch(
+    `https://api.vercel.com/v8/projects/${process.env.PROJECT_ID_VERCEL}/domains?teamId=${process.env.TEAM_ID_VERCEL}`,
+    {
+      body: `{\n  "name": "${domain}.${subdomainSuffix()}"\n}`,
+      headers: {
+        Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN_VERCEL}`,
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    }
+  );
+
+  const data = await response.json();
+
+  // Domain is already owned by another team but you can request delegation to access it
+  if (data.error?.code === "forbidden")
+    throw new TRPCError({ code: "CONFLICT", message: "domain_taken_team" });
+
+  // Domain is already being used by a different project
+  if (data.error?.code === "domain_taken")
+    throw new TRPCError({ code: "CONFLICT", message: "domain_taken_project" });
+
+  return true;
 };
 
 export const createHandler = async ({ input }: CreateOptions) => {
@@ -66,6 +93,8 @@ export const createHandler = async ({ input }: CreateOptions) => {
         },
       },
     });
+
+    if (IS_PRODUCTION) await vercelCreateDomain(slug);
 
     await prisma.membership.create({
       data: {
