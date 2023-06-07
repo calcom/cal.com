@@ -69,7 +69,7 @@ const informAboutDuplicateTranslations = () => {
   }
 };
 
-checkDuplicateValue();
+informAboutDuplicateTranslations();
 
 const plugins = [];
 if (process.env.ANALYZE === "true") {
