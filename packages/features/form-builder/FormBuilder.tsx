@@ -467,6 +467,7 @@ export const FormBuilder = function FormBuilder({
               <SelectField
                 defaultValue={FieldTypes[3]} // "text" as defaultValue
                 id="test-field-type"
+                openMenuOnFocus={false}
                 isDisabled={
                   fieldForm.getValues("editable") === "system" ||
                   fieldForm.getValues("editable") === "system-but-optional"

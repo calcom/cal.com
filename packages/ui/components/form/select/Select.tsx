@@ -103,6 +103,7 @@ export const SelectField = function SelectField<
     required?: boolean;
     name?: string;
     containerClassName?: string;
+    openMenuOnFocus?: boolean;
     label?: string;
     labelProps?: React.ComponentProps<typeof Label>;
     className?: string;
