@@ -28,7 +28,6 @@ type AvailableTimesProps = {
   bookingAttendees?: number | null;
   slots?: Slot[];
   isLoading: boolean;
-  ethSignature?: string;
   duration: number;
 };
 
@@ -43,7 +42,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   onTimeFormatChange,
   seatsPerTimeSlot,
   bookingAttendees,
-  ethSignature,
   duration,
 }) => {
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
@@ -119,7 +117,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                     timeFormat,
                     /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
                     count: recurringCount && !rescheduleUid ? recurringCount : undefined,
-                    ...(ethSignature ? { ethSignature } : {}),
                   },
                 };
 

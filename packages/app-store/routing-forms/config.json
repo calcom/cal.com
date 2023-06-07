@@ -5,10 +5,10 @@
   "slug": "routing-forms",
   "type": "routing-forms_other",
   "logo": "icon-dark.svg",
-  "url": "https://cal.com/apps/routing-forms",
+  "url": "https://cal.com/resources/feature/routing-forms",
   "variant": "other",
   "categories": ["other"],
-  "publisher": "Cal.com",
+  "publisher": "Cal.com, Inc.",
   "email": "help@cal.com",
   "licenseRequired": true,
   "teamsPlanRequired": {

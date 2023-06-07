@@ -19,8 +19,7 @@ export const getUpgradeableHandler = async ({ ctx }: GetUpgradeableOptions) => {
   /** We only need to return teams that don't have a `subscriptionId` on their metadata */
   teams = teams.filter((m) => {
     const metadata = teamMetadataSchema.safeParse(m.team.metadata);
-    if (metadata.success && metadata.data?.subscriptionId) return false;
-    return true;
+    return !(metadata.success && metadata.data?.subscriptionId);
   });
   return teams;
 };
