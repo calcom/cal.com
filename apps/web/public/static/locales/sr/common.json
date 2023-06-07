@@ -1798,6 +1798,7 @@
   "complete_your_booking": "Završite svoje zakazivanje",
   "complete_your_booking_subject": "Završite svoje zakazivanje: {{title}} dana {{date}}",
   "confirm_your_details": "Potvrdite svoje podatke",
+  "never_expire": "Nikada ne ističe",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Upravo ćete naplatiti polazniku {{amount, currency}}. Jeste li sigurni da želite da nastavite?",
   "charge_attendee": "Naplatite polazniku {{amount, currency}}",

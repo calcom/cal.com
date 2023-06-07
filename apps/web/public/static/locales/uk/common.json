@@ -1794,6 +1794,7 @@
   "complete_your_booking": "Завершіть бронювання",
   "complete_your_booking_subject": "Завершіть бронювання: {{title}} від {{date}}",
   "confirm_your_details": "Підтвердьте ваші дані",
+  "never_expire": "Немає терміну дії",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Ви збираєтеся списати кошти з рахунку учасника: {{amount, currency}}. Бажаєте продовжити?",
   "charge_attendee": "Списати з рахунку учасника {{amount, currency}}",

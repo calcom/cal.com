@@ -1794,6 +1794,7 @@
   "complete_your_booking": "Complete su reserva",
   "complete_your_booking_subject": "Complete su reserva: {{title}} el {{date}}",
   "confirm_your_details": "Confirme sus datos",
+  "never_expire": "Nunca caduca",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Está a punto de cobrarle {{amount, currency}} al asistente. ¿Está seguro de que desea continuar?",
   "charge_attendee": "Cobrarle al asistente {{amount, currency}}",

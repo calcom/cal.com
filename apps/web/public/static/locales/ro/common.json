@@ -1794,6 +1794,7 @@
   "complete_your_booking": "Finalizați rezervarea",
   "complete_your_booking_subject": "Finalizați rezervarea: {{title}}, pe {{date}}",
   "confirm_your_details": "Confirmați datele dvs.",
+  "never_expire": "Nu expiră niciodată",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Urmează să percepeți de la participant {{amount, currency}}. Sigur doriți să continuați?",
   "charge_attendee": "Percepeți {{amount, currency}} de la participant",

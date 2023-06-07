@@ -1794,6 +1794,7 @@
   "complete_your_booking": "予約を完了する",
   "complete_your_booking_subject": "次の予約を完了する: {{date}} の {{title}}",
   "confirm_your_details": "詳細情報を確認",
+  "never_expire": "有効期限なし",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "出席者に{{amount, currency}}を請求しようとしています。続けますか？",
   "charge_attendee": "出席者に{{amount, currency}}を請求",
