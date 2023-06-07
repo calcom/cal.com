@@ -18,7 +18,7 @@ test.describe("BOOKING_CREATED", async () => {
     const webhookReceiver = createHttpServer();
     const user = await users.create();
     const [eventType] = user.eventTypes;
-    await user.login();
+    await user.apiLogin();
     await page.goto(`/settings/developer/webhooks`);
 
     // --- add webhook
@@ -154,7 +154,7 @@ test.describe("BOOKING_REJECTED", async () => {
     await bookOptinEvent(page);
 
     // --- login as that user
-    await user.login();
+    await user.apiLogin();
 
     await page.goto(`/settings/developer/webhooks`);
 
@@ -275,7 +275,7 @@ test.describe("BOOKING_REQUESTED", async () => {
     const user = await users.create();
 
     // --- login as that user
-    await user.login();
+    await user.apiLogin();
 
     await page.goto(`/settings/developer/webhooks`);
 

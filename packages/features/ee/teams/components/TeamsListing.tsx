@@ -1,10 +1,11 @@
-import { useState, useMemo } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useMemo, useState } from "react";
 
 import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, ButtonGroup, Label } from "@calcom/ui";
-import { Users, RefreshCcw, UserPlus, Mail, Video, EyeOff } from "@calcom/ui/components/icon";
+import { Alert, Button, ButtonGroup, Label, showToast } from "@calcom/ui";
+import { EyeOff, Mail, RefreshCcw, UserPlus, Users, Video } from "@calcom/ui/components/icon";
 
 import { UpgradeTip } from "../../../tips";
 import SkeletonLoaderTeamList from "./SkeletonloaderTeamList";
@@ -12,11 +13,29 @@ import TeamList from "./TeamList";
 
 export function TeamsListing() {
   const { t } = useLocale();
+  const trpcContext = trpc.useContext();
+  const router = useRouter();
+
+  const [inviteTokenChecked, setInviteTokenChecked] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const { data, isLoading } = trpc.viewer.teams.list.useQuery(undefined, {
+    enabled: inviteTokenChecked,
     onError: (e) => {
       setErrorMessage(e.message);
+    },
+  });
+
+  const { mutate: inviteMemberByToken } = trpc.viewer.teams.inviteMemberByToken.useMutation({
+    onSuccess: (teamName) => {
+      trpcContext.viewer.teams.list.invalidate();
+      showToast(t("team_invite_received", { teamName }), "success");
+    },
+    onError: (e) => {
+      showToast(e.message, "error");
+    },
+    onSettled: () => {
+      setInviteTokenChecked(true);
     },
   });
 
@@ -56,7 +75,13 @@ export function TeamsListing() {
     },
   ];
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!router) return;
+    if (router.query.token) inviteMemberByToken({ token: router.query.token as string });
+    else setInviteTokenChecked(true);
+  }, [router, inviteMemberByToken, setInviteTokenChecked]);
+
+  if (isLoading || !inviteTokenChecked) {
     return <SkeletonLoaderTeamList />;
   }
 

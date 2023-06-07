@@ -14,7 +14,7 @@ test.afterEach(({ users }) => users.deleteAll());
 // eslint-disable-next-line playwright/no-skipped-test
 test.skip("dynamic booking", async ({ page, users }) => {
   const pro = await users.create();
-  await pro.login();
+  await pro.apiLogin();
 
   const free = await users.create({ username: "free" });
   await page.goto(`/${pro.username}+${free.username}`);
