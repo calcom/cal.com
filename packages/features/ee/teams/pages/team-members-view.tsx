@@ -11,6 +11,7 @@ import { Plus } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
+import InviteLinkSettingsModal from "../components/InviteLinkSettingsModal";
 import MemberInvitationModal from "../components/MemberInvitationModal";
 import MemberListItem from "../components/MemberListItem";
 import TeamInviteList from "../components/TeamInviteList";
@@ -63,12 +64,16 @@ function MembersList(props: MembersListProps) {
 
 const MembersView = () => {
   const { t, i18n } = useLocale();
+  
   const router = useRouter();
   const session = useSession();
+  
   const utils = trpc.useContext();
+  const teamId = Number(router.query.id);
+
   const showDialog = router.query.inviteModal === "true";
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(showDialog);
-  const teamId = Number(router.query.id);
+  const [showInviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
 
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
     { teamId },
@@ -169,6 +174,8 @@ const MembersView = () => {
             <MemberInvitationModal
               isOpen={showMemberInvitationModal}
               members={team.members}
+              teamId={team.id}
+              token={team.inviteToken?.token}
               onExit={() => setShowMemberInvitationModal(false)}
               onSubmit={(values) => {
                 inviteMemberMutation.mutate({
@@ -178,6 +185,22 @@ const MembersView = () => {
                   usernameOrEmail: values.emailOrUsername,
                   sendEmailInvitation: values.sendInviteEmail,
                 });
+              }}
+              onSettingsOpen={() => {
+                setShowMemberInvitationModal(false);
+                setInviteLinkSettingsModal(true);
+              }}
+            />
+          )}
+          {showInviteLinkSettingsModal && team?.inviteToken && (
+            <InviteLinkSettingsModal
+              isOpen={showInviteLinkSettingsModal}
+              teamId={team.id}
+              token={team.inviteToken.token}
+              expiresInDays={team.inviteToken.expiresInDays || undefined}
+              onExit={() => {
+                setInviteLinkSettingsModal(false);
+                setShowMemberInvitationModal(true);
               }}
             />
           )}

@@ -416,7 +416,7 @@ Make sure to complete section "Obtaining the Google API Credentials". After the 
 following
 
 1. Add extra redirect URL `<Cal.com URL>/api/auth/callback/google`
-1. Under 'OAuth concent screen', click "PUBLISH APP"
+1. Under 'OAuth consent screen', click "PUBLISH APP"
 
 ### Obtaining Microsoft Graph Client ID and Secret
 

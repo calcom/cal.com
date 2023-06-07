@@ -16,6 +16,7 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
+import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import { classNames } from "@calcom/lib";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -158,6 +159,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             </Button>
           }
         />
+      </div>
+      <hr className="border-subtle [&:has(+div:empty)]:hidden" />
+      <div>
+        <BookerLayoutSelector fallbackToUserSettings />
       </div>
       <hr className="border-subtle" />
       <FormBuilder

@@ -24,7 +24,7 @@ test.describe("Stripe integration", () => {
   test.describe("Stripe integration dashboard", () => {
     test("Can add Stripe integration", async ({ page, users }) => {
       const user = await users.create();
-      await user.login();
+      await user.apiLogin();
       await page.goto("/apps/installed");
 
       await user.getPaymentCredential();
@@ -39,7 +39,7 @@ test.describe("Stripe integration", () => {
   test("Can book a paid booking", async ({ page, users }) => {
     const user = await users.create();
     const eventType = user.eventTypes.find((e) => e.slug === "paid");
-    await user.login();
+    await user.apiLogin();
     await page.goto("/apps/installed");
     await user.getPaymentCredential();
 
