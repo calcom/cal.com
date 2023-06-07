@@ -11,6 +11,7 @@
   "calcom_explained_new_user": "{{appName}} 계정 설정을 완료하세요! 몇 단계만 거치면 모든 일정 문제를 해결할 수 있습니다.",
   "have_any_questions": "질문이 있나요? 도와드릴게요.",
   "reset_password_subject": "{{appName}}: 비밀번호 재설정 방법",
+  "verify_email_banner_button": "이메일 보내기",
   "event_declined_subject": "거절됨: {{date}} {{title}}",
   "event_cancelled_subject": "취소됨: {{date}} {{title}}",
   "event_request_declined": "회의 요청이 거절되었습니다.",

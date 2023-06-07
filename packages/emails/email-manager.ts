@@ -6,6 +6,8 @@ import { getEventName } from "@calcom/core/event";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
+import type { EmailVerifyLink } from "./templates/account-verify-email";
+import AccountVerifyEmail from "./templates/account-verify-email";
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "./templates/attendee-cancelled-email";
 import AttendeeCancelledSeatEmail from "./templates/attendee-cancelled-seat-email";
@@ -238,6 +240,10 @@ export const sendPasswordResetEmail = async (passwordResetEvent: PasswordReset) 
 
 export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
   await sendEmail(() => new TeamInviteEmail(teamInviteEvent));
+};
+
+export const sendEmailVerificationLink = async (verificationInput: EmailVerifyLink) => {
+  await sendEmail(() => new AccountVerifyEmail(verificationInput));
 };
 
 export const sendRequestRescheduleEmail = async (

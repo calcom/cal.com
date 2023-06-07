@@ -1,10 +1,19 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { z } from "zod";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
+
+const signupSchema = z.object({
+  username: z.string(),
+  email: z.string().email(),
+  password: z.string().min(7),
+  language: z.string().optional(),
+});
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -17,22 +26,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const data = req.body;
-  const { email, password } = data;
+  const { email, password, language } = signupSchema.parse(data);
+
   const username = slugify(data.username);
   const userEmail = email.toLowerCase();
 
   if (!username) {
     res.status(422).json({ message: "Invalid username" });
-    return;
-  }
-
-  if (!userEmail || !userEmail.includes("@")) {
-    res.status(422).json({ message: "Invalid email" });
-    return;
-  }
-
-  if (!password || password.trim().length < 7) {
-    res.status(422).json({ message: "Invalid input - password should be at least 7 characters long." });
     return;
   }
 
@@ -105,6 +105,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       closeComUpsertTeamUser(team, user, membership.role);
     }
   }
+
+  await sendEmailVerification({
+    email: userEmail,
+    username,
+    language,
+  });
 
   res.status(201).json({ message: "Created user" });
 }

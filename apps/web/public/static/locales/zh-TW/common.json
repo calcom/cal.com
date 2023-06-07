@@ -11,6 +11,7 @@
   "calcom_explained_new_user": "設定好您的 {{appName}} 帳號！再完成幾個步驟，就能解決您所有的預定問題。",
   "have_any_questions": "有問題嗎？我們隨時在此幫助。",
   "reset_password_subject": "{{appName}}: 重新設置密碼說明",
+  "verify_email_banner_button": "傳送電子郵件",
   "event_declined_subject": "已拒絕：{{date}} 與 {{title}}",
   "event_cancelled_subject": "已取消：{{date}} 與 {{title}}",
   "event_request_declined": "活動請求遭到拒絕",

@@ -11,6 +11,7 @@
   "calcom_explained_new_user": "Slutför konfigurationen av ditt {{appName}}-konto! Du är bara några steg från att lösa alla dina schemaläggningsproblem.",
   "have_any_questions": "Har du frågor? Vi är här för att hjälpa till.",
   "reset_password_subject": "{{appName}}: Instruktioner för att återställa ditt lösenord",
+  "verify_email_banner_button": "Skicka e-post",
   "event_declined_subject": "Avvisades: {{title}} kl. {{date}}",
   "event_cancelled_subject": "Avbröt: {{title}} kl. {{date}}",
   "event_request_declined": "Din bokningsförfrågan har avbjöts",
