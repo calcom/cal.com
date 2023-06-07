@@ -89,8 +89,8 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
           key={app.slug}
           app={{
             ...app,
-            credentialIds: [team.credentialId],
-            credentialOwner: { name: team.name, avatar: team.logo, teamId: team.teamId },
+            credentialIds: team?.credentialId ? [team.credentialId] : [],
+            credentialOwner: { name: team?.name, avatar: team?.logo, teamId: team?.teamId },
           }}
           eventType={eventType}
         />

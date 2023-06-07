@@ -4,6 +4,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TIntegrationsInputSchema } from "./integrations.schema";
+import type { Prisma, Credential } from ".prisma/client";
 
 type IntegrationsOptions = {
   ctx: {
@@ -15,8 +16,15 @@ type IntegrationsOptions = {
 export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) => {
   const { user } = ctx;
   const { variant, exclude, onlyInstalled, includeTeamInstalledApps, extendsFeature, teamId } = input;
-  let { credentials } = user,
-    userAdminTeams = [];
+  let { credentials } = user;
+  let userAdminTeams: Prisma.TeamGetPayload<{
+    select: {
+      id: true;
+      credentials: true;
+      name: true;
+      logo: true;
+    };
+  }>[] = [];
 
   if (includeTeamInstalledApps || teamId) {
     // Get app credentials that the user is an admin or owner to
@@ -25,7 +33,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         ...(teamId && { id: teamId }),
         members: {
           some: {
-            id: user.userId,
+            userId: user.id,
             role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
           },
         },
@@ -38,11 +46,12 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       },
     });
 
-    const teamAppCredentials = [];
-    userAdminTeams.forEach((teamApp) => {
-      teamAppCredentials.push(...teamApp.credentials.flat());
-    });
-    credentials = [...credentials, ...teamAppCredentials];
+    const teamAppCredentials: Credential[] = userAdminTeams.flatMap((teamApp) => teamApp.credentials.flat());
+    if (!includeTeamInstalledApps || teamId) {
+      credentials = teamAppCredentials;
+    } else {
+      credentials = credentials.concat(teamAppCredentials);
+    }
   }
 
   const enabledApps = await getEnabledApps(credentials);
@@ -57,6 +66,9 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         .filter((c) => c.type === app.type && c.teamId)
         .map((c) => {
           const team = userAdminTeams.find((team) => team.id === c.teamId);
+          if (!team) {
+            return null;
+          }
           return { teamId: team.id, name: team.name, logo: team.logo, credentialId: c.id };
         });
       return {
@@ -92,7 +104,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       .filter((app) => app.extendsFeature?.includes(extendsFeature))
       .map((app) => ({
         ...app,
-        isInstalled: !!app.credentialIds?.length,
+        isInstalled: !!app.credentialIds?.length || !!app.teams?.length || app.isGlobal,
       }));
   }
 
