@@ -11,6 +11,7 @@
   "calcom_explained_new_user": "Dokończ konfigurację konta aplikacji {{appName}}! Od rozwiązania wszystkich Twoich problemów z układaniem grafików dzieli Cię tylko kilka kroków.",
   "have_any_questions": "Masz pytania? Jesteśmy tutaj, aby pomóc.",
   "reset_password_subject": "{{appName}}: Instrukcje resetowania hasła",
+  "verify_email_banner_button": "Wyślij wiadomość e-mail",
   "event_declined_subject": "Odrzucono: {{title}} w dniu {{date}}",
   "event_cancelled_subject": "Anulowano: {{title}} w {{date}}",
   "event_request_declined": "Twoja prośba o wydarzenie została odrzucona",

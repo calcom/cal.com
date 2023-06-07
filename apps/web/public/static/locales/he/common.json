@@ -11,6 +11,7 @@
   "calcom_explained_new_user": "סיים להגדיר את החשבון של {{appName}}! אתה רק מספר צעדים מפתרון כל בעיות התזמון שלך.",
   "have_any_questions": "יש לך שאלות? אנחנו כאן כדי לעזור.",
   "reset_password_subject": "{{appName}}: הנחיות לאיפוס סיסמה",
+  "verify_email_banner_button": "שליחת דוא\"ל",
   "event_declined_subject": "נדחה: {{title}} ב- {{date}}",
   "event_cancelled_subject": "בוטל: {{title}} ב- {{date}}",
   "event_request_declined": "בקשת האירוע שלך נדחתה",

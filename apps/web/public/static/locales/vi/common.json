@@ -11,6 +11,7 @@
   "calcom_explained_new_user": "Hoàn tất thiết lập tài khoản của bạn trong {{appName}}! Bạn chỉ còn vài bước nữa là giải quyết được mọi vấn đề về việc lên lịch kế hoạch.",
   "have_any_questions": "Có câu hỏi? Chúng tôi luôn ở đây để giúp bạn.",
   "reset_password_subject": "{{appName}}: Hướng dẫn thay đổi mật khẩu",
+  "verify_email_banner_button": "Gửi email",
   "event_declined_subject": "Đã từ chối: {{title}} tại {{date}}",
   "event_cancelled_subject": "Đã huỷ: {{title}} tại {{date}}",
   "event_request_declined": "Lời mời sự kiện của bạn đã bị từ chối",
