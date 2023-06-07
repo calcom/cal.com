@@ -280,6 +280,7 @@ export const teamMetadataSchema = z
     subscriptionItemId: z.string().nullable(),
     isOrganization: z.boolean().nullable(),
     isOrganizationVerified: z.boolean().nullable(),
+    orgAutoAcceptEmail: z.string().nullable(),
   })
   .partial()
   .nullable();

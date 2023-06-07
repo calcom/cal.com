@@ -22,6 +22,16 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
         equals: true,
       },
     },
+    include: {
+      members: {
+        where: {
+          role: "OWNER",
+        },
+        include: {
+          user: true,
+        },
+      },
+    },
   });
 
   if (!foundOrg)
@@ -29,6 +39,8 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
       code: "FORBIDDEN",
       message: "This team isnt a org or doesnt exist",
     });
+
+  const acceptedEmailDomain = foundOrg.members[0].user.email.split("@")[1];
 
   const metaDataParsed = teamMetadataSchema.parse(foundOrg.metadata);
 
@@ -40,6 +52,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
       metadata: {
         ...metaDataParsed,
         isOrganizationVerified: true,
+        orgAutoAcceptEmail: acceptedEmailDomain,
       },
     },
   });

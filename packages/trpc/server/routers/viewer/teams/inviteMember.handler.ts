@@ -26,6 +26,10 @@ type InviteMemberOptions = {
   input: TInviteMemberInputSchema;
 };
 
+type TeamWithParent = Team & {
+  parent: Team | null;
+};
+
 async function checkPermissions({
   userId,
   teamId,
@@ -111,21 +115,25 @@ async function createNewUserConnectToOrgIfExists({
   usernameOrEmail,
   input,
   parentId,
+  connectionInfo,
 }: {
   usernameOrEmail: string;
   input: InviteMemberOptions["input"];
   parentId?: number | null;
+  connectionInfo: ReturnType<typeof getOrgConnectionInfo>;
 }) {
+  const { orgId, autoAccept } = connectionInfo;
+
   const createdUser = await prisma.user.create({
     data: {
       email: usernameOrEmail,
       invitedTo: input.teamId,
-      ...((parentId || input.isOrg) && { organizationId: parentId || input.teamId }), // If the user is invited to a child team, they are automatically added to the parent org
+      organizationId: orgId && orgId, // If the user is invited to a child team, they are automatically added to the parent org
       teams: {
         create: {
           teamId: input.teamId,
           role: input.role as MembershipRole,
-          ...(parentId && { accepted: true }), // If the user is invited to a child team, they are automatically accepted
+          accepted: autoAccept, // If the user is invited to a child team, they are automatically accepted
         },
       },
     },
@@ -138,7 +146,7 @@ async function createNewUserConnectToOrgIfExists({
         teamId: parentId,
         userId: createdUser.id,
         role: input.role as MembershipRole,
-        accepted: true,
+        accepted: autoAccept,
       },
     });
   }
@@ -253,19 +261,46 @@ function getIsOrgVerified(
   const orgMetadataIfExists = orgMetadataSafeParse.success ? orgMetadataSafeParse.data : null;
 
   if (isOrg && teamMetadata?.isOrganizationVerified) {
-    return { isInOrgScope: true, orgVerified: true };
+    return { isInOrgScope: true, orgVerified: true, autoAcceptEmailDomain: teamMetadata.orgAutoAcceptEmail };
   } else if (orgMetadataIfExists?.isOrganizationVerified) {
-    return { isInOrgScope: true, orgVerified: true };
+    return {
+      isInOrgScope: true,
+      orgVerified: true,
+      autoAcceptEmailDomain: orgMetadataIfExists.orgAutoAcceptEmail,
+    };
   }
 
   return {
     isInOrgScope: false,
-  } as { isInOrgScope: false; orgVerified: never };
+  } as { isInOrgScope: false; orgVerified: never; autoAcceptEmailDomain: never };
+}
+
+function getOrgConnectionInfo({
+  orgAutoAcceptDomain,
+  isOrg,
+  usersEmail,
+  team,
+}: {
+  orgAutoAcceptDomain?: string | null;
+  usersEmail: string;
+  team: TeamWithParent;
+  isOrg: boolean;
+}) {
+  let orgId: number | undefined = undefined;
+  let autoAccept = false;
+  if (orgAutoAcceptDomain && (team.parentId || isOrg)) {
+    orgId = team.parentId || team.id;
+    if (usersEmail.split("@")[1] == orgAutoAcceptDomain) {
+      autoAccept = true;
+    }
+  }
+
+  return { orgId, autoAccept };
 }
 
 export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) => {
   const team = await getTeamOrThrow(input.teamId, input.isOrg);
-  const { isInOrgScope, orgVerified } = getIsOrgVerified(input.isOrg, team);
+  const { autoAcceptEmailDomain } = getIsOrgVerified(input.isOrg, team);
   await checkPermissions({ userId: ctx.user.id, teamId: input.teamId, isOrg: input.isOrg });
 
   const translation = await getTranslation(input.language ?? "en", "common");
@@ -273,6 +308,12 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   const emailsToInvite = await getEmailsToInvite(input.usernameOrEmail);
 
   for (const usernameOrEmail of emailsToInvite) {
+    const connectionInfo = getOrgConnectionInfo({
+      orgAutoAcceptDomain: autoAcceptEmailDomain,
+      usersEmail: usernameOrEmail,
+      team,
+      isOrg: input.isOrg,
+    });
     const invitee = await getUserToInviteOrThrowIfExists({
       usernameOrEmail,
       orgId: input.teamId,
@@ -283,7 +324,12 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       checkInputEmailIsValid(usernameOrEmail);
 
       // valid email given, create User and add to team
-      await createNewUserConnectToOrgIfExists({ usernameOrEmail, input, parentId: team.parentId });
+      await createNewUserConnectToOrgIfExists({
+        usernameOrEmail,
+        input,
+        connectionInfo,
+        parentId: team.parentId,
+      });
 
       await sendVerificationEmail({ usernameOrEmail, team, translation, ctx, input });
     } else {
