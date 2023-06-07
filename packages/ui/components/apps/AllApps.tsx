@@ -148,6 +148,7 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
         ? router.query.category
         : null;
     setSelectedCategory(queryCategory);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.query.category]);
 
   const filteredApps = apps

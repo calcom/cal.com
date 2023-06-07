@@ -13,9 +13,8 @@ import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_m
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
-import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import { getAppFromSlug, getEventTypeAppData } from "@calcom/app-store/utils";
+import { getAppFromSlug } from "@calcom/app-store/utils";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
@@ -69,7 +68,13 @@ import {
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
-import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
+import type {
+  AdditionalInformation,
+  AppsStatus,
+  CalendarEvent,
+  IntervalLimit,
+  Person,
+} from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
 
@@ -557,7 +562,7 @@ function getBookingData({
 
 function getCustomInputsResponses(
   reqBody: {
-    responses?: Record<string, any>;
+    responses?: Record<string, object>;
     customInputs?: z.infer<typeof bookingCreateSchemaLegacyPropsForApi>["customInputs"];
   },
   eventTypeCustomInputs: Awaited<ReturnType<typeof getEventTypesFromDB>>["customInputs"]
@@ -761,10 +766,10 @@ async function handler(
   ) {
     const startAsDate = dayjs(reqBody.start).toDate();
     if (eventType.bookingLimits) {
-      await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
+      await checkBookingLimits(eventType.bookingLimits as IntervalLimit, startAsDate, eventType.id);
     }
     if (eventType.durationLimits) {
-      await checkDurationLimits(eventType.durationLimits, startAsDate, eventType.id);
+      await checkDurationLimits(eventType.durationLimits as IntervalLimit, startAsDate, eventType.id);
     }
   }
 
@@ -817,12 +822,6 @@ async function handler(
     users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
   }
 
-  const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
-
-  // @TODO: use the returned address somewhere in booking creation?
-  // const address: string | undefined = await ...
-  await handleEthSignature(rainbowAppData, reqBody.ethSignature);
-
   const [organizerUser] = users;
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
   // use host default
@@ -864,7 +863,10 @@ async function handler(
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
-  const bookingLocation = getLocationValueForDB(locationBodyString, eventType.locations);
+  const { bookingLocation, bookingLocationCredentialId } = getLocationValueForDB(
+    locationBodyString,
+    eventType.locations
+  );
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const teamMemberPromises =
@@ -932,6 +934,7 @@ async function handler(
     userFieldsResponses: calEventUserFieldsResponses,
     attendees: attendeesList,
     location: bookingLocation, // Will be processed by the EventManager later.
+    bookingLocationCredentialId,
     /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
@@ -959,7 +962,6 @@ async function handler(
       },
     });
     if (bookingSeat) {
-      bookingSeat = bookingSeat;
       rescheduleUid = bookingSeat.booking.uid;
     }
     originalRescheduledBooking = await getOriginalRescheduledBooking(
@@ -1528,7 +1530,9 @@ async function handler(
       if (!Number.isNaN(paymentAppData.price) && paymentAppData.price > 0 && !!booking) {
         const credentialPaymentAppCategories = await prisma.credential.findMany({
           where: {
-            userId: organizerUser.id,
+            ...(paymentAppData.credentialId
+              ? { id: paymentAppData.credentialId }
+              : { userId: organizerUser.id }),
             app: {
               categories: {
                 hasSome: ["payment"],
@@ -1753,7 +1757,9 @@ async function handler(
       await prisma.credential.findFirstOrThrow({
         where: {
           appId: paymentAppData.appId,
-          userId: organizerUser.id,
+          ...(paymentAppData.credentialId
+            ? { id: paymentAppData.credentialId }
+            : { userId: organizerUser.id }),
         },
         select: {
           id: true,
@@ -1785,7 +1791,7 @@ async function handler(
     if (booking && booking.id && eventType.seatsPerTimeSlot) {
       const currentAttendee = booking.attendees.find(
         (attendee) => attendee.email === req.body.responses.email
-      )!;
+      );
 
       // Save description to bookingSeat
       const uniqueAttendeeId = uuid();
@@ -2067,7 +2073,7 @@ async function handler(
     // Load credentials.app.categories
     const credentialPaymentAppCategories = await prisma.credential.findMany({
       where: {
-        userId: organizerUser.id,
+        ...(paymentAppData.credentialId ? { id: paymentAppData.credentialId } : { userId: organizerUser.id }),
         app: {
           categories: {
             hasSome: ["payment"],

@@ -14,7 +14,11 @@ export const listHandler = async ({ ctx }: ListOptions) => {
       userId: ctx.user.id,
     },
     include: {
-      team: true,
+      team: {
+        include: {
+          inviteToken: true,
+        },
+      },
     },
     orderBy: { role: "desc" },
   });

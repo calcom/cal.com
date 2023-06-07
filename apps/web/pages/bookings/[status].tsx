@@ -34,7 +34,7 @@ type RecurringInfo = {
 
 const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
 
-const descriptionByStatus: Record<BookingListingStatus, string> = {
+const descriptionByStatus: Record<NonNullable<BookingListingStatus>, string> = {
   upcoming: "upcoming_bookings",
   recurring: "recurring_bookings",
   past: "past_bookings",

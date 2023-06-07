@@ -371,7 +371,7 @@ export default class EventManager {
    * @private
    */
 
-  private getVideoCredential(event: CalendarEvent): CredentialWithAppName | undefined {
+  private async getVideoCredential(event: CalendarEvent): Promise<CredentialWithAppName | undefined> {
     if (!event.location) {
       return undefined;
     }
@@ -386,6 +386,22 @@ export default class EventManager {
         return b.id - a.id;
       })
       .find((credential: CredentialPayload) => credential.type.includes(integrationName));
+
+    // If the user doesn't have the credential then search for it via credId (team events)
+    if (event.bookingLocationCredentialId) {
+      const videoCredentialQuery = await prisma.credential.findFirst({
+        where: {
+          id: event.bookingLocationCredentialId,
+        },
+      });
+
+      if (videoCredentialQuery) {
+        const videoApps = getApps([videoCredentialQuery]).flatMap((app) =>
+          app.credentials.map((creds) => ({ ...creds, appName: app.name }))
+        );
+        videoCredential = videoApps.find((app) => app.type.includes(integrationName));
+      }
+    }
 
     /**
      * This might happen if someone tries to use a location with a missing credential, so we fallback to Cal Video.
@@ -404,8 +420,8 @@ export default class EventManager {
    * @param event
    * @private
    */
-  private createVideoEvent(event: CalendarEvent) {
-    const credential = this.getVideoCredential(event);
+  private async createVideoEvent(event: CalendarEvent) {
+    const credential = await this.getVideoCredential(event);
 
     if (credential) {
       return createMeeting(credential, event);
@@ -538,8 +554,8 @@ export default class EventManager {
    * @param booking
    * @private
    */
-  private updateVideoEvent(event: CalendarEvent, booking: PartialBooking) {
-    const credential = this.getVideoCredential(event);
+  private async updateVideoEvent(event: CalendarEvent, booking: PartialBooking) {
+    const credential = await this.getVideoCredential(event);
 
     if (credential) {
       const bookingRef = booking ? booking.references.filter((ref) => ref.type === credential.type)[0] : null;
