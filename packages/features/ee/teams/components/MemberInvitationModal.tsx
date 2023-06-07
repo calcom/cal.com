@@ -240,7 +240,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 />
               )}
             />
-            <div className="mr-auto flex">
+            <div className="flex">
               <Button
                 type="button"
                 color="minimal"
