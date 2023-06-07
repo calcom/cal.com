@@ -1794,6 +1794,7 @@
   "complete_your_booking": "예약을 완료하세요",
   "complete_your_booking_subject": "예약 완료: {{title}} 날짜 {{date}}",
   "confirm_your_details": "세부 정보 확인",
+  "never_expire": "만료되지 않음",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "참석자에게 {{amount, currency}}을 청구하려고 합니다. 계속 진행하시겠습니까?",
   "charge_attendee": "참석자에게 {{amount, currency}}을 청구합니다.",

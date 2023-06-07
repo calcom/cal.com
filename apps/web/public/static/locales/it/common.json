@@ -1794,6 +1794,7 @@
   "complete_your_booking": "Completa la prenotazione",
   "complete_your_booking_subject": "Completa la prenotazione: {{title}} del {{date}}",
   "confirm_your_details": "Conferma i tuoi dati",
+  "never_expire": "Nessuna scadenza",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Stai per addebitare {{amount, currency}} al partecipante. Continuare?",
   "charge_attendee": "Addebita {{amount, currency}} al partecipante",

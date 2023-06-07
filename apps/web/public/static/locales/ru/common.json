@@ -1794,6 +1794,7 @@
   "complete_your_booking": "Завершить бронирование",
   "complete_your_booking_subject": "Завершите бронирование: {{title}}, {{date}}",
   "confirm_your_details": "Подтвердите свои данные",
+  "never_expire": "Не ограничен",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Вы собираетесь получить с участника {{amount, currency}}. Продолжить?",
   "charge_attendee": "Получить с участника {{amount, currency}}",

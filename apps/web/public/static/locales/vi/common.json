@@ -1794,6 +1794,7 @@
   "complete_your_booking": "Hoàn thành lịch hẹn của bạn",
   "complete_your_booking_subject": "Hoàn thành lịch hẹn của bạn: {{title}} vào {{date}}",
   "confirm_your_details": "Xác nhận các chi tiết của bạn",
+  "never_expire": "Không bao giờ hết hiệu lực",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Bạn sắp sửa thu phí người tham gia một khoản {{amount, currency}}. Bạn có chắc chắn muốn tiếp tục?",
   "charge_attendee": "Thu phí người tham gia một khoản {{amount, currency}}",

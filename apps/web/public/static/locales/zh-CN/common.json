@@ -1795,6 +1795,7 @@
   "complete_your_booking": "完成您的预约",
   "complete_your_booking_subject": "完成您的预约: {{date}} 的 {{title}}",
   "confirm_your_details": "确认您的详细信息",
+  "never_expire": "永不过期",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "您即将向参与者收取费用 {{amount, currency}}。您确定要继续吗？",
   "charge_attendee": "向参与者收取费用 {{amount, currency}}",

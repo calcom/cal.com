@@ -1794,6 +1794,7 @@
   "complete_your_booking": "完成您的預約",
   "complete_your_booking_subject": "完成您的預約：{{date}} 的 {{title}}",
   "confirm_your_details": "確認詳細資料",
+  "never_expire": "永不過期",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "您即將向與會者收取 {{amount, currency}}。確定要繼續嗎？",
   "charge_attendee": "向與會者收取 {{amount, currency}}",

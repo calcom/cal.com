@@ -1600,5 +1600,6 @@
   "this_will_be_the_placeholder": "Dette vil være pladsholderen",
   "verification_code": "Bekræftelseskode",
   "verify": "Bekræft",
-  "timezone_variable": "Tidszone"
+  "timezone_variable": "Tidszone",
+  "never_expire": "Udløber aldrig"
 }

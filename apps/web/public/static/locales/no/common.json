@@ -1447,5 +1447,6 @@
   "email_no_user_cta": "Opprett brukeren din",
   "change_default_conferencing_app": "Sett som standard",
   "booking_confirmation_failed": "Booking-bekreftelse feilet",
-  "timezone_variable": "Tidssone"
+  "timezone_variable": "Tidssone",
+  "never_expire": "Utløper aldri"
 }

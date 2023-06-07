@@ -1794,6 +1794,7 @@
   "complete_your_booking": "יש להשלים את ההזמנה",
   "complete_your_booking_subject": "יש להשלים את ההזמנה: {{title}} ב-{{date}}",
   "confirm_your_details": "אישור הפרטים שלך",
+  "never_expire": "התוקף לעולם לא יפוג",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "את/ה עומד/ת לחייב את המשתתף/ת בסכום של {{amount, currency}}. בטוח שברצונך להמשיך?",
   "charge_attendee": "לחייב את המשתתף/ת ב-{{amount, currency}}",

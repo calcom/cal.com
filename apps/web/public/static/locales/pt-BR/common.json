@@ -1794,6 +1794,7 @@
   "complete_your_booking": "Conclua sua reserva",
   "complete_your_booking_subject": "Conclua sua reserva: {{title}} à(s) {{date}}",
   "confirm_your_details": "Confirme suas informações",
+  "never_expire": "Nunca expira",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Você está prestes a cobrar {{amount, currency}} do participante. Tem certeza de que deseja continuar?",
   "charge_attendee": "Cobrar {{amount, currency}} do participante",

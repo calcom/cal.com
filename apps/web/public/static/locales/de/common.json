@@ -1794,6 +1794,7 @@
   "complete_your_booking": "Schließen Sie Ihre Buchung ab",
   "complete_your_booking_subject": "Schließen Sie Ihre Buchung ab: {{title}} am {{date}}",
   "confirm_your_details": "Bestätigen Sie Ihre Daten",
+  "never_expire": "Läuft niemals ab",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Sie sind im Begriff, den Teilnehmer {{amount, currency}} in Rechnung zu stellen. Sind Sie sicher, dass Sie fortfahren möchten?",
   "charge_attendee": "Teilnehmer {{amount, currency}} berechnen",

@@ -1794,6 +1794,7 @@
   "complete_your_booking": "Ukończ rezerwację",
   "complete_your_booking_subject": "Ukończ rezerwację: {{title}} dnia {{date}}",
   "confirm_your_details": "Potwierdź swoje dane",
+  "never_expire": "Nigdy nie wygasa",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Zamierzasz obciążyć uczestnika kwotą {{amount, currency}}. Czy na pewno chcesz kontynuować?",
   "charge_attendee": "Pobierz od uczestnika opłatę w wysokości {{amount, currency}}",
