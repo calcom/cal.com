@@ -1,6 +1,7 @@
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
+import { classNames } from "@calcom/lib";
 
 import { useCalendarStore } from "../../state/store";
 import type { CalendarAvailableTimeslots } from "../../types/state";
@@ -39,7 +40,7 @@ export function EmptyCell(props: EmptyCellProps) {
 
   return (
     <div
-      className="group w-full"
+      className={classNames("group w-full", isDisabled && "pointer-events-none")}
       data-disabled={isDisabled}
       data-day={props.day.toISOString()}
       style={{ height: `calc(${hoverEventDuration}*var(--one-minute-height))`, overflow: "visible" }}
