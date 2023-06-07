@@ -11,6 +11,7 @@
   "calcom_explained_new_user": "Dokončete nastavení svého účtu {{appName}}! Jste jen několik kroků od vyřešení všech svých problémů s plánováním.",
   "have_any_questions": "Máte otázky? Jsme tu, abychom vám pomohli.",
   "reset_password_subject": "{{appName}}: Pokyny pro obnovení hesla",
+  "verify_email_banner_button": "Odeslat e-mail",
   "event_declined_subject": "Odmítnuto: {{title}} v {{date}}",
   "event_cancelled_subject": "Zrušeno: {{title}} v {{date}}",
   "event_request_declined": "Žádost o událost byla zamítnuta",

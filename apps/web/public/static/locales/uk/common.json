@@ -11,6 +11,7 @@
   "calcom_explained_new_user": "Завершіть налаштування облікового запису {{appName}}! Ще кілька кроків, і всі проблеми з плануванням, які виникали у вас, буде вирішено.",
   "have_any_questions": "Маєте запитання? Ми допоможемо.",
   "reset_password_subject": "{{appName}}: інструкції зі скидання пароля",
+  "verify_email_banner_button": "Надіслати лист",
   "event_declined_subject": "Відхилено: {{title}}, {{date}}",
   "event_cancelled_subject": "Скасовано: {{title}}, {{date}}",
   "event_request_declined": "Ваш запит на захід відхилено",

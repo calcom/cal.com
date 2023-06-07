@@ -11,6 +11,7 @@
   "calcom_explained_new_user": "Conclua a configuração da sua conta {{appName}}! Está apenas a alguns passos de resolver todos os seus problemas com agendamentos.",
   "have_any_questions": "Tem perguntas? Estamos disponíveis para ajudar.",
   "reset_password_subject": "{{appName}}: Instruções de redefinição da senha",
+  "verify_email_banner_button": "Enviar e-mail",
   "event_declined_subject": "Declinado: {{title}} em {{date}}",
   "event_cancelled_subject": "Cancelado: {{title}} em {{date}}",
   "event_request_declined": "O seu pedido de evento foi declinado",

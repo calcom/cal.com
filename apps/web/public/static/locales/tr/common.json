@@ -11,6 +11,7 @@
   "calcom_explained_new_user": "{{appName}} hesabınızın kurulumunu tamamlayın! Planlama konusunda yaşadığınız tüm sorunlarınızı çözmekten sadece birkaç adım uzaktasınız.",
   "have_any_questions": "Sorularınız mı var? Size yardımcı olmak için buradayız.",
   "reset_password_subject": "{{appName}}: Şifre sıfırlama talimatları",
+  "verify_email_banner_button": "E-posta gönder",
   "event_declined_subject": "Reddedildi: {{title}}, {{date}} tarihinde",
   "event_cancelled_subject": "İptal edildi: {{title}}, {{date}} tarihinde",
   "event_request_declined": "Etkinlik talebiniz reddedildi",

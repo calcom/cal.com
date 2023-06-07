@@ -11,6 +11,7 @@
   "calcom_explained_new_user": "قم بإنهاء إعداد حسابك في {{appName}}! متبقي بضع خطوات فقط لحل جميع مشاكل الجدولة لديك.",
   "have_any_questions": "هل لديك أسئلة؟ نحن هنا للمساعدة.",
   "reset_password_subject": "{{appName}}: إرشادات إعادة تعيين كلمة المرور",
+  "verify_email_banner_button": "إرسال بريد إلكتروني",
   "event_declined_subject": "تم الرفض: {{title}} في {{date}}",
   "event_cancelled_subject": "تم الإلغاء: {{title}} في {{date}}",
   "event_request_declined": "تم رفض طلب الحدث الخاص بك",

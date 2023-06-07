@@ -10,6 +10,7 @@
   "calcom_explained_new_user": "Afslut opsætningen af din {{appName}} konto! Du er kun få skridt fra at løse alle dine planlægningsproblemer.",
   "have_any_questions": "Har du spørgsmål? Vi er her for at hjælpe.",
   "reset_password_subject": "{{appName}}: Nulstil adgangskodeinstruktioner",
+  "verify_email_banner_button": "Send e-mail",
   "event_declined_subject": "Afvist: {{title}} den {{date}}",
   "event_cancelled_subject": "Aflyst: {{title}} den {{date}}",
   "event_request_declined": "Din begivenhedsanmodning er blevet afvist",

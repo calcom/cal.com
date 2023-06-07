@@ -11,6 +11,7 @@
   "calcom_explained_new_user": "Завершите настройку учетной записи {{appName}}. Вы в считанных шагах от решения всех своих проблем с планированием.",
   "have_any_questions": "Есть вопросы? Мы здесь, чтобы помочь.",
   "reset_password_subject": "{{appName}}: Инструкция по сбросу пароля",
+  "verify_email_banner_button": "Отправить письмо",
   "event_declined_subject": "Отклонено: {{title}} {{date}}",
   "event_cancelled_subject": "Отменено: {{title}} {{date}}",
   "event_request_declined": "Ваш запрос на встречу отклонен",
