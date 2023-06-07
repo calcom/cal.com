@@ -61,6 +61,7 @@ export const createHandler = async ({ input }: CreateOptions) => {
             metadata: {
               requestedSlug: slug,
               isOrganization: true,
+              isOrganizationVerified: false,
             },
           },
         },

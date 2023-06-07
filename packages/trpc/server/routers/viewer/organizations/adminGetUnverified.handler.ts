@@ -21,7 +21,7 @@ export const adminGetUnverifiedHandler = async ({ ctx }: AdminGetUnverifiedOptio
         {
           metadata: {
             path: ["isOrganizationVerified"],
-            not: true, // is false or null
+            equals: false,
           },
         },
       ],
@@ -46,8 +46,6 @@ export const adminGetUnverifiedHandler = async ({ ctx }: AdminGetUnverifiedOptio
       },
     },
   });
-
-  console.log(unVerifiedTeams);
 
   return unVerifiedTeams;
 };
