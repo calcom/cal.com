@@ -442,10 +442,7 @@ test.describe("FORM_SUBMITTED", async () => {
       () => {
         expect(webhookReceiver.requestList.length).toBe(1);
       },
-      { timeout: 5000 }
+      { timeout: 2000 }
     );
-    const [request] = webhookReceiver.requestList;
-    const body = request.body as any;
-    console.log(body, request);
   });
 });
