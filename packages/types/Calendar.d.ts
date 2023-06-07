@@ -159,6 +159,7 @@ export interface CalendarEvent {
     members: TeamMember[];
   };
   location?: string | null;
+  bookingLocationCredentialId?: number;
   conferenceData?: ConferenceData;
   additionalInformation?: AdditionalInformation;
   uid?: string | null;
