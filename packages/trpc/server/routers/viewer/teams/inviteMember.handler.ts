@@ -223,13 +223,11 @@ async function sendVerificationEmail({
       identifier: usernameOrEmail,
       token,
       expires: new Date(new Date().setHours(168)), // +1 week
-      ...(connectionInfo.orgId && {
-        team: {
-          connect: {
-            id: connectionInfo.orgId,
-          },
+      team: {
+        connect: {
+          id: connectionInfo.orgId || input.teamId,
         },
-      }),
+      },
     },
   });
 
