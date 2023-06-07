@@ -200,6 +200,7 @@ async function sendVerificationEmail({
   translation,
   ctx,
   input,
+  connectionInfo,
 }: {
   usernameOrEmail: string;
   team: Awaited<ReturnType<typeof getTeamOrThrow>>;
@@ -213,6 +214,7 @@ async function sendVerificationEmail({
     sendEmailInvitation: boolean;
     isOrg: boolean;
   };
+  connectionInfo: ReturnType<typeof getOrgConnectionInfo>;
 }) {
   const token: string = randomBytes(32).toString("hex");
 
@@ -221,9 +223,17 @@ async function sendVerificationEmail({
       identifier: usernameOrEmail,
       token,
       expires: new Date(new Date().setHours(168)), // +1 week
+      ...(connectionInfo.orgId && {
+        team: {
+          connect: {
+            id: connectionInfo.orgId,
+          },
+        },
+      }),
     },
   });
-  if (team?.name) {
+
+  if (!connectionInfo.autoAccept) {
     await sendTeamInviteEmail({
       language: translation,
       from: ctx.user.name || `${team.name}'s admin`,
@@ -331,7 +341,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         parentId: team.parentId,
       });
 
-      await sendVerificationEmail({ usernameOrEmail, team, translation, ctx, input });
+      await sendVerificationEmail({ usernameOrEmail, team, translation, ctx, input, connectionInfo });
     } else {
       checkIfUserIsInDifOrg(invitee, team);
 
