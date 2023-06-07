@@ -41,6 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   await prisma.credential.create({
     data: {
       type: "salesforce_other_calendar",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       key: salesforceTokenInfo as any,
       userId: req.session.user.id,
       appId: "salesforce",

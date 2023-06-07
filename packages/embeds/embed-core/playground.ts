@@ -1,6 +1,5 @@
-import type { GlobalCal, GlobalCalWithoutNs } from "./src/embed";
+import type { GlobalCal } from "./src/embed";
 
-type A = GlobalCalWithoutNs;
 const Cal = window.Cal as GlobalCal;
 const callback = function (e) {
   const detail = e.detail;
@@ -8,7 +7,7 @@ const callback = function (e) {
 };
 
 const searchParams = new URL(document.URL).searchParams;
-const only = window.only;
+const only = searchParams.get("only");
 
 if (only === "all" || only === "ns:default") {
   Cal("init", {
