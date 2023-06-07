@@ -9,6 +9,7 @@ import { z } from "zod";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -28,13 +29,10 @@ type FormValues = {
   apiError: string;
 };
 
-export default function Signup({
-  prepopulateFormValues,
-  token,
-  isEmailVerifyEnabled,
-}: inferSSRProps<typeof getServerSideProps>) {
+export default function Signup({ prepopulateFormValues, token }: inferSSRProps<typeof getServerSideProps>) {
   const { t, i18n } = useLocale();
   const router = useRouter();
+  const flags = useFlagMap();
   const telemetry = useTelemetry();
   const methods = useForm<FormValues>({
     defaultValues: prepopulateFormValues,
@@ -65,7 +63,7 @@ export default function Signup({
       .then(handleErrors)
       .then(async () => {
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
-        const verifyOrGettingStarted = isEmailVerifyEnabled ? "auth/verify-email" : "getting-started";
+        const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
         await signIn<"credentials">("credentials", {
           ...data,
           callbackUrl: router.query.callbackUrl
@@ -168,19 +166,11 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const ssr = await ssrInit(ctx);
   const token = z.string().optional().parse(ctx.query.token);
 
-  const isEmailVerifyEnabled = await prisma.feature.findFirst({
-    where: {
-      slug: "email-verification",
-      enabled: true,
-    },
-  });
-
   const props = {
     isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
     isSAMLLoginEnabled,
     trpcState: ssr.dehydrate(),
     prepopulateFormValues: undefined,
-    isEmailVerifyEnabled: !!isEmailVerifyEnabled,
   };
 
   if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" || flags["disable-signup"]) {
@@ -256,7 +246,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         email: verificationToken.identifier,
         username,
       },
-      isEmailVerifyEnabled: !!isEmailVerifyEnabled,
     },
   };
 };
