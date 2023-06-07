@@ -30,6 +30,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     ...input,
     metadata: input.metadata as Prisma.InputJsonValue,
   };
+
   let isPremiumUsername = false;
   if (input.username) {
     const username = slugify(input.username);
@@ -137,4 +138,5 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       .then(() => console.info("Booking pages revalidated"))
       .catch((e) => console.error(e));
   }
+  return input;
 };

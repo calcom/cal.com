@@ -7,6 +7,7 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 import { processRoute } from "../../lib/processRoute";
+import transformResponse from "../../lib/transformResponse";
 import type { Response } from "../../types/types";
 
 export default function Router({ form, message }: inferSSRProps<typeof getServerSideProps>) {
@@ -60,12 +61,11 @@ export const getServerSideProps = async function getServerSideProps(
 
   const response: Record<string, Pick<Response[string], "value">> = {};
   serializableForm.fields?.forEach((field) => {
-    const rawFieldResponse = fieldsResponses[getFieldIdentifier(field)] || "";
-    console.log(field);
-    const fieldResponse =
-      field.type === "multiselect" ? rawFieldResponse.split(",").map((r) => r.trim()) : rawFieldResponse;
+    const fieldResponse = fieldsResponses[getFieldIdentifier(field)] || "";
+    const value =
+      field.type === "multiselect" ? fieldResponse.split(",").map((r) => r.trim()) : fieldResponse;
     response[field.id] = {
-      value: fieldResponse,
+      value: transformResponse({ field, value }),
     };
   });
 

@@ -5,6 +5,9 @@ import type { NextApiResponse, GetServerSidePropsContext } from "next";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { validateIntervalLimitOrder } from "@calcom/lib";
+import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server";
+import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -45,6 +48,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     // eslint-disable-next-line
     teamId,
     bookingFields,
+    offsetStart,
     ...rest
   } = input;
 
@@ -100,6 +104,19 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     if (!isValid)
       throw new TRPCError({ code: "BAD_REQUEST", message: "Duration limits must be in ascending order." });
     data.durationLimits = durationLimits;
+  }
+
+  if (offsetStart !== undefined) {
+    if (offsetStart < 0) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Offset start time must be zero or greater." });
+    }
+    data.offsetStart = offsetStart;
+  }
+
+  const bookerLayoutsError = validateBookerLayouts(input.metadata?.bookerLayouts || null);
+  if (bookerLayoutsError) {
+    const t = await getTranslation("en", "common");
+    throw new TRPCError({ code: "BAD_REQUEST", message: t(bookerLayoutsError) });
   }
 
   if (schedule) {
@@ -248,6 +265,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             userId: true,
           },
         },
+        workflows: {
+          select: {
+            workflowId: true,
+          },
+        },
         team: {
           select: {
             name: true,
@@ -274,7 +296,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   });
   const res = ctx.res as NextApiResponse;
   if (typeof res?.revalidate !== "undefined") {
-    await res?.revalidate(`/${ctx.user.username}/${eventType.slug}`);
+    try {
+      await res?.revalidate(`/${ctx.user.username}/${eventType.slug}`);
+    } catch (e) {
+      // if reach this it is because the event type page has not been created, so it is not possible to revalidate it
+      logger.debug((e as Error)?.message);
+    }
   }
   return { eventType };
 };

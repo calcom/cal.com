@@ -57,6 +57,7 @@ model EventType {
   /// @zod.custom(imports.eventTypeLocations)
   locations               Json?
   length                  Int
+  offsetStart             Int                     @default(0)
   hidden                  Boolean                 @default(false)
   hosts                   Host[]
   users                   User[]                  @relation("user_eventtype")
@@ -233,27 +234,29 @@ model User {
 }
 
 model Team {
-  id                  Int              @id @default(autoincrement())
+  id                  Int                @id @default(autoincrement())
   /// @zod.min(1)
   name                String
   /// @zod.min(1)
-  slug                String?          @unique
+  slug                String?            @unique
   logo                String?
   appLogo             String?
   appIconLogo         String?
   bio                 String?
-  hideBranding        Boolean          @default(false)
-  hideBookATeamMember Boolean          @default(false)
+  hideBranding        Boolean            @default(false)
+  hideBookATeamMember Boolean            @default(false)
   members             Membership[]
   eventTypes          EventType[]
   workflows           Workflow[]
-  createdAt           DateTime         @default(now())
+  createdAt           DateTime           @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
   metadata            Json?
   theme               String?
-  brandColor          String           @default("#292929")
-  darkBrandColor      String           @default("#fafafa")
+  brandColor          String             @default("#292929")
+  darkBrandColor      String             @default("#fafafa")
   verifiedNumbers     VerifiedNumber[]
+  inviteToken         VerificationToken?
+  webhooks            Webhook[]
 }
 
 enum MembershipRole {
@@ -277,12 +280,15 @@ model Membership {
 }
 
 model VerificationToken {
-  id         Int      @id @default(autoincrement())
-  identifier String
-  token      String   @unique
-  expires    DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  identifier    String
+  token         String   @unique
+  expires       DateTime
+  expiresInDays Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  teamId        Int?     @unique
+  team          Team?    @relation(fields: [teamId], references: [id])
 
   @@unique([identifier, token])
   @@index([token])
@@ -493,7 +499,9 @@ enum PaymentOption {
 enum WebhookTriggerEvents {
   BOOKING_CREATED
   BOOKING_RESCHEDULED
+  BOOKING_REQUESTED
   BOOKING_CANCELLED
+  BOOKING_REJECTED
   FORM_SUBMITTED
   MEETING_ENDED
   RECORDING_READY
@@ -502,6 +510,7 @@ enum WebhookTriggerEvents {
 model Webhook {
   id              String                 @id @unique
   userId          Int?
+  teamId          Int?
   eventTypeId     Int?
   /// @zod.url()
   subscriberUrl   String
@@ -510,6 +519,7 @@ model Webhook {
   active          Boolean                @default(true)
   eventTriggers   WebhookTriggerEvents[]
   user            User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team            Team?                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   eventType       EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   app             App?                   @relation(fields: [appId], references: [slug], onDelete: Cascade)
   appId           String?
@@ -713,6 +723,7 @@ model WorkflowsOnEventTypes {
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId Int
 
+  @@unique([workflowId, eventTypeId])
   @@index([workflowId])
   @@index([eventTypeId])
 }

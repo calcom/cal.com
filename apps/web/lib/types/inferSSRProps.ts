@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 type GetSSRResult<TProps> =
   //
-  { props: TProps } | { redirect: any } | { notFound: boolean };
+  { props: TProps } | { redirect: { destination: string; permanent: boolean } } | { notFound: boolean };
 
 type GetSSRFn<TProps> = (...args: any[]) => Promise<GetSSRResult<TProps>>;
 

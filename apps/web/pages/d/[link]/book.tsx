@@ -122,6 +122,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   return {
     props: {
       profile,
+      themeBasis: user.username,
       eventType: eventTypeObject,
       booking: null,
       currentSlotBooking: null,

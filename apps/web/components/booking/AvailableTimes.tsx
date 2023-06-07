@@ -28,7 +28,6 @@ type AvailableTimesProps = {
   bookingAttendees?: number | null;
   slots?: Slot[];
   isLoading: boolean;
-  ethSignature?: string;
   duration: number;
 };
 
@@ -43,7 +42,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   onTimeFormatChange,
   seatsPerTimeSlot,
   bookingAttendees,
-  ethSignature,
   duration,
 }) => {
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
@@ -72,7 +70,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
       slotUtcStartDate: slot.time,
       eventTypeId,
       slotUtcEndDate: dayjs(slot.time).utc().add(duration, "minutes").format(),
-      bookingAttendees: bookingAttendees || undefined,
+      bookingUid: slot.bookingUid,
     });
   };
 
@@ -119,7 +117,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                     timeFormat,
                     /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
                     count: recurringCount && !rescheduleUid ? recurringCount : undefined,
-                    ...(ethSignature ? { ethSignature } : {}),
                   },
                 };
 
@@ -176,7 +173,10 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                                 : "text-emerald-400"
                             } text-sm`}>
                             {slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot} /{" "}
-                            {seatsPerTimeSlot} {t("seats_available")}
+                            {seatsPerTimeSlot}{" "}
+                            {t("seats_available", {
+                              count: slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot,
+                            })}
                           </p>
                         )}
                       </Link>
