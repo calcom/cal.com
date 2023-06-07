@@ -57,8 +57,8 @@ export const bookerLayouts = z
 
 export const defaultBookerLayoutSettings = {
   defaultLayout: BookerLayouts.MONTH_VIEW,
-  // if the user has no explicit layouts set (not in user profile and not in event settings), we only show the month view.
-  enabledLayouts: [BookerLayouts.MONTH_VIEW],
+  // if the user has no explicit layouts set (not in user profile and not in event settings), all layouts are enabled.
+  enabledLayouts: bookerLayoutOptions,
 };
 
 export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
