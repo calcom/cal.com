@@ -92,7 +92,7 @@ test.describe("Popup Tests", () => {
       await addEmbedListeners("popupReschedule");
       await page.goto(`/?popupRescheduleId=${booking.uid}`);
       await page.click('[data-cal-namespace="popupReschedule"]');
-
+      const calNamespace = "popupReschedule";
       const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: booking.eventSlug });
       if (!embedIframe) {
         throw new Error("Embed iframe not found");
