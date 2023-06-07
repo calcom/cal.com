@@ -39,7 +39,11 @@ export function EmptyCell(props: EmptyCellProps) {
 
   return (
     <div
-      className={classNames("group w-full", isDisabled && "pointer-events-none", !isDisabled && "bg-default")}
+      className={classNames(
+        "group w-full",
+        isDisabled && "pointer-events-none",
+        !isDisabled && "bg-default dark:bg-muted"
+      )}
       data-disabled={isDisabled}
       data-day={props.day.toISOString()}
       style={{ height: `calc(${hoverEventDuration}*var(--one-minute-height))`, overflow: "visible" }}

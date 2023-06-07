@@ -65,7 +65,9 @@ export function Calendar(props: CalendarComponentProps) {
           } as React.CSSProperties // This can't live in the css file because it's a dynamic value and css variable gets super
         }>
         {hideHeader !== true && <SchedulerHeading />}
-        <div ref={container} className="bg-default relative isolate flex h-full flex-auto flex-col">
+        <div
+          ref={container}
+          className="bg-default dark:bg-muted relative isolate flex h-full flex-auto flex-col">
           <div
             style={{ width: "165%" }}
             className="flex h-full max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
@@ -77,7 +79,7 @@ export function Calendar(props: CalendarComponentProps) {
             containerRef={container}
           /> */}
             <div className="flex flex-auto">
-              <div className="bg-default ring-muted sticky left-0 z-10 w-14 flex-none ring-1" />
+              <div className="bg-default dark:bg-muted ring-muted sticky left-0 z-10 w-14 flex-none ring-1" />
               <div
                 className="grid flex-auto grid-cols-1 grid-rows-1 [--disabled-gradient-foreground:#E6E7EB] [--disabled-gradient-background:#F8F9FB] dark:[--disabled-gradient-background:#262626] dark:[--disabled-gradient-foreground:#393939]"
                 style={{
