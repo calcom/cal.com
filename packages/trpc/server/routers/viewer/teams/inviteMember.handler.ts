@@ -11,6 +11,7 @@ import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import type { MembershipRole } from "@calcom/prisma/enums";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -25,7 +26,15 @@ type InviteMemberOptions = {
   input: TInviteMemberInputSchema;
 };
 
-async function checkPermissions(userId: number, teamId: number, isOrg?: boolean) {
+async function checkPermissions({
+  userId,
+  teamId,
+  isOrg,
+}: {
+  userId: number;
+  teamId: number;
+  isOrg?: boolean;
+}) {
   // Checks if the team they are inviteing to IS the org. Not a child team
   if (isOrg) {
     if (!(await isOrganisationAdmin(userId, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -47,6 +56,7 @@ async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
 
   if (!team)
     throw new TRPCError({ code: "NOT_FOUND", message: `${isOrg ? "Organization" : "Team"} not found` });
+
   return team;
 }
 
@@ -62,7 +72,15 @@ async function getEmailsToInvite(usernameOrEmail: string | string[]) {
   return emailsToInvite;
 }
 
-async function getUserToInviteOrThrowIfExists(usernameOrEmail: string, orgId: number, isOrg?: boolean) {
+async function getUserToInviteOrThrowIfExists({
+  usernameOrEmail,
+  orgId,
+  isOrg,
+}: {
+  usernameOrEmail: string;
+  orgId: number;
+  isOrg?: boolean;
+}) {
   // Check if user exists in ORG or exists all together
   const invitee = await prisma.user.findFirst({
     where: {
@@ -89,11 +107,15 @@ function checkInputEmailIsValid(email: string) {
     });
 }
 
-async function createNewUserConnectToOrgIfExists(
-  usernameOrEmail: string,
-  input: InviteMemberOptions["input"],
-  parentId?: number | null
-) {
+async function createNewUserConnectToOrgIfExists({
+  usernameOrEmail,
+  input,
+  parentId,
+}: {
+  usernameOrEmail: string;
+  input: InviteMemberOptions["input"];
+  parentId?: number | null;
+}) {
   const createdUser = await prisma.user.create({
     data: {
       email: usernameOrEmail,
@@ -122,11 +144,15 @@ async function createNewUserConnectToOrgIfExists(
   }
 }
 
-async function createProvitionalMembership(
-  input: InviteMemberOptions["input"],
-  invitee: User,
-  parentId?: number
-) {
+async function createProvitionalMembership({
+  input,
+  invitee,
+  parentId,
+}: {
+  input: InviteMemberOptions["input"];
+  invitee: User;
+  parentId?: number;
+}) {
   try {
     await prisma.membership.create({
       data: {
@@ -160,11 +186,17 @@ async function createProvitionalMembership(
   }
 }
 
-async function sendVerificationEmail(
-  usernameOrEmail: string,
-  team: Awaited<ReturnType<typeof getTeamOrThrow>>,
-  translation: TFunction,
-  ctx: { user: NonNullable<TrpcSessionUser> },
+async function sendVerificationEmail({
+  usernameOrEmail,
+  team,
+  translation,
+  ctx,
+  input,
+}: {
+  usernameOrEmail: string;
+  team: Awaited<ReturnType<typeof getTeamOrThrow>>;
+  translation: TFunction;
+  ctx: { user: NonNullable<TrpcSessionUser> };
   input: {
     teamId: number;
     role: "ADMIN" | "MEMBER" | "OWNER";
@@ -172,8 +204,8 @@ async function sendVerificationEmail(
     language: string;
     sendEmailInvitation: boolean;
     isOrg: boolean;
-  }
-) {
+  };
+}) {
   const token: string = randomBytes(32).toString("hex");
 
   await prisma.verificationToken.create({
@@ -210,30 +242,55 @@ function checkIfUserIsInDifOrg(
   }
 }
 
+function getIsOrgVerified(
+  isOrg: boolean,
+  team: Team & {
+    parent: Team | null;
+  }
+) {
+  const teamMetadata = teamMetadataSchema.parse(team.metadata);
+  const orgMetadataSafeParse = teamMetadataSchema.safeParse(team.parent?.metadata);
+  const orgMetadataIfExists = orgMetadataSafeParse.success ? orgMetadataSafeParse.data : null;
+
+  if (isOrg && teamMetadata?.isOrganizationVerified) {
+    return { isInOrgScope: true, orgVerified: true };
+  } else if (orgMetadataIfExists?.isOrganizationVerified) {
+    return { isInOrgScope: true, orgVerified: true };
+  }
+
+  return {
+    isInOrgScope: false,
+  } as { isInOrgScope: false; orgVerified: never };
+}
+
 export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) => {
   const team = await getTeamOrThrow(input.teamId, input.isOrg);
-
-  await checkPermissions(ctx.user.id, input.teamId, input.isOrg);
+  const { isInOrgScope, orgVerified } = getIsOrgVerified(input.isOrg, team);
+  await checkPermissions({ userId: ctx.user.id, teamId: input.teamId, isOrg: input.isOrg });
 
   const translation = await getTranslation(input.language ?? "en", "common");
 
   const emailsToInvite = await getEmailsToInvite(input.usernameOrEmail);
 
   for (const usernameOrEmail of emailsToInvite) {
-    const invitee = await getUserToInviteOrThrowIfExists(usernameOrEmail, input.teamId, input.isOrg);
+    const invitee = await getUserToInviteOrThrowIfExists({
+      usernameOrEmail,
+      orgId: input.teamId,
+      isOrg: input.isOrg,
+    });
 
     if (!invitee) {
       checkInputEmailIsValid(usernameOrEmail);
 
       // valid email given, create User and add to team
-      await createNewUserConnectToOrgIfExists(usernameOrEmail, input, team.parentId);
+      await createNewUserConnectToOrgIfExists({ usernameOrEmail, input, parentId: team.parentId });
 
-      await sendVerificationEmail(usernameOrEmail, team, translation, ctx, input);
+      await sendVerificationEmail({ usernameOrEmail, team, translation, ctx, input });
     } else {
       checkIfUserIsInDifOrg(invitee, team);
 
       // create provisional membership
-      await createProvitionalMembership(input, invitee, team.id);
+      await createProvitionalMembership({ input, invitee, parentId: team.id });
 
       let sendTo = usernameOrEmail;
       if (!isEmail(usernameOrEmail)) {
