@@ -171,7 +171,7 @@ export const createNewSeatedEventType = async (page: Page, args: { eventTitle: s
   await page.locator('[data-testid="update-eventtype"]').click();
 };
 
-export async function assertToasterText(page: Page, locator: string, expectedText: string) {
+export async function assertToasterText(page: Page, locator: string, expectedText: string): Promise<boolean> {
   try {
     await expect(page.getByTestId(locator)).toHaveText(expectedText);
     return true;
