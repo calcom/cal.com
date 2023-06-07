@@ -17,9 +17,9 @@ export const LargeCalendar = () => {
   });
 
   const availableSlots = useMemo(() => {
-    if (!schedule.data) return [];
     const availableTimeslots: CalendarAvailableTimeslots = {};
-    if (!schedule.data.slots) return schedule;
+    if (!schedule.data) return availableTimeslots;
+    if (!schedule.data.slots) return availableTimeslots;
     for (const day in schedule.data.slots) {
       availableTimeslots[day] = schedule.data.slots[day].map((slot) => ({
         start: dayjs(slot.time).toDate(),
@@ -30,8 +30,6 @@ export const LargeCalendar = () => {
     return availableTimeslots;
   }, [schedule]);
 
-  console.log(schedule);
-  console.log("slottssss", availableSlots);
   return (
     <div className="h-full">
       <Calendar
@@ -41,7 +39,7 @@ export const LargeCalendar = () => {
         events={[]}
         startDate={selectedDate ? new Date(selectedDate) : new Date()}
         endDate={dayjs(selectedDate).add(extraDays, "day").toDate()}
-        onEmptyCellClick={(date) => setSelectedTimeslot(date)}
+        onEmptyCellClick={(date) => setSelectedTimeslot(date.toString())}
         gridCellsPerHour={2}
         hoverEventDuration={30}
         hideHeader
