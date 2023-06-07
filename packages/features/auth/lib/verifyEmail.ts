@@ -1,4 +1,5 @@
 import { randomBytes } from "crypto";
+import { getFeatureFlagMap } from "flags/server/utils";
 
 import { sendEmailVerificationLink } from "@calcom/emails/email-manager";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -23,15 +24,9 @@ interface VerifyEmailType {
 export const sendEmailVerification = async ({ email, language, username }: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
+  const flags = await getFeatureFlagMap(prisma);
 
-  const sendEmailVerificationEnabled = await prisma.feature.findFirst({
-    where: {
-      slug: "email-verification",
-      enabled: true,
-    },
-  });
-
-  if (!sendEmailVerificationEnabled) {
+  if (!flags["email-verification"]) {
     log.warn("Email verification is disabled - Skipping");
     return { ok: true, skipped: true };
   }
