@@ -11,7 +11,7 @@ export const stripeCheckoutSessionHandler = async ({ input }: StripeCheckoutSess
   const { checkoutSessionId, stripeCustomerId } = input;
 
   // Moved the following data checks to superRefine
-  const validationResult = ZStripeCheckoutSessionInputSchema.parse(input);
+  ZStripeCheckoutSessionInputSchema.parse(input);
 
   let customerId: string;
   let isPremiumUsername = false;
