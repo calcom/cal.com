@@ -6,6 +6,8 @@ import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server";
+import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -109,6 +111,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Offset start time must be zero or greater." });
     }
     data.offsetStart = offsetStart;
+  }
+
+  const bookerLayoutsError = validateBookerLayouts(input.metadata?.bookerLayouts || null);
+  if (bookerLayoutsError) {
+    const t = await getTranslation("en", "common");
+    throw new TRPCError({ code: "BAD_REQUEST", message: t(bookerLayoutsError) });
   }
 
   if (schedule) {

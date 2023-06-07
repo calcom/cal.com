@@ -295,16 +295,24 @@ describe("handleChildrenEventTypes", () => {
 
   describe("Workflows", () => {
     it("Links workflows to new and existing assigned members", async () => {
-      const { schedulingType, id, teamId, locations, timeZone, parentId, userId, ...evType } =
-        mockFindFirstEventType({
-          metadata: { managedEventConfig: {} },
-          locations: [],
-          workflows: [
-            {
-              workflowId: 11,
-            } as CompleteWorkflowsOnEventTypes,
-          ],
-        });
+      const {
+        schedulingType: _schedulingType,
+        id: _id,
+        teamId: _teamId,
+        locations: _locations,
+        timeZone: _timeZone,
+        parentId: _parentId,
+        userId: _userId,
+        ...evType
+      } = mockFindFirstEventType({
+        metadata: { managedEventConfig: {} },
+        locations: [],
+        workflows: [
+          {
+            workflowId: 11,
+          } as CompleteWorkflowsOnEventTypes,
+        ],
+      });
       prismaMock.$transaction.mockResolvedValue([{ id: 2 }]);
       await updateChildrenEventTypes({
         eventTypeId: 1,

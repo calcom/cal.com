@@ -46,6 +46,7 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
 
   // listen on random port
   server.listen(0);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const port: number = (server.address() as any).port;
   const url = `http://localhost:${port}`;
   return {

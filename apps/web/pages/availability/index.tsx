@@ -105,7 +105,8 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
   );
 }
 
-const WithQuery = withQuery(trpc.viewer.availability.list);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const WithQuery = withQuery(trpc.viewer.availability.list as any);
 
 export default function AvailabilityPage() {
   const { t } = useLocale();
