@@ -118,8 +118,10 @@ const BookerComponent = ({
             // Sets booker size css variables for the size of all the columns.
             ...getBookerSizeClassNames(layout, bookerState),
             "bg-default dark:bg-muted grid max-w-full auto-rows-fr items-start dark:[color-scheme:dark] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
-            layout === BookerLayouts.MONTH_VIEW && "border-subtle rounded-md border",
+            layout === BookerLayouts.MONTH_VIEW && "rounded-md border",
             !isEmbed && "sm:transition-[width] sm:duration-300",
+            isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
+            !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle",
             layout === BookerLayouts.MONTH_VIEW && isEmbed && "mt-20"
           )}>
           <AnimatePresence>
