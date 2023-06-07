@@ -43,11 +43,7 @@ export function Header({
 
   // In month view we only show the layout toggle.
   if (isMonthView) {
-    return (
-      <div className="fixed top-3 right-3 z-10">
-        <LayoutToggleWithData />
-      </div>
-    );
+    return <LayoutToggleWithData />;
   }
 
   return (

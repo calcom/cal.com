@@ -58,6 +58,7 @@ const BookerComponent = ({
 
   const animationScope = useBookerResizeAnimation(layout, bookerState);
   const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
+  const isMonthView = layout === BookerLayouts.MONTH_VIEW;
 
   useBrandColors({
     brandColor: event.data?.profile.brandColor,
@@ -114,7 +115,7 @@ const BookerComponent = ({
             layout === BookerLayouts.MONTH_VIEW && isEmbed && "mt-20"
           )}>
           <AnimatePresence>
-            <BookerSection area="header">
+            <BookerSection area="header" className={classNames(isMonthView && "fixed top-3 right-3 z-10")}>
               <Header
                 enabledLayouts={bookerLayouts.enabledLayouts}
                 extraDays={extraDays}
