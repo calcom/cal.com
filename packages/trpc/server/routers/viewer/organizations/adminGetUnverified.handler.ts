@@ -47,5 +47,7 @@ export const adminGetUnverifiedHandler = async ({ ctx }: AdminGetUnverifiedOptio
     },
   });
 
+  console.log(unVerifiedTeams);
+
   return unVerifiedTeams;
 };

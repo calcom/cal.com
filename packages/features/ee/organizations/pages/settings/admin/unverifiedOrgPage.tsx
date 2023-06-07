@@ -1,10 +1,10 @@
-import LicenseRequired from "ee/common/components/LicenseRequired";
-import { extractDomainFromWebsiteUrl } from "ee/organizations/lib/utils";
 import { useState } from "react";
 
 import NoSSR from "@calcom/core/components/NoSSR";
+import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
+import { extractDomainFromWebsiteUrl } from "@calcom/ee/organizations/lib/utils";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Meta } from "@calcom/ui";
+import { Meta } from "@calcom/ui";
 import { ConfirmationDialogContent, Dialog, DropdownActions, showToast, Table } from "@calcom/ui";
 import { Building } from "@calcom/ui/components/icon";
 
@@ -34,10 +34,9 @@ function UnverifiedOrgTable() {
     <div>
       <Table>
         <Header>
-          <ColumnTitle widthClassNames="w-auto">Org</ColumnTitle>
-          <ColumnTitle widthClassNames="w-auto">
-            <span className="sr-only">Edit</span>
-          </ColumnTitle>
+          <ColumnTitle widthClassNames="w-auto">Organization</ColumnTitle>
+          <ColumnTitle widthClassNames="w-auto">Owner</ColumnTitle>
+          <ColumnTitle widthClassNames="w-auto">Edit</ColumnTitle>
         </Header>
 
         <Body>
@@ -53,6 +52,9 @@ function UnverifiedOrgTable() {
                     <span className="break-all">{org.members[0].user.email}</span>
                   </div>
                 </div>
+              </Cell>
+              <Cell widthClassNames="w-auto">
+                <span className="break-all">{org.members[0].user.email}</span>
               </Cell>
 
               <Cell widthClassNames="w-auto">
@@ -125,15 +127,8 @@ const UnverifiedOrgList = () => {
   return (
     <LicenseRequired>
       <Meta
-        title="Users"
-        description="A list of all the users in your account including their name, title, email and role."
-        CTA={
-          <div className="mt-4 space-x-5 sm:mt-0 sm:ml-16 sm:flex-none">
-            {/* TODO: Add import users functionality */}
-            {/* <Button disabled>Import users</Button> */}
-            <Button href="/settings/admin/users/add">Add user</Button>
-          </div>
-        }
+        title="Organizations"
+        description="A list of all organizations that need verified based on their email domain. Accepting an organization will allow all users with that email domain to sign up WITHOUT email verifciation."
       />
       <NoSSR>
         <UnverifiedOrgTable />
