@@ -28,8 +28,11 @@ export function Header({
   const selectedDate = dayjs(selectedDateString);
 
   const onLayoutToggle = useCallback(
-    (newLayout: string) => setLayout(newLayout as BookerLayout),
-    [setLayout]
+    (newLayout: string) => {
+      if (layout === newLayout || !newLayout) return;
+      setLayout(newLayout as BookerLayout);
+    },
+    [setLayout, layout]
   );
 
   if (isMobile || !enabledLayouts || enabledLayouts.length <= 1) return null;
