@@ -9,6 +9,7 @@ export type AppFlags = {
   webhooks: boolean;
   workflows: boolean;
   "managed-event-types": boolean;
+  "email-verification": boolean;
   "booker-layouts": boolean;
   "google-workspace-directory": boolean;
   "disable-signup": boolean;

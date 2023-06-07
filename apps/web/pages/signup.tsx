@@ -9,6 +9,7 @@ import { z } from "zod";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -29,10 +30,10 @@ type FormValues = {
 };
 
 export default function Signup({ prepopulateFormValues, token }: inferSSRProps<typeof getServerSideProps>) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const router = useRouter();
+  const flags = useFlagMap();
   const telemetry = useTelemetry();
-
   const methods = useForm<FormValues>({
     defaultValues: prepopulateFormValues,
   });
@@ -52,6 +53,7 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
         ...data,
+        language: i18n.language,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -61,11 +63,12 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
       .then(handleErrors)
       .then(async () => {
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
+        const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
         await signIn<"credentials">("credentials", {
           ...data,
           callbackUrl: router.query.callbackUrl
             ? `${WEBAPP_URL}/${router.query.callbackUrl}`
-            : `${WEBAPP_URL}/getting-started`,
+            : `${WEBAPP_URL}/${verifyOrGettingStarted}`,
         });
       })
       .catch((err) => {
