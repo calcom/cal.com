@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
+import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSettingsModal";
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -26,16 +27,16 @@ import {
   Tooltip,
 } from "@calcom/ui";
 import {
-  MoreHorizontal,
   Check,
-  X,
-  Link as LinkIcon,
   Edit2,
   ExternalLink,
-  Trash,
-  LogOut,
   Globe,
+  Link as LinkIcon,
+  LogOut,
+  MoreHorizontal,
   Send,
+  Trash,
+  X,
 } from "@calcom/ui/components/icon";
 
 import { TeamRole } from "./TeamPill";
@@ -51,11 +52,15 @@ interface Props {
 
 export default function TeamListItem(props: Props) {
   const { t, i18n } = useLocale();
+
+  const router = useRouter();
   const utils = trpc.useContext();
   const team = props.team;
-  const router = useRouter();
+
   const showDialog = router.query.inviteModal === "true";
   const [openMemberInvitationModal, setOpenMemberInvitationModal] = useState(showDialog);
+  const [openInviteLinkSettingsModal, setOpenInviteLinkSettingsModal] = useState(false);
+
   const teamQuery = trpc.viewer.teams.get.useQuery({ teamId: team?.id });
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess(data) {
@@ -129,6 +134,8 @@ export default function TeamListItem(props: Props) {
     <li className="">
       <MemberInvitationModal
         isOpen={openMemberInvitationModal}
+        teamId={team.id}
+        token={team.inviteToken?.token}
         onExit={() => {
           setOpenMemberInvitationModal(false);
         }}
@@ -141,8 +148,24 @@ export default function TeamListItem(props: Props) {
             sendEmailInvitation: values.sendInviteEmail,
           });
         }}
+        onSettingsOpen={() => {
+          setOpenMemberInvitationModal(false);
+          setOpenInviteLinkSettingsModal(true);
+        }}
         members={teamQuery?.data?.members || []}
       />
+      {team.inviteToken && (
+        <InviteLinkSettingsModal
+          isOpen={openInviteLinkSettingsModal}
+          teamId={team.id}
+          token={team.inviteToken?.token}
+          expiresInDays={team.inviteToken?.expiresInDays || undefined}
+          onExit={() => {
+            setOpenInviteLinkSettingsModal(false);
+            setOpenMemberInvitationModal(true);
+          }}
+        />
+      )}
       <div className={classNames("flex items-center  justify-between", !isInvitee && "hover:bg-muted group")}>
         {!isInvitee ? (
           <Link

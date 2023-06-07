@@ -24,7 +24,7 @@ interface IUserProfileProps {
 const UserProfile = (props: IUserProfileProps) => {
   const { user } = props;
   const { t } = useLocale();
-  const avatarRef = useRef<HTMLInputElement>(null!);
+  const avatarRef = useRef<HTMLInputElement>(null);
   const { setValue, handleSubmit, getValues } = useForm<FormData>({
     defaultValues: { bio: user?.bio || "" },
   });
@@ -76,7 +76,7 @@ const UserProfile = (props: IUserProfileProps) => {
 
   async function updateProfileHandler(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const enteredAvatar = avatarRef.current.value;
+    const enteredAvatar = avatarRef.current?.value;
     mutation.mutate({
       avatar: enteredAvatar,
     });
@@ -127,14 +127,16 @@ const UserProfile = (props: IUserProfileProps) => {
             id="avatar-upload"
             buttonMsg={t("add_profile_photo")}
             handleAvatarChange={(newAvatar) => {
-              avatarRef.current.value = newAvatar;
+              if (avatarRef.current) {
+                avatarRef.current.value = newAvatar;
+              }
               const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
                 window.HTMLInputElement.prototype,
                 "value"
               )?.set;
               nativeInputValueSetter?.call(avatarRef.current, newAvatar);
               const ev2 = new Event("input", { bubbles: true });
-              avatarRef.current.dispatchEvent(ev2);
+              avatarRef.current?.dispatchEvent(ev2);
               updateProfileHandler(ev2 as unknown as FormEvent<HTMLFormElement>);
               setImageSrc(newAvatar);
             }}

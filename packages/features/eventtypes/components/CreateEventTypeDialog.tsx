@@ -293,7 +293,7 @@ export default function CreateEventTypeDialog({
               </div>
             )}
           </div>
-          <div className="mt-8 flex justify-end gap-x-2">
+          <div className="mt-10 flex justify-end gap-x-2">
             <DialogClose />
             <Button type="submit" loading={createMutation.isLoading}>
               {t("continue")}

@@ -18,6 +18,7 @@ import { ZUpdateUserDefaultConferencingAppInputSchema } from "./updateUserDefaul
 
 type AppsRouterHandlerCache = {
   me?: typeof import("./me.handler").meHandler;
+  shouldVerifyEmail?: typeof import("./shouldVerifyEmail.handler").shouldVerifyEmailHandler;
   avatar?: typeof import("./avatar.handler").avatarHandler;
   deleteMe?: typeof import("./deleteMe.handler").deleteMeHandler;
   deleteMeWithoutPassword?: typeof import("./deleteMeWithoutPassword.handler").deleteMeWithoutPasswordHandler;
@@ -368,4 +369,18 @@ export const loggedInViewerRouter = router({
 
       return UNSTABLE_HANDLER_CACHE.updateUserDefaultConferencingApp({ ctx, input });
     }),
+  shouldVerifyEmail: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.shouldVerifyEmail) {
+      UNSTABLE_HANDLER_CACHE.shouldVerifyEmail = (
+        await import("./shouldVerifyEmail.handler")
+      ).shouldVerifyEmailHandler;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.shouldVerifyEmail) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.shouldVerifyEmail({ ctx });
+  }),
 });

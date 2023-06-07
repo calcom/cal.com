@@ -111,8 +111,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         const ret = await samlTenantProduct(prisma, emailParam);
         tenant = ret.tenant;
         product = ret.product;
-      } catch (e: any) {
-        error = e.message;
+      } catch (e) {
+        if (e instanceof Error) {
+          error = e.message;
+        }
       }
     }
   }

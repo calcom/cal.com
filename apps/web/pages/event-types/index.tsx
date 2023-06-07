@@ -393,11 +393,13 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           className="relative top-1 right-3"
                           size="sm"
                           truncateAfter={4}
-                          items={type.users.map((organizer: { name: any; username: any }) => ({
-                            alt: organizer.name || "",
-                            image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
-                            title: organizer.name || "",
-                          }))}
+                          items={type.users.map(
+                            (organizer: { name: string | null; username: string | null }) => ({
+                              alt: organizer.name || "",
+                              image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
+                              title: organizer.name || "",
+                            })
+                          )}
                         />
                       )}
                       {isManagedEventType && (
@@ -780,7 +782,8 @@ const CTA = () => {
   );
 };
 
-const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer as any);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
@@ -793,6 +796,7 @@ const EventTypesPage = () => {
     if (query?.openIntercom && query?.openIntercom === "true") {
       open();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -816,7 +820,7 @@ const EventTypesPage = () => {
                   {isMobile ? (
                     <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
                   ) : (
-                    data.eventTypeGroups.map((group, index) => (
+                    data.eventTypeGroups.map((group: EventTypeGroup, index: number) => (
                       <div className="flex flex-col" key={group.profile.slug}>
                         <EventTypeListHeading
                           profile={group.profile}

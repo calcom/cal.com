@@ -16,7 +16,6 @@ import { appKeysSchema as office365calendar_zod_ts } from "./office365calendar/z
 import { appKeysSchema as office365video_zod_ts } from "./office365video/zod";
 import { appKeysSchema as plausible_zod_ts } from "./plausible/zod";
 import { appKeysSchema as qr_code_zod_ts } from "./qr_code/zod";
-import { appKeysSchema as rainbow_zod_ts } from "./rainbow/zod";
 import { appKeysSchema as routing_forms_zod_ts } from "./routing-forms/zod";
 import { appKeysSchema as salesforce_zod_ts } from "./salesforce/zod";
 import { appKeysSchema as stripepayment_zod_ts } from "./stripepayment/zod";
@@ -46,7 +45,6 @@ export const appKeysSchemas = {
   office365video: office365video_zod_ts,
   plausible: plausible_zod_ts,
   qr_code: qr_code_zod_ts,
-  rainbow: rainbow_zod_ts,
   "routing-forms": routing_forms_zod_ts,
   salesforce: salesforce_zod_ts,
   stripe: stripepayment_zod_ts,
