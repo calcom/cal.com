@@ -425,7 +425,7 @@ export const FormBuilder = function FormBuilder({
           })
         }>
         <DialogContent className="max-h-none p-0" data-testid="edit-field-dialog">
-          <div className="h-auto max-h-[85vh] overflow-auto px-8 pt-8 pb-7">
+          <div className="h-auto max-h-[85vh] overflow-auto px-8 pt-8 pb-10">
             <DialogHeader
               title={t("add_a_booking_question")}
               subtitle={t("form_builder_field_add_subtitle")}
@@ -545,7 +545,7 @@ export const FormBuilder = function FormBuilder({
               />
             </Form>
           </div>
-          <DialogFooter className="relative rounded px-8 pb-6" showDivider>
+          <DialogFooter className="relative rounded px-8 pb-4" showDivider>
             <DialogClose color="secondary">{t("cancel")}</DialogClose>
             <Button data-testid="field-add-save" type="submit" form="form-builder">
               {isFieldEditMode ? t("save") : t("add")}
