@@ -68,8 +68,8 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
     onSuccess: (_data, variables) => {
       router.push(`${appUrl}/form-edit/${variables.id}`);
     },
-    onError: () => {
-      showToast(t("something_went_wrong"), "error");
+    onError: (err) => {
+      showToast(err.message || t("something_went_wrong"), "error");
     },
     onSettled: () => {
       utils.viewer.appRoutingForms.forms.invalidate();
@@ -93,7 +93,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
       <DialogContent className="overflow-y-auto">
         <div className="mb-4">
           <h3 className="text-emphasis text-lg font-bold leading-6" id="modal-title">
-            {t("add_new_form")}
+            {teamId ? t("add_new_team_form") : t("add_new_form")}
           </h3>
           <div>
             <p className="text-subtle text-sm">{t("form_description")}</p>
@@ -155,12 +155,18 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
 
 const dropdownCtx = createContext<{ dropdown: boolean }>({ dropdown: false });
 
-export const FormActionsDropdown = ({ form, children }: { form: RoutingForm; children: React.ReactNode }) => {
-  const { disabled } = form;
+export const FormActionsDropdown = ({
+  children,
+  disabled,
+}: {
+  form: RoutingForm;
+  disabled?: boolean;
+  children: React.ReactNode;
+}) => {
   return (
     <dropdownCtx.Provider value={{ dropdown: true }}>
       <Dropdown>
-        <DropdownMenuTrigger data-testid="form-dropdown" asChild>
+        <DropdownMenuTrigger disabled={disabled} data-testid="form-dropdown" asChild>
           <Button
             type="button"
             variant="icon"
@@ -295,7 +301,7 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
       if (context?.previousValue) {
         utils.viewer.appRoutingForms.forms.setData(undefined, context.previousValue);
       }
-      showToast(t("something_went_wrong"), "error");
+      showToast(err.message || t("something_went_wrong"), "error");
     },
   });
 
@@ -358,7 +364,12 @@ type FormActionProps<T> = {
   //TODO: Provide types here
   action: FormActionType;
   children?: React.ReactNode;
-  render?: (props: { routingForm: RoutingForm | null; className?: string; label?: string }) => JSX.Element;
+  render?: (props: {
+    routingForm: RoutingForm | null;
+    className?: string;
+    label?: string;
+    disabled?: boolean | null | undefined;
+  }) => JSX.Element;
   extraClassNames?: string;
 } & ButtonProps;
 
@@ -429,7 +440,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       },
     },
     toggle: {
-      render: ({ routingForm, label = "", ...restProps }) => {
+      render: ({ routingForm, label = "", disabled, ...restProps }) => {
         if (!routingForm) {
           return <></>;
         }
@@ -441,6 +452,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
               extraClassNames
             )}>
             <Switch
+              disabled={disabled}
               checked={!routingForm.disabled}
               label={label}
               onCheckedChange={(checked) => toggle.onAction({ routingForm, checked })}

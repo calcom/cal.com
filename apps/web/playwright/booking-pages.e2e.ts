@@ -78,7 +78,7 @@ testBothBookers.describe("pro user", () => {
     const [eventType] = pro.eventTypes;
     await bookings.create(pro.id, pro.username, eventType.id);
 
-    await pro.login();
+    await pro.apiLogin();
     await page.goto("/bookings/upcoming");
     await page.waitForSelector('[data-testid="bookings"]');
     await page.locator('[data-testid="edit_booking"]').nth(0).click();
@@ -106,7 +106,7 @@ testBothBookers.describe("pro user", () => {
     await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
 
     const [pro] = users.get();
-    await pro.login();
+    await pro.apiLogin();
 
     await page.goto("/bookings/upcoming");
     await page.locator('[data-testid="cancel"]').first().click();
@@ -132,7 +132,7 @@ testBothBookers.describe("pro user", () => {
   }) => {
     await bookOptinEvent(page);
     const [pro] = users.get();
-    await pro.login();
+    await pro.apiLogin();
 
     await page.goto("/bookings/unconfirmed");
     await Promise.all([

@@ -3,14 +3,23 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { z } from "zod";
 
+import InviteLinkSettingsModal from "@calcom/features/ee/teams/components/InviteLinkSettingsModal";
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
-import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Badge, Button, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
-import { Plus, ArrowRight, Trash2 } from "@calcom/ui/components/icon";
+import {
+  Avatar,
+  Badge,
+  Button,
+  showToast,
+  SkeletonButton,
+  SkeletonContainer,
+  SkeletonText,
+} from "@calcom/ui";
+import { ArrowRight, Plus, Trash2 } from "@calcom/ui/components/icon";
 
 const querySchema = z.object({
   id: z.string().transform((val) => parseInt(val)),
@@ -40,10 +49,16 @@ export const AddNewTeamMembersForm = ({
   teamId: number;
 }) => {
   const { t, i18n } = useLocale();
+
   const router = useRouter();
+  const utils = trpc.useContext();
+
   const showDialog = router.query.inviteModal === "true";
   const [memberInviteModal, setMemberInviteModal] = useState(showDialog);
-  const utils = trpc.useContext();
+  const [inviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
+
+  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery({ teamId });
+
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess(data) {
       await utils.viewer.teams.get.invalidate();
@@ -70,6 +85,7 @@ export const AddNewTeamMembersForm = ({
       showToast(error.message, "error");
     },
   });
+
   const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
     onSuccess(data) {
       router.push(data.url);
@@ -96,20 +112,44 @@ export const AddNewTeamMembersForm = ({
           {t("add_team_member")}
         </Button>
       </div>
-      <MemberInvitationModal
-        isOpen={memberInviteModal}
-        onExit={() => setMemberInviteModal(false)}
-        onSubmit={(values) => {
-          inviteMemberMutation.mutate({
-            teamId,
-            language: i18n.language,
-            role: values.role,
-            usernameOrEmail: values.emailOrUsername,
-            sendEmailInvitation: values.sendInviteEmail,
-          });
-        }}
-        members={defaultValues.members}
-      />
+      {isLoading ? (
+        <SkeletonButton />
+      ) : (
+        <>
+          <MemberInvitationModal
+            isOpen={memberInviteModal}
+            teamId={teamId}
+            token={team?.inviteToken?.token}
+            onExit={() => setMemberInviteModal(false)}
+            onSubmit={(values) => {
+              inviteMemberMutation.mutate({
+                teamId,
+                language: i18n.language,
+                role: values.role,
+                usernameOrEmail: values.emailOrUsername,
+                sendEmailInvitation: values.sendInviteEmail,
+              });
+            }}
+            onSettingsOpen={() => {
+              setMemberInviteModal(false);
+              setInviteLinkSettingsModal(true);
+            }}
+            members={defaultValues.members}
+          />
+          {team?.inviteToken && (
+            <InviteLinkSettingsModal
+              isOpen={inviteLinkSettingsModal}
+              teamId={team.id}
+              token={team.inviteToken?.token}
+              expiresInDays={team.inviteToken?.expiresInDays || undefined}
+              onExit={() => {
+                setInviteLinkSettingsModal(false);
+                setMemberInviteModal(true);
+              }}
+            />
+          )}
+        </>
+      )}
       <hr className="border-subtle my-6" />
       <Button
         EndIcon={ArrowRight}

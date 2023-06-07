@@ -2,13 +2,14 @@ import type { PrismaClient } from "@prisma/client";
 import type { App_RoutingForms_Form } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
+import { entityPrismaWhereClause, hasUserWriteAccessToEntity } from "@calcom/lib/hasUserWriteAccessToEntity";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { createFallbackRoute } from "../lib/createFallbackRoute";
 import { getSerializableForm } from "../lib/getSerializableForm";
 import { isFallbackRoute } from "../lib/isFallbackRoute";
-import { isFormEditAllowed } from "../lib/isFormEditAllowed";
+import { isFormCreateEditAllowed } from "../lib/isFormCreateEditAllowed";
 import isRouter from "../lib/isRouter";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
 import type { SerializableForm } from "../types/types";
@@ -26,7 +27,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
   const { user, prisma } = ctx;
   const { name, id, description, settings, disabled, addFallback, duplicateFrom, shouldConnect, teamId } =
     input;
-  if (!(await isFormEditAllowed({ userId: user.id, formId: id, teamId }))) {
+  if (!(await isFormCreateEditAllowed({ userId: user.id, formId: id, targetTeamId: teamId }))) {
     throw new TRPCError({
       code: "FORBIDDEN",
     });
@@ -64,7 +65,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
   const dbSerializedForm = dbForm ? await getSerializableForm(dbForm, true) : null;
 
   if (duplicateFrom) {
-    ({ routes, fields } = await getRoutesAndFieldsForDuplication(duplicateFrom));
+    ({ routes, fields } = await getRoutesAndFieldsForDuplication({ duplicateFrom, userId: user.id }));
   } else {
     [fields, routes] = [inputFields, inputRoutes];
     if (dbSerializedForm) {
@@ -248,24 +249,45 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
     }
   }
 
-  async function getRoutesAndFieldsForDuplication(duplicateFrom: DuplicateFrom) {
+  async function getRoutesAndFieldsForDuplication({
+    duplicateFrom,
+    userId,
+  }: {
+    duplicateFrom: DuplicateFrom;
+    userId: number;
+  }) {
     const sourceForm = await prisma.app_RoutingForms_Form.findFirst({
       where: {
-        userId: user.id,
+        ...entityPrismaWhereClause({ userId }),
         id: duplicateFrom,
       },
       select: {
         id: true,
         fields: true,
         routes: true,
+        userId: true,
+        team: {
+          select: {
+            members: true,
+          },
+        },
       },
     });
+
     if (!sourceForm) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: `Form to duplicate: ${duplicateFrom} not found`,
       });
     }
+
+    if (!hasUserWriteAccessToEntity(sourceForm, userId)) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `Form to duplicate: ${duplicateFrom} not found or you are unauthorized`,
+      });
+    }
+
     //TODO: Instead of parsing separately, use getSerializableForm. That would automatically remove deleted fields as well.
     const fieldsParsed = zodFields.safeParse(sourceForm.fields);
     const routesParsed = zodRoutes.safeParse(sourceForm.routes);

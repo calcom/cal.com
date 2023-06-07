@@ -1,8 +1,8 @@
 // TODO: i18n
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useRouter } from "next/router";
 
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
+import { getFiltersFromQuery, TeamsFilter, FilterResults } from "@calcom/features/filters/TeamsFilter";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -10,7 +10,12 @@ import useApp from "@calcom/lib/hooks/useApp";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
+import type {
+  AppGetServerSidePropsContext,
+  AppPrisma,
+  AppSsrInit,
+  AppUser,
+} from "@calcom/types/AppGetServerSideProps";
 import { Badge, ButtonGroup, EmptyScreen, List, ListLinkItem, Tooltip, Button } from "@calcom/ui";
 import { CreateButton } from "@calcom/ui";
 import {
@@ -39,26 +44,48 @@ import {
   FormActionsDropdown,
   FormActionsProvider,
 } from "../../components/FormActions";
-import { filterQuerySchema, TeamsFilter, useFilterQuery } from "../../components/TeamsFilter";
-import { getSerializableForm } from "../../lib/getSerializableForm";
-import { hasWriteAccessToForm, getPrismaWhereFromFilters } from "../../trpc/forms.handler";
+
+function NewFormButton() {
+  const query = trpc.viewer.eventTypes.getByViewer.useQuery();
+  const { t } = useLocale();
+  const router = useRouter();
+  if (!query.data) return null;
+
+  const profileOptions = query.data.profiles
+    .filter((profile) => !profile.readOnly)
+    .map((profile) => {
+      return {
+        teamId: profile.teamId,
+        label: profile.name || profile.slug,
+        image: profile.image,
+        membershipRole: profile.membershipRole,
+        slug: profile.slug,
+      };
+    });
+
+  return (
+    <CreateButton
+      subtitle={t("create_routing_form_on").toUpperCase()}
+      createFunction={(teamId) => {
+        createAction({ router, teamId: teamId ?? null });
+      }}
+      options={profileOptions}
+    />
+  );
+}
 
 export default function RoutingForms({
-  forms: forms_,
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const { t } = useLocale();
   const { hasPaidPlan } = useHasPaidPlan();
-  const { data: query } = useFilterQuery();
+  const router = useRouter();
 
-  const { data: forms, isLoading } = trpc.viewer.appRoutingForms.forms.useQuery(
-    {
-      filters: query,
-    },
-    {
-      initialData: forms_,
-    }
-  );
+  const filters = getFiltersFromQuery(router.query);
+
+  const queryRes = trpc.viewer.appRoutingForms.forms.useQuery({
+    filters,
+  });
 
   const { data: typeformApp } = useApp("typeform");
 
@@ -95,33 +122,6 @@ export default function RoutingForms({
     },
   ];
 
-  function NewFormButton() {
-    const query = trpc.viewer.eventTypes.getByViewer.useQuery();
-    const router = useRouter();
-    if (!query.data) return null;
-
-    const profileOptions = query.data.profiles
-      .filter((profile) => !profile.readOnly)
-      .map((profile) => {
-        return {
-          teamId: profile.teamId,
-          label: profile.name || profile.slug,
-          image: profile.image,
-          membershipRole: profile.membershipRole,
-          slug: profile.slug,
-        };
-      });
-
-    return (
-      <CreateButton
-        subtitle={t("create_routing_form_on").toUpperCase()}
-        createFunction={(teamId) => {
-          createAction({ router, teamId: teamId ?? null });
-        }}
-        options={profileOptions}
-      />
-    );
-  }
   return (
     <ShellMain
       heading="Routing Forms"
@@ -148,140 +148,150 @@ export default function RoutingForms({
         <FormActionsProvider appUrl={appUrl}>
           <div className="-mx-4 md:-mx-8">
             <div className="mb-10 w-full px-4 pb-2 sm:px-6 md:px-8">
-              {!forms?.length ? (
-                <EmptyScreen
-                  Icon={GitMerge}
-                  headline={t("create_your_first_form")}
-                  description={t("create_your_first_form_description")}
-                  buttonRaw={<NewFormButton />}
-                />
-              ) : null}
-              {forms?.length ? (
-                <div>
-                  <TeamsFilter />
-                  <div className="bg-default mb-16 overflow-hidden">
-                    <List data-testid="routing-forms-list">
-                      {forms.map(({ form, readOnly }, index) => {
-                        if (!form) {
-                          return null;
-                        }
+              <div className="flex">
+                <TeamsFilter />
+              </div>
+              <FilterResults
+                queryRes={queryRes}
+                emptyScreen={
+                  <EmptyScreen
+                    Icon={GitMerge}
+                    headline={t("create_your_first_form")}
+                    description={t("create_your_first_form_description")}
+                    buttonRaw={<NewFormButton />}
+                  />
+                }
+                noResultsScreen={
+                  <EmptyScreen
+                    Icon={GitMerge}
+                    headline={t("no_results_for_filter")}
+                    description={t("change_filter_common")}
+                  />
+                }
+                SkeletonLoader={SkeletonLoaderTeamList}>
+                <div className="bg-default mb-16 overflow-hidden">
+                  <List data-testid="routing-forms-list">
+                    {queryRes.data?.filtered.map(({ form, readOnly }) => {
+                      if (!form) {
+                        return null;
+                      }
 
-                        const description = form.description || "";
-                        const disabled = form.disabled;
-                        form.routes = form.routes || [];
-                        const fields = form.fields || [];
-                        return (
-                          <ListLinkItem
-                            key={index}
-                            href={appUrl + "/form-edit/" + form.id}
-                            heading={form.name}
-                            disabled={disabled}
-                            subHeading={description}
-                            className="space-x-2 rtl:space-x-reverse"
-                            actions={
-                              <>
-                                <FormAction className="self-center" action="toggle" routingForm={form} />
-                                <ButtonGroup combined>
-                                  <Tooltip content={t("preview")}>
-                                    <FormAction
-                                      action="preview"
-                                      routingForm={form}
-                                      target="_blank"
-                                      StartIcon={ExternalLink}
-                                      color="secondary"
-                                      variant="icon"
-                                      disabled={disabled}
-                                    />
-                                  </Tooltip>
+                      const description = form.description || "";
+                      const formDisabled = form.disabled;
+                      form.routes = form.routes || [];
+                      const fields = form.fields || [];
+                      return (
+                        <ListLinkItem
+                          key={form.id}
+                          href={appUrl + "/form-edit/" + form.id}
+                          heading={form.name}
+                          disabled={readOnly}
+                          subHeading={description}
+                          className="space-x-2 rtl:space-x-reverse"
+                          actions={
+                            <>
+                              {form.team?.name && (
+                                <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
+                                  {form.team.name}
+                                </Badge>
+                              )}
+                              <FormAction
+                                disabled={readOnly}
+                                className="self-center"
+                                action="toggle"
+                                routingForm={form}
+                              />
+                              <ButtonGroup combined>
+                                <Tooltip content={t("preview")}>
                                   <FormAction
+                                    action="preview"
                                     routingForm={form}
-                                    action="copyLink"
+                                    target="_blank"
+                                    StartIcon={ExternalLink}
                                     color="secondary"
                                     variant="icon"
-                                    StartIcon={LinkIcon}
-                                    disabled={disabled}
-                                    tooltip={t("copy_link_to_form")}
                                   />
+                                </Tooltip>
+                                <FormAction
+                                  routingForm={form}
+                                  action="copyLink"
+                                  color="secondary"
+                                  variant="icon"
+                                  StartIcon={LinkIcon}
+                                  tooltip={t("copy_link_to_form")}
+                                />
+                                <FormAction
+                                  routingForm={form}
+                                  action="embed"
+                                  color="secondary"
+                                  variant="icon"
+                                  StartIcon={Code}
+                                  tooltip={t("embed")}
+                                />
+                                <FormActionsDropdown form={form} /*disabled={readOnly}*/>
                                   <FormAction
+                                    action="edit"
                                     routingForm={form}
-                                    action="embed"
-                                    color="secondary"
-                                    variant="icon"
-                                    StartIcon={Code}
-                                    disabled={disabled}
-                                    tooltip={t("embed")}
-                                  />
-                                  <FormActionsDropdown form={form}>
+                                    color="minimal"
+                                    className="!flex"
+                                    StartIcon={Edit}>
+                                    {t("edit")}
+                                  </FormAction>
+                                  <FormAction
+                                    action="download"
+                                    routingForm={form}
+                                    color="minimal"
+                                    StartIcon={Download}>
+                                    {t("download_responses")}
+                                  </FormAction>
+                                  <FormAction
+                                    action="duplicate"
+                                    routingForm={form}
+                                    color="minimal"
+                                    className="w-full"
+                                    StartIcon={Copy}>
+                                    {t("duplicate")}
+                                  </FormAction>
+                                  {typeformApp?.isInstalled ? (
                                     <FormAction
-                                      action="edit"
+                                      data-testid="copy-redirect-url"
                                       routingForm={form}
+                                      action="copyRedirectUrl"
                                       color="minimal"
-                                      className="!flex"
-                                      StartIcon={Edit}>
-                                      {t("edit")}
+                                      type="button"
+                                      StartIcon={LinkIcon}>
+                                      {t("Copy Typeform Redirect Url")}
                                     </FormAction>
-                                    <FormAction
-                                      action="download"
-                                      routingForm={form}
-                                      color="minimal"
-                                      StartIcon={Download}>
-                                      {t("download_responses")}
-                                    </FormAction>
-                                    <FormAction
-                                      action="duplicate"
-                                      routingForm={form}
-                                      color="minimal"
-                                      className="w-full"
-                                      StartIcon={Copy}>
-                                      {t("duplicate")}
-                                    </FormAction>
-                                    {typeformApp?.isInstalled ? (
-                                      <FormAction
-                                        data-testid="copy-redirect-url"
-                                        routingForm={form}
-                                        action="copyRedirectUrl"
-                                        color="minimal"
-                                        type="button"
-                                        StartIcon={LinkIcon}>
-                                        {t("Copy Typeform Redirect Url")}
-                                      </FormAction>
-                                    ) : null}
-                                    <FormAction
-                                      action="_delete"
-                                      routingForm={form}
-                                      color="destructive"
-                                      className="w-full"
-                                      StartIcon={Trash}>
-                                      {t("delete")}
-                                    </FormAction>
-                                  </FormActionsDropdown>
-                                </ButtonGroup>
-                                {readOnly && (
-                                  <Badge variant="gray" className="ml-2">
-                                    {t("readonly")}
-                                  </Badge>
-                                )}
-                              </>
-                            }>
-                            <div className="flex flex-wrap gap-1">
-                              <Badge variant="gray" startIcon={Menu}>
-                                {fields.length} {fields.length === 1 ? "field" : "fields"}
-                              </Badge>
-                              <Badge variant="gray" startIcon={GitMerge}>
-                                {form.routes.length} {form.routes.length === 1 ? "route" : "routes"}
-                              </Badge>
-                              <Badge variant="gray" startIcon={MessageCircle}>
-                                {form._count.responses}{" "}
-                                {form._count.responses === 1 ? "response" : "responses"}
-                              </Badge>
-                            </div>
-                          </ListLinkItem>
-                        );
-                      })}
-                    </List>
-                  </div>
+                                  ) : null}
+                                  <FormAction
+                                    action="_delete"
+                                    routingForm={form}
+                                    color="destructive"
+                                    className="w-full"
+                                    StartIcon={Trash}>
+                                    {t("delete")}
+                                  </FormAction>
+                                </FormActionsDropdown>
+                              </ButtonGroup>
+                            </>
+                          }>
+                          <div className="flex flex-wrap gap-1">
+                            <Badge variant="gray" startIcon={Menu}>
+                              {fields.length} {fields.length === 1 ? "field" : "fields"}
+                            </Badge>
+                            <Badge variant="gray" startIcon={GitMerge}>
+                              {form.routes.length} {form.routes.length === 1 ? "route" : "routes"}
+                            </Badge>
+                            <Badge variant="gray" startIcon={MessageCircle}>
+                              {form._count.responses} {form._count.responses === 1 ? "response" : "responses"}
+                            </Badge>
+                          </div>
+                        </ListLinkItem>
+                      );
+                    })}
+                  </List>
                 </div>
-              ) : null}
+              </FilterResults>
             </div>
           </div>
         </FormActionsProvider>
@@ -301,7 +311,8 @@ RoutingForms.getLayout = (page: React.ReactElement) => {
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
   prisma: AppPrisma,
-  user: AppUser
+  user: AppUser,
+  ssrInit: AppSsrInit
 ) {
   if (!user) {
     return {
@@ -311,37 +322,16 @@ export const getServerSideProps = async function getServerSideProps(
       },
     };
   }
-  const filters = filterQuerySchema.parse(context.query);
+  const ssr = await ssrInit(context);
 
-  const where = getPrismaWhereFromFilters({ id: user.id }, filters);
-  console.log("where", where);
-  const forms = await prisma.app_RoutingForms_Form.findMany({
-    where,
-    orderBy: {
-      createdAt: "desc",
-    },
-    include: {
-      _count: {
-        select: {
-          responses: true,
-        },
-      },
-    },
+  const filters = getFiltersFromQuery(context.query);
+
+  await ssr.viewer.appRoutingForms.forms.prefetch({
+    filters,
   });
-
-  const serializableForms = [];
-
-  for (const [, form] of Object.entries(forms)) {
-    serializableForms.push({
-      form: await getSerializableForm(form),
-      readOnly: hasWriteAccessToForm(form, user.id),
-    });
-  }
-
   return {
     props: {
-      ...(await serverSideTranslations(context.locale ?? "", ["common"])),
-      forms: serializableForms,
+      trpcState: ssr.dehydrate(),
     },
   };
 };

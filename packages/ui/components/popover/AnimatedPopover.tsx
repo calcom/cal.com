@@ -24,7 +24,7 @@ export const AnimatedPopover = ({
   React.useEffect(() => {
     const handleResize = () => {
       const halfWidth = window.innerWidth / 2;
-      const { x, y } = ref?.current?.getBoundingClientRect() || {
+      const { x } = ref?.current?.getBoundingClientRect() || {
         x: 0,
         y: 0,
       };
@@ -68,7 +68,7 @@ export const AnimatedPopover = ({
       <Popover.Content side="bottom" align={align} asChild>
         <div
           className={classNames(
-            "bg-default border-default scroll-bar absolute z-50 mt-2 max-h-64 w-56 overflow-y-scroll rounded-md border py-[2px] shadow-sm focus-within:outline-none",
+            "bg-default border-default scroll-bar absolute z-50 mt-2 max-h-64 w-56 overflow-y-auto rounded-md border py-[2px] shadow-sm focus-within:outline-none",
             align === "end" && "-translate-x-[228px]"
           )}>
           {children}

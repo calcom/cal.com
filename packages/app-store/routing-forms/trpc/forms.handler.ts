@@ -1,6 +1,8 @@
-import type { App_RoutingForms_Form, Membership, PrismaClient, Team } from "@prisma/client";
-
-import { MembershipRole } from "@calcom/prisma/enums";
+import { hasFilter } from "@calcom/features/filters/lib/hasFilters";
+import { hasUserWriteAccessToEntity } from "@calcom/lib/hasUserWriteAccessToEntity";
+import logger from "@calcom/lib/logger";
+import type { PrismaClient, Prisma } from "@calcom/prisma/client";
+import { entries } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -13,51 +15,13 @@ interface FormsHandlerOptions {
   };
   input: TFormSchema;
 }
-
-// export async function getRolesInTeams({
-//   teamIds,
-//   userId,
-// }: {
-//   userId: User["id"];
-//   teamIds?: App_RoutingForms_Form["teamId"][];
-// }) {
-//   if (!teamIds) {
-//     return null;
-//   }
-//   const validTeamIds = teamIds.filter((teamId): teamId is number => !!teamId);
-//   const matchingTeamsOfLoggedinUser = teamIds
-//     ? await prisma.team.findMany({
-//         where: {
-//           id: {
-//             in: validTeamIds,
-//           },
-//           members: {
-//             some: {
-//               userId,
-//               accepted: true,
-//             },
-//           },
-//         },
-//         select: {
-//           id: true,
-//           members: true,
-//         },
-//       })
-//     : null;
-
-//   return matchingTeamsOfLoggedinUser
-//     ? matchingTeamsOfLoggedinUser.map((team) => {
-//         return {
-//           [team.id]: team.members.map((member) => ({ role: member.role, userId: member.userId })),
-//         };
-//       })
-//     : null;
-// }
+const log = logger.getChildLogger({ prefix: ["[formsHandler]"] });
 
 export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
   const { prisma, user } = ctx;
 
   const where = getPrismaWhereFromFilters(user, input.filters);
+  log.debug("Getting forms where", JSON.stringify(where));
 
   const forms = await prisma.app_RoutingForms_Form.findMany({
     where,
@@ -78,16 +42,22 @@ export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
     },
   });
 
+  const totalForms = await prisma.app_RoutingForms_Form.count();
+
   const serializableForms = [];
   for (let i = 0; i < forms.length; i++) {
     const form = forms[i];
-    const hasWriteAccess = hasWriteAccessToForm(form, user);
+    const hasWriteAccess = hasUserWriteAccessToEntity(form, user.id);
     serializableForms.push({
       form: await getSerializableForm(forms[i]),
       readOnly: !hasWriteAccess,
     });
   }
-  return serializableForms;
+
+  return {
+    filtered: serializableForms,
+    totalCount: totalForms,
+  };
 };
 
 export default formsHandler;
@@ -97,13 +67,16 @@ export function getPrismaWhereFromFilters(
   },
   filters: TFormSchema["filters"]
 ) {
-  if (!Object.keys(filters).length) {
-    filters.all = true;
-  }
   const where = {
-    OR: [],
+    OR: [] as Prisma.App_RoutingForms_FormWhereInput[],
   };
-  const prismaQueries = {
+
+  const prismaQueries: Record<
+    keyof typeof filters,
+    (...args: [number[]]) => Prisma.App_RoutingForms_FormWhereInput
+  > & {
+    all: () => Prisma.App_RoutingForms_FormWhereInput;
+  } = {
     userIds: (userIds: number[]) => ({
       userId: {
         in: userIds,
@@ -119,9 +92,6 @@ export function getPrismaWhereFromFilters(
           some: {
             userId: user.id,
             accepted: true,
-            role: {
-              in: [MembershipRole.ADMIN, MembershipRole.OWNER],
-            },
           },
         },
       },
@@ -137,9 +107,6 @@ export function getPrismaWhereFromFilters(
               some: {
                 userId: user.id,
                 accepted: true,
-                role: {
-                  in: [MembershipRole.ADMIN, MembershipRole.OWNER],
-                },
               },
             },
           },
@@ -147,39 +114,23 @@ export function getPrismaWhereFromFilters(
       ],
     }),
   };
-  console.log("filters", filters);
-  for (const [filterName, filter] of Object.entries(filters)) {
-    const prismaQuery = prismaQueries[filterName];
-    if (!prismaQuery) {
-      continue;
+
+  if (!hasFilter(filters)) {
+    where.OR.push(prismaQueries.all());
+  } else {
+    for (const entry of entries(filters)) {
+      if (!entry) {
+        continue;
+      }
+      const [filterName, filter] = entry;
+      const getPrismaQuery = prismaQueries[filterName];
+      // filter might be accidentally set undefined as well
+      if (!getPrismaQuery || !filter) {
+        continue;
+      }
+      where.OR.push(getPrismaQuery(filter));
     }
-    where.OR.push(prismaQueries[filterName](filter));
   }
 
   return where;
-}
-
-export function hasWriteAccessToForm(
-  form: App_RoutingForms_Form & {
-    team: (Team & { members: Membership[] }) | null;
-    _count: { responses: number };
-  },
-  user: {
-    id: number;
-  }
-) {
-  const ownedByUser = form.userId === user.id;
-  let hasWriteAccess = ownedByUser ? true : false;
-  if (form.team) {
-    const roleForTeamMember = form.team.members.find((member) => member.userId === user.id)?.role;
-    if (roleForTeamMember) {
-      //TODO: Remove type assertion
-      hasWriteAccess =
-        hasWriteAccess ||
-        !([MembershipRole.ADMIN, MembershipRole.OWNER] as unknown as MembershipRole).includes(
-          roleForTeamMember
-        );
-    }
-  }
-  return hasWriteAccess;
 }
