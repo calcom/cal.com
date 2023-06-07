@@ -17,7 +17,7 @@ import { Header } from "./components/Header";
 import { LargeCalendar } from "./components/LargeCalendar";
 import { BookerSection } from "./components/Section";
 import { Away, NotFound } from "./components/Unavailable";
-import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
+import { extraDaysConfig, fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerProps } from "./types";
 import { useEvent } from "./utils/event";
@@ -50,7 +50,7 @@ const BookerComponent = ({
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
     shallow
   );
-  const extraDays = layout !== BookerLayouts.MONTH_VIEW && layout !== "mobile" ? (isTablet ? 2 : 4) : 0;
+  const extraDays = isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop;
   const bookerLayouts = event.data?.profile?.bookerLayouts || {
     defaultLayout: BookerLayouts.MONTH_VIEW,
     enabledLayouts: bookerLayoutOptions,
@@ -162,7 +162,7 @@ const BookerComponent = ({
               visible={layout === BookerLayouts.WEEK_VIEW}
               className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l"
               {...fadeInLeft}>
-              <LargeCalendar />
+              <LargeCalendar extraDays={extraDays} />
             </BookerSection>
 
             <BookerSection

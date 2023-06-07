@@ -7,11 +7,10 @@ import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/week
 import { useBookerStore } from "../store";
 import { useScheduleForEvent } from "../utils/event";
 
-export const LargeCalendar = () => {
+export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
-  const extraDays = 5;
   const schedule = useScheduleForEvent({
     prefetchNextMonth: !!extraDays && dayjs(date).month() !== dayjs(date).add(extraDays, "day").month(),
   });
