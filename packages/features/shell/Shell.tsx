@@ -1,4 +1,4 @@
-import type { User } from "@prisma/client";
+import type { User as UserAuth } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -26,6 +26,7 @@ import getBrandColours from "@calcom/lib/getBrandColours";
 import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
+import type { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
 import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
@@ -66,7 +67,8 @@ import {
   Map,
   Moon,
   MoreHorizontal,
-  MoreVertical,
+  ChevronDown,
+  Copy,
   Settings,
   Slack,
   Users,
@@ -322,10 +324,10 @@ function UserDropdown({ small }: { small?: boolean }) {
     <Dropdown open={menuOpen}>
       <div className="ltr:sm:-ml-5 rtl:sm:-mr-5">
         <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
-          <button className="radix-state-open:bg-emphasis hover:bg-emphasis group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none focus:outline-none focus:ring-0 sm:mx-2.5 sm:pl-3 md:rounded-none lg:rounded lg:pl-2">
+          <button className="group mx-0 ml-7 flex cursor-pointer appearance-none items-center rounded-full text-left outline-none focus:outline-none focus:ring-0 md:rounded-none lg:rounded">
             <span
               className={classNames(
-                small ? "h-6 w-6 md:ml-3" : "h-8 w-8 ltr:mr-2 rtl:ml-2",
+                small ? "h-4 w-4 md:ml-3" : "h-6 w-6 ltr:mr-2 rtl:ml-2",
                 "relative flex-shrink-0 rounded-full bg-gray-300 "
               )}>
               {
@@ -344,21 +346,14 @@ function UserDropdown({ small }: { small?: boolean }) {
               )}
             </span>
             {!small && (
-              <span className="flex flex-grow items-center truncate">
-                <span className="flex-grow truncate text-sm">
-                  <span className="text-emphasis mb-1 block truncate pb-1 font-medium leading-none">
+              <span className="flex items-center gap-1 truncate">
+                <span className="truncate text-sm">
+                  <span className="text-emphasis block truncate font-medium leading-none">
                     {user.name || "Nameless User"}
                   </span>
-                  <span className="text-default truncate pb-1 font-normal leading-none">
-                    {user.username
-                      ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
-                        ? `${orgBranding && orgBranding.slug}cal.com/${user.username}`
-                        : `${orgBranding && orgBranding.slug}/${user.username}`
-                      : "No public page"}
-                  </span>
                 </span>
-                <MoreVertical
-                  className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2 rtl:mr-4"
+                <ChevronDown
+                  className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
                   aria-hidden="true"
                 />
               </span>
@@ -393,34 +388,6 @@ function UserDropdown({ small }: { small?: boolean }) {
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                {user.username && (
-                  <>
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
-                        StartIcon={ExternalLink}>
-                        {t("view_public_page")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        StartIcon={LinkIcon}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          navigator.clipboard.writeText(
-                            `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`
-                          );
-                          showToast(t("link_copied"), "success");
-                        }}>
-                        {t("copy_public_page_link")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                  </>
-                )}
-                <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <DropdownItem
                     StartIcon={(props) => <Slack strokeWidth={1.5} {...props} />}
@@ -452,12 +419,6 @@ function UserDropdown({ small }: { small?: boolean }) {
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem>
-                  <DropdownItem type="button" href="/settings/my-account/profile" StartIcon={Settings}>
-                    {t("settings")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem>
                   <DropdownItem
                     type="button"
                     StartIcon={(props) => <LogOut aria-hidden="true" {...props} />}
@@ -477,6 +438,7 @@ function UserDropdown({ small }: { small?: boolean }) {
 export type NavigationItemType = {
   name: string;
   href: string;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   badge?: React.ReactNode;
   icon?: SVGComponent;
   child?: NavigationItemType[];
@@ -488,7 +450,7 @@ export type NavigationItemType = {
     isChild,
     router,
   }: {
-    item: NavigationItemType;
+    item: Pick<NavigationItemType, "href">;
     isChild?: boolean;
     router: NextRouter;
   }) => boolean;
@@ -582,11 +544,6 @@ const navigation: NavigationItemType[] = [
     name: "insights",
     href: "/insights",
     icon: BarChart,
-  },
-  {
-    name: "settings",
-    href: "/settings/my-account/profile",
-    icon: Settings,
   },
 ];
 
@@ -778,10 +735,11 @@ type SideBarContainerProps = {
 
 type SideBarProps = {
   bannersHeight: number;
+  user?: UserAuth | null;
 };
 
 function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
-  const { status } = useSession();
+  const { status, data } = useSession();
   const router = useRouter();
 
   // Make sure that Sidebar is rendered optimistically so that a refresh of pages when logged in have SideBar from the beginning.
@@ -789,10 +747,38 @@ function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
   // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
   if (status !== "loading" && status !== "authenticated") return null;
   if (router.route.startsWith("/v2/settings/")) return null;
-  return <SideBar bannersHeight={bannersHeight} />;
+  return <SideBar bannersHeight={bannersHeight} user={data?.user} />;
 }
 
-function SideBar({ bannersHeight }: SideBarProps) {
+function SideBar({ bannersHeight, user }: SideBarProps) {
+  const { t, isLocaleReady } = useLocale();
+  const router = useRouter();
+  const bottomNavItems: NavigationItemType[] = [
+    ...(user?.username
+      ? [
+          {
+            name: "view_public_page",
+            href: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`,
+            icon: ExternalLink,
+          },
+          {
+            name: "copy_public_page_link",
+            href: "",
+            onClick: (e: { preventDefault: () => void }) => {
+              e.preventDefault();
+              navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`);
+              showToast(t("link_copied"), "success");
+            },
+            icon: Copy,
+          },
+        ]
+      : []),
+    {
+      name: "settings",
+      href: "/settings/my-account/profile",
+      icon: Settings,
+    },
+  ];
   const orgBranding = useOrgBrandingValues();
   return (
     <div className="relative">
@@ -801,16 +787,27 @@ function SideBar({ bannersHeight }: SideBarProps) {
         className="desktop-transparent bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-4">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-6 ">
           <header className="items-center justify-between md:hidden lg:flex">
-            <Link href="/event-types" className="px-2">
-              {orgBranding ? (
-                <div className="flex items-center gap-2 font-medium">
-                  {orgBranding.logo && <Avatar alt="" imageSrc={orgBranding.logo} size="sm" />}
-                  <p className="text text-sm">{orgBranding.name}</p>
-                </div>
-              ) : (
-                <Logo small />
-              )}
-            </Link>
+            {orgBranding ? (
+              <Link href="/event-types" className="px-2">
+                {orgBranding ? (
+                  <div className="flex items-center gap-2 font-medium">
+                    {orgBranding.logo && <Avatar alt="" imageSrc={orgBranding.logo} size="sm" />}
+                    <p className="text text-sm">{orgBranding.name}</p>
+                  </div>
+                ) : (
+                  <Logo small />
+                )}
+              </Link>
+            ) : (
+              <div data-testid="user-dropdown-trigger">
+                <span className="hidden lg:inline">
+                  <UserDropdown />
+                </span>
+                <span className="hidden md:inline lg:hidden">
+                  <UserDropdown small />
+                </span>
+              </div>
+            )}
             <div className="flex space-x-2 rtl:space-x-reverse">
               <button
                 color="minimal"
@@ -824,6 +821,13 @@ function SideBar({ bannersHeight }: SideBarProps) {
                 className="desktop-only hover:text-emphasis text-subtle group flex text-sm font-medium">
                 <ArrowRight className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0" />
               </button>
+              {/*<Link href="/settings/my-account/profile">
+                <button
+                  color="minimal"
+                  className="text-default hover:bg-subtle lg:hover:bg-emphasis lg:hover:text-emphasis group flex rounded-md py-2 px-3 text-sm font-medium lg:p-1">
+                  <Settings className="h-4 w-4 flex-shrink-0 text-inherit" />
+                </button>
+            </Link>*/}
               <KBarTrigger />
             </div>
           </header>
@@ -840,14 +844,40 @@ function SideBar({ bannersHeight }: SideBarProps) {
 
         <div>
           <Tips />
-          <div data-testid="user-dropdown-trigger">
-            <span className="hidden lg:inline">
-              <UserDropdown />
-            </span>
-            <span className="hidden md:inline lg:hidden">
-              <UserDropdown small />
-            </span>
-          </div>
+          <Tooltip side="right" content={t("settings")} className="lg:hidden">
+            <Link
+              href="/settings/my-account/profile"
+              aria-label={t("settings")}
+              className={classNames(
+                "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md py-2 px-3 text-sm font-medium",
+                "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
+                isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : ""
+              )}
+              aria-current={
+                defaultIsCurrent &&
+                defaultIsCurrent({ item: { href: "/settings/my-account/profile" }, router })
+                  ? "page"
+                  : undefined
+              }>
+              <Settings
+                className="mr-2 h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2 [&[aria-current='page']]:text-inherit"
+                aria-hidden="true"
+                aria-current={
+                  defaultIsCurrent &&
+                  defaultIsCurrent({ item: { href: "/settings/my-account/profile" }, router })
+                    ? "page"
+                    : undefined
+                }
+              />
+              {isLocaleReady ? (
+                <span className="hidden w-full justify-between lg:flex">
+                  <div className="flex">{t("settings")}</div>
+                </span>
+              ) : (
+                <SkeletonText style={{ width: `${"settings".length * 10}px` }} className="h-[20px]" />
+              )}
+            </Link>
+          </Tooltip>
           <Credits />
         </div>
       </aside>
