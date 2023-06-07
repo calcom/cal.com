@@ -15,7 +15,7 @@ import { seoConfig } from "@lib/config/next-seo.config";
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
 
 export interface CalPageWrapper {
-  (props?: any): JSX.Element;
+  (props?: AppProps): JSX.Element;
   PageWrapper?: AppProps["Component"]["PageWrapper"];
 }
 

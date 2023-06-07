@@ -9,6 +9,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Button, StepCard, Steps } from "@calcom/ui";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -202,6 +203,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       darkBrandColor: true,
       metadata: true,
       timeFormat: true,
+      organization: {
+        select: {
+          slug: true,
+          metadata: true,
+        },
+      },
       allowDynamicBooking: true,
       defaultScheduleId: true,
       completedOnboarding: true,
@@ -233,6 +240,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       ...(await serverSideTranslations(context.locale ?? "", ["common"])),
       user: {
         ...user,
+        ...(user.organization && {
+          organization: {
+            ...user.organization,
+            metadata: teamMetadataSchema.parse(user.organization.metadata),
+          },
+        }),
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },
       hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,

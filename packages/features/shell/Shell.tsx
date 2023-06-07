@@ -18,6 +18,7 @@ import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
+import VerifyEmailBanner from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
@@ -26,6 +27,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { trpc } from "@calcom/trpc/react";
 import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
+import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 import {
@@ -123,17 +125,23 @@ function useRedirectToOnboardingIfNeeded() {
   const router = useRouter();
   const query = useMeQuery();
   const user = query.data;
+  const flags = useFlagMap();
+
+  const { data: email } = useEmailVerifyCheck();
+
+  const needsEmailVerification = !email?.isVerified && flags["email-verification"];
 
   const isRedirectingToOnboarding = user && shouldShowOnboarding(user);
 
   useEffect(() => {
-    if (isRedirectingToOnboarding) {
+    if (isRedirectingToOnboarding && !needsEmailVerification) {
       router.replace({
         pathname: "/getting-started",
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRedirectingToOnboarding]);
+  }, [isRedirectingToOnboarding, needsEmailVerification]);
+
   return {
     isRedirectingToOnboarding,
   };
@@ -182,6 +190,7 @@ const Layout = (props: LayoutProps) => {
           <TeamsUpgradeBanner />
           <ImpersonatingBanner />
           <AdminPasswordBanner />
+          <VerifyEmailBanner />
         </div>
         <div className="flex flex-1" data-testid="dashboard-shell">
           {props.SidebarContainer || <SideBarContainer bannersHeight={bannersHeight} />}
