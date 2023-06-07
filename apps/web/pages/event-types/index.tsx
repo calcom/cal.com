@@ -7,6 +7,8 @@ import type { FC } from "react";
 import { useEffect, useState, memo } from "react";
 import { z } from "zod";
 
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
@@ -196,6 +198,7 @@ const MemoizedItem = memo(Item);
 export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
+  const orgBranding = useOrgBrandingValues();
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
@@ -364,7 +367,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
-          const calLink = `${CAL_URL}/${embedLink}`;
+          const calLink = `${
+            orgBranding ? `${orgBranding.slug}.${subdomainSuffix()}` : CAL_URL
+          }/${embedLink}`;
           const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
           const isChildrenManagedEventType =
             type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;

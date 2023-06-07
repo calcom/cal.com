@@ -111,11 +111,10 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
     });
   };
 
-  const usernamePrefix = orgBranding
-    ? orgBranding.slug
+  const usernamePrefix =
+    orgBranding && orgBranding.slug
       ? `${orgBranding.slug}.${subdomainSuffix()}`
-      : `${orgBranding.metadata && orgBranding.metadata.requestedSlug}.${subdomainSuffix()}`
-    : process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "");
+      : process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "");
 
   return (
     <div>

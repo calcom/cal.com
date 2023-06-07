@@ -5,8 +5,9 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
-import { CAL_URL } from "@calcom/lib/constants";
+import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -49,8 +50,12 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
       <div className="m-8 flex items-center justify-center">
         <EmptyScreen
           avatar={<Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />}
-          headline={t("team_is_unpublished", { team: teamName })}
-          description={t("team_is_unpublished_description")}
+          headline={t("team_is_unpublished", {
+            team: teamName,
+          })}
+          description={t("team_is_unpublished_description", {
+            entity: team.metadata?.isOrganization ? t("organization").toLowerCase() : t("team").toLowerCase(),
+          })}
         />
       </div>
     );
@@ -106,6 +111,55 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
     </ul>
   );
 
+  const SubTeams = () =>
+    team.children.length ? (
+      <ul className="divide-subtle border-subtle bg-default !static w-full divide-y rounded-md border">
+        {team.children.map((ch, i) => (
+          <li key={i} className="hover:bg-muted w-full">
+            <Link
+              href={`${team.slug}.${subdomainSuffix()}/${ch.slug}`}
+              className="flex items-center justify-between">
+              <div className="flex items-center px-5 py-5">
+                <Avatar
+                  size="md"
+                  imageSrc={getPlaceholderAvatar(ch?.logo, ch?.name as string)}
+                  alt="Team Logo"
+                  className="inline-flex justify-center"
+                />
+                <div className="ms-3 inline-block truncate">
+                  <span className="text-default text-sm font-bold">{ch.name}</span>
+                  <span className="text-subtle block text-xs">
+                    {t("number_member", { count: ch.members.length })}
+                  </span>
+                </div>
+              </div>
+              <AvatarGroup
+                className="mr-6"
+                size="sm"
+                truncateAfter={4}
+                items={ch.members.map((member: { name: string | null; username: string | null }) => ({
+                  alt: member.name || "",
+                  image: `${WEBAPP_URL}/${member.username}/avatar.png`,
+                  title: member.name || "",
+                }))}
+              />
+            </Link>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <div className="space-y-6" data-testid="event-types">
+        <div className="overflow-hidden rounded-sm border dark:border-gray-900">
+          <div className="text-muted dark:text-inverted p-8 text-center">
+            <h2 className="font-cal dark:text-inverted text-emphasis600 mb-2 text-3xl">
+              {" " + t("no_teams_yet")}
+            </h2>
+            <p className="mx-auto max-w-md">{t("no_teams_yet_description")}</p>
+          </div>
+        </div>
+      </div>
+    );
+
   return (
     <>
       <HeadSeo
@@ -129,43 +183,49 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
             </>
           )}
         </div>
-        {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
-        {!showMembers.isOn && team.eventTypes.length > 0 && (
-          <div className="mx-auto max-w-3xl ">
-            <EventTypes />
+        {team.metadata?.isOrganization ? (
+          <SubTeams />
+        ) : (
+          <>
+            {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
+            {!showMembers.isOn && team.eventTypes.length > 0 && (
+              <div className="mx-auto max-w-3xl ">
+                <EventTypes />
 
-            {!team.hideBookATeamMember && (
-              <div>
-                <div className="relative mt-12">
-                  <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                    <div className="border-subtle w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center">
-                    <span className="dark:bg-darkgray-50 bg-subtle text-subtle dark:text-inverted px-2 text-sm">
-                      {t("or")}
-                    </span>
-                  </div>
-                </div>
+                {!team.hideBookATeamMember && (
+                  <div>
+                    <div className="relative mt-12">
+                      <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                        <div className="border-subtle w-full border-t" />
+                      </div>
+                      <div className="relative flex justify-center">
+                        <span className="dark:bg-darkgray-50 bg-subtle text-subtle dark:text-inverted px-2 text-sm">
+                          {t("or")}
+                        </span>
+                      </div>
+                    </div>
 
-                <aside className="dark:text-inverted mt-8 flex justify-center text-center">
-                  <Button
-                    color="minimal"
-                    EndIcon={ArrowRight}
-                    className="dark:hover:bg-darkgray-200"
-                    href={{
-                      pathname: `/team/${team.slug}`,
-                      query: {
-                        members: "1",
-                        ...queryParamsToForward,
-                      },
-                    }}
-                    shallow={true}>
-                    {t("book_a_team_member")}
-                  </Button>
-                </aside>
+                    <aside className="dark:text-inverted mt-8 flex justify-center text-center">
+                      <Button
+                        color="minimal"
+                        EndIcon={ArrowRight}
+                        className="dark:hover:bg-darkgray-200"
+                        href={{
+                          pathname: `/team/${team.slug}`,
+                          query: {
+                            members: "1",
+                            ...queryParamsToForward,
+                          },
+                        }}
+                        shallow={true}>
+                        {t("book_a_team_member")}
+                      </Button>
+                    </aside>
+                  </div>
+                )}
               </div>
             )}
-          </div>
+          </>
         )}
       </main>
     </>

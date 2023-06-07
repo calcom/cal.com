@@ -25,8 +25,11 @@ export const getBrandHandler = async ({ ctx }: VerifyCodeOptions) => {
     },
   });
 
+  const metadata = teamMetadataSchema.parse(team?.metadata);
+  const slug = team.slug || metadata.requestedSlug;
+
   return {
     ...team,
-    metadata: teamMetadataSchema.parse(team?.metadata),
+    slug,
   };
 };
