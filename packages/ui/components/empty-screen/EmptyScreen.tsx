@@ -16,6 +16,8 @@ export function EmptyScreen({
   buttonOnClick,
   buttonRaw,
   border = true,
+  dashedBorder = true,
+  className,
 }: {
   Icon?: SVGComponent | IconType;
   avatar?: React.ReactElement;
@@ -25,14 +27,17 @@ export function EmptyScreen({
   buttonOnClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   buttonRaw?: ReactNode; // Used incase you want to provide your own button.
   border?: boolean;
-}) {
+  dashedBorder?: boolean;
+} & React.HTMLAttributes<HTMLDivElement>) {
   return (
     <>
       <div
         data-testid="empty-screen"
         className={classNames(
           "min-h-80 flex w-full flex-col items-center justify-center rounded-md p-7 lg:p-20",
-          border && "border-subtle border border-dashed"
+          border && "border-subtle border",
+          dashedBorder && "border-dashed",
+          className
         )}>
         {!avatar ? null : (
           <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full">{avatar}</div>
