@@ -55,6 +55,12 @@ export const bookerLayouts = z
   })
   .nullable();
 
+export const defaultBookerLayoutSettings = {
+  defaultLayout: BookerLayouts.MONTH_VIEW,
+  // if the user has no explicit layouts set (not in user profile and not in event settings), we only show the month view.
+  enabledLayouts: [BookerLayouts.MONTH_VIEW],
+};
+
 export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
 
 export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);

@@ -99,7 +99,7 @@ const AppearanceView = () => {
     <Form
       form={formMethods}
       handleSubmit={(values) => {
-        const layoutError = validateBookerLayouts(values.defaultBookerLayouts || null);
+        const layoutError = validateBookerLayouts(values?.metadata?.defaultBookerLayouts || null);
         if (layoutError) throw new Error(t(layoutError));
 
         mutation.mutate({
