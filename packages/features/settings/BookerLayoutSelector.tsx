@@ -44,7 +44,7 @@ export const BookerLayoutSelector = ({
   return (
     <>
       <Label className="mb-0">{title ? title : t("bookerlayout_title")}</Label>
-      <p className="text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[500px]">
+      <p className="text-subtle max-w-full break-words py-1 text-sm">
         {description ? description : t("bookerlayout_description")}
       </p>
       <Controller
