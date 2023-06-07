@@ -25,6 +25,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       username: true,
       name: true,
       email: true,
+      emailVerified: true,
       bio: true,
       timeZone: true,
       weekStart: true,

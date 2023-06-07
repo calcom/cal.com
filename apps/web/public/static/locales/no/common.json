@@ -9,6 +9,7 @@
   "calcom_explained": "{{appName}} er en åpen kildekodeversjon av Calendly som gir deg kontroll over dine egne data, arbeidsflyt og utseende.",
   "have_any_questions": "Har du spørsmål? Vi er her for å hjelpe.",
   "reset_password_subject": "{{appName}}: Instruksjoner for tilbakestilling av passord",
+  "verify_email_banner_button": "Send e-post",
   "event_declined_subject": "Avslått: {{title}} kl. {{date}}",
   "event_cancelled_subject": "Avbrutt: {{title}} kl. {{date}}",
   "event_request_declined": "Din hendelsesforespørsel har blitt avvist",

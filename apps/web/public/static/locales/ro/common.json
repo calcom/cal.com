@@ -11,6 +11,7 @@
   "calcom_explained_new_user": "Finalizați configurarea contului {{appName}}! Mai aveți doar câțiva pași până la soluționarea tuturor problemelor legate de program.",
   "have_any_questions": "Aveți întrebări? Suntem aici pentru a vă ajuta.",
   "reset_password_subject": "{{appName}}: instrucțiuni de resetare a parolei",
+  "verify_email_banner_button": "Trimiteți un e-mail",
   "event_declined_subject": "Refuzat: {{title}} în {{date}}",
   "event_cancelled_subject": "Anulat: {{title}} în {{date}}",
   "event_request_declined": "Solicitarea pentru eveniment a fost refuzată",

@@ -11,6 +11,7 @@
   "calcom_explained_new_user": "Završite podešavanje vašeg {{appName}} naloga! Na par koraka ste od rešavanja svih problema sa rasporedom.",
   "have_any_questions": "Imate pitanja? Tu smo da pomognemo.",
   "reset_password_subject": "{{appName}}: Upustva za resetovanje lozinke",
+  "verify_email_banner_button": "Pošaljite imejl",
   "event_declined_subject": "Odbijeno: {{title}} datuma {{date}}",
   "event_cancelled_subject": "Otkazano: {{title}} datuma {{date}}",
   "event_request_declined": "Vaš zahtev za događaj je odbijen",
