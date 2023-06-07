@@ -92,7 +92,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       .filter((app) => app.extendsFeature?.includes(extendsFeature))
       .map((app) => ({
         ...app,
-        isInstalled: !!app.credentialIds?.length,
+        isInstalled: !!app.credentialIds?.length || !!app.teams.length,
       }));
   }
 
