@@ -6,7 +6,6 @@ import type { useForm } from "react-hook-form";
 import type { EventLocationType, LocationObject } from "@calcom/app-store/locations";
 import { getEventLocationType } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc";
 import { Button } from "@calcom/ui";
 import { Plus } from "@calcom/ui/components/icon";
 
@@ -16,7 +15,6 @@ import type { LocationOption } from "@components/ui/form/LocationSelect";
 import LocationSelect from "@components/ui/form/LocationSelect";
 import type { SingleValueLocationOption } from "@components/ui/form/LocationSelect";
 
-type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 type Props = {
   eventLocationType: EventLocationType;
   isChildrenManagedEventType: any;

@@ -34,7 +34,7 @@ export const EditLocation = (props: Props) => {
     if (eventLocationType?.organizerInputType) {
       setShowEditAddressSelect(true);
     }
-  }, [props.selection, eventLocationType.type]);
+  }, [props.selection, eventLocationType.type, eventLocationType?.organizerInputType]);
   if (!eventLocationType) {
     return null;
   }

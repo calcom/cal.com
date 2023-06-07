@@ -1,11 +1,10 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { Trans } from "next-i18next";
+import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
-import { Controller, useForm, useFormContext } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 import type { MultiValue } from "react-select";
-import { z } from "zod";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, LocationType, MeetLocationType } from "@calcom/app-store/locations";
@@ -25,8 +24,8 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
+import { Check } from "@calcom/ui/components/icon";
 
-import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { AddLocation } from "@components/eventtype/AddLocation";
 import type { LocationOption } from "@components/ui/form/LocationSelect";
 
@@ -151,7 +150,6 @@ export const EventSetupTab = (
   };
 
   const saveLocation = (newLocationType: EventLocationType["type"], details = {}) => {
-    
     const locationType = editingLocationType !== "" ? editingLocationType : newLocationType;
     const existingIdx = formMethods.getValues("locations").findIndex((loc) => locationType === loc.type);
     if (existingIdx !== -1) {
@@ -180,27 +178,6 @@ export const EventSetupTab = (
     setShowLocationModal(false);
   };
 
-  const locationFormSchema = z.object({
-    locationType: z.string(),
-    locationAddress: z.string().optional(),
-    displayLocationPublicly: z.boolean().optional(),
-    locationPhoneNumber: z
-      .string()
-      .refine((val) => isValidPhoneNumber(val))
-      .optional(),
-    locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
-  });
-
-  const locationFormMethods = useForm<{
-    locationType: EventLocationType["type"];
-    locationPhoneNumber?: string;
-    locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
-    locationLink?: string; // Currently this only accepts links that are HTTPS://
-    displayLocationPublicly?: boolean;
-  }>({
-    resolver: zodResolver(locationFormSchema),
-  });
-
   const { isChildrenManagedEventType, isManagedEventType, shouldLockIndicator, shouldLockDisableProps } =
     useLockedFieldsManager(
       eventType,
@@ -222,14 +199,7 @@ export const EventSetupTab = (
       return true;
     });
 
-    const defaultValue = isManagedEventType
-      ? locationOptions.find((op) => op.label === t("default"))?.options[0]
-      : undefined;
-
     const { locationDetails, locationAvailable } = getLocationInfo(props);
-    const [showSelect, setShowSelect] = useState(false);
-    const [showAddressSelect, setShowAddressSelect] = useState(false);
-    const [selectedEventLocationType, setSelectedEventLocationType] = useState(null);
     return (
       <div className="w-full">
         {validLocations.length > 0 && (
@@ -284,6 +254,13 @@ export const EventSetupTab = (
           isManagedEventType={isManagedEventType}
           isChildrenManagedEventType={isChildrenManagedEventType}
         />
+        <Trans i18nKey="cant_find_the_right_video_app_visit_our_app_store">
+          Can&apos;t find the right video app? Visit our
+          <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/video">
+            App Store
+          </Link>
+          .
+        </Trans>
       </div>
     );
   };
@@ -438,7 +415,7 @@ export const EventSetupTab = (
       </div>
 
       {/* We portal this modal so we can submit the form inside. Otherwise we get issues submitting two forms at once  */}
-      <EditLocationDialog
+      {/* <EditLocationDialog
         isTeamEvent={!!team}
         isOpenDialog={showLocationModal}
         setShowLocationModal={setShowLocationModal}
@@ -451,7 +428,7 @@ export const EventSetupTab = (
         }
         setSelectedLocation={setSelectedLocation}
         setEditingLocationType={setEditingLocationType}
-      />
+      /> */}
     </div>
   );
 };

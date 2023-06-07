@@ -1,8 +1,21 @@
+import type { EventTypeSetupProps } from "pages/event-types/[type]";
+import type { useForm } from "react-hook-form";
+
+import type { EventLocationType } from "@calcom/app-store/locations";
 import cx from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Edit2, X } from "@calcom/ui/components/icon";
 
-type Props = {};
+type Props = {
+  location: EventLocationType["type"];
+  index: number;
+  eventLocationType: EventLocationType;
+  eventLabel: string;
+  locationFormMethods: ReturnType<typeof useForm>;
+  removeLocation: (selectedLocation: EventTypeSetupProps["eventType"]["locations"][number]) => void;
+  setEditingLocationType: (value: string) => void;
+  openLocationModal: (value: EventLocationType["type"]) => void;
+};
 
 export const SavedLocationField = (props: Props) => {
   const {
