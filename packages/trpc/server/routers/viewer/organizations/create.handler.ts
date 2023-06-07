@@ -4,7 +4,7 @@ import { totp } from "otplib";
 import { sendOrganizationEmailVerification } from "@calcom/emails";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { IS_PRODUCTION, IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -94,7 +94,7 @@ export const createHandler = async ({ input }: CreateOptions) => {
       },
     });
 
-    await vercelCreateDomain(slug);
+    if (IS_PRODUCTION) await vercelCreateDomain(slug);
 
     await prisma.membership.create({
       data: {
