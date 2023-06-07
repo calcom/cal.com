@@ -7,7 +7,6 @@ import { useCalendarStore } from "../../state/store";
 import type { CalendarAvailableTimeslots } from "../../types/state";
 import type { GridCellToDateProps } from "../../utils";
 import { gridCellToDateTime } from "../../utils";
-import { BlockedTimeCell } from "../blocking/BlockedTimeCell";
 
 type EmptyCellProps = GridCellToDateProps & {
   availableSlots?: CalendarAvailableTimeslots;
@@ -40,25 +39,22 @@ export function EmptyCell(props: EmptyCellProps) {
 
   return (
     <div
-      className={classNames("group w-full", isDisabled && "pointer-events-none")}
+      className={classNames("group w-full", isDisabled && "pointer-events-none", !isDisabled && "bg-default")}
       data-disabled={isDisabled}
       data-day={props.day.toISOString()}
       style={{ height: `calc(${hoverEventDuration}*var(--one-minute-height))`, overflow: "visible" }}
       onClick={() => onEmptyCellClick && onEmptyCellClick(cellToDate.toDate())}>
-      {isDisabled && (
-        <div className="relative" style={{ height: `calc(${hoverEventDuration}*var(--one-minute-height))` }}>
-          <BlockedTimeCell />
-        </div>
-      )}
       {!isDisabled && hoverEventDuration !== 0 && (
         <div
-          className="opacity-4 bg-subtle hover:bg-emphasis  text-emphasis absolute inset-x-1 hidden  rounded-[4px]
-          border-[1px]
-          border-gray-900 py-1 px-[6px] text-xs font-semibold leading-5 group-hover:block group-hover:cursor-pointer"
+          className="opacity-4 bg-subtle hover:bg-emphasis  text-emphasis dark:border-emphasis absolute hidden
+          rounded-[4px]
+          border-[1px] border-gray-900 py-1 px-[6px] text-xs font-semibold leading-5 group-hover:block group-hover:cursor-pointer"
           style={{
             height: `calc(${hoverEventDuration}*var(--one-minute-height))`,
             zIndex: 49,
-            width: "90%",
+            // @TODO: This used to be 90% as per Sean's work. I think this was needed when
+            // multiple events are stacked next to each other. We might need to add this back later.
+            width: "100%",
           }}>
           <div className=" overflow-ellipsis leading-4">
             {cellToDate.format("HH:mm")}

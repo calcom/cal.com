@@ -5,7 +5,6 @@ import "../styles/styles.css";
 import type { CalendarComponentProps } from "../types/state";
 import { calculateHourSizeInPx, getDaysBetweenDates, getHoursToDisplay } from "../utils";
 import { DateValues } from "./DateValues";
-import { BlockedList } from "./blocking/BlockedList";
 import { EmptyCell } from "./event/Empty";
 import { EventList } from "./event/EventList";
 import { SchedulerColumns } from "./grid";
@@ -79,7 +78,13 @@ export function Calendar(props: CalendarComponentProps) {
           /> */}
             <div className="flex flex-auto">
               <div className="bg-default ring-muted sticky left-0 z-10 w-14 flex-none ring-1" />
-              <div className="grid flex-auto grid-cols-1 grid-rows-1 ">
+              <div
+                className="grid flex-auto grid-cols-1 grid-rows-1 [--disabled-gradient-foreground:#E6E7EB] [--disabled-gradient-background:#F8F9FB] dark:[--disabled-gradient-background:#262626] dark:[--disabled-gradient-foreground:#393939]"
+                style={{
+                  backgroundColor: "var(--disabled-gradient-background)",
+                  background:
+                    "repeating-linear-gradient(-45deg, var(--disabled-gradient-background), var(--disabled-gradient-background) 2.5px, var(--disabled-gradient-foreground) 2.5px, var(--disabled-gradient-foreground) 5px)",
+                }}>
                 <HorizontalLines
                   hours={hours}
                   numberOfGridStopsPerCell={usersCellsStopsPerHour}
@@ -129,7 +134,7 @@ export function Calendar(props: CalendarComponentProps) {
                     return (
                       <li key={day.toISOString()} className="relative" style={{ gridColumnStart: i + 1 }}>
                         <EventList day={day} />
-                        <BlockedList day={day} containerRef={container} />
+                        {/* <BlockedList day={day} containerRef={container} /> */}
                       </li>
                     );
                   })}
