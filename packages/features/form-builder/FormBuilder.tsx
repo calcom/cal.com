@@ -466,7 +466,6 @@ export const FormBuilder = function FormBuilder({
               <SelectField
                 defaultValue={FieldTypes[3]} // "text" as defaultValue
                 id="test-field-type"
-                openMenuOnFocus={false}
                 isDisabled={
                   fieldForm.getValues("editable") === "system" ||
                   fieldForm.getValues("editable") === "system-but-optional"
@@ -699,6 +698,7 @@ export const ComponentForField = ({
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
           readOnly={readOnly}
+          openMenuOnFocus={true}
           value={value as string}
           name={field.name}
           placeholder={field.placeholder}
@@ -718,6 +718,7 @@ export const ComponentForField = ({
         <componentConfig.factory
           placeholder={field.placeholder}
           name={field.name}
+          openMenuOnFocus={true}
           readOnly={readOnly}
           value={value as string[]}
           setValue={setValue as (arg: typeof value) => void}
@@ -740,6 +741,7 @@ export const ComponentForField = ({
           placeholder={field.placeholder}
           readOnly={readOnly}
           name={field.name}
+          openMenuOnFocus={true}          
           value={value as { value: string; optionValue: string }}
           setValue={setValue as (arg: typeof value) => void}
           optionsInputs={field.optionsInputs}

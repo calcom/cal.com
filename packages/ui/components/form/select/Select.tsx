@@ -38,7 +38,6 @@ export const Select = <
   return (
     <ReactSelect
       {...reactSelectProps}
-      openMenuOnFocus
       classNames={{
         input: () => cx("text-emphasis", props.classNames?.input),
         option: (state) =>
