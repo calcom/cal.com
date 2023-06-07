@@ -352,8 +352,12 @@ function UserDropdown({ small }: { small?: boolean }) {
                   <span className="text-default truncate pb-1 font-normal leading-none">
                     {user.username
                       ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
-                        ? `${orgBranding && orgBranding.slug}cal.com/${user.username}`
-                        : `${orgBranding && orgBranding.slug}/${user.username}`
+                        ? `${
+                            orgBranding && (orgBranding.slug || orgBranding.metadata?.requestedSlug)
+                          }cal.com/${user.username}`
+                        : `${orgBranding && (orgBranding.slug || orgBranding.metadata?.requestedSlug)}/${
+                            user.username
+                          }`
                       : "No public page"}
                   </span>
                 </span>

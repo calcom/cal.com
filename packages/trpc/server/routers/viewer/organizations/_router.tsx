@@ -2,7 +2,6 @@ import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateTeamsSchema } from "./createTeams.schema";
-import { ZGetBrandSchema } from "./getBrand.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZVerifyCodeInputSchema } from "./verifyCode.schema";
@@ -100,7 +99,7 @@ export const viewerOrganizationsRouter = router({
       input,
     });
   }),
-  getBrand: authedProcedure.input(ZGetBrandSchema).query(async ({ ctx, input }) => {
+  getBrand: authedProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.getBrand) {
       UNSTABLE_HANDLER_CACHE.getBrand = await import("./getBrand.handler").then((mod) => mod.getBrandHandler);
     }
@@ -112,7 +111,6 @@ export const viewerOrganizationsRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.getBrand({
       ctx,
-      input,
     });
   }),
 });
