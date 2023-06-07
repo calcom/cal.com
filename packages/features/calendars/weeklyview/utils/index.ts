@@ -90,3 +90,17 @@ export function mergeOverlappingDateRanges(dateRanges: TimeRange[]) {
   }
   return mergedDateRanges;
 }
+
+export function calculateHourSizeInPx(
+  gridElementRef: HTMLOListElement | null,
+  startHour: number,
+  endHour: number
+) {
+  // Gap added at bottom to give calendar some breathing room.
+  // I guess we could come up with a better way to do this in the future.
+  const gapOnBottom = 50;
+  // In case the calendar has for example a header above it. We take a look at the
+  // distance the grid is rendered from the top, and subtract that from the height.
+  const offsetFromTop = gridElementRef?.getBoundingClientRect().top ?? 65;
+  return (window.innerHeight - offsetFromTop - gapOnBottom) / (endHour - startHour);
+}

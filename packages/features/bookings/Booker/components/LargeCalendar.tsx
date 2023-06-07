@@ -37,7 +37,7 @@ export const LargeCalendar = () => {
       <Calendar
         availableTimeslots={availableSlots}
         startHour={8}
-        endHour={17}
+        endHour={18}
         events={[]}
         startDate={selectedDate ? new Date(selectedDate) : new Date()}
         endDate={dayjs(selectedDate).add(extraDays, "day").toDate()}
