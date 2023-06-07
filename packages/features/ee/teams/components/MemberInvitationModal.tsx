@@ -131,7 +131,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         </div>
 
         <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values)}>
-          <div className="mt-6 mb-10 space-y-6">
+          <div className="my-6 space-y-6">
             {/* Indivdual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
               <Controller
@@ -270,21 +270,25 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               )}
             </div>
           </div>
+          <DialogFooter showDivider>
+            <Button
+              type="button"
+              color="minimal"
+              onClick={() => {
+                props.onExit();
+                newMemberFormMethods.reset();
+              }}>
+              {t("cancel")}
+            </Button>
+            <Button
+              type="submit"
+              color="primary"
+              className="ms-2 me-2"
+              data-testid="invite-new-member-button">
+              {t("send_invite")}
+            </Button>
+          </DialogFooter>
         </Form>
-        <DialogFooter showDivider>
-          <Button
-            type="button"
-            color="minimal"
-            onClick={() => {
-              props.onExit();
-              newMemberFormMethods.reset();
-            }}>
-            {t("cancel")}
-          </Button>
-          <Button type="submit" color="primary" className="ms-2 me-2" data-testid="invite-new-member-button">
-            {t("send_invite")}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
