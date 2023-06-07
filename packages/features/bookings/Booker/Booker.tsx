@@ -1,6 +1,6 @@
 import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
@@ -21,6 +21,8 @@ import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from ".
 import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerProps } from "./types";
 import { useEvent } from "./utils/event";
+import { validateLayout } from "./utils/layout";
+import { getQueryParam } from "./utils/query-param";
 import { useBrandColors } from "./utils/use-brand-colors";
 
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
@@ -59,6 +61,12 @@ const BookerComponent = ({
   const animationScope = useBookerResizeAnimation(layout, bookerState);
   const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
+  // We only want the initial url value, that's why we memo it. The embed seems to change the url, which sometimes drops
+  // the layout query param.
+  const layoutFromQueryParam = useMemo(() => validateLayout(getQueryParam("layout") as BookerLayouts), []);
+  const defaultLayout = isEmbed
+    ? layoutFromQueryParam || BookerLayouts.MONTH_VIEW
+    : bookerLayouts.defaultLayout;
 
   useBrandColors({
     brandColor: event.data?.profile.brandColor,
@@ -73,16 +81,16 @@ const BookerComponent = ({
     eventId: event?.data?.id,
     rescheduleUid,
     rescheduleBooking,
-    layout: bookerLayouts.defaultLayout,
+    layout: defaultLayout,
   });
 
   useEffect(() => {
     if (isMobile && layout !== "mobile") {
       setLayout("mobile");
     } else if (!isMobile && layout === "mobile") {
-      setLayout(BookerLayouts.MONTH_VIEW);
+      setLayout(defaultLayout);
     }
-  }, [isMobile, setLayout, layout]);
+  }, [isMobile, setLayout, layout, defaultLayout]);
 
   useEffect(() => {
     if (event.isLoading) return setBookerState("loading");

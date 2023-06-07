@@ -11,6 +11,7 @@ import { components } from "react-select";
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { APP_NAME, EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import {
   Button,
   Dialog,
@@ -48,8 +49,7 @@ type PreviewState = {
     brandColor: string;
   };
   hideEventTypeDetails: boolean;
-  // @todo: import proper type once other branch is merged.
-  layout: BookerLayout;
+  layout: BookerLayouts;
 };
 const queryParamsForDialog = ["embedType", "embedTabName", "embedUrl"];
 
@@ -807,11 +807,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     { value: Theme.light, label: "Light Theme" },
   ];
 
-  // @TODO: Change option names to enum and correct values once other PR is merged.
   const layoutOptions = [
-    { value: "small_calendar", label: "Month view" },
-    { value: "large_calendar", label: "Week view" },
-    { value: "large_timeslots", label: "Column view" },
+    { value: BookerLayouts.MONTH_VIEW, label: "Month view" },
+    { value: BookerLayouts.WEEK_VIEW, label: "Week view" },
+    { value: BookerLayouts.COLUMN_VIEW, label: "Column view" },
   ];
 
   const FloatingPopupPositionOptions = [

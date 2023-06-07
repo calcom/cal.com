@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 import { useState, useEffect } from "react";
 
 import embedInit from "@calcom/embed-core/embed-iframe-init";
-import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
+import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
@@ -17,8 +17,7 @@ export type UiConfig = {
   styles?: EmbedStyles & EmbedNonStylesConfig;
   //TODO: Extract from tailwind the list of all custom variables and support them in auto-completion as well as runtime validation. Followup with listing all variables in Embed Snippet Generator UI.
   cssVarsPerTheme?: Record<Theme, Record<string, string>>;
-  // @TODO: Import proper type once layout settings page has been merged.
-  layout?: BookerLayout;
+  layout?: BookerLayouts;
 };
 
 type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
