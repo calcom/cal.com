@@ -57,7 +57,7 @@ if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CRED
   );
 }
 
-const checkDuplicateValue = () => {
+const informAboutDuplicateTranslations = () => {
   const valueSet = new Set();
 
   for (const key in englishTranslation) {
