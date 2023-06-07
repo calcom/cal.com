@@ -24,6 +24,8 @@ export function Calendar(props: CalendarComponentProps) {
   const startHour = useCalendarStore((state) => state.startHour || 0);
   const endHour = useCalendarStore((state) => state.endHour || 23);
   const usersCellsStopsPerHour = useCalendarStore((state) => state.gridCellsPerHour || 4);
+  const availableTimeslots = useCalendarStore((state) => state.availableTimeslots);
+  const hideHeader = useCalendarStore((state) => state.hideHeader);
 
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
 
@@ -43,7 +45,7 @@ export function Calendar(props: CalendarComponentProps) {
         style={
           { "--one-minute-height": `calc(1.75rem/(60/${usersCellsStopsPerHour}))` } as React.CSSProperties // This can't live in the css file because it's a dynamic value and css variable gets super
         }>
-        <SchedulerHeading />
+        {hideHeader !== true && <SchedulerHeading />}
         <div ref={container} className="bg-default relative isolate flex  flex-auto flex-col">
           <div
             style={{ width: "165%" }}
@@ -89,6 +91,7 @@ export function Calendar(props: CalendarComponentProps) {
                               totalGridCells={numberOfGridStopsPerDay}
                               selectionLength={endHour - startHour}
                               startHour={startHour}
+                              availableSlots={availableTimeslots}
                             />
                           );
                         })}

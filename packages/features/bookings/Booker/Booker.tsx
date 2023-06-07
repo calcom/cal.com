@@ -50,7 +50,7 @@ const BookerComponent = ({
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
     shallow
   );
-  const extraDays = layout === BookerLayouts.COLUMN_VIEW ? (isTablet ? 2 : 4) : 0;
+  const extraDays = layout !== BookerLayouts.MONTH_VIEW ? (isTablet ? 2 : 4) : 0;
   const bookerLayouts = event.data?.profile?.bookerLayouts || {
     defaultLayout: BookerLayouts.MONTH_VIEW,
     enabledLayouts: bookerLayoutOptions,
@@ -142,7 +142,7 @@ const BookerComponent = ({
               area="main"
               className="border-subtle sticky top-0 ml-[-1px] h-full p-5 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInLeft}
-              visible={bookerState === "booking" && layout !== BookerLayouts.COLUMN_VIEW}>
+              visible={bookerState === "booking" && layout === BookerLayouts.MONTH_VIEW}>
               <BookEventForm onCancel={() => setSelectedTimeslot(null)} />
             </BookerSection>
 
@@ -159,10 +159,7 @@ const BookerComponent = ({
             <BookerSection
               key="large-calendar"
               area="main"
-              visible={
-                layout === BookerLayouts.WEEK_VIEW &&
-                (bookerState === "selecting_date" || bookerState === "selecting_time")
-              }
+              visible={layout === BookerLayouts.WEEK_VIEW}
               className="border-muted sticky top-0 ml-[-1px] h-full md:border-l"
               {...fadeInLeft}>
               <LargeCalendar />
@@ -203,7 +200,7 @@ const BookerComponent = ({
       </div>
 
       <BookFormAsModal
-        visible={layout === BookerLayouts.COLUMN_VIEW && bookerState === "booking"}
+        visible={layout !== BookerLayouts.MONTH_VIEW && bookerState === "booking"}
         onCancel={() => setSelectedTimeslot(null)}
       />
     </>
