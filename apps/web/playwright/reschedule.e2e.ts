@@ -344,5 +344,71 @@ testBothBookers.describe("Reschedule Tests", async () => {
       const originalBooking = await booking.self();
       expect(originalBooking).not.toBeNull();
     });
+
+    test("All seated attendees rescheduling should cancel the original booking", async ({
+      page,
+      users,
+      bookings,
+    }) => {
+      const user = await users.create();
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const eventType = user.eventTypes.find((e) => e.slug === "seated")!;
+
+      const booking = await bookings.create(user.id, user.username, eventType.id, {
+        attendees: {
+          create: [
+            {
+              email: `first-${uuid()}@example.com`,
+              name: "First Attendee",
+              timeZone: "Europe/London",
+            },
+            {
+              email: `second-${uuid()}@example.com`,
+              name: "Second Attendee",
+              timeZone: "Europe/London",
+            },
+          ],
+        },
+      });
+
+      // Update attendees with seat references (hard to include above)
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const savedBooking = (await booking.self())!;
+      await registerSeatsForAttendees(bookings, savedBooking, savedBooking.attendees);
+
+      // Typescript doesn't see updatedBooking.seatsReferences from await bookings.update, so we'll reload the record instead
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const updatedBooking = (await booking.self())!;
+
+      // Unsubscribe all attendees (for...of doesn't work in playwright?)
+      for (let i = 0; i < updatedBooking.seatsReferences.length; i++) {
+        const attendeeSeatId = updatedBooking.seatsReferences[i].referenceUid;
+
+        // Go to attendee's reschedule link
+        await page.goto(`/reschedule/${attendeeSeatId}`);
+
+        await selectFirstAvailableTimeSlotNextMonth(page);
+
+        await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+        await expect(page).toHaveURL(/.*booking/);
+
+        // Note: A seated user does not mark the new booking as "rescheduled", it just looks like a brand new booking
+        const newBooking = await prisma.booking.findFirst({
+          where: {
+            attendees: {
+              some: { email: updatedBooking.attendees[0].email },
+            },
+          },
+        });
+        expect(newBooking).not.toBeNull();
+        expect(newBooking?.uid).not.toBe(updatedBooking.uid);
+        expect(newBooking?.status).toBe(BookingStatus.ACCEPTED);
+      }
+
+      const originalBooking = await booking.self();
+      expect(originalBooking).not.toBeNull();
+      expect(originalBooking?.status).toBe(BookingStatus.CANCELLED);
+    });
   });
 });
