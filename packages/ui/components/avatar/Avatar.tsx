@@ -48,7 +48,7 @@ export function Avatar(props: AvatarProps) {
           alt={alt}
           className={classNames("aspect-square rounded-full", sizesPropsBySize[size])}
         />
-        <AvatarPrimitive.Fallback delayMs={600} asChild={props.asChild}>
+        <AvatarPrimitive.Fallback delayMs={600} asChild={props.asChild} className="flex items-center">
           <>
             {props.fallback && !gravatarFallbackMd5 && props.fallback}
             {gravatarFallbackMd5 && (

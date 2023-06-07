@@ -4,6 +4,7 @@ import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
@@ -110,6 +111,11 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
     });
   };
 
+  const usernamePrefix =
+    orgBranding && orgBranding.slug
+      ? `${orgBranding.slug}.${subdomainSuffix()}`
+      : process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "");
+
   return (
     <div>
       <div className="flex rounded-md">
@@ -118,16 +124,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             ref={usernameRef}
             name="username"
             value={inputUsernameValue}
-            addOnLeading={
-              <>
-                {`${orgBranding && orgBranding.slug + "."}${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(
-                  "https://",
-                  ""
-                ).replace("http://", "")}`}
-                /
-              </>
-            }
-            disabled={!!orgBranding}
+            addOnLeading={<>{usernamePrefix}/</>}
             autoComplete="none"
             autoCapitalize="none"
             autoCorrect="none"

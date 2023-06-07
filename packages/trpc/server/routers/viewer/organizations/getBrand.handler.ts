@@ -1,30 +1,35 @@
 import { prisma } from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
-
-import type { TGetBrandSchema } from "./getBrand.schema";
 
 type VerifyCodeOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
-  input: TGetBrandSchema;
 };
 
-export const getBrandHandler = async ({ ctx, input }: VerifyCodeOptions) => {
-  const { orgId } = input;
+export const getBrandHandler = async ({ ctx }: VerifyCodeOptions) => {
   const { user } = ctx;
 
-  if (!orgId) return null;
-  if (user.organizationId !== orgId) return null;
+  if (!user.organizationId) return null;
 
-  return await prisma.team.findFirst({
+  const team = await prisma.team.findFirst({
     where: {
-      id: orgId,
+      id: user.organizationId,
     },
     select: {
       logo: true,
       name: true,
       slug: true,
+      metadata: true,
     },
   });
+
+  const metadata = teamMetadataSchema.parse(team?.metadata);
+  const slug = team.slug || metadata.requestedSlug;
+
+  return {
+    ...team,
+    slug,
+  };
 };
