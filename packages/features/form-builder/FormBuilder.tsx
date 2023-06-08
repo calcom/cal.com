@@ -481,7 +481,7 @@ export const FormBuilder = function FormBuilder({
                 options={FieldTypes.filter((f) => !f.systemOnly)}
                 label={t("input_type")}
                 classNames={{
-                  menuList: () => "min-h-[27.25rem]",
+                  menuList: () => "min-h-[22.25rem] ",
                 }}
               />
               <InputField
