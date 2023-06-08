@@ -19,7 +19,6 @@ import {
   BooleanToggleGroupField,
   SelectField,
   InputField,
-  Input,
   showToast,
   Switch,
 } from "@calcom/ui";
@@ -429,7 +428,7 @@ export const FormBuilder = function FormBuilder({
           <div className="h-auto max-h-[85vh] overflow-auto px-8 pt-8 pb-7">
             <DialogHeader
               title={t("add_a_booking_question")}
-              subtitle={t("form_builder_field_add_subtitle")}
+              subtitle={t("booking_questions_description")}
             />
             <Form
               id="form-builder"
@@ -482,7 +481,7 @@ export const FormBuilder = function FormBuilder({
                 options={FieldTypes.filter((f) => !f.systemOnly)}
                 label={t("input_type")}
                 classNames={{
-                  menuList: () => "min-h-[27.25rem]",
+                  menuList: () => "min-h-[22.25rem] ",
                 }}
               />
               <InputField
@@ -546,7 +545,7 @@ export const FormBuilder = function FormBuilder({
               />
             </Form>
           </div>
-          <DialogFooter className="relative rounded px-8 pb-6" showDivider>
+          <DialogFooter className="relative rounded px-8 pb-8" showDivider>
             <DialogClose color="secondary">{t("cancel")}</DialogClose>
             <Button data-testid="field-add-save" type="submit" form="form-builder">
               {isFieldEditMode ? t("save") : t("add")}
