@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
 import type { TFunction } from "next-i18next";
 
-import { sendTeamInviteEmail } from "@calcom/emails";
+import { sendOrganizationAutoJoinEmail, sendTeamInviteEmail } from "@calcom/emails";
 import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -218,20 +218,19 @@ async function sendVerificationEmail({
 }) {
   const token: string = randomBytes(32).toString("hex");
 
-  await prisma.verificationToken.create({
-    data: {
-      identifier: usernameOrEmail,
-      token,
-      expires: new Date(new Date().setHours(168)), // +1 week
-      team: {
-        connect: {
-          id: connectionInfo.orgId || input.teamId,
+  if (!connectionInfo.autoAccept) {
+    await prisma.verificationToken.create({
+      data: {
+        identifier: usernameOrEmail,
+        token,
+        expires: new Date(new Date().setHours(168)), // +1 week
+        team: {
+          connect: {
+            id: connectionInfo.orgId || input.teamId,
+          },
         },
       },
-    },
-  });
-
-  if (!connectionInfo.autoAccept) {
+    });
     await sendTeamInviteEmail({
       language: translation,
       from: ctx.user.name || `${team.name}'s admin`,
@@ -240,6 +239,23 @@ async function sendVerificationEmail({
       joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
       isCalcomMember: false,
       isOrg: input.isOrg,
+    });
+  } else {
+    // we have already joined the team in createNewUserConnectToOrgIfExists so we dont need to connect via token
+    await prisma.verificationToken.create({
+      data: {
+        identifier: usernameOrEmail,
+        token,
+        expires: new Date(new Date().setHours(168)), // +1 week
+      },
+    });
+
+    await sendOrganizationAutoJoinEmail({
+      language: translation,
+      from: ctx.user.name || `${team.name}'s admin`,
+      to: usernameOrEmail,
+      orgName: team?.parent?.name || team.name,
+      joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
     });
   }
 }
@@ -300,6 +316,12 @@ function getOrgConnectionInfo({
     orgId = team.parentId || team.id;
     if (usersEmail.split("@")[1] == orgAutoAcceptDomain) {
       autoAccept = true;
+    } else {
+      throw new TRPCError({
+        // For now - we will enable this for contractors in the feature
+        code: "FORBIDDEN",
+        message: `Only users with the email domain ${orgAutoAcceptDomain} can join this organization`,
+      });
     }
   }
 
