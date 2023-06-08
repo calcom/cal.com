@@ -1,7 +1,7 @@
 import superjson from "superjson";
+import type { OpenApiMeta } from "trpc-openapi";
 
 import { initTRPC } from "@trpc/server";
-import { OpenApiMeta } from 'trpc-openapi';
 
 import type { createContextInner } from "./createContext";
 import type { UserFromSession } from "./middlewares/sessionMiddleware";
