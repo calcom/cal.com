@@ -19,6 +19,7 @@ export default function Page() {
       callbackUrl: "/",
       code,
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return null;

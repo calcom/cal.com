@@ -9,7 +9,7 @@ import { Button, showToast, Tooltip } from "@calcom/ui";
 import { Clipboard } from "@calcom/ui/components/icon";
 
 export interface IZapierSetupProps {
-  inviteLink: string;
+  inviteLink?: string;
 }
 
 const ZAPIER = "zapier";
