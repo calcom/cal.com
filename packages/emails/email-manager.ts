@@ -178,7 +178,10 @@ export const sendDeclinedEmails = async (calEvent: CalendarEvent) => {
   await Promise.all(emailsToSend);
 };
 
-export const sendCancelledEmails = async (calEvent: CalendarEvent) => {
+export const sendCancelledEmails = async (
+  calEvent: CalendarEvent,
+  eventNameObject: Pick<EventNameObjectType, "eventName">
+) => {
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(sendEmail(() => new OrganizerCancelledEmail({ calEvent })));
@@ -191,7 +194,24 @@ export const sendCancelledEmails = async (calEvent: CalendarEvent) => {
 
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
-      return sendEmail(() => new AttendeeCancelledEmail(calEvent, attendee));
+      return sendEmail(
+        () =>
+          new AttendeeCancelledEmail(
+            {
+              ...calEvent,
+              title: getEventName({
+                ...eventNameObject,
+                t: attendee.language.translate,
+                attendeeName: attendee.name,
+                host: calEvent.organizer.name,
+                eventType: calEvent.type,
+                ...(calEvent.responses && { bookingFields: calEvent.responses }),
+                ...(calEvent.location && { location: calEvent.location }),
+              }),
+            },
+            attendee
+          )
+      );
     })
   );
 
