@@ -363,7 +363,7 @@ export default function Success(props: SuccessProps) {
                     id="modal-headline">
                     {needsConfirmation && !isCancelled
                       ? props.recurringBookings
-                        ? t("submitted_recurring")
+                        ? t("booking_submitted_recurring")
                         : t("booking_submitted")
                       : isCancelled
                       ? seatReferenceUid
