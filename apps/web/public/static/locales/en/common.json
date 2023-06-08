@@ -1906,5 +1906,8 @@
   "verify_email_organization": "Verify your email to create an organization",
   "code_provided_invalid": "The code provided is not valid, try again",
   "email_already_used": "Email already being used",
+  "duplicated_slugs_warning": "The following teams couldn't be created due to duplicated slugs: {{slugs}}",
+  "team_names_empty": "Team names can't be empty",
+  "team_names_repeated": "Team names can't be repeated",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

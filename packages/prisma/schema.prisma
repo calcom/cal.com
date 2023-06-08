@@ -264,9 +264,9 @@ model Team {
   darkBrandColor      String             @default("#fafafa")
   verifiedNumbers     VerifiedNumber[]
   parentId            Int?
-  parent              Team?            @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
-  children            Team[]           @relation("organization")
-  orgUsers            User[]           @relation("scope")
+  parent              Team?              @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
+  children            Team[]             @relation("organization")
+  orgUsers            User[]             @relation("scope")
   inviteToken         VerificationToken?
   webhooks            Webhook[]
   routingForms        App_RoutingForms_Form[]

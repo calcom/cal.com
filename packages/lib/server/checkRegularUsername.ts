@@ -5,7 +5,7 @@ export async function checkRegularUsername(_username: string) {
   const username = slugify(_username);
   const premium = !!process.env.NEXT_PUBLIC_IS_E2E && username.length < 5;
 
-  const user = await prisma.user.findUnique({
+  const user = await prisma.user.findFirst({
     where: { username },
     select: {
       username: true,

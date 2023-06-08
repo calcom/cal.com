@@ -14,7 +14,6 @@ export type EmailVerifyLink = {
   verificationEmailLink: string;
 };
 
-
 export default class AccountVerifyEmail extends BaseEmail {
   verifyAccountInput: EmailVerifyLink;
 
