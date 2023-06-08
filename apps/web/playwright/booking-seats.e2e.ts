@@ -105,12 +105,94 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
     });
   });
 
-  // TODO: Make E2E test: Attendee #1 should be able to cancel his booking
-  // todo("Attendee #1 should be able to cancel his booking");
-  // TODO: Make E2E test: Attendee #1 should be able to reschedule his booking
-  // todo("Attendee #1 should be able to reschedule his booking");
-  // TODO: Make E2E test: All attendees canceling should delete the booking for the User
-  // todo("All attendees canceling should delete the booking for the User");
+  // There are two URLs through which attendees can view the booking details to cancel, let's
+  // make sure both of them work
+  const seatedAttendeeUrls: [string, (bookingUid: string, seatUid: string) => string][] = [
+    [
+      "booking ref",
+      (bookingUid: string, seatUid: string) => `/booking/${bookingUid}?seatReferenceUid=${seatUid}`,
+    ],
+    ["seat ref", (bookingUid: string, seatUid: string) => `/booking/${seatUid}`],
+  ];
+  for (const [testRef, getBookingUrl] of seatedAttendeeUrls) {
+    test(`Attendees can cancel a seated event time slot (${testRef})`, async ({ page, users, bookings }) => {
+      // Cancelling via the "seat ref" does not behave correctly right now (it 404s after cancelling, and cancels the
+      // whole booking rather than just the relevant seat). We'll skip "seat ref" by default until fixed.
+      // eslint-disable-next-line playwright/no-skipped-test
+      test.skip(!process.env.E2E_TEST_SEATED_CANCELLATIONS && testRef == "seat ref");
+
+      const { booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+        { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+        { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+        { name: "John Third", email: "third+seats@cal.com", timeZone: "Europe/Berlin" },
+      ]);
+
+      const bookingAttendees = await prisma.attendee.findMany({
+        where: { bookingId: booking.id },
+        select: {
+          id: true,
+        },
+      });
+
+      const bookingSeats = [
+        { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUid: uuidv4() },
+        { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUid: uuidv4() },
+        { bookingId: booking.id, attendeeId: bookingAttendees[2].id, referenceUid: uuidv4() },
+      ];
+
+      await prisma.bookingSeat.createMany({
+        data: bookingSeats,
+      });
+
+      await test.step("Attendee #1 should be able to cancel their booking", async () => {
+        await page.goto(getBookingUrl(booking.uid, bookingSeats[0].referenceUid));
+
+        await page.locator('[data-testid="cancel"]').click();
+        await page.fill('[data-testid="cancel_reason"]', "Double booked!");
+        await page.locator('[data-testid="confirm_cancel"]').click();
+        await page.waitForLoadState("networkidle");
+
+        await expect(page).toHaveURL(/.*booking/);
+
+        const cancelledHeadline = await page.locator('[data-testid="cancelled-headline"]').innerText();
+        expect(cancelledHeadline).toBe("You are no longer attending this event");
+
+        // Old booking should still exist, with one less attendee
+        const updatedBooking = await prisma.booking.findFirst({
+          where: { id: bookingSeats[0].bookingId },
+          include: { attendees: true },
+        });
+
+        const attendeeIds = updatedBooking?.attendees.map(({ id }) => id);
+        expect(attendeeIds).toHaveLength(2);
+        expect(attendeeIds).not.toContain(bookingAttendees[0].id);
+      });
+
+      await test.step("All attendees cancelling should delete the booking for the user", async () => {
+        // The remaining 2 attendees cancel
+        for (let i = 1; i < bookingSeats.length; i++) {
+          await page.goto(getBookingUrl(booking.uid, bookingSeats[i].referenceUid));
+
+          await page.locator('[data-testid="cancel"]').click();
+          await page.fill('[data-testid="cancel_reason"]', "Double booked!");
+          await page.locator('[data-testid="confirm_cancel"]').click();
+          await page.waitForLoadState("networkidle");
+
+          await expect(page).toHaveURL(/.*booking/);
+
+          const cancelledHeadline = await page.locator('[data-testid="cancelled-headline"]').innerText();
+          expect(cancelledHeadline).toBe("You are no longer attending this event");
+        }
+
+        // Should expect old booking to be cancelled
+        const updatedBooking = await prisma.booking.findFirst({
+          where: { id: bookingSeats[0].bookingId },
+        });
+        expect(updatedBooking).not.toBeNull();
+        expect(updatedBooking?.status).toBe(BookingStatus.CANCELLED);
+      });
+    });
+  }
 });
 
 testBothBookers.describe("Reschedule for booking with seats", () => {
