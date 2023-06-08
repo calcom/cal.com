@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
 import type { Prisma } from "@prisma/client";
+import { uuid } from "short-uuid";
 import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
@@ -21,7 +22,14 @@ async function createUserWithSeatedEvent(users: Fixtures["users"]) {
   const slug = "seats";
   const user = await users.create({
     eventTypes: [
-      { title: "Seated event", slug, seatsPerTimeSlot: 10, requiresConfirmation: true, length: 30 },
+      {
+        title: "Seated event",
+        slug,
+        seatsPerTimeSlot: 10,
+        requiresConfirmation: true,
+        length: 30,
+        disableGuests: true, // should always be true for seated events
+      },
     ],
   });
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -198,14 +206,15 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
 testBothBookers.describe("Reschedule for booking with seats", () => {
   test("Should reschedule booking with seats", async ({ page, users, bookings }) => {
     const { booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
-      { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
-      { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
-      { name: "John Third", email: "third+seats@cal.com", timeZone: "Europe/Berlin" },
+      { name: "John First", email: `first+seats-${uuid()}@cal.com`, timeZone: "Europe/Berlin" },
+      { name: "Jane Second", email: `second+seats-${uuid()}@cal.com`, timeZone: "Europe/Berlin" },
+      { name: "John Third", email: `third+seats-${uuid()}@cal.com`, timeZone: "Europe/Berlin" },
     ]);
     const bookingAttendees = await prisma.attendee.findMany({
       where: { bookingId: booking.id },
       select: {
         id: true,
+        email: true,
       },
     });
 
@@ -237,6 +246,20 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
     await page.waitForLoadState("networkidle");
 
     await expect(page).toHaveURL(/.*booking/);
+
+    // Should expect new booking to be created for John Third
+    const newBooking = await prisma.booking.findFirst({
+      where: {
+        attendees: {
+          some: { email: bookingAttendees[2].email },
+        },
+      },
+      include: { seatsReferences: true, attendees: true },
+    });
+    expect(newBooking?.status).toBe(BookingStatus.PENDING);
+    expect(newBooking?.attendees.length).toBe(1);
+    expect(newBooking?.attendees[0].name).toBe("John Third");
+    expect(newBooking?.seatsReferences.length).toBe(1);
 
     // Should expect old booking to be accepted with two attendees
     const oldBooking = await prisma.booking.findFirst({
