@@ -67,7 +67,7 @@ export const BaseScheduledEmail = (
         <Info
           label={t(
             props.calEvent.cancellationReason.startsWith("$RCH$")
-              ? "reschedule_reason"
+              ? "reason_for_reschedule"
               : "cancellation_reason"
           )}
           description={
