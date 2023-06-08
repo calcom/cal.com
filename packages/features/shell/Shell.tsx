@@ -73,6 +73,7 @@ import {
   Slack,
   Users,
   Zap,
+  User as UserIcon,
 } from "@calcom/ui/components/icon";
 
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
@@ -282,7 +283,12 @@ export default function Shell(props: LayoutProps) {
   );
 }
 
-function UserDropdown({ small }: { small?: boolean }) {
+interface UserDropdownProps {
+  small?: boolean;
+  hideName?: boolean;
+}
+
+function UserDropdown({ small, hideName }: UserDropdownProps) {
   const { t } = useLocale();
   const { data: user } = useMeQuery();
   const { data: avatar } = useAvatarQuery();
@@ -345,7 +351,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 <div className="border-muted absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 bg-yellow-500" />
               )}
             </span>
-            {!small && (
+            {!small && !hideName && (
               <span className="flex flex-grow items-center truncate">
                 <span className="flex-grow truncate text-sm leading-none">
                   <span className="text-emphasis mb-1 block truncate font-medium">
@@ -381,6 +387,26 @@ function UserDropdown({ small }: { small?: boolean }) {
               <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
             ) : (
               <>
+                <DropdownMenuItem>
+                  <DropdownItem
+                    type="button"
+                    StartIcon={(props) => (
+                      <UserIcon className={classNames("text-default", props.className)} aria-hidden="true" />
+                    )}
+                    href="/settings/my-account/profile">
+                    {t("my_profile")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <DropdownItem
+                    type="button"
+                    StartIcon={(props) => (
+                      <Settings className={classNames("text-default", props.className)} aria-hidden="true" />
+                    )}
+                    href="/settings/my-account/general">
+                    {t("my_settings")}
+                  </DropdownItem>
+                </DropdownMenuItem>
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
@@ -564,9 +590,12 @@ const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMor
     // We filter out the "more" separator in` desktop navigation
     if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
     // Items for mobile bottom navigation
-    if (index < moreSeparatorIndex + 1 && !item.onlyDesktop) items.mobileNavigationBottomItems.push(item);
-    // Items for the "more" menu in mobile navigation
-    else items.mobileNavigationMoreItems.push(item);
+    if (index < moreSeparatorIndex + 1 && !item.onlyDesktop) {
+      items.mobileNavigationBottomItems.push(item);
+    } // Items for the "more" menu in mobile navigation
+    else {
+      items.mobileNavigationMoreItems.push(item);
+    }
     return items;
   },
   { desktopNavigationItems: [], mobileNavigationBottomItems: [], mobileNavigationMoreItems: [] }
@@ -848,7 +877,14 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                   className="text-default hover:bg-subtle lg:hover:bg-emphasis lg:hover:text-emphasis group flex rounded-md py-2 px-3 text-sm font-medium lg:p-1">
                   <Settings className="h-4 w-4 flex-shrink-0 text-inherit" />
                 </button>
-            </Link>*/}
+              </Link>*/}
+              {!!orgBranding && (
+                <div data-testid="user-dropdown-trigger">
+                  <span className="">
+                    <UserDropdown hideName />
+                  </span>
+                </div>
+              )}
               <KBarTrigger />
             </div>
           </header>
