@@ -55,11 +55,10 @@ const OrgGeneralView = () => {
 
   if (isLoading) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
   if (!currentOrg) {
-    throw new Error(t("something_went_wrong"));
+    return null;
   }
   const isAdminOrOwner =
-    currentOrg &&
-    (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
+    currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN;
 
   return (
     <GeneralView currentOrg={currentOrg} isAdminOrOwner={isAdminOrOwner} localeProp={user?.locale ?? "en"} />
