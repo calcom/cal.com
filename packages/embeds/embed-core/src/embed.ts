@@ -125,7 +125,7 @@ type SingleInstruction = SingleInstructionMap[keyof SingleInstructionMap];
 export type Instruction = SingleInstruction | SingleInstruction[];
 export type InstructionQueue = Instruction[];
 
-type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Record<string, string>> & {
+export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Record<string, string>> & {
   iframeAttrs?: Record<string, string> & {
     id?: string;
   };
@@ -215,7 +215,7 @@ export class Cal {
   }) {
     const iframe = (this.iframe = document.createElement("iframe"));
     iframe.className = "cal-embed";
-    iframe.name = "cal-embed";
+    iframe.name = `cal-embed=${this.namespace}`;
     const config = this.getConfig();
     const { iframeAttrs, ...restQueryObject } = queryObject;
 
@@ -551,7 +551,13 @@ class CalApi {
     this.cal.actionManager.on(action, callback);
   }
 
-  off({ action, callback }: { action: never; callback: never }) {
+  off<T extends keyof EventDataMap>({
+    action,
+    callback,
+  }: {
+    action: T;
+    callback: (arg0: CustomEvent<EventData<T>>) => void;
+  }) {
     this.cal.actionManager.off(action, callback);
   }
 

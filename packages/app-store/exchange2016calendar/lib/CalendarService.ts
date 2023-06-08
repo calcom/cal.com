@@ -97,6 +97,7 @@ export default class ExchangeCalendarService implements Calendar {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
     try {
       const appointment = await Appointment.Bind(
