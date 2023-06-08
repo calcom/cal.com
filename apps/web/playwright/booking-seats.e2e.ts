@@ -260,7 +260,7 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
     // Now we cancel the booking as the organizer
     await page.goto(`/booking/${booking.uid}?cancel=true`);
 
-    await page.locator('[data-testid="cancel"]').click();
+    await page.locator('[data-testid="confirm_cancel"]').click();
 
     await page.waitForLoadState("networkidle");
 
@@ -309,7 +309,7 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
       `/booking/${references[0].referenceUid}?cancel=true&seatReferenceUid=${references[0].referenceUid}`
     );
 
-    await page.locator('[data-testid="cancel"]').click();
+    await page.locator('[data-testid="confirm_cancel"]').click();
 
     const oldBooking = await prisma.booking.findFirst({
       where: { uid: booking.uid },
@@ -364,7 +364,7 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
       `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[0].referenceUid}`
     );
 
-    await page.locator('[data-testid="cancel"]').click();
+    await page.locator('[data-testid="confirm_cancel"]').click();
 
     await page.waitForLoadState("networkidle");
 
@@ -375,7 +375,7 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
     );
 
     // Page should not be 404
-    await page.locator('[data-testid="cancel"]').click();
+    await page.locator('[data-testid="confirm_cancel"]').click();
 
     await page.waitForLoadState("networkidle");
 

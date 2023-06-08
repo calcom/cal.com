@@ -47,11 +47,11 @@ test.skip("dynamic booking", async ({ page, users }) => {
 
   await test.step("Can cancel the recently created booking", async () => {
     await page.goto("/bookings/upcoming");
-    await page.locator('[data-testid="cancel"]').first().click();
+    await page.locator('[data-testid="cancel"]').click();
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking");
     });
-    await page.locator('[data-testid="cancel"]').click();
+    await page.locator('[data-testid="confirm_cancel"]').click();
 
     const cancelledHeadline = await page.locator('[data-testid="cancelled-headline"]').innerText();
 
