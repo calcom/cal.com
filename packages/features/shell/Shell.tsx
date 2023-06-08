@@ -446,6 +446,7 @@ export type NavigationItemType = {
   name: string;
   href: string;
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+  target?: HTMLAnchorElement["target"];
   badge?: React.ReactNode;
   icon?: SVGComponent;
   child?: NavigationItemType[];
@@ -757,23 +758,35 @@ function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
   return <SideBar bannersHeight={bannersHeight} user={data?.user} />;
 }
 
+const getOrganizationUrl = (slug: string) =>
+  `${slug}.${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace?.(/http(s*):\/\//, "")}`;
+
 function SideBar({ bannersHeight, user }: SideBarProps) {
   const { t, isLocaleReady } = useLocale();
   const router = useRouter();
+  const orgBranding = useOrgBrandingValues();
+  const publicPageUrl = orgBranding?.slug ? getOrganizationUrl(orgBranding?.slug) : "";
   const bottomNavItems: NavigationItemType[] = [
     ...(user?.username
       ? [
           {
             name: "view_public_page",
-            href: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`,
+            href: !!user?.organizationId
+              ? publicPageUrl
+              : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`,
             icon: ExternalLink,
+            target: "__blank",
           },
           {
             name: "copy_public_page_link",
-            href: "",
+            href: "#",
             onClick: (e: { preventDefault: () => void }) => {
               e.preventDefault();
-              navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`);
+              navigator.clipboard.writeText(
+                !!user?.organizationId
+                  ? publicPageUrl
+                  : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`
+              );
               showToast(t("link_copied"), "success");
             },
             icon: Copy,
@@ -782,11 +795,12 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
       : []),
     {
       name: "settings",
-      href: "/settings/my-account/profile",
+      href: user?.organizationId
+        ? `/settings/teams/${user.organizationId}/profile`
+        : "/settings/my-account/profile",
       icon: Settings,
     },
   ];
-  const orgBranding = useOrgBrandingValues();
   return (
     <div className="relative">
       <aside
@@ -851,40 +865,44 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
 
         <div>
           <Tips />
-          <Tooltip side="right" content={t("settings")} className="lg:hidden">
-            <Link
-              href="/settings/my-account/profile"
-              aria-label={t("settings")}
-              className={classNames(
-                "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md py-2 px-3 text-sm font-medium",
-                "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
-                isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : ""
-              )}
-              aria-current={
-                defaultIsCurrent &&
-                defaultIsCurrent({ item: { href: "/settings/my-account/profile" }, router })
-                  ? "page"
-                  : undefined
-              }>
-              <Settings
-                className="mr-2 h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2 [&[aria-current='page']]:text-inherit"
-                aria-hidden="true"
+          {bottomNavItems.map(({ icon: Icon, ...item }) => (
+            <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.href}>
+              <Link
+                href={item.href}
+                aria-label={t(item.name)}
+                target={item.target}
+                className={classNames(
+                  "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md py-2 px-3 text-sm font-medium",
+                  "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
+                  isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : ""
+                )}
                 aria-current={
-                  defaultIsCurrent &&
-                  defaultIsCurrent({ item: { href: "/settings/my-account/profile" }, router })
+                  defaultIsCurrent && defaultIsCurrent({ item: { href: item.href }, router })
                     ? "page"
                     : undefined
                 }
-              />
-              {isLocaleReady ? (
-                <span className="hidden w-full justify-between lg:flex">
-                  <div className="flex">{t("settings")}</div>
-                </span>
-              ) : (
-                <SkeletonText style={{ width: `${"settings".length * 10}px` }} className="h-[20px]" />
-              )}
-            </Link>
-          </Tooltip>
+                onClick={item.onClick}>
+                {!!Icon && (
+                  <Icon
+                    className="mr-2 h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2 [&[aria-current='page']]:text-inherit"
+                    aria-hidden="true"
+                    aria-current={
+                      defaultIsCurrent && defaultIsCurrent({ item: { href: item.href }, router })
+                        ? "page"
+                        : undefined
+                    }
+                  />
+                )}
+                {isLocaleReady ? (
+                  <span className="hidden w-full justify-between lg:flex">
+                    <div className="flex">{t(item.name)}</div>
+                  </span>
+                ) : (
+                  <SkeletonText style={{ width: `${item.name.length * 10}px` }} className="h-[20px]" />
+                )}
+              </Link>
+            </Tooltip>
+          ))}
           <Credits />
         </div>
       </aside>
