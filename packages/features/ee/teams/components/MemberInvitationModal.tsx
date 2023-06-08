@@ -145,7 +145,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         </div>
 
         <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values)}>
-          <div className="space-y-6">
+          <div className="my-6 space-y-6">
             {/* Indivdual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
               <Controller
@@ -254,9 +254,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 />
               )}
             />
-          </div>
-          <DialogFooter showDivider>
-            <div className="mr-auto flex">
+            <div className="flex">
               <Button
                 type="button"
                 color="minimal"
@@ -285,6 +283,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 </Button>
               )}
             </div>
+          </div>
+          <DialogFooter showDivider>
             <Button
               type="button"
               color="minimal"

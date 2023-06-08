@@ -53,17 +53,17 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
         ...baseEventTypeSelect,
       },
     },
+    parent: {
+      select: {
+        id: true,
+        slug: true,
+      },
+    },
     inviteToken: {
       select: {
         token: true,
         expires: true,
         expiresInDays: true,
-      },
-    },
-    parent: {
-      select: {
-        id: true,
-        slug: true,
       },
     },
   });

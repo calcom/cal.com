@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: "Couldn't find an account for this email" });
     }
 
-    const maybeUser = await prisma.user.findUnique({
+    const maybeUser = await prisma.user.findFirst({
       where: {
         email: maybeRequest.email,
       },

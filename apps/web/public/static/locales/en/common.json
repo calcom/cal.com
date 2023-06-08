@@ -245,6 +245,7 @@
   "done": "Done",
   "all_done": "All done!",
   "all_apps": "All",
+  "yours":"Yours",
   "available_apps": "Available Apps",
   "check_email_reset_password": "Check your email. We sent you a link to reset your password.",
   "finish": "Finish",
@@ -1911,5 +1912,8 @@
   "email_already_used": "Email already being used",
   "organization_admin_invited_heading":"You've been invited to join {{orgName}}",
   "organization_admin_invited_body":"Join your team at {{orgName}} and start focusing on meeting, not making meetings!",
+  "duplicated_slugs_warning": "The following teams couldn't be created due to duplicated slugs: {{slugs}}",
+  "team_names_empty": "Team names can't be empty",
+  "team_names_repeated": "Team names can't be repeated",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -39,8 +39,15 @@ export const AddNewTeamsForm = () => {
   };
 
   const createTeamsMutation = trpc.viewer.organizations.createTeams.useMutation({
-    async onSuccess() {
-      router.push(`/getting-started`);
+    async onSuccess(data) {
+      if (data.duplicatedSlugs.length) {
+        showToast(t("duplicated_slugs_warning", { slugs: data.duplicatedSlugs.join(", ") }), "warning");
+        setTimeout(() => {
+          router.push(`/getting-started`);
+        }, 3000);
+      } else {
+        router.push(`/getting-started`);
+      }
     },
     onError: (error) => {
       showToast(error.message, "error");
@@ -83,11 +90,11 @@ export const AddNewTeamsForm = () => {
         disabled={createTeamsMutation.isLoading}
         onClick={() => {
           if (inputValues.includes("")) {
-            showToast("Team names can't be empty", "error");
+            showToast(t("team_name_empty"), "error");
           } else {
             const duplicates = inputValues.filter((item, index) => inputValues.indexOf(item) !== index);
             if (duplicates.length) {
-              showToast("Team names can't be repeated", "error");
+              showToast("team_names_repeated", "error");
             } else {
               createTeamsMutation.mutate({ orgId, teamNames: inputValues });
             }
