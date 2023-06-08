@@ -12,6 +12,7 @@ import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole, UserPermissionRole, IdentityProvider } from "@calcom/prisma/enums";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
 import type { VerticalTabItemProps } from "@calcom/ui";
@@ -167,10 +168,6 @@ interface SettingsSidebarContainerProps {
   navigationIsOpenedOnMobile?: boolean;
 }
 
-interface OrgMetaData {
-  isOrganization?: boolean;
-}
-
 const SettingsSidebarContainer = ({
   className = "",
   navigationIsOpenedOnMobile,
@@ -182,7 +179,7 @@ const SettingsSidebarContainer = ({
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
 
   const { data: teamsList } = trpc.viewer.teams.list.useQuery();
-  const teams = teamsList?.filter?.((team) => !(team.metadata as OrgMetaData).isOrganization);
+  const teams = teamsList?.filter?.((team) => !teamMetadataSchema.parse(team.metadata)?.isOrganization);
 
   useEffect(() => {
     if (teams) {
