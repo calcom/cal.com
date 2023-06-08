@@ -1,7 +1,10 @@
 import { useSession } from "next-auth/react";
-import type { ReactNode, InputHTMLAttributes } from "react";
-import { useState, forwardRef, Fragment } from "react";
+import { useState, Fragment } from "react";
 
+import {
+  FilterCheckboxField,
+  FilterCheckboxFieldsContainer,
+} from "@calcom/ee/components/FilterCheckboxField";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -23,9 +26,12 @@ export const OrganizationEventTypeFilter = () => {
   const isNotEmpty = !!teams?.length;
 
   return status === "success" ? (
-    <AnimatedPopover text={dropdownTitle} popoverTriggerClassNames="mb-0">
-      <CheckboxFieldContainer>
-        <CheckboxField
+    <AnimatedPopover
+      text={dropdownTitle}
+      popoverTriggerClassNames="mb-0"
+      popoverContentClassNames="overflow-y-auto">
+      <FilterCheckboxFieldsContainer>
+        <FilterCheckboxField
           id="all-eventtypes-checkbox"
           icon={<Layers className="h-4 w-4" />}
           checked={dropdownTitle === t("all_apps")}
@@ -36,9 +42,8 @@ export const OrganizationEventTypeFilter = () => {
           }}
           label={t("all_apps")}
         />
-      </CheckboxFieldContainer>
-      <CheckboxFieldContainer>
-        <CheckboxField
+
+        <FilterCheckboxField
           id="all-eventtypes-checkbox"
           icon={<User className="h-4 w-4" />}
           checked={query.userIds?.includes(session.data?.user.id || 0)}
@@ -52,14 +57,13 @@ export const OrganizationEventTypeFilter = () => {
           }}
           label={t("yours")}
         />
-      </CheckboxFieldContainer>
 
-      {isNotEmpty && (
-        <Fragment>
-          <div className="text-subtle px-4 py-2.5 text-xs font-medium uppercase leading-none">TEAMS</div>
-          {teams?.map((team) => (
-            <CheckboxFieldContainer key={team.id}>
-              <CheckboxField
+        {isNotEmpty && (
+          <Fragment>
+            <div className="text-subtle px-4 py-2.5 text-xs font-medium uppercase leading-none">TEAMS</div>
+            {teams?.map((team) => (
+              <FilterCheckboxField
+                key={team.id}
                 id={team.name}
                 label={team.name}
                 icon={
@@ -79,40 +83,10 @@ export const OrganizationEventTypeFilter = () => {
                   }
                 }}
               />
-            </CheckboxFieldContainer>
-          ))}
-        </Fragment>
-      )}
+            ))}
+          </Fragment>
+        )}
+      </FilterCheckboxFieldsContainer>
     </AnimatedPopover>
   ) : null;
 };
-
-type Props = InputHTMLAttributes<HTMLInputElement> & {
-  label: string;
-  icon: ReactNode;
-};
-
-const CheckboxField = forwardRef<HTMLInputElement, Props>(({ label, icon, ...rest }, ref) => {
-  return (
-    <label className="flex w-full items-center justify-between">
-      <div className="flex items-center">
-        <div className="text-default flex h-6 w-6 items-center justify-center ltr:mr-2 rtl:ml-2">{icon}</div>
-        <span className="text-sm">{label}</span>
-      </div>
-      <div className="flex h-5 items-center">
-        <input
-          {...rest}
-          ref={ref}
-          type="checkbox"
-          className="text-primary-600 focus:ring-primary-500 border-default bg-default h-4 w-4 rounded hover:cursor-pointer"
-        />
-      </div>
-    </label>
-  );
-});
-
-const CheckboxFieldContainer = ({ children }: { children: ReactNode }) => {
-  return <div className="flex items-center px-3 py-2">{children}</div>;
-};
-
-CheckboxField.displayName = "CheckboxField";

@@ -119,31 +119,24 @@ function WorkflowsPage() {
           <SkeletonLoader />
         ) : (
           <>
-            {query?.data?.profiles &&
-            query?.data?.profiles.length > 1 &&
-            allWorkflowsData?.workflows &&
-            allWorkflowsData.workflows.length &&
-            profileOptions ? (
-              <div className="mb-4 flex">
-                <div className="flex gap-2">
-                  <Filter
-                    profiles={query.data.profiles}
-                    checked={checkedFilterItems}
-                    setChecked={setCheckedFilterItems}
-                  />
-                  <WorkflowDropdownFilter />
-                </div>
-                <div className="ml-auto">
-                  <CreateButton
-                    subtitle={t("new_workflow_subtitle").toUpperCase()}
-                    options={profileOptions}
-                    createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
-                    isLoading={createMutation.isLoading}
-                    disableMobileButton={true}
-                  />
-                </div>
-              </div>
-            ) : null}
+            <div className="mb-4 flex">
+              <WorkflowDropdownFilter />
+              {query?.data?.profiles &&
+                query?.data?.profiles.length > 1 &&
+                allWorkflowsData?.workflows &&
+                allWorkflowsData.workflows.length &&
+                profileOptions && (
+                  <div className="ml-auto">
+                    <CreateButton
+                      subtitle={t("new_workflow_subtitle").toUpperCase()}
+                      options={profileOptions}
+                      createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
+                      isLoading={createMutation.isLoading}
+                      disableMobileButton={true}
+                    />
+                  </div>
+                )}
+            </div>
             {profileOptions && profileOptions?.length ? (
               <WorkflowList
                 workflows={filteredWorkflows}

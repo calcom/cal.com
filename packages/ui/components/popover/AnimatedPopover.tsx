@@ -10,12 +10,14 @@ export const AnimatedPopover = ({
   text,
   count,
   popoverTriggerClassNames,
+  popoverContentClassNames,
   children,
 }: {
   text: string;
   count?: number;
   children: React.ReactNode;
   popoverTriggerClassNames?: string;
+  popoverContentClassNames?: string;
 }) => {
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
@@ -69,7 +71,8 @@ export const AnimatedPopover = ({
         <div
           className={classNames(
             "bg-default border-default scroll-bar absolute z-50 mt-2 max-h-64 w-56 overflow-y-scroll rounded-md border py-[2px] shadow-sm focus-within:outline-none",
-            align === "end" && "-translate-x-[228px]"
+            align === "end" && "-translate-x-[228px]",
+            popoverContentClassNames
           )}>
           {children}
         </div>
