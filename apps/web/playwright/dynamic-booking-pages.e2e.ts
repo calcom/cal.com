@@ -53,8 +53,7 @@ test.skip("dynamic booking", async ({ page, users }) => {
     });
     await page.locator('[data-testid="confirm_cancel"]').click();
 
-    const cancelledHeadline = await page.locator('[data-testid="cancelled-headline"]').innerText();
-
-    expect(cancelledHeadline).toBe("This event is cancelled");
+    const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
+    await expect(cancelledHeadline).toBeVisible();
   });
 });

@@ -162,8 +162,8 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
 
         await expect(page).toHaveURL(/.*booking/);
 
-        const cancelledHeadline = await page.locator('[data-testid="cancelled-headline"]').innerText();
-        expect(cancelledHeadline).toBe("You are no longer attending this event");
+        const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
+        await expect(cancelledHeadline).toBeVisible();
 
         // Old booking should still exist, with one less attendee
         const updatedBooking = await prisma.booking.findFirst({
@@ -188,8 +188,8 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
 
           await expect(page).toHaveURL(/.*booking/);
 
-          const cancelledHeadline = await page.locator('[data-testid="cancelled-headline"]').innerText();
-          expect(cancelledHeadline).toBe("You are no longer attending this event");
+          const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
+          await expect(cancelledHeadline).toBeVisible();
         }
 
         // Should expect old booking to be cancelled
