@@ -515,13 +515,6 @@ const navigation: NavigationItemType[] = [
     icon: Clock,
   },
   {
-    name: "teams",
-    href: "/teams",
-    icon: Users,
-    onlyDesktop: true,
-    badge: <TeamInviteBadge />,
-  },
-  {
     name: "apps",
     href: "/apps",
     icon: Grid,
@@ -578,6 +571,13 @@ const navigation: NavigationItemType[] = [
     name: "insights",
     href: "/insights",
     icon: BarChart,
+  },
+  {
+    name: "teams",
+    href: "/teams",
+    icon: Users,
+    onlyDesktop: true,
+    badge: <TeamInviteBadge />,
   },
 ];
 
