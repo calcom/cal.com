@@ -46,5 +46,7 @@ export type EventTypeAppCardComponentProps = {
     URL: string;
   };
   app: EventTypeAppCardApp;
+  disabled?: boolean;
+  LockedIcon?: JSX.Element | false;
 };
 export type EventTypeAppCardComponent = React.FC<EventTypeAppCardComponentProps>;

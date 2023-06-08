@@ -18,11 +18,12 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   const { t } = useLocale();
   const { data: eventTypeApps, isLoading } = trpc.viewer.integrations.useQuery({
     extendsFeature: "EventType",
-    ...(eventType.team && { teamId: eventType.team.id }),
+    teamId: eventType.team?.id || eventType.parent?.teamId,
   });
 
   const methods = useFormContext<FormValues>();
-  const installedApps = eventTypeApps?.items.filter((app) => app.credentialIds.length) || [];
+  const installedApps =
+    eventTypeApps?.items.filter((app) => app.credentialIds.length || app.teams.length) || [];
   const notInstalledApps =
     eventTypeApps?.items.filter((app) => !app.credentialIds.length && !app.teams.length) || [];
   const allAppsData = methods.watch("metadata")?.apps || {};
@@ -77,6 +78,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
           key={app.slug}
           app={app}
           eventType={eventType}
+          {...shouldLockDisableProps("apps")}
         />
       );
     }
@@ -93,6 +95,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
             credentialOwner: { name: team?.name, avatar: team?.logo, teamId: team?.teamId },
           }}
           eventType={eventType}
+          {...shouldLockDisableProps("apps")}
         />
       );
     }
@@ -103,7 +106,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     <>
       <div>
         <div className="before:border-0">
-          {!installedApps?.length && isManagedEventType && (
+          {isManagedEventType && (
             <Alert
               severity="neutral"
               className="mb-2"
@@ -130,17 +133,19 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
             />
           ) : null}
           {cardsForAppsWithTeams.map((apps) => apps.map((cards) => cards))}
-          {installedApps
-            ?.filter((app) => !app.teams.length)
-            .map((app) => (
-              <EventTypeAppCard
-                getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
-                setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
-                key={app.slug}
-                app={app}
-                eventType={eventType}
-              />
-            ))}
+          {installedApps.map((app) => {
+            if (!app.teams.length)
+              return (
+                <EventTypeAppCard
+                  getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
+                  setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+                  key={app.slug}
+                  app={app}
+                  eventType={eventType}
+                  {...shouldLockDisableProps("apps")}
+                />
+              );
+          })}
         </div>
       </div>
       {!shouldLockDisableProps("apps").disabled && (

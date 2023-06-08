@@ -12,6 +12,9 @@ export const EventTypeAppCard = (props: {
   eventType: EventTypeAppCardComponentProps["eventType"];
   getAppData: GetAppData;
   setAppData: SetAppData;
+  // For event type apps, get these props from shouldLockDisableProps
+  LockedIcon?: JSX.Element | false;
+  disabled?: boolean;
 }) => {
   const { app, getAppData, setAppData } = props;
   return (

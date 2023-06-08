@@ -8,7 +8,7 @@ import type { _EventTypeModel } from "@calcom/prisma/zod/eventtype";
 import { Tooltip } from "@calcom/ui";
 import { Lock } from "@calcom/ui/components/icon";
 
-const Indicator = (label: string) => (
+export const LockedIndicator = (label: string) => (
   <Tooltip content={<>{label}</>}>
     <div className="bg ml-1 -mt-0.5 inline-flex h-4 w-4 rounded-sm p-0.5">
       <Lock className="text-subtle hover:text-muted h-3 w-3" />
@@ -39,7 +39,7 @@ const useLockedFieldsManager = (
     } else {
       locked = locked && unlockedFields[fieldName as keyof Omit<Prisma.EventTypeSelect, "id">] === undefined;
     }
-    return locked && Indicator(isManagedEventType ? adminLabel : memberLabel);
+    return locked && LockedIndicator(isManagedEventType ? adminLabel : memberLabel);
   };
 
   const shouldLockDisableProps = (fieldName: string) => {
