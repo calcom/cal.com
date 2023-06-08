@@ -1,8 +1,12 @@
 import { z } from "zod";
 
 export const ZUpdateInputSchema = z.object({
-  bio: z.string().optional(),
   name: z.string().optional(),
+  orgId: z
+    .string()
+    .regex(/^\d+$/)
+    .transform((id) => parseInt(id)),
+  bio: z.string().optional(),
   logo: z
     .string()
     .optional()

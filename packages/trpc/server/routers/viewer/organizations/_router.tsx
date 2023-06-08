@@ -9,11 +9,11 @@ import { ZVerifyCodeInputSchema } from "./verifyCode.schema";
 type OrganizationsRouterHandlerCache = {
   create?: typeof import("./create.handler").createHandler;
   listCurrent?: typeof import("./list.handler").listHandler;
-  update?: typeof import("./update.handler").updateHandler;
   publish?: typeof import("./publish.handler").publishHandler;
+  checkIfOrgNeedsUpgrade?: typeof import("./checkIfOrgNeedsUpgrade.handler").checkIfOrgNeedsUpgradeHandler;
+  update?: typeof import("./update.handler").updateHandler;
   verifyCode?: typeof import("./verifyCode.handler").verifyCodeHandler;
   createTeams?: typeof import("./createTeams.handler").createTeamsHandler;
-  checkIfOrgNeedsUpgrade?: typeof import("./checkIfOrgNeedsUpgrade.handler").checkIfOrgNeedsUpgradeHandler;
   setPassword?: typeof import("./setPassword.handler").setPasswordHandler;
 };
 

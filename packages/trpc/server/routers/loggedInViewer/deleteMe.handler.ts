@@ -20,7 +20,7 @@ type DeleteMeOptions = {
 
 export const deleteMeHandler = async ({ ctx, input }: DeleteMeOptions) => {
   // Check if input.password is correct
-  const user = await prisma.user.findUnique({
+  const user = await prisma.user.findFirst({
     where: {
       email: ctx.user.email.toLowerCase(),
     },

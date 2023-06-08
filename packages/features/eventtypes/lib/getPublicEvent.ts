@@ -10,10 +10,14 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { PrismaClient } from "@calcom/prisma/client";
+import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
+  bookerLayoutOptions,
   EventTypeMetaDataSchema,
   customInputSchema,
   userMetadata as userMetadataSchema,
+  bookerLayouts,
+  BookerLayouts,
 } from "@calcom/prisma/zod-utils";
 
 const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
@@ -27,7 +31,6 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   locations: true,
   customInputs: true,
   disableGuests: true,
-  // @TODO: Could this contain sensitive data?
   metadata: true,
   requiresConfirmation: true,
   recurringEvent: true,
@@ -55,6 +58,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
           brandColor: true,
           darkBrandColor: true,
           theme: true,
+          metadata: true,
         },
       },
     },
@@ -102,6 +106,11 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
       }
     }
 
+    const defaultEventBookerLayouts = {
+      enabledLayouts: [...bookerLayoutOptions],
+      defaultLayout: BookerLayouts.MONTH_VIEW,
+    } as BookerLayoutSettings;
+
     return {
       ...defaultEvent,
       bookingFields: getBookingFieldsWithSystemFields(defaultEvent),
@@ -116,6 +125,9 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
         theme: null,
+        bookerLayouts: bookerLayouts.parse(
+          firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
+        ),
       },
     };
   }
@@ -144,10 +156,13 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
 
   if (!event) return null;
 
+  const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
+
   return {
     ...event,
+    bookerLayouts: bookerLayouts.parse(eventMetaData?.bookerLayouts || null),
     description: markdownToSafeHTML(event.description),
-    metadata: EventTypeMetaDataSchema.parse(event.metadata || {}),
+    metadata: eventMetaData,
     customInputs: customInputSchema.array().parse(event.customInputs || []),
     locations: privacyFilteredLocations((event.locations || []) as LocationObject[]),
     bookingFields: getBookingFieldsWithSystemFields(event),
@@ -173,6 +188,8 @@ function getProfileFromEvent(event: Event) {
   if (!username) throw new Error("Event has no username/team slug");
   const weekStart = hosts?.[0]?.user?.weekStart || owner?.weekStart || "Monday";
   const basePath = team ? `/team/${username}` : `/${username}`;
+  const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
+  const userMetaData = userMetadataSchema.parse(profile.metadata || {});
 
   return {
     username,
@@ -183,6 +200,10 @@ function getProfileFromEvent(event: Event) {
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
     theme: profile.theme,
+    bookerLayouts: bookerLayouts.parse(
+      eventMetaData?.bookerLayouts ||
+        (userMetaData && "defaultBookerLayouts" in userMetaData ? userMetaData.defaultBookerLayouts : null)
+    ),
   };
 }
 

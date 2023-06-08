@@ -2,6 +2,7 @@ import type { Session } from "next-auth";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 import type { Maybe } from "@trpc/server";
@@ -24,6 +25,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       username: true,
       name: true,
       email: true,
+      emailVerified: true,
       bio: true,
       timeZone: true,
       weekStart: true,
@@ -87,6 +89,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     return null;
   }
 
+  const userMetaData = userMetadata.parse(user.metadata || {});
   const rawAvatar = user.avatar;
   // This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url
   user.avatar = rawAvatar ? `${WEBAPP_URL}/${user.username}/avatar.png` : defaultAvatarSrc({ email });
@@ -98,6 +101,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     email,
     username,
     locale,
+    defaultBookerLayouts: userMetaData?.defaultBookerLayouts || null,
   };
 }
 
