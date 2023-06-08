@@ -1,6 +1,6 @@
 import type { TFunction } from "next-i18next";
 
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, COMPANY_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
 import BaseEmail from "./_base-email";
@@ -13,7 +13,6 @@ export type EmailVerifyLink = {
   };
   verificationEmailLink: string;
 };
-
 
 export default class AccountVerifyEmail extends BaseEmail {
   verifyAccountInput: EmailVerifyLink;
@@ -44,7 +43,10 @@ ${this.verifyAccountInput.language("hi_user_name", { name: this.verifyAccountInp
 ${this.verifyAccountInput.language("verify_email_email_body", { appName: APP_NAME })}
 ${this.verifyAccountInput.language("verify_email_email_link_text")}
 ${this.verifyAccountInput.verificationEmailLink}
-${this.verifyAccountInput.language("happy_scheduling")} ${this.verifyAccountInput.language("the_calcom_team")}
+${this.verifyAccountInput.language("happy_scheduling")} ${this.verifyAccountInput.language(
+      "the_calcom_team",
+      { companyName: COMPANY_NAME }
+    )}
 `.replace(/(<([^>]+)>)/gi, "");
   }
 }
