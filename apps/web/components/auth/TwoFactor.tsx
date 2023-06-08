@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label, Input } from "@calcom/ui";
 
 export default function TwoFactor({ center = true }) {
-  const [value, setValue] = useState("");
+  const [value, onChange] = useState("");
   const { t } = useLocale();
   const methods = useFormContext();
 
@@ -14,11 +14,12 @@ export default function TwoFactor({ center = true }) {
     acceptedCharacters: /^[0-9]$/,
     length: 6,
     value,
-    onChange: setValue,
+    onChange,
   });
 
   useEffect(() => {
     if (value) methods.setValue("totpCode", value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   const className = "h-12 w-12 !text-xl text-center";
