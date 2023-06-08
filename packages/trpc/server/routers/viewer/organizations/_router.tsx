@@ -13,9 +13,10 @@ type OrganizationsRouterHandlerCache = {
   getMembers?: typeof import("./getMembers.handler").getMembersHandler;
   update?: typeof import("./update.handler").updateHandler;
   publish?: typeof import("./publish.handler").publishHandler;
+  checkIfOrgNeedsUpgrade?: typeof import("./checkIfOrgNeedsUpgrade.handler").checkIfOrgNeedsUpgradeHandler;
+  update?: typeof import("./update.handler").updateHandler;
   verifyCode?: typeof import("./verifyCode.handler").verifyCodeHandler;
   createTeams?: typeof import("./createTeams.handler").createTeamsHandler;
-  checkIfOrgNeedsUpgrade?: typeof import("./checkIfOrgNeedsUpgrade.handler").checkIfOrgNeedsUpgradeHandler;
   setPassword?: typeof import("./setPassword.handler").setPasswordHandler;
 };
 

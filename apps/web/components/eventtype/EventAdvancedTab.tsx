@@ -16,6 +16,7 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
+import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import { classNames } from "@calcom/lib";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -65,7 +66,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [requiresConfirmation, setRequiresConfirmation] = useState(eventType.requiresConfirmation);
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
-  const noShowFeeEnabled = eventType.metadata.apps?.stripe?.paymentOption === "HOLD";
+  const noShowFeeEnabled = eventType.metadata?.apps?.stripe?.paymentOption === "HOLD";
 
   useEffect(() => {
     !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0]?.id ?? team?.id));
@@ -158,6 +159,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             </Button>
           }
         />
+      </div>
+      <hr className="border-subtle [&:has(+div:empty)]:hidden" />
+      <div>
+        <BookerLayoutSelector fallbackToUserSettings />
       </div>
       <hr className="border-subtle" />
       <FormBuilder

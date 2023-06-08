@@ -10,18 +10,38 @@ import { Label } from "../../../components/form/inputs/Label";
 const boolean = (yesNo: "yes" | "no") => (yesNo === "yes" ? true : yesNo === "no" ? false : undefined);
 const yesNo = (boolean?: boolean) => (boolean === true ? "yes" : boolean === false ? "no" : undefined);
 
+type VariantStyles = {
+  commonClass?: string;
+  toggleGroupPrimitiveClass?: string;
+};
+
+const getVariantStyles = (variant: string) => {
+  const variants: Record<string, VariantStyles> = {
+    default: {
+      commonClass: "px-4 w-full py-[10px]",
+    },
+    small: {
+      commonClass: "w-[49px] px-3 py-1.5",
+      toggleGroupPrimitiveClass: "space-x-1",
+    },
+  };
+  return variants[variant];
+};
+
 export const BooleanToggleGroup = function BooleanToggleGroup({
   defaultValue = true,
   value,
   disabled = false,
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   onValueChange = () => {},
+  variant = "default",
   ...passThrough
 }: {
   defaultValue?: boolean;
   value?: boolean;
   onValueChange?: (value?: boolean) => void;
   disabled?: boolean;
+  variant?: "default" | "small";
 }) {
   // Maintain a state because it is not necessary that onValueChange the parent component would re-render. Think react-hook-form
   // Also maintain a string as boolean isn't accepted as ToggleGroupPrimitive value
@@ -33,9 +53,11 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
     return null;
   }
   const commonClass = classNames(
-    "w-full inline-flex items-center justify-center rounded py-[10px] px-4 text-sm font-medium  leading-4",
+    getVariantStyles(variant).commonClass,
+    "inline-flex items-center justify-center rounded text-sm font-medium  leading-4",
     disabled && "cursor-not-allowed"
   );
+
   const selectedClass = classNames(commonClass, "bg-emphasis  text-emphasis");
   const unselectedClass = classNames(commonClass, "text-default hover:bg-subtle hover:text-emphasis");
   return (
@@ -43,7 +65,10 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
       value={yesNoValue}
       type="single"
       disabled={disabled}
-      className="border-subtle flex h-9 space-x-2 rounded-md border p-1 rtl:space-x-reverse"
+      className={classNames(
+        "border-subtle flex h-9 space-x-2 rounded-md border p-1 rtl:space-x-reverse",
+        getVariantStyles(variant).toggleGroupPrimitiveClass
+      )}
       onValueChange={(yesNoValue: "yes" | "no") => {
         setYesNoValue(yesNoValue);
         onValueChange(boolean(yesNoValue));

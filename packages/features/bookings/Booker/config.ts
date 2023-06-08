@@ -2,6 +2,8 @@ import { cubicBezier, useAnimate } from "framer-motion";
 import { useReducedMotion } from "framer-motion";
 import { useEffect } from "react";
 
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
+
 import type { BookerLayout, BookerState } from "./types";
 
 // Framer motion fade in animation configs.
@@ -37,7 +39,7 @@ type ResizeAnimationConfig = {
  * The object is structured as following:
  *
  * The root property of the object: is the name of the layout
- * (mobile, small_calendar, large_calendar, large_timeslots)
+ * (mobile, month_view, week_view, column_view)
  *
  * The values of these properties are objects that define the animation for each state of the booker.
  * The animation have the same properties as you could pass to the animate prop of framer-motion:
@@ -50,42 +52,62 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
       minHeight: "0px",
       gridTemplateAreas: `
           "meta"
+          "header"
           "main"
           "timeslots"
         `,
       gridTemplateColumns: "100%",
+      gridTemplateRows: "auto auto auto auto",
     },
   },
-  small_calendar: {
+  month_view: {
     default: {
       width: "calc(var(--booker-meta-width) + var(--booker-main-width))",
       minHeight: "450px",
       height: "auto",
-      gridTemplateAreas: `"meta main"`,
+      gridTemplateAreas: `
+      "meta main main"
+      "meta main main"
+      `,
       gridTemplateColumns: "var(--booker-meta-width) var(--booker-main-width)",
+      gridTemplateRows: "auto",
     },
     selecting_time: {
       width: "calc(var(--booker-meta-width) + var(--booker-main-width) + var(--booker-timeslots-width))",
       minHeight: "450px",
       height: "auto",
-      gridTemplateAreas: `"meta main timeslots"`,
+      gridTemplateAreas: `
+      "meta main timeslots"
+      "meta main timeslots"
+      `,
       gridTemplateColumns: "var(--booker-meta-width) 1fr var(--booker-timeslots-width)",
+      gridTemplateRows: "auto",
     },
   },
-  large_calendar: {
+  week_view: {
     default: {
       width: "100vw",
+      minHeight: "450px",
       height: "100vh",
-      gridTemplateAreas: `"meta main"`,
+      gridTemplateAreas: `
+      "meta header header"
+      "meta main main"
+      `,
       gridTemplateColumns: "var(--booker-meta-width) 1fr",
+      gridTemplateRows: "70px auto",
     },
   },
-  large_timeslots: {
+  column_view: {
     default: {
       width: "100vw",
+      minHeight: "450px",
       height: "100vh",
-      gridTemplateAreas: `"meta main"`,
+      gridTemplateAreas: `
+      "meta header header"
+      "meta main main"
+      `,
       gridTemplateColumns: "var(--booker-meta-width) 1fr",
+      gridTemplateRows: "70px auto",
     },
   },
 };
@@ -96,18 +118,18 @@ export const getBookerSizeClassNames = (layout: BookerLayout, bookerState: Booke
     // General sizes, used always
     "[--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
     // Small calendar defaults
-    layout === "small_calendar" && "[--booker-meta-width:240px]",
+    layout === BookerLayouts.MONTH_VIEW && "[--booker-meta-width:240px]",
     // Meta column get's wider in booking view to fit the full date on a single row in case
     // of a multi occurance event. Also makes form less wide, which also looks better.
-    layout === "small_calendar" &&
+    layout === BookerLayouts.MONTH_VIEW &&
       bookerState === "booking" &&
       "[--booker-main-width:420px] lg:[--booker-meta-width:340px]",
     // Smaller meta when not in booking view.
-    layout === "small_calendar" &&
+    layout === BookerLayouts.MONTH_VIEW &&
       bookerState !== "booking" &&
       "[--booker-main-width:480px] lg:[--booker-meta-width:280px]",
     // Fullscreen view settings.
-    layout !== "small_calendar" &&
+    layout !== BookerLayouts.MONTH_VIEW &&
       "[--booker-main-width:480px] [--booker-meta-width:340px] lg:[--booker-meta-width:424px]",
   ];
 };
@@ -134,28 +156,24 @@ export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerStat
       // Width is animated by the css class instead of via framer motion,
       // because css is better at animating the calcs, framer motion might
       // make some mistakes in that.
-      width: animationConfig?.width || "auto",
       gridTemplateAreas: animationConfig?.gridTemplateAreas,
+      width: animationConfig?.width || "auto",
       gridTemplateColumns: animationConfig?.gridTemplateColumns,
+      gridTemplateRows: animationConfig?.gridTemplateRows,
       minHeight: animationConfig?.minHeight,
     };
 
     // We don't animate if users has set prefers-reduced-motion,
     // or when the layout is mobile.
     if (prefersReducedMotion || layout === "mobile") {
-      animate(
-        animationScope.current,
-        {
-          ...animatedProperties,
-          ...nonAnimatedProperties,
-        },
-        {
-          duration: 0,
-        }
-      );
+      const styles = { ...nonAnimatedProperties, ...animatedProperties };
+      Object.keys(styles).forEach((property) => {
+        animationScope.current.style[property] = styles[property as keyof typeof styles];
+      });
     } else {
-      animate(animationScope.current, nonAnimatedProperties, {
-        duration: 0,
+      Object.keys(nonAnimatedProperties).forEach((property) => {
+        animationScope.current.style[property] =
+          nonAnimatedProperties[property as keyof typeof nonAnimatedProperties];
       });
       animate(animationScope.current, animatedProperties, {
         duration: 0.5,

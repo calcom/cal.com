@@ -11,6 +11,7 @@ import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
+import { OrganizationEventTypeFilter } from "@calcom/features/eventtypes/components/OrganizationEventTypeFilter";
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -44,6 +45,7 @@ import {
   HeadSeo,
   Skeleton,
   Label,
+  VerticalDivider,
 } from "@calcom/ui";
 import {
   ArrowDown,
@@ -393,11 +395,13 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           className="relative top-1 right-3"
                           size="sm"
                           truncateAfter={4}
-                          items={type.users.map((organizer: { name: any; username: any }) => ({
-                            alt: organizer.name || "",
-                            image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
-                            title: organizer.name || "",
-                          }))}
+                          items={type.users.map(
+                            (organizer: { name: string | null; username: string | null }) => ({
+                              alt: organizer.name || "",
+                              image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
+                              title: organizer.name || "",
+                            })
+                          )}
                         />
                       )}
                       {isManagedEventType && (
@@ -780,7 +784,17 @@ const CTA = () => {
   );
 };
 
-const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
+const Actions = () => {
+  return (
+    <div className="flex items-center">
+      <OrganizationEventTypeFilter />
+      <VerticalDivider />
+    </div>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer as any);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
@@ -793,6 +807,7 @@ const EventTypesPage = () => {
     if (query?.openIntercom && query?.openIntercom === "true") {
       open();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -806,6 +821,7 @@ const EventTypesPage = () => {
         heading={t("event_types_page_title")}
         hideHeadingOnMobile
         subtitle={t("event_types_page_subtitle")}
+        beforeCTAactions={<Actions />}
         CTA={<CTA />}>
         <WithQuery
           customLoader={<SkeletonLoader />}
@@ -816,7 +832,7 @@ const EventTypesPage = () => {
                   {isMobile ? (
                     <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
                   ) : (
-                    data.eventTypeGroups.map((group, index) => (
+                    data.eventTypeGroups.map((group: EventTypeGroup, index: number) => (
                       <div className="flex flex-col" key={group.profile.slug}>
                         <EventTypeListHeading
                           profile={group.profile}

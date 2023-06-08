@@ -215,7 +215,7 @@ export class Cal {
   }) {
     const iframe = (this.iframe = document.createElement("iframe"));
     iframe.className = "cal-embed";
-    iframe.name = "cal-embed";
+    iframe.name = `cal-embed=${this.namespace}`;
     const config = this.getConfig();
     const { iframeAttrs, ...restQueryObject } = queryObject;
 

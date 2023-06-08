@@ -3,10 +3,12 @@ import { Trans } from "next-i18next";
 import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { classNames } from "@calcom/lib";
+import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc";
 import {
   Button,
   Checkbox as CheckboxField,
@@ -14,12 +16,14 @@ import {
   DialogContent,
   DialogFooter,
   Form,
-  TextField,
   Label,
+  showToast,
+  TextField,
   ToggleGroup,
   Select,
   TextAreaField,
 } from "@calcom/ui";
+import { Link } from "@calcom/ui/components/icon";
 
 import type { PendingMember } from "../lib/types";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
@@ -29,7 +33,10 @@ type MemberInvitationModalProps = {
   onExit: () => void;
   orgMembers?: RouterOutputs["viewer"]["organizations"]["getMembers"];
   onSubmit: (values: NewMemberForm) => void;
+  onSettingsOpen: () => void;
+  teamId: number;
   members: PendingMember[];
+  token?: string;
 };
 
 type MembershipRoleOption = {
@@ -47,8 +54,27 @@ type ModalMode = "INDIVIDUAL" | "BULK";
 
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
+  const trpcContext = trpc.useContext();
 
   const [modalImportMode, setModalInputMode] = useState<ModalMode>("INDIVIDUAL");
+
+  const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
+    onSuccess(token) {
+      copyInviteLinkToClipboard(token);
+      trpcContext.viewer.teams.get.invalidate();
+      trpcContext.viewer.teams.list.invalidate();
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  const copyInviteLinkToClipboard = async (token: string) => {
+    const inviteLink = `${WEBAPP_URL}/teams?token=${token}`;
+    await navigator.clipboard.writeText(inviteLink);
+    showToast(t("invite_link_copied"), "success");
+  };
+
   const options: MembershipRoleOption[] = useMemo(() => {
     return [
       { value: MembershipRole.MEMBER, label: t("member") },
@@ -119,7 +145,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         </div>
 
         <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values)}>
-          <div className="space-y-6">
+          <div className="my-6 space-y-6">
             {/* Indivdual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
               <Controller
@@ -228,6 +254,35 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 />
               )}
             />
+            <div className="flex">
+              <Button
+                type="button"
+                color="minimal"
+                variant="icon"
+                onClick={() =>
+                  props.token
+                    ? copyInviteLinkToClipboard(props.token)
+                    : createInviteMutation.mutate({ teamId: props.teamId })
+                }
+                className={classNames("gap-2", props.token && "opacity-50")}
+                data-testid="copy-invite-link-button">
+                <Link className="text-default h-4 w-4" aria-hidden="true" />
+                {t("copy_invite_link")}
+              </Button>
+              {props.token && (
+                <Button
+                  type="button"
+                  color="minimal"
+                  className="ms-2 me-2"
+                  onClick={() => {
+                    props.onSettingsOpen();
+                    newMemberFormMethods.reset();
+                  }}
+                  data-testid="edit-invite-link-button">
+                  {t("edit_invite_link")}
+                </Button>
+              )}
+            </div>
           </div>
           <DialogFooter showDivider>
             <Button

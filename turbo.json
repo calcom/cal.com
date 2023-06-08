@@ -174,7 +174,6 @@
   },
   "globalDependencies": ["yarn.lock"],
   "globalEnv": [
-    "ALCHEMY_API_KEY",
     "ANALYZE",
     "API_KEY_PREFIX",
     "APP_USER_NAME",
@@ -202,7 +201,6 @@
     "HEROKU_APP_NAME",
     "HUBSPOT_CLIENT_ID",
     "HUBSPOT_CLIENT_SECRET",
-    "INFURA_API_KEY",
     "INTEGRATION_TEST_MODE",
     "IP_BANLIST",
     "LARK_OPEN_APP_ID",
@@ -278,6 +276,9 @@
     "ZOHOCRM_CLIENT_SECRET",
     "ZOOM_CLIENT_ID",
     "ZOOM_CLIENT_SECRET",
-    "INTERCOM_SECRET"
+    "INTERCOM_SECRET",
+    "PROJECT_ID_VERCEL",
+    "TEAM_ID_VERCEL",
+    "AUTH_BEARER_TOKEN_VERCEL"
   ]
 }

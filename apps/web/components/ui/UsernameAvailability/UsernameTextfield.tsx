@@ -3,6 +3,7 @@ import { debounce, noop } from "lodash";
 import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
 
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
@@ -31,6 +32,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
     usernameRef,
     onSuccessMutation,
     onErrorMutation,
+    user,
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
@@ -79,7 +81,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
 
   const ActionButtons = () => {
     return usernameIsAvailable && currentUsername !== inputUsernameValue ? (
-      <div className="ms-2 me-2 mt-px flex flex-row space-x-2">
+      <div className="ms-2 me-2 flex flex-row space-x-2">
         <Button
           type="button"
           onClick={() => setOpenDialogSaveUsername(true)}
@@ -108,6 +110,12 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
     });
   };
 
+  const usernamePrefix = user.organization
+    ? user.organization.slug
+      ? `${user.organization.slug}.${subdomainSuffix()}`
+      : `${user.organization.metadata.requestedSlug}.${subdomainSuffix()}`
+    : process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "");
+
   return (
     <div>
       <div className="flex rounded-md">
@@ -116,9 +124,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             ref={usernameRef}
             name="username"
             value={inputUsernameValue}
-            addOnLeading={
-              <>{process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/</>
-            }
+            addOnLeading={<>{usernamePrefix}/</>}
             autoComplete="none"
             autoCapitalize="none"
             autoCorrect="none"
@@ -142,7 +148,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             </div>
           )}
         </div>
-        <div className="mt-5 hidden md:inline">
+        <div className="mt-7 hidden md:inline">
           <ActionButtons />
         </div>
       </div>
