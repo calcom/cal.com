@@ -1,6 +1,10 @@
-name: "Validate PRs"
+name: "Welcome new contributors"
 
-on: [pull_request, issues]
+on: 
+ issues: 
+  types: opened
+ pull_request:
+   types: opened
 
 permissions:
   pull-requests: write

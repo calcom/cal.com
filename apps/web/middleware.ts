@@ -9,7 +9,7 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
-  const requestHeaders = new Headers(req.headers);
+  const requestHeaders = new Headers(req.headers);  
 
   if (!url.pathname.startsWith("/api")) {
     //
