@@ -2,7 +2,7 @@ import { parseRecurringEvent } from "@calcom/lib";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Prisma, PrismaClient } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { bookingResponses, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TGetInputSchema } from "./get.schema";
@@ -296,6 +296,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
         currency: booking.eventType?.currency || "usd",
         metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
       },
+      responses: bookingResponses.parse(booking.responses),
       startTime: booking.startTime.toISOString(),
       endTime: booking.endTime.toISOString(),
     };

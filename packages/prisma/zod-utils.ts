@@ -110,9 +110,7 @@ export type BookingFieldType = typeof BookingFieldType extends z.Values<infer T>
 
 // Validation of user added bookingFields' responses happen using `getBookingResponsesSchema` which requires `eventType`.
 // So it is a dynamic validation and thus entire validation can't exist here
-// ⬇️ Prevents annoying Prisma TS error: "JsonValue isn't assignable to blah blah blah"
-export const bookingResponses = z.any().transform((v) => _bookingResponses.parse(v));
-export const _bookingResponses = z
+export const bookingResponses = z
   .object({
     email: z.string(),
     name: z.string(),
