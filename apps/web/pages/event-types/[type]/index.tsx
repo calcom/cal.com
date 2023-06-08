@@ -137,6 +137,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   const { data: eventTypeApps } = trpc.viewer.apps.useQuery({
     extendsFeature: "EventType",
   });
+  const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
 
   const { eventType, locationOptions, team, teamMembers, currentUserMembership, destinationCalendar } = props;
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
@@ -412,6 +413,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           form={formMethods}
           id="event-type-form"
           handleSubmit={async (values) => {
+            let defaultCalendar;
             const {
               periodDates,
               periodCountCalendarDays,
@@ -454,6 +456,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               }
             }
 
+            if (connectedCalendarsQuery.data?.connectedCalendars.length) {
+              defaultCalendar = connectedCalendarsQuery.data?.connectedCalendars
+                .map((connected) => connected.primary)
+                .find((cal) => cal?.externalId === input.destinationCalendar.externalId);
+            }
+
             updateMutation.mutate({
               ...input,
               locations,
@@ -468,7 +476,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               durationLimits,
               seatsPerTimeSlot,
               seatsShowAttendees,
-              metadata,
+              metadata: { ...metadata, organizerEmail: defaultCalendar?.email },
               customInputs,
             });
           }}>
