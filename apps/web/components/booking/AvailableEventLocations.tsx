@@ -24,7 +24,7 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
     }
 
     const translateAbleKeys = [
-      "attendee_in_person",
+      "in_person_attendee_address",
       "in_person",
       "attendee_phone_number",
       "link_meeting",

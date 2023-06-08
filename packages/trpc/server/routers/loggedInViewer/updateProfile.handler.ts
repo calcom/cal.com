@@ -4,10 +4,12 @@ import type { NextApiResponse, GetServerSidePropsContext } from "next";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
+import { getTranslation } from "@calcom/lib/server";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
+import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -32,6 +34,13 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   };
 
   let isPremiumUsername = false;
+
+  const layoutError = validateBookerLayouts(input?.metadata?.defaultBookerLayouts || null);
+  if (layoutError) {
+    const t = await getTranslation("en", "common");
+    throw new TRPCError({ code: "BAD_REQUEST", message: t(layoutError) });
+  }
+
   if (input.username) {
     const username = slugify(input.username);
     // Only validate if we're changing usernames
