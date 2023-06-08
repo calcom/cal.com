@@ -215,6 +215,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                   bookingFields: true,
                   seatsPerTimeSlot: true,
                   seatsShowAttendees: true,
+                  eventName: true,
                 },
               },
               uid: true,
@@ -273,32 +274,37 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
 
             const attendeesList = await Promise.all(attendeesListPromises);
             const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
-            await sendCancelledEmails({
-              type: booking?.eventType?.title as string,
-              title: booking.title,
-              description: booking.description,
-              customInputs: isPrismaObjOrUndefined(booking.customInputs),
-              ...getCalEventResponses({
-                bookingFields: booking.eventType?.bookingFields ?? null,
-                booking,
-              }),
-              startTime: booking.startTime.toISOString(),
-              endTime: booking.endTime.toISOString(),
-              organizer: {
-                email: booking?.user?.email as string,
-                name: booking?.user?.name ?? "Nameless",
-                timeZone: booking?.user?.timeZone as string,
-                language: { translate: tOrganizer, locale: booking?.user?.locale ?? "en" },
+            await sendCancelledEmails(
+              {
+                type: booking?.eventType?.title as string,
+                title: booking.title,
+                description: booking.description,
+                customInputs: isPrismaObjOrUndefined(booking.customInputs),
+                ...getCalEventResponses({
+                  bookingFields: booking.eventType?.bookingFields ?? null,
+                  booking,
+                }),
+                startTime: booking.startTime.toISOString(),
+                endTime: booking.endTime.toISOString(),
+                organizer: {
+                  email: booking?.user?.email as string,
+                  name: booking?.user?.name ?? "Nameless",
+                  timeZone: booking?.user?.timeZone as string,
+                  language: { translate: tOrganizer, locale: booking?.user?.locale ?? "en" },
+                },
+                attendees: attendeesList,
+                uid: booking.uid,
+                recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
+                location: booking.location,
+                destinationCalendar: booking.destinationCalendar || booking.user?.destinationCalendar,
+                cancellationReason: "Payment method removed by organizer",
+                seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+                seatsShowAttendees: booking.eventType?.seatsShowAttendees,
               },
-              attendees: attendeesList,
-              uid: booking.uid,
-              recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
-              location: booking.location,
-              destinationCalendar: booking.destinationCalendar || booking.user?.destinationCalendar,
-              cancellationReason: "Payment method removed by organizer",
-              seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
-              seatsShowAttendees: booking.eventType?.seatsShowAttendees,
-            });
+              {
+                eventName: booking?.eventType?.eventName,
+              }
+            );
           }
         });
       }
