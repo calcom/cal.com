@@ -1,7 +1,6 @@
 import type React from "react";
 import type { z } from "zod";
 
-import type { _EventTypeModel } from "@calcom/prisma/zod";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
 
@@ -41,8 +40,8 @@ export interface InstallAppButtonProps {
 export type EventTypeAppCardComponentProps = {
   // Limit what data should be accessible to apps
   eventType: Pick<
-    z.infer<typeof _EventTypeModel>,
-    "id" | "title" | "description" | "teamId" | "length" | "recurringEvent" | "seatsPerTimeSlot"
+    z.infer<typeof EventTypeModel>,
+    "id" | "title" | "description" | "teamId" | "length" | "recurringEvent" | "seatsPerTimeSlot" | "team"
   > & {
     URL: string;
   };

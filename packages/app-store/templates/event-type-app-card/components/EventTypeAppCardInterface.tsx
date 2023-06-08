@@ -24,7 +24,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           setAppData("isSunrise", true);
         }
       }}
-      switchChecked={enabled}>
+      switchChecked={enabled}
+      teamId={eventType.team?.id || undefined}>
       <div className="mt-2 text-sm">
         <div className="flex">
           <span className="ltr:mr-2 rtl:ml-2">{isSunrise ? <Sunrise /> : <Sunset />}</span>I am an AppCard for

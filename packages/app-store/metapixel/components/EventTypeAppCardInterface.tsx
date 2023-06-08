@@ -6,13 +6,18 @@ import { TextField } from "@calcom/ui";
 
 import type { appDataSchema } from "../zod";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
   const trackingId = getAppData("trackingId");
   const { enabled, updateEnabled } = useIsAppEnabled(app, getAppData, setAppData);
 
   return (
-    <AppCard setAppData={setAppData} app={app} switchOnClick={updateEnabled} switchChecked={enabled}>
+    <AppCard
+      setAppData={setAppData}
+      app={app}
+      switchOnClick={updateEnabled}
+      switchChecked={enabled}
+      teamId={eventType.team?.id || undefined}>
       <TextField
         name="Pixel ID"
         value={trackingId}

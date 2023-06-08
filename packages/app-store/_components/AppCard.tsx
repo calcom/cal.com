@@ -37,8 +37,7 @@ export default function AppCard({
         "border-subtle mb-4",
         app.isInstalled ? "mt-2" : "mt-6",
         "rounded-md border",
-        !app.enabled && "grayscale",
-        "bg-red-400"
+        !app.enabled && "grayscale"
       )}>
       <div className={classNames(app.isInstalled ? "p-4 text-sm sm:p-4" : "px-5 py-4 text-sm sm:px-5")}>
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
@@ -59,7 +58,7 @@ export default function AppCard({
               {description || app?.description}
             </p>
           </div>
-          <div className="ml-auto flex space-x-2">
+          <div className="ml-auto flex items-center space-x-2">
             {app.credentialOwner && (
               <div className="ml-auto">
                 <Badge variant="gray">
