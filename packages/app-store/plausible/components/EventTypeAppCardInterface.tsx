@@ -6,7 +6,12 @@ import { TextField } from "@calcom/ui";
 
 import type { appDataSchema } from "../zod";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
+  app,
+  eventType,
+  disabled,
+  LockedIcon,
+}) {
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
   const plausibleUrl = getAppData("PLAUSIBLE_URL");
   const trackingId = getAppData("trackingId");
@@ -16,12 +21,10 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     <AppCard
       setAppData={setAppData}
       app={app}
+      disableSwitch={disabled}
+      LockedIcon={LockedIcon}
       switchOnClick={(e) => {
-        if (!e) {
-          updateEnabled(false);
-        } else {
-          updateEnabled(true);
-        }
+        updateEnabled(e);
       }}
       switchChecked={enabled}
       teamId={eventType.team?.id || undefined}>
@@ -30,11 +33,13 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         defaultValue="https://plausible.io/js/script.js"
         placeholder="https://plausible.io/js/script.js"
         value={plausibleUrl}
+        disabled={disabled}
         onChange={(e) => {
           setAppData("PLAUSIBLE_URL", e.target.value);
         }}
       />
       <TextField
+        disabled={disabled}
         name="Tracked Domain"
         placeholder="yourdomain.com"
         value={trackingId}

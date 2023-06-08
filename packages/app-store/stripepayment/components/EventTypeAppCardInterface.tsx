@@ -13,7 +13,12 @@ import type { appDataSchema } from "../zod";
 
 type Option = { value: string; label: string };
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
+  app,
+  eventType,
+  disabled,
+  LockedIcon,
+}) {
   const { asPath } = useRouter();
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
@@ -44,6 +49,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       returnTo={WEBAPP_URL + asPath}
       setAppData={setAppData}
       app={app}
+      disableSwitch={disabled}
+      LockedIcon={LockedIcon}
       switchChecked={requirePayment}
       switchOnClick={(enabled) => {
         setRequirePayment(enabled);
@@ -76,6 +83,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 type="number"
                 required
                 placeholder="Price"
+                disabled={disabled}
                 onChange={(e) => {
                   setAppData("price", Number(e.target.value) * 100);
                 }}
@@ -94,7 +102,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   if (input) setAppData("paymentOption", input.value);
                 }}
                 className="mb-1 h-[38px] w-full"
-                isDisabled={seatsEnabled}
+                isDisabled={seatsEnabled || disabled}
               />
             </div>
             {seatsEnabled && paymentOption === "HOLD" && (

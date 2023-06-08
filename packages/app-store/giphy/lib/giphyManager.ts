@@ -6,6 +6,7 @@ let api_key = "";
 
 const checkGiphyApiKey = async () => {
   const appKeys = await getAppKeysFromSlug("giphy");
+  console.log("🚀 ~ file: giphyManager.ts:9 ~ checkGiphyApiKey ~ appKeys:", appKeys);
   if (typeof appKeys.api_key === "string") api_key = appKeys.api_key;
   if (!api_key) throw new HttpError({ statusCode: 400, message: "Missing Giphy api_key" });
 };

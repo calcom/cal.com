@@ -9,7 +9,12 @@ import { Tooltip, TextField } from "@calcom/ui";
 
 import type { appDataSchema } from "../zod";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ eventType, app }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
+  eventType,
+  app,
+  disabled,
+  LockedIcon,
+}) {
   const { t } = useLocale();
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
   const [additionalParameters, setAdditionalParameters] = useState("");
@@ -39,12 +44,10 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     <AppCard
       setAppData={setAppData}
       app={app}
+      disableSwitch={disabled}
+      LockedIcon={LockedIcon}
       switchOnClick={(e) => {
-        if (!e) {
-          updateEnabled(false);
-        } else {
-          updateEnabled(true);
-        }
+        updateEnabled(e);
       }}
       switchChecked={enabled}
       teamId={eventType.team?.id || undefined}>
@@ -52,6 +55,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         <div className="flex w-full">
           <TextField
             name="hello"
+            disabled={disabled}
             value={additionalParameters}
             onChange={(e) => setAdditionalParameters(e.target.value)}
             label={t("additional_url_parameters")}

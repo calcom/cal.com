@@ -37,6 +37,11 @@ const useIsAppEnabled = (app: EventTypeAppCardApp, getAppData: unknown, setAppDa
       // @ts-ignore
       setAppData("credentialId", app.credentialIds[0]);
     }
+    if (!enabled) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      setAppData("credentialId", undefined);
+    }
   }, [enabled]);
 
   const updateEnabled = (newValue: boolean) => {
