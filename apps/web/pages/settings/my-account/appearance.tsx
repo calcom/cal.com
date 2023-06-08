@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import type { z } from "zod";
 
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
@@ -9,6 +10,7 @@ import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
+import type { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import {
   Alert,
@@ -64,7 +66,7 @@ const AppearanceView = () => {
       brandColor: user?.brandColor || "#292929",
       darkBrandColor: user?.darkBrandColor || "#fafafa",
       hideBranding: user?.hideBranding,
-      defaultBookerLayouts: user?.defaultBookerLayouts,
+      metadata: user?.metadata as z.infer<typeof userMetadata>,
     },
   });
 
@@ -99,7 +101,7 @@ const AppearanceView = () => {
     <Form
       form={formMethods}
       handleSubmit={(values) => {
-        const layoutError = validateBookerLayouts(values.defaultBookerLayouts || null);
+        const layoutError = validateBookerLayouts(values?.metadata?.defaultBookerLayouts || null);
         if (layoutError) throw new Error(t(layoutError));
 
         mutation.mutate({
