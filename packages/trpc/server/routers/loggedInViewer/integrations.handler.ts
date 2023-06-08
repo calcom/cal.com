@@ -13,18 +13,24 @@ type IntegrationsOptions = {
   input: TIntegrationsInputSchema;
 };
 
+type TeamQuery = Prisma.TeamGetPayload<{
+  select: {
+    id: true;
+    credentials: true;
+    name: true;
+    logo: true;
+  };
+}>;
+
+type TeamQueryWithParent = TeamQuery & {
+  parent?: TeamQuery | null;
+};
+
 export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) => {
   const { user } = ctx;
   const { variant, exclude, onlyInstalled, includeTeamInstalledApps, extendsFeature, teamId } = input;
   let { credentials } = user;
-  let userAdminTeams: Prisma.TeamGetPayload<{
-    select: {
-      id: true;
-      credentials: true;
-      name: true;
-      logo: true;
-    };
-  }>[] = [];
+  let userAdminTeams: TeamQueryWithParent[] = [];
 
   if (includeTeamInstalledApps || teamId) {
     // Get app credentials that the user is an admin or owner to
@@ -43,8 +49,31 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         credentials: true,
         name: true,
         logo: true,
+        parent: {
+          select: {
+            id: true,
+            credentials: true,
+            name: true,
+            logo: true,
+          },
+        },
       },
     });
+
+    // If a team is a part of an org then include those apps
+    // Don't want to iterate over these parent teams
+    const parentTeams: TeamQueryWithParent[] = [];
+    // Only loop and grab parent teams if a teamId was given. If not then all teams will be queried
+    if (teamId) {
+      userAdminTeams.forEach((team) => {
+        if (team?.parent) {
+          parentTeams.push(team.parent);
+          delete team.parent;
+        }
+      });
+    }
+
+    userAdminTeams = [...userAdminTeams, ...parentTeams];
 
     const teamAppCredentials: Credential[] = userAdminTeams.flatMap((teamApp) => teamApp.credentials.flat());
     if (!includeTeamInstalledApps || teamId) {
