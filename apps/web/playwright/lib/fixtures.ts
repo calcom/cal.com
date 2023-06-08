@@ -1,5 +1,7 @@
 import type { Page } from "@playwright/test";
 import { test as base } from "@playwright/test";
+import type { API } from "mailhog";
+import mailhog from "mailhog";
 
 import prisma from "@calcom/prisma";
 
@@ -19,6 +21,7 @@ export interface Fixtures {
   getActionFiredDetails: ReturnType<typeof createGetActionFiredDetails>;
   servers: ReturnType<typeof createServersFixture>;
   prisma: typeof prisma;
+  mailhog: API;
 }
 
 declare global {
@@ -66,5 +69,9 @@ export const test = base.extend<Fixtures>({
   },
   prisma: async ({}, use) => {
     await use(prisma);
+  },
+  mailhog: async ({}, use) => {
+    const mailhogAPI = mailhog();
+    await use(mailhogAPI);
   },
 });
