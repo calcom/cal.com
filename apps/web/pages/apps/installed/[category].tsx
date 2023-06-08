@@ -176,7 +176,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
                           setBulkUpdateModal(true);
                         }
                       }}>
-                      {t("change_default_conferencing_app")}
+                      {t("set_as_default")}
                     </DropdownItem>
                   </DropdownMenuItem>
                 )}
