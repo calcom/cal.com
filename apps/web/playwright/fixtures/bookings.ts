@@ -58,7 +58,7 @@ export const createBookingsFixture = (page: Page) => {
           status,
         },
       });
-      const bookingFixture = createBookingFixture(booking, store.page!);
+      const bookingFixture = createBookingFixture(booking, store.page);
       store.bookings.push(bookingFixture);
       return bookingFixture;
     },
@@ -80,7 +80,7 @@ const createBookingFixture = (booking: Booking, page: Page) => {
   return {
     id: store.booking.id,
     uid: store.booking.uid,
-    self: async () => (await prisma.booking.findUnique({ where: { id: store.booking.id } }))!,
-    delete: async () => (await prisma.booking.delete({ where: { id: store.booking.id } }))!,
+    self: async () => await prisma.booking.findUnique({ where: { id: store.booking.id } }),
+    delete: async () => await prisma.booking.delete({ where: { id: store.booking.id } }),
   };
 };

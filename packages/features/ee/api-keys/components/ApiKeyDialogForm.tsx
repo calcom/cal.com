@@ -81,7 +81,7 @@ export default function ApiKeyDialogForm({
             </div>
             <span className="text-muted text-sm">
               {apiKeyDetails.neverExpires
-                ? t("never_expire_key")
+                ? t("never_expires")
                 : `${t("expires")} ${apiKeyDetails?.expiresAt?.toLocaleDateString()}`}
             </span>
           </div>
@@ -140,7 +140,7 @@ export default function ApiKeyDialogForm({
                   control={form.control}
                   render={({ field: { onChange, value } }) => (
                     <Switch
-                      label={t("never_expire_key")}
+                      label={t("never_expires")}
                       onCheckedChange={onChange}
                       checked={value}
                       disabled={!!defaultValues}

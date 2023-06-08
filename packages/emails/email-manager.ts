@@ -7,6 +7,8 @@ import type BaseEmail from "@calcom/emails/templates/_base-email";
 import type { User } from "@calcom/prisma/client";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
+import type { EmailVerifyLink } from "./templates/account-verify-email";
+import AccountVerifyEmail from "./templates/account-verify-email";
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "./templates/attendee-cancelled-email";
 import AttendeeCancelledSeatEmail from "./templates/attendee-cancelled-seat-email";
@@ -178,7 +180,10 @@ export const sendDeclinedEmails = async (calEvent: CalendarEvent) => {
   await Promise.all(emailsToSend);
 };
 
-export const sendCancelledEmails = async (calEvent: CalendarEvent) => {
+export const sendCancelledEmails = async (
+  calEvent: CalendarEvent,
+  eventNameObject: Pick<EventNameObjectType, "eventName">
+) => {
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(sendEmail(() => new OrganizerCancelledEmail({ calEvent })));
@@ -191,7 +196,24 @@ export const sendCancelledEmails = async (calEvent: CalendarEvent) => {
 
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
-      return sendEmail(() => new AttendeeCancelledEmail(calEvent, attendee));
+      return sendEmail(
+        () =>
+          new AttendeeCancelledEmail(
+            {
+              ...calEvent,
+              title: getEventName({
+                ...eventNameObject,
+                t: attendee.language.translate,
+                attendeeName: attendee.name,
+                host: calEvent.organizer.name,
+                eventType: calEvent.type,
+                ...(calEvent.responses && { bookingFields: calEvent.responses }),
+                ...(calEvent.location && { location: calEvent.location }),
+              }),
+            },
+            attendee
+          )
+      );
     })
   );
 
@@ -246,6 +268,10 @@ export const sendPasswordResetEmail = async (passwordResetEvent: PasswordReset) 
 
 export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
   await sendEmail(() => new TeamInviteEmail(teamInviteEvent));
+};
+
+export const sendEmailVerificationLink = async (verificationInput: EmailVerifyLink) => {
+  await sendEmail(() => new AccountVerifyEmail(verificationInput));
 };
 
 export const sendRequestRescheduleEmail = async (
