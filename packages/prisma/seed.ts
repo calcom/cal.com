@@ -13,7 +13,7 @@ import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import prisma from ".";
 import mainAppStore from "./seed-app-store";
 
-async function createUserAndEventType(opts: {
+export async function createUserAndEventType(opts: {
   user: Prisma.UserCreateInput & {
     password: string;
     completedOnboarding?: boolean;
