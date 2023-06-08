@@ -237,6 +237,23 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
       store.users.push(userFixture);
       return userFixture;
     },
+    signup: async (opts?: { username?: string; email?: string; password?: string }) => {
+      await page.goto("/signup");
+
+      const seedUser = createUser(workerInfo);
+      await page.fill('[name="username"]', opts?.username ?? (seedUser.username as string));
+      await page.fill('[name="email"]', opts?.email ?? seedUser.email);
+      await page.fill('[name="password"]', opts?.password ?? (seedUser.password as string));
+      await page.click("[type=submit]");
+      await page.waitForURL("/auth/verify-email");
+      const user = await prisma.user.findUniqueOrThrow({
+        where: { username: opts?.username ?? (seedUser.username as string) },
+        include: userIncludes,
+      });
+      const userFixture = createUserFixture(user, store.page);
+      store.users.push(userFixture);
+      return userFixture;
+    },
     get: () => store.users,
     logout: async () => {
       await page.goto("/auth/logout");
