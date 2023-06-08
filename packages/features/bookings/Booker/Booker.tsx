@@ -5,9 +5,8 @@ import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
 import classNames from "@calcom/lib/classNames";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
-import { BookerLayouts, bookerLayoutOptions } from "@calcom/prisma/zod-utils";
+import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
@@ -35,7 +34,6 @@ const BookerComponent = ({
   rescheduleBooking,
   hideBranding = false,
 }: BookerProps) => {
-  const { t } = useLocale();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const timeslotsRef = useRef<HTMLDivElement>(null);
@@ -51,10 +49,7 @@ const BookerComponent = ({
     shallow
   );
   const extraDays = layout === BookerLayouts.COLUMN_VIEW ? (isTablet ? 2 : 4) : 0;
-  const bookerLayouts = event.data?.profile?.bookerLayouts || {
-    defaultLayout: BookerLayouts.MONTH_VIEW,
-    enabledLayouts: bookerLayoutOptions,
-  };
+  const bookerLayouts = event.data?.profile?.bookerLayouts || defaultBookerLayoutSettings;
 
   const animationScope = useBookerResizeAnimation(layout, bookerState);
 

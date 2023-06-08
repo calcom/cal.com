@@ -17,8 +17,8 @@ const BillingView = () => {
       <Meta title={t("team_billing")} description={t("team_billing_description")} />
       <div className="text-default flex flex-col text-sm sm:flex-row">
         <div>
-          <h2 className="font-medium">{t("billing_manage_details_title")}</h2>
-          <p>{t("billing_manage_details_description")}</p>
+          <h2 className="font-medium">{t("view_and_manage_billing_details")}</h2>
+          <p>{t("view_and_edit_billing_details")}</p>
         </div>
         <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pt-0 sm:pl-3">
           <Button color="primary" href={billingHref} target="_blank" EndIcon={ExternalLink}>

@@ -125,7 +125,6 @@
   "welcome_back": "Καλωσορίσατε πίσω",
   "welcome_to_calcom": "Καλωσορίσατε στο {{appName}}",
   "connect_caldav": "Σύνδεση στο CalDav (Beta)",
-  "credentials_stored_and_encrypted": "Τα διαπιστευτήριά σας θα αποθηκευτούν και θα κρυπτογραφηθούν.",
   "connect": "Σύνδεση",
   "try_for_free": "Δοκιμάστε δωρεάν",
   "add_to_calendar": "Προσθήκη στο ημερολόγιο",
@@ -211,10 +210,8 @@
   "yes": "ναι",
   "no": "όχι",
   "additional_notes": "Πρόσθετες σημειώσεις",
-  "your_number": "Ο αριθμός τηλεφώνου σας",
   "phone_number": "Αριθμός Τηλεφώνου",
   "attendee_phone_number": "Αριθμός Τηλεφώνου Συμμετέχοντα",
-  "host_phone_number": "Ο αριθμός τηλεφώνου σας",
   "enter_phone_number": "Εισάγετε αριθμό τηλεφώνου",
   "or": "Ή",
   "go_back": "Επιστροφή",
@@ -272,6 +269,5 @@
   "event_name_tooltip": "Το όνομα που θα εμφανίζεται στα ημερολόγια",
   "label": "Ετικέτα",
   "edit": "Επεξεργασία",
-  "disable_guests": "Απενεργοποίηση επισκεπτών",
-  "email_no_user_cta": "Δημιουργία λογαριασμού"
+  "disable_guests": "Απενεργοποίηση επισκεπτών"
 }
