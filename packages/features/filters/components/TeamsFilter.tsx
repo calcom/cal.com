@@ -1,31 +1,16 @@
 import { useSession } from "next-auth/react";
-import type { ParsedUrlQuery } from "querystring";
-import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { queryNumberArray, useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
+import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { AnimatedPopover, Avatar } from "@calcom/ui";
 import { Layers, User } from "@calcom/ui/components/icon";
 
+import { filterQuerySchema } from "../lib/getTeamsFiltersFromQuery";
+
 export type IEventTypesFilters = RouterOutputs["viewer"]["eventTypes"]["listWithTeam"];
 export type IEventTypeFilter = IEventTypesFilters[0];
-
-// Use filterQuerySchema when parsing filters out of query, so that additional query params(e.g. slug, appPages) aren't passed in filters
-const filterQuerySchema = z.object({
-  teamIds: queryNumberArray.optional(),
-  userIds: queryNumberArray.optional(),
-});
-
-export const getFiltersFromQuery = (query: ParsedUrlQuery) => {
-  const filters = filterQuerySchema.parse(query);
-  // Ensure that filters are sorted so that react-query caching can work better
-  // [1,2] is equivalent to [2,1] when fetching filter data.
-  filters.teamIds = filters.teamIds?.sort();
-  filters.userIds = filters.userIds?.sort();
-  return filters;
-};
 
 function useFilterQuery() {
   // passthrough allows additional params to not be removed
@@ -148,24 +133,3 @@ export const TeamsFilter = () => {
     </AnimatedPopover>
   );
 };
-
-export function FilterResults({
-  queryRes,
-  SkeletonLoader,
-  noResultsScreen,
-  emptyScreen,
-  children,
-}: {
-  queryRes: { isLoading: boolean; data: { totalCount: number; filtered: unknown[] } | undefined };
-  SkeletonLoader: React.FC;
-  noResultsScreen: React.ReactNode;
-  emptyScreen: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  if (queryRes.isLoading) return <SkeletonLoader />;
-  if (!queryRes.data?.totalCount) return <>{emptyScreen}</>;
-
-  return queryRes.data?.totalCount ? (
-    <div>{queryRes.data?.filtered.length ? children : noResultsScreen}</div>
-  ) : null;
-}

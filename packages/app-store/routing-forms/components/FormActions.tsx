@@ -200,15 +200,20 @@ function Dialogs({
       await utils.viewer.appRoutingForms.forms.cancel();
       const previousValue = utils.viewer.appRoutingForms.forms.getData();
       if (previousValue) {
-        const filtered = previousValue.filter(({ id }) => id !== formId);
-        utils.viewer.appRoutingForms.forms.setData(undefined, filtered);
+        const filtered = previousValue.filtered.filter(({ form: { id } }) => id !== formId);
+        utils.viewer.appRoutingForms.forms.setData(
+          {},
+          {
+            ...previousValue,
+            filtered,
+          }
+        );
       }
       return { previousValue };
     },
     onSuccess: () => {
       showToast(t("form_deleted"), "success");
       setDeleteDialogOpen(false);
-      router.replace(`${appUrl}/forms`);
     },
     onSettled: () => {
       utils.viewer.appRoutingForms.forms.invalidate();
@@ -216,7 +221,7 @@ function Dialogs({
     },
     onError: (err, newTodo, context) => {
       if (context?.previousValue) {
-        utils.viewer.appRoutingForms.forms.setData(undefined, context.previousValue);
+        utils.viewer.appRoutingForms.forms.setData({}, context.previousValue);
       }
       showToast(err.message || t("something_went_wrong"), "error");
     },
@@ -276,13 +281,19 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
       await utils.viewer.appRoutingForms.forms.cancel();
       const previousValue = utils.viewer.appRoutingForms.forms.getData();
       if (previousValue) {
-        const itemIndex = previousValue.findIndex(({ id }) => id === formId);
-        const prevValueTemp = [...previousValue];
+        const formIndex = previousValue.filtered.findIndex(({ form: { id } }) => id === formId);
+        const previousListOfForms = [...previousValue.filtered];
 
-        if (itemIndex !== -1 && prevValueTemp[itemIndex] && disabled !== undefined) {
-          prevValueTemp[itemIndex].disabled = disabled;
+        if (formIndex !== -1 && previousListOfForms[formIndex] && disabled !== undefined) {
+          previousListOfForms[formIndex].form.disabled = disabled;
         }
-        utils.viewer.appRoutingForms.forms.setData(undefined, prevValueTemp);
+        utils.viewer.appRoutingForms.forms.setData(
+          {},
+          {
+            filtered: previousListOfForms,
+            totalCount: previousValue.totalCount,
+          }
+        );
       }
       return { previousValue };
     },
@@ -299,7 +310,7 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
     },
     onError: (err, value, context) => {
       if (context?.previousValue) {
-        utils.viewer.appRoutingForms.forms.setData(undefined, context.previousValue);
+        utils.viewer.appRoutingForms.forms.setData({}, context.previousValue);
       }
       showToast(err.message || t("something_went_wrong"), "error");
     },
@@ -452,7 +463,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
               extraClassNames
             )}>
             <Switch
-              disabled={disabled}
+              disabled={!!disabled}
               checked={!routingForm.disabled}
               label={label}
               onCheckedChange={(checked) => toggle.onAction({ routingForm, checked })}

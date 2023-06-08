@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 
-import { entityPrismaWhereClause } from "@calcom/lib/hasUserWriteAccessToEntity";
+import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -38,7 +38,7 @@ export const formQueryHandler = async ({ ctx, input }: FormsHandlerOptions) => {
     return null;
   }
 
-  return await getSerializableForm(form);
+  return await getSerializableForm({ form });
 };
 
 export default formQueryHandler;

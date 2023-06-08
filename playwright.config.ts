@@ -69,7 +69,7 @@ const config: PlaywrightTestConfig = {
   outputDir: path.join(outputDir, "results"),
   webServer,
   use: {
-    baseURL: "http://localhost:3000/",
+    baseURL: process.env.NEXT_PUBLIC_WEBAPP_URL,
     locale: "en-US",
     trace: "retain-on-failure",
     headless,

@@ -81,7 +81,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
   return (
     <li
       className={classNames(
-        "group flex w-full items-center justify-between p-5",
+        "group flex w-full items-center justify-between p-5 pb-4",
         className,
         disabled ? "hover:bg-muted" : ""
       )}>
@@ -100,7 +100,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
             </Badge>
           )}
         </div>
-        <h2 className="min-h-4 mt-2 text-sm font-normal leading-none">
+        <h2 className="min-h-4 mt-2 text-sm font-normal leading-none text-neutral-600">
           {subHeading.substring(0, 100)}
           {subHeading.length > 100 && "..."}
         </h2>

@@ -1,7 +1,7 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
 import type { z } from "zod";
 
-import { entityPrismaWhereClause } from "@calcom/lib/hasUserWriteAccessToEntity";
+import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
 import type { SerializableForm } from "../types/types";
@@ -14,11 +14,13 @@ import isRouterLinkedField from "./isRouterLinkedField";
 /**
  * Doesn't have deleted fields by default
  */
-export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
-  form: TForm,
+export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
+  form,
   withDeletedFields = false,
-  userId: number
-) {
+}: {
+  form: TForm;
+  withDeletedFields?: boolean;
+}) {
   const prisma = (await import("@calcom/prisma")).default;
   const routesParsed = zodRoutes.safeParse(form.routes);
   if (!routesParsed.success) {
@@ -48,7 +50,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
     fieldsExistInForm[f.id] = true;
   });
 
-  const { routes, routers } = await getEnrichedRoutesAndRouters(parsedRoutes, userId);
+  const { routes, routers } = await getEnrichedRoutesAndRouters(parsedRoutes, form.userId);
 
   const connectedForms = (await getConnectedForms(prisma, form)).map((f) => ({
     id: f.id,
@@ -92,7 +94,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
           throw new Error("Form -" + route.id + ", being used as router, not found");
         }
 
-        const parsedRouter = await getSerializableForm(router, false, userId);
+        const parsedRouter = await getSerializableForm({ form: router });
 
         routers.push({
           name: parsedRouter.name,

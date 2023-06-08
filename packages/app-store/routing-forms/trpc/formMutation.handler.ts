@@ -2,7 +2,7 @@ import type { PrismaClient } from "@prisma/client";
 import type { App_RoutingForms_Form } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
-import { entityPrismaWhereClause, hasUserWriteAccessToEntity } from "@calcom/lib/hasUserWriteAccessToEntity";
+import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -25,8 +25,8 @@ interface FormMutationHandlerOptions {
 }
 export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOptions) => {
   const { user, prisma } = ctx;
-  const { name, id, description, settings, disabled, addFallback, duplicateFrom, shouldConnect, teamId } =
-    input;
+  const { name, id, description, settings, disabled, addFallback, duplicateFrom, shouldConnect } = input;
+  let teamId = input.teamId;
   if (!(await isFormCreateEditAllowed({ userId: user.id, formId: id, targetTeamId: teamId }))) {
     throw new TRPCError({
       code: "FORBIDDEN",
@@ -62,10 +62,12 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
     },
   });
 
-  const dbSerializedForm = dbForm ? await getSerializableForm(dbForm, true) : null;
+  const dbSerializedForm = dbForm
+    ? await getSerializableForm({ form: dbForm, withDeletedFields: true })
+    : null;
 
   if (duplicateFrom) {
-    ({ routes, fields } = await getRoutesAndFieldsForDuplication({ duplicateFrom, userId: user.id }));
+    ({ teamId, routes, fields } = await getRoutesAndFieldsForDuplication({ duplicateFrom, userId: user.id }));
   } else {
     [fields, routes] = [inputFields, inputRoutes];
     if (dbSerializedForm) {
@@ -266,8 +268,10 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
         fields: true,
         routes: true,
         userId: true,
+        teamId: true,
         team: {
           select: {
+            id: true,
             members: true,
           },
         },
@@ -281,7 +285,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       });
     }
 
-    if (!hasUserWriteAccessToEntity(sourceForm, userId)) {
+    if (!canEditEntity(sourceForm, userId)) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: `Form to duplicate: ${duplicateFrom} not found or you are unauthorized`,
@@ -326,7 +330,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       // FIXME: Deleted fields shouldn't come in duplicate
       fields = fieldsParsed.data ? fieldsParsed.data.filter((f) => !f.deleted) : [];
     }
-    return { routes, fields };
+    return { teamId: sourceForm.teamId, routes, fields };
   }
 
   function markMissingFieldsDeleted(

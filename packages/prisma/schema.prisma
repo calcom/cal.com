@@ -246,7 +246,7 @@ model Team {
   /// @zod.min(1)
   name                String
   /// @zod.min(1)
-  slug                String?            @unique
+  slug                String?
   logo                String?
   appLogo             String?
   appIconLogo         String?

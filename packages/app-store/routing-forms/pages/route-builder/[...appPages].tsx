@@ -311,11 +311,11 @@ const Routes = ({
   const { data: allForms } = trpc.viewer.appRoutingForms.forms.useQuery();
 
   const availableRouters =
-    allForms
-      ?.filter((router) => {
+    allForms?.filtered
+      .filter(({ form: router }) => {
         return router.id !== form.id;
       })
-      .map((router) => {
+      .map(({ form: router }) => {
         return {
           value: router.id,
           label: router.name,

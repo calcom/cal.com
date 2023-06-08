@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 
-import { entityPrismaWhereClause } from "@calcom/lib/hasUserWriteAccessToEntity";
+import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -50,6 +50,7 @@ export const deleteFormHandler = async ({ ctx, input }: DeleteFormHandlerOptions
       message: "Form seems to be already deleted.",
     });
   }
+  return deletedRes;
 };
 
 export default deleteFormHandler;

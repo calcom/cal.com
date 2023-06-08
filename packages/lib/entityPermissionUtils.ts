@@ -8,7 +8,7 @@ export const enum ENTITY_PERMISSION_LEVEL {
   TEAM_WRITE,
 }
 
-export function hasUserWriteAccessToEntity(
+export function canEditEntity(
   entity: Parameters<typeof getEntityPermissionLevel>[0],
   userId: Parameters<typeof getEntityPermissionLevel>[1]
 ) {
@@ -49,10 +49,10 @@ export function getEntityPermissionLevel(
   return ENTITY_PERMISSION_LEVEL.NONE;
 }
 
-export async function isUserMemberOfTeam(teamId: number | null, userId: number) {
+async function getMembership(teamId: number | null, userId: number) {
   const { prisma } = await import("@calcom/prisma");
 
-  return teamId
+  const team = teamId
     ? await prisma.team.findFirst({
         where: {
           id: teamId,
@@ -63,8 +63,12 @@ export async function isUserMemberOfTeam(teamId: number | null, userId: number) 
             },
           },
         },
+        include: {
+          members: true,
+        },
       })
     : null;
+  return team?.members.find((membership) => membership.userId === userId);
 }
 
 export async function canCreateEntity({
@@ -75,14 +79,25 @@ export async function canCreateEntity({
   userId: number;
 }) {
   if (targetTeamId) {
-    // If form doesn't exist and it is being created for a team. Check if user is the member of the team
-    const _isUserMemberOfTeam = await isUserMemberOfTeam(targetTeamId, userId);
-    const creationAllowed = _isUserMemberOfTeam;
+    // If it doesn't exist and it is being created for a team. Check if user is the member of the team
+    const membership = await getMembership(targetTeamId, userId);
+    const creationAllowed = membership ? withRoleCanCreateEntity(membership.role) : false;
     return creationAllowed;
   }
   return true;
 }
 
+//TODO: Find a better convention to create different functions for different needs(withRoleCanCreateEntity vs canCreateEntity)
+// e.g. if role is already available we don't need to refetch membership.role. We can directly call `withRoleCanCreateEntity`
+export function withRoleCanCreateEntity(role: MembershipRole) {
+  return role === "ADMIN" || role === "OWNER";
+}
+
+/**
+ * Whenever the entity is fetched this clause should be there to ensure that
+ * 1. No item that doesn't belong to the user or the team is fetched
+ * Having just a reusable where allows it to be used with different types of prisma queries.
+ */
 export const entityPrismaWhereClause = ({ userId }: { userId: number }) => ({
   OR: [
     { userId: userId },

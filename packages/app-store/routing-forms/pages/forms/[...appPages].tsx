@@ -2,7 +2,9 @@
 import { useRouter } from "next/router";
 
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
-import { getFiltersFromQuery, TeamsFilter, FilterResults } from "@calcom/features/filters/TeamsFilter";
+import { FilterResults } from "@calcom/features/filters/components/FilterResults";
+import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
+import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -17,7 +19,7 @@ import type {
   AppUser,
 } from "@calcom/types/AppGetServerSideProps";
 import { Badge, ButtonGroup, EmptyScreen, List, ListLinkItem, Tooltip, Button } from "@calcom/ui";
-import { CreateButton } from "@calcom/ui";
+import { CreateButtonWithTeamsList } from "@calcom/ui";
 import {
   GitMerge,
   ExternalLink,
@@ -44,32 +46,18 @@ import {
   FormActionsDropdown,
   FormActionsProvider,
 } from "../../components/FormActions";
+import { isFallbackRoute } from "../../lib/isFallbackRoute";
 
 function NewFormButton() {
-  const query = trpc.viewer.eventTypes.getByViewer.useQuery();
   const { t } = useLocale();
   const router = useRouter();
-  if (!query.data) return null;
-
-  const profileOptions = query.data.profiles
-    .filter((profile) => !profile.readOnly)
-    .map((profile) => {
-      return {
-        teamId: profile.teamId,
-        label: profile.name || profile.slug,
-        image: profile.image,
-        membershipRole: profile.membershipRole,
-        slug: profile.slug,
-      };
-    });
-
   return (
-    <CreateButton
+    <CreateButtonWithTeamsList
       subtitle={t("create_routing_form_on").toUpperCase()}
+      data-testid="new-routing-form"
       createFunction={(teamId) => {
         createAction({ router, teamId: teamId ?? null });
       }}
-      options={profileOptions}
     />
   );
 }
@@ -81,7 +69,7 @@ export default function RoutingForms({
   const { hasPaidPlan } = useHasPaidPlan();
   const router = useRouter();
 
-  const filters = getFiltersFromQuery(router.query);
+  const filters = getTeamsFiltersFromQuery(router.query);
 
   const queryRes = trpc.viewer.appRoutingForms.forms.useQuery({
     filters,
@@ -177,9 +165,9 @@ export default function RoutingForms({
                       }
 
                       const description = form.description || "";
-                      const formDisabled = form.disabled;
                       form.routes = form.routes || [];
                       const fields = form.fields || [];
+                      const userRoutes = form.routes.filter((route) => !isFallbackRoute(route));
                       return (
                         <ListLinkItem
                           key={form.id}
@@ -191,9 +179,11 @@ export default function RoutingForms({
                           actions={
                             <>
                               {form.team?.name && (
-                                <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
-                                  {form.team.name}
-                                </Badge>
+                                <div className="border-r-2 border-neutral-300">
+                                  <Badge size="lg" className="ltr:mr-2 rtl:ml-2" variant="gray">
+                                    {form.team.name}
+                                  </Badge>
+                                </div>
                               )}
                               <FormAction
                                 disabled={readOnly}
@@ -228,7 +218,7 @@ export default function RoutingForms({
                                   StartIcon={Code}
                                   tooltip={t("embed")}
                                 />
-                                <FormActionsDropdown form={form} /*disabled={readOnly}*/>
+                                <FormActionsDropdown form={form} disabled={readOnly}>
                                   <FormAction
                                     action="edit"
                                     routingForm={form}
@@ -276,13 +266,13 @@ export default function RoutingForms({
                             </>
                           }>
                           <div className="flex flex-wrap gap-1">
-                            <Badge variant="gray" startIcon={Menu}>
+                            <Badge size="lg" variant="gray" startIcon={Menu}>
                               {fields.length} {fields.length === 1 ? "field" : "fields"}
                             </Badge>
-                            <Badge variant="gray" startIcon={GitMerge}>
-                              {form.routes.length} {form.routes.length === 1 ? "route" : "routes"}
+                            <Badge size="lg" variant="gray" startIcon={GitMerge}>
+                              {userRoutes.length} {userRoutes.length === 1 ? "route" : "routes"}
                             </Badge>
-                            <Badge variant="gray" startIcon={MessageCircle}>
+                            <Badge size="lg" variant="gray" startIcon={MessageCircle}>
                               {form._count.responses} {form._count.responses === 1 ? "response" : "responses"}
                             </Badge>
                           </div>
@@ -324,7 +314,7 @@ export const getServerSideProps = async function getServerSideProps(
   }
   const ssr = await ssrInit(context);
 
-  const filters = getFiltersFromQuery(context.query);
+  const filters = getTeamsFiltersFromQuery(context.query);
 
   await ssr.viewer.appRoutingForms.forms.prefetch({
     filters,

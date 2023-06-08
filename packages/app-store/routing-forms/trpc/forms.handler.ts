@@ -1,5 +1,5 @@
-import { hasFilter } from "@calcom/features/filters/lib/hasFilters";
-import { hasUserWriteAccessToEntity } from "@calcom/lib/hasUserWriteAccessToEntity";
+import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
+import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient, Prisma } from "@calcom/prisma/client";
 import { entries } from "@calcom/prisma/zod-utils";
@@ -20,7 +20,7 @@ const log = logger.getChildLogger({ prefix: ["[formsHandler]"] });
 export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
   const { prisma, user } = ctx;
 
-  const where = getPrismaWhereFromFilters(user, input.filters);
+  const where = getPrismaWhereFromFilters(user, input?.filters);
   log.debug("Getting forms where", JSON.stringify(where));
 
   const forms = await prisma.app_RoutingForms_Form.findMany({
@@ -42,14 +42,18 @@ export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
     },
   });
 
-  const totalForms = await prisma.app_RoutingForms_Form.count();
+  const totalForms = await prisma.app_RoutingForms_Form.count({
+    where: entityPrismaWhereClause({
+      userId: user.id,
+    }),
+  });
 
   const serializableForms = [];
   for (let i = 0; i < forms.length; i++) {
     const form = forms[i];
-    const hasWriteAccess = hasUserWriteAccessToEntity(form, user.id);
+    const hasWriteAccess = canEditEntity(form, user.id);
     serializableForms.push({
-      form: await getSerializableForm(forms[i]),
+      form: await getSerializableForm({ form: forms[i] }),
       readOnly: !hasWriteAccess,
     });
   }
@@ -65,14 +69,14 @@ export function getPrismaWhereFromFilters(
   user: {
     id: number;
   },
-  filters: TFormSchema["filters"]
+  filters: NonNullable<TFormSchema>["filters"]
 ) {
   const where = {
     OR: [] as Prisma.App_RoutingForms_FormWhereInput[],
   };
 
   const prismaQueries: Record<
-    keyof typeof filters,
+    keyof NonNullable<typeof filters>,
     (...args: [number[]]) => Prisma.App_RoutingForms_FormWhereInput
   > & {
     all: () => Prisma.App_RoutingForms_FormWhereInput;
@@ -115,7 +119,7 @@ export function getPrismaWhereFromFilters(
     }),
   };
 
-  if (!hasFilter(filters)) {
+  if (!filters || !hasFilter(filters)) {
     where.OR.push(prismaQueries.all());
   } else {
     for (const entry of entries(filters)) {
