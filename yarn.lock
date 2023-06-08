@@ -3878,6 +3878,7 @@ __metadata:
     next-axiom: ^0.16.0
     next-swagger-doc: ^0.3.6
     next-validations: ^0.2.0
+    nextjs-cors: ^2.1.2
     node-mocks-http: ^1.11.0
     typescript: ^4.9.4
     tzdata: ^1.0.30
@@ -17531,7 +17532,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cors@npm:^2.8.1":
+"cors@npm:^2.8.1, cors@npm:^2.8.5":
   version: 2.8.5
   resolution: "cors@npm:2.8.5"
   dependencies:
@@ -28281,6 +28282,17 @@ __metadata:
   bin:
     next: dist/bin/next
   checksum: 8531dee41b60181b582f5ee80858907b102f083ef8808ff9352d589dd39e6b3a96f7a11b3776a03eef3a28430cff768336fa2e3ff2c6f8fcd699fbc891749051
+  languageName: node
+  linkType: hard
+
+"nextjs-cors@npm:^2.1.2":
+  version: 2.1.2
+  resolution: "nextjs-cors@npm:2.1.2"
+  dependencies:
+    cors: ^2.8.5
+  peerDependencies:
+    next: ^8.1.1-canary.54 || ^9.0.0 || ^10.0.0-0 || ^11.0.0 || ^12.0.0 || ^13.0.0
+  checksum: 92417b4367b1761c8bd3747f3f014a96f199d4101c39f64b03225913daec09f0952dd501f4381d9bee4a424cfc61921e862e7bab6970fc20810c0fbbc924d222
   languageName: node
   linkType: hard
 
