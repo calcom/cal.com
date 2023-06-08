@@ -28,12 +28,6 @@ export const CheckedTeamSelect = ({
   return (
     <>
       <Select
-        styles={{
-          option: (styles, { isDisabled }) => ({
-            ...styles,
-            backgroundColor: isDisabled ? "#F5F5F5" : "inherit",
-          }),
-        }}
         name={props.name}
         placeholder={props.placeholder || t("select")}
         isSearchable={true}
@@ -48,7 +42,9 @@ export const CheckedTeamSelect = ({
         className={classNames("mt-3 rounded-md", value.length >= 1 && "border-subtle border")}
         ref={animationRef}>
         {value.map((option, index) => (
-          <li key={option.value} className={`flex py-2 px-3 ${index === value.length - 1 ? "" : "border-subtle border-b"}`}>
+          <li
+            key={option.value}
+            className={`flex py-2 px-3 ${index === value.length - 1 ? "" : "border-subtle border-b"}`}>
             <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
             <p className="text-emphasis ms-3 my-auto text-sm">{option.label}</p>
             <X
