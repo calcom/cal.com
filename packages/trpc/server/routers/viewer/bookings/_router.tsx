@@ -1,3 +1,5 @@
+import { bookingsOutputSchema } from "@calcom/features/bookings/schemas/bookingReadPublic.schema";
+
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZConfirmInputSchema } from "./confirm.schema";
@@ -18,21 +20,26 @@ type BookingsRouterHandlerCache = {
 const UNSTABLE_HANDLER_CACHE: BookingsRouterHandlerCache = {};
 
 export const bookingsRouter = router({
-  get: authedProcedure.input(ZGetInputSchema).query(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.get) {
-      UNSTABLE_HANDLER_CACHE.get = await import("./get.handler").then((mod) => mod.getHandler);
-    }
+  get: authedProcedure
+    // Uncomment the below line to see a nasty error
+    // .meta({ openapi: { method: "GET", path: "/bookings" } })
+    .input(ZGetInputSchema)
+    .output(bookingsOutputSchema)
+    .query(async ({ input, ctx }) => {
+      if (!UNSTABLE_HANDLER_CACHE.get) {
+        UNSTABLE_HANDLER_CACHE.get = await import("./get.handler").then((mod) => mod.getHandler);
+      }
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.get) {
-      throw new Error("Failed to load handler");
-    }
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.get) {
+        throw new Error("Failed to load handler");
+      }
 
-    return UNSTABLE_HANDLER_CACHE.get({
-      ctx,
-      input,
-    });
-  }),
+      return UNSTABLE_HANDLER_CACHE.get({
+        ctx,
+        input,
+      });
+    }),
 
   requestReschedule: authedProcedure.input(ZRequestRescheduleInputSchema).mutation(async ({ input, ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.requestReschedule) {

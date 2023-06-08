@@ -1,10 +1,10 @@
 import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
+import { bookingReadPublicSchema } from "@calcom/features/bookings/schemas/bookingReadPublic.schema";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaBookingReadPublic } from "~/lib/validations/booking";
 import { schemaQuerySingleOrMultipleAttendeeEmails } from "~/lib/validations/shared/queryAttendeeEmail";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
 
@@ -204,7 +204,7 @@ async function handler(req: NextApiRequest) {
     args.where = buildWhereClause(userId, attendeeEmails, [], []);
   }
   const data = await prisma.booking.findMany(args);
-  return { bookings: data.map((booking) => schemaBookingReadPublic.parse(booking)) };
+  return { bookings: data.map((booking) => bookingReadPublicSchema.parse(booking)) };
 }
 
 export default defaultResponder(handler);

@@ -1,8 +1,8 @@
 import type { NextApiRequest } from "next";
 
+import { bookingReadPublicSchema } from "@calcom/features/bookings/schemas/bookingReadPublic.schema";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaBookingReadPublic } from "~/lib/validations/booking";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
@@ -92,7 +92,7 @@ export async function getHandler(req: NextApiRequest) {
     where: { id },
     include: { attendees: true, user: true, payment: true },
   });
-  return { booking: schemaBookingReadPublic.parse(booking) };
+  return { booking: bookingReadPublicSchema.parse(booking) };
 }
 
 export default defaultResponder(getHandler);

@@ -1,10 +1,11 @@
 import type { NextApiRequest } from "next";
 import type { z } from "zod";
 
+import { bookingReadPublicSchema } from "@calcom/features/bookings/schemas/bookingReadPublic.schema";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaBookingEditBodyParams, schemaBookingReadPublic } from "~/lib/validations/booking";
+import { schemaBookingEditBodyParams } from "~/lib/validations/booking";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
@@ -93,7 +94,7 @@ export async function patchHandler(req: NextApiRequest) {
   const data = schemaBookingEditBodyParams.parse(body);
   await checkPermissions(req, data);
   const booking = await prisma.booking.update({ where: { id }, data });
-  return { booking: schemaBookingReadPublic.parse(booking) };
+  return { booking: bookingReadPublicSchema.parse(booking) };
 }
 
 async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schemaBookingEditBodyParams>) {

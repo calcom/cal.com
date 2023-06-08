@@ -167,6 +167,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
         uid: true,
         recurringEventId: true,
         location: true,
+        responses: true,
         eventType: {
           select: {
             slug: true,
@@ -187,6 +188,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
         paid: true,
         payment: {
           select: {
+            id: true,
             paymentOption: true,
             amount: true,
             currency: true,
@@ -198,6 +200,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
             id: true,
             name: true,
             email: true,
+            timeZone: true,
           },
         },
         rescheduled: true,
