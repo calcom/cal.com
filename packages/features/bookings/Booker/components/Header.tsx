@@ -32,7 +32,7 @@ export function Header({
     [setLayout]
   );
 
-  if (isMobile || !enabledLayouts || enabledLayouts.length <= 1) return null;
+  if (isMobile || !enabledLayouts) return null;
 
   // Only reason we create this component, is because it is used 3 times in this component,
   // and this way we can't forget to update one of the props in all places :)
@@ -42,6 +42,7 @@ export function Header({
 
   // In month view we only show the layout toggle.
   if (isMonthView) {
+    if (enabledLayouts.length <= 1) return null;
     return (
       <div className="fixed top-3 right-3 z-10">
         <LayoutToggleWithData />
@@ -73,22 +74,24 @@ export function Header({
           />
         </ButtonGroup>
       </div>
-      <div className="ml-auto flex gap-3">
-        <TimeFormatToggle />
-        <div className="fixed top-4 right-4">
-          <LayoutToggleWithData />
-        </div>
-        {/*
+      {enabledLayouts.length > 1 && (
+        <div className="ml-auto flex gap-3">
+          <TimeFormatToggle />
+          <div className="fixed top-4 right-4">
+            <LayoutToggleWithData />
+          </div>
+          {/*
           This second layout toggle is hidden, but needed to reserve the correct spot in the DIV
           for the fixed toggle above to fit into. If we wouldn't make it fixed in this view, the transition
           would be really weird, because the element is positioned fixed in the month view, and then
           when switching layouts wouldn't anymmore, causing it to animate from the center to the top right,
           while it actuall already was on place. That's why we have this element twice.
         */}
-        <div className="pointer-events-none opacity-0" aria-hidden>
-          <LayoutToggleWithData />
+          <div className="pointer-events-none opacity-0" aria-hidden>
+            <LayoutToggleWithData />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
