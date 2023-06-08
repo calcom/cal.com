@@ -4,7 +4,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
-import createAppCredential from "../../_utils/createAppCredential";
+import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -93,7 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await prisma.credential.deleteMany({ where: { id: { in: credentialIdsToDelete }, userId } });
   }
 
-  createAppCredential({ appId: "msteams", type: "office365_video" }, key, req);
+  createOAuthAppCredential({ appId: "msteams", type: "office365_video" }, key, req);
 
   const state = decodeOAuthState(req);
   return res.redirect(

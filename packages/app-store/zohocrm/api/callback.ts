@@ -5,7 +5,7 @@ import qs from "qs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 
-import createAppCredential from "../../_utils/createAppCredential";
+import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   zohoCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);
   zohoCrmTokenInfo.data.accountServer = req.query["accounts-server"];
 
-  createAppCredential(
+  createOAuthAppCredential(
     { appId: "zohocrm", type: "zohocrm_other_calendar" },
     zohoCrmTokenInfo.data as any,
     req
