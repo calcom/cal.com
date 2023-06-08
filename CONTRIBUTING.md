@@ -135,3 +135,29 @@ If you get errors, be sure to fix them before committing.
 - If your PR refers to or fixes an issue, be sure to add `refs #XXX` or `fixes #XXX` to the PR description. Replacing `XXX` with the respective issue number. See more about [Linking a pull request to an issue
   ](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue).
 - Be sure to fill the PR Template accordingly.
+- Add a Cal.com GitHub team corresponding to the area of code affected by your PR as a reviewer.
+  - App Store
+  - Authentication
+  - Automated Testing
+  - Billing
+  - Bookings
+  - CalDAV
+  - Calendar Apps
+  - CI & DX
+  - Console
+  - CRM Apps
+  - Desktop App
+  - Documentation
+  - Embeds
+  - Event Types
+  - Impersonation
+  - Ops Stack
+  - Organizations
+  - Public API
+  - Routing Forms
+  - Seats
+  - Teams
+  - UI
+  - Webhooks
+  - Workflows
+  - Zapier
