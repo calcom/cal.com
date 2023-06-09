@@ -50,7 +50,7 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
               disabled={option.disabled}
               value={option.value}
               className={classNames(
-                "aria-checked:bg-subtle relative rounded-[4px] px-3 py-1 text-sm leading-tight transition-colors",
+                "aria-checked:bg-emphasis relative rounded-[4px] px-3 py-1 text-sm leading-tight transition-colors",
                 option.disabled
                   ? "text-gray-400 hover:cursor-not-allowed"
                   : "text-default [&[aria-checked='false']]:hover:bg-emphasis",
