@@ -595,3 +595,8 @@ async function selectNewRoute(page: Page, { routeSelectNumber = 1 } = {}) {
     page,
   });
 }
+
+async function saveCurrentForm(page: Page) {
+  await page.click('[data-testid="update-form"]');
+  await page.waitForSelector(".data-testid-toast-success");
+}
