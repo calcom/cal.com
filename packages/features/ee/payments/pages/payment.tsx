@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import type { LocationObject } from "@calcom/app-store/locations";
 import type { StripePaymentData, StripeSetupIntentData } from "@calcom/app-store/stripepayment/lib/server";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -60,6 +61,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               eventName: true,
               requiresConfirmation: true,
               userId: true,
+              locations: true,
               metadata: true,
               users: {
                 select: {
@@ -102,6 +104,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   };
 
   if (!eventType) return { notFound: true };
+
+  // if eventType.locations array has type link and link is equal to booking.location and has displayLocationPublicly, replace booking.location with null
+  eventType.locations?.map((location: LocationObject) => {
+    if (location.type === "link" && location.link === booking.location) {
+      booking.location = null;
+    }
+  });
 
   const [user] = eventType.users;
   if (!user) return { notFound: true };
