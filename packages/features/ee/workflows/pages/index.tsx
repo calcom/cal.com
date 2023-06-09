@@ -120,22 +120,22 @@ function WorkflowsPage() {
         ) : (
           <>
             <div className="mb-4 flex">
-              <WorkflowDropdownFilter />
+              {allWorkflowsData?.workflows && <WorkflowDropdownFilter />}
               {query?.data?.profiles &&
-                query?.data?.profiles.length > 1 &&
-                allWorkflowsData?.workflows &&
-                allWorkflowsData.workflows.length &&
-                profileOptions && (
-                  <div className="ml-auto">
-                    <CreateButton
-                      subtitle={t("new_workflow_subtitle").toUpperCase()}
-                      options={profileOptions}
-                      createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
-                      isLoading={createMutation.isLoading}
-                      disableMobileButton={true}
-                    />
-                  </div>
-                )}
+              query?.data?.profiles.length > 1 &&
+              allWorkflowsData?.workflows &&
+              allWorkflowsData.workflows.length &&
+              profileOptions ? (
+                <div className="ml-auto">
+                  <CreateButton
+                    subtitle={t("new_workflow_subtitle").toUpperCase()}
+                    options={profileOptions}
+                    createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
+                    isLoading={createMutation.isLoading}
+                    disableMobileButton={true}
+                  />
+                </div>
+              ) : null}
             </div>
             {profileOptions && profileOptions?.length ? (
               <WorkflowList
