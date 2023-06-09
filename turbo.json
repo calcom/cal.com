@@ -25,7 +25,6 @@
       "dependsOn": ["^build"],
       "outputs": [".next/**"],
       "env": [
-        "E2E_TEST_SEATED_CANCELLATIONS",
         "NEXT_PUBLIC_IS_E2E",
         "NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE_MONTHLY",
         "NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRODUCT_ID",

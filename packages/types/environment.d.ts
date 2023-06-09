@@ -15,7 +15,6 @@ declare namespace NodeJS {
     readonly MS_GRAPH_CLIENT_SECRET: string | undefined;
     readonly ZOOM_CLIENT_ID: string | undefined;
     readonly ZOOM_CLIENT_SECRET: string | undefined;
-    readonly E2E_TEST_SEATED_CANCELLATIONS: boolean | undefined;
     readonly EMAIL_FROM: string | undefined;
     readonly EMAIL_SERVER_HOST: string | undefined;
     readonly EMAIL_SERVER_PORT: string | undefined;
