@@ -267,7 +267,7 @@ const getEmbedTypeSpecificString = ({
     theme: PreviewState["theme"];
     brandColor: string;
     hideEventTypeDetails: boolean;
-    layout: BookerLayout;
+    layout?: BookerLayout;
   };
   if (embedFramework === "react") {
     uiInstructionStringArg = {
