@@ -76,7 +76,7 @@ test.describe("Managed Event Types tests", () => {
       await page.locator('[data-testid="event-types"] a[title="managed"]').click();
       await page.locator('[data-testid="vertical-tab-assignment"]').click();
       await page.locator('[class$="control"]').filter({ hasText: "Select..." }).click();
-      await page.locator("#react-select-5-option-1").click();
+      await page.locator("#react-select-2-listbox > *:first-child").click();
       await page.locator('[type="submit"]').click();
       await page.waitForLoadState("networkidle");
       await adminUser.logout();
