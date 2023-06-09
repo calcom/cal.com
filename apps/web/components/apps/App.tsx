@@ -57,8 +57,6 @@ const Component = ({
   const { t, i18n } = useLocale();
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
 
-  // const session = useSession();
-
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       if (data?.setupPending) return;
@@ -186,17 +184,6 @@ const Component = ({
                     }
                     return (
                       <InstallAppButtonChild appCategories={categories} userAdminTeams={userAdminTeams.data} addAppMutationInput={{ type, variant, slug }} multiInstall {...props} />
-
-                      // <Button
-                      //   StartIcon={Plus}
-                      //   {...props}
-                      //   // @TODO: Overriding color and size prevent us from
-                      //   // having to duplicate InstallAppButton for now.
-                      //   color="primary"
-                      //   size="base"
-                      //   data-testid="install-app-button">
-                      //   {t("install_another")}
-                      // </Button>
                     );
                   }}
                 />
@@ -228,15 +215,6 @@ const Component = ({
                 }
                 return (
                   <InstallAppButtonChild appCategories={categories} userAdminTeams={userAdminTeams.data} addAppMutationInput={{type, variant, slug}} {...props} />
-                  // <Button
-                  //   data-testid="install-app-button"
-                  //   {...props}
-                  //   // @TODO: Overriding color and size prevent us from
-                  //   // having to duplicate InstallAppButton for now.
-                  //   color="primary"
-                  //   size="base">
-                  //   {t("install_app")}
-                  // </Button>
                 );
               }}
             />

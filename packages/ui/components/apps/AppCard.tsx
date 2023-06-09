@@ -36,6 +36,8 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
 
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
+  const appInstalled = userAdminTeams ? appAdded >= userAdminTeams.length : appAdded > 0;
+
   const [searchTextIndex, setSearchTextIndex] = useState<number | undefined>(undefined);
 
   useEffect(() => {
@@ -118,7 +120,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
               />
             )
           : credentials &&
-            credentials.length === 0 && (
+            !appInstalled && (
               <InstallAppButton
                 type={app.type}
                 wrapperClassName="[@media(max-width:260px)]:w-full"
@@ -136,6 +138,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       userAdminTeams={userAdminTeams}
                       addAppMutationInput={{ type: app.type, variant: app.variant, slug: app.slug }}
                       appCategories={app.categories}
+                      appCredentials={app.credentials}
                       {...props}
                     />
                   );
@@ -144,7 +147,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             )}
       </div>
       <div className="max-w-44 absolute right-0 mr-4 flex flex-wrap justify-end gap-1">
-        {appAdded > 0 && (
+        {appInstalled && (
           <span className="bg-success rounded-md px-2 py-1 text-sm font-normal text-green-800">
             {t("installed", { count: appAdded })}
           </span>
@@ -167,11 +170,13 @@ const InstallAppButtonChild = ({
   userAdminTeams,
   addAppMutationInput,
   appCategories,
+  credentials,
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
   addAppMutationInput: { type: App["type"]; variant: string; slug: string };
   appCategories: string[];
+  credentials?: Credential[];
 } & ButtonProps) => {
   const { t } = useLocale();
   const router = useRouter();
@@ -188,7 +193,13 @@ const InstallAppButtonChild = ({
     },
   });
 
-  if (!userAdminTeams?.length || appCategories.some((category) => category === "calendar")) {
+  if (
+    !userAdminTeams?.length ||
+    appCategories.some(
+      // We can remove these as we allow more of these installs
+      (category) => category === "calendar" || category === "video"
+    )
+  ) {
     return (
       <Button
         color="secondary"
@@ -219,6 +230,12 @@ const InstallAppButtonChild = ({
           {userAdminTeams.map((team) => (
             <DropdownItem
               type="button"
+              disabled={
+                credentials &&
+                credentials.some((credential) =>
+                  credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
+                )
+              }
               key={team.id}
               StartIcon={(props) => (
                 <Avatar
@@ -233,7 +250,14 @@ const InstallAppButtonChild = ({
                   team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }
                 );
               }}>
-              <p>{team.name}</p>
+              <p>
+                {team.name}{" "}
+                {credentials &&
+                  credentials.some((credential) =>
+                    credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
+                  ) &&
+                  `(${t("installed")})`}
+              </p>
             </DropdownItem>
           ))}
         </DropdownMenuContent>

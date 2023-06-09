@@ -104,8 +104,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   let appStore, userAdminTeams: UserAdminTeams;
   if (session?.user?.id) {
-    appStore = await getAppRegistryWithCredentials(session.user.id);
     userAdminTeams = await getUserAdminTeams({ userId: session.user.id, getUserInfo: true });
+    appStore = await getAppRegistryWithCredentials(session.user.id, userAdminTeams);
   } else {
     appStore = await getAppRegistry();
     userAdminTeams = [];

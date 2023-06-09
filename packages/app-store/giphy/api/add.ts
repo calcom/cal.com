@@ -10,7 +10,6 @@ import getInstalledAppPath from "../../_utils/getInstalledAppPath";
  * @param res
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  console.log("🚀 ~ file: add.ts:13 ~ handler ~ req:", req);
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }

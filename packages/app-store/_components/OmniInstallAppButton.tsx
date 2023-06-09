@@ -36,7 +36,6 @@ export default function OmniInstallAppButton({
         extendsFeature: "EventType",
         ...(teamId && { teamId }),
       });
-      utils.viewer.apps.invalidate({ extendsFeature: "EventType" });
       if (data?.setupPending) return;
       showToast(t("app_successfully_installed"), "success");
     },

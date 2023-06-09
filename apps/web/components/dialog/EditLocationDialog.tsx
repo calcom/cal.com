@@ -34,7 +34,7 @@ interface ISetLocationDialog {
   saveLocation: (newLocationType: EventLocationType["type"], details: { [key: string]: string }) => void;
   selection?: LocationOption;
   booking?: BookingItem;
-  team?: Pick<EventTypeSetupProps, "team">;
+  team?: Pick<EventTypeSetupProps, "eventType.team">;
   defaultValues?: LocationObject[];
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
   isOpenDialog: boolean;

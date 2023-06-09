@@ -33,7 +33,6 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
     Error,
     { type?: App["type"]; variant?: string; slug?: string; isOmniInstall?: boolean; teamId?: number } | ""
   >(async (variables) => {
-    console.log("🚀 ~ file: useAddAppMutation.ts:36 ~ > ~ variables:", variables);
     let type: string | null | undefined;
     let isOmniInstall;
     if (variables === "") {
