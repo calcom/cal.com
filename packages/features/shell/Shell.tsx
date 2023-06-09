@@ -92,8 +92,14 @@ export const ONBOARDING_NEXT_REDIRECT = {
   },
 } as const;
 
-export const shouldShowOnboarding = (user: Pick<User, "createdDate" | "completedOnboarding">) => {
-  return !user.completedOnboarding && dayjs(user.createdDate).isAfter(ONBOARDING_INTRODUCED_AT);
+export const shouldShowOnboarding = (
+  user: Pick<User, "createdDate" | "completedOnboarding" | "organizationId">
+) => {
+  return (
+    !user.completedOnboarding &&
+    !user.organizationId &&
+    dayjs(user.createdDate).isAfter(ONBOARDING_INTRODUCED_AT)
+  );
 };
 
 function useRedirectToLoginIfUnauthenticated(isPublic = false) {
@@ -231,6 +237,7 @@ type LayoutProps = {
   // Gives the ability to include actions to the right of the heading
   actions?: JSX.Element;
   beforeCTAactions?: JSX.Element;
+  afterHeading?: ReactNode;
   smallHeading?: boolean;
   hideHeadingOnMobile?: boolean;
 };
@@ -917,6 +924,7 @@ export function ShellMain(props: LayoutProps) {
           </header>
         )}
       </div>
+      {props.afterHeading && <>{props.afterHeading}</>}
       <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
         {props.children}
       </div>
