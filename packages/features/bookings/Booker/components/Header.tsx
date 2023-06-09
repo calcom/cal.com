@@ -122,7 +122,7 @@ const LayoutToggle = ({
       {
         value: BookerLayouts.COLUMN_VIEW,
         label: <Columns width="16" height="16" />,
-        tooltip: t("switch_multiday"),
+        tooltip: t("switch_columnview"),
       },
     ].filter((layout) => enabledLayouts?.includes(layout.value as BookerLayouts));
   }, [t, enabledLayouts]);
