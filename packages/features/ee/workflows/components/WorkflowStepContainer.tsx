@@ -674,7 +674,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <div className="mb-6">
                     <div className="flex items-center">
                       <Label className={classNames("flex-none", props.readOnly ? "mb-2" : "mb-0")}>
-                        {t("subject")}
+                        {t("email_subject")}
                       </Label>
                       {!props.readOnly && (
                         <div className="flex-grow text-right">

@@ -71,7 +71,6 @@
   "your_meeting_has_been_booked": "Pertemuanmu telah terdaftar",
   "event_type_has_been_rescheduled_on_time_date": "{{title}} kamu telah dijadwalkan ulang menjadi {{date}}.",
   "event_has_been_rescheduled": "Terkini - Acara kamu telah dijadwalkan ulang",
-  "request_reschedule_title_attendee": "Minta untuk penjadwalan ulang",
   "request_reschedule_subtitle": "{{organizer}} telah membatalkan acara dan meminta kamu untuk memilih waktu lain.",
   "request_reschedule_title_organizer": "Kamu telah meminta {{attendee}} untuk menjadwalkan ulang",
   "request_reschedule_subtitle_organizer": "Kamu telah membatalkan acara dan {{attendee}} akan memilih waktu lain.",
