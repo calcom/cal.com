@@ -8,7 +8,7 @@
     "analyze:browser": "BUNDLE_ANALYZE=browser next build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "next dev",
-    "dx": "yarn dev",
+    "dx": "docker-compose up || docker-compose up",
     "test-codegen": "yarn playwright codegen http://localhost:3000",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
