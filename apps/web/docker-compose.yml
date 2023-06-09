@@ -6,7 +6,6 @@ services:
     build:
       context: ../../
       dockerfile: ./apps/web/Dockerfile
-      target: runner
     platform: linux/amd64 # Needed for M1 Macs
     ports:
       - "3000:3000"
@@ -20,7 +19,6 @@ services:
       - DATABASE_URL=postgresql://postgres:@postgres:5432/calendso
     networks:
       - prisma_default
-
 
 volumes:
   cal.com:
