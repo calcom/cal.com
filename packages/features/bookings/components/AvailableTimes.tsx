@@ -36,19 +36,25 @@ export const AvailableTimes = ({
   const hasTimeSlots = !!seatsPerTimeslot;
   const [layout] = useBookerStore((state) => [state.layout], shallow);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
+  const isMonthView = layout === BookerLayouts.MONTH_VIEW;
   const isToday = dayjs().isSame(date, "day");
 
   return (
     <div className={classNames("text-default", className)}>
-      <header className="bg-default before:bg-default dark:bg-muted dark:before:bg-muted mb-5 flex w-full flex-row items-center font-medium">
-        <span className={classNames(isColumnView && "w-full text-center")}>
-          <span className="text-emphasis font-semibold">
+      <header className="bg-default before:bg-default dark:bg-muted dark:before:bg-muted mb-3 flex w-full flex-row items-center font-medium">
+        <span
+          className={classNames(
+            isColumnView && "w-full text-center",
+            isColumnView ? "text-subtle text-xs uppercase" : "text-emphasis font-semibold"
+          )}>
+          <span className={classNames(isToday && "!text-default")}>
             {nameOfDay(i18n.language, Number(date.format("d")), "short")}
           </span>
           <span
             className={classNames(
-              isColumnView && isToday ? "bg-brand-default text-brand ml-2" : "text-default",
-              "inline-flex items-center justify-center rounded-3xl px-1 pt-0.5 text-sm font-medium"
+              isColumnView && isToday && "bg-brand-default text-brand ml-2",
+              "inline-flex items-center justify-center rounded-3xl px-1 pt-0.5 font-medium",
+              isMonthView ? "text-default text-sm" : "text-xs"
             )}>
             {date.format("DD")}
           </span>
