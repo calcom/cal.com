@@ -1,11 +1,10 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { useCalendarStore } from "../state/store";
 import "../styles/styles.css";
 import type { CalendarComponentProps } from "../types/state";
-import { getDaysBetweenDates, getHoursToDisplay } from "../utils";
+import { calculateHourSizeInPx, getDaysBetweenDates, getHoursToDisplay } from "../utils";
 import { DateValues } from "./DateValues";
-import { BlockedList } from "./blocking/BlockedList";
 import { EmptyCell } from "./event/Empty";
 import { EventList } from "./event/EventList";
 import { SchedulerColumns } from "./grid";
@@ -17,6 +16,7 @@ export function Calendar(props: CalendarComponentProps) {
   const container = useRef<HTMLDivElement | null>(null);
   const containerNav = useRef<HTMLDivElement | null>(null);
   const containerOffset = useRef<HTMLDivElement | null>(null);
+  const schedulerGrid = useRef<HTMLOListElement | null>(null);
   const initalState = useCalendarStore((state) => state.initState);
 
   const startDate = useCalendarStore((state) => state.startDate);
@@ -24,12 +24,30 @@ export function Calendar(props: CalendarComponentProps) {
   const startHour = useCalendarStore((state) => state.startHour || 0);
   const endHour = useCalendarStore((state) => state.endHour || 23);
   const usersCellsStopsPerHour = useCalendarStore((state) => state.gridCellsPerHour || 4);
+  const availableTimeslots = useCalendarStore((state) => state.availableTimeslots);
+  const hideHeader = useCalendarStore((state) => state.hideHeader);
 
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
 
   const hours = useMemo(() => getHoursToDisplay(startHour || 0, endHour || 23), [startHour, endHour]);
 
   const numberOfGridStopsPerDay = hours.length * usersCellsStopsPerHour;
+  const [hourSize, setHourSize] = useState(calculateHourSizeInPx(schedulerGrid?.current, startHour, endHour));
+
+  // Reset one hour size on window resize.
+  useLayoutEffect(() => {
+    const onResize = () => {
+      setHourSize(calculateHourSizeInPx(schedulerGrid?.current, startHour, endHour));
+    };
+    window.addEventListener("resize", onResize);
+
+    // By running this set function also one time in the uselayouteffect, instead of
+    // only in the default value of useState, we make sure that the ref is rendered
+    // to the screen and we read the correct value.
+    setHourSize(calculateHourSizeInPx(schedulerGrid?.current, startHour, endHour));
+
+    return () => window.removeEventListener("resize", onResize);
+  }, [startHour, endHour]);
 
   // Initalise State on inital mount
   useEffect(() => {
@@ -41,13 +59,18 @@ export function Calendar(props: CalendarComponentProps) {
       <div
         className="scheduler-wrapper flex h-full w-full flex-col overflow-y-scroll"
         style={
-          { "--one-minute-height": `calc(1.75rem/(60/${usersCellsStopsPerHour}))` } as React.CSSProperties // This can't live in the css file because it's a dynamic value and css variable gets super
+          {
+            "--one-minute-height": `calc(${hourSize}px/60)`,
+            "--gridDefaultSize": `${hourSize}px`,
+          } as React.CSSProperties // This can't live in the css file because it's a dynamic value and css variable gets super
         }>
-        <SchedulerHeading />
-        <div ref={container} className="bg-default relative isolate flex  flex-auto flex-col">
+        {hideHeader !== true && <SchedulerHeading />}
+        <div
+          ref={container}
+          className="bg-default dark:bg-muted relative isolate flex h-full flex-auto flex-col">
           <div
             style={{ width: "165%" }}
-            className="flex max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
+            className="flex h-full max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
             <DateValues containerNavRef={containerNav} days={days} />
             {/* TODO: Implement this at a later date. */}
             {/* <CurrentTime
@@ -56,8 +79,14 @@ export function Calendar(props: CalendarComponentProps) {
             containerRef={container}
           /> */}
             <div className="flex flex-auto">
-              <div className="bg-default ring-muted sticky left-0 z-10 w-14 flex-none ring-1" />
-              <div className="grid flex-auto grid-cols-1 grid-rows-1 ">
+              <div className="bg-default dark:bg-muted ring-muted sticky left-0 z-10 w-14 flex-none ring-1" />
+              <div
+                className="grid flex-auto grid-cols-1 grid-rows-1 [--disabled-gradient-foreground:#E6E7EB] [--disabled-gradient-background:#F8F9FB] dark:[--disabled-gradient-background:#262626] dark:[--disabled-gradient-foreground:#393939]"
+                style={{
+                  backgroundColor: "var(--disabled-gradient-background)",
+                  background:
+                    "repeating-linear-gradient(-45deg, var(--disabled-gradient-background), var(--disabled-gradient-background) 2.5px, var(--disabled-gradient-foreground) 2.5px, var(--disabled-gradient-foreground) 5px)",
+                }}>
                 <HorizontalLines
                   hours={hours}
                   numberOfGridStopsPerCell={usersCellsStopsPerHour}
@@ -68,15 +97,16 @@ export function Calendar(props: CalendarComponentProps) {
                 {/* Empty Cells */}
                 <SchedulerColumns
                   zIndex={50}
+                  ref={schedulerGrid}
                   offsetHeight={containerOffset.current?.offsetHeight}
                   gridStopsPerDay={numberOfGridStopsPerDay}>
                   <>
                     {[...Array(days.length)].map((_, i) => (
                       <li
+                        className="relative"
                         key={i}
                         style={{
                           gridRow: `2 / span ${numberOfGridStopsPerDay}`,
-                          position: "relative",
                         }}>
                         {/* While startDate < endDate:  */}
                         {[...Array(numberOfGridStopsPerDay)].map((_, j) => {
@@ -89,6 +119,7 @@ export function Calendar(props: CalendarComponentProps) {
                               totalGridCells={numberOfGridStopsPerDay}
                               selectionLength={endHour - startHour}
                               startHour={startHour}
+                              availableSlots={availableTimeslots}
                             />
                           );
                         })}
@@ -105,7 +136,7 @@ export function Calendar(props: CalendarComponentProps) {
                     return (
                       <li key={day.toISOString()} className="relative" style={{ gridColumnStart: i + 1 }}>
                         <EventList day={day} />
-                        <BlockedList day={day} containerRef={container} />
+                        {/* <BlockedList day={day} containerRef={container} /> */}
                       </li>
                     );
                   })}
@@ -127,7 +158,7 @@ const MobileNotSupported = ({ children }: { children: React.ReactNode }) => {
         <h1 className="text-2xl font-bold">Mobile not supported yet </h1>
         <p className="text-subtle">Please use a desktop browser to view this page</p>
       </div>
-      <div className="hidden sm:block">{children}</div>
+      <div className="hidden h-full sm:block">{children}</div>
     </>
   );
 };
