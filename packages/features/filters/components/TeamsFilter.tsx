@@ -1,10 +1,13 @@
 import { useSession } from "next-auth/react";
+import type { ReactNode, InputHTMLAttributes } from "react";
+import { forwardRef } from "react";
 
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { AnimatedPopover, Avatar } from "@calcom/ui";
+import { AnimatedPopover, Avatar, Divider } from "@calcom/ui";
 import { Layers, User } from "@calcom/ui/components/icon";
 
 import { filterQuerySchema } from "../lib/getTeamsFiltersFromQuery";
@@ -49,40 +52,20 @@ export const TeamsFilter = () => {
 
   return (
     <AnimatedPopover text={getCheckedOptionsNames()}>
-      <div className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] hover:cursor-pointer">
-        <div className="text-default flex h-6 w-6 items-center justify-center ltr:mr-2 rtl:ml-2">
-          <Layers className="h-5 w-5" />
-        </div>
-        <label
-          htmlFor="all"
-          className="text-default mr-auto self-center truncate text-sm font-medium leading-none">
-          {t("all")}
-        </label>
-
-        <input
+      <FilterCheckboxFieldsContainer>
+        <FilterCheckboxField
           id="all"
-          type="checkbox"
+          icon={<Layers className="h-4 w-4" />}
           checked={!query.teamIds && !query.userIds?.includes(session.data?.user.id || 0)}
-          onChange={() => {
+          onChange={(e) => {
             removeAllQueryParams();
           }}
-          className="text-primary-600 focus:ring-primary-500 border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
+          label={t("all_apps")}
         />
-      </div>
-      <div className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] hover:cursor-pointer">
-        <div className="text-default flex h-6 w-6 items-center justify-center ltr:mr-2 rtl:ml-2">
-          <User className="h-5 w-5" />
-        </div>
-        <label
-          htmlFor="yours"
-          className="text-default mr-auto self-center truncate text-sm font-medium leading-none">
-          {t("yours")}
-        </label>
 
-        <input
+        <FilterCheckboxField
           id="yours"
-          type="checkbox"
-          disabled={session.status === "loading"}
+          icon={<User className="h-4 w-4" />}
           checked={!!query.userIds?.includes(session.data?.user.id || 0)}
           onChange={(e) => {
             if (e.target.checked) {
@@ -91,45 +74,68 @@ export const TeamsFilter = () => {
               removeItemByKeyAndValue("userIds", session.data?.user.id || 0);
             }
           }}
-          className="text-primary-600 focus:ring-primary-500 border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
+          label={t("yours")}
         />
-      </div>
-      <hr className="border-subtle my-1" />
-      {teams &&
-        teams.map((team) => (
-          <div
-            className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] hover:cursor-pointer"
-            key={`${team.id}`}>
-            <Avatar
-              imageSrc={team.logo}
-              size="sm"
-              alt={`${team.name} Avatar`}
-              gravatarFallbackMd5="fallback"
-              className="self-center"
-              asChild
-            />
-            <label
-              htmlFor={team.name}
-              className="text-default ml-2 mr-auto select-none self-center truncate text-sm font-medium leading-none hover:cursor-pointer">
-              {team.name}
-            </label>
-
-            <input
-              id={team.name}
-              name={team.name}
-              type="checkbox"
-              checked={!!query.teamIds?.includes(team.id)}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  pushItemToKey("teamIds", team.id);
-                } else if (!e.target.checked) {
-                  removeItemByKeyAndValue("teamIds", team.id);
-                }
-              }}
-              className="text-primary-600 focus:ring-primary-500 border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
-            />
-          </div>
+        <Divider />
+        {teams?.map((team) => (
+          <FilterCheckboxField
+            key={team.id}
+            id={team.name}
+            label={team.name}
+            checked={!!query.teamIds?.includes(team.id)}
+            onChange={(e) => {
+              if (e.target.checked) {
+                pushItemToKey("teamIds", team.id);
+              } else if (!e.target.checked) {
+                removeItemByKeyAndValue("teamIds", team.id);
+              }
+            }}
+            icon={
+              <Avatar
+                alt={team?.name}
+                imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)}
+                size="xs"
+              />
+            }
+          />
         ))}
+      </FilterCheckboxFieldsContainer>
     </AnimatedPopover>
   );
 };
+
+export const FilterCheckboxFieldsContainer = ({ children }: { children: ReactNode }) => {
+  return <div className="flex flex-col gap-0.5 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1">{children}</div>;
+};
+
+type Props = InputHTMLAttributes<HTMLInputElement> & {
+  label: string;
+  icon: ReactNode;
+};
+
+export const FilterCheckboxField = forwardRef<HTMLInputElement, Props>(({ label, icon, ...rest }, ref) => {
+  return (
+    <div className="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 hover:cursor-pointer">
+      <label className="flex w-full items-center justify-between hover:cursor-pointer">
+        <div className="flex items-center">
+          <div className="text-default flex h-4 w-4 items-center justify-center ltr:mr-2 rtl:ml-2">
+            {icon}
+          </div>
+          <label htmlFor={rest.id} className="text-default cursor-pointer truncate text-sm">
+            {label}
+          </label>
+        </div>
+        <div className="flex h-5 items-center">
+          <input
+            {...rest}
+            ref={ref}
+            type="checkbox"
+            className="text-primary-600 focus:ring-primary-500 border-default bg-default h-4 w-4 rounded hover:cursor-pointer"
+          />
+        </div>
+      </label>
+    </div>
+  );
+});
+
+FilterCheckboxField.displayName = "FilterCheckboxField";
