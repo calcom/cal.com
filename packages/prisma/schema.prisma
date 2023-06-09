@@ -234,27 +234,28 @@ model User {
 }
 
 model Team {
-  id                  Int              @id @default(autoincrement())
+  id                  Int                @id @default(autoincrement())
   /// @zod.min(1)
   name                String
   /// @zod.min(1)
-  slug                String?          @unique
+  slug                String?            @unique
   logo                String?
   appLogo             String?
   appIconLogo         String?
   bio                 String?
-  hideBranding        Boolean          @default(false)
-  hideBookATeamMember Boolean          @default(false)
+  hideBranding        Boolean            @default(false)
+  hideBookATeamMember Boolean            @default(false)
   members             Membership[]
   eventTypes          EventType[]
   workflows           Workflow[]
-  createdAt           DateTime         @default(now())
+  createdAt           DateTime           @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
   metadata            Json?
   theme               String?
-  brandColor          String           @default("#292929")
-  darkBrandColor      String           @default("#fafafa")
+  brandColor          String             @default("#292929")
+  darkBrandColor      String             @default("#fafafa")
   verifiedNumbers     VerifiedNumber[]
+  inviteToken         VerificationToken?
   webhooks            Webhook[]
 }
 
@@ -279,12 +280,15 @@ model Membership {
 }
 
 model VerificationToken {
-  id         Int      @id @default(autoincrement())
-  identifier String
-  token      String   @unique
-  expires    DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  identifier    String
+  token         String   @unique
+  expires       DateTime
+  expiresInDays Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  teamId        Int?     @unique
+  team          Team?    @relation(fields: [teamId], references: [id])
 
   @@unique([identifier, token])
   @@index([token])

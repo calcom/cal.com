@@ -102,7 +102,6 @@ export default function Success(props: SuccessProps) {
     allRemainingBookings,
     isSuccessBookingPage,
     cancel: isCancellationMode,
-    changes,
     formerTime,
     email,
     seatReferenceUid,
@@ -222,6 +221,7 @@ export default function Success(props: SuccessProps) {
     setCalculatedDuration(
       dayjs(props.bookingInfo.endTime).diff(dayjs(props.bookingInfo.startTime), "minutes")
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function eventLink(): string {
@@ -279,9 +279,7 @@ export default function Success(props: SuccessProps) {
     darkBrandColor: props.profile.darkBrandColor,
   });
   const title = t(
-    `booking_${needsConfirmation ? "booking_submitted" : "confirmed"}${
-      props.recurringBookings ? "_recurring" : ""
-    }`
+    `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
 
   const locationToDisplay = getSuccessPageLocationMessage(
@@ -365,7 +363,7 @@ export default function Success(props: SuccessProps) {
                     id="modal-headline">
                     {needsConfirmation && !isCancelled
                       ? props.recurringBookings
-                        ? t("submitted_recurring")
+                        ? t("booking_submitted_recurring")
                         : t("booking_submitted")
                       : isCancelled
                       ? seatReferenceUid
@@ -402,7 +400,7 @@ export default function Success(props: SuccessProps) {
                       </>
                     )}
                     <div className="font-medium">{t("what")}</div>
-                    <div className="col-span-2 mb-6 last:mb-0">{props.bookingInfo.title}</div>
+                    <div className="col-span-2 mb-6 last:mb-0">{eventName}</div>
                     <div className="font-medium">{t("when")}</div>
                     <div className="col-span-2 mb-6 last:mb-0">
                       {reschedule && !!formerTime && (

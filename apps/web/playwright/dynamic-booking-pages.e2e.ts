@@ -11,9 +11,10 @@ test.afterEach(({ users }) => users.deleteAll());
 
 // Due to some reason for Dynamic booking cancellation, daily video api_key is not set which causes cancellation to fail.
 // This test is skipped until the issue is resolved in GH actions.
+// eslint-disable-next-line playwright/no-skipped-test
 test.skip("dynamic booking", async ({ page, users }) => {
   const pro = await users.create();
-  await pro.login();
+  await pro.apiLogin();
 
   const free = await users.create({ username: "free" });
   await page.goto(`/${pro.username}+${free.username}`);

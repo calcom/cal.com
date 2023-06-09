@@ -10,6 +10,7 @@ import { classNames } from "@calcom/lib";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
@@ -51,8 +52,8 @@ const tabs: VerticalTabItemProps[] = [
     icon: Key,
     children: [
       { name: "password", href: "/settings/security/password" },
-      { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
       { name: "impersonation", href: "/settings/security/impersonation" },
+      { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
     ],
   },
   {
@@ -97,7 +98,7 @@ const tabs: VerticalTabItemProps[] = [
 tabs.find((tab) => {
   // Add "SAML SSO" to the tab
   if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
-    tab.children?.push({ name: "saml_config", href: "/settings/security/sso" });
+    tab.children?.push({ name: "sso_configuration", href: "/settings/security/sso" });
   }
 });
 
@@ -116,6 +117,10 @@ const useTabs = () => {
       tab.name = user?.name || "my_account";
       tab.icon = undefined;
       tab.avatar = avatar?.avatar || WEBAPP_URL + "/" + session?.data?.user?.username + "/avatar.png";
+    } else if (tab.href === "/settings/security" && user?.identityProvider === IdentityProvider.GOOGLE) {
+      tab.children = tab?.children?.filter(
+        (childTab) => childTab.href !== "/settings/security/two-factor-auth"
+      );
     }
     return tab;
   });
@@ -316,7 +321,7 @@ const SettingsSidebarContainer = ({
                                 />
                                 {HOSTED_CAL_FEATURES && (
                                   <VerticalTabItem
-                                    name={t("saml_config")}
+                                    name={t("sso_configuration")}
                                     href={`/settings/teams/${team.id}/sso`}
                                     textClassNames="px-3 text-emphasis font-medium text-sm"
                                     disableChevron
