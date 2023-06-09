@@ -66,7 +66,7 @@ const DestinationCalendarSelector = ({
         width: "100%",
         display: "flex",
         ":before": {
-          content: `'${t("select_destination_calendar")}:'`,
+          content: `'${t("create_events_on")}:'`,
           display: "block",
           marginRight: 8,
         },
@@ -121,12 +121,12 @@ const DestinationCalendarSelector = ({
   const queryDestinationCalendar = query.data.destinationCalendar;
 
   return (
-    <div className="relative" title={`${t("select_destination_calendar")}: ${selectedOption?.label || ""}`}>
+    <div className="relative" title={`${t("create_events_on")}: ${selectedOption?.label || ""}`}>
       <Select
         name="primarySelectedCalendar"
         placeholder={
           !hidePlaceholder ? (
-            `${t("select_destination_calendar")}`
+            `${t("create_events_on")}`
           ) : (
             <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
               {t("default_calendar_selected")}{" "}

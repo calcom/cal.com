@@ -35,7 +35,7 @@ export function Header({
     [setLayout, layout]
   );
 
-  if (isMobile || !enabledLayouts || enabledLayouts.length <= 1) return null;
+  if (isMobile || !enabledLayouts) return null;
 
   // Only reason we create this component, is because it is used 3 times in this component,
   // and this way we can't forget to update one of the props in all places :)
@@ -45,6 +45,7 @@ export function Header({
 
   // In month view we only show the layout toggle.
   if (isMonthView) {
+    if (enabledLayouts.length <= 1) return null;
     return (
       <div className="fixed top-3 right-3 z-10">
         <LayoutToggleWithData />
