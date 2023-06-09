@@ -37,6 +37,8 @@
     "dev:website": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\"",
     "dev": "turbo run dev --scope=\"@calcom/web\"",
     "build-storybook": "turbo run build --scope=\"@calcom/storybook\"",
+    "copy-envs:app-store": "cp .env.appStore.example .env.appStore",
+    "copy-envs:common": "cp .env.example .env",
     "dx": "turbo run dx",
     "i-dev": "infisical run -- turbo run dev --scope=\"@calcom/web\"",
     "i-dx": "infisical run -- turbo run dx",

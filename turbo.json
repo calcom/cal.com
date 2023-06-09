@@ -92,6 +92,7 @@
       "cache": false
     },
     "dx": {
+      "dependsOn": ["//#copy-envs:app-store", "//#copy-envs:common"],
       "cache": false
     },
     "lint": {
@@ -169,6 +170,12 @@
       "outputs": ["./.env.appStore"]
     },
     "//#test": {
+      "cache": false
+    },
+    "//#copy-envs:app-store": {
+      "cache": false
+    },
+    "//#copy-envs:common": {
       "cache": false
     }
   },
