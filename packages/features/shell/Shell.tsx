@@ -341,11 +341,11 @@ function UserDropdown({ small }: { small?: boolean }) {
             </span>
             {!small && (
               <span className="flex flex-grow items-center truncate">
-                <span className="flex-grow truncate text-sm">
-                  <span className="text-emphasis mb-1 block truncate pb-1 font-medium leading-none">
+                <span className="flex-grow truncate text-sm leading-none">
+                  <span className="text-emphasis mb-1 block truncate font-medium">
                     {user.name || "Nameless User"}
                   </span>
-                  <span className="text-default truncate pb-1 font-normal leading-none">
+                  <span className="text-default truncate pb-1 font-normal">
                     {user.username
                       ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
                         ? `cal.com/${user.username}`

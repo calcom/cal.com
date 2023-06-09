@@ -28,11 +28,14 @@ export function Header({
   const selectedDate = dayjs(selectedDateString);
 
   const onLayoutToggle = useCallback(
-    (newLayout: string) => setLayout(newLayout as BookerLayout),
-    [setLayout]
+    (newLayout: string) => {
+      if (layout === newLayout || !newLayout) return;
+      setLayout(newLayout as BookerLayout);
+    },
+    [setLayout, layout]
   );
 
-  if (isMobile || !enabledLayouts || enabledLayouts.length <= 1) return null;
+  if (isMobile || !enabledLayouts) return null;
 
   // Only reason we create this component, is because it is used 3 times in this component,
   // and this way we can't forget to update one of the props in all places :)
@@ -42,6 +45,7 @@ export function Header({
 
   // In month view we only show the layout toggle.
   if (isMonthView) {
+    if (enabledLayouts.length <= 1) return null;
     return (
       <div className="fixed top-3 right-3 z-10">
         <LayoutToggleWithData />
@@ -50,7 +54,7 @@ export function Header({
   }
 
   return (
-    <div className="border-subtle relative z-10 flex border-l border-b p-4">
+    <div className="border-subtle relative z-10 flex border-l border-b px-5 py-4">
       <div className="flex items-center gap-3">
         <h3 className="min-w-[150px] text-base font-semibold leading-4">
           {selectedDate.format("MMM D")}-{selectedDate.add(extraDays, "days").format("D")},{" "}
@@ -73,7 +77,7 @@ export function Header({
           />
         </ButtonGroup>
       </div>
-      <div className="ml-auto flex gap-3">
+      <div className="ml-auto flex gap-2">
         <TimeFormatToggle />
         <div className="fixed top-4 right-4">
           <LayoutToggleWithData />

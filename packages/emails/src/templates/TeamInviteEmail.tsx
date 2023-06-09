@@ -59,7 +59,7 @@ export const TeamInviteEmail = (
       </p>
       <div style={{ display: "flex", justifyContent: "center" }}>
         <CallToAction
-          label={props.language(props.isCalcomMember ? "email_user_cta" : "email_not_cal_member_cta")}
+          label={props.language(props.isCalcomMember ? "email_user_cta" : "create_your_account")}
           href={props.joinLink}
           endIconName="linkIcon"
         />
