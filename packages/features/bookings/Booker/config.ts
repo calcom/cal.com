@@ -184,3 +184,27 @@ export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerStat
 
   return animationScope;
 };
+
+/**
+ * These configures the amount of days that are shown on top of the selected date.
+ */
+export const extraDaysConfig = {
+  mobile: {
+    // Desktop tablet feels weird on mobile layout,
+    // but this is simply here to make the types a lot easier..
+    desktop: 0,
+    tablet: 0,
+  },
+  [BookerLayouts.MONTH_VIEW]: {
+    desktop: 0,
+    tablet: 0,
+  },
+  [BookerLayouts.WEEK_VIEW]: {
+    desktop: 7,
+    tablet: 4,
+  },
+  [BookerLayouts.COLUMN_VIEW]: {
+    desktop: 4,
+    tablet: 2,
+  },
+};
