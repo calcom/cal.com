@@ -132,6 +132,17 @@ async function getUserPageProps(context: GetStaticPropsContext) {
           schedulingType: true,
           metadata: true,
           seatsPerTimeSlot: true,
+          team: {
+            select: {
+              logo: true,
+              parent: {
+                select: {
+                  logo: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
         orderBy: [
           {
