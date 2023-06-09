@@ -9,6 +9,7 @@ import type { ControlProps } from "react-select";
 import { components } from "react-select";
 
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
+import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { APP_NAME, EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -635,6 +636,7 @@ const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme;
 const ChooseEmbedTypesDialogContent = () => {
   const { t } = useLocale();
   const router = useRouter();
+
   return (
     <DialogContent className="rounded-lg p-10" type="creation" size="lg">
       <div className="mb-2">
@@ -680,6 +682,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const dialogContentRef = useRef<HTMLDivElement>(null);
+  const flags = useFlagMap();
+  const isBookerLayoutsEnabled = flags["booker-layouts"] === true;
 
   const s = (href: string) => {
     const searchParams = new URLSearchParams(router.asPath.split("?")[1] || "");
@@ -1085,25 +1089,27 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         </div>
                       </Label>
                     ))}
-                    <Label className="mb-6">
-                      <div className="mb-2">Layout</div>
-                      <Select
-                        className="w-full"
-                        defaultValue={layoutOptions[0]}
-                        onChange={(option) => {
-                          if (!option) {
-                            return;
-                          }
-                          setPreviewState((previewState) => {
-                            return {
-                              ...previewState,
-                              layout: option.value,
-                            };
-                          });
-                        }}
-                        options={layoutOptions}
-                      />
-                    </Label>
+                    {isBookerLayoutsEnabled && (
+                      <Label className="mb-6">
+                        <div className="mb-2">Layout</div>
+                        <Select
+                          className="w-full"
+                          defaultValue={layoutOptions[0]}
+                          onChange={(option) => {
+                            if (!option) {
+                              return;
+                            }
+                            setPreviewState((previewState) => {
+                              return {
+                                ...previewState,
+                                layout: option.value,
+                              };
+                            });
+                          }}
+                          options={layoutOptions}
+                        />
+                      </Label>
+                    )}
                   </div>
                 </CollapsibleContent>
               </Collapsible>
