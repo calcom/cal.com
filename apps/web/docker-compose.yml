@@ -1,0 +1,30 @@
+version: '3.9'
+
+services:
+  cal.com:
+    container_name: cal.com
+    build:
+      context: ../../
+      dockerfile: ./apps/web/Dockerfile
+      target: runner
+    platform: linux/amd64 # Needed for M1 Macs
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/calcom/apps/web
+      - ./.next:/calcom/apps/web/.next # Next.js build files
+      - ../../packages:/calcom/packages
+      - cal.com:/calcom
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL="postgresql://postgres:@postgres:5432/calendso"
+    networks:
+      - prisma_default
+
+
+volumes:
+  cal.com:
+
+networks:
+  prisma_default:
+    external: true
