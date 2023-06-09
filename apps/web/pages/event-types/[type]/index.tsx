@@ -372,8 +372,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       throw new Error(t("seats_and_no_show_fee_error"));
     }
 
+    const { availability, ...rest } = input;
     updateMutation.mutate({
-      ...input,
+      ...rest,
       locations,
       recurringEvent,
       periodStartDate: periodDates.startDate,
@@ -453,9 +454,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 }
               }
             }
-
+            const { availability, ...rest } = input;
             updateMutation.mutate({
-              ...input,
+              ...rest,
               locations,
               recurringEvent,
               periodStartDate: periodDates.startDate,
