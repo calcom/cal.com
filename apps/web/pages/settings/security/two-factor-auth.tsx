@@ -36,7 +36,7 @@ const TwoFactorAuthView = () => {
   const isCalProvider = user?.identityProvider === "CAL";
   return (
     <>
-      <Meta title={t("2fa")} description={t("2fa_description")} />
+      <Meta title={t("2fa")} description={t("set_up_two_factor_authentication")} />
       {!isCalProvider && <Alert severity="neutral" message={t("2fa_disabled")} />}
       <div className="mt-6 flex items-start space-x-4">
         <Switch
