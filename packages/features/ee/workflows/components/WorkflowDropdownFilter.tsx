@@ -26,7 +26,7 @@ export const WorkflowDropdownFilter = () => {
         <FilterCheckboxField
           id="all-eventtypes-checkbox"
           icon={<Layers className="h-4 w-4" />}
-          checked={dropdownTitle === t("all_apps")}
+          checked={!query?.teamIds && !query?.userIds ? true : false}
           onChange={(e) => {
             removeAllQueryParams();
             setDropdownTitle(t("all_apps"));
@@ -54,7 +54,7 @@ export const WorkflowDropdownFilter = () => {
             key={idx}
             id={team.name}
             label={team.name}
-            checked={dropdownTitle === team.name}
+            checked={query.teamIds?.includes(team.id)}
             onChange={(e) => {
               setDropdownTitle(team.name);
               if (e.target.checked) {
