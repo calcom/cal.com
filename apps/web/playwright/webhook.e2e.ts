@@ -438,11 +438,8 @@ test.describe("FORM_SUBMITTED", async () => {
     await gotoRoutingLink({ page, formId: formId });
     page.click('button[type="submit"]');
 
-    await waitFor(
-      () => {
-        expect(webhookReceiver.requestList.length).toBe(1);
-      },
-      { timeout: 2000 }
-    );
+    await waitFor(() => {
+      expect(webhookReceiver.requestList.length).toBe(1);
+    });
   });
 });
