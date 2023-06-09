@@ -200,7 +200,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                     <div className="flex">
                       <Label>{t("sender_id")}</Label>
                       <Tooltip content={t("sender_id_info")}>
-                        <Info className="mr-1 mt-0.5 h-4 w-4" />
+                        <Info className="mr-1 mt-0.5 ml-2 h-4 w-4 text-gray-500" />
                       </Tooltip>
                     </div>
                     <Input
