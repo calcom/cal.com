@@ -50,7 +50,7 @@ type PreviewState = {
     brandColor: string;
   };
   hideEventTypeDetails: boolean;
-  layout: BookerLayouts;
+  layout?: BookerLayouts;
 };
 const queryParamsForDialog = ["embedType", "embedTabName", "embedUrl"];
 
