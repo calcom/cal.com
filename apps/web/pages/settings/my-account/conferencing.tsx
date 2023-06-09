@@ -149,7 +149,7 @@ const ConferencingLayout = () => {
                                     });
                                   }
                                 }}>
-                                {t("change_default_conferencing_app")}
+                                {t("set_as_default")}
                               </DropdownItem>
                             </DropdownMenuItem>
                           )}
