@@ -49,7 +49,7 @@ test.describe("Managed Event Types tests", () => {
     });
 
     await test.step("Managed event type has unlocked fields for admin", async () => {
-      await page.waitForSelector('[data-testid="update-eventtype"]');
+      await page.getByTestId("update-eventtype").waitFor();
       await expect(page.locator('input[name="title"]')).toBeEditable();
       await expect(page.locator('input[name="slug"]')).toBeEditable();
       await expect(page.locator('input[name="length"]')).toBeEditable();
@@ -76,8 +76,7 @@ test.describe("Managed Event Types tests", () => {
       await page.locator('[data-testid="event-types"] a[title="managed"]').click();
       await page.getByTestId("vertical-tab-assignment").click();
       await page.locator('[class$="control"]').filter({ hasText: "Select..." }).click();
-      // todo, figure out a better way of selecting the user to add
-      await page.locator('[data-testid*="select-option-"]').last().click();
+      await page.getByTestId(`select-option-${memberUser.id}`).click();
       await page.locator('[type="submit"]').click();
       await page.waitForLoadState("networkidle");
       await adminUser.logout();
