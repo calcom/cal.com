@@ -1,5 +1,4 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
-import { BuildingIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -11,7 +10,8 @@ import { classNames } from "@calcom/lib";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole, UserPermissionRole, IdentityProvider } from "@calcom/prisma/enums";
+import { IdentityProvider } from "@calcom/prisma/enums";
+import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import useAvatarQuery from "@calcom/trpc/react/hooks/useAvatarQuery";
 import type { VerticalTabItemProps } from "@calcom/ui";
@@ -72,22 +72,6 @@ const tabs: VerticalTabItemProps[] = [
       { name: "api_keys", href: "/settings/developer/api-keys" },
       // TODO: Add profile level for embeds
       // { name: "embeds", href: "/v2/settings/developer/embeds" },
-    ],
-  },
-  {
-    name: "organization",
-    href: "/settings/organization",
-    icon: BuildingIcon,
-    children: [
-      { name: "profile", href: "/settings/organization/profile" },
-      { name: "general", href: "/settings/organization/general" },
-      { name: "members", href: "/settings/organization/members" },
-      { name: "calendars", href: "/settings/organization/calendars" },
-      { name: "conferencing", href: "/settings/organization/conferencing" },
-      { name: "appearance", href: "/settings/organization/appearance" },
-      { name: "billing", href: "/settings/organization/billing" },
-      { name: "single-sign-on", href: "/settings/organization/single-sign-on" },
-      { name: "developer", href: "/settings/organization/developer" },
     ],
   },
   {
@@ -167,10 +151,6 @@ interface SettingsSidebarContainerProps {
   navigationIsOpenedOnMobile?: boolean;
 }
 
-interface OrgMetaData {
-  isOrganization?: boolean;
-}
-
 const SettingsSidebarContainer = ({
   className = "",
   navigationIsOpenedOnMobile,
@@ -181,8 +161,7 @@ const SettingsSidebarContainer = ({
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
 
-  const { data: teamsList } = trpc.viewer.teams.list.useQuery();
-  const teams = teamsList?.filter?.((team) => !(team.metadata as OrgMetaData).isOrganization);
+  const { data: teams } = trpc.viewer.teams.list.useQuery();
 
   useEffect(() => {
     if (teams) {
@@ -198,7 +177,7 @@ const SettingsSidebarContainer = ({
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
-  }, [router.query.id, teamsList]);
+  }, [router.query.id, teams]);
 
   return (
     <nav
@@ -258,7 +237,7 @@ const SettingsSidebarContainer = ({
                 {teams &&
                   teamMenuState &&
                   teams.map((team, index: number) => {
-                    if (teamMenuState.some((teamState) => teamState.teamId === team.id)) {
+                    if (teamMenuState.some((teamState) => teamState.teamId === team.id))
                       return (
                         <Collapsible
                           key={team.id}
@@ -353,7 +332,6 @@ const SettingsSidebarContainer = ({
                           </CollapsibleContent>
                         </Collapsible>
                       );
-                    }
                   })}
                 <VerticalTabItem
                   name={t("add_a_team")}
