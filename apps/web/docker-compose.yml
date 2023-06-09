@@ -17,7 +17,7 @@ services:
       - cal.com:/calcom
     environment:
       - NODE_ENV=development
-      - DATABASE_URL="postgresql://postgres:@postgres:5432/calendso"
+      - DATABASE_URL=postgresql://postgres:@postgres:5432/calendso
     networks:
       - prisma_default
 
