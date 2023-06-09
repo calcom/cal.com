@@ -113,7 +113,7 @@ const getUserSession = async (ctx: TRPCContextInner) => {
    * or when creating the context
    */
   const session = ctx.session || (await getSession(ctx));
-  const user = ctx.user || (session ? await getUserFromSession(ctx, session) : null);
+  const user = session ? await getUserFromSession(ctx, session) : null;
 
   return { user, session };
 };

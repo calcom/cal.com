@@ -61,16 +61,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
       res,
       user: { ...user, locale: user?.locale ?? "en" },
     });
-    const response = await caller.bookings.confirm({
+    await caller.bookings.confirm({
       bookingId: booking.id,
       recurringEventId: booking.recurringEventId || undefined,
       confirmed: action === DirectAction.ACCEPT,
       reason,
     });
-    console.log(response);
   } catch (e) {
     let message = "Error confirming booking";
-    console.log(e);
     if (e instanceof TRPCError) message = (e as TRPCError).message;
     res.redirect(`/booking/${bookingUid}?error=${encodeURIComponent(message)}`);
     return;
