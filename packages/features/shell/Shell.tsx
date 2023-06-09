@@ -285,10 +285,9 @@ export default function Shell(props: LayoutProps) {
 
 interface UserDropdownProps {
   small?: boolean;
-  hideName?: boolean;
 }
 
-function UserDropdown({ small, hideName }: UserDropdownProps) {
+function UserDropdown({ small }: UserDropdownProps) {
   const { t } = useLocale();
   const { data: user } = useMeQuery();
   const { data: avatar } = useAvatarQuery();
@@ -344,25 +343,19 @@ function UserDropdown({ small, hideName }: UserDropdownProps) {
                   alt={user.username || "Nameless User"}
                 />
               }
-              {!user.away && (
-                <div className="border-muted absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 bg-green-500" />
-              )}
-              {user.away && (
-                <div className="border-muted absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 bg-yellow-500" />
-              )}
+              <span
+                className={classNames(
+                  "border-muted absolute -bottom-1 -right-1  rounded-full border-2 bg-green-500",
+                  user.away ? "bg-yellow-500" : "bg-green-500",
+                  small ? "-bottom-0.5 -right-0.5 h-2.5 w-2.5" : "bottom-0 right-0 h-3 w-3"
+                )}
+              />
             </span>
-            {!small && !hideName && (
+            {!small && (
               <span className="flex flex-grow items-center truncate">
                 <span className="flex-grow truncate text-sm leading-none">
-                  <span className="text-emphasis mb-1 block truncate font-medium">
+                  <span className="text-emphasis block truncate font-medium">
                     {user.name || "Nameless User"}
-                  </span>
-                  <span className="text-default truncate pb-1 font-normal">
-                    {user.username
-                      ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
-                        ? `${orgBranding && orgBranding.slug}cal.com/${user.username}`
-                        : `${orgBranding && orgBranding.slug}/${user.username}`
-                      : "No public page"}
                   </span>
                 </span>
                 <ChevronDown
@@ -378,6 +371,7 @@ function UserDropdown({ small, hideName }: UserDropdownProps) {
       <DropdownMenuPortal>
         <FreshChatProvider>
           <DropdownMenuContent
+            align="start"
             onInteractOutside={() => {
               setMenuOpen(false);
               setHelpOpen(false);
@@ -834,7 +828,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
     <div className="relative">
       <aside
         style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
-        className="desktop-transparent bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-4">
+        className="desktop-transparent bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-3">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-6 ">
           <header className="items-center justify-between md:hidden lg:flex">
             {orgBranding ? (
@@ -879,10 +873,8 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 </button>
               </Link>*/}
               {!!orgBranding && (
-                <div data-testid="user-dropdown-trigger">
-                  <span className="">
-                    <UserDropdown hideName />
-                  </span>
+                <div data-testid="user-dropdown-trigger" className="flex items-center">
+                  <UserDropdown small />
                 </div>
               )}
               <KBarTrigger />
