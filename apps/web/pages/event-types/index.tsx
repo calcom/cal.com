@@ -840,6 +840,7 @@ const EventTypesPage = () => {
   const { data: user } = useMeQuery();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [showProfileBanner, setShowProfileBanner] = useState(false);
+  const orgBranding = useOrgBrandingValues();
 
   function closeBanner() {
     setShowProfileBanner(false);
@@ -851,7 +852,9 @@ const EventTypesPage = () => {
     if (query?.openIntercom && query?.openIntercom === "true") {
       open();
     }
-    setShowProfileBanner(!document.cookie.includes("calcom-profile-banner=1") && !user?.completedOnboarding);
+    setShowProfileBanner(
+      !!orgBranding && !document.cookie.includes("calcom-profile-banner=1") && !user?.completedOnboarding
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
