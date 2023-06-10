@@ -58,6 +58,7 @@ test.describe("Managed Event Types tests", () => {
       await memberUser.apiLogin();
 
       await page.goto("/teams");
+      console.log(memberUser);
       await page.locator('button[data-testid^="accept-invitation"]').click();
       await page.getByText("Member").waitFor();
 
@@ -72,6 +73,7 @@ test.describe("Managed Event Types tests", () => {
       await page.getByTestId(`select-option-${memberUser.id}`).click();
       await page.locator('[type="submit"]').click();
       await page.getByTestId("toast-success").waitFor();
+
       await adminUser.logout();
     });
 
