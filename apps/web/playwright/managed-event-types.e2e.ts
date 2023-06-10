@@ -18,6 +18,7 @@ test.describe("Managed Event Types tests", () => {
 
     await test.step("Managed event option exists for team admin", async () => {
       // Filling team creation form wizard
+      await page.locator('input[name="name"]').waitFor();
       await page.locator('input[name="name"]').fill(`${adminUser.username}'s Team`);
       await page.locator("text=Continue").click();
       await page.waitForURL(/\/settings\/teams\/(\d+)\/onboard-members$/i);
