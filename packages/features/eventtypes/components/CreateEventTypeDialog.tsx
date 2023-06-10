@@ -85,8 +85,6 @@ export default function CreateEventTypeDialog({
   const [firstRender, setFirstRender] = useState(true);
   const orgBranding = useOrgBrandingValues();
 
-  console.log({ profileOptions });
-
   const {
     data: { teamId, eventPage: pageSlug },
   } = useTypedQuery(querySchema);
