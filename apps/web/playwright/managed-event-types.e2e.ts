@@ -59,7 +59,6 @@ test.describe("Managed Event Types tests", () => {
       await memberUser.apiLogin();
 
       await page.goto("/teams");
-      console.log(memberUser);
       await page.locator('button[data-testid^="accept-invitation"]').click();
       await page.getByText("Member").waitFor();
 
