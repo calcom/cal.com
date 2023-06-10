@@ -198,6 +198,12 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     membershipRole: membership.role,
   }));
 
+  const compareMembership = (mship1: MembershipRole, mship2: MembershipRole) => {
+    const mshipToNumber = (mship: MembershipRole) =>
+      Object.keys(MembershipRole).findIndex((mmship) => mmship === mship);
+    return mshipToNumber(mship1) > mshipToNumber(mship2);
+  };
+
   eventTypeGroups = ([] as EventTypeGroup[]).concat(
     eventTypeGroups,
     user.teams
@@ -211,7 +217,10 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
         )?.membershipRole;
         return {
           teamId: membership.team.id,
-          membershipRole: orgMembership ?? membership.role,
+          membershipRole:
+            orgMembership && compareMembership(orgMembership, membership.role)
+              ? orgMembership
+              : membership.role,
           profile: {
             name: membership.team.name,
             image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
@@ -225,7 +234,11 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
             membershipCount: membership.team.members.length,
             readOnly:
               membership.role ===
-              (membership.team.parentId ? orgMembership ?? MembershipRole.MEMBER : MembershipRole.MEMBER),
+              (membership.team.parentId
+                ? orgMembership && compareMembership(orgMembership, membership.role)
+                  ? orgMembership
+                  : MembershipRole.MEMBER
+                : MembershipRole.MEMBER),
           },
           eventTypes: membership.team.eventTypes
             .map(mapEventType)
