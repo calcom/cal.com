@@ -81,6 +81,7 @@ interface EventTypeListHeadingProps {
   profile: EventTypeGroupProfile;
   membershipCount: number;
   teamId?: number | null;
+  orgSlug?: string;
 }
 
 type EventTypeGroup = EventTypeGroups[number];
@@ -697,6 +698,7 @@ const EventTypeListHeading = ({
   profile,
   membershipCount,
   teamId,
+  orgSlug,
 }: EventTypeListHeadingProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
@@ -737,7 +739,9 @@ const EventTypeListHeading = ({
         )}
         {profile?.slug && (
           <Link href={`${CAL_URL}/${profile.slug}`} className="text-subtle block text-xs">
-            {`${CAL_URL?.replace("https://", "")}/${profile.slug}`}
+            {orgSlug
+              ? `${orgSlug}.${subdomainSuffix()}/${profile.slug}`
+              : `${CAL_URL?.replace("https://", "")}/${profile.slug}`}
           </Link>
         )}
       </div>
@@ -840,6 +844,7 @@ const EventTypesPage = () => {
   const { data: user } = useMeQuery();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [showProfileBanner, setShowProfileBanner] = useState(false);
+  const orgBranding = useOrgBrandingValues();
 
   function closeBanner() {
     setShowProfileBanner(false);
@@ -851,7 +856,9 @@ const EventTypesPage = () => {
     if (query?.openIntercom && query?.openIntercom === "true") {
       open();
     }
-    setShowProfileBanner(!document.cookie.includes("calcom-profile-banner=1") && !user?.completedOnboarding);
+    setShowProfileBanner(
+      !!orgBranding && !document.cookie.includes("calcom-profile-banner=1") && !user?.completedOnboarding
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -884,6 +891,7 @@ const EventTypesPage = () => {
                           profile={group.profile}
                           membershipCount={group.metadata.membershipCount}
                           teamId={group.teamId}
+                          orgSlug={orgBranding?.slug}
                         />
 
                         <EventTypeList
