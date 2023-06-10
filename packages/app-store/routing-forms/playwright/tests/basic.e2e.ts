@@ -463,7 +463,7 @@ async function addAllTypesOfFieldsAndSaveForm(
       // Click on the field type dropdown.
       await page.locator(".data-testid-field-type").nth(nth).click();
       // Click on the dropdown option.
-      await page.locator(`[data-testid="select-option-${fieldTypeLabel}"]`).click();
+      await page.locator(`[data-testid^="select-option-"]`).filter({ hasText: fieldTypeLabel }).click();
     } else {
       // Set the identifier manually for the first field to test out a case when identifier isn't computed from label automatically
       // First field type is by default selected. So, no need to choose from dropdown
