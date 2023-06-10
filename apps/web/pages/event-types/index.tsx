@@ -856,9 +856,7 @@ const EventTypesPage = () => {
     if (query?.openIntercom && query?.openIntercom === "true") {
       open();
     }
-    setShowProfileBanner(
-      !!orgBranding && !document.cookie.includes("calcom-profile-banner=1") && !user?.completedOnboarding
-    );
+    setShowProfileBanner(!document.cookie.includes("calcom-profile-banner=1") && !user?.completedOnboarding);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
