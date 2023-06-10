@@ -175,19 +175,8 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
           <div className="relative">
             <Avatar
               alt={teamName}
-              imageSrc={getPlaceholderAvatar(team.logo, team.name)}
+              imageSrc={getPlaceholderAvatar(team.parent ? team.parent.logo : team.logo, team.name)}
               size="lg"
-              className="overflow-visible"
-              addOn={
-                team.parent && (
-                  <Avatar
-                    className="absolute -bottom-1 -right-1"
-                    alt={team.parent.name ?? ""}
-                    imageSrc={getPlaceholderAvatar(team.parent.logo, team.parent.name)}
-                    size="sm"
-                  />
-                )
-              }
             />
           </div>
           <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider">

@@ -21,7 +21,6 @@ export type AvatarProps = {
   fallback?: React.ReactNode;
   accepted?: boolean;
   asChild?: boolean; // Added to ignore the outer span on the fallback component - messes up styling
-  addOn?: React.ReactNode;
 };
 
 const sizesPropsBySize = {
@@ -69,7 +68,6 @@ export function Avatar(props: AvatarProps) {
           </div>
         )}
       </>
-      {props.addOn}
     </AvatarPrimitive.Root>
   );
 
