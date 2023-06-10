@@ -12,7 +12,7 @@ RUN cp ./.env.appStore.example ./.env.appStore
 RUN echo NEXTAUTH_SECRET=\"$(openssl rand -base64 32)\" >> ./.env
 
 # Create CALENDSO_ENCRYPTION_KEY on .env
-RUN echo CALENDSO_ENCRYPTION_KEY=\"$(openssl rand -base64 32)\" >> ./.env
+RUN echo CALENDSO_ENCRYPTION_KEY=\"$(openssl rand -base64 24)\" >> ./.env
 
 # put NEXT_PUBLIC_DEBUG on .env
 RUN echo NEXT_PUBLIC_DEBUG=1 >> ./.env
