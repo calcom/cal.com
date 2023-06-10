@@ -1863,7 +1863,7 @@
   "user_belongs_organization": "User belongs to an organization",
   "no_teams_yet": "This organization has no teams yet",
   "no_teams_yet_description": "if you are an administrator, be sure to create teams to be shown here.",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
   "my_profile": "My Profile",
-  "my_settings": "My Settings"
+  "my_settings": "My Settings",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
