@@ -178,7 +178,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   if (teamId && hosts) {
     // check if all hosts can be assigned (memberships that have accepted invite)
     const memberships =
-      (await prisma?.membership.findMany({
+      (await ctx.prisma.membership.findMany({
         where: {
           teamId,
           accepted: true,
