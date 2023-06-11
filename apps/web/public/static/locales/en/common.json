@@ -1824,5 +1824,6 @@
   "first_event_type_webhook_description": "Create your first webhook for this event type",
   "create_for": "Create for",
   "additional_url_parameters": "Additional URL parameters",
+  "sender_id_info": "Name or number shown as the sender of an SMS (some countries do not allow alphanumeric sender IDs)",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
