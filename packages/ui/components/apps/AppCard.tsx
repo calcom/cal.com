@@ -36,7 +36,9 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
 
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
-  const appInstalled = userAdminTeams ? appAdded >= userAdminTeams.length : appAdded > 0;
+  const appInstalled = userAdminTeams
+    ? userAdminTeams.length && appAdded >= userAdminTeams.length
+    : appAdded > 0;
 
   const [searchTextIndex, setSearchTextIndex] = useState<number | undefined>(undefined);
 
@@ -147,11 +149,11 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             )}
       </div>
       <div className="max-w-44 absolute right-0 mr-4 flex flex-wrap justify-end gap-1">
-        {appInstalled && (
+        {appInstalled ? (
           <span className="bg-success rounded-md px-2 py-1 text-sm font-normal text-green-800">
             {t("installed", { count: appAdded })}
           </span>
-        )}
+        ) : null}
         {app.isTemplate && (
           <span className="bg-error rounded-md px-2 py-1 text-sm font-normal text-red-800">Template</span>
         )}
