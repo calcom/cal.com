@@ -284,12 +284,16 @@ function getIsOrgVerified(
   const orgMetadataSafeParse = teamMetadataSchema.safeParse(team.parent?.metadata);
   const orgMetadataIfExists = orgMetadataSafeParse.success ? orgMetadataSafeParse.data : null;
 
-  if (isOrg && teamMetadata?.isOrganizationVerified) {
-    return { isInOrgScope: true, orgVerified: true, autoAcceptEmailDomain: teamMetadata.orgAutoAcceptEmail };
-  } else if (orgMetadataIfExists?.isOrganizationVerified) {
+  if (isOrg && teamMetadata?.orgAutoAcceptEmail) {
     return {
       isInOrgScope: true,
-      orgVerified: true,
+      orgVerified: teamMetadata.isOrganizationVerified,
+      autoAcceptEmailDomain: teamMetadata.orgAutoAcceptEmail,
+    };
+  } else if (orgMetadataIfExists?.orgAutoAcceptEmail) {
+    return {
+      isInOrgScope: true,
+      orgVerified: orgMetadataIfExists.isOrganizationVerified,
       autoAcceptEmailDomain: orgMetadataIfExists.orgAutoAcceptEmail,
     };
   }
@@ -301,21 +305,26 @@ function getIsOrgVerified(
 
 function getOrgConnectionInfo({
   orgAutoAcceptDomain,
+  orgVerified,
   isOrg,
   usersEmail,
   team,
 }: {
   orgAutoAcceptDomain?: string | null;
+  orgVerified?: boolean;
   usersEmail: string;
   team: TeamWithParent;
   isOrg: boolean;
 }) {
   let orgId: number | undefined = undefined;
   let autoAccept = false;
-  if (orgAutoAcceptDomain && (team.parentId || isOrg)) {
+
+  console.log({ orgAutoAcceptDomain, orgVerified, usersEmail });
+
+  if (team.parentId || isOrg) {
     orgId = team.parentId || team.id;
     if (usersEmail.split("@")[1] == orgAutoAcceptDomain) {
-      autoAccept = true;
+      autoAccept = orgVerified ?? true;
     } else {
       throw new TRPCError({
         // For now - we will enable this for contractors in the feature
@@ -330,7 +339,8 @@ function getOrgConnectionInfo({
 
 export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) => {
   const team = await getTeamOrThrow(input.teamId, input.isOrg);
-  const { autoAcceptEmailDomain } = getIsOrgVerified(input.isOrg, team);
+  const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(input.isOrg, team);
+
   await checkPermissions({ userId: ctx.user.id, teamId: input.teamId, isOrg: input.isOrg });
 
   const translation = await getTranslation(input.language ?? "en", "common");
@@ -339,6 +349,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
 
   for (const usernameOrEmail of emailsToInvite) {
     const connectionInfo = getOrgConnectionInfo({
+      orgVerified,
       orgAutoAcceptDomain: autoAcceptEmailDomain,
       usersEmail: usernameOrEmail,
       team,
