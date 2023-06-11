@@ -14,7 +14,6 @@ const handler: AppDeclarativeHandler = {
       data: {
         type: appType,
         key: {},
-        // userId: user.id,
         ...(teamId ? { teamId } : { userId: user.id }),
         appId: slug,
       },
