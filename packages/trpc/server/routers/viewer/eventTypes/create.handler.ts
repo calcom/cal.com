@@ -40,8 +40,11 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     locations = [{ type: DailyLocationType }];
   }
 
-  // If its defaulting to daily no point handling compute as its done
-  if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
+  // If it is a team event default to the organizer's default conferencing app
+  if (teamId) {
+    locations = [{ type: "conferencing" }];
+    // If its defaulting to daily no point handling compute as its done
+  } else if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
     const credentials = ctx.user.credentials;
     const foundApp = getApps(credentials).filter((app) => app.slug === defaultConferencingData.appSlug)[0]; // There is only one possible install here so index [0] is the one we are looking for ;
     const locationType = foundApp?.locationOption?.value ?? DailyLocationType; // Default to Daily if no location type is found
