@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { IframeHTMLAttributes } from "react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { CAL_URL } from "@calcom/lib/constants";
 
@@ -74,17 +74,17 @@ const Component = ({
   }).format(price);
 
   const [existingCredentials, setExistingCredentials] = useState<number[]>([]);
-  const appCredentials = trpc.viewer.appCredentialsByType.useQuery(
+  const [showDisconnectIntegration, setShowDisconnectIntegration] = useState(false);
+  const appDbQuery = trpc.viewer.appCredentialsByType.useQuery(
     { appType: type },
     {
-      onSuccess(data) {
-        setExistingCredentials(data);
+      onSettled(data) {
+        const credentialsCount = data?.credentials.length
+        setShowDisconnectIntegration(data?.userAdminTeams ? credentialsCount >= data?.userAdminTeams.length : credentialsCount > 0);
+        setExistingCredentials(data?.credentials.map(credential => credential.id));
       },
     }
   );
-  const userAdminTeams = trpc.viewer.teams.getUserAdminTeams.useQuery({
-    getUserInfo: true,
-  });
 
   const dependencyData = trpc.viewer.appsRouter.queryForDependencies.useQuery(dependencies, {
     enabled: !!dependencies,
@@ -158,7 +158,7 @@ const Component = ({
             )}
           </header>
         </div>
-        {!appCredentials.isLoading && !userAdminTeams.isLoading ? (
+        {!appDbQuery.isLoading ? (
           isGlobal ||
           (existingCredentials.length > 0 && allowedMultipleInstalls ? (
             <div className="flex space-x-3">
@@ -183,19 +183,19 @@ const Component = ({
                       };
                     }
                     return (
-                      <InstallAppButtonChild appCategories={categories} userAdminTeams={userAdminTeams.data} addAppMutationInput={{ type, variant, slug }} multiInstall {...props} />
+                      <InstallAppButtonChild appCategories={categories} userAdminTeams={appDbQuery.data?.userAdminTeams} addAppMutationInput={{ type, variant, slug }} multiInstall {...props} />
                     );
                   }}
                 />
               )}
             </div>
-          ) : existingCredentials.length > 0 ? (
+          ) : showDisconnectIntegration ? (
             <DisconnectIntegration
               buttonProps={{ color: "secondary" }}
               label={t("disconnect")}
               credentialId={existingCredentials[0]}
               onSuccess={() => {
-                appCredentials.refetch();
+                appDbQuery.refetch();
               }}
             />
           ) : (
@@ -214,7 +214,7 @@ const Component = ({
                   };
                 }
                 return (
-                  <InstallAppButtonChild appCategories={categories} userAdminTeams={userAdminTeams.data} addAppMutationInput={{type, variant, slug}} {...props} />
+                  <InstallAppButtonChild appCategories={categories} userAdminTeams={appDbQuery.data?.userAdminTeams} addAppMutationInput={{type, variant, slug}} credentials={appDbQuery.data?.credentials} {...props} />
                 );
               }}
             />
@@ -391,12 +391,14 @@ const InstallAppButtonChild = ({
   addAppMutationInput,
   appCategories,
   multiInstall,
+  credentials,
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
   addAppMutationInput: { type: App["type"]; variant: string; slug: string };
   appCategories: string[];
   multiInstall?: boolean;
+  credentials?: Credential[]
 } & ButtonProps) => {
   const { t } = useLocale();
   const router = useRouter();
@@ -444,6 +446,12 @@ const InstallAppButtonChild = ({
             <DropdownItem
               type="button"
               key={team.id}
+              disabled={
+                credentials &&
+                credentials.some((credential) =>
+                  credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
+                )
+              }
               StartIcon={(props) => (
                 <Avatar
                   alt={team.logo || ""}
@@ -457,7 +465,12 @@ const InstallAppButtonChild = ({
                   team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }
                 );
               }}>
-              <p>{team.name}</p>
+              <p>{team.name}{" "}
+                {credentials &&
+                  credentials.some((credential) =>
+                    credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
+                  ) &&
+                  `(${t("installed")})`}</p>
             </DropdownItem>
           ))}
         </DropdownMenuContent>
