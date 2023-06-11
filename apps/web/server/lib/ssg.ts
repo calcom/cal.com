@@ -4,10 +4,10 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 
 import prisma from "@calcom/prisma";
-import { createProxySSGHelpers } from "@calcom/trpc/react/ssg";
+import { createServerSideHelpers } from "@calcom/trpc/react/ssg";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
 
-/**
+/*
  * Initialize static site rendering tRPC helpers.
  * Provides a method to prefetch tRPC-queries in a `getStaticProps`-function.
  * Automatically prefetches i18n based on the passed in `context`-object to prevent i18n-flickering.
@@ -23,7 +23,7 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
 
   const _i18n = await serverSideTranslations(locale, ["common"]);
 
-  const ssg = createProxySSGHelpers({
+  const ssg = createServerSideHelpers({
     router: appRouter,
     transformer: superjson,
     ctx: {

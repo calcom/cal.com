@@ -3,7 +3,7 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 
 import { getLocaleFromHeaders } from "@calcom/lib/i18n";
-import { createProxySSGHelpers } from "@calcom/trpc/react/ssg";
+import { createServerSideHelpers } from "@calcom/trpc/react/ssg";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
 
@@ -18,7 +18,7 @@ export async function ssrInit(context: GetServerSidePropsContext) {
   const locale = getLocaleFromHeaders(context.req);
   const i18n = await serverSideTranslations(getLocaleFromHeaders(context.req), ["common", "vital"]);
 
-  const ssr = createProxySSGHelpers({
+  const ssr = createServerSideHelpers({
     router: appRouter,
     transformer: superjson,
     ctx: { ...ctx, locale, i18n },
