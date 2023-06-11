@@ -59,6 +59,7 @@ export default function CancelBooking(props: Props) {
         <div className="mt-5 sm:mt-6">
           <label className="text-default font-medium">{t("cancellation_reason")}</label>
           <TextArea
+            data-testid="cancel_reason"
             ref={cancelBookingRef}
             placeholder={t("cancellation_reason_placeholder")}
             value={cancellationReason}
@@ -75,7 +76,7 @@ export default function CancelBooking(props: Props) {
                 {t("nevermind")}
               </Button>
               <Button
-                data-testid="cancel"
+                data-testid="confirm_cancel"
                 onClick={async () => {
                   setLoading(true);
 
