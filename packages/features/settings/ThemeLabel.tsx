@@ -18,6 +18,7 @@ export default function ThemeLabel(props: ThemeLabelProps) {
         type="radio"
         value={value}
         id={`theme-${variant}`}
+        data-testid={`theme-${variant}`}
         defaultChecked={defaultChecked}
         {...register("theme")}
       />
