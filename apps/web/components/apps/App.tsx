@@ -3,6 +3,7 @@ import type { IframeHTMLAttributes } from "react";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { CAL_URL } from "@calcom/lib/constants";
+import type {  RouterOutputs } from "@calcom/trpc/react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton, AppDependencyComponent } from "@calcom/app-store/components";
@@ -214,7 +215,7 @@ const Component = ({
                   };
                 }
                 return (
-                  <InstallAppButtonChild appCategories={categories} userAdminTeams={appDbQuery.data?.userAdminTeams} addAppMutationInput={{type, variant, slug}} credentials={appDbQuery.data?.credentials} {...props} />
+                    <InstallAppButtonChild appCategories={categories} userAdminTeams={appDbQuery.data?.userAdminTeams} addAppMutationInput={{type, variant, slug}} credentials={appDbQuery.data?.credentials} {...props} />
                 );
               }}
             />
@@ -398,7 +399,7 @@ const InstallAppButtonChild = ({
   addAppMutationInput: { type: App["type"]; variant: string; slug: string };
   appCategories: string[];
   multiInstall?: boolean;
-  credentials?: Credential[]
+  credentials?: RouterOutputs["viewer"]["appCredentialsByType"]["credentials"];
 } & ButtonProps) => {
   const { t } = useLocale();
   const router = useRouter();

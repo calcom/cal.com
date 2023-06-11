@@ -12,6 +12,7 @@ export type LocationOption = {
   icon?: string;
   disabled?: boolean;
   teamCredential?: boolean;
+  credentialId?: number;
 };
 
 export type SingleValueLocationOption = SingleValue<LocationOption>;

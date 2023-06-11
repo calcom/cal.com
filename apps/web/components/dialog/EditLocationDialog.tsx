@@ -3,7 +3,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useEffect } from "react";
 import { Controller, useForm, useWatch, useFormContext } from "react-hook-form";
 import { z } from "zod";
@@ -34,7 +33,6 @@ interface ISetLocationDialog {
   saveLocation: (newLocationType: EventLocationType["type"], details: { [key: string]: string }) => void;
   selection?: LocationOption;
   booking?: BookingItem;
-  team?: Pick<EventTypeSetupProps, "eventType.team">;
   defaultValues?: LocationObject[];
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
   isOpenDialog: boolean;
@@ -77,15 +75,15 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     saveLocation,
     selection,
     booking,
-    team,
     setShowLocationModal,
     isOpenDialog,
     defaultValues,
     setSelectedLocation,
     setEditingLocationType,
+    teamId,
   } = props;
   const { t } = useLocale();
-  const locationsQuery = trpc.viewer.locationOptions.useQuery({ teamId: team?.id });
+  const locationsQuery = trpc.viewer.locationOptions.useQuery({ teamId });
 
   useEffect(() => {
     if (selection) {
@@ -299,7 +297,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 success={({ data }) => {
                   if (!data.length) return null;
                   const locationOptions = [...data].filter((option) => {
-                    return !team ? option.label !== "Conferencing" : true;
+                    return !teamId ? option.label !== "Conferencing" : true;
                   });
                   if (booking) {
                     locationOptions.map((location) =>

@@ -140,7 +140,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       userAdminTeams={userAdminTeams}
                       addAppMutationInput={{ type: app.type, variant: app.variant, slug: app.slug }}
                       appCategories={app.categories}
-                      appCredentials={app.credentials}
+                      credentials={credentials}
                       {...props}
                     />
                   );

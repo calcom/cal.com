@@ -88,10 +88,10 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
         <EventTypeAppCard
           getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
           setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
-          key={app.slug + team.credentialId}
+          key={app.slug + team.credentialId || 0}
           app={{
             ...app,
-            credentialIds: team?.credentialId ? [team.credentialId] : [],
+            credentials: team?.credentialId ? [team.credentialId] : [],
             credentialOwner: { name: team?.name, avatar: team?.logo, teamId: team?.teamId },
           }}
           eventType={eventType}
