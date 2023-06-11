@@ -56,6 +56,8 @@ async function getHandler(req: NextApiRequest) {
       owner: { select: { username: true, id: true } },
     },
   });
+  //if no events are found
+  if(data.length === 0) throw new HttpError({ statusCode: 404, message: "No event types were found" });
   return {
     event_types: data.map((eventType) => {
       const link = getCalLink(eventType);
