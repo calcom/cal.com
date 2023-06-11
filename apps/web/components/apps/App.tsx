@@ -79,9 +79,9 @@ const Component = ({
     { appType: type },
     {
       onSettled(data) {
-        const credentialsCount = data?.credentials.length
+        const credentialsCount = data?.credentials.length || 0
         setShowDisconnectIntegration(data?.userAdminTeams ? credentialsCount >= data?.userAdminTeams.length : credentialsCount > 0);
-        setExistingCredentials(data?.credentials.map(credential => credential.id));
+        setExistingCredentials(data?.credentials.map(credential => credential.id) || []);
       },
     }
   );
