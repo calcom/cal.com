@@ -74,7 +74,7 @@ export default function ApiKeyDialogForm({
                   }}
                   type="button"
                   className="rounded-l-none py-[19px] text-base ">
-                  <Clipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
+                  <Clipboard className="h-5 w-5 ltr:mr-2 rtl:ml-2" />
                   {t("copy")}
                 </Button>
               </Tooltip>
