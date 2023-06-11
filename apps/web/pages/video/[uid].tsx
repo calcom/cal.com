@@ -12,6 +12,7 @@ import classNames from "@calcom/lib/classNames";
 import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { ChevronRight } from "@calcom/ui/components/icon";
@@ -244,7 +245,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
 
               <div
                 className="prose-sm prose prose-invert"
-                dangerouslySetInnerHTML={{ __html: booking.description }}
+                dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(booking.description) }}
               />
             </>
           )}
