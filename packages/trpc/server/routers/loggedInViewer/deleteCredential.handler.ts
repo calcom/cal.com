@@ -32,7 +32,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
   const credential = await prisma.credential.findFirst({
     where: {
       id: id,
-      OR: [{ userId: ctx.user.id }, { teamId }],
+      ...(teamId ? { teamId } : { userId: ctx.user.id }),
     },
     select: {
       key: true,
