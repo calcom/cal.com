@@ -29,6 +29,7 @@ import {
   showToast,
   TextField,
   Editor,
+  DialogFooter,
 } from "@calcom/ui";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
@@ -159,7 +160,7 @@ export default function CreateEventTypeDialog({
           handleSubmit={(values) => {
             createMutation.mutate(values);
           }}>
-          <div className="mt-3 space-y-6">
+          <div className="mt-3 space-y-6 pb-10">
             {teamId && (
               <TextField
                 type="hidden"
@@ -293,12 +294,12 @@ export default function CreateEventTypeDialog({
               </div>
             )}
           </div>
-          <div className="mt-10 flex justify-end gap-x-2">
+          <DialogFooter showDivider>
             <DialogClose />
             <Button type="submit" loading={createMutation.isLoading}>
               {t("continue")}
             </Button>
-          </div>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>
