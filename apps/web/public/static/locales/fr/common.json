@@ -1694,6 +1694,7 @@
   "switch_monthly": "Passer en vue mensuelle",
   "switch_weekly": "Passer en vue hebdomadaire",
   "switch_multiday": "Passer en vue journalière",
+  "switch_columnview": "Passer en vue colonne",
   "num_locations": "{{num}} options de lieu",
   "select_on_next_step": "Sélectionner à l'étape suivante",
   "this_meeting_has_not_started_yet": "Ce rendez-vous n'a pas encore commencé",

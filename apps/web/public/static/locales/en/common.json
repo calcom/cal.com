@@ -1694,6 +1694,7 @@
   "switch_monthly": "Switch to monthly view",
   "switch_weekly": "Switch to weekly view",
   "switch_multiday": "Switch to day view",
+  "switch_columnview": "Switch to column view",
   "num_locations": "{{num}} location options",
   "select_on_next_step": "Select on the next step",
   "this_meeting_has_not_started_yet": "This meeting has not started yet",
