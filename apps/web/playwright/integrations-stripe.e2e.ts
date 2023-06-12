@@ -7,15 +7,13 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 const IS_STRIPE_ENABLED = !!(
-  process.env.STRIPE_CLIENT_ID &&
   process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
-  process.env.STRIPE_PRIVATE_KEY
+  process.env.STRIPE_CLIENT_ID &&
+  process.env.STRIPE_PRIVATE_KEY &&
+  process.env.PAYMENT_FEE_FIXED &&
+  process.env.PAYMENT_FEE_PERCENTAGE
 );
 
-// TODO: No longer up to date, rewrite needed.
-
-// eslint-disable-next-line playwright/no-skipped-test
-test.skip();
 
 test.describe("Stripe integration", () => {
   // eslint-disable-next-line playwright/no-skipped-test
@@ -29,10 +27,11 @@ test.describe("Stripe integration", () => {
 
       await user.getPaymentCredential();
 
-      /** If Stripe is added correctly we should see the "Disconnect" button */
+      await expect(page.locator(`h3:has-text("Stripe")`)).toBeVisible();
+      await page.getByRole('list').getByRole('button').click();
       await expect(
-        page.locator(`li:has-text("Stripe") >> [data-testid="stripe_payment-integration-disconnect-button"]`)
-      ).toContainText("");
+        page.getByRole('button', { name: 'Remove App' })
+      ).toBeVisible();
     });
   });
 
@@ -43,6 +42,14 @@ test.describe("Stripe integration", () => {
     await page.goto("/apps/installed");
     await user.getPaymentCredential();
 
+    await page.goto(`/event-types/${eventType?.id}?tabName=apps`);
+    await page.locator('div > .ml-auto').first().click();
+    await expect(
+      page.getByPlaceholder('Price')
+    ).toBeVisible();
+    await page.getByPlaceholder('Price').fill("100");
+    await page.getByTestId('update-eventtype').click();
+
     await page.goto(`${user.username}/${eventType?.slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
     // --- fill form
@@ -52,21 +59,15 @@ test.describe("Stripe integration", () => {
     await Promise.all([page.waitForURL("/payment/*"), page.press('[name="email"]', "Enter")]);
 
     const stripeFrame = page
-      .frameLocator('iframe[src^="https://js.stripe.com/v3/elements-inner-card-"]')
-      .first();
-
-    // Fill [placeholder="Card number"]
-    await stripeFrame.locator('[placeholder="Card number"]').fill("4242 4242 4242 4242");
-    // Fill [placeholder="MM / YY"]
+      .frameLocator('iframe').first();
+    expect(stripeFrame).toBeTruthy();
+    await expect(stripeFrame.getByText("Card number")).toBeVisible();
+    await stripeFrame.locator('[placeholder="1234 1234 1234 1234"]').fill("4242 4242 4242 4242");
     await stripeFrame.locator('[placeholder="MM / YY"]').fill("12 / 24");
-    // Fill [placeholder="CVC"]
     await stripeFrame.locator('[placeholder="CVC"]').fill("111");
-    // Fill [placeholder="ZIP"]
-    await stripeFrame.locator('[placeholder="ZIP"]').fill("11111");
-    // Click button:has-text("Pay now")
+    await stripeFrame.locator('[name="postalCode"]').fill("111111");
     await page.click('button:has-text("Pay now")');
 
-    // Make sure we're navigated to the success page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
