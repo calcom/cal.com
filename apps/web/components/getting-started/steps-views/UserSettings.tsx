@@ -17,11 +17,12 @@ import type { IOnboardingPageProps } from "../../../pages/getting-started/[[...s
 
 interface IUserSettingsProps {
   user: IOnboardingPageProps["user"];
+  organization: IOnboardingPageProps["organization"];
   nextStep: () => void;
 }
 
 const UserSettings = (props: IUserSettingsProps) => {
-  const { user, nextStep } = props;
+  const { user, nextStep, organization } = props;
   const { t } = useLocale();
   const [selectedTimeZone, setSelectedTimeZone] = useState(dayjs.tz.guess());
   const telemetry = useTelemetry();
@@ -69,7 +70,7 @@ const UserSettings = (props: IUserSettingsProps) => {
     <form onSubmit={onSubmit}>
       <div className="space-y-6">
         {/* Username textfield */}
-        <UsernameAvailabilityField user={user} />
+        <UsernameAvailabilityField user={user} organization={organization} />
 
         {/* Full name textfield */}
         <div className="w-full">
