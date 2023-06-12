@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { User } from "@calcom/prisma/client";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
@@ -20,6 +21,8 @@ interface ICustomUsernameProps {
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
+  user: Pick<User, "username" | "metadata">;
+  readonly?: boolean;
 }
 
 const UsernameTextfield = (props: ICustomUsernameProps) => {
