@@ -23,7 +23,9 @@ const useIsAppEnabled = (app: EventTypeAppCardApp, getAppData: unknown, setAppDa
         setEnabled(getAppData("enabled"));
       }
     }
-
+    // App type is not being picked up in the type definition
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     if (app?.credentialIds && app.credentialIds.some((id) => id === credentialId)) {
       setEnabled(true);
     }

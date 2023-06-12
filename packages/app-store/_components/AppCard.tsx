@@ -69,7 +69,7 @@ export default function AppCard({
                   <div className="flex items-center">
                     <Avatar
                       className="mr-2"
-                      alt={app.credentialOwner.name}
+                      alt={app.credentialOwner.name || "Credential Owner Name"}
                       size="sm"
                       imageSrc={app.credentialOwner.avatar}
                     />
