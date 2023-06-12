@@ -24,13 +24,13 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
     <div
       ref={ref}
       className={classNames(
-        "rounded-md border border-opacity-20 p-3",
+        "rounded-md  p-3",
         props.className,
-        severity === "error" && "border-red-900 bg-red-50 text-red-800",
-        severity === "warning" && "border-yellow-700 bg-yellow-50 text-yellow-700",
-        severity === "info" && "border-sky-700 bg-sky-50 text-sky-700",
+        severity === "error" && "bg-red-100 text-red-900 dark:bg-red-900 dark:text-red-200",
+        severity === "warning" && "text-attention bg-attention dark:bg-orange-900 dark:text-orange-200",
+        severity === "info" && "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-200",
         severity === "success" && "bg-inverted text-inverted",
-        severity === "neutral" && "bg-subtle text-default border-none"
+        severity === "neutral" && "bg-subtle text-default"
       )}>
       <div className="relative flex flex-col md:flex-row">
         {CustomIcon ? (
@@ -41,19 +41,19 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
           <div className="flex-shrink-0">
             {severity === "error" && (
               <XCircle
-                className={classNames("h-5 w-5 fill-red-400 text-white", iconClassName)}
+                className={classNames("h-5 w-5 text-red-900 dark:text-red-200", iconClassName)}
                 aria-hidden="true"
               />
             )}
             {severity === "warning" && (
               <AlertTriangle
-                className={classNames("h-5 w-5 fill-yellow-400 text-white", iconClassName)}
+                className={classNames("text-attention h-5 w-5 dark:text-orange-200", iconClassName)}
                 aria-hidden="true"
               />
             )}
             {severity === "info" && (
               <Info
-                className={classNames("h-5 w-5 fill-sky-400 text-white", iconClassName)}
+                className={classNames("h-5 w-5 text-blue-900 dark:text-blue-200", iconClassName)}
                 aria-hidden="true"
               />
             )}
@@ -65,7 +65,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
             )}
             {severity === "success" && (
               <CheckCircle2
-                className={classNames("fill-muted h-5 w-5 text-white", iconClassName)}
+                className={classNames("fill-muted text-default h-5 w-5", iconClassName)}
                 aria-hidden="true"
               />
             )}
