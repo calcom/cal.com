@@ -2,13 +2,9 @@ import classNames from "classnames";
 import { debounce, noop } from "lodash";
 import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
-import type z from "zod";
 
-import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
-import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
@@ -23,10 +19,9 @@ interface ICustomUsernameProps {
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
-  organization: { slug?: string | null | undefined; metadata: z.infer<typeof teamMetadataSchema> } | null;
 }
 
-const UsernameTextfield = (props: ICustomUsernameProps) => {
+const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.ComponentProps<typeof TextField>>) => {
   const { t } = useLocale();
   const {
     currentUsername,
@@ -36,12 +31,11 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
     usernameRef,
     onSuccessMutation,
     onErrorMutation,
-    organization,
+    ...rest
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
-  const orgBranding = useOrgBrandingValues();
 
   const debouncedApiCall = useMemo(
     () =>
@@ -115,14 +109,6 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
     });
   };
 
-  const usernamePrefix = organization
-    ? organization.slug
-      ? `${organization.slug}.${subdomainSuffix()}`
-      : organization.metadata && organization.metadata.requestedSlug
-      ? `${organization.metadata.requestedSlug}.${subdomainSuffix()}`
-      : process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")
-    : process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "");
-
   return (
     <div>
       <div className="flex rounded-md">
@@ -131,7 +117,6 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             ref={usernameRef}
             name="username"
             value={inputUsernameValue}
-            addOnLeading={<>{usernamePrefix}/</>}
             autoComplete="none"
             autoCapitalize="none"
             autoCorrect="none"
@@ -146,6 +131,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
               setInputUsernameValue(event.target.value);
             }}
             data-testid="username-input"
+            {...rest}
           />
           {currentUsername !== inputUsernameValue && (
             <div className="absolute right-[2px] top-6 flex flex-row">
