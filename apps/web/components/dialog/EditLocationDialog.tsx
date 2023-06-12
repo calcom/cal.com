@@ -57,10 +57,14 @@ const LocationInput = (props: {
       <Input {...locationFormMethods.register(eventLocationType.variable)} type="text" {...remainingProps} />
     );
   } else if (eventLocationType?.organizerInputType === "phone") {
+    const defValue = remainingProps.defaultValue;
+    // remove default value from remaining Props to prevent PhoneInput overriding state
+    delete remainingProps.defaultValue;
     return (
       <Controller
         name={eventLocationType.variable}
         control={control}
+        defaultValue={defValue}
         render={({ field: { onChange, value } }) => {
           return <PhoneInput onChange={onChange} value={value} {...remainingProps} />;
         }}
