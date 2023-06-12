@@ -161,7 +161,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                           brand === "#fff" || brand === "#ffffff" ? "" : ""
                         )}
                         onClick={() => reserveSlot(slot)}
-                        data-testid="time">
+                        data-testid="time"
+                        data-disabled="false">
                         {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
                         {!!seatsPerTimeSlot && (
                           <p
