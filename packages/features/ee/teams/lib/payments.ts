@@ -74,7 +74,7 @@ export const purchaseTeamSubscription = async (input: {
 const getTeamWithPaymentMetadata = async (teamId: number) => {
   const team = await prisma.team.findUniqueOrThrow({
     where: { id: teamId },
-    select: { metadata: true, members: true, orgUsers: true },
+    select: { metadata: true, members: true },
   });
   const metadata = teamPaymentMetadataSchema.parse(team.metadata);
   return { ...team, metadata };
