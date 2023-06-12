@@ -18,6 +18,9 @@ export const ZUpdateInputSchema = z.object({
   brandColor: z.string().optional(),
   darkBrandColor: z.string().optional(),
   theme: z.string().optional().nullable(),
+  timeZone: z.string().optional(),
+  weekStart: z.string().optional(),
+  timeFormat: z.number().optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;
