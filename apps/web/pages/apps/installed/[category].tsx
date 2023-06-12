@@ -6,6 +6,7 @@ import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { InstallAppButton } from "@calcom/app-store/components";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
+import type { CredentialOwner } from "@calcom/app-store/types";
 import { InstalledAppVariants } from "@calcom/app-store/utils";
 import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
@@ -136,7 +137,13 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
     },
   });
 
-  const ChildAppCard = ({ item }) => {
+  const ChildAppCard = ({
+    item,
+  }: {
+    item: RouterOutputs["viewer"]["integrations"]["items"][number] & {
+      credentialOwner?: CredentialOwner;
+    };
+  }) => {
     const appSlug = item?.slug;
     const appIsDefault =
       appSlug === defaultConferencingApp?.appSlug ||
@@ -151,7 +158,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
         shouldHighlight
         slug={item.slug}
         invalidCredential={item?.invalidCredentialIds ? item.invalidCredentialIds.length > 0 : false}
-        credentialOwner={item.credentialOwner}
+        credentialOwner={item?.credentialOwner}
         actions={
           <div className="flex  justify-end">
             <Dropdown modal={false}>
@@ -206,15 +213,17 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
       appCards.push(<ChildAppCard item={app} />);
     }
     for (const team of app.teams) {
-      appCards.push(
-        <ChildAppCard
-          item={{
-            ...app,
-            credentialIds: [team.credentialId],
-            credentialOwner: { name: team.name, avatar: team.logo, teamId: team.teamId },
-          }}
-        />
-      );
+      if (team) {
+        appCards.push(
+          <ChildAppCard
+            item={{
+              ...app,
+              credentialIds: [team.credentialId],
+              credentialOwner: { name: team.name, avatar: team.logo, teamId: team.teamId },
+            }}
+          />
+        );
+      }
     }
     return appCards;
   });

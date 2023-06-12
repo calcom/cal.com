@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
+import type { CredentialOwner } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { Badge, ListItemText, Avatar } from "@calcom/ui";
@@ -19,10 +20,7 @@ type AppListCardProps = {
   isTemplate?: boolean;
   invalidCredential?: boolean;
   children?: ReactNode;
-  credentialOwner?: {
-    name: string;
-    avatar?: string;
-  };
+  credentialOwner?: CredentialOwner;
 } & ShouldHighlight;
 
 const schema = z.object({ hl: z.string().optional() });

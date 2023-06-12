@@ -521,7 +521,7 @@ export const EventSetupTab = (
         }
         setSelectedLocation={setSelectedLocation}
         setEditingLocationType={setEditingLocationType}
-        teamId={eventType.team.id}
+        teamId={eventType.team?.id}
       />
     </div>
   );
