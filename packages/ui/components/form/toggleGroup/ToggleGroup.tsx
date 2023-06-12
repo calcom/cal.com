@@ -40,7 +40,7 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
         {...props}
         onValueChange={onValueChange}
         className={classNames(
-          "min-h-9 bg-muted border-default relative inline-flex gap-0.5 rounded-md border p-1",
+          "min-h-9 border-default relative inline-flex gap-0.5 rounded-md border p-1",
           props.className,
           isFullWidth && "w-full"
         )}>
@@ -50,7 +50,7 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
               disabled={option.disabled}
               value={option.value}
               className={classNames(
-                "aria-checked:bg-subtle relative rounded-[4px] px-3 py-1 text-sm leading-tight transition-colors",
+                "aria-checked:bg-emphasis relative rounded-[4px] px-3 py-1 text-sm leading-tight transition-colors",
                 option.disabled
                   ? "text-gray-400 hover:cursor-not-allowed"
                   : "text-default [&[aria-checked='false']]:hover:bg-emphasis",

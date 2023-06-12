@@ -101,11 +101,18 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
 
 export type UserFromSession = Awaited<ReturnType<typeof getUserFromSession>>;
 
-const getUserSession = async (ctx: TRPCContextInner) => {
-  const { getServerSession } = await import("@calcom/features/auth/lib/getServerSession");
+const getSession = async (ctx: TRPCContextInner) => {
   const { req, res } = ctx;
+  const { getServerSession } = await import("@calcom/features/auth/lib/getServerSession");
+  return req ? await getServerSession({ req, res }) : null;
+};
 
-  const session = req ? await getServerSession({ req, res }) : null;
+const getUserSession = async (ctx: TRPCContextInner) => {
+  /**
+   * It is possible that the session and user have already been added to the context by a previous middleware
+   * or when creating the context
+   */
+  const session = ctx.session || (await getSession(ctx));
   const user = session ? await getUserFromSession(ctx, session) : null;
 
   return { user, session };
