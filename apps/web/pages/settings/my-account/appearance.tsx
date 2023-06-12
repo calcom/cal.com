@@ -263,7 +263,8 @@ const AppearanceView = () => {
         type="submit"
         loading={mutation.isLoading}
         color="primary"
-        className="mt-8">
+        className="mt-8"
+        data-testid="update-theme-btn">
         {t("update")}
       </Button>
     </Form>
