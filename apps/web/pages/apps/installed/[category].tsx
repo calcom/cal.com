@@ -275,9 +275,7 @@ const IntegrationsContainer = ({
               className="mb-6"
               actions={
                 <Button
-                  href={
-                    variant ? `/apps/categories/${variant}` : "/apps"
-                  }
+                  href={variant ? `/apps/categories/${variant}` : "/apps"}
                   color="secondary"
                   StartIcon={Plus}>
                   {t("add")}
