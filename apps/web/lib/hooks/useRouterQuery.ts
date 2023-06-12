@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 
-export default function useRouterQuery<T extends string>(name: T) {
+export default function useRouterQuery<T extends string>(name: T, config?: { disabled: boolean }) {
   const router = useRouter();
   const existingQueryParams = router.asPath.split("?")[1];
 
@@ -26,8 +26,12 @@ export default function useRouterQuery<T extends string>(name: T) {
   }
 
   const setQuery = (newValue: string | number | null | undefined) => {
-    router.replace({ query: { ...router.query, [name]: newValue } }, undefined, { shallow: true });
-    router.replace({ query: { ...router.query, ...query, [name]: newValue } }, undefined, { shallow: true });
+    // Only set query param if it is not disabled
+    if (!config?.disabled) {
+      router.replace({ pathname: router.asPath, query: { ...query, [name]: newValue } }, undefined, {
+        shallow: true,
+      });
+    }
   };
 
   return { [name]: query[name], setQuery } as {

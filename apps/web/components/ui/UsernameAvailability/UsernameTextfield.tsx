@@ -4,6 +4,7 @@ import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
 import type z from "zod";
 
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -40,6 +41,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
+  const orgBranding = useOrgBrandingValues();
 
   const debouncedApiCall = useMemo(
     () =>
