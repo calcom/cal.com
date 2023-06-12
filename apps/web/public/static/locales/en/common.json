@@ -1270,7 +1270,7 @@
   "connect_other_apps": "Connect other apps",
   "connect_web3_apps": "Connect web3 apps",
   "connect_messaging_apps": "Connect messaging apps",
-  "connect_crm_apps": "Connect crm apps",
+  "connect_crm_apps": "Connect CRM apps",
   "current_step_of_total": "Step {{currentStep}} of {{maxSteps}}",
   "add_variable": "Add variable",
   "custom_phone_number": "Custom phone number",
