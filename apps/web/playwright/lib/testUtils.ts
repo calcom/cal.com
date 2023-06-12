@@ -15,6 +15,9 @@ type Request = IncomingMessage & { body?: unknown };
 type RequestHandlerOptions = { req: Request; res: ServerResponse };
 type RequestHandler = (opts: RequestHandlerOptions) => void;
 
+export const testEmail = "test@example.com";
+export const testName = "Test Testson";
+
 export function createHttpServer(opts: { requestHandler?: RequestHandler } = {}) {
   const {
     requestHandler = ({ res }) => {
@@ -43,6 +46,7 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
 
   // listen on random port
   server.listen(0);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const port: number = (server.address() as any).port;
   const url = `http://localhost:${port}`;
   return {
@@ -88,7 +92,7 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
   await page.waitForTimeout(1000);
   // TODO: Find out why the first day is always booked on tests
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-  await page.locator('[data-testid="time"]').nth(0).click();
+  await page.locator('[data-testid="time"][data-disabled="false"]').nth(0).click();
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
@@ -106,7 +110,7 @@ export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   await page.waitForTimeout(1000);
   // TODO: Find out why the first day is always booked on tests
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-  await page.locator('[data-testid="time"]').nth(1).click();
+  await page.locator('[data-testid="time"][data-disabled="false"]').nth(1).click();
 }
 
 async function bookEventOnThisPage(page: Page) {
@@ -133,8 +137,8 @@ export async function bookFirstEvent(page: Page) {
 
 export const bookTimeSlot = async (page: Page, opts?: { name?: string; email?: string }) => {
   // --- fill form
-  await page.fill('[name="name"]', opts?.name ?? "Test Testson");
-  await page.fill('[name="email"]', opts?.email ?? "test@example.com");
+  await page.fill('[name="name"]', opts?.name ?? testName);
+  await page.fill('[name="email"]', opts?.email ?? testEmail);
   await page.press('[name="email"]', "Enter");
 };
 // Provide an standalone localize utility not managed by next-i18n

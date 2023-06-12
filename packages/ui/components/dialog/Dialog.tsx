@@ -61,7 +61,7 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
   size?: "xl" | "lg" | "md";
   type?: "creation" | "confirmation";
   title?: string;
-  description?: string | JSX.Element | undefined;
+  description?: string | JSX.Element | null;
   closeText?: string;
   actionDisabled?: boolean;
   Icon?: SVGComponent;
@@ -77,7 +77,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         <DialogPrimitive.Content
           {...props}
           className={classNames(
-            "fadeIn bg-default fixed left-1/2 top-1/2 z-50 w-full max-w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded text-left shadow-xl focus-visible:outline-none sm:align-middle",
+            "fadeIn bg-default fixed left-1/2 top-1/2 z-50 w-full max-w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-md text-left shadow-xl focus-visible:outline-none sm:align-middle",
             props.size == "xl"
               ? "p-8 sm:max-w-[90rem]"
               : props.size == "lg"
@@ -93,7 +93,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
           {type === "creation" && (
             <div>
               <DialogHeader title={title} subtitle={props.description} />
-              <div className="flex flex-col space-y-6">{children}</div>
+              <div className="flex flex-col">{children}</div>
             </div>
           )}
           {type === "confirmation" && (
@@ -105,7 +105,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               )}
               <div className="w-full">
                 <DialogHeader title={title} subtitle={props.description} />
-                <div className="flex flex-col space-y-6">{children}</div>
+                <div className="flex  space-y-6">{children}</div>
               </div>
             </div>
           )}
@@ -134,8 +134,19 @@ export function DialogHeader(props: DialogHeaderProps) {
   );
 }
 
-export function DialogFooter(props: { children: ReactNode }) {
-  return <div className="mt-7 flex justify-end space-x-2 rtl:space-x-reverse ">{props.children}</div>;
+export function DialogFooter(props: { children: ReactNode; className?: string; showDivider?: boolean }) {
+  return (
+    <div className={classNames("bg-default", props.className)}>
+      {props.showDivider && <hr className="border-subtle absolute right-0 w-full" />}
+      <div
+        className={classNames(
+          "flex justify-end space-x-2 pt-4 rtl:space-x-reverse",
+          props.showDivider && "-mb-4"
+        )}>
+        {props.children}
+      </div>
+    </div>
+  );
 }
 
 DialogContent.displayName = "DialogContent";

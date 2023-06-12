@@ -5,6 +5,7 @@ import { useState } from "react";
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
@@ -95,7 +96,7 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
 
   steps.push({
     title: t("enable_apps"),
-    description: t("enable_apps_description"),
+    description: t("enable_apps_description", { appName: APP_NAME }),
     contentClassname: "!pb-0 mb-[-1px]",
     content: (setIsLoading) => {
       const currentStep = isFreeLicense ? 3 : 4;
@@ -157,10 +158,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  let deploymentKey = await getDeploymentKey(prisma);
+  const deploymentKey = await prisma.deployment.findUnique({
+    where: { id: 1 },
+    select: { licenseKey: true },
+  });
 
   // Check existant CALCOM_LICENSE_KEY env var and acccount for it
-  if (!!process.env.CALCOM_LICENSE_KEY && !deploymentKey) {
+  if (!!process.env.CALCOM_LICENSE_KEY && !deploymentKey?.licenseKey) {
     await prisma.deployment.upsert({
       where: { id: 1 },
       update: {
@@ -172,10 +176,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         agreedLicenseAt: new Date(),
       },
     });
-    deploymentKey = await getDeploymentKey(prisma);
   }
 
-  const isFreeLicense = deploymentKey === "";
+  const isFreeLicense = (await getDeploymentKey(prisma)) === "";
 
   return {
     props: {

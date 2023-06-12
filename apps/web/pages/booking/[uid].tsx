@@ -102,7 +102,6 @@ export default function Success(props: SuccessProps) {
     allRemainingBookings,
     isSuccessBookingPage,
     cancel: isCancellationMode,
-    changes,
     formerTime,
     email,
     seatReferenceUid,
@@ -222,6 +221,7 @@ export default function Success(props: SuccessProps) {
     setCalculatedDuration(
       dayjs(props.bookingInfo.endTime).diff(dayjs(props.bookingInfo.startTime), "minutes")
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function eventLink(): string {
@@ -363,8 +363,8 @@ export default function Success(props: SuccessProps) {
                     id="modal-headline">
                     {needsConfirmation && !isCancelled
                       ? props.recurringBookings
-                        ? t("submitted_recurring")
-                        : t("submitted")
+                        ? t("booking_submitted_recurring")
+                        : t("booking_submitted")
                       : isCancelled
                       ? seatReferenceUid
                         ? t("no_longer_attending")
@@ -400,7 +400,7 @@ export default function Success(props: SuccessProps) {
                       </>
                     )}
                     <div className="font-medium">{t("what")}</div>
-                    <div className="col-span-2 mb-6 last:mb-0">{props.bookingInfo.title}</div>
+                    <div className="col-span-2 mb-6 last:mb-0">{eventName}</div>
                     <div className="font-medium">{t("when")}</div>
                     <div className="col-span-2 mb-6 last:mb-0">
                       {reschedule && !!formerTime && (
@@ -443,8 +443,10 @@ export default function Success(props: SuccessProps) {
                           )}
                           {bookingInfo?.attendees.map((attendee) => (
                             <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
-                              {attendee.name && <p>{attendee.name}</p>}
-                              <p data-testid={`attendee-${attendee.email}`}>{attendee.email}</p>
+                              {attendee.name && (
+                                <p data-testid={`attendee-name-${attendee.name}`}>{attendee.name}</p>
+                              )}
+                              <p data-testid={`attendee-email-${attendee.email}`}>{attendee.email}</p>
                             </div>
                           ))}
                         </div>
@@ -1092,6 +1094,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
+      themeBasis: eventType.team ? eventType.team.slug : eventType.users[0]?.username,
       hideBranding: eventType.team ? eventType.team.hideBranding : eventType.users[0].hideBranding,
       profile,
       eventType,

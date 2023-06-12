@@ -42,6 +42,8 @@ import {
   CreateButton,
   HorizontalTabs,
   HeadSeo,
+  Skeleton,
+  Label,
 } from "@calcom/ui";
 import {
   ArrowDown,
@@ -391,11 +393,13 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           className="relative top-1 right-3"
                           size="sm"
                           truncateAfter={4}
-                          items={type.users.map((organizer: { name: any; username: any }) => ({
-                            alt: organizer.name || "",
-                            image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
-                            title: organizer.name || "",
-                          }))}
+                          items={type.users.map(
+                            (organizer: { name: string | null; username: string | null }) => ({
+                              alt: organizer.name || "",
+                              image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
+                              title: organizer.name || "",
+                            })
+                          )}
                         />
                       )}
                       {isManagedEventType && (
@@ -416,7 +420,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         {!isManagedEventType && (
                           <>
                             {type.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
-                            <Tooltip content={t("show_eventtype_on_profile")}>
+                            <Tooltip
+                              content={type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")}>
                               <div className="self-center rounded-md p-2">
                                 <Switch
                                   name="Hidden"
@@ -490,17 +495,19 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                       {t("duplicate")}
                                     </DropdownItem>
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem className="outline-none">
-                                    <EmbedButton
-                                      as={DropdownItem}
-                                      type="button"
-                                      StartIcon={Code}
-                                      className="w-full rounded-none"
-                                      embedUrl={encodeURIComponent(embedLink)}>
-                                      {t("embed")}
-                                    </EmbedButton>
-                                  </DropdownMenuItem>
                                 </>
+                              )}
+                              {!isManagedEventType && (
+                                <DropdownMenuItem className="outline-none">
+                                  <EmbedButton
+                                    as={DropdownItem}
+                                    type="button"
+                                    StartIcon={Code}
+                                    className="w-full rounded-none"
+                                    embedUrl={encodeURIComponent(embedLink)}>
+                                    {t("embed")}
+                                  </EmbedButton>
+                                </DropdownMenuItem>
                               )}
                               {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
                               {(group.metadata?.readOnly === false || group.metadata.readOnly === null) &&
@@ -605,7 +612,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         {(group.metadata?.readOnly === false || group.metadata.readOnly === null) &&
                           !isChildrenManagedEventType && (
                             <>
-                              <DropdownMenuSeparator />
                               <DropdownMenuItem className="outline-none">
                                 <DropdownItem
                                   color="destructive"
@@ -621,6 +627,25 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               </DropdownMenuItem>
                             </>
                           )}
+                        <DropdownMenuSeparator />
+                        {!isManagedEventType && (
+                          <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between py-2 px-4">
+                            <Skeleton
+                              as={Label}
+                              htmlFor="hiddenSwitch"
+                              className="mt-2 inline cursor-pointer self-center pr-2 ">
+                              {type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")}
+                            </Skeleton>
+                            <Switch
+                              id="hiddenSwitch"
+                              name="Hidden"
+                              checked={!type.hidden}
+                              onCheckedChange={() => {
+                                setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
+                              }}
+                            />
+                          </div>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenuPortal>
                   </Dropdown>
@@ -757,7 +782,8 @@ const CTA = () => {
   );
 };
 
-const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer as any);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
@@ -770,6 +796,7 @@ const EventTypesPage = () => {
     if (query?.openIntercom && query?.openIntercom === "true") {
       open();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -793,7 +820,7 @@ const EventTypesPage = () => {
                   {isMobile ? (
                     <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
                   ) : (
-                    data.eventTypeGroups.map((group, index) => (
+                    data.eventTypeGroups.map((group: EventTypeGroup, index: number) => (
                       <div className="flex flex-col" key={group.profile.slug}>
                         <EventTypeListHeading
                           profile={group.profile}

@@ -2,7 +2,7 @@ require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const os = require("os");
 const glob = require("glob");
-
+const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
 const { i18n } = require("./next-i18next.config");
 
@@ -57,6 +57,20 @@ if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CRED
   );
 }
 
+const informAboutDuplicateTranslations = () => {
+  const valueSet = new Set();
+
+  for (const key in englishTranslation) {
+    if (valueSet.has(englishTranslation[key])) {
+      console.warn("\x1b[33mDuplicate value found in:", "\x1b[0m", key);
+    } else {
+      valueSet.add(englishTranslation[key]);
+    }
+  }
+};
+
+informAboutDuplicateTranslations();
+
 const plugins = [];
 if (process.env.ANALYZE === "true") {
   // only load dependency if env `ANALYZE` was set
@@ -110,12 +124,6 @@ const nextConfig = {
     "@calcom/ui/components/icon": {
       transform: "lucide-react/dist/esm/icons/{{ kebabCase member }}",
       preventFullImport: true,
-    },
-    "@heroicons/react/solid": {
-      transform: "@heroicons/react/solid/esm/{{ member }}",
-    },
-    "@heroicons/react/outline": {
-      transform: "@heroicons/react/outline/esm/{{ member }}",
     },
     "@calcom/features/insights/components": {
       transform: "@calcom/features/insights/components/{{member}}",
@@ -219,6 +227,11 @@ const nextConfig = {
       {
         source: "/team/:slug/:type",
         destination: "/new-booker/team/:slug/:type",
+        has: [{ type: "cookie", key: "new-booker-enabled" }],
+      },
+      {
+        source: "/d/:link/:slug",
+        destination: "/new-booker/d/:link/:slug",
         has: [{ type: "cookie", key: "new-booker-enabled" }],
       },
     ];

@@ -34,7 +34,15 @@ export const getBooking = async (bookingId: string) => {
   return booking;
 };
 
-export const getEmbedIframe = async ({ page, pathname }: { page: Page; pathname: string }) => {
+export const getEmbedIframe = async ({
+  calNamespace,
+  page,
+  pathname,
+}: {
+  calNamespace: string;
+  page: Page;
+  pathname: string;
+}) => {
   // We can't seem to access page.frame till contentWindow is available. So wait for that.
   const iframeReady = await page.evaluate(() => {
     return new Promise((resolve) => {
@@ -66,7 +74,7 @@ export const getEmbedIframe = async ({ page, pathname }: { page: Page; pathname:
 
   // We just verified that iframeReady is true here, so obviously embedIframe is not null
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const embedIframe = page.frame("cal-embed")!;
+  const embedIframe = page.frame(`cal-embed=${calNamespace}`)!;
   const u = new URL(embedIframe.url());
   if (u.pathname === pathname + "/embed") {
     return embedIframe;
@@ -131,9 +139,9 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   return booking;
 }
 
-export async function rescheduleEvent(username, frame, page) {
+export async function rescheduleEvent(username: string, frame: Frame, page: Page) {
   await selectFirstAvailableTimeSlotNextMonth(frame, page);
-  await frame.waitForURL((url) => {
+  await frame.waitForURL((url: { pathname: string | string[] }) => {
     return url.pathname.includes(`/${username}/book`);
   });
   // --- fill form

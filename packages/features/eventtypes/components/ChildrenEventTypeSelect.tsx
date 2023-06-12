@@ -40,12 +40,6 @@ export const ChildrenEventTypeSelect = ({
   return (
     <>
       <Select
-        styles={{
-          option: (styles, { isDisabled }) => ({
-            ...styles,
-            backgroundColor: isDisabled ? "#F5F5F5" : "inherit",
-          }),
-        }}
         name={props.name}
         placeholder={t("select")}
         options={options}
@@ -66,6 +60,7 @@ export const ChildrenEventTypeSelect = ({
             <div className="flex flex-row items-center gap-3 p-3">
               <Avatar
                 size="mdLg"
+                className="overflow-visible"
                 imageSrc={`${CAL_URL}/${children.owner.username}/avatar.png`}
                 alt={children.owner.name || ""}
               />
@@ -73,26 +68,20 @@ export const ChildrenEventTypeSelect = ({
                 <div className="flex flex-col">
                   <span className="text text-sm font-semibold leading-none">
                     {children.owner.name}
-                    {children.owner.membership === MembershipRole.OWNER ? (
-                      <Badge className="ml-2" variant="gray">
-                        {t("owner")}
-                      </Badge>
-                    ) : (
-                      <Badge className="ml-2" variant="gray">
-                        {t("member")}
-                      </Badge>
-                    )}
+                    <div className="flex flex-row gap-1">
+                      {children.owner.membership === MembershipRole.OWNER ? (
+                        <Badge variant="gray">{t("owner")}</Badge>
+                      ) : (
+                        <Badge variant="gray">{t("member")}</Badge>
+                      )}
+                      {children.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
+                    </div>
                   </span>
                   <small className="text-subtle font-normal leading-normal">
                     {`/${children.owner.username}/${children.slug}`}
                   </small>
                 </div>
                 <div className="flex flex-row items-center gap-2">
-                  {children.hidden && (
-                    <Badge variant="gray" className="hidden sm:block">
-                      {t("hidden")}
-                    </Badge>
-                  )}
                   <Tooltip content={t("show_eventtype_on_profile")}>
                     <div className="self-center rounded-md p-2">
                       <Switch

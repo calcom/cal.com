@@ -29,7 +29,7 @@ export const DateSelect = () => {
             range &&
             (range === "tdy" || range === "w" || range === "t" || range === "m" || range === "y")
           ) {
-            setDateRange([dayjs(start), dayjs(end), range]);
+            setDateRange([dayjs(start).startOf("d"), dayjs(end).endOf("d"), range]);
             return;
           } else if (start && !end) {
             // If only start time has value that means selected date should push to dateRange with last value null

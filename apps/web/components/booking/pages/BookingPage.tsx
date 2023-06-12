@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
@@ -12,7 +12,6 @@ import { z } from "zod";
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
-import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import {
@@ -22,6 +21,7 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { createBooking, createRecurringBooking } from "@calcom/features/bookings/lib";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import {
   getBookingFieldsWithSystemFields,
   SystemField,
@@ -39,7 +39,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
-import { parseDate, parseRecurringDates } from "@calcom/lib/parse-dates";
+import { parseDate, parseDateTimeWithTimeZone, parseRecurringDates } from "@calcom/lib/parse-dates";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { TimeFormat } from "@calcom/lib/timeFormat";
@@ -50,8 +50,6 @@ import { AlertTriangle, Calendar, RefreshCw, User } from "@calcom/ui/components/
 import { timeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
-import type { Gate, GateState } from "@components/Gates";
-import Gates from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
 
 import type { BookPageProps } from "../../../pages/[user]/book";
@@ -223,13 +221,8 @@ const BookingPage = ({
   const { data: session } = useSession();
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const telemetry = useTelemetry();
-  const [gateState, gateDispatcher] = useReducer(
-    (state: GateState, newState: Partial<GateState>) => ({
-      ...state,
-      ...newState,
-    }),
-    {}
-  );
+
+  const { timezone } = useTimePreferences();
 
   const reserveSlot = () => {
     if (queryDuration) {
@@ -237,7 +230,7 @@ const BookingPage = ({
         eventTypeId: eventType.id,
         slotUtcStartDate: dayjs(queryDate).utc().format(),
         slotUtcEndDate: dayjs(queryDate).utc().add(parseInt(queryDuration), "minutes").format(),
-        bookingAttendees: currentSlotBooking ? currentSlotBooking.attendees.length : undefined,
+        bookingUid: currentSlotBooking?.uid,
       });
     }
   };
@@ -485,7 +478,6 @@ const BookingPage = ({
         metadata,
         hasHashedBookingLink,
         hashedLink,
-        ethSignature: gateState.rainbowToken,
       }));
       recurringMutation.mutate(recurringBookings);
     } else {
@@ -503,25 +495,15 @@ const BookingPage = ({
         metadata,
         hasHashedBookingLink,
         hashedLink,
-        ethSignature: gateState.rainbowToken,
         seatReferenceUid: router.query.seatReferenceUid as string,
       });
     }
   };
 
   const showEventTypeDetails = (isEmbed && !embedUiConfig.hideEventTypeDetails) || !isEmbed;
-  const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
-
-  // Define conditional gates here
-  const gates = [
-    // Rainbow gate is only added if the event has both a `blockchainId` and a `smartContractAddress`
-    rainbowAppData && rainbowAppData.blockchainId && rainbowAppData.smartContractAddress
-      ? ("rainbow" as Gate)
-      : undefined,
-  ];
 
   return (
-    <Gates gates={gates} appData={rainbowAppData} dispatch={gateDispatcher}>
+    <>
       <Head>
         <title>
           {rescheduleUid
@@ -602,7 +584,7 @@ const BookingPage = ({
                         <Calendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                         {isClientTimezoneAvailable &&
                           typeof booking.startTime === "string" &&
-                          parseDate(dayjs(booking.startTime), i18n.language, {
+                          parseDateTimeWithTimeZone(booking.startTime, i18n.language, timezone, {
                             selectedTimeFormat: timeFormat,
                           })}
                       </p>
@@ -634,7 +616,12 @@ const BookingPage = ({
                         {currentSlotBooking
                           ? eventType.seatsPerTimeSlot - currentSlotBooking.attendees.length
                           : eventType.seatsPerTimeSlot}{" "}
-                        / {eventType.seatsPerTimeSlot} {t("seats_available")}
+                        / {eventType.seatsPerTimeSlot}{" "}
+                        {t("seats_available", {
+                          count: currentSlotBooking
+                            ? eventType.seatsPerTimeSlot - currentSlotBooking.attendees.length
+                            : eventType.seatsPerTimeSlot,
+                        })}
                       </p>
                     </div>
                   )}
@@ -678,7 +665,7 @@ const BookingPage = ({
         </div>
       </main>
       <Toaster position="bottom-right" />
-    </Gates>
+    </>
   );
 };
 

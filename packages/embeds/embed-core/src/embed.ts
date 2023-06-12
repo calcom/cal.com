@@ -2,7 +2,7 @@
 import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
-import type { InterfaceWithParent, interfaceWithParent, UiConfig } from "./embed-iframe";
+import type { InterfaceWithParent, interfaceWithParent, UiConfig, EmbedThemeConfig } from "./embed-iframe";
 import css from "./embed.css";
 import type { EventData, EventDataMap } from "./sdk-action-manager";
 import { SdkActionManager } from "./sdk-action-manager";
@@ -125,10 +125,11 @@ type SingleInstruction = SingleInstructionMap[keyof SingleInstructionMap];
 export type Instruction = SingleInstruction | SingleInstruction[];
 export type InstructionQueue = Instruction[];
 
-type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Record<string, string>> & {
+export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Record<string, string>> & {
   iframeAttrs?: Record<string, string> & {
     id?: string;
   };
+  theme?: EmbedThemeConfig;
 };
 
 export class Cal {
@@ -214,7 +215,7 @@ export class Cal {
   }) {
     const iframe = (this.iframe = document.createElement("iframe"));
     iframe.className = "cal-embed";
-    iframe.name = "cal-embed";
+    iframe.name = `cal-embed=${this.namespace}`;
     const config = this.getConfig();
     const { iframeAttrs, ...restQueryObject } = queryObject;
 
@@ -435,6 +436,7 @@ class CalApi {
     buttonColor = "rgb(0, 0, 0)",
     buttonTextColor = "rgb(255, 255, 255)",
     calOrigin,
+    config,
   }: {
     calLink: string;
     buttonText?: string;
@@ -444,6 +446,7 @@ class CalApi {
     buttonColor?: string;
     buttonTextColor?: string;
     calOrigin?: string;
+    config?: PrefillAndIframeAttrsConfig;
   }) {
     // validate(arguments[0], {
     //   required: true,
@@ -466,6 +469,10 @@ class CalApi {
       el.dataset.calLink = calLink;
       el.dataset.calNamespace = this.cal.namespace;
       el.dataset.calOrigin = calOrigin ?? "";
+      if (config) {
+        el.dataset.calConfig = JSON.stringify(config);
+      }
+
       if (attributes?.id) {
         el.id = attributes.id;
       }
@@ -544,7 +551,13 @@ class CalApi {
     this.cal.actionManager.on(action, callback);
   }
 
-  off({ action, callback }: { action: never; callback: never }) {
+  off<T extends keyof EventDataMap>({
+    action,
+    callback,
+  }: {
+    action: T;
+    callback: (arg0: CustomEvent<EventData<T>>) => void;
+  }) {
     this.cal.actionManager.off(action, callback);
   }
 

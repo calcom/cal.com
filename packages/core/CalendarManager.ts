@@ -18,6 +18,8 @@ import type {
 import type { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
 
+import getCalendarsEvents from "./getCalendarsEvents";
+
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
 let coldStart = true;
 
@@ -57,7 +59,7 @@ export const getConnectedCalendars = async (
         }
         const cals = await calendar.listCalendars();
         const calendars = sortBy(
-          cals.map((cal) => {
+          cals.map((cal: IntegrationCalendar) => {
             if (cal.externalId === destinationCalendarExternalId) destinationCalendar = cal;
             return {
               ...cal,
@@ -151,6 +153,7 @@ export const getCachedResults = async (
      * TODO: Migrate credential type or appId
      */
     const passedSelectedCalendars = selectedCalendars.filter((sc) => sc.integration === type);
+    if (!passedSelectedCalendars.length) return [];
     /** We extract external Ids so we don't cache too much */
     const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
     /** If we don't then we actually fetch external calendars (which can be very slow) */
@@ -163,7 +166,7 @@ export const getCachedResults = async (
       "eventBusyDatesEnd"
     );
 
-    return eventBusyDates.map((a) => ({ ...a, source: `${appId}` }));
+    return eventBusyDates.map((a: object) => ({ ...a, source: `${appId}` }));
   });
   const awaitedResults = await Promise.all(results);
   performance.mark("getBusyCalendarTimesEnd");
@@ -172,7 +175,8 @@ export const getCachedResults = async (
     "getBusyCalendarTimesStart",
     "getBusyCalendarTimesEnd"
   );
-  return awaitedResults;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return awaitedResults as any;
 };
 
 /**
@@ -230,7 +234,11 @@ export const getBusyCalendarTimes = async (
   const months = getMonths(dateFrom, dateTo);
   try {
     if (coldStart) {
-      results = await getCachedResults(withCredentials, dateFrom, dateTo, selectedCalendars);
+      // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
+      const startDate = dayjs(dateFrom).subtract(11, "hours").format();
+      // Add 14 hours from the start date to avoid problems in UTC+ time zones.
+      const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
+      results = await getCalendarsEvents(withCredentials, startDate, endDate, selectedCalendars);
       logger.info("Generating calendar cache in background");
       // on cold start the calendar cache page generated in the background
       Promise.all(months.map((month) => createCalendarCachePage(username, month)));
@@ -268,7 +276,7 @@ export const createEvent = async (
 
   // TODO: Surface success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
-    ? await calendar.createEvent(calEvent).catch(async (error) => {
+    ? await calendar.createEvent(calEvent).catch(async (error: { code: number; calError: string }) => {
         success = false;
         /**
          * There is a time when selectedCalendar externalId doesn't match witch certain credential
@@ -316,15 +324,15 @@ export const updateEvent = async (
   if (bookingRefUid === "") {
     log.error("updateEvent failed", "bookingRefUid is empty", calEvent, credential);
   }
-  const updatedResult =
+  const updatedResult: NewCalendarEventType | NewCalendarEventType[] | undefined =
     calendar && bookingRefUid
       ? await calendar
           .updateEvent(bookingRefUid, calEvent, externalCalendarId)
-          .then((event) => {
+          .then((event: NewCalendarEventType | NewCalendarEventType[]) => {
             success = true;
             return event;
           })
-          .catch(async (e) => {
+          .catch(async (e: { calError: string }) => {
             // @TODO: This code will be off till we can investigate an error with it
             // @see https://github.com/calcom/cal.com/issues/3949
             // await sendBrokenIntegrationEmail(calEvent, "calendar");

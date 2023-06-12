@@ -106,7 +106,7 @@ To get a local copy up and running, please follow these simple steps.
 
 Here is what you need to be able to run Cal.com.
 
-- Node.js (Version: >=15.x <17)
+- Node.js (Version: >=18.x)
 - PostgreSQL
 - Yarn _(recommended)_
 
@@ -158,6 +158,15 @@ yarn dx
 ```sh
 echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 ```
+#### Gitpod Setup
+
+1. Click the button below to open this project in Gitpod.
+
+2. This will open a fully configured workspace in your browser with all the necessary dependencies already installed.
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/calcom/cal.com)
+
+
 
 #### Manual setup
 
@@ -407,7 +416,7 @@ Make sure to complete section "Obtaining the Google API Credentials". After the 
 following
 
 1. Add extra redirect URL `<Cal.com URL>/api/auth/callback/google`
-1. Under 'OAuth concent screen', click "PUBLISH APP"
+1. Under 'OAuth consent screen', click "PUBLISH APP"
 
 ### Obtaining Microsoft Graph Client ID and Secret
 

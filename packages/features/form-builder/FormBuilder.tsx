@@ -19,7 +19,6 @@ import {
   BooleanToggleGroupField,
   SelectField,
   InputField,
-  Input,
   showToast,
   Switch,
 } from "@calcom/ui";
@@ -185,6 +184,27 @@ export const FormBuilder = function FormBuilder({
         },
       ]);
     }
+
+    const crossButton = (index: number) => {
+      return (
+        <Button
+          type="button"
+          className="ml-3 p-0 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
+          size="sm"
+          color="minimal"
+          StartIcon={X}
+          onClick={() => {
+            if (!value) {
+              return;
+            }
+            const newOptions = [...value];
+            newOptions.splice(index, 1);
+            onChange(newOptions);
+          }}
+        />
+      );
+    };
+
     return (
       <div className={className}>
         <Label>{label}</Label>
@@ -193,7 +213,7 @@ export const FormBuilder = function FormBuilder({
             {value?.map((option, index) => (
               <li key={index}>
                 <div className="flex items-center">
-                  <Input
+                  <InputField
                     required
                     value={option.label}
                     onChange={(e) => {
@@ -201,30 +221,15 @@ export const FormBuilder = function FormBuilder({
                       // It has the same drawback that if the label is changed, the value of the option will change. It is not a big deal for now.
                       value.splice(index, 1, {
                         label: e.target.value,
-                        value: e.target.value.toLowerCase().trim(),
+                        value: e.target.value.trim(),
                       });
                       onChange(value);
                     }}
+                    addOnSuffix={value.length > 2 && !readOnly && crossButton(index)}
                     readOnly={readOnly}
                     placeholder={`Enter Option ${index + 1}`}
+                    containerClassName="w-full"
                   />
-                  {value.length > 2 && !readOnly && (
-                    <Button
-                      type="button"
-                      className="mb-2 -ml-8 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
-                      size="sm"
-                      color="minimal"
-                      StartIcon={X}
-                      onClick={() => {
-                        if (!value) {
-                          return;
-                        }
-                        const newOptions = [...value];
-                        newOptions.splice(index, 1);
-                        onChange(newOptions);
-                      }}
-                    />
-                  )}
                 </div>
               </li>
             ))}
@@ -371,7 +376,7 @@ export const FormBuilder = function FormBuilder({
                         onCheckedChange={(checked) => {
                           update(index, { ...field, hidden: !checked });
                         }}
-                        classNames={{ container: "p-2 hover:bg-gray-100 rounded" }}
+                        classNames={{ container: "p-2 hover:bg-subtle rounded" }}
                         tooltip={t("show_on_booking_page")}
                       />
                     )}
@@ -419,10 +424,11 @@ export const FormBuilder = function FormBuilder({
             fieldIndex: -1,
           })
         }>
-        <DialogContent enableOverflow data-testid="edit-field-dialog">
-          <DialogHeader title={t("add_a_booking_question")} subtitle={t("form_builder_field_add_subtitle")} />
-          <div>
+        <DialogContent className="max-h-none p-0" data-testid="edit-field-dialog">
+          <div className="h-auto max-h-[85vh] overflow-auto px-8 pt-8 pb-7">
+            <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
             <Form
+              id="form-builder"
               form={fieldForm}
               handleSubmit={(data) => {
                 const type = data.type || "text";
@@ -472,7 +478,7 @@ export const FormBuilder = function FormBuilder({
                 options={FieldTypes.filter((f) => !f.systemOnly)}
                 label={t("input_type")}
                 classNames={{
-                  menuList: () => "min-h-[27.25rem]",
+                  menuList: () => "min-h-[22.25rem] ",
                 }}
               />
               <InputField
@@ -483,7 +489,7 @@ export const FormBuilder = function FormBuilder({
                   fieldForm.getValues("editable") === "system" ||
                   fieldForm.getValues("editable") === "system-but-optional"
                 }
-                label="Identifier"
+                label={t("identifier")}
               />
               <InputField
                 {...fieldForm.register("label")}
@@ -534,14 +540,14 @@ export const FormBuilder = function FormBuilder({
                   );
                 }}
               />
-              <DialogFooter>
-                <DialogClose color="secondary">{t("cancel")}</DialogClose>
-                <Button data-testid="field-add-save" type="submit">
-                  {isFieldEditMode ? t("save") : t("add")}
-                </Button>
-              </DialogFooter>
             </Form>
           </div>
+          <DialogFooter className="relative rounded px-8 pb-8" showDivider>
+            <DialogClose color="secondary">{t("cancel")}</DialogClose>
+            <Button data-testid="field-add-save" type="submit" form="form-builder">
+              {isFieldEditMode ? t("save") : t("add")}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

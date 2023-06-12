@@ -30,6 +30,39 @@ export enum Frequency {
   SECONDLY = 6,
 }
 
+export enum BookerLayouts {
+  MONTH_VIEW = "month_view",
+  WEEK_VIEW = "week_view",
+  COLUMN_VIEW = "column_view",
+}
+
+export const bookerLayoutOptions = [
+  BookerLayouts.MONTH_VIEW,
+  BookerLayouts.WEEK_VIEW,
+  BookerLayouts.COLUMN_VIEW,
+];
+
+const layoutOptions = z.union([
+  z.literal(bookerLayoutOptions[0]),
+  z.literal(bookerLayoutOptions[1]),
+  z.literal(bookerLayoutOptions[2]),
+]);
+
+export const bookerLayouts = z
+  .object({
+    enabledLayouts: z.array(layoutOptions),
+    defaultLayout: layoutOptions,
+  })
+  .nullable();
+
+export const defaultBookerLayoutSettings = {
+  defaultLayout: BookerLayouts.MONTH_VIEW,
+  // if the user has no explicit layouts set (not in user profile and not in event settings), all layouts are enabled.
+  enabledLayouts: bookerLayoutOptions,
+};
+
+export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
+
 export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);
 
 export const EventTypeMetaDataSchema = z
@@ -67,6 +100,7 @@ export const EventTypeMetaDataSchema = z
         useHostSchedulesForTeamEvent: z.boolean().optional(),
       })
       .optional(),
+    bookerLayouts: bookerLayouts.optional(),
   })
   .nullable();
 
@@ -161,7 +195,7 @@ export const stringOrNumber = z.union([
 export const stringToDayjs = z.string().transform((val) => dayjs(val));
 
 export const bookingCreateBodySchema = z.object({
-  end: z.string(),
+  end: z.string().optional(),
   eventTypeId: z.number(),
   eventTypeSlug: z.string().optional(),
   rescheduleUid: z.string().optional(),
@@ -174,7 +208,6 @@ export const bookingCreateBodySchema = z.object({
   metadata: z.record(z.string()),
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
-  ethSignature: z.string().optional(),
   seatReferenceUid: z.string().optional(),
 });
 
@@ -269,6 +302,7 @@ export const userMetadata = z
         appLink: z.string().optional(),
       })
       .optional(),
+    defaultBookerLayouts: bookerLayouts.optional(),
   })
   .nullable();
 
@@ -501,6 +535,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   price: true,
   slug: true,
   length: true,
+  offsetStart: true,
   locations: true,
   hidden: true,
   availability: true,

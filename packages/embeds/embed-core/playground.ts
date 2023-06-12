@@ -1,6 +1,5 @@
-import type { GlobalCal, GlobalCalWithoutNs } from "./src/embed";
+import type { GlobalCal } from "./src/embed";
 
-type A = GlobalCalWithoutNs;
 const Cal = window.Cal as GlobalCal;
 const callback = function (e) {
   const detail = e.detail;
@@ -8,7 +7,7 @@ const callback = function (e) {
 };
 
 const searchParams = new URL(document.URL).searchParams;
-const only = window.only;
+const only = searchParams.get("only");
 
 if (only === "all" || only === "ns:default") {
   Cal("init", {
@@ -42,9 +41,7 @@ if (only === "all" || only === "ns:second") {
     origin: "http://localhost:3000",
   });
 
-  // Bulk API is supported - Keep all configuration at one place.
-  // Not able to type Bulk Api correctly when the first argument itself is an array.
-  Cal.ns.second([
+  Cal.ns.second(
     "inline",
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -55,9 +52,10 @@ if (only === "all" || only === "ns:second") {
         iframeAttrs: {
           id: "cal-booking-place-second-iframe",
         },
+        theme: "auto",
       },
-    },
-  ]);
+    }
+  );
   Cal.ns.second("on", {
     action: "*",
     callback,
@@ -245,6 +243,28 @@ if (only === "all" || only === "hideEventTypeDetails") {
   );
 }
 
+if (only === "conflicting-theme") {
+  Cal("init", "conflictingTheme", {
+    debug: true,
+    origin: "http://localhost:3000",
+  });
+
+  Cal.ns.conflictingTheme("inline", {
+    elementOrSelector: "#cal-booking-place-conflicting-theme .dark",
+    calLink: "pro/30min",
+    config: {
+      theme: "dark",
+    },
+  });
+  Cal.ns.conflictingTheme("inline", {
+    elementOrSelector: "#cal-booking-place-conflicting-theme .light",
+    calLink: "pro/30min",
+    config: {
+      theme: "light",
+    },
+  });
+}
+
 Cal("init", "popupDarkTheme", {
   debug: true,
   origin: "http://localhost:3000",
@@ -268,10 +288,12 @@ Cal("init", "popupAutoTheme", {
   debug: true,
   origin: "http://localhost:3000",
 });
+
 Cal("init", "popupTeamLinkLightTheme", {
   debug: true,
   origin: "http://localhost:3000",
 });
+
 Cal("init", "popupTeamLinkDarkTheme", {
   debug: true,
   origin: "http://localhost:3000",
@@ -309,6 +331,16 @@ Cal("init", "routingFormDark", {
 
 if (only === "all" || only == "ns:floatingButton") {
   Cal.ns.floatingButton("floatingButton", {
-    calLink: "pro",
+    calLink: "pro/30min",
+    config: {
+      iframeAttrs: {
+        id: "floatingtest",
+      },
+      name: "John",
+      email: "johndoe@gmail.com",
+      notes: "Test Meeting",
+      guests: ["janedoe@example.com", "test@example.com"],
+      theme: "dark",
+    },
   });
 }
