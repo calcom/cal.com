@@ -95,8 +95,14 @@ export const ONBOARDING_NEXT_REDIRECT = {
   },
 } as const;
 
-export const shouldShowOnboarding = (user: Pick<User, "createdDate" | "completedOnboarding">) => {
-  return !user.completedOnboarding && dayjs(user.createdDate).isAfter(ONBOARDING_INTRODUCED_AT);
+export const shouldShowOnboarding = (
+  user: Pick<User, "createdDate" | "completedOnboarding" | "organizationId">
+) => {
+  return (
+    !user.completedOnboarding &&
+    !user.organizationId &&
+    dayjs(user.createdDate).isAfter(ONBOARDING_INTRODUCED_AT)
+  );
 };
 
 function useRedirectToLoginIfUnauthenticated(isPublic = false) {
@@ -234,6 +240,7 @@ type LayoutProps = {
   // Gives the ability to include actions to the right of the heading
   actions?: JSX.Element;
   beforeCTAactions?: JSX.Element;
+  afterHeading?: ReactNode;
   smallHeading?: boolean;
   hideHeadingOnMobile?: boolean;
 };
@@ -356,6 +363,13 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <span className="flex-grow truncate text-sm leading-none">
                   <span className="text-emphasis block truncate font-medium">
                     {user.name || "Nameless User"}
+                  </span>
+                  <span className="text-default truncate pb-1 font-normal">
+                    {user.username
+                      ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
+                        ? `${orgBranding && orgBranding.slug}cal.com/${user.username}`
+                        : `${orgBranding && orgBranding.slug}/${user.username}`
+                      : "No public page"}
                   </span>
                 </span>
                 <ChevronDown
@@ -1000,6 +1014,7 @@ export function ShellMain(props: LayoutProps) {
           </header>
         )}
       </div>
+      {props.afterHeading && <>{props.afterHeading}</>}
       <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
         {props.children}
       </div>

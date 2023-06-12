@@ -16,7 +16,7 @@
     "@vitejs/plugin-react": "^2.2.0",
     "rollup-plugin-node-builtins": "^2.1.2",
     "typescript": "^4.9.3",
-    "vite": "^3.2.4"
+    "vite": "^4.1.2"
   },
   "main": "./index"
 }

@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -16,6 +16,7 @@ import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, AvatarGroup, Button, EmptyScreen, HeadSeo } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
@@ -28,7 +29,7 @@ import Team from "@components/team/screens/Team";
 import { ssrInit } from "@server/lib/ssr";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
-function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
+function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }: TeamPageProps) {
   useTheme(team.theme);
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
@@ -37,6 +38,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
   const router = useRouter();
   const teamName = team.name || "Nameless Team";
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
+  const metadata = teamMetadataSchema.parse(team.metadata);
 
   useEffect(() => {
     telemetry.event(
@@ -54,7 +56,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
             team: teamName,
           })}
           description={t("team_is_unpublished_description", {
-            entity: team.metadata?.isOrganization ? t("organization").toLowerCase() : t("team").toLowerCase(),
+            entity: metadata?.isOrganization ? t("organization").toLowerCase() : t("team").toLowerCase(),
           })}
         />
       </div>
@@ -76,7 +78,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
           <div className="px-6 py-4 ">
             <Link
               href={{
-                pathname: `/team/${team.slug}/${type.slug}`,
+                pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
                 query: queryParamsToForward,
               }}
               onClick={async () => {
@@ -116,9 +118,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
       <ul className="divide-subtle border-subtle bg-default !static w-full divide-y rounded-md border">
         {team.children.map((ch, i) => (
           <li key={i} className="hover:bg-muted w-full">
-            <Link
-              href={`${team.slug}.${subdomainSuffix()}/${ch.slug}`}
-              className="flex items-center justify-between">
+            <Link href={`/${ch.slug}`} className="flex items-center justify-between">
               <div className="flex items-center px-5 py-5">
                 <Avatar
                   size="md"
@@ -137,7 +137,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
                 className="mr-6"
                 size="sm"
                 truncateAfter={4}
-                items={ch.members.map((member: { name: string | null; username: string | null }) => ({
+                items={ch.members.map(({ user: member }) => ({
                   alt: member.name || "",
                   image: `${WEBAPP_URL}/${member.username}/avatar.png`,
                   title: member.name || "",
@@ -172,8 +172,17 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
       />
       <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pt-12 pb-12">
         <div className="mx-auto mb-8 max-w-3xl text-center">
-          <Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />
-          <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider">{teamName}</p>
+          <div className="relative">
+            <Avatar
+              alt={teamName}
+              imageSrc={getPlaceholderAvatar(team.parent ? team.parent.logo : team.logo, team.name)}
+              size="lg"
+            />
+          </div>
+          <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider">
+            {team.parent && `${team.parent.name} `}
+            {teamName}
+          </p>
           {!isBioEmpty && (
             <>
               <div
@@ -183,7 +192,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
             </>
           )}
         </div>
-        {team.metadata?.isOrganization ? (
+        {metadata?.isOrganization ? (
           <SubTeams />
         ) : (
           <>
@@ -211,7 +220,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
                         EndIcon={ArrowRight}
                         className="dark:hover:bg-darkgray-200"
                         href={{
-                          pathname: `/team/${team.slug}`,
+                          pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}`,
                           query: {
                             members: "1",
                             ...queryParamsToForward,
@@ -235,8 +244,19 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio }: TeamPageProps) {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
+  const { isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
 
   const team = await getTeamWithMembers(undefined, slug);
+  const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
+
+  // Taking care of sub-teams and orgs
+  if (
+    (isValidOrgDomain && team?.parent && !!metadata?.isOrganization) ||
+    (!isValidOrgDomain && team?.parent) ||
+    (!isValidOrgDomain && !!metadata?.isOrganization)
+  ) {
+    return { notFound: true } as const;
+  }
 
   if (!team) {
     const unpublishedTeam = await prisma.team.findFirst({
@@ -282,6 +302,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       themeBasis: team.slug,
       trpcState: ssr.dehydrate(),
       markdownStrippedBio,
+      isValidOrgDomain,
     },
   } as const;
 };

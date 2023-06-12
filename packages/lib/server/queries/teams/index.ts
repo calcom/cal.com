@@ -25,6 +25,12 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
     hideBranding: true,
     hideBookATeamMember: true,
     metadata: true,
+    parent: {
+      select: {
+        name: true,
+        logo: true,
+      },
+    },
     children: {
       select: {
         name: true,

@@ -46,7 +46,10 @@ const BookingDescription: FC<Props> = (props) => {
   const { profile, eventType, isBookingPage = false, children } = props;
   const { date: bookingDate } = useRouterQuery("date");
   const { t } = useLocale();
-  const { duration, setQuery: setDuration } = useRouterQuery("duration");
+  const { duration, setQuery: setDuration } = useRouterQuery("duration", {
+    // Only set duration query parameter when event type has multiple durations
+    disabled: !eventType.metadata?.multipleDuration,
+  });
 
   useEffect(() => {
     if (
@@ -83,7 +86,9 @@ const BookingDescription: FC<Props> = (props) => {
         size="sm"
         truncateAfter={3}
       />
-      <h2 className="text-default mt-1 mb-2 break-words text-sm font-medium ">{profile.name}</h2>
+      <h2 className="text-default mt-1 mb-2 break-words text-sm font-medium ">
+        {eventType.team?.parent?.name} {profile.name}
+      </h2>
       <h1 className="font-cal  text-emphasis mb-6 break-words text-2xl font-semibold leading-none">
         {eventType.title}
       </h1>

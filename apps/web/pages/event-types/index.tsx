@@ -48,6 +48,7 @@ import {
   Skeleton,
   Label,
   VerticalDivider,
+  Alert,
 } from "@calcom/ui";
 import {
   ArrowDown,
@@ -63,9 +64,11 @@ import {
   Trash,
   Upload,
   Users,
+  User as UserIcon,
 } from "@calcom/ui/components/icon";
 
 import { withQuery } from "@lib/QueryCell";
+import useMeQuery from "@lib/hooks/useMeQuery";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 import PageWrapper from "@components/PageWrapper";
@@ -78,6 +81,7 @@ interface EventTypeListHeadingProps {
   profile: EventTypeGroupProfile;
   membershipCount: number;
   teamId?: number | null;
+  orgSlug?: string;
 }
 
 type EventTypeGroup = EventTypeGroups[number];
@@ -694,6 +698,7 @@ const EventTypeListHeading = ({
   profile,
   membershipCount,
   teamId,
+  orgSlug,
 }: EventTypeListHeadingProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
@@ -734,7 +739,9 @@ const EventTypeListHeading = ({
         )}
         {profile?.slug && (
           <Link href={`${CAL_URL}/${profile.slug}`} className="text-subtle block text-xs">
-            {`${CAL_URL?.replace("https://", "")}/${profile.slug}`}
+            {orgSlug
+              ? `${orgSlug}.${subdomainSuffix()}/${profile.slug}`
+              : `${CAL_URL?.replace("https://", "")}/${profile.slug}`}
           </Link>
         )}
       </div>
@@ -798,6 +805,34 @@ const Actions = () => {
   );
 };
 
+const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
+  const { t } = useLocale();
+  const orgBranding = useOrgBrandingValues();
+
+  return (
+    <Alert
+      className="my-4"
+      severity="info"
+      title={t("set_up_your_profile")}
+      message={t("set_up_your_profile_description", { orgName: orgBranding?.name })}
+      CustomIcon={UserIcon}
+      actions={
+        <div className="flex gap-1">
+          <Button color="minimal" className="text-sky-700 hover:bg-sky-100" onClick={closeAction}>
+            {t("dismiss")}
+          </Button>
+          <Button
+            color="secondary"
+            className="border-sky-700 bg-sky-50 text-sky-700 hover:border-sky-900 hover:bg-sky-200"
+            href="/getting-started">
+            {t("set_up")}
+          </Button>
+        </div>
+      }
+    />
+  );
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer as any);
 
@@ -806,12 +841,24 @@ const EventTypesPage = () => {
   const router = useRouter();
   const { open } = useIntercom();
   const { query } = router;
+  const { data: user } = useMeQuery();
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const [showProfileBanner, setShowProfileBanner] = useState(false);
+  const orgBranding = useOrgBrandingValues();
+
+  function closeBanner() {
+    setShowProfileBanner(false);
+    document.cookie = `calcom-profile-banner=1;max-age=${60 * 60 * 24 * 90}`; // 3 months
+    showToast(t("we_wont_show_again"), "success");
+  }
 
   useEffect(() => {
     if (query?.openIntercom && query?.openIntercom === "true") {
       open();
     }
+    setShowProfileBanner(
+      !!orgBranding && !document.cookie.includes("calcom-profile-banner=1") && !user?.completedOnboarding
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -826,6 +873,7 @@ const EventTypesPage = () => {
         heading={t("event_types_page_title")}
         hideHeadingOnMobile
         subtitle={t("event_types_page_subtitle")}
+        afterHeading={showProfileBanner && <SetupProfileBanner closeAction={closeBanner} />}
         beforeCTAactions={<Actions />}
         CTA={<CTA />}>
         <WithQuery
@@ -843,6 +891,7 @@ const EventTypesPage = () => {
                           profile={group.profile}
                           membershipCount={group.metadata.membershipCount}
                           teamId={group.teamId}
+                          orgSlug={orgBranding?.slug}
                         />
 
                         <EventTypeList

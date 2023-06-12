@@ -1,4 +1,7 @@
 import { createContext, useContext, createElement } from "react";
+import type z from "zod";
+
+import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 /**
  * Organization branding
@@ -6,11 +9,11 @@ import { createContext, useContext, createElement } from "react";
  * Entries consist of the different properties that constitues a brand for an organization.
  */
 export type OrganizationBranding =
-  | {
-      logo: string | null;
-      name: string;
-      slug: string;
-    }
+  | ({
+      logo?: string | null | undefined;
+      name?: string;
+      slug?: string;
+    } & z.infer<typeof teamMetadataSchema>)
   | null
   | undefined;
 
