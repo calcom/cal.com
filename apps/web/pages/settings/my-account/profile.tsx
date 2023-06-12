@@ -217,7 +217,6 @@ const ProfileView = () => {
         extraField={
           <div className="mt-8">
             <UsernameAvailabilityField
-              user={user}
               onSuccessMutation={async () => {
                 showToast(t("settings_updated_successfully"), "success");
                 await utils.viewer.me.invalidate();
@@ -225,7 +224,6 @@ const ProfileView = () => {
               onErrorMutation={() => {
                 showToast(t("error_updating_settings"), "error");
               }}
-              organization={orgBranding ?? null}
             />
           </div>
         }
