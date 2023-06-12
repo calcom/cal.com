@@ -35,6 +35,7 @@ import {
   Editor,
   AddVariablesDropdown,
   Input,
+  Tooltip,
 } from "@calcom/ui";
 import { ArrowDown, MoreHorizontal, Trash2, HelpCircle, Info } from "@calcom/ui/components/icon";
 
@@ -558,7 +559,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 {isSenderIdNeeded ? (
                   <>
                     <div className="pt-4">
-                      <Label>{t("sender_id")}</Label>
+                      <div className="flex">
+                        <Label>{t("sender_id")}</Label>
+                        <Tooltip content={t("sender_id_info")}>
+                          <Info className="mr-1 mt-0.5 ml-2 h-4 w-4 text-gray-500" />
+                        </Tooltip>
+                      </div>
                       <Input
                         type="text"
                         placeholder={SENDER_ID}
