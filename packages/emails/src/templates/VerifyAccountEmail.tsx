@@ -1,6 +1,6 @@
 import type { TFunction } from "next-i18next";
 
-import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
+import { APP_NAME, SENDER_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
@@ -44,13 +44,13 @@ export const VerifyAccountEmail = (
       <div style={{ lineHeight: "6px" }}>
         <p style={{ fontWeight: 400, lineHeight: "24px" }}>
           <>
-            {props.language("happy_scheduling")} <br />
+            {props.language("happy_scheduling")}, <br />
             <a
               href={`mailto:${SUPPORT_MAIL_ADDRESS}`}
               style={{ color: "#3E3E3E" }}
               target="_blank"
               rel="noreferrer">
-              <>{props.language("the_calcom_team", { companyName: COMPANY_NAME })}</>
+              <>{props.language("the_calcom_team", { companyName: SENDER_NAME })}</>
             </a>
           </>
         </p>
