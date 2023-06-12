@@ -276,7 +276,7 @@ const IntegrationsContainer = ({
               actions={
                 <Button
                   href={
-                    variant ? `/apps/categories/${variant === "conferencing" ? "video" : variant}` : "/apps"
+                    variant ? `/apps/categories/${variant}` : "/apps"
                   }
                   color="secondary"
                   StartIcon={Plus}>
