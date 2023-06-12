@@ -861,7 +861,6 @@
   "installed_app_web3_description": "Configure which web3 apps to use for your booking pages",
   "installed_app_messaging_description": "Configure which messaging apps to use for setting up custom notifications & reminders",
   "installed_app_crm_description": "Configure which CRM apps to use for keeping track of who you've met with",
-  "installed_app_conferencing_description": "Add your favourite video conferencing apps for your meetings",
   "analytics": "Analytics",
   "empty_installed_apps_headline": "No apps installed",
   "empty_installed_apps_description": "Apps enable you to enhance your workflow and improve your scheduling life significantly.",
