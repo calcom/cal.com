@@ -14,7 +14,6 @@ const IS_STRIPE_ENABLED = !!(
   process.env.PAYMENT_FEE_PERCENTAGE
 );
 
-
 test.describe("Stripe integration", () => {
   // eslint-disable-next-line playwright/no-skipped-test
   test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
@@ -28,10 +27,8 @@ test.describe("Stripe integration", () => {
       await user.getPaymentCredential();
 
       await expect(page.locator(`h3:has-text("Stripe")`)).toBeVisible();
-      await page.getByRole('list').getByRole('button').click();
-      await expect(
-        page.getByRole('button', { name: 'Remove App' })
-      ).toBeVisible();
+      await page.getByRole("list").getByRole("button").click();
+      await expect(page.getByRole("button", { name: "Remove App" })).toBeVisible();
     });
   });
 
@@ -43,12 +40,10 @@ test.describe("Stripe integration", () => {
     await user.getPaymentCredential();
 
     await page.goto(`/event-types/${eventType?.id}?tabName=apps`);
-    await page.locator('div > .ml-auto').first().click();
-    await expect(
-      page.getByPlaceholder('Price')
-    ).toBeVisible();
-    await page.getByPlaceholder('Price').fill("100");
-    await page.getByTestId('update-eventtype').click();
+    await page.locator("div > .ml-auto").first().click();
+    await expect(page.getByPlaceholder("Price")).toBeVisible();
+    await page.getByPlaceholder("Price").fill("100");
+    await page.getByTestId("update-eventtype").click();
 
     await page.goto(`${user.username}/${eventType?.slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
@@ -58,8 +53,7 @@ test.describe("Stripe integration", () => {
 
     await Promise.all([page.waitForURL("/payment/*"), page.press('[name="email"]', "Enter")]);
 
-    const stripeFrame = page
-      .frameLocator('iframe').first();
+    const stripeFrame = page.frameLocator("iframe").first();
     expect(stripeFrame).toBeTruthy();
     await expect(stripeFrame.getByText("Card number")).toBeVisible();
     await stripeFrame.locator('[placeholder="1234 1234 1234 1234"]').fill("4242 4242 4242 4242");
