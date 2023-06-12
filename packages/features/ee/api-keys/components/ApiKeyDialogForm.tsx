@@ -73,8 +73,8 @@ export default function ApiKeyDialogForm({
                     showToast(t("api_key_copied"), "success");
                   }}
                   type="button"
-                  className="rounded-l-none py-[19px] text-base ">
-                  <Clipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
+                  className="rounded-l-none text-base"
+                  StartIcon={Clipboard}>
                   {t("copy")}
                 </Button>
               </Tooltip>
