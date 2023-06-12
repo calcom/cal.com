@@ -368,7 +368,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                     {user.username
                       ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
                         ? `${orgBranding && orgBranding.slug}cal.com/${user.username}`
-                        : `${orgBranding && orgBranding.slug}/${user.username}`
+                        : `${(orgBranding && orgBranding.slug) || ""}/${user.username}`
                       : "No public page"}
                   </span>
                 </span>
