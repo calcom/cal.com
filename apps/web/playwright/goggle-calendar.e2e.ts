@@ -4,7 +4,7 @@ import { GOOGLE_API_CREDENTIALS } from "../server/lib/constants";
 import { test } from "./lib/fixtures";
 
 test.describe("adding goggle calendar", async () => {
-  test.beforeEach(async ({ page, users }) => {
+  test.beforeEach(async ({ users }) => {
     const user = await users.create();
     await user.login();
   });
