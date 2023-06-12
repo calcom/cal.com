@@ -13,7 +13,7 @@ test.describe("adding goggle calendar", async () => {
     await users.deleteAll();
   });
 
-  test("Google calendar got installed ", async ({ page }) => {
+  test("Is google calendar installed ", async ({ page }) => {
     test.skip(!GOOGLE_API_CREDENTIALS, "It should only run if Google API credetials are present");
     await page.goto("/apps/categories/calendar");
     await page.waitForURL("/apps/categories/calendar");
@@ -22,7 +22,7 @@ test.describe("adding goggle calendar", async () => {
     await expect(page.locator("//button[text()='Install another']")).toBeVisible();
   });
 
-  test("Navigating to the installed apps", async ({ page }) => {
+  test("If google calendar ", async ({ page }) => {
     test.skip(!GOOGLE_API_CREDENTIALS, "It should only run if Google API credetials are present");
     await page.goto("/apps/installed/calendar");
     await page.waitForURL("/apps/installed/calendar");
