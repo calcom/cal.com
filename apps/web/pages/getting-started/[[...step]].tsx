@@ -47,7 +47,7 @@ const stepRouteSchema = z.object({
 // TODO: Refactor how steps work to be contained in one array/object. Currently we have steps,initalsteps,headers etc. These can all be in one place
 const OnboardingPage = (props: IOnboardingPageProps) => {
   const router = useRouter();
-  const { user } = props;
+  const { user, organization } = props;
   const { t } = useLocale();
 
   const result = stepRouteSchema.safeParse(router.query);
@@ -140,7 +140,9 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
               <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToIndex} />
             </div>
             <StepCard>
-              {currentStep === "user-settings" && <UserSettings user={user} nextStep={() => goToIndex(1)} />}
+              {currentStep === "user-settings" && (
+                <UserSettings user={user} organization={organization} nextStep={() => goToIndex(1)} />
+              )}
 
               {currentStep === "connected-calendar" && <ConnectedCalendars nextStep={() => goToIndex(2)} />}
 
@@ -240,15 +242,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       ...(await serverSideTranslations(context.locale ?? "", ["common"])),
       user: {
         ...user,
-        ...(user.organization && {
-          organization: {
-            ...user.organization,
-            metadata: teamMetadataSchema.parse(user.organization.metadata),
-          },
-        }),
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },
       hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,
+      organization: {
+        ...user.organization,
+        metadata: teamMetadataSchema.parse(user.organization?.metadata),
+      },
     },
   };
 };
