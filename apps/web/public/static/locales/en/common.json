@@ -18,7 +18,7 @@
   "verify_email_email_header": "Verify your email address",
   "verify_email_email_button": "Verify email",
   "verify_email_email_body": "Please verify your email address by clicking the button below.",
-  "verify_email_email_link_text": "Here's the link incase you don't like clicking buttons:",
+  "verify_email_email_link_text": "Here's the link in case you don't like clicking buttons:",
   "email_sent": "Email sent successfully",
   "event_declined_subject": "Declined: {{title}} at {{date}}",
   "event_cancelled_subject": "Cancelled: {{title}} at {{date}}",
@@ -856,6 +856,7 @@
   "installed_app_payment_description": "Configure which payment processing services to use when charging your clients.",
   "installed_app_analytics_description": "Configure which analytics apps to use for your booking pages",
   "installed_app_other_description": "All your installed apps from other categories.",
+  "installed_app_conferencing_description": "Configure which conferencing apps to use",
   "installed_app_automation_description": "Configure which automation apps to use",
   "installed_app_web3_description": "Configure which web3 apps to use for your booking pages",
   "analytics": "Analytics",
@@ -1211,7 +1212,7 @@
   "start_of_week": "Start of week",
   "recordings_title": "Recordings",
   "recording": "Recording",
-  "happy_scheduling": "Happy Scheduling",
+  "happy_scheduling": "Happy scheduling",
   "select_calendars": "Select which calendars you want to check for conflicts to prevent double bookings.",
   "check_for_conflicts": "Check for conflicts",
   "view_recordings": "View recordings",
@@ -1859,5 +1860,6 @@
   "duplicated_slugs_warning": "The following teams couldn't be created due to duplicated slugs: {{slugs}}",
   "team_names_empty": "Team names can't be empty",
   "team_names_repeated": "Team names can't be repeated",
+  "sender_id_info": "Name or number shown as the sender of an SMS (some countries do not allow alphanumeric sender IDs)",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
