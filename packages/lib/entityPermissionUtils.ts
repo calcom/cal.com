@@ -113,3 +113,18 @@ export const entityPrismaWhereClause = ({ userId }: { userId: number }) => ({
     },
   ],
 });
+
+export const doesEntityBelongToTheTarget = ({
+  entity,
+  target,
+}: {
+  entity: { teamId: number | null; userId: number | null };
+  target: { teamId: number | null; userId: number | null };
+}) => {
+  if (entity.teamId) {
+    return entity.teamId === target.teamId;
+  }
+  // If entity doesn't belong to a team, then target shouldn't be a team.
+  // Also check for `userId` now.
+  return !target.teamId && entity.userId === target.userId;
+};

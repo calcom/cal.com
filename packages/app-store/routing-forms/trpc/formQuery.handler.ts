@@ -26,6 +26,7 @@ export const formQueryHandler = async ({ ctx, input }: FormsHandlerOptions) => {
       ],
     },
     include: {
+      team: { select: { slug: true } },
       _count: {
         select: {
           responses: true,
