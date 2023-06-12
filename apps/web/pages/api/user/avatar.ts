@@ -2,6 +2,7 @@ import crypto from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import prisma from "@calcom/prisma";
 
@@ -16,10 +17,18 @@ const querySchema = z
 
 async function getIdentityData(req: NextApiRequest) {
   const { username, teamname } = querySchema.parse(req.query);
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req.headers.host ?? "");
 
   if (username) {
     const user = await prisma.user.findFirst({
-      where: { username },
+      where: {
+        username,
+        organization: isValidOrgDomain
+          ? {
+              slug: currentOrgDomain,
+            }
+          : null,
+      },
       select: { avatar: true, email: true },
     });
     return {
@@ -30,7 +39,14 @@ async function getIdentityData(req: NextApiRequest) {
   }
   if (teamname) {
     const team = await prisma.team.findFirst({
-      where: { slug: teamname },
+      where: {
+        slug: teamname,
+        parent: isValidOrgDomain
+          ? {
+              slug: currentOrgDomain,
+            }
+          : null,
+      },
       select: { logo: true },
     });
     return {
