@@ -11,12 +11,12 @@ export type IntegrationOAuthCallbackState = {
 };
 
 export type CredentialOwner = {
-  name: string;
-  avatar?: string;
+  name: string | null;
+  avatar?: string | null;
   teamId?: number;
 };
 
-export type EventTypeAppCardApp = RouterOutputs["viewer"]["apps"][number] & {
+export type EventTypeAppCardApp = RouterOutputs["viewer"]["integrations"][number] & {
   credentialOwner?: CredentialOwner;
   credentialIds?: number[];
 };

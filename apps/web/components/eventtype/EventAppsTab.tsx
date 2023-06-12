@@ -68,6 +68,8 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
 
   const appsWithTeamCredentials = eventTypeApps?.items.filter((app) => app.teams.length) || [];
   const cardsForAppsWithTeams = appsWithTeamCredentials.map((app) => {
+    console.log("🚀 ~ file: EventAppsTab.tsx:104 ~ cardsForAppsWithTeams ~ app:", app);
+
     const appCards = [];
 
     if (app.credentialIds.length) {
@@ -84,20 +86,22 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     }
 
     for (const team of app.teams) {
-      appCards.push(
-        <EventTypeAppCard
-          getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
-          setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
-          key={app.slug + team.credentialId || 0}
-          app={{
-            ...app,
-            credentials: team?.credentialId ? [team.credentialId] : [],
-            credentialOwner: { name: team?.name, avatar: team?.logo, teamId: team?.teamId },
-          }}
-          eventType={eventType}
-          {...shouldLockDisableProps("apps")}
-        />
-      );
+      if (team) {
+        appCards.push(
+          <EventTypeAppCard
+            getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
+            setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+            key={app.slug + team?.credentialId}
+            app={{
+              ...app,
+              credentialIds: team?.credentialId ? [team.credentialId] : [],
+              credentialOwner: { name: team.name, avatar: team.logo, teamId: team.teamId },
+            }}
+            eventType={eventType}
+            {...shouldLockDisableProps("apps")}
+          />
+        );
+      }
     }
     return appCards;
   });

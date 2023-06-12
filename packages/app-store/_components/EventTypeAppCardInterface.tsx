@@ -4,11 +4,11 @@ import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { ErrorBoundary } from "@calcom/ui";
 
-import type { EventTypeAppCardComponentProps } from "../types";
+import type { EventTypeAppCardComponentProps, CredentialOwner } from "../types";
 import { DynamicComponent } from "./DynamicComponent";
 
 export const EventTypeAppCard = (props: {
-  app: RouterOutputs["viewer"]["apps"][number];
+  app: RouterOutputs["viewer"]["integrations"]["items"][number] & { credentialOwner?: CredentialOwner };
   eventType: EventTypeAppCardComponentProps["eventType"];
   getAppData: GetAppData;
   setAppData: SetAppData;
