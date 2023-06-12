@@ -1,9 +1,11 @@
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import type z from "zod";
 
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import type { User } from "@calcom/prisma/client";
+import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 
@@ -18,11 +20,13 @@ interface UsernameAvailabilityFieldProps {
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
   user: Pick<User, "username" | "metadata">;
+  organization: { slug?: string | null | undefined; metadata: z.infer<typeof teamMetadataSchema> } | null;
 }
 export const UsernameAvailabilityField = ({
   onSuccessMutation,
   onErrorMutation,
   user,
+  organization,
 }: UsernameAvailabilityFieldProps) => {
   const router = useRouter();
   const [currentUsernameState, setCurrentUsernameState] = useState(user.username || "");
@@ -52,6 +56,7 @@ export const UsernameAvailabilityField = ({
             onSuccessMutation={onSuccessMutation}
             onErrorMutation={onErrorMutation}
             user={user}
+            organization={organization}
           />
         );
       }}

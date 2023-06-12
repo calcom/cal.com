@@ -109,7 +109,6 @@ const middleware: NextMiddleware = async (req) => {
 
 export const config = {
   matcher: [
-    "/",
     "/:path*",
     "/api/collect-events/:path*",
     "/api/auth/:path*",

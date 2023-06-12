@@ -247,7 +247,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
 
   const team = await getTeamWithMembers(undefined, slug);
-  console.log({ slug, team });
   const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
 
   // Taking care of sub-teams and orgs
