@@ -81,6 +81,7 @@ interface EventTypeListHeadingProps {
   profile: EventTypeGroupProfile;
   membershipCount: number;
   teamId?: number | null;
+  orgSlug?: string;
 }
 
 type EventTypeGroup = EventTypeGroups[number];
@@ -697,6 +698,7 @@ const EventTypeListHeading = ({
   profile,
   membershipCount,
   teamId,
+  orgSlug,
 }: EventTypeListHeadingProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
@@ -737,7 +739,9 @@ const EventTypeListHeading = ({
         )}
         {profile?.slug && (
           <Link href={`${CAL_URL}/${profile.slug}`} className="text-subtle block text-xs">
-            {`${CAL_URL?.replace("https://", "")}/${profile.slug}`}
+            {orgSlug
+              ? `${orgSlug}.${subdomainSuffix()}/${profile.slug}`
+              : `${CAL_URL?.replace("https://", "")}/${profile.slug}`}
           </Link>
         )}
       </div>
@@ -887,6 +891,7 @@ const EventTypesPage = () => {
                           profile={group.profile}
                           membershipCount={group.metadata.membershipCount}
                           teamId={group.teamId}
+                          orgSlug={orgBranding?.slug}
                         />
 
                         <EventTypeList

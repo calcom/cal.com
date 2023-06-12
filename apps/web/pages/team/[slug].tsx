@@ -38,6 +38,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
   const router = useRouter();
   const teamName = team.name || "Nameless Team";
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
+  const metadata = teamMetadataSchema.parse(team.metadata);
 
   useEffect(() => {
     telemetry.event(

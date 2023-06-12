@@ -23,7 +23,7 @@ export const OrganizationEventTypeFilter = () => {
   const isNotEmpty = !!teams?.length;
 
   return status === "success" ? (
-    <AnimatedPopover text={dropdownTitle} popoverTriggerClassNames="mb-0">
+    <AnimatedPopover text={dropdownTitle} popoverTriggerClassNames="!mb-0">
       <CheckboxFieldContainer>
         <CheckboxField
           id="all-eventtypes-checkbox"
