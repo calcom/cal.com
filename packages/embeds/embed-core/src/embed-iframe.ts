@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import { useState, useEffect } from "react";
 
 import embedInit from "@calcom/embed-core/embed-iframe-init";
+import type { BookerStore } from "@calcom/features/bookings/booker/store";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { Message } from "./embed";
@@ -46,6 +47,7 @@ declare global {
       __logQueue?: unknown[];
       embedStore: typeof embedStore;
       applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
+      setLayout?: BookerStore["setLayout"];
     };
     CalComPageStatus: string;
     isEmbed?: () => boolean;
@@ -315,6 +317,10 @@ const methods = {
 
     if (embedStore.setUiConfig) {
       embedStore.setUiConfig(uiConfig);
+    }
+
+    if (uiConfig.layout) {
+      window.CalEmbed.setLayout?.(uiConfig.layout);
     }
 
     setEmbedStyles(stylesConfig || {});

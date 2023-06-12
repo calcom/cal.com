@@ -24,7 +24,7 @@ type StoreInitializeType = {
   layout: BookerLayout;
 };
 
-type BookerStore = {
+export type BookerStore = {
   /**
    * Event details. These are stored in store for easier
    * access in child components.

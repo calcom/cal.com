@@ -44,13 +44,13 @@ type PreviewState = {
     height: string;
   };
   theme: Theme;
-  floatingPopup: Record<string, string>;
+  floatingPopup: Record<string, string | boolean>;
   elementClick: Record<string, string>;
   palette: {
     brandColor: string;
   };
   hideEventTypeDetails: boolean;
-  layout?: BookerLayouts;
+  layout: BookerLayouts;
 };
 const queryParamsForDialog = ["embedType", "embedTabName", "embedUrl"];
 
@@ -139,7 +139,7 @@ const getEmbedUIInstructionString = ({
   theme?: string;
   brandColor: string;
   hideEventTypeDetails: boolean;
-  layout: string;
+  layout?: string;
 }) => {
   theme = theme !== "auto" ? theme : undefined;
   return getInstructionString({
@@ -596,7 +596,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
       { calLink: string; embedType: EmbedType; previewState: PreviewState }
-    >(function Preview({ calLink, embedType, previewState }, ref) {
+    >(function Preview({ calLink, embedType }, ref) {
       if (ref instanceof Function || !ref) {
         return null;
       }
@@ -610,7 +610,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
           className="h-[100vh] border"
           width="100%"
           height="100%"
-          src={`${WEBAPP_URL}/embed/preview.html?embedType=${embedType}&layout=${previewState.layout}&calLink=${calLink}`}
+          src={`${WEBAPP_URL}/embed/preview.html?embedType=${embedType}&calLink=${calLink}`}
         />
       );
     }),
@@ -704,7 +704,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] = useState(true);
   const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
-  const [previewState, setPreviewState] = useState({
+  const [previewState, setPreviewState] = useState<PreviewState>({
     inline: {
       width: "100%",
       height: "100%",
@@ -716,6 +716,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     palette: {
       brandColor: "#000000",
     },
+    layout: BookerLayouts.MONTH_VIEW,
   });
 
   const close = () => {
@@ -778,6 +779,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     arg: {
       theme: previewState.theme,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
+      layout: previewState.layout,
       styles: {
         branding: {
           ...previewState.palette,
