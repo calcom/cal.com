@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
+import type { ZodType } from "zod";
 
+import type { SetAppDataGeneric, GetAppDataGeneric } from "../EventTypeAppContext";
 import type { EventTypeAppCardApp } from "../types";
 
-const useIsAppEnabled = (app: EventTypeAppCardApp, getAppData: unknown, setAppData: unknown) => {
+function useIsAppEnabled<TAppData extends ZodType>(
+  app: EventTypeAppCardApp,
+  getAppData: GetAppDataGeneric<TAppData>,
+  setAppData: SetAppDataGeneric<TAppData>
+) {
   const [enabled, setEnabled] = useState(false);
   useEffect(() => {
     if (!app.credentialOwner) {
@@ -51,6 +57,6 @@ const useIsAppEnabled = (app: EventTypeAppCardApp, getAppData: unknown, setAppDa
   };
 
   return { enabled, updateEnabled };
-};
+}
 
 export default useIsAppEnabled;

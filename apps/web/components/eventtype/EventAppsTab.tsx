@@ -68,8 +68,6 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
 
   const appsWithTeamCredentials = eventTypeApps?.items.filter((app) => app.teams.length) || [];
   const cardsForAppsWithTeams = appsWithTeamCredentials.map((app) => {
-    console.log("🚀 ~ file: EventAppsTab.tsx:104 ~ cardsForAppsWithTeams ~ app:", app);
-
     const appCards = [];
 
     if (app.credentialIds.length) {

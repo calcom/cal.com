@@ -160,7 +160,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
         invalidCredential={item?.invalidCredentialIds ? item.invalidCredentialIds.length > 0 : false}
         credentialOwner={item?.credentialOwner}
         actions={
-          <div className="flex  justify-end">
+          <div className="flex justify-end">
             <Dropdown modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button StartIcon={MoreHorizontal} variant="icon" color="secondary" />
