@@ -1,6 +1,7 @@
 import { CAL_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -41,6 +42,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
               id: true,
               name: true,
               slug: true,
+              metadata: true,
               members: {
                 select: {
                   userId: true,
@@ -96,18 +98,24 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
 
   workflowGroups = ([] as WorkflowGroup[]).concat(
     workflowGroups,
-    user.teams.map((membership) => ({
-      teamId: membership.team.id,
-      profile: {
-        name: membership.team.name,
-        slug: "team/" + membership.team.slug,
-        image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
-      },
-      metadata: {
-        readOnly: membership.role === MembershipRole.MEMBER,
-      },
-      workflows: membership.team.workflows,
-    }))
+    user.teams
+      .filter((team) => {
+        const metadata = teamMetadataSchema.safeParse(team.team.metadata);
+        const isOrganization = metadata.success && metadata.data?.isOrganization;
+        return !isOrganization;
+      })
+      .map((membership) => ({
+        teamId: membership.team.id,
+        profile: {
+          name: membership.team.name,
+          slug: "team/" + membership.team.slug,
+          image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
+        },
+        metadata: {
+          readOnly: membership.role === MembershipRole.MEMBER,
+        },
+        workflows: membership.team.workflows,
+      }))
   );
 
   return {

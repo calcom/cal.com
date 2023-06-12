@@ -143,16 +143,16 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                             )}
                           </Badge>
                         </li>
-                        {workflow.teamId && (
-                          <li>
-                            <Badge variant="gray">
-                              <>{workflow.team?.name}</>
-                            </Badge>
-                          </li>
-                        )}
                       </ul>
                     </div>
                   </Link>
+                  <div>
+                    {workflow.team?.name && (
+                      <Badge className="mr-4" variant="gray">
+                        {workflow.team.name}
+                      </Badge>
+                    )}
+                  </div>
 
                   <div className="flex flex-shrink-0">
                     <div className="hidden sm:block">
