@@ -5,17 +5,15 @@ import { test } from "./lib/fixtures";
 test.describe("Change Theme Test", () => {
   test("change theme to dark", async ({ page, users }) => {
     const pro = await users.create();
-    await pro.login();
+    await pro.apiLogin();
 
     await page.goto("/settings/my-account/appearance");
 
     await page.waitForLoadState("networkidle");
-    //Find the theme button which has label "Dark"
-    const $themeButton = page.getByText("Dark", { exact: true });
-    await $themeButton.click();
-    //Find the update button
-    const $updateButton = page.locator("text=Update");
-    await $updateButton.click();
+    //Click the "Dark" theme label
+    await page.click('[data-testid="theme-dark"]');
+    //Click the update button
+    await page.click('[data-testid="update-theme-btn"]');
     //Wait for the toast to appear
     const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
     expect(toast).toBeTruthy();
@@ -27,17 +25,15 @@ test.describe("Change Theme Test", () => {
 
   test("change theme to light", async ({ page, users }) => {
     const pro = await users.create();
-    await pro.login();
+    await pro.apiLogin();
 
     await page.goto("/settings/my-account/appearance");
 
     await page.waitForLoadState("networkidle");
-    //Find the theme button which has label "Light"
-    const $themeButton = page.getByText("Light", { exact: true });
-    await $themeButton.click();
-    //Find the update button
-    const $updateButton = page.locator("text=Update");
-    await $updateButton.click();
+    //Click the "Light" theme label
+    await page.click('[data-testid="theme-light"]');
+    //Click the update theme button
+    await page.click('[data-testid="update-theme-btn"]');
     //Wait for the toast to appear
     const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
     expect(toast).toBeTruthy();
