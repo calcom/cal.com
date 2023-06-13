@@ -300,6 +300,11 @@ const nextConfig = {
         destination: "/teams",
         permanent: true,
       },
+      {
+        source: "/settings/admin",
+        destination: "/settings/admin/flags",
+        permanent: true,
+      },
       /* V2 testers get redirected to the new settings */
       {
         source: "/settings/profile",

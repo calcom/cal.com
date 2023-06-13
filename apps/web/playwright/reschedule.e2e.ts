@@ -221,4 +221,23 @@ testBothBookers.describe("Reschedule Tests", async () => {
     expect(newBooking).not.toBeNull();
     expect(newBooking?.status).toBe(BookingStatus.ACCEPTED);
   });
+
+  test("Attendee should be able to reschedule a booking", async ({ page, users, bookings }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes[0];
+    const booking = await bookings.create(user.id, user.username, eventType.id);
+
+    // Go to attendee's reschedule link
+    await page.goto(`/reschedule/${booking.uid}`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+    await expect(page).toHaveURL(/.*booking/);
+
+    const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } });
+    expect(newBooking).not.toBeNull();
+    expect(newBooking?.status).toBe(BookingStatus.ACCEPTED);
+  });
 });
