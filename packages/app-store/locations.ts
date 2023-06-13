@@ -74,7 +74,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
   {
     default: true,
     type: DefaultEventLocationTypeEnum.AttendeeInPerson,
-    label: "attendee_in_person",
+    label: "in_person_attendee_address",
     variable: "address",
     organizerInputType: null,
     messageForOrganizer: "Cal will ask your invitee to enter an address before scheduling.",

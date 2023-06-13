@@ -8,8 +8,6 @@ Fixes # (issue)
  Loom Video: https://www.loom.com/
 -->
 
-**Environment**: Staging(main branch) / Production
-
 ## Type of change
 
 <!-- Please delete bullets that are not relevant. -->
@@ -27,13 +25,14 @@ Fixes # (issue)
 - [ ] Test A
 - [ ] Test B
 
+## Mandatory Tasks
+- [ ] Make sure you have self-reviewed the code. A decent size PR without self-review might be rejected.
+
 ## Checklist
 
 <!-- Please remove all the irrelevant bullets to your PR -->
-
 - I haven't read the [contributing guide](https://github.com/calcom/cal.com/blob/main/CONTRIBUTING.md)
 - My code doesn't follow the style guidelines of this project
-- I haven't performed a self-review of my own code and corrected any misspellings
 - I haven't commented my code, particularly in hard-to-understand areas
 - I haven't checked if my PR needs changes to the documentation
 - I haven't checked if my changes generate no new warnings

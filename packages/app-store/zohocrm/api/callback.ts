@@ -54,6 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   await prisma.credential.create({
     data: {
       type: "zohocrm_other_calendar",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       key: zohoCrmTokenInfo.data as any,
       userId: req.session.user.id,
       appId: "zohocrm",

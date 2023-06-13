@@ -15,7 +15,7 @@ const HorizontalTabs = function ({ tabs, linkProps, actions, ...props }: NavTabP
         aria-label="Tabs"
         {...props}>
         {tabs.map((tab, idx) => (
-          <HorizontalTabItem {...tab} key={idx} {...linkProps} />
+          <HorizontalTabItem className="py-2.5 px-4" {...tab} key={idx} {...linkProps} />
         ))}
       </nav>
       {actions && actions}

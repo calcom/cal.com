@@ -1133,12 +1133,7 @@ export const EmbedDialog = () => {
   const router = useRouter();
   const embedUrl: string = router.query.embedUrl as string;
   return (
-    <Dialog
-      name="embed"
-      clearQueryParamsOnClose={queryParamsForDialog}
-      onOpenChange={(open) => {
-        if (!open) window.resetEmbedStatus();
-      }}>
+    <Dialog name="embed" clearQueryParamsOnClose={queryParamsForDialog}>
       {!router.query.embedType ? (
         <ChooseEmbedTypesDialogContent />
       ) : (
