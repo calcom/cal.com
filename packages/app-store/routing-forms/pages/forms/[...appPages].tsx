@@ -124,7 +124,6 @@ export default function RoutingForms({
                   Icon={GitMerge}
                   headline={t("create_your_first_form")}
                   description={t("create_your_first_form_description")}
-                  buttonRaw={<NewFormButton />}
                 />
               ) : null}
               {forms?.length ? (
