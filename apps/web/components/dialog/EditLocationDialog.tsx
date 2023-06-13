@@ -57,12 +57,15 @@ const LocationInput = (props: {
       <Input {...locationFormMethods.register(eventLocationType.variable)} type="text" {...remainingProps} />
     );
   } else if (eventLocationType?.organizerInputType === "phone") {
+    const { defaultValue, ...rest } = remainingProps;
+
     return (
       <Controller
         name={eventLocationType.variable}
         control={control}
+        defaultValue={defaultValue}
         render={({ field: { onChange, value } }) => {
-          return <PhoneInput onChange={onChange} value={value} {...remainingProps} />;
+          return <PhoneInput onChange={onChange} value={value} {...rest} />;
         }}
       />
     );
