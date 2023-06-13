@@ -29,31 +29,30 @@ runs:
       run: |
         echo "CACHE_FOLDER=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
 
-    # Yarn rotates the downloaded cache archives, @see https://github.com/actions/setup-node/issues/325
-    # Yarn cache is also reusable between arch and os.
-    - name: Restore yarn cache
-      uses: buildjet/cache@v3
-      id: yarn-download-cache
-      with:
-        path: ${{ steps.yarn-config.outputs.CACHE_FOLDER }}
-        key: yarn-download-cache-${{ hashFiles('yarn.lock') }}
-        restore-keys: |
-          yarn-download-cache-
+    # # Yarn rotates the downloaded cache archives, @see https://github.com/actions/setup-node/issues/325
+    # # Yarn cache is also reusable between arch and os.
+    # - name: Restore yarn cache
+    #   uses: buildjet/setup-node@v3
+    #   id: yarn-download-cache
+    #   with:
+    #     path: ${{ steps.yarn-config.outputs.CACHE_FOLDER }}
+    #     key: yarn-download-cache-${{ hashFiles('yarn.lock') }}
+    #     restore-keys: |
+    #       yarn-download-cache-
 
-    # Invalidated on yarn.lock changes
-    - name: Restore yarn install state
-      id: yarn-install-state-cache
-      uses: buildjet/cache@v3
-      with:
-        path: .yarn/ci-cache/
-        key: ${{ runner.os }}-yarn-install-state-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
+    # # Invalidated on yarn.lock changes
+    # - name: Restore yarn install state
+    #   id: yarn-install-state-cache
+    #   uses: buildjet/cache@v3
+    #   with:
+    #     path: .yarn/ci-cache/
+    #     key: ${{ runner.os }}-yarn-install-state-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
 
     - name: Install dependencies
       shell: bash
       run: |
         yarn install --inline-builds
         yarn prisma generate
-      if: steps.yarn-install-state-cache.outputs.cache-hit != 'true'
       env:
         # CI optimizations. Overrides yarnrc.yml options (or their defaults) in the CI action.
         YARN_ENABLE_IMMUTABLE_INSTALLS: "false" # So it doesn't try to remove our private submodule deps
