@@ -98,9 +98,9 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                         </div>
                       </div>
 
-                      <ul className="mt-2 flex flex-wrap space-x-2 sm:flex-nowrap ">
+                      <ul className="mt-1 flex flex-wrap space-x-2 sm:flex-nowrap ">
                         <li>
-                          <Badge size="lg" variant="gray">
+                          <Badge variant="gray">
                             <div>
                               {getActionIcon(workflow.steps)}
 
@@ -115,7 +115,7 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                           </Badge>
                         </li>
                         <li>
-                          <Badge size="lg" variant="gray">
+                          <Badge variant="gray">
                             {workflow.activeOn && workflow.activeOn.length > 0 ? (
                               <Tooltip
                                 content={workflow.activeOn
@@ -148,7 +148,7 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                         <div className="block md:hidden">
                           {workflow.team?.name && (
                             <li>
-                              <Badge size="lg" variant="gray">
+                              <Badge variant="gray">
                                 <>{workflow.team.name}</>
                               </Badge>
                             </li>
@@ -160,7 +160,7 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                   <div>
                     <div className="hidden md:block">
                       {workflow.team?.name && (
-                        <Badge size="lg" className="mr-4 mt-1 p-[1px] px-2" variant="gray">
+                        <Badge className="mr-4 mt-1 p-[1px] px-2" variant="gray">
                           <Avatar
                             alt={workflow.team?.name || ""}
                             href={
