@@ -192,7 +192,20 @@ function getProfileFromEvent(event: Event) {
   if (!profile) throw new Error("Event has no owner");
 
   const username = "username" in profile ? profile.username : team?.slug;
-  if (!username) throw new Error("Event has no username/team slug");
+  if (!username) {
+    if (event.slug === "test") {
+      // @TODO: This is a temporary debug statement that should be removed asap.
+      throw new Error(
+        "Ciaran event error" +
+          JSON.stringify(team) +
+          " -- " +
+          JSON.stringify(hosts) +
+          " -- " +
+          JSON.stringify(owner)
+      );
+    }
+    throw new Error("Event has no username/team slug");
+  }
   const weekStart = hosts?.[0]?.user?.weekStart || owner?.weekStart || "Monday";
   const basePath = team ? `/team/${username}` : `/${username}`;
   const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
