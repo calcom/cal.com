@@ -1093,7 +1093,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     ))}
                     {isBookerLayoutsEnabled && (
                       <Label className="mb-6">
-                        <div className="mb-2">Layout</div>
+                        <div className="mb-2">{t("layout")}</div>
                         <Select
                           className="w-full"
                           defaultValue={layoutOptions[0]}
