@@ -44,7 +44,7 @@ type PreviewState = {
     height: string;
   };
   theme: Theme;
-  floatingPopup: Record<string, string | boolean>;
+  floatingPopup: Record<string, string | boolean | undefined>;
   elementClick: Record<string, string>;
   palette: {
     brandColor: string;
