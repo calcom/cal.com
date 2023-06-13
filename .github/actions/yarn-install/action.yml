@@ -32,7 +32,7 @@ runs:
     # Yarn rotates the downloaded cache archives, @see https://github.com/actions/setup-node/issues/325
     # Yarn cache is also reusable between arch and os.
     - name: Restore yarn cache
-      uses: buildjet/setup-node@v3
+      uses: buildjet/cache@v3
       id: yarn-download-cache
       with:
         path: ${{ steps.yarn-config.outputs.CACHE_FOLDER }}
