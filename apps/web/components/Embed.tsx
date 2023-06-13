@@ -814,9 +814,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   ];
 
   const layoutOptions = [
-    { value: BookerLayouts.MONTH_VIEW, label: "Month view" },
-    { value: BookerLayouts.WEEK_VIEW, label: "Week view" },
-    { value: BookerLayouts.COLUMN_VIEW, label: "Column view" },
+    { value: BookerLayouts.MONTH_VIEW, label: t("bookerlayout_month_view") },
+    { value: BookerLayouts.WEEK_VIEW, label: t("bookerlayout_week_view") },
+    { value: BookerLayouts.COLUMN_VIEW, label: t("bookerlayout_column_view") },
   ];
 
   const FloatingPopupPositionOptions = [
