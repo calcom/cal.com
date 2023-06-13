@@ -180,7 +180,7 @@ export default function RoutingForms({
                             <>
                               {form.team?.name && (
                                 <div className="border-r-2 border-neutral-300">
-                                  <Badge size="lg" className="ltr:mr-2 rtl:ml-2" variant="gray">
+                                  <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
                                     {form.team.name}
                                   </Badge>
                                 </div>
@@ -266,13 +266,13 @@ export default function RoutingForms({
                             </>
                           }>
                           <div className="flex flex-wrap gap-1">
-                            <Badge size="lg" variant="gray" startIcon={Menu}>
+                            <Badge variant="gray" startIcon={Menu}>
                               {fields.length} {fields.length === 1 ? "field" : "fields"}
                             </Badge>
-                            <Badge size="lg" variant="gray" startIcon={GitMerge}>
+                            <Badge variant="gray" startIcon={GitMerge}>
                               {userRoutes.length} {userRoutes.length === 1 ? "route" : "routes"}
                             </Badge>
-                            <Badge size="lg" variant="gray" startIcon={MessageCircle}>
+                            <Badge variant="gray" startIcon={MessageCircle}>
                               {form._count.responses} {form._count.responses === 1 ? "response" : "responses"}
                             </Badge>
                           </div>
