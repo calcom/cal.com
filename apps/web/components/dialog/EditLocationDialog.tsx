@@ -91,6 +91,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   useEffect(() => {
     if (selection) {
       locationFormMethods.setValue("locationType", selection?.value);
+      if (selection?.address) {
+        locationFormMethods.setValue("locationAddress", selection?.address);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selection]);
@@ -152,11 +155,24 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     name: "locationType",
   });
 
+  const selectedAddrValue = useWatch({
+    control: locationFormMethods.control,
+    name: "locationAddress",
+  });
+
   const eventLocationType = getEventLocationType(selectedLocation);
 
   const defaultLocation = defaultValues?.find(
-    (location: { type: EventLocationType["type"] }) => location.type === eventLocationType?.type
+    (location: { type: EventLocationType["type"]; address?: string }) => {
+      if (location.type === LocationType.InPerson) {
+        return location.type === eventLocationType?.type && location.address === selectedAddrValue;
+      } else {
+        return location.type === eventLocationType?.type;
+      }
+    }
   );
+
+  console.log(defaultLocation);
 
   const LocationOptions = (() => {
     if (eventLocationType && eventLocationType.organizerInputType && LocationInput) {
