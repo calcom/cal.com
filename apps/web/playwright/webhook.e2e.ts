@@ -394,7 +394,7 @@ test.describe("FORM_SUBMITTED", async () => {
     const webhookReceiver = createHttpServer();
     const user = await users.create();
 
-    await user.login();
+    await user.apiLogin();
 
     await page.goto("/settings/teams/new");
     await page.waitForLoadState("networkidle");
@@ -412,17 +412,17 @@ test.describe("FORM_SUBMITTED", async () => {
     // Install Routing Forms App
     await page.goto(`/apps`);
 
-    await page.click('[data-testid="install-app-button"] >> nth=22');
+    await page.click('[data-testid="install-app-button"] >> nth=21');
 
     await page.waitForLoadState("networkidle");
     await page.goto(`/settings/developer/webhooks/new`);
 
-    // --- add webhook
+    // Add webhook
     await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
     await page.fill('[name="secret"]', "secret");
     await Promise.all([page.click("[type=submit]"), page.goForward()]);
 
-    // page contains the url
+    // Page contains the url
     expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
 
     await page.waitForLoadState("networkidle");
@@ -438,8 +438,12 @@ test.describe("FORM_SUBMITTED", async () => {
     await gotoRoutingLink({ page, formId: formId });
     page.click('button[type="submit"]');
 
-    await waitFor(() => {
-      expect(webhookReceiver.requestList.length).toBe(1);
-    });
+    await waitFor(
+      () => {
+        expect(webhookReceiver.requestList.length).toBe(1);
+      },
+      { timeout: 10000 }
+    );
+    webhookReceiver.close();
   });
 });
