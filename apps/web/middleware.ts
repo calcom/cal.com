@@ -82,17 +82,18 @@ const middleware: NextMiddleware = async (req) => {
 
   if (isValidOrgDomain) {
     // Match /:slug to determine if it corresponds to org subteam slug or org user slug
-    const [first, slug, ...rest] = url.pathname.split("/");
+    const slugs = /^\/([^/]+)(\/[^/]+)?$/.exec(url.pathname);
     // In the presence of an organization, if not team profile, a user or team is being accessed
-    if (first === "" && rest.length === 0) {
+    if (slugs) {
+      const [_, teamName, eventType] = slugs;
       // Fetch the corresponding subteams for the entered organization
       const getSubteams = await fetch(`${WEBAPP_URL}/api/organizations/${currentOrgDomain}/subteams`);
       if (getSubteams.ok) {
         const data = await getSubteams.json();
         // Treat entered slug as a team if found in the subteams fetched
-        if (data.slugs.includes(slug)) {
+        if (data.slugs.includes(teamName)) {
           // Rewriting towards /team/:slug to bring up the team profile within the org
-          url.pathname = `/team/${slug}`;
+          url.pathname = `/team/${teamName}${eventType ?? ""}`;
           return NextResponse.rewrite(url);
         }
       }
@@ -108,7 +109,6 @@ const middleware: NextMiddleware = async (req) => {
 
 export const config = {
   matcher: [
-    "/",
     "/:path*",
     "/api/collect-events/:path*",
     "/api/auth/:path*",

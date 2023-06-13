@@ -1,7 +1,9 @@
 import type { GetStaticPaths, GetStaticPropsContext } from "next";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 
 import type { LocationObject } from "@calcom/app-store/locations";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,6 +21,12 @@ export type AvailabilityPageProps = inferSSRProps<typeof getStaticProps> & Embed
 
 export default function Type(props: AvailabilityPageProps) {
   const { t } = useLocale();
+  const [isValidOrgDomain, setIsValidOrgDomain] = useState(false);
+
+  useEffect(() => {
+    const { isValidOrgDomain } = orgDomainConfig(window.location.host ?? "");
+    setIsValidOrgDomain(isValidOrgDomain);
+  }, []);
 
   return props.away ? (
     <div className="dark:bg-inverted h-screen">
@@ -45,6 +53,21 @@ export default function Type(props: AvailabilityPageProps) {
                 {" " + t("unavailable")}
               </h2>
               <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled")}</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  ) : !isValidOrgDomain && props.organizationContext ? (
+    <div className="dark:bg-darkgray-50 h-screen">
+      <main className="mx-auto max-w-3xl px-4 py-24">
+        <div className="space-y-6" data-testid="event-types">
+          <div className="overflow-hidden rounded-sm border dark:border-gray-900">
+            <div className="text-muted dark:text-inverted p-8 text-center">
+              <h2 className="font-cal dark:text-inverted text-emphasis600 mb-2 text-3xl">
+                {" " + t("unavailable")}
+              </h2>
+              <p className="mx-auto max-w-md">{t("user_belongs_organization")}</p>
             </div>
           </div>
         </div>
@@ -87,6 +110,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       brandColor: true,
       darkBrandColor: true,
       metadata: true,
+      organizationId: true,
       eventTypes: {
         where: {
           // Many-to-many relationship causes inclusion of the team events - cool -
@@ -108,6 +132,17 @@ async function getUserPageProps(context: GetStaticPropsContext) {
           schedulingType: true,
           metadata: true,
           seatsPerTimeSlot: true,
+          team: {
+            select: {
+              logo: true,
+              parent: {
+                select: {
+                  logo: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
         orderBy: [
           {
@@ -179,6 +214,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       },
       // Dynamic group has no theme preference right now. It uses system theme.
       themeBasis: user.username,
+      organizationContext: user?.organizationId !== null,
       away: user?.away,
       isDynamic: false,
       trpcState: ssg.dehydrate(),
@@ -230,6 +266,7 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
       defaultScheduleId: true,
       allowDynamicBooking: true,
       metadata: true,
+      organizationId: true,
       away: true,
       schedules: {
         select: {
@@ -313,6 +350,7 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
       themeBasis: null,
       isDynamic: true,
       away: false,
+      organizationContext: !users.some((user) => user.organizationId === null),
       trpcState: ssg.dehydrate(),
       isBrandingHidden: false, // I think we should always show branding for dynamic groups - saves us checking every single user
     },
