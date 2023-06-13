@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 import { test } from "@calcom/web/playwright/lib/fixtures";
+import { gotoRoutingLink } from "@calcom/web/playwright/lib/testUtils";
 
 function todo(title: string) {
   // eslint-disable-next-line playwright/no-skipped-test, @typescript-eslint/no-empty-function
@@ -136,7 +137,7 @@ test.describe("Routing Forms", () => {
         label: "Test Field",
       });
       const queryString =
-        "firstField=456&Test Field Number=456&Test Field Select=456&Test Field MultiSelect=456&Test Field MultiSelect=789&Test Field Phone=456&Test Field Email=456@example.com";
+        "firstField=456&Test Field Number=456&Test Field Single Selection=456&Test Field Multiple Selection=456&Test Field Multiple Selection=789&Test Field Phone=456&Test Field Email=456@example.com";
 
       await gotoRoutingLink({ page, queryString });
 
@@ -167,8 +168,8 @@ test.describe("Routing Forms", () => {
       // All other params come from prefill URL
       expect(url.searchParams.get("Test Field Number")).toBe("456");
       expect(url.searchParams.get("Test Field Long Text")).toBe("manual-fill");
-      expect(url.searchParams.get("Test Field Select")).toBe("456");
-      expect(url.searchParams.getAll("Test Field MultiSelect")).toMatchObject(["456", "789"]);
+      expect(url.searchParams.get("Test Field Multiple Selection")).toBe("456");
+      expect(url.searchParams.getAll("Test Field Multiple Selection")).toMatchObject(["456", "789"]);
       expect(url.searchParams.get("Test Field Phone")).toBe("456");
       expect(url.searchParams.get("Test Field Email")).toBe("456@example.com");
     });
@@ -447,7 +448,7 @@ async function addAllTypesOfFieldsAndSaveForm(
 
   const { optionsInUi: fieldTypesList } = await verifySelectOptions(
     { selector: ".data-testid-field-type", nth: 0 },
-    ["Email", "Long Text", "MultiSelect", "Number", "Phone", "Select", "Short Text"],
+    ["Email", "Long Text", "Multiple Selection", "Number", "Phone", "Single Selection", "Short Text"],
     page
   );
 
@@ -463,7 +464,7 @@ async function addAllTypesOfFieldsAndSaveForm(
       // Click on the field type dropdown.
       await page.locator(".data-testid-field-type").nth(nth).click();
       // Click on the dropdown option.
-      await page.locator(`[data-testid="select-option-${fieldTypeLabel}"]`).click();
+      await page.locator(`[data-testid^="select-option-"]`).filter({ hasText: fieldTypeLabel }).click();
     } else {
       // Set the identifier manually for the first field to test out a case when identifier isn't computed from label automatically
       // First field type is by default selected. So, no need to choose from dropdown
@@ -507,7 +508,7 @@ export async function addOneFieldAndDescriptionAndSaveForm(
   // Verify all Options of SelectBox
   const { optionsInUi: types } = await verifySelectOptions(
     { selector: ".data-testid-field-type", nth: 0 },
-    ["Email", "Long Text", "MultiSelect", "Number", "Phone", "Select", "Short Text"],
+    ["Email", "Long Text", "Multiple Selection", "Number", "Phone", "Single Selection", "Short Text"],
     page
   );
 
@@ -593,33 +594,6 @@ async function selectNewRoute(page: Page, { routeSelectNumber = 1 } = {}) {
     option: routeSelectNumber,
     page,
   });
-}
-
-async function gotoRoutingLink({
-  page,
-  formId,
-  queryString = "",
-}: {
-  page: Page;
-  formId?: string;
-  queryString?: string;
-}) {
-  let previewLink = null;
-  if (!formId) {
-    // Instead of clicking on the preview link, we are going to the preview link directly because the earlier opens a new tab which is a bit difficult to manage with Playwright
-    const href = await page.locator('[data-testid="form-action-preview"]').getAttribute("href");
-    if (!href) {
-      throw new Error("Preview link not found");
-    }
-    previewLink = href;
-  } else {
-    previewLink = `/forms/${formId}`;
-  }
-
-  await page.goto(`${previewLink}${queryString ? `?${queryString}` : ""}`);
-
-  // HACK: There seems to be some issue with the inputs to the form getting reset if we don't wait.
-  await new Promise((resolve) => setTimeout(resolve, 500));
 }
 
 async function saveCurrentForm(page: Page) {

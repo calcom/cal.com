@@ -310,7 +310,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
           <div data-testid="booking-fail">
             <Alert
               ref={errorRef}
-              className="mt-2"
+              className="my-2"
               severity="info"
               title={rescheduleUid ? t("reschedule_fail") : t("booking_fail")}
               message={getError(

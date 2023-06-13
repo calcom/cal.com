@@ -12,7 +12,8 @@ export default function ThemeLabel(props: ThemeLabelProps) {
   return (
     <label
       className="relative mb-4 flex-1 cursor-pointer text-center last:mb-0 last:mr-0 sm:mr-4 sm:mb-0"
-      htmlFor={`theme-${variant}`}>
+      htmlFor={`theme-${variant}`}
+      data-testid={`theme-${variant}`}>
       <input
         className="peer absolute top-8 left-8"
         type="radio"

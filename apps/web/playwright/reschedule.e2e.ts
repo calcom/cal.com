@@ -25,7 +25,7 @@ testBothBookers.describe("Reschedule Tests", async () => {
       status: BookingStatus.ACCEPTED,
     });
 
-    await user.login();
+    await user.apiLogin();
     await page.goto("/bookings/upcoming");
 
     await page.locator('[data-testid="edit_booking"]').nth(0).click();
@@ -39,9 +39,9 @@ testBothBookers.describe("Reschedule Tests", async () => {
 
     const updatedBooking = await booking.self();
 
-    expect(updatedBooking.rescheduled).toBe(true);
-    expect(updatedBooking.cancellationReason).toBe("I can't longer have it");
-    expect(updatedBooking.status).toBe(BookingStatus.CANCELLED);
+    expect(updatedBooking?.rescheduled).toBe(true);
+    expect(updatedBooking?.cancellationReason).toBe("I can't longer have it");
+    expect(updatedBooking?.status).toBe(BookingStatus.CANCELLED);
     await booking.delete();
   });
 
@@ -69,7 +69,7 @@ testBothBookers.describe("Reschedule Tests", async () => {
       rescheduled: true,
     });
 
-    await user.login();
+    await user.apiLogin();
     await page.goto("/bookings/cancelled");
 
     const requestRescheduleSentElement = page.locator('[data-testid="request_reschedule_sent"]').nth(1);
@@ -117,7 +117,7 @@ testBothBookers.describe("Reschedule Tests", async () => {
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(!IS_STRIPE_ENABLED, "Skipped as Stripe is not installed");
     const user = await users.create();
-    await user.login();
+    await user.apiLogin();
     await user.getPaymentCredential();
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const eventType = user.eventTypes.find((e) => e.slug === "paid")!;
@@ -158,7 +158,7 @@ testBothBookers.describe("Reschedule Tests", async () => {
 
   test("Paid rescheduling should go to success page", async ({ page, users, bookings, payments }) => {
     const user = await users.create();
-    await user.login();
+    await user.apiLogin();
     await user.getPaymentCredential();
     await users.logout();
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -207,9 +207,28 @@ testBothBookers.describe("Reschedule Tests", async () => {
     const booking = await bookings.create(user.id, user.username, eventType.id, {
       status: BookingStatus.ACCEPTED,
     });
-    await user.login();
+    await user.apiLogin();
 
     await page.goto(`/${user.username}/${eventType.slug}?rescheduleUid=${booking.uid}`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+    await expect(page).toHaveURL(/.*booking/);
+
+    const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } });
+    expect(newBooking).not.toBeNull();
+    expect(newBooking?.status).toBe(BookingStatus.ACCEPTED);
+  });
+
+  test("Attendee should be able to reschedule a booking", async ({ page, users, bookings }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes[0];
+    const booking = await bookings.create(user.id, user.username, eventType.id);
+
+    // Go to attendee's reschedule link
+    await page.goto(`/reschedule/${booking.uid}`);
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 

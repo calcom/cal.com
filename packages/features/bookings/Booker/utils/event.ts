@@ -37,8 +37,8 @@ export const useEvent = () => {
 export const useScheduleForEvent = ({ prefetchNextMonth }: { prefetchNextMonth?: boolean } = {}) => {
   const { timezone } = useTimePreferences();
   const event = useEvent();
-  const [username, eventSlug, month] = useBookerStore(
-    (state) => [state.username, state.eventSlug, state.month],
+  const [username, eventSlug, month, duration] = useBookerStore(
+    (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
     shallow
   );
 
@@ -49,5 +49,6 @@ export const useScheduleForEvent = ({ prefetchNextMonth }: { prefetchNextMonth?:
     month,
     timezone,
     prefetchNextMonth,
+    duration,
   });
 };

@@ -9,7 +9,7 @@ test.describe.configure({ mode: "parallel" });
 test.fixme("hash my url", () => {
   test.beforeEach(async ({ users }) => {
     const user = await users.create();
-    await user.login();
+    await user.apiLogin();
   });
   test.afterEach(async ({ users }) => {
     await users.deleteAll();

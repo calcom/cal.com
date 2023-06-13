@@ -11,7 +11,8 @@ type Theme = "dark" | "light";
 export type EmbedThemeConfig = Theme | "auto";
 export type UiConfig = {
   hideEventTypeDetails?: boolean;
-  theme?: EmbedThemeConfig;
+  // If theme not provided we would get null
+  theme?: EmbedThemeConfig | null;
   styles?: EmbedStyles & EmbedNonStylesConfig;
   //TODO: Extract from tailwind the list of all custom variables and support them in auto-completion as well as runtime validation. Followup with listing all variables in Embed Snippet Generator UI.
   cssVarsPerTheme?: Record<Theme, Record<string, string>>;
@@ -46,9 +47,8 @@ declare global {
     };
     CalComPageStatus: string;
     isEmbed?: () => boolean;
-    resetEmbedStatus: () => void;
     getEmbedNamespace: () => string | null;
-    getEmbedTheme: () => "dark" | "light" | null;
+    getEmbedTheme: () => EmbedThemeConfig | null;
   }
 }
 
@@ -434,7 +434,7 @@ if (isBrowser) {
   // Exposes certain global variables/fns that are used by the app to get interface with the embed.
   embedInit();
   const url = new URL(document.URL);
-  embedStore.theme = window?.getEmbedTheme?.() as UiConfig["theme"];
+  embedStore.theme = window?.getEmbedTheme?.();
   if (url.searchParams.get("prerender") !== "true" && window?.isEmbed?.()) {
     log("Initializing embed-iframe");
     // HACK
