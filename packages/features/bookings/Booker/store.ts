@@ -9,6 +9,8 @@ import type { BookerState, BookerLayout } from "./types";
 import { validateLayout } from "./utils/layout";
 import { updateQueryParam, getQueryParam, removeQueryParam } from "./utils/query-param";
 
+export { BookerLayouts };
+
 /**
  * Arguments passed into store initializer, containing
  * the event data.

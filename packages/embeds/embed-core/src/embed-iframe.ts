@@ -3,8 +3,7 @@ import type { CSSProperties } from "react";
 import { useState, useEffect } from "react";
 
 import embedInit from "@calcom/embed-core/embed-iframe-init";
-import type { BookerStore } from "@calcom/features/bookings/booker/store";
-import type { BookerLayouts } from "@calcom/prisma/zod-utils";
+import type { BookerStore, BookerLayouts } from "@calcom/features/bookings/booker/store";
 
 import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
