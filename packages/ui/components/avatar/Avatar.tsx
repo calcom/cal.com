@@ -24,7 +24,7 @@ export type AvatarProps = {
 };
 
 const sizesPropsBySize = {
-  xxs: "w-[14px] h-[14px]", // 14px
+  xxs: "w-3.5 h-3.5", // 14px
   xs: "w-4 h-4", // 16px
   sm: "w-6 h-6", // 24px
   md: "w-8 h-8", // 32px
