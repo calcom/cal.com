@@ -325,6 +325,7 @@ function getOrgConnectionInfo({
       autoAccept = orgVerified ?? true;
     } else {
       // No longer throw error - not needed we just dont auto accept them
+      orgId = undefined;
       autoAccept = false;
     }
   }
