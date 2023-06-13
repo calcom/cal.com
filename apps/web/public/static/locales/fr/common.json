@@ -854,6 +854,7 @@
   "installed_app_payment_description": "Configurez les services de traitement de paiement à utiliser lors de la facturation de vos clients.",
   "installed_app_analytics_description": "Configurez les applications d'analyse à utiliser pour vos pages de réservation.",
   "installed_app_other_description": "Toutes vos applications installées à partir d'autres catégories.",
+  "installed_app_conferencing_description": "Configurez les applications de conférence à utiliser.",
   "installed_app_automation_description": "Configurez les applications d'automatisation à utiliser.",
   "installed_app_web3_description": "Configurez les applications Web3 à utiliser pour vos pages de réservation.",
   "analytics": "Analytiques",
@@ -1694,6 +1695,7 @@
   "switch_monthly": "Passer en vue mensuelle",
   "switch_weekly": "Passer en vue hebdomadaire",
   "switch_multiday": "Passer en vue journalière",
+  "switch_columnview": "Passer en vue colonne",
   "num_locations": "{{num}} options de lieu",
   "select_on_next_step": "Sélectionner à l'étape suivante",
   "this_meeting_has_not_started_yet": "Ce rendez-vous n'a pas encore commencé",
@@ -1818,5 +1820,6 @@
   "first_event_type_webhook_description": "Créez votre premier webhook pour ce type d'événement",
   "create_for": "Créer pour",
   "additional_url_parameters": "Paramètres d'URL supplémentaires",
+  "sender_id_info": "Nom ou numéro affiché comme expéditeur d'un SMS (certains pays n'autorisent pas les ID d'expéditeur alphanumériques)",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

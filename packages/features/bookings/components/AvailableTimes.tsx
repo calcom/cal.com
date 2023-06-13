@@ -83,6 +83,7 @@ export const AvailableTimes = ({
               key={slot.time}
               disabled={bookingFull}
               data-testid="time"
+              data-disabled={bookingFull}
               data-time={slot.time}
               onClick={() => onTimeSelect(slot.time)}
               className="min-h-9 mb-2 flex h-auto w-full flex-col justify-center py-2"

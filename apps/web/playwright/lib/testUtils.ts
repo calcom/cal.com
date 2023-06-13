@@ -92,7 +92,7 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
   await page.waitForTimeout(1000);
   // TODO: Find out why the first day is always booked on tests
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-  await page.locator('[data-testid="time"]').nth(0).click();
+  await page.locator('[data-testid="time"][data-disabled="false"]').nth(0).click();
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
@@ -110,7 +110,7 @@ export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   await page.waitForTimeout(1000);
   // TODO: Find out why the first day is always booked on tests
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-  await page.locator('[data-testid="time"]').nth(1).click();
+  await page.locator('[data-testid="time"][data-disabled="false"]').nth(1).click();
 }
 
 async function bookEventOnThisPage(page: Page) {
