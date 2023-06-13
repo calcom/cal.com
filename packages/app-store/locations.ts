@@ -148,6 +148,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
 
 export type LocationObject = {
   type: string;
+  address?: string;
   displayLocationPublicly?: boolean;
 } & Partial<
   Record<"address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone", string>

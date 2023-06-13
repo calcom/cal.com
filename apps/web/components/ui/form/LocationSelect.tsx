@@ -13,6 +13,7 @@ export type LocationOption = {
   disabled?: boolean;
   teamCredential?: boolean;
   credentialId?: number;
+  address?: string;
 };
 
 export type SingleValueLocationOption = SingleValue<LocationOption>;
