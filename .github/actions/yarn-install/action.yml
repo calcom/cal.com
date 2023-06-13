@@ -53,6 +53,7 @@ runs:
       run: |
         yarn install --inline-builds
         yarn prisma generate
+      if: steps.yarn-install-state-cache.outputs.cache-hit != 'true'
       env:
         # CI optimizations. Overrides yarnrc.yml options (or their defaults) in the CI action.
         YARN_ENABLE_IMMUTABLE_INSTALLS: "false" # So it doesn't try to remove our private submodule deps
