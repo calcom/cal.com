@@ -142,6 +142,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
       teamId: group.teamId,
       ...group.profile,
       ...group.metadata,
+      image: `${CAL_URL}/${group.profile.slug}/avatar.png`,
     })),
   };
 };

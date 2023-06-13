@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -16,6 +17,7 @@ import {
   DropdownMenuTrigger,
   Tooltip,
   Badge,
+  Avatar,
 } from "@calcom/ui";
 import { Edit2, Link as LinkIcon, MoreHorizontal, Trash2 } from "@calcom/ui/components/icon";
 
@@ -96,9 +98,9 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                         </div>
                       </div>
 
-                      <ul className="mt-1 flex flex-wrap space-x-2 sm:flex-nowrap ">
+                      <ul className="mt-2 flex flex-wrap space-x-2 sm:flex-nowrap ">
                         <li>
-                          <Badge variant="gray">
+                          <Badge size="lg" variant="gray">
                             <div>
                               {getActionIcon(workflow.steps)}
 
@@ -113,7 +115,7 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                           </Badge>
                         </li>
                         <li>
-                          <Badge variant="gray">
+                          <Badge size="lg" variant="gray">
                             {workflow.activeOn && workflow.activeOn.length > 0 ? (
                               <Tooltip
                                 content={workflow.activeOn
@@ -148,8 +150,19 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                   </Link>
                   <div>
                     {workflow.team?.name && (
-                      <Badge className="mr-4" variant="gray">
-                        {workflow.team.name}
+                      <Badge size="lg" className="mr-4 mt-1 p-[1px] px-2" variant="gray">
+                        <Avatar
+                          alt={workflow.team?.name || ""}
+                          href={
+                            workflow.team?.id
+                              ? `/settings/teams/${workflow.team?.id}/profile`
+                              : "/settings/my-account/profile"
+                          }
+                          imageSrc={`${WEBAPP_URL}/${workflow.team?.slug}/avatar.png` || undefined}
+                          size="xxs"
+                          className="mt-[3px] inline-flex justify-center"
+                        />
+                        <div>{workflow.team.name}</div>
                       </Badge>
                     )}
                   </div>
