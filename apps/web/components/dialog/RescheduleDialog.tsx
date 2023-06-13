@@ -55,7 +55,7 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
             </p>
             <TextArea
               data-testid="reschedule_reason"
-              name={t("reschedule_reason")}
+              name={t("reason_for_reschedule")}
               value={rescheduleReason}
               onChange={(e) => setRescheduleReason(e.target.value)}
               className="mb-5 sm:mb-6"

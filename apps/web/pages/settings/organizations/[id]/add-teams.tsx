@@ -25,7 +25,7 @@ AddNewTeamsPage.getLayout = (page: React.ReactElement, router: NextRouter) => (
       currentStep={5}
       maxSteps={5}
       isOptionalCallback={() => {
-        router.push(`/getting-started`);
+        router.push(`/event-types`);
       }}>
       {page}
     </WizardLayout>
