@@ -96,7 +96,7 @@ export default function RoutingForms({
   return (
     <ShellMain
       heading="Routing Forms"
-      CTA={hasPaidPlan && <NewFormButton />}
+      CTA={hasPaidPlan && forms?.length && <NewFormButton />}
       subtitle={t("routing_forms_description")}>
       <UpgradeTip
         title={t("teams_plan_required")}
