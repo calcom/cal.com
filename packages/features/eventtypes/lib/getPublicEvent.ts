@@ -68,6 +68,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       weekStart: true,
       username: true,
       name: true,
+      theme: true,
     },
   },
   hidden: true,
