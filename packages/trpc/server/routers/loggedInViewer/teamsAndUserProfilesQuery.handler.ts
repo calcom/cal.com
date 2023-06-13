@@ -1,7 +1,7 @@
 import { type PrismaClient } from "@prisma/client";
 
 import { CAL_URL } from "@calcom/lib/constants";
-import { withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils";
+import { isOrganization, withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -36,6 +36,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
               id: true,
               name: true,
               slug: true,
+              metadata: true,
               members: {
                 select: {
                   userId: true,
@@ -51,6 +52,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
   const image = user?.username ? `${CAL_URL}/${user.username}/avatar.png` : undefined;
+  const nonOrgTeams = user.teams.filter((membership) => !isOrganization({ team: membership.team }));
 
   return [
     {
@@ -60,7 +62,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
       image,
       readOnly: false,
     },
-    ...user.teams.map((membership) => ({
+    ...nonOrgTeams.map((membership) => ({
       teamId: membership.team.id,
       name: membership.team.name,
       slug: membership.team.slug ? "team/" + membership.team.slug : null,

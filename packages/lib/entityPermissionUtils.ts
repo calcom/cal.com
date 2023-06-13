@@ -1,5 +1,6 @@
-import type { Membership } from "@calcom/prisma/client";
+import type { Membership, Team } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export const enum ENTITY_PERMISSION_LEVEL {
   NONE,
@@ -17,6 +18,10 @@ export function canEditEntity(
     permissionLevel === ENTITY_PERMISSION_LEVEL.TEAM_WRITE ||
     permissionLevel === ENTITY_PERMISSION_LEVEL.USER_ONLY_WRITE
   );
+}
+
+export function isOrganization({ team }: { team: { metadata: Team["metadata"] } }) {
+  return teamMetadataSchema.parse(team.metadata)?.isOrganization;
 }
 
 export function getEntityPermissionLevel(
