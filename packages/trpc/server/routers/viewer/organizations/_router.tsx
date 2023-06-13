@@ -20,6 +20,7 @@ type OrganizationsRouterHandlerCache = {
   setPassword?: typeof import("./setPassword.handler").setPasswordHandler;
   adminGetUnverified?: typeof import("./adminGetUnverified.handler").adminGetUnverifiedHandler;
   adminVerify?: typeof import("./adminVerify.handler").adminVerifyHandler;
+  listMembers?: typeof import("./listMembers.handler").listMembersHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: OrganizationsRouterHandlerCache = {};
@@ -163,8 +164,6 @@ export const viewerOrganizationsRouter = router({
         (mod) => mod.adminGetUnverifiedHandler
       );
     }
-
-    // Unreachable code but required for type safety
     if (!UNSTABLE_HANDLER_CACHE.adminGetUnverified) {
       throw new Error("Failed to load handler");
     }
@@ -186,7 +185,21 @@ export const viewerOrganizationsRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.adminVerify({
+      ctx,
       input,
+    });
+  }),
+  listMembers: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.listMembers) {
+      UNSTABLE_HANDLER_CACHE.listMembers = await import("./listMembers.handler").then(
+        (mod) => mod.listMembersHandler
+      );
+    }
+    if (!UNSTABLE_HANDLER_CACHE.listMembers) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.listMembers({
       ctx,
     });
   }),
