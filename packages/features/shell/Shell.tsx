@@ -364,13 +364,6 @@ function UserDropdown({ small }: UserDropdownProps) {
                   <span className="text-emphasis block truncate font-medium">
                     {user.name || "Nameless User"}
                   </span>
-                  <span className="text-default truncate pb-1 font-normal">
-                    {user.username
-                      ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
-                        ? `${orgBranding && orgBranding.slug}cal.com/${user.username}`
-                        : `${(orgBranding && orgBranding.slug) || ""}/${user.username}`
-                      : "No public page"}
-                  </span>
                 </span>
                 <ChevronDown
                   className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
