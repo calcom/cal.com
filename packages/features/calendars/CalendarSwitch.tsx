@@ -5,7 +5,7 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast, Switch } from "@calcom/ui";
-import { ArrowLeft, RotateCcw } from "@calcom/ui/components/icon";
+import { ArrowLeft, RotateCw } from "@calcom/ui/components/icon";
 
 interface ICalendarSwitchProps {
   title: string;
@@ -92,7 +92,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           {t("adding_events_to")}
         </span>
       )}
-      {mutation.isLoading && <RotateCcw className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />}
+      {mutation.isLoading && <RotateCw className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />}
     </div>
   );
 };
