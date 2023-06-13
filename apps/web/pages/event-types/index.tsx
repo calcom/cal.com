@@ -372,7 +372,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
           const calLink = `${
-            orgBranding ? `${orgBranding.slug}.${subdomainSuffix()}` : CAL_URL
+            orgBranding ? `${new URL(CAL_URL).protocol}//${orgBranding.slug}.${subdomainSuffix()}` : CAL_URL
           }/${embedLink}`;
           const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
           const isChildrenManagedEventType =
