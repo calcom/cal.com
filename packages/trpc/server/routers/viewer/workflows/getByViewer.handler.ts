@@ -6,6 +6,8 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
+import { compareMembership } from "../eventTypes/getByViewer.handler";
+
 type GetByViewerOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -42,6 +44,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
               id: true,
               name: true,
               slug: true,
+              parentId: true,
               metadata: true,
               members: {
                 select: {
@@ -96,26 +99,45 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     },
   });
 
+  const teamMemberships = user.teams.map((membership) => ({
+    teamId: membership.team.id,
+    membershipRole: membership.role,
+  }));
+
   workflowGroups = ([] as WorkflowGroup[]).concat(
     workflowGroups,
     user.teams
-      .filter((team) => {
-        const metadata = teamMetadataSchema.safeParse(team.team.metadata);
-        const isOrganization = metadata.success && metadata.data?.isOrganization;
-        return !isOrganization;
+      .filter((mmship) => {
+        const metadata = teamMetadataSchema.parse(mmship.team.metadata);
+        return !metadata?.isOrganization;
       })
-      .map((membership) => ({
-        teamId: membership.team.id,
-        profile: {
-          name: membership.team.name,
-          slug: "team/" + membership.team.slug,
-          image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
-        },
-        metadata: {
-          readOnly: membership.role === MembershipRole.MEMBER,
-        },
-        workflows: membership.team.workflows,
-      }))
+      .map((membership) => {
+        const orgMembership = teamMemberships.find(
+          (teamM) => teamM.teamId === membership.team.parentId
+        )?.membershipRole;
+        return {
+          teamId: membership.team.id,
+          profile: {
+            name: membership.team.name,
+            slug: membership.team.slug
+              ? !membership.team.parentId
+                ? `/team`
+                : "" + membership.team.slug
+              : null,
+            image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
+          },
+          metadata: {
+            readOnly:
+              membership.role ===
+              (membership.team.parentId
+                ? orgMembership && compareMembership(orgMembership, membership.role)
+                  ? orgMembership
+                  : MembershipRole.MEMBER
+                : MembershipRole.MEMBER),
+          },
+          workflows: membership.team.workflows,
+        };
+      })
   );
 
   return {

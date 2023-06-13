@@ -19,6 +19,12 @@ type GetByViewerOptions = {
   };
 };
 
+export const compareMembership = (mship1: MembershipRole, mship2: MembershipRole) => {
+  const mshipToNumber = (mship: MembershipRole) =>
+    Object.keys(MembershipRole).findIndex((mmship) => mmship === mship);
+  return mshipToNumber(mship1) > mshipToNumber(mship2);
+};
+
 export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
   const { prisma } = ctx;
   const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
@@ -197,12 +203,6 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     teamId: membership.team.id,
     membershipRole: membership.role,
   }));
-
-  const compareMembership = (mship1: MembershipRole, mship2: MembershipRole) => {
-    const mshipToNumber = (mship: MembershipRole) =>
-      Object.keys(MembershipRole).findIndex((mmship) => mmship === mship);
-    return mshipToNumber(mship1) > mshipToNumber(mship2);
-  };
 
   eventTypeGroups = ([] as EventTypeGroup[]).concat(
     eventTypeGroups,
