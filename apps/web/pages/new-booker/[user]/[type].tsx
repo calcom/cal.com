@@ -86,6 +86,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       away: false,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: false,
+      themeBasis: null,
     },
   };
 }
@@ -135,6 +136,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       slug,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: user?.hideBranding,
+      themeBasis: username,
     },
   };
 }

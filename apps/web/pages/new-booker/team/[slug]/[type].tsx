@@ -87,6 +87,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       slug: meetingSlug,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: team?.hideBranding,
+      themeBasis: null,
     },
   };
 };
