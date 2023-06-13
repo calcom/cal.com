@@ -30,7 +30,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const data = req.body;
   const { email, password, language, token } = signupSchema.parse(data);
-  console.log({ token, data });
 
   const username = slugify(data.username);
   const userEmail = email.toLowerCase();
