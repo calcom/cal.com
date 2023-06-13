@@ -1,0 +1,19 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Activepieces",
+  "slug": "activepieces",
+  "type": "activepieces_automation",
+  "logo": "icon.svg",
+  "url": "https://activepieces.com/",
+  "variant": "automation",
+  "categories": [
+    "automation"
+  ],
+  "publisher": "Mohammad AbuAboud",
+  "email": "support@activepieces.com",
+  "description": "Open source business automation tool",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app",
+  "dirName": "activepieces"
+}
