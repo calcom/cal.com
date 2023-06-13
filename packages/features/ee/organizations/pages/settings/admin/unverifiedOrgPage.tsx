@@ -88,7 +88,7 @@ const UnverifiedOrgList = () => {
     <LicenseRequired>
       <Meta
         title="Organizations"
-        description="A list of all organizations that need verified based on their email domain. Accepting an organization will allow all users with that email domain to sign up WITHOUT email verifciation."
+        description="A list of all organizations that need verification based on their email domain. Accepting an organization will allow all users with that email domain to sign up WITHOUT email verifciation."
       />
       <NoSSR>
         <UnverifiedOrgTable />
