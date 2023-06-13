@@ -1,6 +1,7 @@
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { classNames } from "@calcom/lib";
 
 import { useCalendarStore } from "../../state/store";
@@ -13,6 +14,7 @@ type EmptyCellProps = GridCellToDateProps & {
 };
 
 export function EmptyCell(props: EmptyCellProps) {
+  const timeFormat = useTimePreferences((state) => state.timeFormat);
   const { onEmptyCellClick, hoverEventDuration } = useCalendarStore(
     (state) => ({
       onEmptyCellClick: state.onEmptyCellClick,
@@ -40,7 +42,7 @@ export function EmptyCell(props: EmptyCellProps) {
   return (
     <div
       className={classNames(
-        "group w-full",
+        "group flex w-full items-center justify-center",
         isDisabled && "pointer-events-none",
         !isDisabled && "bg-default dark:bg-muted"
       )}
@@ -54,16 +56,13 @@ export function EmptyCell(props: EmptyCellProps) {
           rounded-[4px]
           border-[1px] border-gray-900 py-1 px-[6px] text-xs font-semibold leading-5 group-hover:block group-hover:cursor-pointer"
           style={{
-            height: `calc(${hoverEventDuration}*var(--one-minute-height))`,
+            height: `calc(${hoverEventDuration}*var(--one-minute-height) - 2px)`,
             zIndex: 49,
             // @TODO: This used to be 90% as per Sean's work. I think this was needed when
             // multiple events are stacked next to each other. We might need to add this back later.
-            width: "100%",
+            width: "calc(100% - 2px)",
           }}>
-          <div className=" overflow-ellipsis leading-4">
-            {cellToDate.format("HH:mm")}
-            <span className="ml-2 inline">Click to select</span>
-          </div>
+          <div className=" overflow-ellipsis leading-4">{cellToDate.format(timeFormat)}</div>
         </div>
       )}
     </div>
