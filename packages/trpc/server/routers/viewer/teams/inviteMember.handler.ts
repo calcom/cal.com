@@ -311,7 +311,7 @@ function getOrgConnectionInfo({
   team,
 }: {
   orgAutoAcceptDomain?: string | null;
-  orgVerified?: boolean;
+  orgVerified?: boolean | null;
   usersEmail: string;
   team: TeamWithParent;
   isOrg: boolean;
@@ -319,18 +319,13 @@ function getOrgConnectionInfo({
   let orgId: number | undefined = undefined;
   let autoAccept = false;
 
-  console.log({ orgAutoAcceptDomain, orgVerified, usersEmail });
-
   if (team.parentId || isOrg) {
     orgId = team.parentId || team.id;
     if (usersEmail.split("@")[1] == orgAutoAcceptDomain) {
       autoAccept = orgVerified ?? true;
     } else {
-      throw new TRPCError({
-        // For now - we will enable this for contractors in the feature
-        code: "FORBIDDEN",
-        message: `Only users with the email domain ${orgAutoAcceptDomain} can join this organization`,
-      });
+      // No longer throw error - not needed we just dont auto accept them
+      autoAccept = false;
     }
   }
 
