@@ -101,7 +101,7 @@ export type BookerStore = {
 export const useBookerStore = create<BookerStore>((set, get) => ({
   state: "loading",
   setState: (state: BookerState) => set({ state }),
-  layout: validateLayout(getQueryParam("layout") as BookerLayout) || BookerLayouts.MONTH_VIEW,
+  layout: validateLayout(getQueryParam("layout") as BookerLayouts) || BookerLayouts.MONTH_VIEW,
   setLayout: (layout: BookerLayout) => {
     // If we switch to a large layout and don't have a date selected yet,
     // we selected it here, so week title is rendered properly.
