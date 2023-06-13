@@ -11,6 +11,10 @@ export const appHostnames = [
   "localhost:3000",
 ];
 
+/**
+ * return the org slug
+ * @param hostname
+ */
 export function getOrgDomain(hostname: string) {
   // Find which hostname is being currently used
   const currentHostname = appHostnames.find((ahn) => {
