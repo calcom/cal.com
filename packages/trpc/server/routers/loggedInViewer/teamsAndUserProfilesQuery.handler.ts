@@ -1,7 +1,12 @@
 import { type PrismaClient } from "@prisma/client";
 
 import { CAL_URL } from "@calcom/lib/constants";
-import { isOrganization, withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils";
+import {
+  getMemberShipSync,
+  canCreateEntitySync,
+  getTeamSlug,
+  isOrganization,
+} from "@calcom/lib/entityPermissionUtils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -16,6 +21,26 @@ type TeamsAndUserProfileOptions = {
 export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOptions) => {
   const { prisma } = ctx;
 
+  const teamSelect = {
+    id: true,
+    parentId: true,
+    name: true,
+    slug: true,
+    children: true,
+    metadata: true,
+    members: {
+      select: {
+        userId: true,
+      },
+    },
+  };
+
+  const membershipSelect = {
+    role: true,
+    team: {
+      select: teamSelect,
+    },
+  };
   const user = await prisma.user.findUnique({
     where: {
       id: ctx.user.id,
@@ -29,28 +54,30 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
         where: {
           accepted: true,
         },
-        select: {
-          role: true,
-          team: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              metadata: true,
-              members: {
-                select: {
-                  userId: true,
-                },
-              },
-            },
-          },
-        },
+        select: membershipSelect,
       },
     },
   });
+
   if (!user) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
+
+  const childrenTeams = await prisma.membership.findMany({
+    where: {
+      teamId: {
+        in: user.teams
+          // Skip existing child teams that we have
+          .filter((membership) => !membership.team.parentId)
+          .map((membership) => membership.team.id),
+      },
+    },
+    select: membershipSelect,
+  });
+
+  console.log("CHILDREN TEAMS", childrenTeams);
+  user.teams.push(...childrenTeams);
+
   const image = user?.username ? `${CAL_URL}/${user.username}/avatar.png` : undefined;
   const nonOrgTeams = user.teams.filter((membership) => !isOrganization({ team: membership.team }));
 
@@ -62,13 +89,25 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
       image,
       readOnly: false,
     },
-    ...nonOrgTeams.map((membership) => ({
-      teamId: membership.team.id,
-      name: membership.team.name,
-      slug: membership.team.slug ? "team/" + membership.team.slug : null,
-      image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
-      role: membership.role,
-      readOnly: !withRoleCanCreateEntity(membership.role),
-    })),
+    ...user.teams
+      .filter((membership) => isOrganization({ team: membership.team }))
+      .map((membership) => {
+        return {
+          teamId: membership.team.id,
+          name: membership.team.name,
+          slug: getTeamSlug({
+            team: membership.team,
+          }),
+          image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
+          role: getMemberShipSync({
+            user,
+            teamId: membership.team.id,
+          }).role,
+          readOnly: !canCreateEntitySync({
+            user,
+            targetTeamId: membership.team.id,
+          }),
+        };
+      }),
   ];
 };

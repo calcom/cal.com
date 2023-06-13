@@ -1,4 +1,4 @@
-import type { Membership, Team } from "@calcom/prisma/client";
+import type { Membership, Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -54,48 +54,122 @@ export function getEntityPermissionLevel(
   return ENTITY_PERMISSION_LEVEL.NONE;
 }
 
-async function getMembership(teamId: number | null, userId: number) {
+/**
+ * Does the user have a higher(with more permissions) role in organisation(orgRole) as compared to team(teamRole)
+ */
+const hasHigherOrgRole = ({ orgRole, teamRole }: { orgRole: MembershipRole; teamRole: MembershipRole }) => {
+  // Instead of depending on the order of object keys, we should check the Membership values and then decide
+  const mshipToNumber = (mship: MembershipRole) =>
+    Object.keys(MembershipRole).findIndex((mmship) => mmship === mship);
+  return mshipToNumber(orgRole) > mshipToNumber(teamRole);
+};
+
+export function getTeamSlug({
+  team,
+}: {
+  team: {
+    slug: Team["slug"];
+    parentId: Team["parentId"];
+  };
+}) {
+  return team.slug ? (!team.parentId ? `/team` : "" + team.slug) : null;
+}
+
+export async function getMembership(teamId: Team["id"], userId: User["id"]) {
   const { prisma } = await import("@calcom/prisma");
 
-  const team = teamId
-    ? await prisma.team.findFirst({
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    include: {
+      teams: {
         where: {
-          id: teamId,
-          members: {
-            some: {
-              userId,
-              accepted: true,
+          accepted: true,
+        },
+        select: {
+          role: true,
+          team: {
+            select: {
+              id: true,
+              parentId: true,
             },
           },
         },
-        include: {
-          members: true,
-        },
-      })
-    : null;
-  return team?.members.find((membership) => membership.userId === userId);
+      },
+    },
+  });
+
+  if (!user) {
+    return null;
+  }
+
+  return getMemberShipSync({
+    user,
+    teamId,
+  });
+}
+
+export function getMemberShipSync({
+  user,
+  teamId,
+}: {
+  user: {
+    id: User["id"];
+    teams: {
+      role: MembershipRole;
+      team: Pick<Team, "parentId" | "id">;
+    }[];
+  };
+  teamId: Team["id"];
+}) {
+  const teamMemberShip = user.teams.find((membership) => membership.team.id === teamId);
+  if (!teamMemberShip) {
+    throw new Error(`A user can't have teams in it of which he is not a member`);
+  }
+  const orgMembership = user.teams.find((membership) => membership.team.id === teamMemberShip.team.parentId);
+
+  if (orgMembership) {
+    if (hasHigherOrgRole({ orgRole: orgMembership.role, teamRole: teamMemberShip.role })) {
+      return orgMembership;
+    }
+  }
+  return teamMemberShip;
 }
 
 export async function canCreateEntity({
   targetTeamId,
-  userId,
+  user,
 }: {
   targetTeamId: number | null | undefined;
-  userId: number;
+  user: Parameters<typeof getMemberShipSync>[0]["user"];
 }) {
   if (targetTeamId) {
     // If it doesn't exist and it is being created for a team. Check if user is the member of the team
-    const membership = await getMembership(targetTeamId, userId);
-    const creationAllowed = membership ? withRoleCanCreateEntity(membership.role) : false;
+    const membership = await getMembership(targetTeamId, user.id);
+    const creationAllowed = membership
+      ? canCreateEntitySync({
+          user,
+          targetTeamId,
+        })
+      : false;
     return creationAllowed;
   }
   return true;
 }
 
-//TODO: Find a better convention to create different functions for different needs(withRoleCanCreateEntity vs canCreateEntity)
-// e.g. if role is already available we don't need to refetch membership.role. We can directly call `withRoleCanCreateEntity`
-export function withRoleCanCreateEntity(role: MembershipRole) {
-  return role === "ADMIN" || role === "OWNER";
+export function canCreateEntitySync({
+  user,
+  targetTeamId,
+}: {
+  targetTeamId: Parameters<typeof getMemberShipSync>[0]["teamId"];
+  user: Parameters<typeof getMemberShipSync>[0]["user"];
+}) {
+  const membership = getMemberShipSync({
+    user,
+    teamId: targetTeamId,
+  });
+  return membership.role === "ADMIN" || membership.role === "OWNER";
 }
 
 /**
