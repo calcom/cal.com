@@ -142,7 +142,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           <ToggleGroup
             isFullWidth={true}
             onValueChange={(val) => setModalInputMode(val as ModalMode)}
-            defaultValue="INDIVIDUAL"
+            defaultValue={modalImportMode}
             options={[
               {
                 value: "INDIVIDUAL",
