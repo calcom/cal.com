@@ -145,26 +145,37 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                             )}
                           </Badge>
                         </li>
+                        <div className="block md:hidden">
+                          {workflow.team?.name && (
+                            <li>
+                              <Badge size="lg" variant="gray">
+                                <>{workflow.team.name}</>
+                              </Badge>
+                            </li>
+                          )}
+                        </div>
                       </ul>
                     </div>
                   </Link>
                   <div>
-                    {workflow.team?.name && (
-                      <Badge size="lg" className="mr-4 mt-1 p-[1px] px-2" variant="gray">
-                        <Avatar
-                          alt={workflow.team?.name || ""}
-                          href={
-                            workflow.team?.id
-                              ? `/settings/teams/${workflow.team?.id}/profile`
-                              : "/settings/my-account/profile"
-                          }
-                          imageSrc={`${WEBAPP_URL}/${workflow.team?.slug}/avatar.png` || undefined}
-                          size="xxs"
-                          className="mt-[3px] inline-flex justify-center"
-                        />
-                        <div>{workflow.team.name}</div>
-                      </Badge>
-                    )}
+                    <div className="hidden md:block">
+                      {workflow.team?.name && (
+                        <Badge size="lg" className="mr-4 mt-1 p-[1px] px-2" variant="gray">
+                          <Avatar
+                            alt={workflow.team?.name || ""}
+                            href={
+                              workflow.team?.id
+                                ? `/settings/teams/${workflow.team?.id}/profile`
+                                : "/settings/my-account/profile"
+                            }
+                            imageSrc={`${WEBAPP_URL}/${workflow.team?.slug}/avatar.png` || undefined}
+                            size="xxs"
+                            className="mt-[3px] inline-flex justify-center"
+                          />
+                          <div>{workflow.team.name}</div>
+                        </Badge>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex flex-shrink-0">
