@@ -410,9 +410,10 @@ test.describe("FORM_SUBMITTED", async () => {
     await page.waitForLoadState("networkidle");
 
     // Install Routing Forms App
-    await page.goto(`/apps`);
+    await page.goto(`/apps/routing-forms`);
+    // eslint-disable-next-line playwright/no-conditional-in-test
 
-    await page.click('[data-testid="install-app-button"] >> nth=21');
+    await page.click('[data-testid="install-app-button"]');
 
     await page.waitForLoadState("networkidle");
     await page.goto(`/settings/developer/webhooks/new`);
@@ -438,12 +439,9 @@ test.describe("FORM_SUBMITTED", async () => {
     await gotoRoutingLink({ page, formId: formId });
     page.click('button[type="submit"]');
 
-    await waitFor(
-      () => {
-        expect(webhookReceiver.requestList.length).toBe(1);
-      },
-      { timeout: 10000 }
-    );
+    await waitFor(() => {
+      expect(webhookReceiver.requestList.length).toBe(1);
+    });
     webhookReceiver.close();
   });
 });
