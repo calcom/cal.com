@@ -11,15 +11,13 @@ export const appHostnames = [
   "localhost:3000",
 ];
 
+/**
+ * return the org slug
+ * @param hostname
+ */
 export function getOrgDomain(hostname: string) {
-  // Find which hostname is being currently used
-  const currentHostname = appHostnames.find((ahn) => {
-    const url = new URL(WEBAPP_URL);
-    const hostname = `${url.hostname}${url.port ? `:${url.port}` : ""}`;
-    return hostname.endsWith(`.${ahn}`);
-  });
-  // Define which is the current domain/subdomain
-  return hostname.replace(`.${currentHostname}` ?? "", "");
+  const reg = new RegExp(`.(${appHostnames.join("|")})`);
+  return hostname.match(reg) ? hostname.replace(reg, "") : null;
 }
 
 export function orgDomainConfig(hostname: string) {
