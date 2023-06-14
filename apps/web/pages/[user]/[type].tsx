@@ -1,5 +1,4 @@
 import type { GetServerSidePropsContext } from "next";
-import { useEffect, useState } from "react";
 import { z } from "zod";
 
 import type { LocationObject } from "@calcom/app-store/locations";
@@ -17,16 +16,12 @@ import type { EmbedProps } from "@lib/withEmbedSsr";
 import PageWrapper from "@components/PageWrapper";
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
+import { ssrInit } from "@server/lib/ssr";
+
 export type AvailabilityPageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 export default function Type(props: AvailabilityPageProps) {
   const { t } = useLocale();
-  const [isValidOrgDomain, setIsValidOrgDomain] = useState(false);
-
-  useEffect(() => {
-    const { isValidOrgDomain } = orgDomainConfig(window.location.host ?? "");
-    setIsValidOrgDomain(isValidOrgDomain);
-  }, []);
 
   return props.away ? (
     <div className="dark:bg-inverted h-screen">
@@ -58,7 +53,7 @@ export default function Type(props: AvailabilityPageProps) {
         </div>
       </main>
     </div>
-  ) : !isValidOrgDomain && props.organizationContext ? (
+  ) : !props.isValidOrgDomain && props.organizationContext ? (
     <div className="dark:bg-darkgray-50 h-screen">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
@@ -89,7 +84,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const { parseRecurringEvent } = await import("@calcom/lib/isRecurringEvent");
   const { EventTypeMetaDataSchema, teamMetadataSchema } = await import("@calcom/prisma/zod-utils");
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
-
+  const ssr = await ssrInit(context);
   const { type: slug, user: username } = paramsSchema.parse(context.query);
 
   const user = await prisma.user.findFirst({
@@ -221,6 +216,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       organizationContext: user?.organizationId !== null,
       away: user?.away,
       isDynamic: false,
+      trpcState: ssr.dehydrate(),
+      isValidOrgDomain: orgDomainConfig(context.req.headers.host ?? ""),
       isBrandingHidden: isBrandingHidden(user.hideBranding, hasActiveTeam || hasPremiumUserName),
     },
   };
@@ -235,6 +232,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { EventTypeMetaDataSchema, userMetadata: userMetadataSchema } = await import(
     "@calcom/prisma/zod-utils"
   );
+  const ssr = await ssrInit(context);
 
   const { getAppFromSlug } = await import("@calcom/app-store/utils");
 
@@ -352,6 +350,8 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       isDynamic: true,
       away: false,
       organizationContext: !users.some((user) => user.organizationId === null),
+      trpcState: ssr.dehydrate(),
+      isValidOrgDomain: orgDomainConfig(context.req.headers.host ?? ""),
       isBrandingHidden: false, // I think we should always show branding for dynamic groups - saves us checking every single user
     },
   };
