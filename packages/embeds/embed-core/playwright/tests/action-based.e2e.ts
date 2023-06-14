@@ -7,7 +7,7 @@ import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 import {
   todo,
   getEmbedIframe,
-  bookFirstEvent,
+  bookNthEvent,
   getBooking,
   deleteAllBookingsByEmail,
   rescheduleEvent,
@@ -40,14 +40,11 @@ async function bookFirstFreeUserEventThroughEmbed({
   if (!embedIframe) {
     throw new Error("Embed iframe not found");
   }
-  const booking = await bookFirstEvent("free", embedIframe, page);
+  const booking = await bookNthEvent("free", embedIframe, page, 1);
   return booking;
 }
 
 test.describe("Popup Tests", () => {
-  test.afterEach(async () => {
-    await deleteAllBookingsByEmail("embed-user@example.com");
-  });
   test("should open embed iframe on click - Configured with light theme", async ({
     page,
     addEmbedListeners,
@@ -72,7 +69,7 @@ test.describe("Popup Tests", () => {
     if (!embedIframe) {
       throw new Error("Embed iframe not found");
     }
-    const { uid: bookingId } = await bookFirstEvent("free", embedIframe, page);
+    const { uid: bookingId } = await bookNthEvent("free", embedIframe, page, 2);
     const booking = await getBooking(bookingId);
 
     expect(booking.attendees.length).toBe(1);
@@ -101,9 +98,63 @@ test.describe("Popup Tests", () => {
     });
   });
 
-  todo("Floating Button Test with Dark Theme");
+  test("should open dark embed iframe on floating button click", async ({
+    page,
+    addEmbedListeners,
+    getActionFiredDetails,
+  }) => {
+    const calNamespace = "floatingButton";
+    await addEmbedListeners(calNamespace);
+    await page.goto("/?only=ns:floatingButton");
 
-  todo("Floating Button Test with Light Theme");
+    await page.click('[data-cal-namespace="floatingButton"] > button');
+
+    const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
+    await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
+      pathname: "/pro",
+    });
+
+    if (!embedIframe) {
+      throw new Error("Embed iframe not found");
+    }
+
+    const html = await embedIframe.locator("html");
+    await expect(html).toHaveAttribute("class", "dark");
+
+    const { uid: bookingId } = await bookNthEvent("pro", embedIframe, page, 1);
+    const booking = await getBooking(bookingId);
+
+    expect(booking.attendees.length).toBe(3);
+  });
+
+  test("should open light embed iframe on floating button click", async ({
+    page,
+    addEmbedListeners,
+    getActionFiredDetails,
+  }) => {
+    const calNamespace = "floatingButton";
+    await addEmbedListeners(calNamespace);
+    await page.goto("/?only=ns:floatingButton&theme=light");
+
+    await page.click('[data-cal-namespace="floatingButton"] > button');
+
+    const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
+    await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
+      pathname: "/pro",
+    });
+
+    if (!embedIframe) {
+      throw new Error("Embed iframe not found");
+    }
+
+    const html = await embedIframe.locator("html");
+    await expect(html).toHaveAttribute("class", "light");
+
+    const { uid: bookingId } = await bookNthEvent("pro", embedIframe, page, 2);
+    const booking = await getBooking(bookingId);
+
+    expect(booking.attendees.length).toBe(3);
+  });
 
   todo("Add snapshot test for embed iframe");
 

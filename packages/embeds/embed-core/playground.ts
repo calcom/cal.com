@@ -8,6 +8,7 @@ const callback = function (e) {
 
 const searchParams = new URL(document.URL).searchParams;
 const only = searchParams.get("only");
+const theme = searchParams.get("theme");
 
 if (only === "all" || only === "ns:default") {
   Cal("init", {
@@ -331,7 +332,7 @@ Cal("init", "routingFormDark", {
 
 if (only === "all" || only == "ns:floatingButton") {
   Cal.ns.floatingButton("floatingButton", {
-    calLink: "pro/30min",
+    calLink: "pro",
     config: {
       iframeAttrs: {
         id: "floatingtest",
@@ -340,7 +341,7 @@ if (only === "all" || only == "ns:floatingButton") {
       email: "johndoe@gmail.com",
       notes: "Test Meeting",
       guests: ["janedoe@example.com", "test@example.com"],
-      theme: "dark",
+      theme: (theme as "dark" | "light") || "dark",
     },
   });
 }
