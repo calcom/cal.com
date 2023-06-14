@@ -299,8 +299,6 @@ function UserDropdown({ small }: UserDropdownProps) {
   const { t } = useLocale();
   const { data: user } = useMeQuery();
   const { data: avatar } = useAvatarQuery();
-  const orgBranding = useOrgBrandingValues();
-
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -872,13 +870,6 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 className="desktop-only hover:text-emphasis text-subtle group flex text-sm font-medium">
                 <ArrowRight className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0" />
               </button>
-              {/*<Link href="/settings/my-account/profile">
-                <button
-                  color="minimal"
-                  className="text-default hover:bg-subtle lg:hover:bg-emphasis lg:hover:text-emphasis group flex rounded-md py-2 px-3 text-sm font-medium lg:p-1">
-                  <Settings className="h-4 w-4 flex-shrink-0 text-inherit" />
-                </button>
-              </Link>*/}
               {!!orgBranding && (
                 <div data-testid="user-dropdown-trigger" className="flex items-center">
                   <UserDropdown small />
