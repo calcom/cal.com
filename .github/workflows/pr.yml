@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   changes:
+    name: "Detect changes"
     runs-on: buildjet-4vcpu-ubuntu-2204
     permissions:
       pull-requests: read
@@ -41,6 +42,7 @@ jobs:
               - 'packages/embeds/**'
 
   install:
+    name: Install
     runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - uses: actions/checkout@v3

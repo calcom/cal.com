@@ -40,6 +40,7 @@ runs:
         restore-keys: |
           yarn-download-cache-
 
+    # Invalidated on yarn.lock changes
     - name: Restore node_modules
       id: yarn-nm-cache
       uses: buildjet/cache@v3
