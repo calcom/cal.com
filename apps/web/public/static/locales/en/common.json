@@ -1818,7 +1818,6 @@
   "book_my_cal": "Book my Cal",
   "invite_as":"Invite as",
   "form_updated_successfully":"Form updated successfully.",
-  "email_not_cal_member_cta": "Join your {{entity}}",
   "disable_attendees_confirmation_emails": "Disable default confirmation emails for attendees",
   "disable_attendees_confirmation_emails_description": "At least one workflow is active on this event type that sends an email to the attendees when the event is booked.",
   "disable_host_confirmation_emails": "Disable default confirmation emails for host",
