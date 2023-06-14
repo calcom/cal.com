@@ -27,6 +27,8 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
     metadata: true,
     parent: {
       select: {
+        id: true,
+        slug: true,
         name: true,
         logo: true,
       },
@@ -74,12 +76,6 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
         },
         metadata: true,
         ...baseEventTypeSelect,
-      },
-    },
-    parent: {
-      select: {
-        id: true,
-        slug: true,
       },
     },
     inviteToken: {
