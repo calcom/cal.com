@@ -41,7 +41,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     throw new TRPCError({ code: "BAD_REQUEST", message: t(layoutError) });
   }
 
-  if (input.username) {
+  if (input.username && !user.organizationId) {
     const username = slugify(input.username);
     // Only validate if we're changing usernames
     if (username !== user.username) {
