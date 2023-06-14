@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 
 import { useCalendarStore } from "../../state/store";
 
@@ -12,6 +13,7 @@ export function CurrentTime() {
     startHour: state.startHour || 0,
     endHour: state.endHour || 23,
   }));
+  const { timeFormat } = useTimePreferences();
 
   useEffect(() => {
     // Set the container scroll position based on the current time.
@@ -38,14 +40,14 @@ export function CurrentTime() {
   return (
     <div
       ref={currentTimeRef}
-      className="absolute top-0 z-40 ml-3 flex h-px items-center justify-center"
+      className="absolute top-0 z-40 flex h-px items-center justify-center text-xs"
       aria-hidden="true"
       style={{
         top: `calc(${currentTimePos}*var(--one-minute-height) + var(--calendar-offset-top))`,
         zIndex: 70,
       }}>
-      {dayjs().format("HH:mm")}
-      <div className="bg-inverted ml-1 h-3 w-px" />
+      <div className="w-14 pr-2 text-right">{dayjs().format(timeFormat)}</div>
+      <div className="bg-inverted h-3 w-px" />
       <div className="bg-inverted h-px w-screen" />
     </div>
   );
