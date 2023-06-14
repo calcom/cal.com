@@ -50,6 +50,7 @@ import {
   Tooltip,
   showToast,
   useCalcomTheme,
+  ButtonOrLink,
 } from "@calcom/ui";
 import {
   ArrowLeft,
@@ -472,7 +473,7 @@ function UserDropdown({ small }: UserDropdownProps) {
 export type NavigationItemType = {
   name: string;
   href: string;
-  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement>;
   target?: HTMLAnchorElement["target"];
   badge?: React.ReactNode;
   icon?: SVGComponent;
@@ -809,7 +810,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
           },
           {
             name: "copy_public_page_link",
-            href: "#",
+            href: "",
             onClick: (e: { preventDefault: () => void }) => {
               e.preventDefault();
               navigator.clipboard.writeText(
@@ -861,7 +862,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 </span>
               </div>
             )}
-            <div className="flex space-x-2 rtl:space-x-reverse">
+            <div className="flex space-x-1 rtl:space-x-reverse">
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
@@ -903,12 +904,13 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         <div>
           <Tips />
           {bottomNavItems.map(({ icon: Icon, ...item }) => (
-            <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.href}>
-              <Link
-                href={item.href}
+            <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
+              <ButtonOrLink
+                href={item.href || undefined}
                 aria-label={t(item.name)}
                 target={item.target}
                 className={classNames(
+                  "text-left",
                   "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md py-2 px-3 text-sm font-medium",
                   "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
                   isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : ""
@@ -937,7 +939,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 ) : (
                   <SkeletonText style={{ width: `${item.name.length * 10}px` }} className="h-[20px]" />
                 )}
-              </Link>
+              </ButtonOrLink>
             </Tooltip>
           ))}
           <Credits />
