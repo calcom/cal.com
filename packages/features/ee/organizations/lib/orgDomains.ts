@@ -35,7 +35,7 @@ export function orgDomainConfig(hostname: string) {
   return {
     currentOrgDomain,
     isValidOrgDomain:
-      currentOrgDomain && currentOrgDomain !== "app" && !appHostnames.includes(currentOrgDomain),
+      currentOrgDomain !== null && currentOrgDomain !== "app" && !appHostnames.includes(currentOrgDomain),
   };
 }
 
