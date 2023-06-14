@@ -343,14 +343,11 @@ function UserDropdown({ small }: UserDropdownProps) {
                 small ? "h-4 w-4 md:ml-3" : "h-6 w-6 ltr:mr-2 rtl:ml-2",
                 "relative flex-shrink-0 rounded-full bg-gray-300 "
               )}>
-              {
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  className="rounded-full"
-                  src={avatar?.avatar || WEBAPP_URL + "/" + user.username + "/avatar.png"}
-                  alt={user.username || "Nameless User"}
-                />
-              }
+              <Avatar
+                size={small ? "xs" : "sm"}
+                imageSrc={avatar?.avatar || WEBAPP_URL + "/" + user.username + "/avatar.png"}
+                alt={user.username || "Nameless User"}
+              />
               <span
                 className={classNames(
                   "border-muted absolute -bottom-1 -right-1  rounded-full border-2 bg-green-500",
