@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
@@ -14,7 +13,7 @@ if (!UPSATCH_ENV_FOUND) {
 }
 
 const redis = Redis.fromEnv();
-const limitter = {
+const limiter = {
   core: new Ratelimit({
     redis,
     analytics: true,
@@ -30,7 +29,7 @@ const limitter = {
 };
 
 type RateLimitHelper = {
-  rateLimitingType?: keyof typeof limitter;
+  rateLimitingType?: keyof typeof limiter;
   identifier: string;
 };
 
@@ -40,10 +39,10 @@ async function rateLimit({ rateLimitingType = "core", identifier }: RateLimitHel
   }
 
   if (isIpInBanListString(identifier)) {
-    return await limitter.forcedSlowMode.limit(identifier);
+    return await limiter.forcedSlowMode.limit(identifier);
   }
 
-  return await limitter[rateLimitingType].limit(identifier);
+  return await limiter[rateLimitingType].limit(identifier);
 }
 
 export default rateLimit;
