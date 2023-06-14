@@ -16,15 +16,26 @@ export const appHostnames = [
  * @param hostname
  */
 export function getOrgDomain(hostname: string) {
-  const reg = new RegExp(`.(${appHostnames.join("|")})`);
-  return hostname.match(reg) ? hostname.replace(reg, "") : null;
+  // Find which hostname is being currently used
+  const currentHostname = appHostnames.find((ahn) => {
+    const url = new URL(WEBAPP_URL);
+    const testHostname = `${url.hostname}${url.port ? `:${url.port}` : ""}`;
+    return testHostname.endsWith(`.${ahn}`);
+  });
+  if (currentHostname) {
+    // Define which is the current domain/subdomain
+    const slug = hostname.replace(`.${currentHostname}` ?? "", "");
+    return slug.indexOf(".") === -1 ? slug : null;
+  }
+  return null;
 }
 
 export function orgDomainConfig(hostname: string) {
   const currentOrgDomain = getOrgDomain(hostname);
   return {
     currentOrgDomain,
-    isValidOrgDomain: currentOrgDomain !== "app" && !appHostnames.includes(currentOrgDomain),
+    isValidOrgDomain:
+      currentOrgDomain && currentOrgDomain !== "app" && !appHostnames.includes(currentOrgDomain),
   };
 }
 
