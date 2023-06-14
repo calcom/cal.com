@@ -22,7 +22,7 @@ import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 import { ssgInit } from "@server/lib/ssg";
 
-type BookingListingStatus = z.infer<typeof filterQuerySchema>["status"];
+type BookingListingStatus = z.infer<NonNullable<typeof filterQuerySchema>>["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
 type RecurringInfo = {
@@ -34,7 +34,7 @@ type RecurringInfo = {
 
 const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
 
-const descriptionByStatus: Record<BookingListingStatus, string> = {
+const descriptionByStatus: Record<NonNullable<BookingListingStatus>, string> = {
   upcoming: "upcoming_bookings",
   recurring: "recurring_bookings",
   past: "past_bookings",

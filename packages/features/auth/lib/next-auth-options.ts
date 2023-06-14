@@ -82,6 +82,7 @@ const providers: Provider[] = [
           metadata: true,
           identityProvider: true,
           password: true,
+          organizationId: true,
           twoFactorEnabled: true,
           twoFactorSecret: true,
           teams: {
@@ -175,6 +176,7 @@ const providers: Provider[] = [
         name: user.name,
         role: validateRole(user.role),
         belongsToActiveTeam: hasActiveTeams,
+        organizationId: user.organizationId,
       };
     },
   }),
@@ -356,6 +358,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             username: true,
             name: true,
             email: true,
+            organizationId: true,
             role: true,
             teams: {
               include: {
@@ -400,6 +403,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: user.role,
           impersonatedByUID: user?.impersonatedByUID,
           belongsToActiveTeam: user?.belongsToActiveTeam,
+          organizationId: user?.organizationId,
         };
       }
 
@@ -437,6 +441,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: existingUser.role,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
+          organizationId: token?.organizationId,
         };
       }
 
@@ -455,6 +460,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: token.role as UserPermissionRole,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
+          organizationId: token?.organizationId,
         },
       };
       return calendsoSession;
@@ -608,7 +614,12 @@ export const AUTH_OPTIONS: AuthOptions = {
             !existingUserWithEmail.username
           ) {
             await prisma.user.update({
-              where: { email: existingUserWithEmail.email },
+              where: {
+                email_username: {
+                  email: existingUserWithEmail.email,
+                  username: existingUserWithEmail.username!,
+                },
+              },
               data: {
                 // update the email to the IdP email
                 email: user.email,
