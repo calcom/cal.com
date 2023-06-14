@@ -299,6 +299,7 @@
   "failed": "Neuspešno",
   "password_has_been_reset_login": "Vaša lozinka je resetovana. Sada možete da se ulogujete sa vašom novom lozinkom.",
   "bookerlayout_title": "Raspored",
+  "layout": "Raspored",
   "bookerlayout_default_title": "Podrazumevani prikaz",
   "bookerlayout_description": "Možete da izaberete više njih, a vaši polaznici mogu da menjaju prikaze.",
   "bookerlayout_user_settings_title": "Raspored zakazivanja",
