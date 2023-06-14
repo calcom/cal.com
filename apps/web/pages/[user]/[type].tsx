@@ -1,4 +1,4 @@
-import type { GetStaticPaths, GetStaticPropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 
@@ -17,7 +17,7 @@ import type { EmbedProps } from "@lib/withEmbedSsr";
 import PageWrapper from "@components/PageWrapper";
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
-export type AvailabilityPageProps = inferSSRProps<typeof getStaticProps> & EmbedProps;
+export type AvailabilityPageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 export default function Type(props: AvailabilityPageProps) {
   const { t } = useLocale();
@@ -82,21 +82,25 @@ Type.isBookingPage = true;
 Type.PageWrapper = PageWrapper;
 
 const paramsSchema = z.object({ type: z.string(), user: z.string() });
-async function getUserPageProps(context: GetStaticPropsContext) {
+async function getUserPageProps(context: GetServerSidePropsContext) {
   // load server side dependencies
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const { privacyFilteredLocations } = await import("@calcom/app-store/locations");
   const { parseRecurringEvent } = await import("@calcom/lib/isRecurringEvent");
   const { EventTypeMetaDataSchema, teamMetadataSchema } = await import("@calcom/prisma/zod-utils");
-  const { ssgInit } = await import("@server/lib/ssg");
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
 
-  const { type: slug, user: username } = paramsSchema.parse(context.params);
-  const ssg = await ssgInit(context);
+  const { type: slug, user: username } = paramsSchema.parse(context.query);
 
   const user = await prisma.user.findFirst({
     where: {
       /** TODO: We should standarize this */
       username: username.toLowerCase().replace(/( |%20)/g, "+"),
+      organization: isValidOrgDomain
+        ? {
+            slug: currentOrgDomain,
+          }
+        : null,
     },
     select: {
       id: true,
@@ -217,14 +221,12 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       organizationContext: user?.organizationId !== null,
       away: user?.away,
       isDynamic: false,
-      trpcState: ssg.dehydrate(),
       isBrandingHidden: isBrandingHidden(user.hideBranding, hasActiveTeam || hasPremiumUserName),
     },
-    revalidate: 10, // seconds
   };
 }
 
-async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
+async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   // load server side dependencies
   const { getDefaultEvent, getGroupName, getUsernameList } = await import("@calcom/lib/defaultEvents");
   const { privacyFilteredLocations } = await import("@calcom/app-store/locations");
@@ -233,11 +235,10 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
   const { EventTypeMetaDataSchema, userMetadata: userMetadataSchema } = await import(
     "@calcom/prisma/zod-utils"
   );
-  const { ssgInit } = await import("@server/lib/ssg");
+
   const { getAppFromSlug } = await import("@calcom/app-store/utils");
 
-  const ssg = await ssgInit(context);
-  const { type: typeParam, user: userParam } = paramsSchema.parse(context.params);
+  const { type: typeParam, user: userParam } = paramsSchema.parse(context.query);
   const usernameList = getUsernameList(userParam);
   const length = parseInt(typeParam);
   const eventType = getDefaultEvent("" + length);
@@ -351,15 +352,13 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
       isDynamic: true,
       away: false,
       organizationContext: !users.some((user) => user.organizationId === null),
-      trpcState: ssg.dehydrate(),
       isBrandingHidden: false, // I think we should always show branding for dynamic groups - saves us checking every single user
     },
-    revalidate: 10, // seconds
   };
 }
 
-export const getStaticProps = async (context: GetStaticPropsContext) => {
-  const { user: userParam } = paramsSchema.parse(context.params);
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const { user: userParam } = paramsSchema.parse(context.query);
   // dynamic groups are not generated at build time, but otherwise are probably cached until infinity.
   const isDynamicGroup = userParam.includes("+");
   if (isDynamicGroup) {
@@ -367,8 +366,4 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
   } else {
     return await getUserPageProps(context);
   }
-};
-
-export const getStaticPaths: GetStaticPaths = async () => {
-  return { paths: [], fallback: "blocking" };
-};
+}
