@@ -162,6 +162,7 @@ export async function getUserAvailability(
     eventTypeId,
     userId: user.id,
     username: `${user.username}`,
+    organizationSlug: initialData?.user?.organization?.slug,
     beforeEventBuffer,
     afterEventBuffer,
     selectedCalendars: user.selectedCalendars,

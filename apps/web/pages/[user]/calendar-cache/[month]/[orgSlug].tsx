@@ -10,15 +10,18 @@ import getCalendarsEvents from "@calcom/core/getCalendarsEvents";
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 
-const paramsSchema = z.object({ user: z.string(), month: z.string() });
+const paramsSchema = z.object({ user: z.string(), month: z.string(), orgSlug: z.string() });
 export const getStaticProps: GetStaticProps<
   { results: Awaited<ReturnType<typeof getCalendarsEvents>> },
   { user: string }
 > = async (context) => {
-  const { user: username, month } = paramsSchema.parse(context.params);
+  const { user: username, month, orgSlug } = paramsSchema.parse(context.params);
   const userWithCredentials = await prisma.user.findFirst({
     where: {
       username,
+      organization: {
+        slug: orgSlug,
+      },
     },
     select: {
       id: true,

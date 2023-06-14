@@ -20,7 +20,7 @@ export function getOrgDomain(hostname: string) {
   const currentHostname = appHostnames.find((ahn) => {
     const url = new URL(WEBAPP_URL);
     const testHostname = `${url.hostname}${url.port ? `:${url.port}` : ""}`;
-    return testHostname.endsWith(`.${ahn}`);
+    return testHostname.endsWith(ahn);
   });
   if (currentHostname) {
     // Define which is the current domain/subdomain
