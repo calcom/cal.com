@@ -8,8 +8,11 @@ import { createRef, forwardRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
 import { components } from "react-select";
 
+import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
+import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { APP_NAME, EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import {
   Button,
   Dialog,
@@ -41,12 +44,13 @@ type PreviewState = {
     height: string;
   };
   theme: Theme;
-  floatingPopup: Record<string, string>;
+  floatingPopup: Record<string, string | boolean | undefined>;
   elementClick: Record<string, string>;
   palette: {
     brandColor: string;
   };
   hideEventTypeDetails: boolean;
+  layout: BookerLayouts;
 };
 const queryParamsForDialog = ["embedType", "embedTabName", "embedUrl"];
 
@@ -129,11 +133,13 @@ const getEmbedUIInstructionString = ({
   theme,
   brandColor,
   hideEventTypeDetails,
+  layout,
 }: {
   apiName: string;
   theme?: string;
   brandColor: string;
   hideEventTypeDetails: boolean;
+  layout?: string;
 }) => {
   theme = theme !== "auto" ? theme : undefined;
   return getInstructionString({
@@ -147,6 +153,7 @@ const getEmbedUIInstructionString = ({
         },
       },
       hideEventTypeDetails: hideEventTypeDetails,
+      layout,
     },
   });
 };
@@ -260,6 +267,7 @@ const getEmbedTypeSpecificString = ({
     theme: PreviewState["theme"];
     brandColor: string;
     hideEventTypeDetails: boolean;
+    layout?: BookerLayout;
   };
   if (embedFramework === "react") {
     uiInstructionStringArg = {
@@ -267,6 +275,7 @@ const getEmbedTypeSpecificString = ({
       theme: previewState.theme,
       brandColor: previewState.palette.brandColor,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
+      layout: previewState.layout,
     };
   } else {
     uiInstructionStringArg = {
@@ -274,6 +283,7 @@ const getEmbedTypeSpecificString = ({
       theme: previewState.theme,
       brandColor: previewState.palette.brandColor,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
+      layout: previewState.layout,
     };
   }
   if (!frameworkCodes[embedType]) {
@@ -626,6 +636,7 @@ const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme;
 const ChooseEmbedTypesDialogContent = () => {
   const { t } = useLocale();
   const router = useRouter();
+
   return (
     <DialogContent className="rounded-lg p-10" type="creation" size="lg">
       <div className="mb-2">
@@ -671,6 +682,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const dialogContentRef = useRef<HTMLDivElement>(null);
+  const flags = useFlagMap();
+  const isBookerLayoutsEnabled = flags["booker-layouts"] === true;
 
   const s = (href: string) => {
     const searchParams = new URLSearchParams(router.asPath.split("?")[1] || "");
@@ -691,7 +704,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] = useState(true);
   const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
-  const [previewState, setPreviewState] = useState({
+  const [previewState, setPreviewState] = useState<PreviewState>({
     inline: {
       width: "100%",
       height: "100%",
@@ -703,6 +716,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     palette: {
       brandColor: "#000000",
     },
+    layout: BookerLayouts.MONTH_VIEW,
   });
 
   const close = () => {
@@ -765,6 +779,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     arg: {
       theme: previewState.theme,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
+      layout: previewState.layout,
       styles: {
         branding: {
           ...previewState.palette,
@@ -796,6 +811,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     { value: Theme.auto, label: "Auto" },
     { value: Theme.dark, label: "Dark Theme" },
     { value: Theme.light, label: "Light Theme" },
+  ];
+
+  const layoutOptions = [
+    { value: BookerLayouts.MONTH_VIEW, label: t("bookerlayout_month_view") },
+    { value: BookerLayouts.WEEK_VIEW, label: t("bookerlayout_week_view") },
+    { value: BookerLayouts.COLUMN_VIEW, label: t("bookerlayout_column_view") },
   ];
 
   const FloatingPopupPositionOptions = [
@@ -1070,6 +1091,27 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         </div>
                       </Label>
                     ))}
+                    {isBookerLayoutsEnabled && (
+                      <Label className="mb-6">
+                        <div className="mb-2">{t("layout")}</div>
+                        <Select
+                          className="w-full"
+                          defaultValue={layoutOptions[0]}
+                          onChange={(option) => {
+                            if (!option) {
+                              return;
+                            }
+                            setPreviewState((previewState) => {
+                              return {
+                                ...previewState,
+                                layout: option.value,
+                              };
+                            });
+                          }}
+                          options={layoutOptions}
+                        />
+                      </Label>
+                    )}
                   </div>
                 </CollapsibleContent>
               </Collapsible>

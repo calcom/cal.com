@@ -300,6 +300,7 @@
   "failed": "Fallito",
   "password_has_been_reset_login": "La tua password è stata reimpostata. Ora puoi accedere con la tua password appena creata.",
   "bookerlayout_title": "Layout",
+  "layout": "Layout",
   "bookerlayout_default_title": "Vista predefinita",
   "bookerlayout_description": "È possibile selezionarne vari e chi fissa gli appuntamenti può cambiare visualizzazione.",
   "bookerlayout_user_settings_title": "Layout di programmazione appuntamenti",

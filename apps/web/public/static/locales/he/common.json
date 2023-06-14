@@ -299,6 +299,7 @@
   "failed": "הפעולה נכשלה",
   "password_has_been_reset_login": "הסיסמה שלך אופסה. עכשיו ניתן להיכנס עם הסיסמה החדשה.",
   "bookerlayout_title": "פריסה",
+  "layout": "פריסה",
   "bookerlayout_default_title": "תצוגת ברירת מחדל",
   "bookerlayout_description": "אתה יכול לבחור כמה והמתזמנים שלך יכולים לשנות תצוגות.",
   "bookerlayout_user_settings_title": "פריסת תזמון",
