@@ -23,9 +23,8 @@ export function getOrgDomain(hostname: string) {
     return testHostname.endsWith(`.${ahn}`);
   });
   if (currentHostname) {
-    const url = currentHostname.split(":");
     // Define which is the current domain/subdomain
-    const slug = `${hostname}${url.length > 1 ? `:${url[1]}` : ""}`.replace(`.${currentHostname}` ?? "", "");
+    const slug = hostname.replace(`.${currentHostname}` ?? "", "");
     return slug.indexOf(".") === -1 ? slug : null;
   }
   return null;

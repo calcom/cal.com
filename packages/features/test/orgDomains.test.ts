@@ -35,13 +35,13 @@ describe("Org Domains Utils", () => {
     });
 
     it("should handle a local web app with port url with a local subdomain hostname", () => {
-      Object.defineProperty(constants, 'WEBAPP_URL', {value:"https://app.cal.local:3000"});
-      expect(getOrgDomain("acme.cal.local")).toEqual("acme");
+      Object.defineProperty(constants, 'WEBAPP_URL', {value:"http://app.cal.local:3000"});
+      expect(getOrgDomain("acme.cal.local:3000")).toEqual("acme");
     });
 
     it("should handle a local web app with port url with a non-local subdomain hostname", () => {
-      Object.defineProperty(constants, 'WEBAPP_URL', {value:"https://app.cal.local:3000"});
-      expect(getOrgDomain("acme.cal.com")).toEqual(null);
+      Object.defineProperty(constants, 'WEBAPP_URL', {value:"http://app.cal.local:3000"});
+      expect(getOrgDomain("acme.cal.com:3000")).toEqual(null);
     });
   })
 });
