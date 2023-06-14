@@ -39,14 +39,6 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   seatsPerTimeSlot: true,
   bookingFields: true,
   team: true,
-  scheduleId: true,
-  availability: {
-    select: {
-      scheduleId: true,
-      startTime: true,
-      endTime: true,
-    },
-  },
   workflows: {
     include: {
       workflow: {
@@ -173,19 +165,6 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
 
   const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
 
-  const schedule = event.scheduleId
-    ? await prisma.schedule.findUnique({
-        where: {
-          id: event.scheduleId,
-        },
-        select: {
-          id: true,
-          availability: true,
-          timeZone: true,
-        },
-      })
-    : null;
-
   return {
     ...event,
     bookerLayouts: bookerLayouts.parse(eventMetaData?.bookerLayouts || null),
@@ -198,7 +177,6 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
     // Sets user data on profile object for easier access
     profile: getProfileFromEvent(event),
     users: getUsersFromEvent(event),
-    schedule,
   };
 };
 
