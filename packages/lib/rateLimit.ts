@@ -1,27 +1,42 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import cache from "memory-cache";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
-import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { isIpInBanListString } from "./getIP";
 
-const rateLimit = (options: { intervalInMs: number }) => {
-  return {
-    check: (requestLimit: number, uniqueIdentifier: string) => {
-      const count = cache.get(uniqueIdentifier) || [0];
-      if (count[0] === 0) {
-        cache.put(uniqueIdentifier, count, options.intervalInMs);
-      }
-      count[0] += 1;
+const redis = Redis.fromEnv();
 
-      const currentUsage = count[0];
-      const isRateLimited = currentUsage >= requestLimit;
-
-      if (isRateLimited) {
-        throw new Error(ErrorCode.RateLimitExceeded);
-      }
-
-      return { isRateLimited, requestLimit, remaining: isRateLimited ? 0 : requestLimit - currentUsage };
-    },
-  };
+const limitter = {
+  core: new Ratelimit({
+    redis,
+    analytics: true,
+    prefix: "ratelimit",
+    limiter: Ratelimit.fixedWindow(10, "60s"),
+  }),
+  forcedSlowMode: new Ratelimit({
+    redis,
+    analytics: true,
+    prefix: "ratelimit:slowmode",
+    limiter: Ratelimit.fixedWindow(1, "30s"),
+  }),
 };
+
+type RateLimitHelper = {
+  rateLimitingType?: keyof typeof limitter;
+  identifier: string;
+};
+
+async function rateLimit({ rateLimitingType = "core", identifier }: RateLimitHelper) {
+  if (!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)) {
+    console.log("Rate limit skipped - UPSTASH not set");
+    return { success: true };
+  }
+
+  if (isIpInBanListString(identifier)) {
+    return await limitter.forcedSlowMode.limit(identifier);
+  }
+
+  return await limitter[rateLimitingType].limit(identifier);
+}
 
 export default rateLimit;

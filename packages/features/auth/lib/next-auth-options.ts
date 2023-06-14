@@ -97,10 +97,13 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.IncorrectUsernamePassword);
       }
 
-      const limiter = rateLimit({
-        intervalInMs: 60 * 1000, // 1 minute
+      const limiter = await rateLimit({
+        identifier: user.email,
       });
-      await limiter.check(10, user.email); // 10 requests per minute
+
+      if (!limiter.success) {
+        throw new Error(ErrorCode.RateLimitExceeded);
+      }
 
       if (user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
         throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);

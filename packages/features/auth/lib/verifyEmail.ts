@@ -11,10 +11,6 @@ import { TRPCError } from "@calcom/trpc/server";
 
 const log = logger.getChildLogger({ prefix: [`[[Auth] `] });
 
-const limiter = rateLimit({
-  intervalInMs: 60 * 1000, // 1 minute
-});
-
 interface VerifyEmailType {
   username?: string;
   email: string;
@@ -43,9 +39,11 @@ export const sendEmailVerification = async ({ email, language, username }: Verif
     token,
   });
 
-  const { isRateLimited } = limiter.check(10, email); // 10 requests per minute
+  const limitter = await rateLimit({
+    identifier: email,
+  });
 
-  if (isRateLimited) {
+  if (!limitter.success) {
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",
       message: "An unexpected error occurred, please try again later.",
