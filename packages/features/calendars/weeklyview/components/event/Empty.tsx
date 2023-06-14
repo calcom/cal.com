@@ -42,13 +42,16 @@ export function EmptyCell(props: EmptyCellProps) {
   return (
     <div
       className={classNames(
-        "group flex w-full items-center justify-center",
+        "group flex w-[calc(100%-1px)] items-center justify-center",
         isDisabled && "pointer-events-none",
         !isDisabled && "bg-default dark:bg-muted"
       )}
       data-disabled={isDisabled}
       data-day={props.day.toISOString()}
-      style={{ height: `calc(${hoverEventDuration}*var(--one-minute-height))`, overflow: "visible" }}
+      style={{
+        height: `calc(${isDisabled ? 1 : hoverEventDuration}*var(--one-minute-height))`,
+        overflow: "visible",
+      }}
       onClick={() => onEmptyCellClick && onEmptyCellClick(cellToDate.toDate())}>
       {!isDisabled && hoverEventDuration !== 0 && (
         <div

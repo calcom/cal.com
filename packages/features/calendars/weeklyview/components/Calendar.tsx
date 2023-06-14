@@ -75,7 +75,7 @@ export function Calendar(props: CalendarComponentProps) {
 
                 {/* Empty Cells */}
                 <SchedulerColumns
-                  zIndex={50}
+                  zIndex={60}
                   ref={schedulerGrid}
                   offsetHeight={containerOffset.current?.offsetHeight}
                   gridStopsPerDay={numberOfGridStopsPerDay}>

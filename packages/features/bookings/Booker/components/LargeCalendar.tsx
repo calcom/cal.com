@@ -47,7 +47,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         startDate={selectedDate ? new Date(selectedDate) : new Date()}
         endDate={dayjs(selectedDate).add(extraDays, "day").toDate()}
         onEmptyCellClick={(date) => setSelectedTimeslot(date.toString())}
-        gridCellsPerHour={60 / eventDuration}
+        gridCellsPerHour={60}
         hoverEventDuration={eventDuration}
         hideHeader
       />
