@@ -1,6 +1,7 @@
 // TODO: i18n
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
@@ -94,161 +95,163 @@ export default function RoutingForms({
     );
   }
   return (
-    <ShellMain
-      heading="Routing Forms"
-      CTA={hasPaidPlan && forms?.length && <NewFormButton />}
-      subtitle={t("routing_forms_description")}>
-      <UpgradeTip
-        title={t("teams_plan_required")}
-        description={t("routing_forms_are_a_great_way")}
-        features={features}
-        background="/tips/routing-forms"
-        isParentLoading={<SkeletonLoaderTeamList />}
-        buttons={
-          <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
-            <ButtonGroup>
-              <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
-                {t("upgrade")}
-              </Button>
-              <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
-                {t("learn_more")}
-              </Button>
-            </ButtonGroup>
-          </div>
-        }>
-        <FormActionsProvider appUrl={appUrl}>
-          <div className="-mx-4 md:-mx-8">
-            <div className="mb-10 w-full px-4 pb-2 sm:px-6 md:px-8">
-              {!forms?.length ? (
-                <EmptyScreen
-                  Icon={GitMerge}
-                  headline={t("create_your_first_form")}
-                  description={t("create_your_first_form_description")}
-                  buttonRaw={<NewFormButton />}
-                />
-              ) : null}
-              {forms?.length ? (
-                <div className="bg-default mb-16 overflow-hidden">
-                  <List data-testid="routing-forms-list">
-                    {forms.map((form, index) => {
-                      if (!form) {
-                        return null;
-                      }
-
-                      const description = form.description || "";
-                      const disabled = form.disabled;
-                      form.routes = form.routes || [];
-                      const fields = form.fields || [];
-                      return (
-                        <ListLinkItem
-                          key={index}
-                          href={appUrl + "/form-edit/" + form.id}
-                          heading={form.name}
-                          disabled={disabled}
-                          subHeading={description}
-                          className="space-x-2 rtl:space-x-reverse"
-                          actions={
-                            <>
-                              <FormAction className="self-center" action="toggle" routingForm={form} />
-                              <ButtonGroup combined>
-                                <Tooltip content={t("preview")}>
+    <LicenseRequired>
+      <ShellMain
+        heading="Routing Forms"
+        CTA={hasPaidPlan && forms?.length && <NewFormButton />}
+        subtitle={t("routing_forms_description")}>
+        <UpgradeTip
+          title={t("teams_plan_required")}
+          description={t("routing_forms_are_a_great_way")}
+          features={features}
+          background="/tips/routing-forms"
+          isParentLoading={<SkeletonLoaderTeamList />}
+          buttons={
+            <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+              <ButtonGroup>
+                <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
+                  {t("upgrade")}
+                </Button>
+                <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
+                  {t("learn_more")}
+                </Button>
+              </ButtonGroup>
+            </div>
+          }>
+          <FormActionsProvider appUrl={appUrl}>
+            <div className="-mx-4 md:-mx-8">
+              <div className="mb-10 w-full px-4 pb-2 sm:px-6 md:px-8">
+                {!forms?.length ? (
+                  <EmptyScreen
+                    Icon={GitMerge}
+                    headline={t("create_your_first_form")}
+                    description={t("create_your_first_form_description")}
+                    buttonRaw={<NewFormButton />}
+                  />
+                ) : null}
+                {forms?.length ? (
+                  <div className="bg-default mb-16 overflow-hidden">
+                    <List data-testid="routing-forms-list">
+                      {forms.map((form, index) => {
+                        if (!form) {
+                          return null;
+                        }
+                        const description = form.description || "";
+                        const disabled = form.disabled;
+                        form.routes = form.routes || [];
+                        const fields = form.fields || [];
+                        return (
+                          <ListLinkItem
+                            key={index}
+                            href={appUrl + "/form-edit/" + form.id}
+                            heading={form.name}
+                            disabled={disabled}
+                            subHeading={description}
+                            className="space-x-2 rtl:space-x-reverse"
+                            actions={
+                              <>
+                                <FormAction className="self-center" action="toggle" routingForm={form} />
+                                <ButtonGroup combined>
+                                  <Tooltip content={t("preview")}>
+                                    <FormAction
+                                      action="preview"
+                                      routingForm={form}
+                                      target="_blank"
+                                      StartIcon={ExternalLink}
+                                      color="secondary"
+                                      variant="icon"
+                                      disabled={disabled}
+                                    />
+                                  </Tooltip>
                                   <FormAction
-                                    action="preview"
                                     routingForm={form}
-                                    target="_blank"
-                                    StartIcon={ExternalLink}
+                                    action="copyLink"
                                     color="secondary"
                                     variant="icon"
+                                    StartIcon={LinkIcon}
                                     disabled={disabled}
+                                    tooltip={t("copy_link_to_form")}
                                   />
-                                </Tooltip>
-                                <FormAction
-                                  routingForm={form}
-                                  action="copyLink"
-                                  color="secondary"
-                                  variant="icon"
-                                  StartIcon={LinkIcon}
-                                  disabled={disabled}
-                                  tooltip={t("copy_link_to_form")}
-                                />
-                                <FormAction
-                                  routingForm={form}
-                                  action="embed"
-                                  color="secondary"
-                                  variant="icon"
-                                  StartIcon={Code}
-                                  disabled={disabled}
-                                  tooltip={t("embed")}
-                                />
-                                <FormActionsDropdown form={form}>
                                   <FormAction
-                                    action="edit"
                                     routingForm={form}
-                                    color="minimal"
-                                    className="!flex"
-                                    StartIcon={Edit}>
-                                    {t("edit")}
-                                  </FormAction>
-                                  <FormAction
-                                    action="download"
-                                    routingForm={form}
-                                    color="minimal"
-                                    StartIcon={Download}>
-                                    {t("download_responses")}
-                                  </FormAction>
-                                  <FormAction
-                                    action="duplicate"
-                                    routingForm={form}
-                                    color="minimal"
-                                    className="w-full"
-                                    StartIcon={Copy}>
-                                    {t("duplicate")}
-                                  </FormAction>
-                                  {typeformApp?.isInstalled ? (
+                                    action="embed"
+                                    color="secondary"
+                                    variant="icon"
+                                    StartIcon={Code}
+                                    disabled={disabled}
+                                    tooltip={t("embed")}
+                                  />
+                                  <FormActionsDropdown form={form}>
                                     <FormAction
-                                      data-testid="copy-redirect-url"
+                                      action="edit"
                                       routingForm={form}
-                                      action="copyRedirectUrl"
                                       color="minimal"
-                                      type="button"
-                                      StartIcon={LinkIcon}>
-                                      {t("Copy Typeform Redirect Url")}
+                                      className="!flex"
+                                      StartIcon={Edit}>
+                                      {t("edit")}
                                     </FormAction>
-                                  ) : null}
-                                  <FormAction
-                                    action="_delete"
-                                    routingForm={form}
-                                    color="destructive"
-                                    className="w-full"
-                                    StartIcon={Trash}>
-                                    {t("delete")}
-                                  </FormAction>
-                                </FormActionsDropdown>
-                              </ButtonGroup>
-                            </>
-                          }>
-                          <div className="flex flex-wrap gap-1">
-                            <Badge variant="gray" startIcon={Menu}>
-                              {fields.length} {fields.length === 1 ? "field" : "fields"}
-                            </Badge>
-                            <Badge variant="gray" startIcon={GitMerge}>
-                              {form.routes.length} {form.routes.length === 1 ? "route" : "routes"}
-                            </Badge>
-                            <Badge variant="gray" startIcon={MessageCircle}>
-                              {form._count.responses} {form._count.responses === 1 ? "response" : "responses"}
-                            </Badge>
-                          </div>
-                        </ListLinkItem>
-                      );
-                    })}
-                  </List>
-                </div>
-              ) : null}
+                                    <FormAction
+                                      action="download"
+                                      routingForm={form}
+                                      color="minimal"
+                                      StartIcon={Download}>
+                                      {t("download_responses")}
+                                    </FormAction>
+                                    <FormAction
+                                      action="duplicate"
+                                      routingForm={form}
+                                      color="minimal"
+                                      className="w-full"
+                                      StartIcon={Copy}>
+                                      {t("duplicate")}
+                                    </FormAction>
+                                    {typeformApp?.isInstalled ? (
+                                      <FormAction
+                                        data-testid="copy-redirect-url"
+                                        routingForm={form}
+                                        action="copyRedirectUrl"
+                                        color="minimal"
+                                        type="button"
+                                        StartIcon={LinkIcon}>
+                                        {t("Copy Typeform Redirect Url")}
+                                      </FormAction>
+                                    ) : null}
+                                    <FormAction
+                                      action="_delete"
+                                      routingForm={form}
+                                      color="destructive"
+                                      className="w-full"
+                                      StartIcon={Trash}>
+                                      {t("delete")}
+                                    </FormAction>
+                                  </FormActionsDropdown>
+                                </ButtonGroup>
+                              </>
+                            }>
+                            <div className="flex flex-wrap gap-1">
+                              <Badge variant="gray" startIcon={Menu}>
+                                {fields.length} {fields.length === 1 ? "field" : "fields"}
+                              </Badge>
+                              <Badge variant="gray" startIcon={GitMerge}>
+                                {form.routes.length} {form.routes.length === 1 ? "route" : "routes"}
+                              </Badge>
+                              <Badge variant="gray" startIcon={MessageCircle}>
+                                {form._count.responses}{" "}
+                                {form._count.responses === 1 ? "response" : "responses"}
+                              </Badge>
+                            </div>
+                          </ListLinkItem>
+                        );
+                      })}
+                    </List>
+                  </div>
+                ) : null}
+              </div>
             </div>
-          </div>
-        </FormActionsProvider>
-      </UpgradeTip>
-    </ShellMain>
+          </FormActionsProvider>
+        </UpgradeTip>
+      </ShellMain>
+    </LicenseRequired>
   );
 }
 

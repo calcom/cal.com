@@ -8,6 +8,7 @@ import type {
 } from "react-awesome-query-builder";
 import { Builder, Query, Utils as QbUtils } from "react-awesome-query-builder";
 
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -56,7 +57,11 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
   const headers = useRef<string[] | null>(null);
 
   if (!isLoading && !data) {
-    return <div>Error loading report {error?.message} </div>;
+    return (
+      <LicenseRequired>
+        <div>Error loading report {error?.message} </div>
+      </LicenseRequired>
+    );
   }
   headers.current = (data?.pages && data?.pages[0]?.headers) || headers.current;
 
@@ -185,15 +190,17 @@ export default function ReporterWrapper({
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
-    <SingleForm
-      form={form}
-      appUrl={appUrl}
-      Page={({ form }) => (
-        <div className="route-config">
-          <Reporter form={form} />
-        </div>
-      )}
-    />
+    <LicenseRequired>
+      <SingleForm
+        form={form}
+        appUrl={appUrl}
+        Page={({ form }) => (
+          <div className="route-config">
+            <Reporter form={form} />
+          </div>
+        )}
+      />
+    </LicenseRequired>
   );
 }
 
