@@ -7,10 +7,13 @@ import type { FC } from "react";
 import { useEffect, useState, memo } from "react";
 import { z } from "zod";
 
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
+import { OrganizationEventTypeFilter } from "@calcom/features/eventtypes/components/OrganizationEventTypeFilter";
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -44,6 +47,8 @@ import {
   HeadSeo,
   Skeleton,
   Label,
+  VerticalDivider,
+  Alert,
 } from "@calcom/ui";
 import {
   ArrowDown,
@@ -59,9 +64,11 @@ import {
   Trash,
   Upload,
   Users,
+  User as UserIcon,
 } from "@calcom/ui/components/icon";
 
 import { withQuery } from "@lib/QueryCell";
+import useMeQuery from "@lib/hooks/useMeQuery";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 import PageWrapper from "@components/PageWrapper";
@@ -74,6 +81,7 @@ interface EventTypeListHeadingProps {
   profile: EventTypeGroupProfile;
   membershipCount: number;
   teamId?: number | null;
+  orgSlug?: string;
 }
 
 type EventTypeGroup = EventTypeGroups[number];
@@ -194,6 +202,7 @@ const MemoizedItem = memo(Item);
 export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
+  const orgBranding = useOrgBrandingValues();
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
@@ -362,7 +371,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
-          const calLink = `${CAL_URL}/${embedLink}`;
+          const calLink = `${
+            orgBranding ? `${new URL(CAL_URL).protocol}//${orgBranding.slug}.${subdomainSuffix()}` : CAL_URL
+          }/${embedLink}`;
           const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
           const isChildrenManagedEventType =
             type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
@@ -687,6 +698,7 @@ const EventTypeListHeading = ({
   profile,
   membershipCount,
   teamId,
+  orgSlug,
 }: EventTypeListHeadingProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
@@ -727,7 +739,9 @@ const EventTypeListHeading = ({
         )}
         {profile?.slug && (
           <Link href={`${CAL_URL}/${profile.slug}`} className="text-subtle block text-xs">
-            {`${CAL_URL?.replace("https://", "")}/${profile.slug}`}
+            {orgSlug
+              ? `${orgSlug}.${subdomainSuffix()}/${profile.slug}`
+              : `${CAL_URL?.replace("https://", "")}/${profile.slug}`}
           </Link>
         )}
       </div>
@@ -782,6 +796,43 @@ const CTA = () => {
   );
 };
 
+const Actions = () => {
+  return (
+    <div className="flex items-center">
+      <OrganizationEventTypeFilter />
+      <VerticalDivider />
+    </div>
+  );
+};
+
+const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
+  const { t } = useLocale();
+  const orgBranding = useOrgBrandingValues();
+
+  return (
+    <Alert
+      className="my-4"
+      severity="info"
+      title={t("set_up_your_profile")}
+      message={t("set_up_your_profile_description", { orgName: orgBranding?.name })}
+      CustomIcon={UserIcon}
+      actions={
+        <div className="flex gap-1">
+          <Button color="minimal" className="text-sky-700 hover:bg-sky-100" onClick={closeAction}>
+            {t("dismiss")}
+          </Button>
+          <Button
+            color="secondary"
+            className="border-sky-700 bg-sky-50 text-sky-700 hover:border-sky-900 hover:bg-sky-200"
+            href="/getting-started">
+            {t("set_up")}
+          </Button>
+        </div>
+      }
+    />
+  );
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer as any);
 
@@ -790,12 +841,24 @@ const EventTypesPage = () => {
   const router = useRouter();
   const { open } = useIntercom();
   const { query } = router;
+  const { data: user } = useMeQuery();
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const [showProfileBanner, setShowProfileBanner] = useState(false);
+  const orgBranding = useOrgBrandingValues();
+
+  function closeBanner() {
+    setShowProfileBanner(false);
+    document.cookie = `calcom-profile-banner=1;max-age=${60 * 60 * 24 * 90}`; // 3 months
+    showToast(t("we_wont_show_again"), "success");
+  }
 
   useEffect(() => {
     if (query?.openIntercom && query?.openIntercom === "true") {
       open();
     }
+    setShowProfileBanner(
+      !!orgBranding && !document.cookie.includes("calcom-profile-banner=1") && !user?.completedOnboarding
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -810,6 +873,8 @@ const EventTypesPage = () => {
         heading={t("event_types_page_title")}
         hideHeadingOnMobile
         subtitle={t("event_types_page_subtitle")}
+        afterHeading={showProfileBanner && <SetupProfileBanner closeAction={closeBanner} />}
+        beforeCTAactions={<Actions />}
         CTA={<CTA />}>
         <WithQuery
           customLoader={<SkeletonLoader />}
@@ -826,6 +891,7 @@ const EventTypesPage = () => {
                           profile={group.profile}
                           membershipCount={group.metadata.membershipCount}
                           teamId={group.teamId}
+                          orgSlug={orgBranding?.slug}
                         />
 
                         <EventTypeList
