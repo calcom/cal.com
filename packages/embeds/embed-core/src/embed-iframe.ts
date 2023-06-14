@@ -3,6 +3,8 @@ import type { CSSProperties } from "react";
 import { useState, useEffect } from "react";
 
 import embedInit from "@calcom/embed-core/embed-iframe-init";
+import type { BookerStore } from "@calcom/features/bookings/Booker/store";
+import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
@@ -16,6 +18,7 @@ export type UiConfig = {
   styles?: EmbedStyles & EmbedNonStylesConfig;
   //TODO: Extract from tailwind the list of all custom variables and support them in auto-completion as well as runtime validation. Followup with listing all variables in Embed Snippet Generator UI.
   cssVarsPerTheme?: Record<Theme, Record<string, string>>;
+  layout?: BookerLayouts;
 };
 
 type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
@@ -44,6 +47,7 @@ declare global {
       __logQueue?: unknown[];
       embedStore: typeof embedStore;
       applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
+      setLayout?: BookerStore["setLayout"];
     };
     CalComPageStatus: string;
     isEmbed?: () => boolean;
@@ -313,6 +317,10 @@ const methods = {
 
     if (embedStore.setUiConfig) {
       embedStore.setUiConfig(uiConfig);
+    }
+
+    if (uiConfig.layout) {
+      window.CalEmbed.setLayout?.(uiConfig.layout);
     }
 
     setEmbedStyles(stylesConfig || {});
