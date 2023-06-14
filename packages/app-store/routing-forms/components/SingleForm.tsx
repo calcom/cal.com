@@ -57,6 +57,7 @@ type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 export type RoutingFormWithResponseCount = RoutingForm & {
   team: {
     slug: Team["slug"];
+    name: Team["name"];
   } | null;
   _count: {
     responses: number;
@@ -296,7 +297,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                 <div>{form.name}</div>
                 {form.team && (
                   <Badge className="mt-1 ml-4" variant="gray">
-                    {form.team.slug}
+                    {form.team.name}
                   </Badge>
                 )}
               </div>
