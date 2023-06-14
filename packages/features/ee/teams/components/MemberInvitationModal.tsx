@@ -3,6 +3,7 @@ import { Trans } from "next-i18next";
 import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFromOrg";
 import { classNames } from "@calcom/lib";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -50,13 +51,15 @@ export interface NewMemberForm {
   sendInviteEmail: boolean;
 }
 
-type ModalMode = "INDIVIDUAL" | "BULK";
+type ModalMode = "INDIVIDUAL" | "BULK" | "ORGANIZATION";
 
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
   const trpcContext = trpc.useContext();
 
-  const [modalImportMode, setModalInputMode] = useState<ModalMode>("INDIVIDUAL");
+  const [modalImportMode, setModalInputMode] = useState<ModalMode>(
+    props.orgMembers ? "ORGANIZATION" : "INDIVIDUAL"
+  );
 
   const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
     onSuccess(token) {
@@ -220,6 +223,25 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   Upload a .csv file
                 </Button>
               </div>
+            )}
+            {modalImportMode === "ORGANIZATION" && (
+              <TeamInviteFromOrg
+                selectedEmails={newMemberFormMethods.getValues("emailOrUsername")}
+                handleOnChecked={(userEmail) => {
+                  const currentlySelected = newMemberFormMethods.getValues("emailOrUsername") as string[]; // Its always a array in this instance;
+                  const emailIndex = currentlySelected.indexOf(userEmail);
+                  if (emailIndex !== -1) {
+                    // Email is present in the array, so remove it
+                    currentlySelected.splice(emailIndex, 1);
+                    newMemberFormMethods.setValue("emailOrUsername", currentlySelected);
+                  } else {
+                    // Email is not present in the array, so add it
+                    currentlySelected.push(userEmail);
+                    newMemberFormMethods.setValue("emailOrUsername", currentlySelected);
+                  }
+                }}
+                orgMembers={props.orgMembers}
+              />
             )}
             <Controller
               name="role"

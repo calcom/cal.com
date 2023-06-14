@@ -69,13 +69,24 @@ const MembersView = () => {
   const session = useSession();
 
   const utils = trpc.useContext();
+
   const teamId = Number(router.query.id);
 
   const showDialog = router.query.inviteModal === "true";
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(showDialog);
   const [showInviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
 
-  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+  const { data: orgMembersNotInThisTeam, isLoading: isOrgListLoading } =
+    trpc.viewer.organizations.getMembers.useQuery(
+      {
+        teamIdToExclude: teamId,
+      },
+      {
+        enabled: router.isReady,
+      }
+    );
+
+  const { data: team, isLoading: isTeamsLoading } = trpc.viewer.teams.get.useQuery(
     { teamId },
     {
       onError: () => {
@@ -83,6 +94,8 @@ const MembersView = () => {
       },
     }
   );
+
+  const isLoading = isOrgListLoading || isTeamsLoading;
 
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess(data) {
@@ -173,6 +186,7 @@ const MembersView = () => {
           {showMemberInvitationModal && team && (
             <MemberInvitationModal
               isOpen={showMemberInvitationModal}
+              orgMembers={orgMembersNotInThisTeam}
               members={team.members}
               teamId={team.id}
               token={team.inviteToken?.token}

@@ -11,9 +11,9 @@ type CreateOptions = {
 };
 
 export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
-  const { teamIdToExclude } = input;
+  const { teamIdToExclude, accepted } = input;
 
-  if (!ctx.user.organizationId) return null;
+  if (!ctx.user.organizationId) return [];
 
   const users = await prisma.membership.findMany({
     where: {
@@ -25,6 +25,7 @@ export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
           not: teamIdToExclude,
         },
       }),
+      accepted,
     },
     include: {
       user: {
@@ -33,6 +34,7 @@ export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
           username: true,
           email: true,
           completedOnboarding: true,
+          name: true,
         },
       },
     },

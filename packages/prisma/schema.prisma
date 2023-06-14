@@ -270,8 +270,8 @@ model Team {
   inviteToken         VerificationToken?
   webhooks            Webhook[]
   timeFormat          Int?
-  timeZone            String           @default("Europe/London")
-  weekStart           String           @default("Sunday")
+  timeZone            String             @default("Europe/London")
+  weekStart           String             @default("Sunday")
 
   @@unique([slug, parentId])
 }
