@@ -6,7 +6,7 @@ import z from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Form, ImageUploader, Alert, Label, TextAreaField } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import { ArrowRight, Plus } from "@calcom/ui/components/icon";
 
 const querySchema = z.object({
   id: z.string(),
@@ -60,7 +60,13 @@ export const AboutOrganizationForm = () => {
               <>
                 <Label>{t("organization_logo")}</Label>
                 <div className="flex items-center">
-                  <Avatar alt="" imageSrc={image || "/org_avatar.png"} size="lg" />
+                  <Avatar
+                    alt=""
+                    fallback={<Plus className="text-subtle h-6 w-6" />}
+                    asChild
+                    className="items-center"
+                    size="lg"
+                  />
                   <div className="ms-4">
                     <ImageUploader
                       target="avatar"

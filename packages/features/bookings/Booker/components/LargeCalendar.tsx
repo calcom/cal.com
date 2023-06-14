@@ -1,30 +1,48 @@
-import { shallow } from "zustand/shallow";
+import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { Calendar } from "@calcom/features/calendars/weeklyview";
+import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
 
 import { useBookerStore } from "../store";
+import { useScheduleForEvent } from "../utils/event";
 
-export const LargeCalendar = () => {
-  const [setSelectedDate, setSelectedTimeslot] = useBookerStore(
-    (state) => [state.setSelectedDate, state.setSelectedTimeslot],
-    shallow
-  );
+export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
+  const selectedDate = useBookerStore((state) => state.selectedDate);
+  const date = selectedDate || dayjs().format("YYYY-MM-DD");
+  const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
+  const schedule = useScheduleForEvent({
+    prefetchNextMonth: !!extraDays && dayjs(date).month() !== dayjs(date).add(extraDays, "day").month(),
+  });
+
+  const availableSlots = useMemo(() => {
+    const availableTimeslots: CalendarAvailableTimeslots = {};
+    if (!schedule.data) return availableTimeslots;
+    if (!schedule.data.slots) return availableTimeslots;
+    for (const day in schedule.data.slots) {
+      availableTimeslots[day] = schedule.data.slots[day].map((slot) => ({
+        start: dayjs(slot.time).toDate(),
+        end: dayjs(slot.time).add(30, "minutes").toDate(),
+      }));
+    }
+
+    return availableTimeslots;
+  }, [schedule]);
 
   return (
-    <div className="bg-default dark:bg-muted flex h-full w-full flex-col items-center justify-center">
-      Something big is coming...
-      <br />
-      <button
-        className="max-w-[300px] underline"
-        type="button"
-        onClick={(ev) => {
-          ev.preventDefault();
-          setSelectedDate(dayjs().format("YYYY-MM-DD"));
-          setSelectedTimeslot(dayjs().format());
-        }}>
-        Click this button to set date + time in one go just like the big thing that is coming here would do.
-        :)
-      </button>
+    <div className="h-full">
+      <Calendar
+        availableTimeslots={availableSlots}
+        startHour={8}
+        endHour={18}
+        events={[]}
+        startDate={selectedDate ? new Date(selectedDate) : new Date()}
+        endDate={dayjs(selectedDate).add(extraDays, "day").toDate()}
+        onEmptyCellClick={(date) => setSelectedTimeslot(date.toString())}
+        gridCellsPerHour={2}
+        hoverEventDuration={30}
+        hideHeader
+      />
     </div>
   );
 };
