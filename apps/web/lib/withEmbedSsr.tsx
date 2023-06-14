@@ -8,6 +8,7 @@ export default function withEmbedSsr(getServerSideProps: GetServerSideProps) {
   return async (context: GetServerSidePropsContext): Promise<GetServerSidePropsResult<EmbedProps>> => {
     const ssrResponse = await getServerSideProps(context);
     const embed = context.query.embed;
+    const layout = context.query.layout;
 
     if ("redirect" in ssrResponse) {
       // Use a dummy URL https://base as the fallback base URL so that URL parsing works for relative URLs as well.
@@ -18,6 +19,8 @@ export default function withEmbedSsr(getServerSideProps: GetServerSideProps) {
         destinationUrlObj.pathname +
         "/embed?" +
         destinationUrlObj.searchParams.toString() +
+        "&layout=" +
+        layout +
         "&embed=" +
         embed;
 

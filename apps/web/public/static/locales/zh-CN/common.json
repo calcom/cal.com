@@ -290,6 +290,7 @@
   "failed": "失败",
   "password_has_been_reset_login": "您的密码已重置。您现在可以使用您的新密码登录。",
   "bookerlayout_title": "布局",
+  "layout": "布局",
   "bookerlayout_default_title": "默认视图",
   "bookerlayout_description": "您可以选择多个布局，这样预约者可以切换视图。",
   "bookerlayout_user_settings_title": "预约布局",
