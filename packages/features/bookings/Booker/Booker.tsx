@@ -1,6 +1,6 @@
 import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
@@ -20,6 +20,8 @@ import { extraDaysConfig, fadeInLeft, getBookerSizeClassNames, useBookerResizeAn
 import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerProps } from "./types";
 import { useEvent } from "./utils/event";
+import { validateLayout } from "./utils/layout";
+import { getQueryParam } from "./utils/query-param";
 import { useBrandColors } from "./utils/use-brand-colors";
 
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
@@ -42,6 +44,9 @@ const BookerComponent = ({
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
   const event = useEvent();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
+  if (typeof window !== "undefined") {
+    window.CalEmbed.setLayout = setLayout;
+  }
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
@@ -52,6 +57,14 @@ const BookerComponent = ({
   const extraDays = isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop;
   const bookerLayouts = event.data?.profile?.bookerLayouts || defaultBookerLayoutSettings;
   const animationScope = useBookerResizeAnimation(layout, bookerState);
+  const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
+  const isMonthView = layout === BookerLayouts.MONTH_VIEW;
+  // We only want the initial url value, that's why we memo it. The embed seems to change the url, which sometimes drops
+  // the layout query param.
+  const layoutFromQueryParam = useMemo(() => validateLayout(getQueryParam("layout") as BookerLayouts), []);
+  const defaultLayout = isEmbed
+    ? layoutFromQueryParam || BookerLayouts.MONTH_VIEW
+    : bookerLayouts.defaultLayout;
 
   useBrandColors({
     brandColor: event.data?.profile.brandColor,
@@ -66,16 +79,16 @@ const BookerComponent = ({
     eventId: event?.data?.id,
     rescheduleUid,
     rescheduleBooking,
-    layout: bookerLayouts.defaultLayout,
+    layout: defaultLayout,
   });
 
   useEffect(() => {
     if (isMobile && layout !== "mobile") {
       setLayout("mobile");
     } else if (!isMobile && layout === "mobile") {
-      setLayout(BookerLayouts.MONTH_VIEW);
+      setLayout(defaultLayout);
     }
-  }, [isMobile, setLayout, layout]);
+  }, [isMobile, setLayout, layout, defaultLayout]);
 
   useEffect(() => {
     if (event.isLoading) return setBookerState("loading");
@@ -96,17 +109,21 @@ const BookerComponent = ({
 
   return (
     <>
-      <div className="flex h-full w-full flex-col items-center">
+      <div className="text-default flex h-full w-full flex-col items-center overflow-x-clip">
         <div
           ref={animationScope}
           className={classNames(
             // Sets booker size css variables for the size of all the columns.
             ...getBookerSizeClassNames(layout, bookerState),
-            "bg-default dark:bg-muted grid max-w-full items-start overflow-clip dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
-            layout === BookerLayouts.MONTH_VIEW && "border-subtle rounded-md border"
+            "bg-default dark:bg-muted grid max-w-full auto-rows-fr items-start dark:[color-scheme:dark] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
+            layout === BookerLayouts.MONTH_VIEW && "rounded-md border",
+            !isEmbed && "sm:transition-[width] sm:duration-300",
+            isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
+            !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle",
+            layout === BookerLayouts.MONTH_VIEW && isEmbed && "mt-20"
           )}>
           <AnimatePresence>
-            <BookerSection area="header">
+            <BookerSection area="header" className={classNames(isMonthView && "fixed top-3 right-3 z-10")}>
               <Header
                 enabledLayouts={bookerLayouts.enabledLayouts}
                 extraDays={extraDays}
