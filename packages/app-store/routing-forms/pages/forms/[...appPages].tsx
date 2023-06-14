@@ -76,7 +76,7 @@ export default function RoutingForms({
   });
 
   const { data: typeformApp } = useApp("typeform");
-
+  const forms = queryRes.data?.filtered;
   const features = [
     {
       icon: <FileText className="h-5 w-5 text-orange-500" />,
@@ -113,7 +113,7 @@ export default function RoutingForms({
   return (
     <ShellMain
       heading="Routing Forms"
-      CTA={hasPaidPlan && forms?.length && <NewFormButton />}
+      CTA={hasPaidPlan && forms?.length ? <NewFormButton /> : null}
       subtitle={t("routing_forms_description")}>
       <UpgradeTip
         title={t("teams_plan_required")}
@@ -159,7 +159,7 @@ export default function RoutingForms({
                 SkeletonLoader={SkeletonLoaderTeamList}>
                 <div className="bg-default mb-16 overflow-hidden">
                   <List data-testid="routing-forms-list">
-                    {queryRes.data?.filtered.map(({ form, readOnly }) => {
+                    {forms?.map(({ form, readOnly }) => {
                       if (!form) {
                         return null;
                       }
@@ -319,6 +319,8 @@ export const getServerSideProps = async function getServerSideProps(
   await ssr.viewer.appRoutingForms.forms.prefetch({
     filters,
   });
+  // Prefetch this so that New Button is immediately available
+  await ssr.viewer.teamsAndUserProfilesQuery.prefetch();
   return {
     props: {
       trpcState: ssr.dehydrate(),
