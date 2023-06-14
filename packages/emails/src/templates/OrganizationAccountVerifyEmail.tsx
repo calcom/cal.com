@@ -55,7 +55,7 @@ export const OrganisationAccountVerifyEmail = (
               style={{ color: "#3E3E3E" }}
               target="_blank"
               rel="noreferrer">
-              <>{props.language("the_calcom_team")}</>
+              <>{props.language("the_calcom_team", { companyName: COMPANY_NAME })}</>
             </a>
           </>
         </p>
