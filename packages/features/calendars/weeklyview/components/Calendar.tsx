@@ -6,7 +6,7 @@ import type { CalendarComponentProps } from "../types/state";
 import { getDaysBetweenDates, getHoursToDisplay } from "../utils";
 import { DateValues } from "./DateValues";
 import { CurrentTime } from "./currentTime";
-import { EmptyCell } from "./event/Empty";
+import { AvailableCellsForDay, EmptyCell } from "./event/Empty";
 import { EventList } from "./event/EventList";
 import { SchedulerColumns } from "./grid";
 import { SchedulerHeading } from "./heading/SchedulerHeading";
@@ -73,40 +73,6 @@ export function Calendar(props: CalendarComponentProps) {
                 />
                 <VeritcalLines days={days} />
 
-                {/* Empty Cells */}
-                <SchedulerColumns
-                  zIndex={60}
-                  ref={schedulerGrid}
-                  offsetHeight={containerOffset.current?.offsetHeight}
-                  gridStopsPerDay={numberOfGridStopsPerDay}>
-                  <>
-                    {[...Array(days.length)].map((_, i) => (
-                      <li
-                        className="relative"
-                        key={i}
-                        style={{
-                          gridRow: `2 / span ${numberOfGridStopsPerDay}`,
-                        }}>
-                        {/* While startDate < endDate:  */}
-                        {[...Array(numberOfGridStopsPerDay)].map((_, j) => {
-                          const key = `${i}-${j}`;
-                          return (
-                            <EmptyCell
-                              key={key}
-                              day={days[i].toDate()}
-                              gridCellIdx={j}
-                              totalGridCells={numberOfGridStopsPerDay}
-                              selectionLength={endHour - startHour}
-                              startHour={startHour}
-                              availableSlots={availableTimeslots}
-                            />
-                          );
-                        })}
-                      </li>
-                    ))}
-                  </>
-                </SchedulerColumns>
-
                 <SchedulerColumns
                   offsetHeight={containerOffset.current?.offsetHeight}
                   gridStopsPerDay={numberOfGridStopsPerDay}>
@@ -119,6 +85,49 @@ export function Calendar(props: CalendarComponentProps) {
                       </li>
                     );
                   })}
+                </SchedulerColumns>
+
+                {/* Empty Cells */}
+                <SchedulerColumns
+                  ref={schedulerGrid}
+                  offsetHeight={containerOffset.current?.offsetHeight}
+                  gridStopsPerDay={numberOfGridStopsPerDay}>
+                  <>
+                    {[...Array(days.length)].map((_, i) => (
+                      <li
+                        className="relative"
+                        key={i}
+                        style={{
+                          gridRow: `2 / span ${numberOfGridStopsPerDay}`,
+                        }}>
+                        {/* While startDate < endDate:  */}
+                        {availableTimeslots ? (
+                          <AvailableCellsForDay
+                            key={days[i].toISOString()}
+                            day={days[i].toDate()}
+                            startHour={startHour}
+                            availableSlots={availableTimeslots}
+                          />
+                        ) : (
+                          <>
+                            {[...Array(numberOfGridStopsPerDay)].map((_, j) => {
+                              const key = `${i}-${j}`;
+                              return (
+                                <EmptyCell
+                                  key={key}
+                                  day={days[i].toDate()}
+                                  gridCellIdx={j}
+                                  totalGridCells={numberOfGridStopsPerDay}
+                                  selectionLength={endHour - startHour}
+                                  startHour={startHour}
+                                />
+                              );
+                            })}
+                          </>
+                        )}
+                      </li>
+                    ))}
+                  </>
                 </SchedulerColumns>
               </div>
             </div>

@@ -13,7 +13,7 @@ export const HorizontalLines = ({
   containerOffsetRef: React.RefObject<HTMLDivElement>;
 }) => {
   const { timeFormat } = useTimePreferences();
-  const finalHour = hours[hours.length - 1].add(1, "hour").format("h A");
+  const finalHour = hours[hours.length - 1].add(1, "hour").format(timeFormat);
   const id = useId();
   return (
     <div
