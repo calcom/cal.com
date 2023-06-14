@@ -47,7 +47,7 @@ export function EmptyCell(props: EmptyCellProps) {
         !isDisabled && "bg-default dark:bg-muted"
       )}
       data-disabled={isDisabled}
-      data-day={props.day.toISOString()}
+      data-slot={cellToDate.toISOString()}
       style={{
         height: `calc(${isDisabled ? 1 : hoverEventDuration}*var(--one-minute-height))`,
         overflow: "visible",
