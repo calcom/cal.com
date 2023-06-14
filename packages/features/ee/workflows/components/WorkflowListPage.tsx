@@ -23,7 +23,6 @@ import { Edit2, Link as LinkIcon, MoreHorizontal, Trash2 } from "@calcom/ui/comp
 
 import { getActionIcon } from "../lib/getActionIcon";
 import { DeleteDialog } from "./DeleteDialog";
-import EmptyScreen from "./EmptyScreen";
 
 export type WorkflowType = Workflow & {
   team: {
@@ -47,15 +46,8 @@ export type WorkflowType = Workflow & {
 };
 interface Props {
   workflows: WorkflowType[] | undefined;
-  profileOptions: {
-    image?: string | null;
-    label: string | null;
-    teamId: number | null | undefined;
-    slug: string | null;
-  }[];
-  hasNoWorkflows?: boolean;
 }
-export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkflows }: Props) {
+export default function WorkflowListPage({ workflows }: Props) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -246,12 +238,12 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
             setIsOpenDialog={setDeleteDialogOpen}
             workflowId={workflowToDeleteId}
             additionalFunction={async () => {
-              await utils.viewer.workflows.list.invalidate();
+              await utils.viewer.workflows.filteredList.invalidate();
             }}
           />
         </div>
       ) : (
-        <EmptyScreen profileOptions={profileOptions} isFilteredView={!hasNoWorkflows} />
+        <></>
       )}
     </>
   );
