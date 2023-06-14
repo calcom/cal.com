@@ -1,7 +1,6 @@
 /**
  * This page is empty for the user, it is used only to take advantage of the
  * caching system that NextJS uses SSG pages.
- * TODO: Redirect to user profile on browser
  */
 import type { GetStaticPaths, GetStaticProps, InferGetStaticPropsType } from "next";
 import { z } from "zod";
@@ -10,16 +9,17 @@ import getCalendarsEvents from "@calcom/core/getCalendarsEvents";
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 
-const paramsSchema = z.object({ user: z.string(), month: z.string() });
+const paramsSchema = z.object({ user: z.string(), month: z.string(), orgSlug: z.string().optional() });
 export const getStaticProps: GetStaticProps<
   { results: Awaited<ReturnType<typeof getCalendarsEvents>> },
   { user: string }
 > = async (context) => {
-  const { user: username, month } = paramsSchema.parse(context.params);
+  const { user: username, month, orgSlug = null } = paramsSchema.parse(context.params);
+  console.log(orgSlug);
   const userWithCredentials = await prisma.user.findFirst({
     where: {
       username,
-      organizationId: null,
+      ...(orgSlug ? { organization: { slug: orgSlug } } : { organizationId: null }),
     },
     select: {
       id: true,
@@ -70,7 +70,7 @@ export const getStaticPaths: GetStaticPaths = () => {
   };
 };
 type Props = InferGetStaticPropsType<typeof getStaticProps>;
-const CalendarCache = (props: Props) =>
+export const CalendarCache = (props: Props) =>
   process.env.NODE_ENV === "development" ? <pre>{JSON.stringify(props, null, "  ")}</pre> : <div />;
 
 export default CalendarCache;
