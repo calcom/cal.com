@@ -111,12 +111,12 @@ function getNavigation(props: {
       //TODO: Handle proper translation with count handling
       info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
     },
-    {
-      name: "workflows",
-      href: `/event-types/${eventType.id}?tabName=workflows`,
-      icon: Zap,
-      info: `${enabledWorkflowsNumber} ${t("active")}`,
-    },
+    // {
+    //   name: "workflows",
+    //   href: `/event-types/${eventType.id}?tabName=workflows`,
+    //   icon: Zap,
+    //   info: `${enabledWorkflowsNumber} ${t("active")}`,
+    // },
   ];
 }
 
