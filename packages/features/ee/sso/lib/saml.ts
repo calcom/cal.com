@@ -31,7 +31,7 @@ export const isSAMLAdmin = (email: string) => {
 };
 
 export const samlTenantProduct = async (prisma: PrismaClient, email: string) => {
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
       email,
     },
