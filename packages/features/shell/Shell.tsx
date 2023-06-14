@@ -843,7 +843,9 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 {orgBranding ? (
                   <div className="flex items-center gap-2 font-medium">
                     {orgBranding.logo && <Avatar alt="" imageSrc={orgBranding.logo} size="sm" />}
-                    <p className="text text-sm">{orgBranding.name}</p>
+                    <p className="text line-clamp-1 text-sm">
+                      <span>{orgBranding.name}</span>
+                    </p>
                   </div>
                 ) : (
                   <Logo small />
