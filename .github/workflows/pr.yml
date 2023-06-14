@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   changes:
-    name: "Detect changes"
+    name: Detect changes
     runs-on: buildjet-4vcpu-ubuntu-2204
     permissions:
       pull-requests: read
@@ -41,36 +41,23 @@ jobs:
               - 'apps/web/**'
               - 'packages/embeds/**'
 
-  install:
-    name: Install
-    runs-on: buildjet-4vcpu-ubuntu-2204
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/dangerous-git-checkout
-      - run: echo 'NODE_OPTIONS="--max_old_space_size=6144"' >> $GITHUB_ENV
-      - uses: ./.github/actions/yarn-install
-
   env:
     name: Create env file
-    needs: install
     uses: ./.github/workflows/env-create-file.yml
     secrets: inherit
 
   type-check:
     name: Type check
-    needs: install
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
   test:
     name: Unit tests
-    needs: install
     uses: ./.github/workflows/test.yml
     secrets: inherit
 
   lint:
     name: Linters
-    needs: install
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
