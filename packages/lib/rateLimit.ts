@@ -3,9 +3,17 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
 import { isIpInBanListString } from "./getIP";
+import logger from "./logger";
+
+const log = logger.getChildLogger({ prefix: ["RateLimit"] });
+
+const UPSATCH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
+
+if (!UPSATCH_ENV_FOUND) {
+  log.warn("Disabled due to not finding UPSTASH env variables");
+}
 
 const redis = Redis.fromEnv();
-
 const limitter = {
   core: new Ratelimit({
     redis,
@@ -27,8 +35,7 @@ type RateLimitHelper = {
 };
 
 async function rateLimit({ rateLimitingType = "core", identifier }: RateLimitHelper) {
-  if (!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)) {
-    console.log("Rate limit skipped - UPSTASH not set");
+  if (!UPSATCH_ENV_FOUND) {
     return { success: true };
   }
 

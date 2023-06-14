@@ -39,11 +39,11 @@ export const sendEmailVerification = async ({ email, language, username }: Verif
     token,
   });
 
-  const limitter = await rateLimit({
+  const limiter = await rateLimit({
     identifier: email,
   });
 
-  if (!limitter.success) {
+  if (!limiter.success) {
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",
       message: "An unexpected error occurred, please try again later.",
