@@ -337,10 +337,10 @@ function UserDropdown({ small }: UserDropdownProps) {
     <Dropdown open={menuOpen}>
       <div className="ltr:sm:-ml-5 rtl:sm:-mr-5">
         <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
-          <button className="group mx-0 ml-7 flex cursor-pointer appearance-none items-center rounded-full text-left outline-none focus:outline-none focus:ring-0 md:rounded-none lg:rounded">
+          <button className="hover:bg-emphasis group mx-0 ml-7 flex cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none focus:outline-none focus:ring-0 md:rounded-none lg:rounded">
             <span
               className={classNames(
-                small ? "h-4 w-4 md:ml-3" : "h-6 w-6 ltr:mr-2 rtl:ml-2",
+                small ? "h-4 w-4" : "h-6 w-6 ltr:mr-2 rtl:ml-2",
                 "relative flex-shrink-0 rounded-full bg-gray-300 "
               )}>
               <Avatar
