@@ -225,10 +225,10 @@ const getMonths = (dateFrom: string, dateTo: string): string[] => {
   return months;
 };
 
-const createCalendarCachePage = (username: string, month: string): void => {
+const createCalendarCachePage = (username: string, month: string, organizationSlug: string): void => {
   // No need to wait for this, the purpose is to force re-validation every second as indicated
   // in page getStaticProps.
-  fetch(`${WEBAPP_URL}/${username}/calendar-cache/${month}`).catch(console.log);
+  fetch(`${WEBAPP_URL}/${username}/calendar-cache/${month}/${organizationSlug}`).catch(console.log);
 };
 export const getBusyCalendarTimes = async (
   username: string,
@@ -246,13 +246,7 @@ export const getBusyCalendarTimes = async (
       const startDate = dayjs(dateFrom).subtract(11, "hours").format();
       // Add 14 hours from the start date to avoid problems in UTC+ time zones.
       const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
-      results = await getCalendarsEvents(
-        withCredentials,
-        startDate,
-        endDate,
-        selectedCalendars,
-        organizationSlug
-      );
+      results = await getCalendarsEvents(withCredentials, startDate, endDate, selectedCalendars);
       console.log("Generating calendar cache in background");
       // on cold start the calendar cache page generated in the background
       Promise.all(months.map((month) => createCalendarCachePage(username, month, organizationSlug)));
@@ -262,7 +256,7 @@ export const getBusyCalendarTimes = async (
       } else {
         // if dateFrom and dateTo is from different months get cache by each month
         const data: EventBusyDate[][][] = await Promise.all(
-          months.map((month) => getNextCache(username, month), organizationSlug)
+          months.map((month) => getNextCache(username, month, organizationSlug))
         );
         results = data.flat(1);
       }

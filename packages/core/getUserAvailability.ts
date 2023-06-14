@@ -74,6 +74,11 @@ const getUser = (where: Prisma.UserWhereInput) =>
     select: {
       ...availabilityUserSelect,
       credentials: true,
+      organization: {
+        select: {
+          slug: true,
+        },
+      },
     },
   });
 
