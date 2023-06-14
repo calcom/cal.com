@@ -137,6 +137,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   const { data: eventTypeApps } = trpc.viewer.apps.useQuery({
     extendsFeature: "EventType",
   });
+  const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
 
   const { eventType, locationOptions, team, teamMembers, currentUserMembership, destinationCalendar } = props;
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
@@ -432,6 +433,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               ...input
             } = values;
 
+            let defaultCalendar;
             if (bookingLimits) {
               const isValid = validateIntervalLimitOrder(bookingLimits);
               if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
@@ -455,6 +457,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               }
             }
             const { availability, ...rest } = input;
+
+            if (connectedCalendarsQuery.data?.connectedCalendars.length) {
+              defaultCalendar = connectedCalendarsQuery.data?.connectedCalendars
+                .map((connected) => connected.primary)
+                .find((cal) => cal?.externalId === input.destinationCalendar.externalId);
+            }
+
             updateMutation.mutate({
               ...rest,
               locations,
@@ -469,7 +478,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               durationLimits,
               seatsPerTimeSlot,
               seatsShowAttendees,
-              metadata,
+              metadata: { ...metadata, organizerEmail: defaultCalendar?.email },
               customInputs,
             });
           }}>

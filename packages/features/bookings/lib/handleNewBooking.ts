@@ -921,7 +921,10 @@ async function handler(
     organizer: {
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
-      email: organizerUser.email || "Email-less",
+      email:
+        EventTypeMetaDataSchema.parse(eventType.metadata)?.organizerEmail ||
+        organizerUser.email ||
+        "Email-less",
       username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },

@@ -7,6 +7,7 @@ import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus, ReminderType } from "@calcom/prisma/enums";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -50,6 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           select: {
             recurringEvent: true,
             bookingFields: true,
+            metadata: true,
           },
         },
         responses: true,
@@ -108,7 +110,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         endTime: booking.endTime.toISOString(),
         organizer: {
           id: user.id,
-          email: user.email,
+          email: EventTypeMetaDataSchema.parse(booking.eventType?.metadata)?.organizerEmail || user.email,
           name,
           timeZone: user.timeZone,
           language: { translate: tOrganizer, locale: user.locale ?? "en" },

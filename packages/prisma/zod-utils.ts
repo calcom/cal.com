@@ -67,6 +67,7 @@ export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> =
 
 export const EventTypeMetaDataSchema = z
   .object({
+    organizerEmail: z.string().optional(),
     smartContractAddress: z.string().optional(),
     blockchainId: z.number().optional(),
     multipleDuration: z.number().array().optional(),
