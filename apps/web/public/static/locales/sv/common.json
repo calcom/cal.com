@@ -514,6 +514,7 @@
   "members": "Medlemmar",
   "member": "Medlem",
   "number_member_one": "{{count}} medlem",
+  "number_member_other": "{{count}} medlemmar",
   "owner": "Ägare",
   "admin": "Administratör",
   "administrator_user": "Administratörsanvändare",
@@ -1771,5 +1772,6 @@
   "connect_google_workspace": "Anslut Google Workspace",
   "google_workspace_admin_tooltip": "Du måste vara Workspace-administratör för att kunna använda denna funktion",
   "first_event_type_webhook_description": "Skapa din första webhook för denna evenemangstyp",
-  "create_for": "Skapa för"
+  "create_for": "Skapa för",
+  "organization_url_taken": "Denna URL används redan"
 }

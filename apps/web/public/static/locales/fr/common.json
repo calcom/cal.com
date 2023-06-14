@@ -540,6 +540,7 @@
   "members": "Membres",
   "member": "Membre",
   "number_member_one": "{{count}} membre",
+  "number_member_other": "{{count}} membres",
   "owner": "Propriétaire",
   "admin": "Administrateur",
   "administrator_user": "Utilisateur administrateur",
@@ -1815,6 +1816,7 @@
   "connect_google_workspace": "Connecter Google Workspace",
   "first_event_type_webhook_description": "Créez votre premier webhook pour ce type d'événement",
   "create_for": "Créer pour",
+  "organization_url_taken": "Ce lien est déjà pris",
   "additional_url_parameters": "Paramètres d'URL supplémentaires",
   "sender_id_info": "Nom ou numéro affiché comme expéditeur d'un SMS (certains pays n'autorisent pas les ID d'expéditeur alphanumériques)",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"

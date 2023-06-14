@@ -539,6 +539,7 @@
   "members": "Članovi",
   "member": "Član",
   "number_member_one": "{{count}} član",
+  "number_member_other": "{{count}} članova",
   "owner": "Vlasnik",
   "admin": "Admin",
   "administrator_user": "Administrator",
@@ -1816,6 +1817,7 @@
   "google_workspace_admin_tooltip": "Morate da budete Workspace administrator da biste koristili ovu opciju",
   "first_event_type_webhook_description": "Napravite svoj prvi webhook za ovaj tip događaja",
   "create_for": "Napravi za",
+  "organization_url_taken": "Ovaj URL je zauzet",
   "additional_url_parameters": "Dodatni URL parametri",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

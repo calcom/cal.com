@@ -514,6 +514,7 @@
   "members": "Členové",
   "member": "Člen",
   "number_member_one": "Počet členů: {{count}}",
+  "number_member_other": "Počet členů: {{count}}",
   "owner": "Vlastník",
   "admin": "Administrátor",
   "administrator_user": "Uživatel administrátor",
@@ -1771,5 +1772,6 @@
   "connect_google_workspace": "Propojit s Google Workspace",
   "google_workspace_admin_tooltip": "Používání této funkce vyžaduje, abyste byli administrátory Google Workspace",
   "first_event_type_webhook_description": "Vytvořte svůj první webhook pro tento typ události",
-  "create_for": "Vytvořit pro"
+  "create_for": "Vytvořit pro",
+  "organization_url_taken": "Tato adresa URL je už obsazená"
 }

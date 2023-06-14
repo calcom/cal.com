@@ -514,6 +514,7 @@
   "members": "メンバー",
   "member": "メンバー",
   "number_member_one": "{{count}} 人のメンバー",
+  "number_member_other": "{{count}} 人のメンバー",
   "owner": "所有者",
   "admin": "管理者",
   "administrator_user": "管理者ユーザー",
@@ -1771,5 +1772,6 @@
   "connect_google_workspace": "Google Workspace を接続",
   "google_workspace_admin_tooltip": "この機能を使うには Workspace の管理者になる必要があります",
   "first_event_type_webhook_description": "このイベントタイプの最初のウェブフックを作成",
-  "create_for": "作成対象"
+  "create_for": "作成対象",
+  "organization_url_taken": "この URL は既に使用されています"
 }

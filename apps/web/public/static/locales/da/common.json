@@ -1555,5 +1555,6 @@
   "no_responses_yet": "Ingen svar endnu",
   "this_will_be_the_placeholder": "Dette vil være pladsholderen",
   "verification_code": "Bekræftelseskode",
-  "verify": "Bekræft"
+  "verify": "Bekræft",
+  "organization_url_taken": "Denne URL er allerede i brug"
 }

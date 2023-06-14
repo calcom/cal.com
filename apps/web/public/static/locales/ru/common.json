@@ -514,6 +514,7 @@
   "members": "Участники",
   "member": "Участник",
   "number_member_one": "Участники: {{count}}",
+  "number_member_other": "Участники: {{count}}",
   "owner": "Владелец",
   "admin": "Админ",
   "administrator_user": "Администратор",
@@ -1771,5 +1772,6 @@
   "connect_google_workspace": "Подключить Google Workspace",
   "google_workspace_admin_tooltip": "Эту функцию может использовать только администратор Workspace",
   "first_event_type_webhook_description": "Создайте первый вебхук для этого типа событий",
-  "create_for": "Создать для"
+  "create_for": "Создать для",
+  "organization_url_taken": "Этот URL-адрес уже занят"
 }

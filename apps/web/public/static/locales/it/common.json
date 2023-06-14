@@ -540,6 +540,7 @@
   "members": "Membri",
   "member": "Membri",
   "number_member_one": "{{count}} membro",
+  "number_member_other": "{{count}} membri",
   "owner": "Proprietario",
   "admin": "Amministratore",
   "administrator_user": "Utente amministratore",
@@ -1820,6 +1821,7 @@
   "google_workspace_admin_tooltip": "Per usare questa funzione è necessario essere un amministratore di Workspace",
   "first_event_type_webhook_description": "Crea il primo webhook per questo tipo di evento",
   "create_for": "Crea per",
+  "organization_url_taken": "URL già occupato",
   "additional_url_parameters": "Parametri URL aggiuntivi",
   "sender_id_info": "Nome o numero mostrato come mittente di un SMS (alcuni paesi non consentono ID alfanumerici dei mittenti)",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi qui le tue nuove stringhe al di sopra di questa riga ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ ↑"

@@ -514,6 +514,7 @@
   "members": "Üyeler",
   "member": "Üye",
   "number_member_one": "{{count}} üye",
+  "number_member_other": "{{count}} üye",
   "owner": "Sahibi",
   "admin": "Yönetici",
   "administrator_user": "Yönetici kullanıcı",
@@ -1771,5 +1772,6 @@
   "connect_google_workspace": "Google Workspace'i bağlayın",
   "google_workspace_admin_tooltip": "Bu özelliği kullanmak için Çalışma Alanı Yöneticisi olmalısınız",
   "first_event_type_webhook_description": "Bu etkinlik türü için ilk web kancanızı oluşturun",
-  "create_for": "Oluşturun"
+  "create_for": "Oluşturun",
+  "organization_url_taken": "Bu URL zaten kullanılıyor"
 }

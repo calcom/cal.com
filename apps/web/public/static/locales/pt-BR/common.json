@@ -514,6 +514,7 @@
   "members": "Membros",
   "member": "Membro",
   "number_member_one": "{{count}} membro",
+  "number_member_other": "{{count}} membros",
   "owner": "Proprietário",
   "admin": "Admin",
   "administrator_user": "Usuário administrador",
@@ -1771,5 +1772,6 @@
   "connect_google_workspace": "Conectar com o Google Workspace",
   "google_workspace_admin_tooltip": "Você deve ser administrador do Google Workspace para usar este recurso",
   "first_event_type_webhook_description": "Crie seu primeiro webhook para este tipo de evento",
-  "create_for": "Criar para"
+  "create_for": "Criar para",
+  "organization_url_taken": "Este URL já está em uso"
 }

@@ -515,6 +515,7 @@
   "members": "회원",
   "member": "회원",
   "number_member_one": "회원 {{count}}명",
+  "number_member_other": "회원 {{count}}명",
   "owner": "소유자",
   "admin": "관리",
   "administrator_user": "관리자 사용자",
@@ -1772,5 +1773,6 @@
   "connect_google_workspace": "Google Workspace 연결",
   "google_workspace_admin_tooltip": "이 기능을 사용하려면 Workspace 관리자여야 합니다",
   "first_event_type_webhook_description": "이 이벤트 유형에 대한 첫 번째 웹훅 만들기",
-  "create_for": "작성 대상"
+  "create_for": "작성 대상",
+  "organization_url_taken": "이미 사용 중인 URL입니다"
 }

@@ -514,6 +514,7 @@
   "members": "Membri",
   "member": "Membru",
   "number_member_one": "{{count}} membru",
+  "number_member_other": "{{count}} (de) membri",
   "owner": "Proprietar",
   "admin": "Admin",
   "administrator_user": "Utilizator administrator",
@@ -1771,5 +1772,6 @@
   "connect_google_workspace": "Conectare la Google Workspace",
   "google_workspace_admin_tooltip": "Trebuie să fiți administrator Google Workspace pentru a putea utiliza această funcție",
   "first_event_type_webhook_description": "Creați primul dvs. webhook pentru acest tip de eveniment",
-  "create_for": "Creare pentru"
+  "create_for": "Creare pentru",
+  "organization_url_taken": "Acest URL este folosit deja"
 }

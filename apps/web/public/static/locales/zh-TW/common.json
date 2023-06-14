@@ -514,6 +514,7 @@
   "members": "成員",
   "member": "成員",
   "number_member_one": "{{count}} 名成員",
+  "number_member_other": "{{count}} 名成員",
   "owner": "主持人",
   "admin": "管理者",
   "administrator_user": "管理員使用者",
@@ -1771,5 +1772,6 @@
   "connect_google_workspace": "連結 Google Workspace",
   "google_workspace_admin_tooltip": "您必須是 Workspace 管理員才能使用此功能",
   "first_event_type_webhook_description": "為此活動類型建立第一個 Webhook",
-  "create_for": "適用目標"
+  "create_for": "適用目標",
+  "organization_url_taken": "已有人使用此網址"
 }

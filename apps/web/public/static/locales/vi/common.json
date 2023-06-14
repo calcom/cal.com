@@ -514,6 +514,7 @@
   "members": "Các thành viên",
   "member": "Thành viên",
   "number_member_one": "{{count}} thành viên",
+  "number_member_other": "{{count}} thành viên",
   "owner": "Chủ nhóm",
   "admin": "Quản trị viên",
   "administrator_user": "Người dùng quản trị viên",
@@ -1771,5 +1772,6 @@
   "connect_google_workspace": "Kết nối Google Workspace",
   "google_workspace_admin_tooltip": "Bạn phải là một Quản trị viên của Workspace mới dùng được tính năng này",
   "first_event_type_webhook_description": "Tạo webhook đầu tiên của bạn cho loại sự kiện này",
-  "create_for": "Tạo cho"
+  "create_for": "Tạo cho",
+  "organization_url_taken": "URL này đã có người lấy rồi"
 }

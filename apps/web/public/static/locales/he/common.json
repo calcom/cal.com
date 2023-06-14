@@ -528,6 +528,7 @@
   "members": "חברים",
   "member": "חבר/ת",
   "number_member_one": "חבר {{count}}",
+  "number_member_other": "{{count}} חברים",
   "owner": "בעלים",
   "admin": "מנהל/ת מערכת",
   "administrator_user": "משתמש המוגדר כמנהל מערכת",
@@ -1785,5 +1786,6 @@
   "connect_google_workspace": "חיבור Google Workspace",
   "google_workspace_admin_tooltip": "עליך להיות אדמין/ית ב-Workspace כדי להשתמש בתכונה הזו",
   "first_event_type_webhook_description": "צור/צרי את ה-Webhook הראשון שלך עבור סוג זה של אירוע",
-  "create_for": "צור/צרי עבור"
+  "create_for": "צור/צרי עבור",
+  "organization_url_taken": "כתובת ה-URL הזו כבר תפוסה"
 }

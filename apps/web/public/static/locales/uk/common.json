@@ -514,6 +514,7 @@
   "members": "Учасники",
   "member": "Учасник",
   "number_member_one": "{{count}} учасник",
+  "number_member_other": "Учасників: {{count}}",
   "owner": "Власник",
   "admin": "Адмін",
   "administrator_user": "Адміністратор",
@@ -1771,5 +1772,6 @@
   "connect_google_workspace": "Підключити Google Workspace",
   "google_workspace_admin_tooltip": "Ви повинні бути адміністратором Workspace, щоб використовувати цю функцію",
   "first_event_type_webhook_description": "Створіть свій перший вебгук для цього типу заходів",
-  "create_for": "Створити для"
+  "create_for": "Створити для",
+  "organization_url_taken": "Цю URL-адресу вже зайнято"
 }

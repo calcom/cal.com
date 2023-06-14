@@ -514,6 +514,7 @@
   "members": "الأعضاء",
   "member": "العضو",
   "number_member_one": "{{count}} عضو",
+  "number_member_other": "{{count}} من الأعضاء",
   "owner": "المالك",
   "admin": "المشرف",
   "administrator_user": "المستخدم المسؤول",
@@ -1771,5 +1772,6 @@
   "connect_google_workspace": "ربط مساحة عمل Google",
   "google_workspace_admin_tooltip": "يجب أن تكون مشرفًا على مساحة العمل لاستخدام هذه الميزة",
   "first_event_type_webhook_description": "قم بإنشاء أول شبكة ويب هوك لهذا النوع من الفعاليات",
-  "create_for": "إنشاء من أجل"
+  "create_for": "إنشاء من أجل",
+  "organization_url_taken": "عنوان URL هذا مأخوذ بالفعل"
 }

@@ -514,6 +514,7 @@
   "members": "Leden",
   "member": "Lid",
   "number_member_one": "{{count}} lid",
+  "number_member_other": "{{count}} leden",
   "owner": "Eigenaar",
   "admin": "Beheerder",
   "administrator_user": "Beheerdersgebruiker",
@@ -1771,5 +1772,6 @@
   "connect_google_workspace": "Google Workspace koppelen",
   "google_workspace_admin_tooltip": "U moet een Google Workspace-beheerder zijn om deze functie te gebruiken",
   "first_event_type_webhook_description": "Maak uw eerste webhook voor dit gebeurtenistype",
-  "create_for": "Maak voor"
+  "create_for": "Maak voor",
+  "organization_url_taken": "Deze URL is al in gebruik"
 }

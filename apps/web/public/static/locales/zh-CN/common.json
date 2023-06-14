@@ -527,6 +527,7 @@
   "members": "成员",
   "member": "成员",
   "number_member_one": "{{count}} 个成员",
+  "number_member_other": "{{count}} 个成员",
   "owner": "所有者",
   "admin": "管理员",
   "administrator_user": "管理员用户",
@@ -1796,5 +1797,6 @@
   "google_workspace_admin_tooltip": "您必须是 Workspace 管理员才能使用此功能",
   "first_event_type_webhook_description": "为此活动类型创建第一个 Webhook",
   "create_for": "创建",
+  "organization_url_taken": "此链接已被占用",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在上面这里添加新的字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
