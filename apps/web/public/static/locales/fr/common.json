@@ -300,6 +300,7 @@
   "failed": "Échoué",
   "password_has_been_reset_login": "Votre mot de passe a été réinitialisé. Vous pouvez désormais vous connecter avec votre nouveau mot de passe.",
   "bookerlayout_title": "Mise en page",
+  "layout": "Mise en page",
   "bookerlayout_default_title": "Vue par défaut",
   "bookerlayout_description": "Vous pouvez en sélectionner plusieurs, vos utilisateurs peuvent basculer entre les vues.",
   "bookerlayout_user_settings_title": "Mise en page de réservation",
