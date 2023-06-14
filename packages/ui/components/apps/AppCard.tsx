@@ -36,7 +36,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
 
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
-  const appInstalled = userAdminTeams
+  const appInstalled = userAdminTeams?.length
     ? userAdminTeams.length && appAdded >= userAdminTeams.length
     : appAdded > 0;
 
@@ -197,10 +197,7 @@ const InstallAppButtonChild = ({
 
   if (
     !userAdminTeams?.length ||
-    appCategories.some(
-      // We can remove these as we allow more of these installs
-      (category) => category === "calendar" || category === "video"
-    )
+    appCategories.some((category) => category === "calendar" || category === "video")
   ) {
     return (
       <Button
