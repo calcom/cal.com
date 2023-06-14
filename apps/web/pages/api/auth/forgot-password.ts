@@ -34,11 +34,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   // 10 requests per minute
 
-  const limmiter = await rateLimit({
+  const limiter = await rateLimit({
     identifier: ip,
   });
 
-  if (!limmiter.success) {
+  if (!limiter.success) {
     throw new Error(ErrorCode.RateLimitExceeded);
   }
 
