@@ -197,7 +197,7 @@ const getNextCache = async (
   const cacheDir = `${NODE_ENV === "development" ? NODE_ENV : process.env.BUILD_ID}`;
   const baseUrl = `${WEBAPP_URL}/_next/data/${cacheDir}/en`;
   const url = organizationSlug
-    ? `${baseUrl}/${username}/calendar-cache/${month}/{organizationSlug}.json?user=${username}&month=${month}&orgSlug=${organizationSlug}`
+    ? `${baseUrl}/${username}/calendar-cache/${month}/${organizationSlug}.json?user=${username}&month=${month}&orgSlug=${organizationSlug}`
     : `${baseUrl}/${username}/calendar-cache/${month}.json?user=${username}&month=${month}`;
   try {
     localCache = await fetch(url)
