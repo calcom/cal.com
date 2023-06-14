@@ -78,7 +78,6 @@
   "team_info": "Informasi Tim",
   "request_another_invitation_email": "Jika kamu lebih suka tidak menggukan {{toEmail}} sebagai email {{appName}} atau telah memiliki akun {{appName}} silakan membuat permintaan lain kepada email tersebut.",
   "you_have_been_invited": "Kamu telah diundang untuk bergabung ke tim {{teamName}}",
-  "user_invited_you": "{{user}} mengundangmu untuk bergabung ke tim {{team}} di {{appName}}",
   "hidden_team_member_title": "Kamu tersembunyi di tim ini",
   "hidden_team_member_message": "Kamu tidak dibayari, upgrade ke PRO atau beritahu pemilik tim bahwa mereka bisa membayari kamu.",
   "hidden_team_owner_message": "Kamu perlu akun pro untuk menggunakan tim, kamu disembunyikan sementara hingga kamu upgrade.",
