@@ -300,6 +300,7 @@
   "failed": "Failed",
   "password_has_been_reset_login": "Your password has been reset. You can now login with your newly created password.",
   "bookerlayout_title": "Layout",
+  "layout": "Layout",
   "bookerlayout_default_title": "Default view",
   "bookerlayout_description": "You can select multiple and your bookers can switch views.",
   "bookerlayout_user_settings_title": "Booking layout",

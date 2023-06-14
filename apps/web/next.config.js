@@ -225,11 +225,18 @@ const nextConfig = {
         has: [{ type: "cookie", key: "new-booker-enabled" }],
       },
       {
+        source: `/:user((?!${pages.join("|")}).*)/:type/embed`,
+        destination: "/new-booker/:user/:type/embed",
+        has: [{ type: "cookie", key: "new-booker-enabled" }],
+      },
+      {
         source: "/team/:slug/:type",
         destination: "/new-booker/team/:slug/:type",
         has: [{ type: "cookie", key: "new-booker-enabled" }],
       },
       {
+        source: "/team/:slug/:type/embed",
+        destination: "/new-booker/team/:slug/:type/embed",
         source: "/d/:link/:slug",
         destination: "/new-booker/d/:link/:slug",
         has: [{ type: "cookie", key: "new-booker-enabled" }],
