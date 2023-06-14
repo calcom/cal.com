@@ -96,17 +96,23 @@ const BookerComponent = ({
 
   return (
     <>
-      <div className="flex h-full w-full flex-col items-center">
+      <div className="flex min-h-full w-full flex-col items-center overflow-clip">
         <div
           ref={animationScope}
           className={classNames(
             // Sets booker size css variables for the size of all the columns.
             ...getBookerSizeClassNames(layout, bookerState),
-            "bg-default dark:bg-muted grid max-w-full items-start overflow-clip dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
+            "bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
             layout === BookerLayouts.MONTH_VIEW && "border-subtle rounded-md border"
           )}>
           <AnimatePresence>
-            <BookerSection area="header">
+            <BookerSection
+              area="header"
+              className={
+                layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW
+                  ? "bg-muted sticky top-0 z-10"
+                  : undefined
+              }>
               <Header
                 enabledLayouts={bookerLayouts.enabledLayouts}
                 extraDays={extraDays}

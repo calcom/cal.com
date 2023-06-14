@@ -1,10 +1,11 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 
 import { useCalendarStore } from "../state/store";
 import "../styles/styles.css";
 import type { CalendarComponentProps } from "../types/state";
-import { calculateHourSizeInPx, getDaysBetweenDates, getHoursToDisplay } from "../utils";
+import { getDaysBetweenDates, getHoursToDisplay } from "../utils";
 import { DateValues } from "./DateValues";
+import { CurrentTime } from "./currentTime";
 import { EmptyCell } from "./event/Empty";
 import { EventList } from "./event/EventList";
 import { SchedulerColumns } from "./grid";
@@ -28,26 +29,9 @@ export function Calendar(props: CalendarComponentProps) {
   const hideHeader = useCalendarStore((state) => state.hideHeader);
 
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
-
   const hours = useMemo(() => getHoursToDisplay(startHour || 0, endHour || 23), [startHour, endHour]);
-
   const numberOfGridStopsPerDay = hours.length * usersCellsStopsPerHour;
-  const [hourSize, setHourSize] = useState(calculateHourSizeInPx(schedulerGrid?.current, startHour, endHour));
-
-  // Reset one hour size on window resize.
-  useLayoutEffect(() => {
-    const onResize = () => {
-      setHourSize(calculateHourSizeInPx(schedulerGrid?.current, startHour, endHour));
-    };
-    window.addEventListener("resize", onResize);
-
-    // By running this set function also one time in the uselayouteffect, instead of
-    // only in the default value of useState, we make sure that the ref is rendered
-    // to the screen and we read the correct value.
-    setHourSize(calculateHourSizeInPx(schedulerGrid?.current, startHour, endHour));
-
-    return () => window.removeEventListener("resize", onResize);
-  }, [startHour, endHour]);
+  const hourSize = 58;
 
   // Initalise State on inital mount
   useEffect(() => {
@@ -57,7 +41,7 @@ export function Calendar(props: CalendarComponentProps) {
   return (
     <MobileNotSupported>
       <div
-        className="scheduler-wrapper flex h-full w-full flex-col overflow-y-scroll"
+        className="scheduler-wrapper flex h-full w-full flex-col"
         style={
           {
             "--one-minute-height": `calc(${hourSize}px/60)`,
@@ -72,13 +56,8 @@ export function Calendar(props: CalendarComponentProps) {
             style={{ width: "165%" }}
             className="flex h-full max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
             <DateValues containerNavRef={containerNav} days={days} />
-            {/* TODO: Implement this at a later date. */}
-            {/* <CurrentTime
-            containerNavRef={containerNav}
-            containerOffsetRef={containerOffset}
-            containerRef={container}
-          /> */}
-            <div className="flex flex-auto">
+            <div className="relative flex flex-auto">
+              <CurrentTime />
               <div className="bg-default dark:bg-muted ring-muted sticky left-0 z-10 w-14 flex-none ring-1" />
               <div
                 className="grid flex-auto grid-cols-1 grid-rows-1 [--disabled-gradient-foreground:#E6E7EB] [--disabled-gradient-background:#F8F9FB] dark:[--disabled-gradient-background:#262626] dark:[--disabled-gradient-foreground:#393939]"

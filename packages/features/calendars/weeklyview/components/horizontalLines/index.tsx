@@ -19,15 +19,13 @@ export const HorizontalLines = ({
       style={{
         gridTemplateRows: `repeat(${hours.length}, minmax(var(--gridDefaultSize),1fr)`,
       }}>
-      <div className="row-end-1 h-7 " ref={containerOffsetRef} />
+      <div className="row-end-1 h-[--calendar-offset-top] " ref={containerOffsetRef} />
       {hours.map((hour) => (
-        <>
-          <div key={`${id}-${hour.get("hour")}`}>
-            <div className="text-muted sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5">
-              {hour.format("h A")}
-            </div>
+        <div key={`${id}-${hour.get("hour")}`}>
+          <div className="text-muted sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5">
+            {hour.format("h A")}
           </div>
-        </>
+        </div>
       ))}
       <div key={`${id}-${finalHour}`}>
         <div className="text-muted sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5">
