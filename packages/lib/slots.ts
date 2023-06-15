@@ -217,7 +217,6 @@ const getSlots = ({
   offsetStart = 0,
   organizerTimeZone,
 }: GetSlots) => {
-  console.log("in function " + offsetStart);
   if (dateRanges) {
     return buildSlotsWithDateRanges({
       dateRanges,
@@ -297,7 +296,7 @@ const getSlots = ({
     return dayjs.utc(override.start).isBetween(startOfInviteeDay, startOfInviteeDay.endOf("day"), null, "[)");
   });
 
-  if (!!activeOverrides.length) {
+  if (activeOverrides.length) {
     const overrides = activeOverrides.flatMap((override) => ({
       userIds: override.userId ? [override.userId] : [],
       startTime: override.start.getUTCHours() * 60 + override.start.getUTCMinutes(),
