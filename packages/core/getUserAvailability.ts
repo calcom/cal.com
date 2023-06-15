@@ -74,6 +74,11 @@ const getUser = (where: Prisma.UserWhereInput) =>
     select: {
       ...availabilityUserSelect,
       credentials: true,
+      organization: {
+        select: {
+          slug: true,
+        },
+      },
     },
   });
 
@@ -162,6 +167,7 @@ export async function getUserAvailability(
     eventTypeId,
     userId: user.id,
     username: `${user.username}`,
+    organizationSlug: initialData?.user?.organization?.slug,
     beforeEventBuffer,
     afterEventBuffer,
     selectedCalendars: user.selectedCalendars,
