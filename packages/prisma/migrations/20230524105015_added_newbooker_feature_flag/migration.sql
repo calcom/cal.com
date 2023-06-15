@@ -3,7 +3,7 @@ INSERT INTO
 VALUES
   (
     'booker-layouts',
-    true,
+    false,
     'Enable new booker configuration settings for all users',
     'EXPERIMENT'
   ) ON CONFLICT (slug) DO NOTHING;
