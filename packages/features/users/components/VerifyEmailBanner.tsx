@@ -9,10 +9,10 @@ import { useFlagMap } from "../../flags/context/provider";
 function VerifyEmailBanner() {
   const flags = useFlagMap();
   const { t } = useLocale();
-  const { data } = useEmailVerifyCheck();
+  const { data, isLoading } = useEmailVerifyCheck();
   const mutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
 
-  if (data?.isVerified || !flags["email-verification"]) return null;
+  if (isLoading || data?.isVerified || !flags["email-verification"]) return null;
 
   return (
     <>
