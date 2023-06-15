@@ -49,15 +49,24 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
 
   const duplicatedSlugs = existingSlugs.filter((slug) => teamNames.includes(slug));
 
-  await prisma.team.createMany({
-    data: teamNames.flatMap((name) => {
+  await prisma.$transaction(
+    teamNames.flatMap((name) => {
       if (!duplicatedSlugs.includes(name)) {
-        return { name, parentId: orgId, slug: slugify(name) };
+        return prisma.team.create({
+          data: {
+            name,
+            parentId: orgId,
+            slug: slugify(name),
+            members: {
+              create: { userId: ctx.user.id, role: MembershipRole.OWNER, accepted: true },
+            },
+          },
+        });
       } else {
         return [];
       }
-    }),
-  });
+    })
+  );
 
   return { duplicatedSlugs };
 };

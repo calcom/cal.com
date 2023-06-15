@@ -34,6 +34,7 @@ import {
 import { ExternalLink, Link as LinkIcon, Trash2, LogOut } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
+import { extractDomainFromWebsiteUrl } from "../../organizations/lib/utils";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
@@ -216,7 +217,11 @@ const ProfileView = () => {
                       name="slug"
                       label={t("team_url")}
                       value={value}
-                      addOnLeading={`${WEBAPP_URL}/team/`}
+                      addOnLeading={
+                        team.parent
+                          ? `${team.parent.slug}.${extractDomainFromWebsiteUrl}/`
+                          : `${WEBAPP_URL}/team/`
+                      }
                       onChange={(e) => {
                         form.clearErrors("slug");
                         form.setValue("slug", e?.target.value);
