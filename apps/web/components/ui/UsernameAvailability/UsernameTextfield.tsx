@@ -3,7 +3,6 @@ import { debounce, noop } from "lodash";
 import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
 
-import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
@@ -109,12 +108,6 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
       username: inputUsernameValue,
     });
   };
-
-  const usernamePrefix = user.organization
-    ? user.organization.slug
-      ? `${user.organization.slug}.${subdomainSuffix()}`
-      : `${user.organization.metadata.requestedSlug}.${subdomainSuffix()}`
-    : process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "");
 
   return (
     <div>

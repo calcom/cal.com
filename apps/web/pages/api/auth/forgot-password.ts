@@ -44,7 +44,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   try {
-    const maybeUser = await prisma.user.findFirst({
+    const maybeUser = await prisma.user.findUnique({
       where: {
         email: email.data,
       },
