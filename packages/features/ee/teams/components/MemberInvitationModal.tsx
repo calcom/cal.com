@@ -31,7 +31,7 @@ import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
 type MemberInvitationModalProps = {
   isOpen: boolean;
   onExit: () => void;
-  onSubmit: (values: NewMemberForm, resetFields: Function) => void;
+  onSubmit: (values: NewMemberForm, resetFields: () => void) => void;
   onSettingsOpen: () => void;
   teamId: number;
   members: PendingMember[];
