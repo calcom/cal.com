@@ -100,9 +100,11 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
       onClick={() => onEmptyCellClick && onEmptyCellClick(timeSlot.toDate())}>
       {!isDisabled && hoverEventDuration !== 0 && (
         <div
-          className="opacity-4 bg-subtle hover:bg-emphasis  text-emphasis dark:border-emphasis absolute hidden
-          rounded-[4px]
-          border-[1px] border-gray-900 py-1 px-[6px] text-xs font-semibold leading-5 group-hover:block group-hover:cursor-pointer"
+          className={classNames(
+            "opacity-4 bg-subtle hover:bg-emphasis text-emphasis dark:border-emphasis absolute hidden rounded-[4px] border-[1px] border-gray-900 py-1 px-[6px] text-xs font-semibold leading-5 group-hover:flex group-hover:cursor-pointer",
+            hoverEventDuration && hoverEventDuration > 15 && "items-start pt-3",
+            hoverEventDuration && hoverEventDuration < 15 && "items-center"
+          )}
           style={{
             height: `calc(${hoverEventDuration}*var(--one-minute-height) - 2px)`,
             zIndex: 80,
@@ -110,7 +112,7 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
             // multiple events are stacked next to each other. We might need to add this back later.
             width: "calc(100% - 2px)",
           }}>
-          <div className=" overflow-ellipsis leading-4">{timeSlot.format(timeFormat)}</div>
+          <div className="overflow-ellipsis leading-[0]">{timeSlot.format(timeFormat)}</div>
         </div>
       )}
     </div>
