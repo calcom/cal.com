@@ -69,7 +69,7 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.InternalServerError);
       }
 
-      const user = await prisma.user.findFirst({
+      const user = await prisma.user.findUnique({
         where: {
           email: credentials.email.toLowerCase(),
         },

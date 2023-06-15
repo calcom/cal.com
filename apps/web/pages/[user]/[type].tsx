@@ -22,12 +22,6 @@ export type AvailabilityPageProps = inferSSRProps<typeof getServerSideProps> & E
 
 export default function Type(props: AvailabilityPageProps) {
   const { t } = useLocale();
-  const [isValidOrgDomain, setIsValidOrgDomain] = useState(false);
-
-  useEffect(() => {
-    const { isValidOrgDomain } = orgDomainConfig(window.location.host ?? "");
-    setIsValidOrgDomain(isValidOrgDomain);
-  }, []);
 
   return props.away ? (
     <div className="dark:bg-inverted h-screen">
