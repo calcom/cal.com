@@ -7,6 +7,7 @@ type MeOptions = {
 };
 
 export const meHandler = async ({ ctx }: MeOptions) => {
+  const crypto = await import("crypto");
   const { user } = ctx;
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
@@ -15,6 +16,7 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     name: user.name,
     username: user.username,
     email: user.email,
+    emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
     startTime: user.startTime,
     endTime: user.endTime,
     bufferTime: user.bufferTime,
@@ -39,5 +41,7 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     metadata: user.metadata,
     defaultBookerLayouts: user.defaultBookerLayouts,
     allowDynamicBooking: user.allowDynamicBooking,
+    organizationId: user.organizationId,
+    organization: user.organization,
   };
 };

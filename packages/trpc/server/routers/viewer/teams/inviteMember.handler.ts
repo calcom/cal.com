@@ -25,15 +25,11 @@ type InviteMemberOptions = {
   input: TInviteMemberInputSchema;
 };
 
-async function checkPermissions(userId: number, teamId: number, isOrg?: boolean) {
-  // Checks if the team they are inviteing to IS the org. Not a child team
-  if (isOrg) {
-    if (!(await isOrganisationAdmin(userId, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-  } else {
-    // TODO: do some logic here to check if the user is inviting a NEW user to a team that ISNT in the same org
-    if (!(await isTeamAdmin(userId, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-}
+export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) => {
+  if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (input.role === MembershipRole.OWNER && !(await isTeamOwner(ctx.user?.id, input.teamId)))
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  const translation = await getTranslation(input.language ?? "en", "common");
 
 async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
   const team = await prisma.team.findFirst({
@@ -46,9 +42,7 @@ async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
   });
 
   if (!team)
-    throw new TRPCError({ code: "NOT_FOUND", message: `${isOrg ? "Organization" : "Team"} not found` });
-  return team;
-}
+    throw new TRPCError({ code: "NOT_FOUND", message: `${input.isOrg ? "Organization" : "Team"} not found` });
 
 async function getEmailsToInvite(usernameOrEmail: string | string[]) {
   const emailsToInvite = Array.isArray(usernameOrEmail) ? usernameOrEmail : [usernameOrEmail];
@@ -59,8 +53,15 @@ async function getEmailsToInvite(usernameOrEmail: string | string[]) {
       message: "You must provide at least one email address to invite.",
     });
 
-  return emailsToInvite;
-}
+    if (input.isOrg && invitee) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `Email ${usernameOrEmail} already exists, you can't invite existing users.`,
+      });
+    }
+
+    if (!invitee) {
+      // liberal email match
 
 async function getUserToInviteOrThrowIfExists(usernameOrEmail: string, orgId: number, isOrg?: boolean) {
   // Check if user exists in ORG or exists all together
@@ -226,9 +227,40 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       checkInputEmailIsValid(usernameOrEmail);
 
       // valid email given, create User and add to team
-      await createNewUserConnectToOrgIfExists(usernameOrEmail, input, team.parentId);
+      await prisma.user.create({
+        data: {
+          email: usernameOrEmail,
+          invitedTo: input.teamId,
+          ...(input.isOrg && { organizationId: input.teamId }),
+          teams: {
+            create: {
+              teamId: input.teamId,
+              role: input.role as MembershipRole,
+            },
+          },
+        },
+      });
 
-      await sendVerificationEmail(usernameOrEmail, team, translation, ctx, input);
+      const token: string = randomBytes(32).toString("hex");
+
+      await prisma.verificationToken.create({
+        data: {
+          identifier: usernameOrEmail,
+          token,
+          expires: new Date(new Date().setHours(168)), // +1 week
+        },
+      });
+      if (team?.name) {
+        await sendTeamInviteEmail({
+          language: translation,
+          from: ctx.user.name || `${team.name}'s admin`,
+          to: usernameOrEmail,
+          teamName: team.name,
+          joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`, // we know that the user has not completed onboarding yet, so we can redirect them to the onboarding flow
+          isCalcomMember: false,
+          isOrg: input.isOrg,
+        });
+      }
     } else {
       checkIfUserIsInDifOrg(invitee, team);
 

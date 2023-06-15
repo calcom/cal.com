@@ -12,6 +12,21 @@ const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req.headers.get("host") ?? "");
+  const isEmbedRequest = typeof url.searchParams.get("embed") === "string";
+
+  /**
+   * We are using env variable to toggle new-booker because using flags would be an unnecessary delay for booking pages
+   * Also, we can't easily identify the booker page requests here(to just fetch the flags for those requests)
+   */
+  // Enable New Booker for All but embed Requests
+  if (process.env.NEW_BOOKER_ENABLED_FOR_NON_EMBED === "1" && !isEmbedRequest) {
+    requestHeaders.set("new-booker-enabled", "1");
+  }
+
+  // Enable New Booker for Embed Requests
+  if (process.env.NEW_BOOKER_ENABLED_FOR_EMBED === "1" && isEmbedRequest) {
+    requestHeaders.set("new-booker-enabled", "1");
+  }
 
   // Make sure we are in the presence of an organization
   if (isValidOrgDomain && url.pathname === "/") {
@@ -19,6 +34,12 @@ const middleware: NextMiddleware = async (req) => {
     // rewrites for org profile page using team profile page
     url.pathname = `/org/${currentOrgDomain}`;
     return NextResponse.rewrite(url);
+  }
+
+  if (isIpInBanlist(req) && url.pathname !== "/api/nope") {
+    // DDOS Prevention: Immediately end request with no response - Avoids a redirect as well initiated by NextAuth on invalid callback
+    req.nextUrl.pathname = "/api/nope";
+    return NextResponse.redirect(req.nextUrl);
   }
 
   if (!url.pathname.startsWith("/api")) {
@@ -82,17 +103,18 @@ const middleware: NextMiddleware = async (req) => {
 
   if (isValidOrgDomain) {
     // Match /:slug to determine if it corresponds to org subteam slug or org user slug
-    const [first, slug, ...rest] = url.pathname.split("/");
+    const slugs = /^\/([^/]+)(\/[^/]+)?$/.exec(url.pathname);
     // In the presence of an organization, if not team profile, a user or team is being accessed
-    if (first === "" && rest.length === 0) {
+    if (slugs) {
+      const [_, teamName, eventType] = slugs;
       // Fetch the corresponding subteams for the entered organization
       const getSubteams = await fetch(`${WEBAPP_URL}/api/organizations/${currentOrgDomain}/subteams`);
       if (getSubteams.ok) {
         const data = await getSubteams.json();
         // Treat entered slug as a team if found in the subteams fetched
-        if (data.slugs.includes(slug)) {
+        if (data.slugs.includes(teamName)) {
           // Rewriting towards /team/:slug to bring up the team profile within the org
-          url.pathname = `/team/${slug}`;
+          url.pathname = `/team/${teamName}${eventType ?? ""}`;
           return NextResponse.rewrite(url);
         }
       }
@@ -108,7 +130,6 @@ const middleware: NextMiddleware = async (req) => {
 
 export const config = {
   matcher: [
-    "/",
     "/:path*",
     "/api/collect-events/:path*",
     "/api/auth/:path*",

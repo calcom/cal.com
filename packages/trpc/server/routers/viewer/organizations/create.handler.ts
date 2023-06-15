@@ -50,7 +50,7 @@ const vercelCreateDomain = async (domain: string) => {
 export const createHandler = async ({ input }: CreateOptions) => {
   const { slug, name, adminEmail, adminUsername, check } = input;
 
-  const userCollisions = await prisma.user.findFirst({
+  const userCollisions = await prisma.user.findUnique({
     where: {
       email: adminEmail,
     },

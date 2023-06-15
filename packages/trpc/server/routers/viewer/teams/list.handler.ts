@@ -1,5 +1,6 @@
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
 
@@ -23,7 +24,11 @@ export const listHandler = async ({ ctx }: ListOptions) => {
         },
       },
       include: {
-        team: true,
+        team: {
+          include: {
+            inviteToken: true,
+          },
+        },
       },
       orderBy: { role: "desc" },
     });
@@ -52,9 +57,14 @@ export const listHandler = async ({ ctx }: ListOptions) => {
     orderBy: { role: "desc" },
   });
 
-  return memberships.map(({ team, ...membership }) => ({
-    role: membership.role,
-    accepted: membership.accepted,
-    ...team,
-  }));
+  return memberships
+    .filter((mmship) => {
+      const metadata = teamMetadataSchema.parse(mmship.team.metadata);
+      return !metadata?.isOrganization;
+    })
+    .map(({ team, ...membership }) => ({
+      role: membership.role,
+      accepted: membership.accepted,
+      ...team,
+    }));
 };

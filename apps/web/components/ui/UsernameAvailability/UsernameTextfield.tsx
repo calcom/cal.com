@@ -22,7 +22,7 @@ interface ICustomUsernameProps {
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
 }
 
-const UsernameTextfield = (props: ICustomUsernameProps) => {
+const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.ComponentProps<typeof TextField>>) => {
   const { t } = useLocale();
   const {
     currentUsername,
@@ -32,7 +32,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
     usernameRef,
     onSuccessMutation,
     onErrorMutation,
-    user,
+    ...rest
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
@@ -124,7 +124,6 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             ref={usernameRef}
             name="username"
             value={inputUsernameValue}
-            addOnLeading={<>{usernamePrefix}/</>}
             autoComplete="none"
             autoCapitalize="none"
             autoCorrect="none"
@@ -139,6 +138,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
               setInputUsernameValue(event.target.value);
             }}
             data-testid="username-input"
+            {...rest}
           />
           {currentUsername !== inputUsernameValue && (
             <div className="absolute right-[2px] top-6 flex flex-row">
