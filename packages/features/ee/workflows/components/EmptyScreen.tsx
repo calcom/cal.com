@@ -4,7 +4,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
-import { CreateButton, showToast, EmptyScreen as ClassicEmptyScreen } from "@calcom/ui";
+import { showToast, EmptyScreen as ClassicEmptyScreen, CreateButtonWithTeamsList } from "@calcom/ui";
 import { Smartphone, Mail, Zap } from "@calcom/ui/components/icon";
 
 type WorkflowExampleType = {
@@ -31,15 +31,7 @@ function WorkflowExample(props: WorkflowExampleType) {
   );
 }
 
-export default function EmptyScreen(props: {
-  profileOptions: {
-    label: string | null;
-    image?: string | null;
-    teamId: number | null | undefined;
-    slug: string | null;
-  }[];
-  isFilteredView: boolean;
-}) {
+export default function EmptyScreen(props: { isFilteredView: boolean }) {
   const { t } = useLocale();
   const router = useRouter();
 
@@ -86,9 +78,8 @@ export default function EmptyScreen(props: {
             {t("no_workflows_description")}
           </p>
           <div className="mt-8 ">
-            <CreateButton
+            <CreateButtonWithTeamsList
               subtitle={t("new_workflow_subtitle").toUpperCase()}
-              options={props.profileOptions}
               createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
               buttonText={t("create_workflow")}
               isLoading={createMutation.isLoading}

@@ -22,7 +22,6 @@ type WorkflowsRouterHandlerCache = {
   verifyPhoneNumber?: typeof import("./verifyPhoneNumber.handler").verifyPhoneNumberHandler;
   getVerifiedNumbers?: typeof import("./getVerifiedNumbers.handler").getVerifiedNumbersHandler;
   getWorkflowActionOptions?: typeof import("./getWorkflowActionOptions.handler").getWorkflowActionOptionsHandler;
-  getByViewer?: typeof import("./getByViewer.handler").getByViewerHandler;
   filteredList?: typeof import("./filteredList.handler").filteredListHandler;
 };
 
@@ -196,23 +195,6 @@ export const workflowsRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.getWorkflowActionOptions({
-      ctx,
-    });
-  }),
-
-  getByViewer: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getByViewer) {
-      UNSTABLE_HANDLER_CACHE.getByViewer = await import("./getByViewer.handler").then(
-        (mod) => mod.getByViewerHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getByViewer) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.getByViewer({
       ctx,
     });
   }),

@@ -9,7 +9,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { AnimatedPopover, Avatar, CreateButton, showToast } from "@calcom/ui";
+import { AnimatedPopover, Avatar, showToast, CreateButtonWithTeamsList } from "@calcom/ui";
 
 import { FilterResults } from "../../../filters/components/FilterResults";
 import { TeamsFilter } from "../../../filters/components/TeamsFilter";
@@ -51,19 +51,6 @@ function WorkflowsPage() {
     },
   });
 
-  const query = trpc.viewer.workflows.getByViewer.useQuery();
-
-  const profileOptions = query?.data?.profiles
-    .filter((profile) => !profile.readOnly)
-    .map((profile) => {
-      return {
-        teamId: profile.teamId,
-        label: profile.name || profile.slug,
-        image: profile.image,
-        slug: profile.slug,
-      };
-    });
-
   return (
     <Shell
       heading={t("workflows")}
@@ -71,38 +58,38 @@ function WorkflowsPage() {
       subtitle={t("workflows_to_automate_notifications")}
       hideHeadingOnMobile
       CTA={
-        profileOptions && profileOptions.length === 1 && session.data?.hasValidLicense ? (
-          <CreateButton
+        session.data?.hasValidLicense ? (
+          <CreateButtonWithTeamsList
             subtitle={t("new_workflow_subtitle").toUpperCase()}
-            options={profileOptions}
             createFunction={(teamId?: number) => {
               createMutation.mutate({ teamId });
             }}
             isLoading={createMutation.isLoading}
             disableMobileButton={true}
+            onlyShowWithNoTeams={true}
           />
         ) : null
       }>
       <LicenseRequired>
         <>
-          {profileOptions && profileOptions.length > 1 && queryRes.data?.totalCount ? (
+          {queryRes.data?.totalCount ? (
             <div className="flex">
               <TeamsFilter />
               <div className="ml-auto">
-                <CreateButton
+                <CreateButtonWithTeamsList
                   subtitle={t("new_workflow_subtitle").toUpperCase()}
-                  options={profileOptions}
                   createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
                   isLoading={createMutation.isLoading}
                   disableMobileButton={true}
+                  onlyShowWithTeams={true}
                 />
               </div>
             </div>
           ) : null}
           <FilterResults
             queryRes={queryRes}
-            emptyScreen={<EmptyScreen profileOptions={profileOptions || []} isFilteredView={false} />}
-            noResultsScreen={<EmptyScreen profileOptions={profileOptions || []} isFilteredView={true} />}
+            emptyScreen={<EmptyScreen isFilteredView={false} />}
+            noResultsScreen={<EmptyScreen isFilteredView={true} />}
             SkeletonLoader={SkeletonLoader}>
             <WorkflowList workflows={queryRes.data?.filtered} />
           </FilterResults>
