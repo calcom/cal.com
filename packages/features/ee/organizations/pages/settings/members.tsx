@@ -148,6 +148,7 @@ const MembersView = () => {
           </div>
           {showMemberInvitationModal && team && (
             <MemberInvitationModal
+              teamId={team.id}
               isOpen={showMemberInvitationModal}
               members={team.members}
               onExit={() => setShowMemberInvitationModal(false)}
