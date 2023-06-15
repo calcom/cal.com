@@ -269,6 +269,7 @@ model Team {
   orgUsers            User[]             @relation("scope")
   inviteToken         VerificationToken?
   webhooks            Webhook[]
+  routingForms        App_RoutingForms_Form[]
 
   @@unique([slug, parentId])
 }
@@ -645,7 +646,11 @@ model App_RoutingForms_Form {
   name        String
   fields      Json?
   user        User                            @relation("routing-form", fields: [userId], references: [id], onDelete: Cascade)
+  // This is the user who created the form and also the user who has read-write access to the form
+  // If teamId is set, the members of the team would also have access to form readOnly or read-write depending on their permission level as team member.
   userId      Int
+  team        Team?                           @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId      Int?
   responses   App_RoutingForms_FormResponse[]
   disabled    Boolean                         @default(false)
   /// @zod.custom(imports.RoutingFormSettings)
