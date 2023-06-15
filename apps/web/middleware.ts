@@ -12,6 +12,21 @@ const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req.headers.get("host") ?? "");
+  const isEmbedRequest = typeof url.searchParams.get("embed") === "string";
+
+  /**
+   * We are using env variable to toggle new-booker because using flags would be an unnecessary delay for booking pages
+   * Also, we can't easily identify the booker page requests here(to just fetch the flags for those requests)
+   */
+  // Enable New Booker for All but embed Requests
+  if (process.env.NEW_BOOKER_ENABLED_FOR_NON_EMBED === "1" && !isEmbedRequest) {
+    requestHeaders.set("new-booker-enabled", "1");
+  }
+
+  // Enable New Booker for Embed Requests
+  if (process.env.NEW_BOOKER_ENABLED_FOR_EMBED === "1" && isEmbedRequest) {
+    requestHeaders.set("new-booker-enabled", "1");
+  }
 
   // Make sure we are in the presence of an organization
   if (isValidOrgDomain && url.pathname === "/") {
