@@ -2,6 +2,8 @@ import type { GetServerSidePropsContext } from "next";
 
 import prisma from "@calcom/prisma";
 
+import PageWrapper from "@components/PageWrapper";
+
 import type { UserPageProps } from "../../../[user]";
 import UserPage, { getServerSideProps as GSSUserPage } from "../../../[user]";
 import type { TeamPageProps } from "../../../team/[slug]";
@@ -34,3 +36,5 @@ export default function Page(props: Props) {
   if ((props as TeamPageProps)?.team) return TeamPage(props as TeamPageProps);
   return UserPage(props as UserPageProps);
 }
+
+Page.PageWrapper = PageWrapper;
