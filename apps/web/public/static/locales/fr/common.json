@@ -128,6 +128,7 @@
   "team_upgrade_banner_description": "Merci d'avoir essayé notre nouveau plan Équipes. Nous avons remarqué que votre équipe « {{teamName}} » doit être mise à niveau.",
   "team_upgrade_banner_action": "Mettre à niveau",
   "team_upgraded_successfully": "Votre équipe a été mise à niveau avec succès !",
+  "org_upgrade_banner_action": "Mettre à niveau",
   "use_link_to_reset_password": "Utilisez le lien ci-dessous pour réinitialiser votre mot de passe",
   "hey_there": "Salut,",
   "forgot_your_password_calcom": "Mot de passe oublié ? - {{appName}}",

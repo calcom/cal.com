@@ -119,6 +119,7 @@
   "team_upgrade_banner_description": "Cám ơn bạn đã dùng thử gói kế hoạch mới dành cho nhóm. Chúng tôi để ý thấy nhóm \"{{teamName}}\" của bạn cần được nâng cấp.",
   "team_upgrade_banner_action": "Nâng cấp tại đây",
   "team_upgraded_successfully": "Nhóm bạn đã được nâng cấp thành công!",
+  "org_upgrade_banner_action": "Nâng cấp tại đây",
   "use_link_to_reset_password": "Sử dụng đường link dưới đây để thay đổi mật khẩu của bạn",
   "hey_there": "Xin chào,",
   "forgot_your_password_calcom": "Quên mật khẩu của bạn? - {{appName}}",

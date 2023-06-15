@@ -109,6 +109,7 @@
   "team_upgrade_banner_description": "Takk for at du prøvde vår nye team-plan. Vi la merke til at teamet ditt \"{{teamName}}\" må oppgraderes.",
   "team_upgrade_banner_action": "Oppgrader her",
   "team_upgraded_successfully": "Teamet ditt ble oppgradert!",
+  "org_upgrade_banner_action": "Oppgrader her",
   "use_link_to_reset_password": "Bruk lenken nedenfor for å tilbakestille passordet ditt",
   "hey_there": "Hei der,",
   "forgot_your_password_calcom": "Glemt passordet? - {{appName}}",

@@ -119,6 +119,7 @@
   "team_upgrade_banner_description": "Dziękujemy za wypróbowanie naszego nowego planu zespołowego. Zauważyliśmy, że Twój zespół „{{teamName}}” trzeba ulepszyć.",
   "team_upgrade_banner_action": "Ulepsz tutaj",
   "team_upgraded_successfully": "Twój zespół został pomyślnie zaktualizowany!",
+  "org_upgrade_banner_action": "Ulepsz tutaj",
   "use_link_to_reset_password": "Użyj poniższego linku, aby zresetować swoje hasło",
   "hey_there": "Cześć,",
   "forgot_your_password_calcom": "Nie pamiętasz swojego hasła? - {{appName}}",

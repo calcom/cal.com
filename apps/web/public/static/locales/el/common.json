@@ -57,6 +57,7 @@
   "link_expires": "Υ.Γ. Λήγει σε {{expiresIn}} ώρες.",
   "team_upgrade_banner_action": "Αναβάθμισε εδώ",
   "team_upgraded_successfully": "Η ομάδα σας αναβαθμίστηκε επιτυχώς!",
+  "org_upgrade_banner_action": "Αναβάθμισε εδώ",
   "use_link_to_reset_password": "Χρησιμοποιήστε τον παρακάτω σύνδεσμο για να επαναφέρετε τον κωδικό πρόσβασης",
   "hey_there": "Γεια σας,",
   "forgot_your_password_calcom": "Ξεχάσατε τον κωδικό πρόσβασης? - {{appName}}",

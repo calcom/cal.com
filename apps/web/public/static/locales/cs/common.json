@@ -119,6 +119,7 @@
   "team_upgrade_banner_description": "Děkujeme vám za vyzkoušení našeho nového týmového plánu. Všimli jsme si, že váš tým „{{teamName}}“ je nutné upgradovat.",
   "team_upgrade_banner_action": "Upgradovat zde",
   "team_upgraded_successfully": "Váš tým byl úspěšně přešel na vyšší verzi!",
+  "org_upgrade_banner_action": "Upgradovat zde",
   "use_link_to_reset_password": "Pro obnovení hesla použijte odkaz níž",
   "hey_there": "Zdravíme,",
   "forgot_your_password_calcom": "Zapomněli jste heslo? - {{appName}}",

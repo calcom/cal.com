@@ -119,6 +119,7 @@
   "team_upgrade_banner_description": "شكراً لك على تجربة خطة الفريق الجديدة التي نقدمها. لقد لاحظنا أن فريقك \"{{teamName}}\" بحاجة إلى الترقية.",
   "team_upgrade_banner_action": "قم بالترقية هنا",
   "team_upgraded_successfully": "تمت ترقية فريقك بنجاح!",
+  "org_upgrade_banner_action": "قم بالترقية هنا",
   "use_link_to_reset_password": "استخدم الرابط أدناه لإعادة تعيين كلمة المرور",
   "hey_there": "مرحبًا،",
   "forgot_your_password_calcom": "نسيت كلمة المرور الخاصة بك؟ - {{appName}}",

@@ -119,6 +119,7 @@
   "team_upgrade_banner_description": "Спасибо, что попробовали наш новый тариф Team. Для работы с командой «{{teamName}}» необходимо изменить тариф.",
   "team_upgrade_banner_action": "Изменить",
   "team_upgraded_successfully": "Вы успешно перешли на новый тариф для своей команды!",
+  "org_upgrade_banner_action": "Изменить",
   "use_link_to_reset_password": "Используйте ссылку ниже, чтобы сбросить пароль",
   "hey_there": "Привет,",
   "forgot_your_password_calcom": "Забыли пароль? - {{appName}}",

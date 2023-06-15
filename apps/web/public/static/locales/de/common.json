@@ -119,6 +119,7 @@
   "team_upgrade_banner_description": "Vielen Dank, dass Sie unseren neuen Teamplan getestet haben. Wir haben festgestellt, dass Ihr Team „{{teamName}}“ aktualisiert werden muss.",
   "team_upgrade_banner_action": "Hier aufrüsten",
   "team_upgraded_successfully": "Das Update für Ihr Team war erfolgreich!",
+  "org_upgrade_banner_action": "Hier aufrüsten",
   "use_link_to_reset_password": "Benutzen Sie den Link, um Ihr Passwort zurückzusetzen",
   "hey_there": "Hallo,",
   "forgot_your_password_calcom": "Passwort vergessen? - {{appName}}",

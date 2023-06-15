@@ -119,6 +119,7 @@
   "team_upgrade_banner_description": "Дякуємо, що спробували наш новий план для команд! Ми помітили, що вашу команду «{{teamName}}» потрібно перевести на план вищого рівня.",
   "team_upgrade_banner_action": "Перейдіть на інший план",
   "team_upgraded_successfully": "Версію для вашої команди оновлено!",
+  "org_upgrade_banner_action": "Перейдіть на інший план",
   "use_link_to_reset_password": "Скористайтеся посиланням нижче, щоб скинути пароль",
   "hey_there": "Привіт!",
   "forgot_your_password_calcom": "Забули пароль? – {{appName}}",

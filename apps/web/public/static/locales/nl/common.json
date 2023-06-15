@@ -119,6 +119,7 @@
   "team_upgrade_banner_description": "Bedankt voor het testen van ons nieuwe teamabonnement. We hebben geconstateerd dat uw team \"{{teamName}}\" moet worden geüpgraded.",
   "team_upgrade_banner_action": "Hier upgraden",
   "team_upgraded_successfully": "Uw team is geüpgraded!",
+  "org_upgrade_banner_action": "Hier upgraden",
   "use_link_to_reset_password": "Gebruik de onderstaande link om uw wachtwoord te resetten",
   "hey_there": "Hallo daar,",
   "forgot_your_password_calcom": "Wachtwoord vergeten? - {{appName}}",

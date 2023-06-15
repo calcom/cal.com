@@ -120,6 +120,7 @@
   "team_upgrade_banner_description": "당사의 새로운 팀 플랜을 사용해 주셔서 감사합니다. 귀하의 \"{{teamName}}\" 팀에 업그레이드가 필요한 것으로 확인되었습니다.",
   "team_upgrade_banner_action": "여기서 업그레이드",
   "team_upgraded_successfully": "팀이 성공적으로 업그레이드되었습니다!",
+  "org_upgrade_banner_action": "여기서 업그레이드",
   "use_link_to_reset_password": "비밀번호를 재설정하시려면 아래 링크를 사용하세요.",
   "hey_there": "안녕하세요.",
   "forgot_your_password_calcom": "비밀번호를 잊어버리셨나요? - {{appName}}",

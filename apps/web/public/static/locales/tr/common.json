@@ -119,6 +119,7 @@
   "team_upgrade_banner_description": "Yeni ekip planımızı denediğiniz için teşekkür ederiz. \"{{teamName}}\" adlı ekibinizin yükseltilmesi gerektiğini fark ettik.",
   "team_upgrade_banner_action": "Buradan yükseltin",
   "team_upgraded_successfully": "Ekibiniz başarıyla yükseltildi!",
+  "org_upgrade_banner_action": "Buradan yükseltin",
   "use_link_to_reset_password": "Şifrenizi sıfırlamak için aşağıdaki bağlantıyı kullanın",
   "hey_there": "Selam,",
   "forgot_your_password_calcom": "Şifrenizi mi unuttunuz? - {{appName}}",

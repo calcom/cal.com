@@ -127,6 +127,7 @@
   "team_upgrade_banner_description": "אנחנו מודים לך על כך שניסית את החבילה החדשה שלנו לצוותים. שמנו לב שהצוות שלך, \"{{teamName}}\", זקוק לשדרוג.",
   "team_upgrade_banner_action": "כאן משדרגים",
   "team_upgraded_successfully": "הצוות שלך שודרג בהצלחה!",
+  "org_upgrade_banner_action": "כאן משדרגים",
   "use_link_to_reset_password": "נא להשתמש בקישור הבא כדי לאפס את הסיסמה",
   "hey_there": "שלום,",
   "forgot_your_password_calcom": "שכחתה את הסיסמה? - {{appName}}",

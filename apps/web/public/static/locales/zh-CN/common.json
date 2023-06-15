@@ -119,6 +119,7 @@
   "team_upgrade_banner_description": "感谢您试用我们的新团队计划。我们注意到您的团队“{{teamName}}”需要升级。",
   "team_upgrade_banner_action": "在此处升级",
   "team_upgraded_successfully": "您的团队升级成功！",
+  "org_upgrade_banner_action": "在此处升级",
   "use_link_to_reset_password": "使用下面的链接重置您的密码",
   "hey_there": "嘿，您好！",
   "forgot_your_password_calcom": "忘记密码？- {{appName}}",

@@ -127,6 +127,7 @@
   "team_upgrade_banner_description": "Hvala vam što isprobavate naš novi plan za timove. Primetili smo da vaš tim „{{teamName}}“ treba da se nadogradi.",
   "team_upgrade_banner_action": "Nadogradite ovde",
   "team_upgraded_successfully": "Vaš tim je uspešno pretplaćen!",
+  "org_upgrade_banner_action": "Nadogradite ovde",
   "use_link_to_reset_password": "Resetujte lozinku koristeći link ispod",
   "hey_there": "Zdravo,",
   "forgot_your_password_calcom": "Zaboravili ste lozinku? - {{appName}}",

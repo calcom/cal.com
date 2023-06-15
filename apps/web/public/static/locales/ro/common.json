@@ -119,6 +119,7 @@
   "team_upgrade_banner_description": "Vă mulțumim că ați încercat noul nostru plan pentru echipe. Am observat că planul echipei dvs. „{{teamName}}” necesită un upgrade.",
   "team_upgrade_banner_action": "Realizați upgrade aici",
   "team_upgraded_successfully": "Echipa dvs. a fost actualizată cu succes!",
+  "org_upgrade_banner_action": "Realizați upgrade aici",
   "use_link_to_reset_password": "Utilizați linkul de mai jos pentru a vă reseta parola",
   "hey_there": "Bună,",
   "forgot_your_password_calcom": "Ți-ai uitat parola? - {{appName}}",

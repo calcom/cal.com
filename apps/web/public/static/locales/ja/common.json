@@ -119,6 +119,7 @@
   "team_upgrade_banner_description": "新しいチームプランをお試しいただき、ありがとうございます。あなたのチーム「{{teamName}}」には、アップグレードが必要なようです。",
   "team_upgrade_banner_action": "アップグレードはこちら",
   "team_upgraded_successfully": "チームのアップグレードが正常に完了しました！",
+  "org_upgrade_banner_action": "アップグレードはこちら",
   "use_link_to_reset_password": "以下のリンクを使用してパスワードをリセットしてください",
   "hey_there": "こんにちは！",
   "forgot_your_password_calcom": "パスワードをお忘れですか? - {{appName}}",

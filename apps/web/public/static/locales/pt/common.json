@@ -119,6 +119,7 @@
   "team_upgrade_banner_description": "Obrigado por experimentar o nosso novo plano de equipa. Verificámos que a sua equipa \"{{teamName}}\" necessita de ser atualizada.",
   "team_upgrade_banner_action": "Atualize aqui",
   "team_upgraded_successfully": "A sua equipa foi actualizada com sucesso!",
+  "org_upgrade_banner_action": "Atualize aqui",
   "use_link_to_reset_password": "Use a ligação abaixo para redefinir a sua senha",
   "hey_there": "Olá,",
   "forgot_your_password_calcom": "Esqueceu-se da sua senha? - {{appName}}",

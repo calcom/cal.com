@@ -112,6 +112,7 @@
   "team_upgrade_banner_description": "Tak fordi du har prøvet vores nye teamplan. Vi har bemærket at dit team \"{{teamName}}\" skal opgraderes.",
   "team_upgrade_banner_action": "Opgradér her",
   "team_upgraded_successfully": "Dit team blev opgraderet!",
+  "org_upgrade_banner_action": "Opgradér her",
   "use_link_to_reset_password": "Brug nedenstående link for at nulstille din adgangskode",
   "hey_there": "Hej,",
   "forgot_your_password_calcom": "Glemt din adgangskode? - {{appName}}",
