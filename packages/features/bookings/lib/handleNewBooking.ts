@@ -293,6 +293,11 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
             select: {
               credentials: true,
               ...userSelect.select,
+              organization: {
+                select: {
+                  slug: true,
+                },
+              },
             },
           },
         },
@@ -318,7 +323,11 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
   };
 };
 
-type IsFixedAwareUser = User & { isFixed: boolean; credentials: Credential[] };
+type IsFixedAwareUser = User & {
+  isFixed: boolean;
+  credentials: Credential[];
+  organization: { slug: string };
+};
 
 async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
@@ -694,6 +703,11 @@ async function handler(
             ...userSelect.select,
             credentials: true, // Don't leak to client
             metadata: true,
+            organization: {
+              select: {
+                slug: true,
+              },
+            },
           },
         })
       : eventType.hosts?.length

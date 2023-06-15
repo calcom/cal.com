@@ -166,10 +166,10 @@ enum UserPermissionRole {
 
 model User {
   id                   Int                     @id @default(autoincrement())
-  username             String?                 @unique
+  username             String?
   name                 String?
   /// @zod.email()
-  email                String                  @unique
+  email                String
   emailVerified        DateTime?
   password             String?
   bio                  String?
@@ -225,8 +225,16 @@ model User {
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
   verifiedNumbers      VerifiedNumber[]
   hosts                Host[]
+  organizationId       Int?
+  organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
+  // Linking account code for orgs v2
+  //linkedByUserId       Int?
+  //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
+  //linkedUsers          User[]                  @relation("linked_account")*/
 
-  @@index([email])
+  @@unique([email])
+  @@unique([email, username])
+  @@unique([username, organizationId])
   @@index([emailVerified])
   @@index([identityProvider])
   @@index([identityProviderId])
@@ -238,7 +246,7 @@ model Team {
   /// @zod.min(1)
   name                String
   /// @zod.min(1)
-  slug                String?            @unique
+  slug                String?
   logo                String?
   appLogo             String?
   appIconLogo         String?
@@ -255,8 +263,14 @@ model Team {
   brandColor          String             @default("#292929")
   darkBrandColor      String             @default("#fafafa")
   verifiedNumbers     VerifiedNumber[]
+  parentId            Int?
+  parent              Team?              @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
+  children            Team[]             @relation("organization")
+  orgUsers            User[]             @relation("scope")
   inviteToken         VerificationToken?
   webhooks            Webhook[]
+
+  @@unique([slug, parentId])
 }
 
 enum MembershipRole {
