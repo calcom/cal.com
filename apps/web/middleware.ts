@@ -10,7 +10,6 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req.headers.get("host") ?? "");
   const isEmbedRequest = typeof url.searchParams.get("embed") === "string";
 
   /**
