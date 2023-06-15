@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import type { GetServerSideContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -29,6 +29,7 @@ import Team from "@components/team/screens/Team";
 import { ssrInit } from "@server/lib/ssr";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
+
 function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }: TeamPageProps) {
   useTheme(team.theme);
   const showMembers = useToggleQuery("members");
@@ -241,7 +242,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
   );
 }
 
-export const getServerSideProps = async (context: GetServerSideContext) => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
   const { isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
