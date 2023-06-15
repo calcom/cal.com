@@ -20,7 +20,11 @@ export function defaultCookies(useSecureCookies: boolean): CookiesOptions {
   const cookiePrefix = useSecureCookies ? "__Secure-" : "";
 
   const defaultOptions: CookieOption["options"] = {
-    domain: isENVDev ? undefined : NEXTAUTH_COOKIE_DOMAIN,
+    domain: isENVDev
+      ? process.env.ORGANIZATIONS_ENABLED
+        ? ".cal.local"
+        : undefined
+      : NEXTAUTH_COOKIE_DOMAIN,
     // To enable cookies on widgets,
     // https://stackoverflow.com/questions/45094712/iframe-not-reading-cookies-in-chrome
     // But we need to set it as `lax` in development
