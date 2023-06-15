@@ -25,6 +25,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       }}
       switchChecked={enabled}>
       <TextField
+        className="mb-0 leading-4"
         name="Tracking ID"
         value={trackingId}
         onChange={(e) => {

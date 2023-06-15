@@ -35,6 +35,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         }}
       />
       <TextField
+        className="mb-0 leading-4"
         name="Tracked Domain"
         placeholder="yourdomain.com"
         value={trackingId}

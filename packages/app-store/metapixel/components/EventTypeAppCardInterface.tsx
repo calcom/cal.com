@@ -15,6 +15,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   return (
     <AppCard setAppData={setAppData} app={app} switchOnClick={setEnabled} switchChecked={enabled}>
       <TextField
+        className="mb-0 leading-4"
         name="Pixel ID"
         value={trackingId}
         onChange={(e) => {

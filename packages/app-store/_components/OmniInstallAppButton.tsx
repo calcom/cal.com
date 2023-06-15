@@ -65,7 +65,7 @@ export default function OmniInstallAppButton({
             className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
             StartIcon={Plus}
             {...props}>
-            {t("install")}
+            {t("add")}
           </Button>
         );
       }}

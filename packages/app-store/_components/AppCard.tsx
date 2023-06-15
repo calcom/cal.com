@@ -31,27 +31,38 @@ export default function AppCard({
   return (
     <div
       className={classNames(
-        "border-subtle mb-4",
-        app.isInstalled ? "mt-2" : "mt-6",
-        "rounded-md border",
+        "border-subtle",
+        app?.isInstalled && "mb-4 rounded-md border",
         !app.enabled && "grayscale"
       )}>
       <div className={classNames(app.isInstalled ? "p-4 text-sm sm:p-4" : "px-5 py-4 text-sm sm:px-5")}>
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
           {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
-          <Link href={"/apps/" + app.slug} className="mr-3 h-auto w-10 rounded-sm">
+          <Link
+            href={"/apps/" + app.slug}
+            className={classNames(app?.isInstalled ? "mr-[11px]" : "mr-3", "h-auto w-10 rounded-sm")}>
             <img
               className={classNames(
                 app?.logo.includes("-dark") && "dark:invert",
-                `w-full ${app.isInstalled ? "min-w-[42px]" : "min-w-[32.47px]"}`
+                app?.isInstalled ? "min-w-[42px]" : "min-w-[40px]",
+                "w-full"
               )}
               src={app?.logo}
               alt={app?.name}
             />
           </Link>
-          <div className="flex flex-col">
-            <span className="text-emphasis text-base font-semibold leading-4">{app?.name}</span>
-            <p className="text-default max-w-md truncate pt-2 text-sm font-normal ltr:pr-2 rtl:pl-2">
+          <div className="pe-3 flex flex-col">
+            <div className="text-emphasis">
+              <span className={classNames(app?.isInstalled && "text-base", "font-semibold leading-4")}>
+                {app?.name}
+              </span>
+              {!app?.isInstalled && (
+                <span className="bg-emphasis ml-1 rounded py-0.5 px-1 text-xs font-medium leading-3 tracking-[0.01em]">
+                  {app?.categories[0].charAt(0).toUpperCase() + app?.categories[0].slice(1)}
+                </span>
+              )}
+            </div>
+            <p title={app?.description} className="line-clamp-1 text-default pt-1 text-sm font-normal">
               {description || app?.description}
             </p>
           </div>
@@ -79,7 +90,7 @@ export default function AppCard({
       </div>
       <div ref={animationRef}>
         {app?.isInstalled && switchChecked && <hr className="border-subtle" />}
-        {app?.isInstalled && switchChecked ? <div className="p-4 text-sm sm:px-4">{children}</div> : null}
+        {app?.isInstalled && switchChecked ? <div className="p-4 pt-5 text-sm">{children}</div> : null}
       </div>
     </div>
   );
