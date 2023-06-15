@@ -223,6 +223,38 @@ const nextConfig = {
         source: "/embed/embed.js",
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
       }, */
+      /**
+       * Header allows us to enable new-booker using middleware which uses env variables to enable/disable new booker
+       */
+      {
+        source: `/:user((?!${pages.join("|")}).*)/:type`,
+        destination: "/new-booker/:user/:type",
+        has: [{ type: "header", key: "new-booker-enabled" }],
+      },
+      {
+        source: `/:user((?!${pages.join("|")}).*)/:type/embed`,
+        destination: "/new-booker/:user/:type/embed",
+        has: [{ type: "header", key: "new-booker-enabled" }],
+      },
+      {
+        source: "/team/:slug/:type",
+        destination: "/new-booker/team/:slug/:type",
+        has: [{ type: "header", key: "new-booker-enabled" }],
+      },
+      {
+        source: "/team/:slug/:type/embed",
+        destination: "/new-booker/team/:slug/:type/embed",
+        has: [{ type: "header", key: "new-booker-enabled" }],
+      },
+      {
+        source: "/d/:link/:slug",
+        destination: "/new-booker/d/:link/:slug",
+        has: [{ type: "header", key: "new-booker-enabled" }],
+      },
+
+      /**
+       * Enables new booker using cookie. It works even if NEW_BOOKER_ENABLED_FOR_NON_EMBED, NEW_BOOKER_ENABLED_FOR_EMBED are disabled
+       */
       {
         source: `/:user((?!${pages.join("|")}).*)/:type`,
         destination: "/new-booker/:user/:type",

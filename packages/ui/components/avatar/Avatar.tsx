@@ -24,13 +24,13 @@ export type AvatarProps = {
 };
 
 const sizesPropsBySize = {
-  xxs: "w-3.5 h-3.5", // 14px
-  xs: "w-4 h-4", // 16px
-  sm: "w-6 h-6", // 24px
-  md: "w-8 h-8", // 32px
-  mdLg: "w-10 h-10", //40px
-  lg: "w-16 h-16", // 64px
-  xl: "w-24 h-24", // 96px
+  xxs: "w-3.5 h-3.5 min-w-3.5 min-h-3.5", // 14px
+  xs: "w-4 h-4 min-w-4 min-h-4", // 16px
+  sm: "w-6 h-6 min-w-6 min-h-6", // 24px
+  md: "w-8 h-8 min-w-8 min-h-8", // 32px
+  mdLg: "w-10 h-10 min-w-10 min-h-10", //40px
+  lg: "w-16 h-16 min-w-16 min-h-16", // 64px
+  xl: "w-24 h-24 min-w-24 min-h-24", // 96px
 } as const;
 
 export function Avatar(props: AvatarProps) {
@@ -49,7 +49,7 @@ export function Avatar(props: AvatarProps) {
           alt={alt}
           className={classNames("aspect-square rounded-full", sizesPropsBySize[size])}
         />
-        <AvatarPrimitive.Fallback delayMs={600} asChild={props.asChild}>
+        <AvatarPrimitive.Fallback delayMs={600} asChild={props.asChild} className="flex items-center">
           <>
             {props.fallback && !gravatarFallbackMd5 && props.fallback}
             {gravatarFallbackMd5 && (
