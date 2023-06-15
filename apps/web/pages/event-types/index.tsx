@@ -789,6 +789,7 @@ const CTA = () => {
 
   return (
     <CreateButton
+      data-testid="new-event-type"
       subtitle={t("create_event_on").toUpperCase()}
       options={profileOptions}
       createDialog={() => <CreateEventTypeDialog profileOptions={profileOptions} />}

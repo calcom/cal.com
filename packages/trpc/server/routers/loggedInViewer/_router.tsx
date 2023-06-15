@@ -41,6 +41,7 @@ type AppsRouterHandlerCache = {
   getDownloadLinkOfCalVideoRecordings?: typeof import("./getDownloadLinkOfCalVideoRecordings.handler").getDownloadLinkOfCalVideoRecordingsHandler;
   getUsersDefaultConferencingApp?: typeof import("./getUsersDefaultConferencingApp.handler").getUsersDefaultConferencingAppHandler;
   updateUserDefaultConferencingApp?: typeof import("./updateUserDefaultConferencingApp.handler").updateUserDefaultConferencingAppHandler;
+  teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
 };
 
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
@@ -383,5 +384,19 @@ export const loggedInViewerRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.shouldVerifyEmail({ ctx });
+  }),
+  teamsAndUserProfilesQuery: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.teamsAndUserProfilesQuery) {
+      UNSTABLE_HANDLER_CACHE.teamsAndUserProfilesQuery = (
+        await import("./teamsAndUserProfilesQuery.handler")
+      ).teamsAndUserProfilesQuery;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.teamsAndUserProfilesQuery) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.teamsAndUserProfilesQuery({ ctx });
   }),
 });

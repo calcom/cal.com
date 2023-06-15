@@ -273,7 +273,7 @@ export const KBarTrigger = () => {
         <button
           color="minimal"
           onClick={query.toggle}
-          className="text-default hover:bg-subtle lg:hover:bg-emphasis lg:hover:text-emphasis group flex rounded-md py-2 px-3 text-sm font-medium lg:p-1">
+          className="text-default hover:bg-subtle lg:hover:bg-emphasis lg:hover:text-emphasis group flex rounded-md px-3 py-2 text-sm font-medium lg:px-2">
           <Search className="h-4 w-4 flex-shrink-0 text-inherit" />
         </button>
       </Tooltip>
