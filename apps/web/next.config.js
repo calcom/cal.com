@@ -183,69 +183,104 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    return [
-      {
-        source: "/org/:slug",
-        destination: "/team/:slug",
-      },
-      {
-        source: "/:user/avatar.png",
-        destination: "/api/user/avatar?username=:user",
-      },
-      {
-        source: "/team/:teamname/avatar.png",
-        destination: "/api/user/avatar?teamname=:teamname",
-      },
-      {
-        source: "/forms/:formQuery*",
-        destination: "/apps/routing-forms/routing-link/:formQuery*",
-      },
-      {
-        source: "/router",
-        destination: "/apps/routing-forms/router",
-      },
-      {
-        source: "/success/:path*",
-        has: [
-          {
-            type: "query",
-            key: "uid",
-            value: "(?<uid>.*)",
-          },
-        ],
-        destination: "/booking/:uid/:path*",
-      },
-      {
-        source: "/cancel/:path*",
-        destination: "/booking/:path*",
-      },
-      /* TODO: have these files being served from another deployment or CDN {
-        source: "/embed/embed.js",
-        destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
-      }, */
-      {
-        source: `/:user((?!${pages.join("|")}).*)/:type`,
-        destination: "/new-booker/:user/:type",
-        has: [{ type: "cookie", key: "new-booker-enabled" }],
-      },
-      {
-        source: `/:user((?!${pages.join("|")}).*)/:type/embed`,
-        destination: "/new-booker/:user/:type/embed",
-        has: [{ type: "cookie", key: "new-booker-enabled" }],
-      },
-      {
-        source: "/team/:slug/:type",
-        destination: "/new-booker/team/:slug/:type",
-        has: [{ type: "cookie", key: "new-booker-enabled" }],
-      },
-      {
-        source: "/team/:slug/:type/embed",
-        destination: "/new-booker/team/:slug/:type/embed",
-        source: "/d/:link/:slug",
-        destination: "/new-booker/d/:link/:slug",
-        has: [{ type: "cookie", key: "new-booker-enabled" }],
-      },
-    ];
+    console.log(pages);
+    return {
+      beforeFiles: [
+        {
+          has: [
+            {
+              type: "host",
+              value: "((?<orgSlug>(?!app).*).cal.local)",
+            },
+          ],
+          source: "/",
+          destination: "/team/:orgSlug",
+        },
+        {
+          has: [
+            {
+              type: "host",
+              value: "((?<orgSlug>(?!app).*).cal.local)",
+            },
+          ],
+          source: `/:user((?!${pages.join("|")}|_next|public).*)`,
+          destination: "/org/:orgSlug/:user",
+        },
+        {
+          has: [
+            {
+              type: "host",
+              value: "((?<orgSlug>(?!app).*).cal.local)",
+            },
+          ],
+          source: `/:user((?!${pages.join("|")}|_next|public).*)/:type`,
+          destination: "/:user/:type",
+        },
+        /*{
+          source: "/org/:slug",
+          destination: "/team/:slug",
+        },*/
+      ],
+      afterFiles: [
+        {
+          source: "/:user/avatar.png",
+          destination: "/api/user/avatar?username=:user",
+        },
+        {
+          source: "/team/:teamname/avatar.png",
+          destination: "/api/user/avatar?teamname=:teamname",
+        },
+        {
+          source: "/forms/:formQuery*",
+          destination: "/apps/routing-forms/routing-link/:formQuery*",
+        },
+        {
+          source: "/router",
+          destination: "/apps/routing-forms/router",
+        },
+        {
+          source: "/success/:path*",
+          has: [
+            {
+              type: "query",
+              key: "uid",
+              value: "(?<uid>.*)",
+            },
+          ],
+          destination: "/booking/:uid/:path*",
+        },
+        {
+          source: "/cancel/:path*",
+          destination: "/booking/:path*",
+        },
+        /* TODO: have these files being served from another deployment or CDN {
+          source: "/embed/embed.js",
+          destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
+        }, */
+        {
+          source: `/:user((?!${pages.join("|")}).*)/:type`,
+          destination: "/new-booker/:user/:type",
+          has: [{ type: "cookie", key: "new-booker-enabled" }],
+        },
+        {
+          source: `/:user((?!${pages.join("|")}).*)/:type/embed`,
+          destination: "/new-booker/:user/:type/embed",
+          has: [{ type: "cookie", key: "new-booker-enabled" }],
+        },
+        {
+          source: "/team/:slug/:type",
+          destination: "/new-booker/team/:slug/:type",
+          has: [{ type: "cookie", key: "new-booker-enabled" }],
+        },
+        {
+          source: "/team/:slug/:type/embed",
+          destination: "/new-booker/team/:slug/:type/embed",
+          source: "/d/:link/:slug",
+          destination: "/new-booker/d/:link/:slug",
+          has: [{ type: "cookie", key: "new-booker-enabled" }],
+        },
+      ],
+    };
   },
   async headers() {
     return [
