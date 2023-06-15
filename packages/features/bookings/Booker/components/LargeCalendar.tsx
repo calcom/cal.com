@@ -40,6 +40,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   return (
     <div className="h-full [--calendar-dates-sticky-offset:66px]">
       <Calendar
+        isLoading={schedule.isLoading}
         availableTimeslots={availableSlots}
         startHour={0}
         endHour={23}

@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef } from "react";
 
+import { classNames } from "@calcom/lib";
+
 import { useCalendarStore } from "../state/store";
 import "../styles/styles.css";
 import type { CalendarComponentProps } from "../types/state";
@@ -11,6 +13,7 @@ import { EventList } from "./event/EventList";
 import { SchedulerColumns } from "./grid";
 import { SchedulerHeading } from "./heading/SchedulerHeading";
 import { HorizontalLines } from "./horizontalLines";
+import { Spinner } from "./spinner/Spinner";
 import { VeritcalLines } from "./verticalLines";
 
 export function Calendar(props: CalendarComponentProps) {
@@ -41,7 +44,7 @@ export function Calendar(props: CalendarComponentProps) {
   return (
     <MobileNotSupported>
       <div
-        className="scheduler-wrapper flex h-full w-full flex-col"
+        className={classNames("scheduler-wrapper flex h-full w-full flex-col")}
         style={
           {
             "--one-minute-height": `calc(${hourSize}px/60)`,
@@ -49,6 +52,7 @@ export function Calendar(props: CalendarComponentProps) {
           } as React.CSSProperties // This can't live in the css file because it's a dynamic value and css variable gets super
         }>
         {hideHeader !== true && <SchedulerHeading />}
+        {props.isLoading && <Spinner />}
         <div
           ref={container}
           className="bg-default dark:bg-muted relative isolate flex h-full flex-auto flex-col">
