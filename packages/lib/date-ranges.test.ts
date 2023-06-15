@@ -12,19 +12,20 @@ describe("processWorkingHours", () => {
     };
 
     const timeZone = "America/New_York";
-    const dateFrom = dayjs("2023-06-13T00:00:00Z");
-    const dateTo = dayjs("2023-06-15T00:00:00Z");
+    const dateFrom = dayjs.utc().startOf("day").day(2).add(1, "week");
+    const dateTo = dayjs.utc().endOf("day").day(3).add(1, "week");
 
     const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
 
     expect(results.length).toBe(2); // There should be two working days between the range
+    // "America/New_York" day shifts -1, so we need to add a day to correct this shift.
     expect(results[0]).toEqual({
-      start: dayjs("2023-06-12T12:00:00Z").tz(timeZone),
-      end: dayjs("2023-06-12T21:00:00Z").tz(timeZone),
+      start: dayjs(`${dateFrom.tz(timeZone).add(1, "day").format("YYYY-MM-DD")}T12:00:00Z`).tz(timeZone),
+      end: dayjs(`${dateFrom.tz(timeZone).add(1, "day").format("YYYY-MM-DD")}T21:00:00Z`).tz(timeZone),
     });
     expect(results[1]).toEqual({
-      start: dayjs("2023-06-13T12:00:00Z").tz(timeZone),
-      end: dayjs("2023-06-13T21:00:00Z").tz(timeZone),
+      start: dayjs(`${dateTo.tz(timeZone).format("YYYY-MM-DD")}T12:00:00Z`).tz(timeZone),
+      end: dayjs(`${dateTo.tz(timeZone).format("YYYY-MM-DD")}T21:00:00Z`).tz(timeZone),
     });
   });
 });

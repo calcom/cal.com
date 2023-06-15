@@ -22,7 +22,7 @@ export function processWorkingHours({
   dateTo: Dayjs;
 }) {
   const results = [];
-  for (let date = dateFrom.tz(timeZone); date.isBefore(dateTo); date = date.add(1, "day")) {
+  for (let date = dateFrom.tz(timeZone).startOf("day"); dateTo.isAfter(date); date = date.add(1, "day")) {
     if (!item.days.includes(date.day())) {
       continue;
     }
@@ -30,15 +30,18 @@ export function processWorkingHours({
     const start = date.hour(item.startTime.getUTCHours()).minute(item.startTime.getUTCMinutes()).second(0);
     const end = date.hour(item.endTime.getUTCHours()).minute(item.endTime.getUTCMinutes()).second(0);
 
-    // to avoid OutOfBound error
-    const startOrNow = start.isBefore(dayjs()) ? dayjs().add(1, "second") : start;
+    const startResult = dayjs.max(start, dateFrom.tz(timeZone));
+    const endResult = dayjs.min(end, dateTo.tz(timeZone));
 
-    if (startOrNow.isBefore(end)) {
-      results.push({
-        start: startOrNow,
-        end: date.hour(item.endTime.getUTCHours()).minute(item.endTime.getUTCMinutes()).second(0),
-      });
+    if (startResult.isAfter(endResult)) {
+      // if an event ends before start, it's not a result.
+      continue;
     }
+
+    results.push({
+      start: startResult,
+      end: endResult,
+    });
   }
   return results;
 }
