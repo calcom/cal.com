@@ -12,13 +12,14 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
+  const selectedEventDuration = useBookerStore((state) => state.selectedDuration);
   const schedule = useScheduleForEvent({
     prefetchNextMonth: !!extraDays && dayjs(date).month() !== dayjs(date).add(extraDays, "day").month(),
   });
   const { timezone } = useTimePreferences();
 
   const event = useEvent();
-  const eventDuration = event?.data?.length || 30;
+  const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
   const availableSlots = useMemo(() => {
     const availableTimeslots: CalendarAvailableTimeslots = {};
