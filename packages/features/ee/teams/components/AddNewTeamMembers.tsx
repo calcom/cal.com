@@ -59,6 +59,8 @@ export const AddNewTeamMembersForm = ({
 
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery({ teamId });
 
+  let resetChildFunc: Function;
+
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess(data) {
       await utils.viewer.teams.get.invalidate();
@@ -71,6 +73,7 @@ export const AddNewTeamMembersForm = ({
             }),
             "success"
           );
+          if(resetChildFunc instanceof Function) resetChildFunc();
         } else {
           showToast(
             t("email_invite_team", {
@@ -121,7 +124,8 @@ export const AddNewTeamMembersForm = ({
             teamId={teamId}
             token={team?.inviteToken?.token}
             onExit={() => setMemberInviteModal(false)}
-            onSubmit={(values) => {
+            onSubmit={(values,resetFields) => {
+              resetChildFunc = resetFields;
               inviteMemberMutation.mutate({
                 teamId,
                 language: i18n.language,
