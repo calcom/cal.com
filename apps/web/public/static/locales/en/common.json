@@ -1869,5 +1869,7 @@
   "set_up_your_profile": "Set up your profile",
   "set_up_your_profile_description": "Let people know who you are within {{orgName}}, and when they engage with your public link.",
   "sender_id_info": "Name or number shown as the sender of an SMS (some countries do not allow alphanumeric sender IDs)",
+  "google_new_spam_policy": "Google’s new spam policy could prevent you from receiving any email notifications about this booking.",
+  "resolve": "Resolve",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
