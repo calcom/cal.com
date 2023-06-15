@@ -71,6 +71,13 @@ const informAboutDuplicateTranslations = () => {
 
 informAboutDuplicateTranslations();
 
+const getSubdomain = () => {
+  const _url = new URL(process.env.NEXT_PUBLIC_WEBAPP_URL);
+  const regex = new RegExp(/^([a-z]+\:\/{2})?((?<subdomain>[\w-]+)\.[\w-]+\.\w+)$/);
+  //console.log(_url.hostname, _url.hostname.match(regex));
+  return _url.hostname.match(regex)?.groups?.subdomain || null;
+};
+
 const plugins = [];
 if (process.env.ANALYZE === "true") {
   // only load dependency if env `ANALYZE` was set
@@ -183,13 +190,15 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
+    const defaultSubdomain = getSubdomain();
+    const subdomain = defaultSubdomain ? `(?!${defaultSubdomain})[^.]+` : "[^.]+";
     return {
       beforeFiles: [
         {
           has: [
             {
               type: "host",
-              value: "^(?<orgSlug>(?!app)[^.]+)\\..*",
+              value: `^(?<orgSlug>${subdomain})\\..*`,
             },
           ],
           source: "/",
@@ -199,17 +208,17 @@ const nextConfig = {
           has: [
             {
               type: "host",
-              value: "^(?<orgSlug>(?!app)[^.]+)\\..*",
+              value: `^(?<orgSlug>${subdomain})\\..*`,
             },
           ],
-          source: `/:user((?!${pages.join("|")}|_next|public)[a-zA-Z0-9]+)`,
+          source: `/:user((?!${pages.join("|")}|_next|public)[a-zA-Z0-9\-_]+)`,
           destination: "/org/:orgSlug/:user",
         },
         {
           has: [
             {
               type: "host",
-              value: "^(?<orgSlug>(?!app)[^.]+)\\..*",
+              value: `^(?<orgSlug>${subdomain}[^.]+)\\..*`,
             },
           ],
           source: `/:user((?!${pages.join("|")}|_next|public))/:path*`,
