@@ -108,6 +108,7 @@
   "team_info": "Thông Tin Nhóm",
   "request_another_invitation_email": "Nếu bạn không muốn sử dụng {{toEmail}} là email {{appName}} của bạn hay đã có tài khoản {{appName}}, hãy yêu cầu lời mời sang email đó.",
   "you_have_been_invited": "Bạn đã được mời để gia nhập nhóm {{teamName}}",
+  "user_invited_you": "{{user}} đã mời bạn để gia nhập nhóm {{team}} trên {{appName}}",
   "hidden_team_member_title": "Bạn đã bị ẩn trong nhóm này",
   "hidden_team_member_message": "Ghế ngồi của bạn không được thanh toán bởi nhóm, hãy nâng cấp lên PRO hoặc thông báo cho người quản lý nhóm để họ có thể thanh toán cho ghế ngồi của bạn.",
   "hidden_team_owner_message": "Bạn cần tài khoản Pro để sử dụng nhóm, bạn sẽ bị ẩn cho đến khi bạn thanh toán.",

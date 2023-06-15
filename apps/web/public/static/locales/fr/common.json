@@ -117,7 +117,7 @@
   "team_info": "Informations sur l'équipe",
   "request_another_invitation_email": "Si vous préférez ne pas utiliser {{toEmail}} comme votre adresse e-mail {{appName}} ou si vous avez déjà un compte {{appName}}, veuillez demander une autre invitation à cette adresse.",
   "you_have_been_invited": "Vous avez été invité(e) à rejoindre l'équipe {{teamName}}",
-  "user_invited_you": "{{user}} vous a invité à rejoindre l'{{entity}} {{team}} sur {{appName}}",
+  "user_invited_you": "{{user}} vous a invité(e) à rejoindre l'équipe {{team}} sur {{appName}}",
   "hidden_team_member_title": "Vous êtes masqué(e) dans cette équipe",
   "hidden_team_member_message": "Votre place n'est pas payée, passez au plan Pro ou faites savoir au propriétaire de l'équipe qu'il peut payer votre place.",
   "hidden_team_owner_message": "Vous avez besoin d'un compte Pro pour utiliser les équipes, vous êtes masqué(e) jusqu'à ce que vous mettiez à niveau.",

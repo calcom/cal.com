@@ -108,6 +108,7 @@
   "team_info": "团队信息",
   "request_another_invitation_email": "如果您不希望使用 {{toEmail}} 作为您的 {{appName}} 邮箱或已经有一个 {{appName}} 账户，请使用您希望使用的邮箱再次请求一封邮件。",
   "you_have_been_invited": "您已被邀请加入团队 {{teamName}}",
+  "user_invited_you": "{{user}} 邀请您在 {{appName}} 上加入 {{team}} 团队",
   "hidden_team_member_title": "您在这个团队中被隐藏",
   "hidden_team_member_message": "您的位置尚未付费，请升级到专业版或通知团队管理员为您付费。",
   "hidden_team_owner_message": "需要一个专业版账户才能使用团队，在升级前您将一直被隐藏。",

@@ -108,6 +108,7 @@
   "team_info": "團隊資訊",
   "request_another_invitation_email": "如果不想要使用 {{toEmail}} 來當作用在 {{appName}} 的電子郵件，或已有 {{appName}} 帳號，請另外索取該電信箱的邀請。",
   "you_have_been_invited": "收到加入 {{teamName}} 團隊的邀請",
+  "user_invited_you": "受到 {{user}} 的邀請加入 {{appName}} 上的 {{team}} 團隊",
   "hidden_team_member_title": "在團隊裡是隱藏的",
   "hidden_team_member_message": "此座位尚未付費。請升級至 Pro，或通知團隊主持人協助付費。",
   "hidden_team_owner_message": "要有 Pro 帳號才可以使用團隊，在升級之前都是隱藏的。",

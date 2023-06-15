@@ -116,6 +116,7 @@
   "team_info": "Informacije o timu",
   "request_another_invitation_email": "Ako preferirate da ne koristite {{toEmail}} kao vašu {{appName}} e-poštu ili već imate {{appName}} nalog, zatražite još jednu pozivnicu na tu e-poštu.",
   "you_have_been_invited": "Pozvani ste da se pridružite timu {{teamName}}",
+  "user_invited_you": "{{user}} vas je pozvao da se pridružite timu {{team}} na {{appName}}",
   "hidden_team_member_title": "Sakriveni ste u ovom timu",
   "hidden_team_member_message": "Vaše mesto nije plaćeno, ili se pretplatite na Pro ili obavestite vođu tima da plati za vaše mesto.",
   "hidden_team_owner_message": "Potreban je Pro nalog za korišćenje timova, sakriveni ste dok se ne pretplatite.",

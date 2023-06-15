@@ -108,6 +108,7 @@
   "team_info": "Informacje o zespole",
   "request_another_invitation_email": "Jeśli wolisz nie używać {{toEmail}} jako adresu e-mail {{appName}} lub masz już konto {{appName}}, poproś o inne zaproszenie na ten e-mail.",
   "you_have_been_invited": "Zostałeś zaproszony do dołączenia do zespołu {{teamName}}",
+  "user_invited_you": "{{user}} zaprosił Cię do dołączenia do zespołu {{team}} na {{appName}}",
   "hidden_team_member_title": "Jesteś ukryty w tym zespole",
   "hidden_team_member_message": "Twoje miejsce nie jest opłacone, przejdź na wersję Pro lub poinformuj właściciela zespołu o tym, że może zapłacić za Twoje miejsce.",
   "hidden_team_owner_message": "Potrzebujesz konta pro aby korzystać z zespołów, jesteś ukryty do czasu ulepszenia.",

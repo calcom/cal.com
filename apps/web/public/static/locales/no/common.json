@@ -99,6 +99,7 @@
   "team_info": "Team Info",
   "request_another_invitation_email": "Hvis du foretrekker å ikke bruke {{toEmail}} som {{appName}}-e-post eller allerede har en {{appName}}-konto, vennligst be om en annen invitasjon til denne e-posten.",
   "you_have_been_invited": "Du har blitt invitert til å bli med i teamet {{teamName}}",
+  "user_invited_you": "{{user}} inviterte deg til å bli med i teamet {{team}} på {{appName}}",
   "hidden_team_member_title": "Du er skjult i dette teamet",
   "hidden_team_member_message": "Setet ditt er ikke betalt for, enten oppgrader til PRO eller la teameieren få vite at de kan betale for setet ditt.",
   "hidden_team_owner_message": "Du trenger en pro-konto for å bruke team, du er skjult inntil du oppgraderer.",

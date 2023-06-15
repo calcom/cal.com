@@ -116,6 +116,7 @@
   "team_info": "מידע על הצוות",
   "request_another_invitation_email": "אם אתה מעדיף לא להשתמש בכתובת {{toEmail}} ככתובת הדוא\"ל שלך עבור {{appName}} או שכבר יש לך חשבון {{appName}}, יש לבקש לקבל הזמנה נוספת לכתובת הדוא\"ל הרצויה.",
   "you_have_been_invited": "הוזמנת להצטרף לצוות {{teamName}}",
+  "user_invited_you": "{{user}} הזמין אותך להצטרף לצוות {{team}} ב-{{appName}}",
   "hidden_team_member_title": "אתה מוסתר בצוות זה",
   "hidden_team_member_message": "לא בוצע תשלום עבור המקום שלך. ניתן לשדרג ל-PRO או ליידע את הבעלים של הצוות שהוא או היא יכולים לשלם עבור המקום שלך.",
   "hidden_team_owner_message": "נדרש חשבון Pro כדי להשתמש בתכונות הצוותים. תהיה מוסתר עד שתבצע שידרוג.",

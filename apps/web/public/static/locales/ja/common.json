@@ -108,6 +108,7 @@
   "team_info": "チームの情報",
   "request_another_invitation_email": "{{toEmail}} を {{appName}} のメールアドレスとして使用しない場合、または {{appName}} アカウントをすでに持っている場合は、そのメールへの招待を別にリクエストしてください。",
   "you_have_been_invited": "チーム {{teamName}} への参加を招待されました。",
+  "user_invited_you": "{{user}} があなたを {{appName}} のチーム {{team}} に招待しました",
   "hidden_team_member_title": "あなたはこのチームで非表示にされています",
   "hidden_team_member_message": "座席料の支払いが完了していません。Pro へとアップグレードするか、チームのオーナーにあなたの座席料の支払いをご依頼ください。",
   "hidden_team_owner_message": "チームをご利用いただくためには、Pro アカウントが必要です。アップグレードするまでは非表示となります。",

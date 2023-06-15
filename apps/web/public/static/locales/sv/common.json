@@ -108,6 +108,7 @@
   "team_info": "Team info",
   "request_another_invitation_email": "Om du föredrar att inte använda {{toEmail}} som din {{appName}} e-post eller redan har ett {{appName}} konto, vänligen begär en annan inbjudan till den e-postadressen.",
   "you_have_been_invited": "Du har blivit inbjuden till teamet {{teamName}}",
+  "user_invited_you": "{{user}} bjöd in dig till teamet {{team}} på {{appName}}",
   "hidden_team_member_title": "Du är dold i detta team",
   "hidden_team_member_message": "Din plats är inte betalad för. Uppgradera till Pro eller låt teamägaren veta att de kan betala för din plats.",
   "hidden_team_owner_message": "Du behöver ett pro-konto för att använda team, du är dold tills du uppgraderar.",
