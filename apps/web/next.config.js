@@ -189,7 +189,7 @@ const nextConfig = {
           has: [
             {
               type: "host",
-              value: "((?<orgSlug>(?!app).*).cal.local)",
+              value: "^(?<orgSlug>(?!app)[^.]+)\\..*",
             },
           ],
           source: "/",
@@ -199,7 +199,7 @@ const nextConfig = {
           has: [
             {
               type: "host",
-              value: "((?<orgSlug>(?!app).*).cal.local)",
+              value: "^(?<orgSlug>(?!app)[^.]+)\\..*",
             },
           ],
           source: `/:user((?!${pages.join("|")}|_next|public)[a-zA-Z0-9]+)`,
@@ -209,7 +209,7 @@ const nextConfig = {
           has: [
             {
               type: "host",
-              value: "((?<orgSlug>(?!app).*).cal.local)",
+              value: "^(?<orgSlug>(?!app)[^.]+)\\..*",
             },
           ],
           source: `/:user((?!${pages.join("|")}|_next|public))/:path*`,
