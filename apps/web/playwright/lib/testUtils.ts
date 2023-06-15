@@ -195,5 +195,5 @@ export async function gotoRoutingLink({
   await page.goto(`${previewLink}${queryString ? `?${queryString}` : ""}`);
 
   // HACK: There seems to be some issue with the inputs to the form getting reset if we don't wait.
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 }

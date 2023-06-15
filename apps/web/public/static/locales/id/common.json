@@ -88,6 +88,7 @@
   "team_upgrade_banner_description": "Terimakasih telah mencoba paket tim kami. Kami perhatikan tim kamu \"{{teamName}}\" perlu diupgrade.",
   "team_upgrade_banner_action": "Upgrade disini",
   "team_upgraded_successfully": "Tim kamu telah berhasil diupgrade!",
+  "org_upgrade_banner_action": "Upgrade disini",
   "use_link_to_reset_password": "Gunakan link di bawah ini untuk mengatur ulang kata sandi kamu",
   "hey_there": "Halo,",
   "forgot_your_password_calcom": "Lupa kata sandi? - {{appName}}",

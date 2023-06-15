@@ -2,10 +2,11 @@ import { useEffect } from "react";
 import { create } from "zustand";
 
 import dayjs from "@calcom/dayjs";
-import { BookerLayouts, bookerLayoutOptions } from "@calcom/prisma/zod-utils";
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerState, BookerLayout } from "./types";
+import { validateLayout } from "./utils/layout";
 import { updateQueryParam, getQueryParam, removeQueryParam } from "./utils/query-param";
 
 /**
@@ -23,7 +24,7 @@ type StoreInitializeType = {
   layout: BookerLayout;
 };
 
-type BookerStore = {
+export type BookerStore = {
   /**
    * Event details. These are stored in store for easier
    * access in child components.
@@ -90,10 +91,6 @@ type BookerStore = {
   setFormValues: (values: Record<string, any>) => void;
 };
 
-const checkLayout = (layout: BookerLayout) => {
-  return bookerLayoutOptions.find((validLayout) => validLayout === layout);
-};
-
 /**
  * The booker store contains the data of the component's
  * current state. This data can be reused within child components
@@ -104,7 +101,7 @@ const checkLayout = (layout: BookerLayout) => {
 export const useBookerStore = create<BookerStore>((set, get) => ({
   state: "loading",
   setState: (state: BookerState) => set({ state }),
-  layout: checkLayout(getQueryParam("layout") as BookerLayout) || BookerLayouts.MONTH_VIEW,
+  layout: validateLayout(getQueryParam("layout") as BookerLayouts) || BookerLayouts.MONTH_VIEW,
   setLayout: (layout: BookerLayout) => {
     // If we switch to a large layout and don't have a date selected yet,
     // we selected it here, so week title is rendered properly.
