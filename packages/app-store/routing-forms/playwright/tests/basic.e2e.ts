@@ -182,7 +182,7 @@ test.describe("Routing Forms", () => {
           hasTeam: true,
         }
       );
-      await user.login();
+      await user.apiLogin();
       // Install app
       await page.goto(`/apps/routing-forms`);
       await page.click('[data-testid="install-app-button"]');
@@ -213,7 +213,7 @@ test.describe("Routing Forms", () => {
         { username: "routing-forms" },
         { seedRoutingForms: true, hasTeam: true }
       );
-      await user.login();
+      await user.apiLogin();
       // Install app
       await page.goto(`/apps/routing-forms`);
       await page.click('[data-testid="install-app-button"]');
@@ -231,7 +231,7 @@ test.describe("Routing Forms", () => {
       await fillSeededForm(page, routingForm.id);
 
       // Log back in to view form responses.
-      await user.login();
+      await user.apiLogin();
 
       await page.goto(`/apps/routing-forms/reporting/${routingForm.id}`);
       // Can't keep waiting forever. So, added a timeout of 5000ms
