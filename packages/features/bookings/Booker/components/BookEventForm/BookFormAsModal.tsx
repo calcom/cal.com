@@ -4,6 +4,7 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge, Dialog, DialogContent } from "@calcom/ui";
 
+import { useTimePreferences } from "../../../lib";
 import { useBookerStore } from "../../store";
 import { useEvent } from "../../utils/event";
 import { BookEventForm } from "./BookEventForm";
@@ -14,6 +15,7 @@ export function BookFormAsModal({ visible, onCancel }: { visible: boolean; onCan
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const { data } = useEvent();
   const parsedSelectedTimeslot = dayjs(selectedTimeslot);
+  const { timeFormat } = useTimePreferences();
 
   return (
     <Dialog open={visible} onOpenChange={onCancel}>
@@ -24,7 +26,9 @@ export function BookFormAsModal({ visible, onCancel }: { visible: boolean; onCan
         <h1 className="font-cal text-emphasis text-xl leading-5">{t("confirm_your_details")} </h1>
         <div className="my-4 flex space-x-2 rounded-md leading-none">
           <Badge variant="grayWithoutHover" startIcon={Calendar} size="lg">
-            <span>{parsedSelectedTimeslot.format("LLL")}</span>
+            <span>
+              {parsedSelectedTimeslot.format("LL")} {parsedSelectedTimeslot.format(timeFormat)}
+            </span>
           </Badge>
           {(selectedDuration || data?.length) && (
             <Badge variant="grayWithoutHover" startIcon={Clock} size="lg">
