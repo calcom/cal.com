@@ -469,7 +469,7 @@ function UserDropdown({ small }: UserDropdownProps) {
 
 export type NavigationItemType = {
   name: string;
-  href: string;
+  href: string | null;
   onClick?: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement>;
   target?: HTMLAnchorElement["target"];
   badge?: React.ReactNode;
@@ -628,6 +628,9 @@ function useShouldDisplayNavigationItem(item: NavigationItemType) {
 }
 
 const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, router }) => {
+  if (!item.href) {
+    return false;
+  }
   return isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
 };
 
@@ -807,7 +810,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
           },
           {
             name: "copy_public_page_link",
-            href: "",
+            href: null,
             onClick: (e: { preventDefault: () => void }) => {
               e.preventDefault();
               navigator.clipboard.writeText(
