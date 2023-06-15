@@ -26,11 +26,11 @@ export const whatsappEventRescheduledTemplate = (
 
   const templateOne = `Hi${
     name ? ` ${name}` : ``
-  }, your meeting *(${eventName})* with ${attendee} on ${eventDate} at ${startTime} ${timeZone} has been rescheduled.`;
+  }, your meeting (*${eventName}*) with ${attendee} on ${eventDate} at ${startTime} ${timeZone} has been rescheduled.`;
   
   
-  //Twilio supports up to 1600 characters
-  if (templateOne.length <= 1600) return templateOne;
+  //Twilio supports up to 1024 characters for whatsapp template messages
+  if (templateOne.length <= 1024) return templateOne;
 
   return null;
 };

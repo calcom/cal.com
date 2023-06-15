@@ -766,11 +766,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       }}
                       variables={DYNAMIC_TEXT_VARIABLES}
                       height="200px"
-                      editable={!props.readOnly}
                       updateTemplate={updateTemplate}
                       firstRender={firstRender}
                       setFirstRender={setFirstRender}
-                      editable={!isWhatsappAction(step.action)}
+                      editable={!props.readOnly && !isWhatsappAction(step.action)}
                     />
                   </>
                 ) : (
