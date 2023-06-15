@@ -98,7 +98,7 @@ export function Calendar(props: CalendarComponentProps) {
                         className="relative"
                         key={i}
                         style={{
-                          gridRow: `2 / span ${numberOfGridStopsPerDay}`,
+                          gridRow: `1 / span ${numberOfGridStopsPerDay}`,
                         }}>
                         {/* While startDate < endDate:  */}
                         {availableTimeslots ? (
