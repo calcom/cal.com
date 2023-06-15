@@ -99,7 +99,6 @@
   "team_info": "Team Info",
   "request_another_invitation_email": "Hvis du foretrekker å ikke bruke {{toEmail}} som {{appName}}-e-post eller allerede har en {{appName}}-konto, vennligst be om en annen invitasjon til denne e-posten.",
   "you_have_been_invited": "Du har blitt invitert til å bli med i teamet {{teamName}}",
-  "user_invited_you": "{{user}} inviterte deg til å bli med i teamet {{team}} på {{appName}}",
   "hidden_team_member_title": "Du er skjult i dette teamet",
   "hidden_team_member_message": "Setet ditt er ikke betalt for, enten oppgrader til PRO eller la teameieren få vite at de kan betale for setet ditt.",
   "hidden_team_owner_message": "Du trenger en pro-konto for å bruke team, du er skjult inntil du oppgraderer.",
@@ -217,6 +216,7 @@
   "done": "Ferdig",
   "all_done": "Alt klart!",
   "all_apps": "Alt",
+  "all": "Alt",
   "check_email_reset_password": "Sjekk e-posten din. Vi har sendt deg en lenke for å tilbakestille passordet ditt.",
   "finish": "Fullfør",
   "few_sentences_about_yourself": "Noen setninger om deg selv. Dette vil vises på din personlige url-side.",
@@ -1405,5 +1405,6 @@
   "install_google_calendar": "Installer Google Kalender",
   "configure": "Konfigurer",
   "sso_configuration": "Enkel Pålogging",
-  "booking_confirmation_failed": "Booking-bekreftelse feilet"
+  "booking_confirmation_failed": "Booking-bekreftelse feilet",
+  "organization_url_taken": "Denne URL'en er allerede tatt"
 }

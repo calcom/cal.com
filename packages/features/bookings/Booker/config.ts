@@ -142,7 +142,8 @@ export const getBookerSizeClassNames = (layout: BookerLayout, bookerState: Booke
 export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerState) => {
   const prefersReducedMotion = useReducedMotion();
   const [animationScope, animate] = useAnimate();
-
+  const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
+  ``;
   useEffect(() => {
     const animationConfig = resizeAnimationConfig[layout][state] || resizeAnimationConfig[layout].default;
 
@@ -163,12 +164,18 @@ export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerStat
       minHeight: animationConfig?.minHeight,
     };
 
-    // We don't animate if users has set prefers-reduced-motion,
-    // or when the layout is mobile.
-    if (prefersReducedMotion || layout === "mobile") {
+    // In this cases we don't animate the booker at all.
+    if (prefersReducedMotion || layout === "mobile" || isEmbed) {
       const styles = { ...nonAnimatedProperties, ...animatedProperties };
       Object.keys(styles).forEach((property) => {
-        animationScope.current.style[property] = styles[property as keyof typeof styles];
+        if (property === "height") {
+          // Change 100vh to 100% in embed, since 100vh in iframe will behave weird, because
+          // the iframe will constantly grow. 100% will simply make sure it grows with the iframe.
+          animationScope.current.style.height =
+            animatedProperties.height === "100vh" && isEmbed ? "100%" : animatedProperties.height;
+        } else {
+          animationScope.current.style[property] = styles[property as keyof typeof styles];
+        }
       });
     } else {
       Object.keys(nonAnimatedProperties).forEach((property) => {
@@ -180,7 +187,7 @@ export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerStat
         ease: cubicBezier(0.4, 0, 0.2, 1),
       });
     }
-  }, [animate, animationScope, layout, prefersReducedMotion, state]);
+  }, [animate, isEmbed, animationScope, layout, prefersReducedMotion, state]);
 
   return animationScope;
 };

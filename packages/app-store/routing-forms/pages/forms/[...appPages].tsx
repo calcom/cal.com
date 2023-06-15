@@ -218,7 +218,7 @@ export default function RoutingForms({
                                   StartIcon={Code}
                                   tooltip={t("embed")}
                                 />
-                                <FormActionsDropdown form={form} disabled={readOnly}>
+                                <FormActionsDropdown disabled={readOnly}>
                                   <FormAction
                                     action="edit"
                                     routingForm={form}
