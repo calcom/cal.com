@@ -202,7 +202,7 @@ const nextConfig = {
               value: "((?<orgSlug>(?!app).*).cal.local)",
             },
           ],
-          source: `/:user((?!${pages.join("|")}|_next|public).*)`,
+          source: `/:user((?!${pages.join("|")}|_next|public)[a-zA-Z0-9]+)`,
           destination: "/org/:orgSlug/:user",
         },
         {
@@ -212,8 +212,8 @@ const nextConfig = {
               value: "((?<orgSlug>(?!app).*).cal.local)",
             },
           ],
-          source: `/:user((?!${pages.join("|")}|_next|public).*)/:type`,
-          destination: "/:user/:type",
+          source: `/:user((?!${pages.join("|")}|_next|public))/:path*`,
+          destination: "/:user/:path*",
         },
       ],
       afterFiles: [
