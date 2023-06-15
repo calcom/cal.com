@@ -116,6 +116,11 @@ export async function getEventType(input: TGetScheduleInputSchema) {
             select: {
               credentials: true, // Don't leak credentials to the client
               ...availabilityUserSelect,
+              organization: {
+                select: {
+                  slug: true,
+                },
+              },
             },
           },
         },
@@ -124,6 +129,11 @@ export async function getEventType(input: TGetScheduleInputSchema) {
         select: {
           credentials: true, // Don't leak credentials to the client
           ...availabilityUserSelect,
+          organization: {
+            select: {
+              slug: true,
+            },
+          },
         },
       },
     },
@@ -157,6 +167,11 @@ export async function getDynamicEventType(input: TGetScheduleInputSchema) {
       allowDynamicBooking: true,
       credentials: true, // Don't leak credentials to the client
       ...availabilityUserSelect,
+      organization: {
+        select: {
+          slug: true,
+        },
+      },
     },
   });
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);

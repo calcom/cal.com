@@ -1,3 +1,5 @@
+import { useSession } from "next-auth/react";
+
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -9,10 +11,12 @@ import { useFlagMap } from "../../flags/context/provider";
 function VerifyEmailBanner() {
   const flags = useFlagMap();
   const { t } = useLocale();
-  const { data } = useEmailVerifyCheck();
+  const { data, isLoading } = useEmailVerifyCheck();
   const mutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
+  const session = useSession();
+  const isLoggedIn = session?.data?.user;
 
-  if (data?.isVerified || !flags["email-verification"]) return null;
+  if (!isLoggedIn || isLoading || data?.isVerified || !flags["email-verification"]) return null;
 
   return (
     <>
@@ -25,7 +29,7 @@ function VerifyEmailBanner() {
               mutation.mutate();
               showToast(t("email_sent"), "success");
             }}>
-            {t("verify_email_banner_button")}
+            {t("send_email")}
           </Button>
         }
       />

@@ -25,6 +25,8 @@ import FeedbackEmail from "./templates/feedback-email";
 import type { PasswordReset } from "./templates/forgot-password-email";
 import ForgotPasswordEmail from "./templates/forgot-password-email";
 import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
+import type { OrganizationEmailVerify } from "./templates/organization-email-verification";
+import OrganizationEmailVerification from "./templates/organization-email-verification";
 import OrganizerAttendeeCancelledSeatEmail from "./templates/organizer-attendee-cancelled-seat-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
@@ -178,7 +180,10 @@ export const sendDeclinedEmails = async (calEvent: CalendarEvent) => {
   await Promise.all(emailsToSend);
 };
 
-export const sendCancelledEmails = async (calEvent: CalendarEvent) => {
+export const sendCancelledEmails = async (
+  calEvent: CalendarEvent,
+  eventNameObject: Pick<EventNameObjectType, "eventName">
+) => {
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(sendEmail(() => new OrganizerCancelledEmail({ calEvent })));
@@ -191,7 +196,24 @@ export const sendCancelledEmails = async (calEvent: CalendarEvent) => {
 
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
-      return sendEmail(() => new AttendeeCancelledEmail(calEvent, attendee));
+      return sendEmail(
+        () =>
+          new AttendeeCancelledEmail(
+            {
+              ...calEvent,
+              title: getEventName({
+                ...eventNameObject,
+                t: attendee.language.translate,
+                attendeeName: attendee.name,
+                host: calEvent.organizer.name,
+                eventType: calEvent.type,
+                ...(calEvent.responses && { bookingFields: calEvent.responses }),
+                ...(calEvent.location && { location: calEvent.location }),
+              }),
+            },
+            attendee
+          )
+      );
     })
   );
 
@@ -333,4 +355,8 @@ export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, dow
     );
   }
   await Promise.all(emailsToSend);
+};
+
+export const sendOrganizationEmailVerification = async (sendOrgInput: OrganizationEmailVerify) => {
+  await sendEmail(() => new OrganizationEmailVerification(sendOrgInput));
 };

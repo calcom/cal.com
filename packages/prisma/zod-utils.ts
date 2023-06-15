@@ -55,6 +55,12 @@ export const bookerLayouts = z
   })
   .nullable();
 
+export const defaultBookerLayoutSettings = {
+  defaultLayout: BookerLayouts.MONTH_VIEW,
+  // if the user has no explicit layouts set (not in user profile and not in event settings), all layouts are enabled.
+  enabledLayouts: bookerLayoutOptions,
+};
+
 export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
 
 export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);
@@ -306,6 +312,7 @@ export const teamMetadataSchema = z
     paymentId: z.string(),
     subscriptionId: z.string().nullable(),
     subscriptionItemId: z.string().nullable(),
+    isOrganization: z.boolean().nullable(),
   })
   .partial()
   .nullable();

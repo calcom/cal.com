@@ -28,6 +28,7 @@ const availabilitySchema = z
     beforeEventBuffer: z.number().optional(),
     duration: z.number().optional(),
     withSource: z.boolean().optional(),
+    orgSlug: z.string().optional(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
@@ -68,12 +69,17 @@ const getEventType = async (id: number) => {
 
 type EventType = Awaited<ReturnType<typeof getEventType>>;
 
-const getUser = (where: Prisma.UserWhereUniqueInput) =>
-  prisma.user.findUnique({
+const getUser = (where: Prisma.UserWhereInput) =>
+  prisma.user.findFirst({
     where,
     select: {
       ...availabilityUserSelect,
       credentials: true,
+      organization: {
+        select: {
+          slug: true,
+        },
+      },
     },
   });
 
@@ -113,6 +119,7 @@ export async function getUserAvailability(
     afterEventBuffer?: number;
     beforeEventBuffer?: number;
     duration?: number;
+    orgSlug?: string;
   },
   initialData?: {
     user?: User;
@@ -120,15 +127,25 @@ export async function getUserAvailability(
     currentSeats?: CurrentSeats;
   }
 ) {
-  const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer, beforeEventBuffer, duration } =
-    availabilitySchema.parse(query);
+  const {
+    username,
+    userId,
+    dateFrom,
+    dateTo,
+    eventTypeId,
+    afterEventBuffer,
+    beforeEventBuffer,
+    duration,
+    orgSlug,
+  } = availabilitySchema.parse(query);
 
   if (!dateFrom.isValid() || !dateTo.isValid()) {
     throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
   }
 
-  const where: Prisma.UserWhereUniqueInput = {};
+  const where: Prisma.UserWhereInput = {};
   if (username) where.username = username;
+  if (orgSlug) where.organization = { slug: orgSlug };
   if (userId) where.id = userId;
 
   const user = initialData?.user || (await getUser(where));
@@ -151,6 +168,7 @@ export async function getUserAvailability(
     eventTypeId,
     userId: user.id,
     username: `${user.username}`,
+    organizationSlug: initialData?.user?.organization?.slug,
     beforeEventBuffer,
     afterEventBuffer,
     selectedCalendars: user.selectedCalendars,

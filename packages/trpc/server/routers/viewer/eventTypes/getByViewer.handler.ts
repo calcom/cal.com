@@ -5,6 +5,7 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -81,6 +82,8 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
               id: true,
               name: true,
               slug: true,
+              parentId: true,
+              metadata: true,
               members: {
                 select: {
                   userId: true,
@@ -190,27 +193,63 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     },
   });
 
+  const teamMemberships = user.teams.map((membership) => ({
+    teamId: membership.team.id,
+    membershipRole: membership.role,
+  }));
+
+  const compareMembership = (mship1: MembershipRole, mship2: MembershipRole) => {
+    const mshipToNumber = (mship: MembershipRole) =>
+      Object.keys(MembershipRole).findIndex((mmship) => mmship === mship);
+    return mshipToNumber(mship1) > mshipToNumber(mship2);
+  };
+
   eventTypeGroups = ([] as EventTypeGroup[]).concat(
     eventTypeGroups,
-    user.teams.map((membership) => ({
-      teamId: membership.team.id,
-      membershipRole: membership.role,
-      profile: {
-        name: membership.team.name,
-        image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
-        slug: membership.team.slug ? "team/" + membership.team.slug : null,
-      },
-      metadata: {
-        membershipCount: membership.team.members.length,
-        readOnly: membership.role === MembershipRole.MEMBER,
-      },
-      eventTypes: membership.team.eventTypes
-        .map(mapEventType)
-        .filter((evType) => evType.userId === null || evType.userId === ctx.user.id)
-        .filter((evType) =>
-          membership.role === MembershipRole.MEMBER ? evType.schedulingType !== SchedulingType.MANAGED : true
-        ),
-    }))
+    user.teams
+      .filter((mmship) => {
+        const metadata = teamMetadataSchema.parse(mmship.team.metadata);
+        return !metadata?.isOrganization;
+      })
+      .map((membership) => {
+        const orgMembership = teamMemberships.find(
+          (teamM) => teamM.teamId === membership.team.parentId
+        )?.membershipRole;
+        return {
+          teamId: membership.team.id,
+          membershipRole:
+            orgMembership && compareMembership(orgMembership, membership.role)
+              ? orgMembership
+              : membership.role,
+          profile: {
+            name: membership.team.name,
+            image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
+            slug: membership.team.slug
+              ? !membership.team.parentId
+                ? `/team`
+                : "" + membership.team.slug
+              : null,
+          },
+          metadata: {
+            membershipCount: membership.team.members.length,
+            readOnly:
+              membership.role ===
+              (membership.team.parentId
+                ? orgMembership && compareMembership(orgMembership, membership.role)
+                  ? orgMembership
+                  : MembershipRole.MEMBER
+                : MembershipRole.MEMBER),
+          },
+          eventTypes: membership.team.eventTypes
+            .map(mapEventType)
+            .filter((evType) => evType.userId === null || evType.userId === ctx.user.id)
+            .filter((evType) =>
+              membership.role === MembershipRole.MEMBER
+                ? evType.schedulingType !== SchedulingType.MANAGED
+                : true
+            ),
+        };
+      })
   );
   return {
     // don't display event teams without event types,

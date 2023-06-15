@@ -14,6 +14,7 @@ import { bookingsRouter } from "./bookings/_router";
 import { deploymentSetupRouter } from "./deploymentSetup/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
+import { viewerOrganizationsRouter } from "./organizations/_router";
 import { paymentsRouter } from "./payments/_router";
 import { slotsRouter } from "./slots/_router";
 import { ssoRouter } from "./sso/_router";
@@ -32,6 +33,7 @@ export const viewerRouter = mergeRouters(
     eventTypes: eventTypesRouter,
     availability: availabilityRouter,
     teams: viewerTeamsRouter,
+    organizations: viewerOrganizationsRouter,
     webhook: webhookRouter,
     apiKeys: apiKeysRouter,
     slots: slotsRouter,

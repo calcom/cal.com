@@ -1,6 +1,7 @@
 import { PaperclipIcon, UserIcon, Users } from "lucide-react";
 import { Trans } from "next-i18next";
 import { useMemo, useState } from "react";
+import type { FormEvent } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
@@ -50,6 +51,10 @@ export interface NewMemberForm {
 
 type ModalMode = "INDIVIDUAL" | "BULK";
 
+interface FileEvent<T = Element> extends FormEvent<T> {
+  target: EventTarget & T;
+}
+
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
   const trpcContext = trpc.useContext();
@@ -88,6 +93,25 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       props.members.some((member) => member?.username === value) ||
       props.members.some((member) => member?.email === value)
     );
+  };
+
+  const handleFileUpload = (e: FileEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) {
+      return;
+    }
+    const file = e.target.files[0];
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const contents = e?.target?.result as string;
+        const values = contents?.split(",").map((email) => email.trim().toLocaleLowerCase());
+        newMemberFormMethods.setValue("emailOrUsername", values);
+      };
+
+      reader.readAsText(file);
+    }
   };
 
   return (
@@ -131,7 +155,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         </div>
 
         <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values)}>
-          <div className="space-y-6">
+          <div className="mt-6 mb-10 space-y-6">
             {/* Indivdual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
               <Controller
@@ -198,12 +222,20 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   }}
                 />
                 <Button
-                  disabled
                   type="button"
                   color="secondary"
                   StartIcon={PaperclipIcon}
                   className="mt-3 justify-center stroke-2">
-                  Upload a .csv file
+                  <label htmlFor="bulkInvite">
+                    Upload a .csv file
+                    <input
+                      id="bulkInvite"
+                      type="file"
+                      accept=".csv"
+                      style={{ display: "none" }}
+                      onChange={handleFileUpload}
+                    />
+                  </label>
                 </Button>
               </div>
             )}
@@ -240,9 +272,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 />
               )}
             />
-          </div>
-          <DialogFooter showDivider>
-            <div className="mr-auto flex">
+            <div className="flex">
               <Button
                 type="button"
                 color="minimal"
@@ -271,6 +301,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 </Button>
               )}
             </div>
+          </div>
+          <DialogFooter showDivider>
             <Button
               type="button"
               color="minimal"
