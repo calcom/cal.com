@@ -13,7 +13,8 @@ import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
-import { OrganizationEventTypeFilter } from "@calcom/features/eventtypes/components/OrganizationEventTypeFilter";
+import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
+import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -47,7 +48,6 @@ import {
   HeadSeo,
   Skeleton,
   Label,
-  VerticalDivider,
   Alert,
 } from "@calcom/ui";
 import {
@@ -115,7 +115,7 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
 
   return (
     <div>
-      <HorizontalTabs tabs={tabs} />
+      <HorizontalTabs tabs={tabs} navActions={<TeamsFilter popoverTriggerClassNames="mb-0" />} />
       {events.length && (
         <EventTypeList
           types={events[0].eventTypes}
@@ -800,8 +800,7 @@ const CTA = () => {
 const Actions = () => {
   return (
     <div className="hidden items-center md:flex">
-      <OrganizationEventTypeFilter />
-      <VerticalDivider />
+      <TeamsFilter popoverTriggerClassNames="mb-0" showVerticalDivider={true} />
     </div>
   );
 };
@@ -834,9 +833,6 @@ const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
   );
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer as any);
-
 const EventTypesPage = () => {
   const { t } = useLocale();
   const router = useRouter();
@@ -862,6 +858,11 @@ const EventTypesPage = () => {
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  const filters = getTeamsFiltersFromQuery(router.query);
+  console.log("filters", filters);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer as any, { filters });
 
   return (
     <div>

@@ -5,9 +5,10 @@ export interface NavTabProps {
   tabs: HorizontalTabItemProps[];
   linkProps?: HorizontalTabItemProps["linkProps"];
   actions?: JSX.Element;
+  navActions?: JSX.Element;
 }
 
-const HorizontalTabs = function ({ tabs, linkProps, actions, ...props }: NavTabProps) {
+const HorizontalTabs = function ({ tabs, linkProps, actions, navActions, ...props }: NavTabProps) {
   return (
     <div className="mb-4 h-9 max-w-[calc(100%+40px)] lg:mb-5">
       <nav
@@ -17,6 +18,7 @@ const HorizontalTabs = function ({ tabs, linkProps, actions, ...props }: NavTabP
         {tabs.map((tab, idx) => (
           <HorizontalTabItem className="py-2.5 px-4" {...tab} key={idx} {...linkProps} />
         ))}
+        {navActions && navActions}
       </nav>
       {actions && actions}
     </div>
