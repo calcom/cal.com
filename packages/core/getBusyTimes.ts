@@ -13,7 +13,7 @@ export async function getBusyTimes(params: {
   credentials: Credential[];
   userId: number;
   username: string;
-  organizationSlug?: string;
+  organizationSlug?: string | null | undefined;
   eventTypeId?: number;
   startTime: string;
   beforeEventBuffer?: number;

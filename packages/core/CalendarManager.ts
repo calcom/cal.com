@@ -190,7 +190,7 @@ export const getCachedResults = async (
 const getNextCache = async (
   username: string,
   month: string,
-  organizationSlug: string
+  organizationSlug?: string | null
 ): Promise<EventBusyDate[][]> => {
   let localCache: EventBusyDate[][] = [];
   const { NODE_ENV } = process.env;
@@ -225,7 +225,7 @@ const getMonths = (dateFrom: string, dateTo: string): string[] => {
   return months;
 };
 
-const createCalendarCachePage = (username: string, month: string, organizationSlug: string): void => {
+const createCalendarCachePage = (username: string, month: string, organizationSlug?: string | null): void => {
   // No need to wait for this, the purpose is to force re-validation every second as indicated
   // in page getStaticProps.
   fetch(`${WEBAPP_URL}/${username}/calendar-cache/${month}/${organizationSlug}`).catch(console.log);
@@ -236,7 +236,7 @@ export const getBusyCalendarTimes = async (
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
-  organizationSlug?: string
+  organizationSlug?: string | null
 ) => {
   let results: EventBusyDate[][] = [];
   const months = getMonths(dateFrom, dateTo);
