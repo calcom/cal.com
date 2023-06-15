@@ -12,6 +12,12 @@ export type FilterContextType = {
     selectedUserId: number | null;
     selectedMemberUserId: number | null;
     selectedEventTypeId: number | null;
+    isOrg: boolean;
+    initialConfig: {
+      teamId: number | null;
+      userId: number | null;
+      isOrg: boolean;
+    };
   };
   setDateRange: ([start, end, range]: [Dayjs, Dayjs, null | string]) => void;
   setSelectedFilter: (filter: Array<"user" | "event-type"> | null) => void;
@@ -21,7 +27,9 @@ export type FilterContextType = {
   setSelectedMemberUserId: (userId: number | null) => void;
   setSelectedEventTypeId: (eventTypeId: number | null) => void;
   setSelectedTimeView: (timeView: "year" | "week" | "month") => void;
+  setIsOrg: (isOrg: boolean) => void;
   clearFilters: () => void;
+  setInitialConfig: (config: { teamId: number | null; userId: number | null; isOrg: boolean }) => void;
 };
 
 export const FilterContext = React.createContext<FilterContextType | null>(null);

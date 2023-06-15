@@ -1754,7 +1754,6 @@
   "events_rescheduled": "Events Rescheduled",
   "from_last_period": "from last period",
   "from_to_date_period": "From: {{startDate}} To: {{endDate}}",
-  "subtitle_analytics": "Learn more about your team's activity",
   "redirect_url_warning": "Adding a redirect will disable the success page. Make sure to mention \"Booking Confirmed\" on your custom success page.",
   "event_trends": "Event Trends",
   "clear_filters": "Clear Filters",
@@ -1826,5 +1825,9 @@
   "create_for": "Create for",
   "additional_url_parameters": "Additional URL parameters",
   "sender_id_info": "Name or number shown as the sender of an SMS (some countries do not allow alphanumeric sender IDs)",
+  "insights_all_org_filter": "All",
+  "insights_team_filter": "Team: {{teamName}}",
+  "insights_user_filter": "User: {{userName}}",
+  "insights_subtitle": "View booking insights across your events",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

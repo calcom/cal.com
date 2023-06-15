@@ -1,6 +1,6 @@
 .custom-date > .tremor-DateRangePicker-root > .tremor-DateRangePicker-button {
   box-shadow: none;
-  max-width: 288px;
+  max-width: 400px;
 }
 
 .tremor-DateRangePicker-calendarButton, .tremor-DateRangePicker-dropdownButton {

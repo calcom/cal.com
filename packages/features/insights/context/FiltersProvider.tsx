@@ -69,6 +69,8 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
   const [selectedFilter, setSelectedFilter] = useState<FilterContextType["filter"]["selectedFilter"]>(
     filterParsed ? [filterParsed] : null
   );
+  const [isOrg, setIsOrg] = useState<FilterContextType["filter"]["isOrg"]>(false);
+
   const [selectedTeamName, setSelectedTeamName] =
     useState<FilterContextType["filter"]["selectedTeamName"]>(null);
   const [dateRange, setDateRange] = useState<FilterContextType["filter"]["dateRange"]>([
@@ -76,6 +78,11 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     endTimeParsed ? dayjs(endTimeParsed) : dayjs(),
     "t",
   ]);
+  const [initialConfig, setInitialConfig] = useState<FilterContextType["filter"]["initialConfig"]>({
+    userId: null,
+    teamId: null,
+    isOrg: false,
+  });
 
   return (
     <FilterProvider
@@ -89,18 +96,22 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           selectedTeamName,
           selectedEventTypeId,
           selectedFilter,
+          isOrg,
+          initialConfig,
         },
         setSelectedFilter: (filter) => {
           setSelectedFilter(filter);
           const userId =
             filter?.[0] === "user" ? selectedMemberUserId : selectedUserId ? selectedUserId : undefined;
           const eventTypeId = filter?.[0] === "event-type" ? selectedEventTypeId : undefined;
+          const memberUserId = filter?.[0] === "user" ? selectedMemberUserId : undefined;
           router.push({
             query: {
               ...router.query,
               filter: filter?.[0],
-              userId,
+              memberUserId,
               eventTypeId,
+              userId,
             },
           });
         },
@@ -161,25 +172,23 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
             },
           });
         },
+        setIsOrg: (isOrg) => setIsOrg(isOrg),
+        setInitialConfig: (initialConfig) => {
+          setInitialConfig(initialConfig);
+        },
         clearFilters: () => {
           setSelectedTeamName(null);
           setSelectedEventTypeId(null);
           setSelectedMemberUserId(null);
           setSelectedFilter(null);
-          const { teamId, userId, ...rest } = router.query;
+          const { teamId, eventTypeId, memberUserId, filter, ...rest } = router.query;
           const query: { teamId?: number; userId?: number } = {};
-          const parsedTeamId = Number(Array.isArray(teamId) ? teamId[0] : teamId);
-          const parsedUserId = Number(Array.isArray(userId) ? userId[0] : userId);
 
-          if ((teamId && !userId) || (userId && teamId)) {
-            query.teamId = parsedTeamId;
-            setSelectedTeamId(parsedTeamId);
-            setSelectedUserId(null);
-          } else if (userId && !teamId) {
-            query.userId = parsedUserId;
-            setSelectedUserId(parsedUserId);
-            setSelectedTeamId(null);
-          }
+          query.teamId = initialConfig.teamId ? initialConfig.teamId : undefined;
+          query.userId = initialConfig.userId ? initialConfig.userId : undefined;
+          setSelectedTeamId(initialConfig.teamId);
+          setSelectedUserId(initialConfig.userId);
+          setIsOrg(initialConfig.isOrg);
 
           router.push({
             query,

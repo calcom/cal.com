@@ -11,18 +11,19 @@ type EventType = RouterOutputs["viewer"]["insights"]["eventTypeList"][number];
 type Option = { value: string; label: string };
 
 const mapEventTypeToOption = (eventType: EventType): Option => ({
-  value: eventType.slug,
-  label: eventType.title,
+  value: eventType.id.toString(),
+  label: eventType.teamId ? `${eventType.title} (${eventType.team?.name})` : eventType.title,
 });
 
 export const EventTypeList = () => {
   const { t } = useLocale();
   const { filter, setSelectedEventTypeId } = useFilterContext();
-  const { selectedTeamId, selectedEventTypeId, selectedUserId } = filter;
+  const { selectedTeamId, selectedEventTypeId, selectedUserId, isOrg } = filter;
   const { selectedFilter } = filter;
   const { data, isSuccess } = trpc.viewer.insights.eventTypeList.useQuery({
     teamId: selectedTeamId ?? undefined,
     userId: selectedUserId ?? undefined,
+    isOrg,
   });
 
   if (!selectedFilter?.includes("event-type")) return null;

@@ -34,21 +34,20 @@ const ClearFilters = () => {
 
 export const Filters = () => {
   return (
-    <div className="mt-2 flex flex-col flex-wrap gap-2 md:flex-row lg:flex-nowrap">
-      <TeamAndSelfList />
+    <>
+      <div className="flex flex-col flex-wrap gap-2 md:flex-row lg:flex-nowrap">
+        <TeamAndSelfList />
 
-      <FilterType />
+        <FilterType />
 
-      <UserListInTeam />
+        <UserListInTeam />
 
-      <EventTypeList />
+        <EventTypeList />
 
-      <DateSelect />
+        <ClearFilters />
 
-      <ClearFilters />
-
-      {/* @NOTE: To be released in next iteration */}
-      {/* <ButtonGroup combined containerProps={{ className: "hidden lg:flex mr-2" }}>
+        {/* @NOTE: To be released in next iteration */}
+        {/* <ButtonGroup combined containerProps={{ className: "hidden lg:flex mr-2" }}>
          <Tooltip content={t("settings")}>
                   <Button
                     variant="icon"
@@ -70,6 +69,10 @@ export const Filters = () => {
           />
         </Tooltip>
       </ButtonGroup> */}
-    </div>
+      </div>
+      <div className="">
+        <DateSelect />
+      </div>
+    </>
   );
 };

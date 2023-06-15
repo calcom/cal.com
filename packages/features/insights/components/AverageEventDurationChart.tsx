@@ -12,7 +12,7 @@ import { LoadingInsight } from "./LoadingInsights";
 export const AverageEventDurationChart = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange, selectedMemberUserId } = filter;
+  const { dateRange, selectedMemberUserId, isOrg } = filter;
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId, selectedUserId } = filter;
 
@@ -23,6 +23,7 @@ export const AverageEventDurationChart = () => {
       teamId: teamId ?? undefined,
       memberUserId: selectedMemberUserId ?? undefined,
       userId: selectedUserId ?? undefined,
+      isOrg,
     },
     {
       staleTime: 30000,
