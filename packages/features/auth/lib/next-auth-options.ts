@@ -64,6 +64,7 @@ const providers: Provider[] = [
       totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
     },
     async authorize(credentials) {
+      console.log("next-auth-options.ts – authorize – credentials", credentials);
       if (!credentials) {
         console.error(`For some reason credentials are missing`);
         throw new Error(ErrorCode.InternalServerError);
