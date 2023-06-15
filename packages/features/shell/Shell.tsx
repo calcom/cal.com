@@ -335,7 +335,11 @@ function UserDropdown({ small }: UserDropdownProps) {
     <Dropdown open={menuOpen}>
       <div className="ltr:sm:-ml-5 rtl:sm:-mr-5">
         <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
-          <button className="hover:bg-emphasis group mx-0 ml-7 flex cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none focus:outline-none focus:ring-0 md:rounded-none lg:rounded">
+          <button
+            className={classNames(
+              "hover:bg-emphasis group mx-0 ml-7 flex cursor-pointer appearance-none items-center rounded-full text-left outline-none focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
+              small ? "p-2" : "px-2 py-1"
+            )}>
             <span
               className={classNames(
                 small ? "h-4 w-4" : "h-6 w-6 ltr:mr-2 rtl:ml-2",
@@ -355,11 +359,9 @@ function UserDropdown({ small }: UserDropdownProps) {
               />
             </span>
             {!small && (
-              <span className="flex flex-grow items-center truncate">
-                <span className="flex-grow truncate text-sm leading-none">
-                  <span className="text-emphasis block truncate font-medium">
-                    {user.name || "Nameless User"}
-                  </span>
+              <span className="flex flex-grow items-center">
+                <span className="line-clamp-1 flex-grow text-sm leading-none">
+                  <span className="text-emphasis block font-medium">{user.name || "Nameless User"}</span>
                 </span>
                 <ChevronDown
                   className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
