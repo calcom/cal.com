@@ -5,6 +5,7 @@ import { Booker } from "@calcom/atoms";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingByUidOrRescheduleUid } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { classNames } from "@calcom/lib";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import prisma from "@calcom/prisma";
@@ -94,12 +95,18 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 async function getUserPageProps(context: GetServerSidePropsContext) {
   const { user: username, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid } = context.query;
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
 
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
-  const user = await prisma.user.findUnique({
+  const user = await prisma.user.findFirst({
     where: {
       username,
+      organization: isValidOrgDomain
+        ? {
+            slug: currentOrgDomain,
+          }
+        : null,
     },
     select: {
       away: true,

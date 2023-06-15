@@ -10,7 +10,7 @@ const teamIdschema = z.object({
 });
 
 const auditAndReturnNextUser = async (
-  impersonatedUser: Pick<User, "id" | "username" | "email" | "name" | "role">,
+  impersonatedUser: Pick<User, "id" | "username" | "email" | "name" | "role" | "organizationId">,
   impersonatedByUID: number,
   hasTeam?: boolean
 ) => {
@@ -38,6 +38,7 @@ const auditAndReturnNextUser = async (
     role: impersonatedUser.role,
     impersonatedByUID,
     belongsToActiveTeam: hasTeam,
+    organizationId: impersonatedUser.organizationId,
   };
 
   return obj;
@@ -79,6 +80,7 @@ const ImpersonationProvider = CredentialsProvider({
         role: true,
         name: true,
         email: true,
+        organizationId: true,
         disableImpersonation: true,
         teams: {
           where: {
