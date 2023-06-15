@@ -129,7 +129,8 @@ export { default as MultiSelectCheckboxes } from "./components/form/checkbox/Mul
 export type { Option as MultiSelectCheckboxesOptionType } from "./components/form/checkbox/MultiSelectCheckboxes";
 export { default as ImageUploader } from "./components/image-uploader/ImageUploader";
 export type { ButtonColor } from "./components/button/Button";
-export { CreateButton } from "./components/createButton";
+export { CreateButton, CreateButtonWithTeamsList } from "./components/createButton";
+
 export { useCalcomTheme } from "./styles/useCalcomTheme";
 export { ScrollableArea } from "./components/scrollable/ScrollableArea";
 export { WizardLayout } from "./layouts/WizardLayout";
