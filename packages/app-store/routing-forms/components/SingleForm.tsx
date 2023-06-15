@@ -136,7 +136,7 @@ const Actions = ({
           tooltip={t("delete")}
         />
         {typeformApp?.isInstalled ? (
-          <FormActionsDropdown form={form}>
+          <FormActionsDropdown>
             <FormAction
               data-testid="copy-redirect-url"
               routingForm={form}
@@ -151,7 +151,7 @@ const Actions = ({
       </ButtonGroup>
 
       <div className="flex md:hidden">
-        <FormActionsDropdown form={form}>
+        <FormActionsDropdown>
           <FormAction
             routingForm={form}
             color="minimal"
@@ -566,6 +566,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
     include: {
       team: {
         select: {
+          name: true,
           slug: true,
         },
       },
