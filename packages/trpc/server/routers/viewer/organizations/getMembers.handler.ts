@@ -11,7 +11,7 @@ type CreateOptions = {
 };
 
 export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
-  const { teamIdToExclude, accepted } = input;
+  const { teamIdToExclude, accepted, distinctUser } = input;
 
   if (!ctx.user.organizationId) return [];
 
@@ -20,11 +20,9 @@ export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
       user: {
         organizationId: ctx.user.organizationId,
       },
-      ...(teamIdToExclude && {
-        teamId: {
-          not: teamIdToExclude,
-        },
-      }),
+      teamId: {
+        not: teamIdToExclude,
+      },
       accepted,
     },
     include: {
@@ -38,6 +36,9 @@ export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
         },
       },
     },
+    ...(distinctUser && {
+      distinct: ["userId"],
+    }),
   });
 
   return users;

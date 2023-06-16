@@ -80,6 +80,7 @@ const MembersView = () => {
     trpc.viewer.organizations.getMembers.useQuery(
       {
         teamIdToExclude: teamId,
+        distinctUser: true,
       },
       {
         enabled: router.isReady,
