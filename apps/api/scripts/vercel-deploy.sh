@@ -63,4 +63,4 @@ rm -rf tmp # remove the tmp folder
 git diff --quiet HEAD^ HEAD ':!/apps/docs/*' ':!/apps/website/*' ':!/apps/web/*' ':!/apps/swagger/*' ':!/apps/console/*'
 
 echo "✅ - Build can proceed"
-exit 1
+exit 0
