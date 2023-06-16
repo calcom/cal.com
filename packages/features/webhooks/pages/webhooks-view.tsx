@@ -33,6 +33,7 @@ const WebhooksView = () => {
               createFunction={(teamId?: number) => {
                 router.push(`webhooks/new${teamId ? `?teamId=${teamId}` : ""}`);
               }}
+              data-testid="new_webhook"
             />
           ) : (
             <></>
