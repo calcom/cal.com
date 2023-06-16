@@ -226,7 +226,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
             image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
             slug: membership.team.slug
               ? !membership.team.parentId
-                ? `team`
+                ? `team/${membership.team.slug}`
                 : "" + membership.team.slug
               : null,
           },
