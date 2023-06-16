@@ -70,9 +70,8 @@ export const Filters = () => {
         </Tooltip>
       </ButtonGroup> */}
       </div>
-      <div className="">
-        <DateSelect />
-      </div>
+
+      <DateSelect />
     </>
   );
 };

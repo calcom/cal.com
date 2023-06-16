@@ -34,7 +34,7 @@ export const UserListInTeam = () => {
   return (
     <Select<Option>
       isSearchable={true}
-      className="mb-0 h-[38px] w-40 min-w-[140px] capitalize md:min-w-[150px] md:max-w-[200px]"
+      className="w-52 min-w-[180px] max-w-[91vw] sm:max-w-[180px] lg:max-w-[150px]"
       defaultValue={userValue}
       value={userValue}
       options={userListOptions}

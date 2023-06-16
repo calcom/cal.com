@@ -42,7 +42,7 @@ export const FilterType = () => {
           setSelectedFilter([newValue.value]);
         }
       }}
-      className="w-32 min-w-[130px]"
+      className="w-52 min-w-[180px] max-w-[91vw] sm:max-w-[180px] lg:max-w-[150px]"
       placeholder={
         <div className="text-emphasis flex flex-row">
           <Filter className="m-auto h-4 w-4" />
