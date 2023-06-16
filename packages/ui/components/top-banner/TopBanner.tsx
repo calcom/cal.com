@@ -27,7 +27,7 @@ const defaultIconProps = {
 export function TopBanner(props: TopBannerProps) {
   const { Icon, variant = "default", text, actions, onClose } = props;
 
-  const renderDefaultIconByVariant = (variant: keyof typeof variantClassName) => {
+  const renderDefaultIconByVariant = () => {
     switch (variant) {
       case "error":
         return <AlertTriangle {...defaultIconProps} />;
@@ -37,7 +37,7 @@ export function TopBanner(props: TopBannerProps) {
         return null;
     }
   };
-  const defaultIcon = renderDefaultIconByVariant(variant);
+  const defaultIcon = renderDefaultIconByVariant();
 
   return (
     <div
