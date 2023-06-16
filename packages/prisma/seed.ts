@@ -50,7 +50,7 @@ async function createUserAndEventType(opts: {
   };
 
   const user = await prisma.user.upsert({
-    where: { email: opts.user.email },
+    where: { email_username: { email: opts.user.email, username: opts.user.username } },
     update: userData,
     create: userData,
   });

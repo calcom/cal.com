@@ -64,10 +64,10 @@ function MembersList(props: MembersListProps) {
 
 const MembersView = () => {
   const { t, i18n } = useLocale();
-  
+
   const router = useRouter();
   const session = useSession();
-  
+
   const utils = trpc.useContext();
   const teamId = Number(router.query.id);
 

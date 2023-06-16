@@ -4,6 +4,8 @@ import { useState } from "react";
 
 import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSettingsModal";
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -105,6 +107,7 @@ export default function TeamListItem(props: Props) {
 
   const acceptInvite = () => acceptOrLeave(true);
   const declineInvite = () => acceptOrLeave(false);
+  const orgBranding = useOrgBrandingValues();
 
   const isOwner = props.team.role === MembershipRole.OWNER;
   const isInvitee = !props.team.accepted;
@@ -124,7 +127,11 @@ export default function TeamListItem(props: Props) {
       <div className="ms-3 inline-block truncate">
         <span className="text-default text-sm font-bold">{team.name}</span>
         <span className="text-muted block text-xs">
-          {team.slug ? `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}` : "Unpublished team"}
+          {team.slug
+            ? orgBranding
+              ? `${orgBranding.slug}.${subdomainSuffix()}/${team.slug}`
+              : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`
+            : "Unpublished team"}
         </span>
       </div>
     </div>
