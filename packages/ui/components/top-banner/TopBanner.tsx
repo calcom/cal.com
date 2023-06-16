@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { noop } from "lodash";
 import type { ReactNode } from "react";
 
-import { X, AlertTriangle, Info } from "@calcom/ui/components/icon";
+import { X, AlertTriangle, Info, Mail } from "@calcom/ui/components/icon";
 
 export type TopBannerProps = {
   text: string;
@@ -14,6 +14,7 @@ export type TopBannerProps = {
 const variantClassName = {
   default: "bg-gradient-primary",
   warning: "bg-orange-400",
+  mail: "bg-orange-400",
   error: "bg-red-400",
 };
 
@@ -33,6 +34,9 @@ export function TopBanner(props: TopBannerProps) {
           )}
           {variant === "warning" && (
             <Info className="text-emphasis h-4 w-4 stroke-[2.5px]" aria-hidden="true" />
+          )}
+           {variant === "mail" && (
+            <Mail className="text-emphasis h-4 w-4 stroke-[2.5px]" aria-hidden="true" />
           )}
           {text}
         </p>

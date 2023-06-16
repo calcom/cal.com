@@ -1441,7 +1441,7 @@
   "your_team_disbanded_successfully": "Vaš tim je uspešno rasformiran",
   "error_creating_team": "Greška prilikom kreiranja tima",
   "you": "Vi",
-  "send_email": "Pošaljite imejl",
+  "resend_email": "Pošaljite imejl",
   "member_already_invited": "Član je već pozvan",
   "enter_email_or_username": "Unesite imejl ili korisničko ime",
   "team_name_taken": "Ime je zauzeto",

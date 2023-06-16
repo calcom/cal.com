@@ -21,15 +21,17 @@ function VerifyEmailBanner() {
   return (
     <>
       <TopBanner
-        text={t("verify_email_banner_body", { appName: APP_NAME })}
-        variant="warning"
+        text={t("verify_email_banner_body")}
+        variant="mail"
         actions={
           <Button
+            variant="transparent"
+            color="transparent"
             onClick={() => {
               mutation.mutate();
               showToast(t("email_sent"), "success");
             }}>
-            {t("send_email")}
+            {t("resend_email")}
           </Button>
         }
       />

@@ -42,6 +42,7 @@ const buttonClasses = cva(
       variant: {
         button: "",
         icon: "flex justify-center",
+        transparent: "",
         fab: "rounded-full justify-center md:rounded-md radix-state-open:rotate-45 md:radix-state-open:rotate-0 transition-transform radix-state-open:shadown-none radix-state-open:ring-0 !shadow-none",
       },
       color: {
@@ -49,6 +50,7 @@ const buttonClasses = cva(
         secondary: "text-emphasis",
         minimal: "text-emphasis",
         destructive: "",
+        transparent: "",
       },
       size: {
         sm: "px-3 py-2 leading-4 rounded-sm" /** For backwards compatibility */,
@@ -96,6 +98,22 @@ const buttonClasses = cva(
         color: "secondary",
         className:
           "border border-default  bg-default hover:bg-muted hover:border-emphasis focus-visible:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-empthasis ",
+      }),
+      // Transparent variants
+      {
+        disabled: true,
+        color: "transparent",
+        className: "",
+      },
+      {
+        loading: true,
+        color: "transparent",
+        className: "",
+      },
+      ...applyStyleToMultipleVariants({
+        disabled: [undefined, false],
+        color: "transparent",
+        className: "border-opacity-0 bg-opacity-0 underline underline-offset-2 font-semibold ",
       }),
       // Minimal variants
       {
