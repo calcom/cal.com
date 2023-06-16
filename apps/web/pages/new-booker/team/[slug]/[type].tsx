@@ -5,6 +5,7 @@ import { Booker } from "@calcom/atoms";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingByUidOrRescheduleUid } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
+import { classNames } from "@calcom/lib";
 import prisma from "@calcom/prisma";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -14,8 +15,9 @@ import PageWrapper from "@components/PageWrapper";
 type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type({ slug, user, booking, away, isBrandingHidden }: PageProps) {
+  const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
   return (
-    <main className="flex h-full min-h-[100dvh] items-center justify-center">
+    <main className={classNames("flex h-full items-center justify-center", !isEmbed && "min-h-[100dvh]")}>
       <BookerSeo
         username={user}
         eventSlug={slug}
@@ -85,6 +87,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       slug: meetingSlug,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: team?.hideBranding,
+      themeBasis: null,
     },
   };
 };
