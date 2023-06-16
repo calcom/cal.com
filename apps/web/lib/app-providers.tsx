@@ -9,6 +9,8 @@ import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 import type { ComponentProps, PropsWithChildren, ReactNode } from "react";
 
+import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
@@ -205,6 +207,11 @@ function FeatureFlagsProvider({ children }: { children: React.ReactNode }) {
   return <FeatureProvider value={flags}>{children}</FeatureProvider>;
 }
 
+function OrgBrandProvider({ children }: { children: React.ReactNode }) {
+  const orgBrand = useOrgBrandingValues();
+  return <OrgBrandingProvider value={orgBrand}>{children}</OrgBrandingProvider>;
+}
+
 const AppProviders = (props: AppPropsWithChildren) => {
   const session = trpc.viewer.public.session.useQuery().data;
   // No need to have intercom on public pages - Good for Page Performance
@@ -222,7 +229,9 @@ const AppProviders = (props: AppPropsWithChildren) => {
               isThemeSupported={props.Component.isThemeSupported}
               isBookingPage={props.Component.isBookingPage}>
               <FeatureFlagsProvider>
-                <MetaProvider>{props.children}</MetaProvider>
+                <OrgBrandProvider>
+                  <MetaProvider>{props.children}</MetaProvider>
+                </OrgBrandProvider>
               </FeatureFlagsProvider>
             </CalcomThemeProvider>
           </TooltipProvider>

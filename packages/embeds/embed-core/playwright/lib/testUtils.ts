@@ -44,30 +44,33 @@ export const getEmbedIframe = async ({
   pathname: string;
 }) => {
   // We can't seem to access page.frame till contentWindow is available. So wait for that.
-  const iframeReady = await page.evaluate(() => {
-    return new Promise((resolve) => {
-      const interval = setInterval(() => {
-        const iframe = document.querySelector<HTMLIFrameElement>(".cal-embed");
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        if (iframe && iframe.contentWindow && window.iframeReady) {
-          clearInterval(interval);
-          resolve(true);
-        } else {
+  const iframeReady = await page.evaluate(
+    (hardTimeout) => {
+      return new Promise((resolve) => {
+        const interval = setInterval(() => {
+          const iframe = document.querySelector<HTMLIFrameElement>(".cal-embed");
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-          console.log("Iframe Status:", !!iframe, !!iframe?.contentWindow, window.iframeReady);
-        }
-      }, 500);
+          if (iframe && iframe.contentWindow && window.iframeReady) {
+            clearInterval(interval);
+            resolve(true);
+          } else {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            console.log("Iframe Status:", !!iframe, !!iframe?.contentWindow, window.iframeReady);
+          }
+        }, 500);
 
-      // A hard timeout if iframe isn't ready in that time. Avoids infinite wait
-      setTimeout(() => {
-        clearInterval(interval);
-        resolve(false);
-        // This is the time embed-iframe.ts loads in the iframe and fires atleast one event. Also, it is a load of entire React Application so it can sometime take more time even on CI.
-      }, 15000);
-    });
-  });
+        // A hard timeout if iframe isn't ready in that time. Avoids infinite wait
+        setTimeout(() => {
+          clearInterval(interval);
+          resolve(false);
+          // This is the time embed-iframe.ts loads in the iframe and fires atleast one event. Also, it is a load of entire React Application so it can sometime take more time even on CI.
+        }, hardTimeout);
+      });
+    },
+    !process.env.CI ? 150000 : 15000
+  );
   if (!iframeReady) {
     return null;
   }
@@ -103,7 +106,14 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   await frame.click('[data-testid="event-type-link"]');
   await frame.waitForURL((url) => {
     // Wait for reaching the event page
-    return !!url.pathname.match(new RegExp(`/${username}/.+$`));
+    const matches = url.pathname.match(new RegExp(`/${username}/(.+)$`));
+    if (!matches || !matches[1]) {
+      return false;
+    }
+    if (matches[1] === "embed") {
+      return false;
+    }
+    return true;
   });
 
   // Let current month dates fully render.
@@ -112,7 +122,8 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   // It would also allow correct snapshot to be taken for current month.
   await frame.waitForTimeout(1000);
   // expect(await page.screenshot()).toMatchSnapshot("availability-page-1.png");
-  const eventSlug = new URL(frame.url()).pathname;
+  // Remove /embed from the end if present.
+  const eventSlug = new URL(frame.url()).pathname.replace(/\/embed$/, "");
   await selectFirstAvailableTimeSlotNextMonth(frame, page);
   await frame.waitForURL((url) => {
     return url.pathname.includes(`/${username}/book`);

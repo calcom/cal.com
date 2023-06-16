@@ -217,6 +217,7 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     twoFactorSecret: null,
     verified: false,
     weekStart: "",
+    organizationId: null,
     ...user,
   };
 };

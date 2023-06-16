@@ -112,6 +112,7 @@
   "team_upgrade_banner_description": "Tak fordi du har prøvet vores nye teamplan. Vi har bemærket at dit team \"{{teamName}}\" skal opgraderes.",
   "team_upgrade_banner_action": "Opgradér her",
   "team_upgraded_successfully": "Dit team blev opgraderet!",
+  "org_upgrade_banner_action": "Opgradér her",
   "use_link_to_reset_password": "Brug nedenstående link for at nulstille din adgangskode",
   "hey_there": "Hej,",
   "forgot_your_password_calcom": "Glemt din adgangskode? - {{appName}}",
@@ -220,6 +221,7 @@
   "done": "Udført",
   "all_done": "Alt er klart!",
   "all_apps": "Alle",
+  "all": "Alle",
   "check_email_reset_password": "Tjek din e-mail. Vi har sendt dig et link til at nulstille din adgangskode.",
   "finish": "Afslut",
   "few_sentences_about_yourself": "Et par sætninger om dig selv. Dette vil blive vist på din personlige url side.",
@@ -1506,9 +1508,7 @@
   "delete_sso_configuration_confirmation_description": "Er du sikker på, at du vil slette {{connectionType}} konfigurationen? Dine teammedlemmer, der bruger {{connectionType}} login, vil ikke længere kunne få adgang til Cal.com.",
   "organizer_timezone": "Arrangørens tidszone",
   "email_user_cta": "Vis Invitation",
-  "email_no_user_invite_heading": "Du er blevet inviteret til at deltage i et team den {{appName}}",
   "email_no_user_invite_subheading": "{{invitedBy}} har inviteret dig til at deltage i deres team på {{appName}}. {{appName}} er den begivenheds-jonglerende planlægger, der gør det muligt for dig og dit team at planlægge møder uden e-mail tennis.",
-  "email_no_user_invite_steps_intro": "Vi fører dig gennem et par korte trin, og du vil kunne nyde stressfri planlægning med dit team på ingen tid.",
   "email_no_user_step_one": "Vælg dit brugernavn",
   "email_no_user_step_two": "Tilslut din kalender konto",
   "email_no_user_step_three": "Angiv din tilgængelighed",
@@ -1558,5 +1558,6 @@
   "no_responses_yet": "Ingen svar endnu",
   "this_will_be_the_placeholder": "Dette vil være pladsholderen",
   "verification_code": "Bekræftelseskode",
-  "verify": "Bekræft"
+  "verify": "Bekræft",
+  "organization_url_taken": "Denne URL er allerede i brug"
 }
