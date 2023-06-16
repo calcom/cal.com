@@ -33,7 +33,6 @@ const WebhooksView = () => {
               createFunction={(teamId?: number) => {
                 router.push(`webhooks/new${teamId ? `?teamId=${teamId}` : ""}`);
               }}
-              onlyShowWithTeams={true}
             />
           ) : (
             <></>
@@ -46,25 +45,6 @@ const WebhooksView = () => {
         </Suspense>
       </div>
     </>
-  );
-};
-
-const NewWebhookButton = ({ teamId }: { teamId?: number | null }) => {
-  const { t } = useLocale();
-  const router = useRouter();
-
-  const url = new URL(`${WEBAPP_URL}/settings/developer/webhooks/new`);
-  if (!!teamId) {
-    url.searchParams.set("teamId", `${teamId}`);
-  }
-
-  return (
-    <CreateButtonWithTeamsList
-      subtitle={t("create_for").toUpperCase()}
-      createFunction={(teamId?: number) => {
-        router.push(`webhooks/new${teamId ? `?teamId=${teamId}` : ""}`);
-      }}
-    />
   );
 };
 
@@ -122,7 +102,14 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
               Icon={LinkIcon}
               headline={t("create_your_first_webhook")}
               description={t("create_your_first_webhook_description", { appName: APP_NAME })}
-              buttonRaw={<NewWebhookButton profiles={profiles} />}
+              buttonRaw={
+                <CreateButtonWithTeamsList
+                  subtitle={t("create_for").toUpperCase()}
+                  createFunction={(teamId?: number) => {
+                    router.push(`webhooks/new${teamId ? `?teamId=${teamId}` : ""}`);
+                  }}
+                />
+              }
             />
           )}
         </>
