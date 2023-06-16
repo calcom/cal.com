@@ -142,7 +142,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           <ToggleGroup
             isFullWidth={true}
             onValueChange={(val) => setModalInputMode(val as ModalMode)}
-            defaultValue="INDIVIDUAL"
+            defaultValue={modalImportMode}
             options={toggleGroupOptions}
           />
         </div>
@@ -285,7 +285,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               )}
             />
             <div className="flex">
-              {modalImportMode !== "ORGANIZATION" && (
+              {modalImportMode === "INDIVIDUAL" && (
                 <Button
                   type="button"
                   color="minimal"
