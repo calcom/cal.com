@@ -101,7 +101,6 @@ describe("buildDateRanges", () => {
     ];
     const timeZone = "Europe/London";
 
-
     const dateFrom = dayjs("2023-06-13T00:00:00Z");
     const dateTo = dayjs("2023-06-15T00:00:00Z");
 
