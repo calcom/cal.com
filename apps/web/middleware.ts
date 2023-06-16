@@ -70,11 +70,14 @@ const middleware: NextMiddleware = async (req) => {
 
   // Ensure that embed query param is there in when /embed is added.
   // query param is the way in which client side code knows that it is in embed mode.
-  if (url.pathname.endsWith("/embed") && typeof url.searchParams.get("embed") !== "string") {
-    console.log("url.pathname", url.pathname, url.searchParams.get("embed"));
-    url.searchParams.set("embed", "");
-    return NextResponse.redirect(url);
-  }
+
+  // NOTE: It is somehow causing infinite redirect for /free/30min/embed even though it set the embed param, it goes away
+  // The new logic doesn't really need query param to detect embed mode. It uses window.name as well. So, we should be fine disabling it for now.
+
+  // if (url.pathname.endsWith("/embed") && typeof url.searchParams.get("embed") !== "string") {
+  //   url.searchParams.set("embed", "");
+  //   return NextResponse.redirect(url);
+  // }
 
   // Don't 404 old routing_forms links
   if (url.pathname.startsWith("/apps/routing_forms")) {
