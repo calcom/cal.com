@@ -9,29 +9,19 @@ export const getAggregatedAvailability = (
   > & { user?: { isFixed?: boolean } })[],
   schedulingType: SchedulingType | null
 ): DateRange[] => {
-  // during personal events, just flatMap.
-  if (!schedulingType) {
-    return intersect([...userAvailability.map((user) => user.dateRanges)]);
-  }
-  const looseHostAvailability = userAvailability
-    .filter(({ user }) => schedulingType !== SchedulingType.COLLECTIVE && user?.isFixed !== true)
-    .flatMap((s) => s.dateRanges);
-
   const fixedHosts = userAvailability.filter(
-    ({ user }) => schedulingType === SchedulingType.COLLECTIVE || user?.isFixed
+    ({ user }) => !schedulingType || schedulingType === SchedulingType.COLLECTIVE || user?.isFixed
   );
-  // return early when there are no fixed hosts.
-  if (!fixedHosts.length) {
-    const availabiltiesWithoutOverlaps = mergeOverlappingDateRanges(looseHostAvailability);
-    return availabiltiesWithoutOverlaps;
+  const aggregatedAvailability: DateRange[] = intersect(fixedHosts.map((s) => s.dateRanges));
+  // fixed hosts, everyone will be added
+  if (schedulingType !== SchedulingType.ROUND_ROBIN) {
+    return mergeOverlappingDateRanges(aggregatedAvailability);
   }
-
-  const fixedHostDateRanges = fixedHosts.map((s) => s.dateRanges);
-
-  // use intersect method here that finds collective availabilities that overlap
-  const intersectedAvailability = intersect(fixedHostDateRanges);
-
-  return intersectedAvailability;
+  // unfixed, one or more people will be selected.
+  aggregatedAvailability.push(
+    ...userAvailability.filter(({ user }) => user?.isFixed !== true).flatMap((s) => s.dateRanges)
+  );
+  return mergeOverlappingDateRanges(aggregatedAvailability);
 };
 
 function mergeOverlappingDateRanges(dateRanges: DateRange[]) {

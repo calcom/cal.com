@@ -271,6 +271,17 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     })
   );
 
+  /*console.log("run", eventType.schedulingType);
+  userAvailability.map((avail, i) =>
+    console.log(
+      i,
+      avail.dateRanges.map((range) => ({
+        s: range.start.utc().format(),
+        e: range.end.utc().format(),
+      }))
+    )
+  );*/
+
   // flattens availability of multiple users
   const dateOverrides = userAvailability.flatMap((availability) =>
     availability.dateOverrides.map((override) => ({ userId: availability.user.id, ...override }))
@@ -306,6 +317,13 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
   });
+
+  /*console.log({
+    dateRanges: getAggregatedAvailability(userAvailability, eventType.schedulingType).map((range) => ({
+      s: range.start.utc().format(),
+      e: range.end.utc().format(),
+    })),
+  });*/
 
   let availableTimeSlots: typeof timeSlots = [];
   // Load cached busy slots

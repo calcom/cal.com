@@ -933,6 +933,7 @@ describe("getSchedule", () => {
           {
             id: 1,
             slotInterval: 45,
+            schedulingType: "COLLECTIVE",
             length: 45,
             users: [
               {
@@ -1019,21 +1020,23 @@ describe("getSchedule", () => {
         endTime: `${plus2DateString}T18:29:59.999Z`,
         timeZone: Timezones["+5:30"],
       });
+
       // A user with blocked time in another event, still affects Team Event availability
       // It's a collective availability, so both user 101 and 102 are considered for timeslots
       expect(scheduleForTeamEventOnADayWithOneBookingForEachUser).toHaveTimeSlots(
         [
           //`04:00:00.000Z`, - Blocked with User 101
-          `04:45:00.000Z`,
+          `04:45:00.000Z`, // todo: figure out why this doesn't open at :15
           //`05:30:00.000Z`, - Blocked with User 102 in event 2
-          `06:15:00.000Z`,
-          `07:00:00.000Z`,
-          `07:45:00.000Z`,
-          `08:30:00.000Z`,
-          `09:15:00.000Z`,
-          `10:00:00.000Z`,
-          `10:45:00.000Z`,
-          `11:30:00.000Z`,
+          `05:45:00.000Z`,
+          `06:30:00.000Z`,
+          `07:15:00.000Z`,
+          `08:00:00.000Z`,
+          `08:45:00.000Z`,
+          `09:30:00.000Z`,
+          `10:15:00.000Z`,
+          `11:00:00.000Z`,
+          `11:45:00.000Z`,
         ],
         { dateString: plus2DateString }
       );

@@ -129,6 +129,7 @@ export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {
 }
 
 export function intersect(ranges: DateRange[][]): DateRange[] {
+  if (!ranges.length) return [];
   // Get the ranges of the first user
   let commonAvailability = ranges[0];
 
