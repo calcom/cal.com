@@ -25,7 +25,7 @@ function VerifyEmailBanner() {
               mutation.mutate();
               showToast(t("email_sent"), "success");
             }}>
-            {t("send_email")}
+            {t("resend_email")}
           </p>
         }
       />

@@ -1439,7 +1439,7 @@
   "your_team_disbanded_successfully": "Il tuo team è stato sciolto correttamente",
   "error_creating_team": "Errore durante la creazione del team",
   "you": "Tu",
-  "send_email": "Invia e-mail",
+  "resend_email": "Invia e-mail",
   "member_already_invited": "Membro già invitato",
   "enter_email_or_username": "Immettere un indirizzo e-mail o un nome utente",
   "team_name_taken": "Nome già utilizzato",
