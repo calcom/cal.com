@@ -1653,7 +1653,6 @@
   "spot_popular_event_types_description": "Hangi etkinlik türünüzün en çok tıklandığını ve rezervasyon aldığını görün",
   "no_responses_yet": "Henüz yanıt yok",
   "this_will_be_the_placeholder": "Bu, yer tutucu olacak",
-  "error_booking_event": "Etkinlik rezervasyonu yapılırken bir hata oluştu, lütfen sayfayı yenileyerek tekrar deneyin",
   "timeslot_missing_title": "Zaman aralığı seçilmedi",
   "timeslot_missing_description": "Etkinlik rezervasyonu için lütfen bir zaman aralığı seçin.",
   "timeslot_missing_cta": "Zaman aralığını seçin",

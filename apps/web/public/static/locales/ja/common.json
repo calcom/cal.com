@@ -1653,7 +1653,6 @@
   "spot_popular_event_types_description": "どのイベントの種類が最もクリックされ、予約されているのかを確認します",
   "no_responses_yet": "回答はまだありません",
   "this_will_be_the_placeholder": "これがプレースホルダーになります",
-  "error_booking_event": "イベントを予約する際にエラーが発生しました。ページを再読み込みして、もう一度お試しください",
   "timeslot_missing_title": "時間帯が選択されていません",
   "timeslot_missing_description": "イベントを予約するには時間帯を選んでください。",
   "timeslot_missing_cta": "時間帯を選ぶ",

@@ -1653,7 +1653,6 @@
   "spot_popular_event_types_description": "Sehen Sie, welche Ihrer Ereignistypen die meisten Klicks und Buchungen erhalten",
   "no_responses_yet": "Noch keine Antworten",
   "this_will_be_the_placeholder": "Dies wird der Platzhalter sein",
-  "error_booking_event": "Bei der Buchung dieses Termins ist ein Fehler aufgetreten, bitte aktualisieren Sie die Seite und versuchen Sie es erneut",
   "timeslot_missing_title": "Kein Zeitfenster ausgewählt",
   "timeslot_missing_description": "Bitte wählen Sie einen Zeitraum aus, um den Termin zu buchen.",
   "timeslot_missing_cta": "Zeitfenster auswählen",
