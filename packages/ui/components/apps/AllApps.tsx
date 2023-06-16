@@ -73,7 +73,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
           : t("category_apps", {
               category:
                 (selectedCategory && selectedCategory[0].toUpperCase() + selectedCategory.slice(1)) ||
-                t("all_apps"),
+                t("all"),
             })}
       </h2>
       {leftVisible && (
@@ -96,7 +96,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
             selectedCategory === null ? "bg-emphasis text-default" : "bg-muted text-emphasis",
             "hover:bg-emphasis min-w-max rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer"
           )}>
-          {t("all_apps")}
+          {t("all")}
         </li>
         {categories.map((cat, pos) => (
           <li
