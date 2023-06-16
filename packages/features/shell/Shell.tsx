@@ -23,6 +23,7 @@ import AdminPasswordBanner from "@calcom/features/users/components/AdminPassword
 import VerifyEmailBanner from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -335,26 +336,27 @@ function UserDropdown({ small }: UserDropdownProps) {
   }
   return (
     <Dropdown open={menuOpen}>
-      <div className="ltr:sm:-ml-5 rtl:sm:-mr-5">
+      <div className="ltr:md:-ml-5 rtl:md:-mr-5">
         <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
           <button
             className={classNames(
-              "hover:bg-emphasis group mx-0 ml-7 flex cursor-pointer appearance-none items-center rounded-full text-left outline-none focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
+              "hover:bg-emphasis group mx-0 ml-0.5 flex cursor-pointer appearance-none items-center rounded-full text-left outline-none focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
               small ? "p-2" : "px-2 py-1"
             )}>
             <span
               className={classNames(
                 small ? "h-4 w-4" : "h-6 w-6 ltr:mr-2 rtl:ml-2",
-                "relative flex-shrink-0 rounded-full bg-gray-300 "
+                "relative flex-shrink-0 rounded-full bg-gray-300"
               )}>
               <Avatar
                 size={small ? "xs" : "sm"}
                 imageSrc={avatar?.avatar || WEBAPP_URL + "/" + user.username + "/avatar.png"}
                 alt={user.username || "Nameless User"}
+                className="overflow-hidden"
               />
               <span
                 className={classNames(
-                  "border-muted absolute -bottom-1 -right-1  rounded-full border-2 bg-green-500",
+                  "border-muted absolute -bottom-1 -right-1 rounded-full border-2 bg-green-500",
                   user.away ? "bg-yellow-500" : "bg-green-500",
                   small ? "-bottom-0.5 -right-0.5 h-2.5 w-2.5" : "bottom-0 right-0 h-3 w-3"
                 )}
@@ -836,13 +838,17 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
       <aside
         style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
         className="desktop-transparent bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r dark:bg-gradient-to-tr dark:from-[#2a2a2a] dark:to-[#1c1c1c] md:sticky md:flex lg:w-56 lg:px-3">
-        <div className="flex h-full flex-col justify-between py-3 lg:pt-6 ">
+        <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="items-center justify-between md:hidden lg:flex">
             {orgBranding ? (
-              <Link href="/event-types" className="px-2">
+              <Link href="/event-types" className="px-1.5">
                 {orgBranding ? (
                   <div className="flex items-center gap-2 font-medium">
-                    {orgBranding.logo && <Avatar alt="" imageSrc={orgBranding.logo} size="sm" />}
+                    <Avatar
+                      alt={`${orgBranding.name} logo`}
+                      imageSrc={getPlaceholderAvatar(orgBranding.logo, orgBranding.name)}
+                      size="xsm"
+                    />
                     <p className="text line-clamp-1 text-sm">
                       <span>{orgBranding.name}</span>
                     </p>
@@ -861,7 +867,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 </span>
               </div>
             )}
-            <div className="flex space-x-1 rtl:space-x-reverse">
+            <div className="flex space-x-0.5 rtl:space-x-reverse">
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
@@ -895,7 +901,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
 
         <div>
           <Tips />
-          {bottomNavItems.map(({ icon: Icon, ...item }) => (
+          {bottomNavItems.map(({ icon: Icon, ...item }, index) => (
             <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
               <ButtonOrLink
                 href={item.href || undefined}
@@ -903,9 +909,10 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 target={item.target}
                 className={classNames(
                   "text-left",
-                  "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md py-2 px-3 text-sm font-medium",
-                  "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
-                  isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : ""
+                  "[&[aria-current='page']]:bg-emphasis  text-default justify-right group flex items-center rounded-md py-2 px-3 text-sm font-medium",
+                  "[&[aria-current='page']]:text-emphasis mt-0.5 w-full text-sm",
+                  isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
+                  index === 0 && "mt-3"
                 )}
                 aria-current={
                   defaultIsCurrent && defaultIsCurrent({ item: { href: item.href }, router })
@@ -915,7 +922,10 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 onClick={item.onClick}>
                 {!!Icon && (
                   <Icon
-                    className="mr-2 h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2 [&[aria-current='page']]:text-inherit"
+                    className={classNames(
+                      "h-4 w-4 flex-shrink-0 [&[aria-current='page']]:text-inherit",
+                      "mx-auto md:ltr:mr-2 md:rtl:ml-2"
+                    )}
                     aria-hidden="true"
                     aria-current={
                       defaultIsCurrent && defaultIsCurrent({ item: { href: item.href }, router })
