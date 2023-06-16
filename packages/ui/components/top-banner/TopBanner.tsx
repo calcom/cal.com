@@ -35,9 +35,7 @@ export function TopBanner(props: TopBannerProps) {
           {variant === "warning" && (
             <Info className="text-emphasis h-4 w-4 stroke-[2.5px]" aria-hidden="true" />
           )}
-           {variant === "mail" && (
-            <Mail className="text-emphasis h-4 w-4 stroke-[2.5px]" aria-hidden="true" />
-          )}
+          {variant === "mail" && <Mail className="text-emphasis h-4 w-4 stroke-[2.5px]" aria-hidden="true" />}
           {text}
         </p>
         {actions && <div className="text-sm font-medium">{actions}</div>}
