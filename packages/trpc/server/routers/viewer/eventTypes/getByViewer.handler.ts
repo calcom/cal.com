@@ -212,13 +212,11 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     return mshipToNumber(mship1) > mshipToNumber(mship2);
   };
 
-  const filterTeamsEventTypesBasedOnInput = (eventType: (typeof user.eventTypes)[number]) => {
+  const filterTeamsEventTypesBasedOnInput = (eventType: ReturnType<typeof mapEventType>) => {
     if (!input?.filters || !hasFilter(input?.filters)) {
       return true;
-    } else if (!!input?.filters?.userIds && !!input?.filters?.teamIds === false) {
-      return false;
     }
-    return input?.filters?.teamIds?.includes(eventType?.team?.id || 0);
+    return input?.filters?.teamIds?.includes(eventType?.team?.id || 0) ?? false;
   };
 
   eventTypeGroups = ([] as EventTypeGroup[]).concat(
