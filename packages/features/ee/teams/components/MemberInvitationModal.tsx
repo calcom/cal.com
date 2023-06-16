@@ -225,22 +225,30 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               </div>
             )}
             {modalImportMode === "ORGANIZATION" && (
-              <TeamInviteFromOrg
-                selectedEmails={newMemberFormMethods.getValues("emailOrUsername")}
-                handleOnChecked={(userEmail) => {
-                  const currentlySelected = newMemberFormMethods.getValues("emailOrUsername") as string[]; // Its always a array in this instance;
-                  const emailIndex = currentlySelected.indexOf(userEmail);
-                  if (emailIndex !== -1) {
-                    // Email is present in the array, so remove it
-                    currentlySelected.splice(emailIndex, 1);
-                    newMemberFormMethods.setValue("emailOrUsername", currentlySelected);
-                  } else {
-                    // Email is not present in the array, so add it
-                    currentlySelected.push(userEmail);
-                    newMemberFormMethods.setValue("emailOrUsername", currentlySelected);
-                  }
+              <Controller
+                name="emailOrUsername"
+                control={newMemberFormMethods.control}
+                rules={{
+                  required: t("enter_email_or_username"),
                 }}
-                orgMembers={props.orgMembers}
+                render={({ field: { onChange, value } }) => (
+                  <>
+                    <TeamInviteFromOrg
+                      selectedEmails={value}
+                      handleOnChecked={(userEmail) => {
+                        // If 'value' is not an array, create a new array with 'userEmail' to allow future updates to the array.
+                        // If 'value' is an array, update the array by either adding or removing 'userEmail'.
+                        const newValue = Array.isArray(value)
+                          ? value.includes(userEmail)
+                            ? value.filter((email) => email !== userEmail)
+                            : [...value, userEmail]
+                          : [userEmail];
+                        onChange(newValue);
+                      }}
+                      orgMembers={props.orgMembers}
+                    />
+                  </>
+                )}
               />
             )}
             <Controller
@@ -277,20 +285,22 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               )}
             />
             <div className="flex">
-              <Button
-                type="button"
-                color="minimal"
-                variant="icon"
-                onClick={() =>
-                  props.token
-                    ? copyInviteLinkToClipboard(props.token)
-                    : createInviteMutation.mutate({ teamId: props.teamId })
-                }
-                className={classNames("gap-2", props.token && "opacity-50")}
-                data-testid="copy-invite-link-button">
-                <Link className="text-default h-4 w-4" aria-hidden="true" />
-                {t("copy_invite_link")}
-              </Button>
+              {modalImportMode !== "ORGANIZATION" && (
+                <Button
+                  type="button"
+                  color="minimal"
+                  variant="icon"
+                  onClick={() =>
+                    props.token
+                      ? copyInviteLinkToClipboard(props.token)
+                      : createInviteMutation.mutate({ teamId: props.teamId })
+                  }
+                  className={classNames("gap-2", props.token && "opacity-50")}
+                  data-testid="copy-invite-link-button">
+                  <Link className="text-default h-4 w-4" aria-hidden="true" />
+                  {t("copy_invite_link")}
+                </Button>
+              )}
               {props.token && (
                 <Button
                   type="button"
