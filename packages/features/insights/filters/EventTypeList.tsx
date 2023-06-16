@@ -43,7 +43,7 @@ export const EventTypeList = () => {
       options={filterOptions}
       onChange={(input) => {
         if (input) {
-          const selectedEventTypeId = data.find((item) => item.slug === input.value)?.id;
+          const selectedEventTypeId = data.find((item) => item.id.toString() === input.value)?.id;
           !!selectedEventTypeId && setSelectedEventTypeId(selectedEventTypeId);
         }
       }}

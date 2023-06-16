@@ -1194,7 +1194,7 @@ export const insightsRouter = router({
           id: 0,
           slug: "",
           userId: userData.id,
-          name: userData.name,
+          name: userData.name || "No full name found",
           logo: userData.avatar,
         });
       }
@@ -1270,6 +1270,7 @@ export const insightsRouter = router({
         where: {
           userId: user.id,
           teamId,
+          accepted: true,
         },
         include: {
           user: {
@@ -1285,6 +1286,7 @@ export const insightsRouter = router({
       const usersInTeam = await ctx.prisma.membership.findMany({
         where: {
           teamId,
+          accepted: true,
         },
         include: {
           user: {
@@ -1292,6 +1294,7 @@ export const insightsRouter = router({
           },
         },
       });
+
       return usersInTeam.map((membership) => membership.user);
     }),
   eventTypeList: userBelongsToTeamProcedure
