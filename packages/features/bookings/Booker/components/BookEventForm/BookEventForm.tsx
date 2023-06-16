@@ -19,7 +19,9 @@ import {
   mapRecurringBookingToMutationInput,
 } from "@calcom/features/bookings/lib";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
-import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import getBookingResponsesSchema, {
+  getBookingResponsesPartialSchema,
+} from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { Form, Button, Alert, EmptyScreen } from "@calcom/ui";
@@ -27,7 +29,6 @@ import { Calendar } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";
 import { useEvent } from "../../utils/event";
-import { getQueryParam } from "../../utils/query-param";
 import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
 
@@ -82,10 +83,23 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     if (!eventType?.bookingFields) {
       return {};
     }
+    const querySchema = getBookingResponsesPartialSchema({
+      eventType: {
+        bookingFields: eventType.bookingFields,
+      },
+      view: rescheduleUid ? "reschedule" : "booking",
+    });
+
+    const parsedQuery = querySchema.parse({
+      ...router.query,
+      // `guest` because we need to support legacy URL with `guest` query param support
+      // `guests` because the `name` of the corresponding bookingField is `guests`
+      guests: router.query.guests || router.query.guest,
+    });
 
     const defaultUserValues = {
-      email: rescheduleUid ? rescheduleBooking?.attendees[0].email : getQueryParam("email") || "",
-      name: rescheduleUid ? rescheduleBooking?.attendees[0].name : getQueryParam("name") || "",
+      email: rescheduleUid ? rescheduleBooking?.attendees[0].email : parsedQuery["email"] || "",
+      name: rescheduleUid ? rescheduleBooking?.attendees[0].name : parsedQuery["name"] || "",
     };
 
     if (!isRescheduling) {
@@ -96,9 +110,10 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       const responses = eventType.bookingFields.reduce((responses, field) => {
         return {
           ...responses,
-          [field.name]: getQueryParam(field.name) || undefined,
+          [field.name]: parsedQuery[field.name] || undefined,
         };
       }, {});
+
       defaults.responses = {
         ...responses,
         name: defaultUserValues.name,
