@@ -238,6 +238,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
   const { type: typeParam, user: userParam } = paramsSchema.parse(context.params);
   const usernameList = getUsernameList(userParam);
+  console.log("getDynamicGroupPageProps", usernameList, userParam);
   const length = parseInt(typeParam);
   const eventType = getDefaultEvent("" + length);
 
@@ -359,6 +360,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { user: userParam } = paramsSchema.parse(context.params);
+  console.log("gSSP,[user]/[type]", context.params);
   // dynamic groups are not generated at build time, but otherwise are probably cached until infinity.
   const isDynamicGroup = userParam.includes("+");
   if (isDynamicGroup) {
