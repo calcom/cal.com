@@ -18,15 +18,15 @@ function VerifyEmailBanner() {
     <>
       <TopBanner
         text={t("verify_email_banner_body", { appName: APP_NAME })}
-        variant="warning"
+        variant="Mail"
         actions={
-          <Button
+          <p className="underline hover:cursor-pointer"
             onClick={() => {
               mutation.mutate();
               showToast(t("email_sent"), "success");
             }}>
             {t("send_email")}
-          </Button>
+          </p>
         }
       />
     </>
@@ -34,3 +34,4 @@ function VerifyEmailBanner() {
 }
 
 export default VerifyEmailBanner;
+
