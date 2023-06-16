@@ -190,121 +190,88 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
+    // .* matches / as well(Note: *(i.e wildcard) doesn't match / but .*(i.e. RegExp) does)
+    // It would match /free/30min but not /bookings/upcoming because 'bookings' is an item in pages
+    // It would also not match /free/30min/embed because we are ensuring just two slashes
+    const userTypeRouteRegExp = `/:user((?!${pages.join("|")})[^/]*)/:type`;
+
     const defaultSubdomain = getSubdomain();
     const subdomain = defaultSubdomain ? `(?!${defaultSubdomain})[^.]+` : "[^.]+";
-    return {
-      beforeFiles: [
-        {
-          has: [
-            {
-              type: "host",
-              value: `^(?<orgSlug>${subdomain})\\..*`,
-            },
-          ],
-          source: "/",
-          destination: "/team/:orgSlug",
-        },
-        {
-          has: [
-            {
-              type: "host",
-              value: `^(?<orgSlug>${subdomain})\\..*`,
-            },
-          ],
-          source: `/:user((?!${pages.join("|")}|_next|public)[a-zA-Z0-9\-_]+)`,
-          destination: "/org/:orgSlug/:user",
-        },
-        {
-          has: [
-            {
-              type: "host",
-              value: `^(?<orgSlug>${subdomain}[^.]+)\\..*`,
-            },
-          ],
-          source: `/:user((?!${pages.join("|")}|_next|public))/:path*`,
-          destination: "/:user/:path*",
-        },
-      ],
-      afterFiles: [
-        {
-          source: "/org/:slug",
-          destination: "/team/:slug",
-        },
-        {
-          source: "/:user/avatar.png",
-          destination: "/api/user/avatar?username=:user",
-        },
-        {
-          source: "/team/:teamname/avatar.png",
-          destination: "/api/user/avatar?teamname=:teamname",
-        },
-        {
-          source: "/forms/:formQuery*",
-          destination: "/apps/routing-forms/routing-link/:formQuery*",
-        },
-        {
-          source: "/router",
-          destination: "/apps/routing-forms/router",
-        },
-        {
-          source: "/success/:path*",
-          has: [
-            {
-              type: "query",
-              key: "uid",
-              value: "(?<uid>.*)",
-            },
-          ],
-          destination: "/booking/:uid/:path*",
-        },
-        {
-          source: "/cancel/:path*",
-          destination: "/booking/:path*",
-        },
-        /* TODO: have these files being served from another deployment or CDN {
-          source: "/embed/embed.js",
-          destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
-        }, */
-        /**
-         * Header allows us to enable new-booker using middleware which uses env variables to enable/disable new booker
-         */
-        {
-          source: `/:user((?!${pages.join("|")}).*)/:type`,
-          destination: "/new-booker/:user/:type",
-          has: [{ type: "header", key: "new-booker-enabled" }],
-        },
-        {
-          source: `/:user((?!${pages.join("|")}).*)/:type/embed`,
-          destination: "/new-booker/:user/:type/embed",
-          has: [{ type: "header", key: "new-booker-enabled" }],
-        },
-        {
-          source: "/team/:slug/:type",
-          destination: "/new-booker/team/:slug/:type",
-          has: [{ type: "header", key: "new-booker-enabled" }],
-        },
-        {
-          source: "/team/:slug/:type/embed",
-          destination: "/new-booker/team/:slug/:type/embed",
-          has: [{ type: "header", key: "new-booker-enabled" }],
-        },
-        {
-          source: "/d/:link/:slug",
-          destination: "/new-booker/d/:link/:slug",
-          has: [{ type: "header", key: "new-booker-enabled" }],
-        },
 
-        /**
-         * Enables new booker using cookie. It works even if NEW_BOOKER_ENABLED_FOR_NON_EMBED, NEW_BOOKER_ENABLED_FOR_EMBED are disabled
-         */
+    const beforeFiles = [
+      {
+        has: [
+          {
+            type: "host",
+            value: `^(?<orgSlug>${subdomain})\\..*`,
+          },
+        ],
+        source: "/",
+        destination: "/team/:orgSlug",
+      },
+      {
+        has: [
+          {
+            type: "host",
+            value: `^(?<orgSlug>${subdomain})\\..*`,
+          },
+        ],
+        source: `/:user((?!${pages.join("|")}|_next|public)[a-zA-Z0-9\-_]+)`,
+        destination: "/org/:orgSlug/:user",
+      },
+      {
+        has: [
+          {
+            type: "host",
+            value: `^(?<orgSlug>${subdomain}[^.]+)\\..*`,
+          },
+        ],
+        source: `/:user((?!${pages.join("|")}|_next|public))/:path*`,
+        destination: "/:user/:path*",
+      },
+    ];
+
+    let afterFiles = [
+      {
+        source: "/org/:slug",
+        destination: "/team/:slug",
+      },
+      {
+        source: "/:user/avatar.png",
+        destination: "/api/user/avatar?username=:user",
+      },
+      {
+        source: "/team/:teamname/avatar.png",
+        destination: "/api/user/avatar?teamname=:teamname",
+      },
+      {
+        source: "/forms/:formQuery*",
+        destination: "/apps/routing-forms/routing-link/:formQuery*",
+      },
+      {
+        source: "/router",
+        destination: "/apps/routing-forms/router",
+      },
+      {
+        source: "/success/:path*",
+        has: [
+          {
+            type: "query",
+            key: "uid",
+            value: "(?<uid>.*)",
+          },
+        ],
+        destination: "/booking/:uid/:path*",
+      },
+      {
+        source: "/cancel/:path*",
+        destination: "/booking/:path*",
+      },
+      // Keep cookie based booker enabled just in case we disable new-booker globally
+      ...[
         {
-          source: `/:user((?!${pages.join("|")}).*)/:type`,
+          source: userTypeRouteRegExp,
           destination: "/new-booker/:user/:type",
-          has: [{ type: "cookie", key: "new-booker-enabled" }],
-        },
-        {
-          source: `/:user((?!${pages.join("|")}).*)/:type/embed`,
-          destination: "/new-booker/:user/:type/embed",
           has: [{ type: "cookie", key: "new-booker-enabled" }],
         },
         {
@@ -313,16 +280,74 @@ const nextConfig = {
           has: [{ type: "cookie", key: "new-booker-enabled" }],
         },
         {
-          source: "/team/:slug/:type/embed",
-          destination: "/new-booker/team/:slug/:type/embed",
-          has: [{ type: "cookie", key: "new-booker-enabled" }],
-        },
-        {
           source: "/d/:link/:slug",
           destination: "/new-booker/d/:link/:slug",
           has: [{ type: "cookie", key: "new-booker-enabled" }],
         },
       ],
+      // Keep cookie based booker enabled to test new-booker embed in production
+      ...[
+        {
+          source: `/:user((?!${pages.join("|")}).*)/:type/embed`,
+          destination: "/new-booker/:user/:type/embed",
+          has: [{ type: "cookie", key: "new-booker-enabled" }],
+        },
+        {
+          source: "/team/:slug/:type/embed",
+          destination: "/new-booker/team/:slug/:type/embed",
+          has: [{ type: "cookie", key: "new-booker-enabled" }],
+        },
+      ],
+      /* TODO: have these files being served from another deployment or CDN {
+        source: "/embed/embed.js",
+        destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
+      }, */
+
+      /**
+       * Enables new booker using cookie. It works even if NEW_BOOKER_ENABLED_FOR_NON_EMBED, NEW_BOOKER_ENABLED_FOR_EMBED are disabled
+       */
+    ];
+
+    // Enable New Booker for all Embed Requests
+    if (process.env.NEW_BOOKER_ENABLED_FOR_EMBED === "1") {
+      console.log("Enabling New Booker for Embed");
+      afterFiles.push(
+        ...[
+          {
+            source: `/:user((?!${pages.join("|")}).*)/:type/embed`,
+            destination: "/new-booker/:user/:type/embed",
+          },
+          {
+            source: "/team/:slug/:type/embed",
+            destination: "/new-booker/team/:slug/:type/embed",
+          },
+        ]
+      );
+    }
+
+    // Enable New Booker for All but embed Requests
+    if (process.env.NEW_BOOKER_ENABLED_FOR_NON_EMBED === "1") {
+      console.log("Enabling New Booker for Non-Embed");
+      afterFiles.push(
+        ...[
+          {
+            source: userTypeRouteRegExp,
+            destination: "/new-booker/:user/:type",
+          },
+          {
+            source: "/team/:slug/:type",
+            destination: "/new-booker/team/:slug/:type",
+          },
+          {
+            source: "/d/:link/:slug",
+            destination: "/new-booker/d/:link/:slug",
+          },
+        ]
+      );
+    }
+    return {
+      beforeFiles,
+      afterFiles,
     };
   },
   async headers() {

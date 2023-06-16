@@ -1653,7 +1653,6 @@
   "spot_popular_event_types_description": "Veja quais os tipos de eventos que estão a receber mais cliques e reservas",
   "no_responses_yet": "Ainda sem respostas",
   "this_will_be_the_placeholder": "Isto será o marcador de posição",
-  "error_booking_event": "Ocorreu um erro ao reservar o evento. Atualize a página e tente novamente",
   "timeslot_missing_title": "Nenhuma janela horária selecionada",
   "timeslot_missing_description": "Selecione uma janela horária para reservar o evento.",
   "timeslot_missing_cta": "Selecionar janela horária",

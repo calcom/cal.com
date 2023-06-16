@@ -1653,7 +1653,6 @@
   "spot_popular_event_types_description": "تعرف أي أنواع من الأحداث لديك تتلقى أكبر عدد من النقرات والحجوزات",
   "no_responses_yet": "لا توجد ردود بعد",
   "this_will_be_the_placeholder": "سيكون هذا هو العنصر النائب",
-  "error_booking_event": "حدث خطأ عند حجز الحدث، الرجاء تحديث الصفحة والمحاولة ثانيةً",
   "timeslot_missing_title": "لم يتم تحديد مساحة زمنية",
   "timeslot_missing_description": "الرجاء تحديد فترة زمنية لحجز الحدث.",
   "timeslot_missing_cta": "حدد الوقت",

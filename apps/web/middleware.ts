@@ -10,21 +10,10 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
-  const isEmbedRequest = typeof url.searchParams.get("embed") === "string";
-
   /**
    * We are using env variable to toggle new-booker because using flags would be an unnecessary delay for booking pages
    * Also, we can't easily identify the booker page requests here(to just fetch the flags for those requests)
    */
-  // Enable New Booker for All but embed Requests
-  if (process.env.NEW_BOOKER_ENABLED_FOR_NON_EMBED === "1" && !isEmbedRequest) {
-    requestHeaders.set("new-booker-enabled", "1");
-  }
-
-  // Enable New Booker for Embed Requests
-  if (process.env.NEW_BOOKER_ENABLED_FOR_EMBED === "1" && isEmbedRequest) {
-    requestHeaders.set("new-booker-enabled", "1");
-  }
 
   if (isIpInBanlist(req) && url.pathname !== "/api/nope") {
     // DDOS Prevention: Immediately end request with no response - Avoids a redirect as well initiated by NextAuth on invalid callback
@@ -67,13 +56,6 @@ const middleware: NextMiddleware = async (req) => {
       req.nextUrl.pathname = "/api/nope";
       return NextResponse.redirect(req.nextUrl);
     }
-  }
-
-  // Ensure that embed query param is there in when /embed is added.
-  // query param is the way in which client side code knows that it is in embed mode.
-  if (url.pathname.endsWith("/embed") && typeof url.searchParams.get("embed") !== "string") {
-    url.searchParams.set("embed", "");
-    return NextResponse.redirect(url);
   }
 
   // Don't 404 old routing_forms links

@@ -1653,7 +1653,6 @@
   "spot_popular_event_types_description": "Vedeți care dintre tipurile de evenimente primesc cele mai multe clicuri și rezervări",
   "no_responses_yet": "Nu există încă răspunsuri",
   "this_will_be_the_placeholder": "Acesta va fi substituentul",
-  "error_booking_event": "A survenit o eroare la rezervarea evenimentului. Reîmprospătați pagina și încercați din nou",
   "timeslot_missing_title": "Nu există niciun interval de timp selectat",
   "timeslot_missing_description": "Selectați un interval de timp pentru a rezerva evenimentul.",
   "timeslot_missing_cta": "Selectare interval de timp",

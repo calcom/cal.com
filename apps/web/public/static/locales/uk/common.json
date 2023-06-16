@@ -1653,7 +1653,6 @@
   "spot_popular_event_types_description": "Дізнайтеся, які типи заходів мають найбільшу кількість переходів і бронювань",
   "no_responses_yet": "Поки немає відповідей",
   "this_will_be_the_placeholder": "Це заповнювач",
-  "error_booking_event": "Сталася помилка під час бронювання заходу, оновіть сторінку й повторіть спробу",
   "timeslot_missing_title": "Не вибрано проміжок часу",
   "timeslot_missing_description": "Виберіть проміжок часу для бронювання заходу.",
   "timeslot_missing_cta": "Вибрати проміжок часу",
