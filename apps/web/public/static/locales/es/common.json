@@ -1653,7 +1653,6 @@
   "spot_popular_event_types_description": "Consulte cuál de sus tipos de eventos están recibiendo más clics y reservas",
   "no_responses_yet": "Aún no hay respuestas",
   "this_will_be_the_placeholder": "Este será el marcador de posición",
-  "error_booking_event": "Ocurrió un error al reservar el evento, actualice la página e intente nuevamente",
   "timeslot_missing_title": "No hay intervalo de tiempo seleccionado",
   "timeslot_missing_description": "Seleccione un intervalo de tiempo para reservar el evento.",
   "timeslot_missing_cta": "Seleccionar intervalo de tiempo",

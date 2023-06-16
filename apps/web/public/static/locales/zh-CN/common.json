@@ -1667,7 +1667,6 @@
   "spot_popular_event_types_description": "查看获得最多点击和预约的活动类型",
   "no_responses_yet": "尚无回复",
   "this_will_be_the_placeholder": "这将是占位符",
-  "error_booking_event": "预订活动时发生错误，请刷新页面并重试",
   "timeslot_missing_title": "未选择时间段",
   "timeslot_missing_description": "请选择要预约活动的时间段。",
   "timeslot_missing_cta": "选择时间段",

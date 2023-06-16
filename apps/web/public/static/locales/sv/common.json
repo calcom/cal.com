@@ -1653,7 +1653,6 @@
   "spot_popular_event_types_description": "Se vilka av dina händelsetyper som får flest klick och bokningar",
   "no_responses_yet": "Inga svar ännu",
   "this_will_be_the_placeholder": "Det här blir platshållaren",
-  "error_booking_event": "Ett fel uppstod när du bokade evenemanget, uppdatera sidan och försök igen",
   "timeslot_missing_title": "Ingen tidslucka vald",
   "timeslot_missing_description": "Välj en tidslucka för att boka evenemanget.",
   "timeslot_missing_cta": "Välj tidslucka",
