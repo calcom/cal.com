@@ -106,7 +106,6 @@ export function buildDateRanges({
   return dateRanges.flat();
 }
 
-//group by date is not yet working correctly
 export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {
   const results = ranges.reduce(
     (
@@ -115,7 +114,8 @@ export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {
       },
       currentValue
     ) => {
-      const dateString = currentValue.start.format("YYYY-MM-DD");
+      const dateString = dayjs.utc(currentValue.start).format("YYYY-MM-DD");
+
       previousValue[dateString] =
         typeof previousValue[dateString] === "undefined"
           ? [currentValue]
