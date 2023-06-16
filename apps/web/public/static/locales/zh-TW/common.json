@@ -1653,7 +1653,6 @@
   "spot_popular_event_types_description": "查看哪種活動類型的點閱次數及預約次數最多",
   "no_responses_yet": "還沒有回應",
   "this_will_be_the_placeholder": "此處會是佔位符",
-  "error_booking_event": "預約活動時發生錯誤，請重新整理頁面然後再試一次",
   "timeslot_missing_title": "未選擇任何時段",
   "timeslot_missing_description": "請選擇要預約活動的時段。",
   "timeslot_missing_cta": "選擇時段",

@@ -1689,7 +1689,6 @@
   "no_responses_yet": "Per ora non ci sono risposte",
   "no_routes_defined": "Nessun percorso definito",
   "this_will_be_the_placeholder": "Questo sarà il segnaposto",
-  "error_booking_event": "Si è verificato un errore durante la prenotazione dell'evento. Aggiornare la pagina e riprovare",
   "timeslot_missing_title": "Nessuna fascia oraria selezionata",
   "timeslot_missing_description": "Selezionare una fascia oraria per prenotare l'evento.",
   "timeslot_missing_cta": "Seleziona fascia oraria",

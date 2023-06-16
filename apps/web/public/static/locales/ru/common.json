@@ -1653,7 +1653,6 @@
   "spot_popular_event_types_description": "Узнайте, какие типы событий собирают больше всего кликов и бронирований",
   "no_responses_yet": "Ответов пока нет",
   "this_will_be_the_placeholder": "Это текст-заполнитель",
-  "error_booking_event": "При бронировании события произошла ошибка. Обновите страницу и повторите попытку",
   "timeslot_missing_title": "Не выбран интервал времени",
   "timeslot_missing_description": "Чтобы забронировать событие, выберите интервал времени.",
   "timeslot_missing_cta": "Выбрать интервал времени",

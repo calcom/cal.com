@@ -1667,7 +1667,6 @@
   "spot_popular_event_types_description": "צפה איזה ארועים מקבלים הכי הרבה גישות ותזמונים",
   "no_responses_yet": "אין עדיין תגובות",
   "this_will_be_the_placeholder": "זה יהיה הממלא מקום",
-  "error_booking_event": "אירעה שגיאה בעת הזמנת האירוע, רענן/י את הדף ונסה/י שוב",
   "timeslot_missing_title": "לא נבחר חלון זמן",
   "timeslot_missing_description": "כדי להזמין את האירוע, יש לבחור חלון זמן.",
   "timeslot_missing_cta": "חלון הזמן שנבחר",

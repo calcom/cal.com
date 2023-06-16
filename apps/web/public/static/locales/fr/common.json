@@ -1709,7 +1709,6 @@
   "no_responses_yet": "Aucune réponse pour l'instant",
   "no_routes_defined": "Aucune route définie",
   "this_will_be_the_placeholder": "Ce sera le texte de substitution",
-  "error_booking_event": "Une erreur s'est produite lors de la réservation de l'événement, veuillez actualiser la page et réessayer",
   "timeslot_missing_title": "Aucun créneau sélectionné",
   "timeslot_missing_description": "Veuillez sélectionner un créneau pour réserver l'événement.",
   "timeslot_missing_cta": "Sélectionner un créneau",

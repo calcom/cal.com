@@ -1653,7 +1653,6 @@
   "spot_popular_event_types_description": "Veja quais tipos de eventos estão recebendo a maioria dos cliques e reservas",
   "no_responses_yet": "Sem respostas por enquanto",
   "this_will_be_the_placeholder": "Este será o espaço reservado",
-  "error_booking_event": "Ocorreu um erro ao reservar o evento, atualize a página e tente novamente",
   "timeslot_missing_title": "Nenhuma alocação de tempo selecionada",
   "timeslot_missing_description": "Selecione uma alocação de tempo para reservar o evento.",
   "timeslot_missing_cta": "Selecione a alocação de tempo",
