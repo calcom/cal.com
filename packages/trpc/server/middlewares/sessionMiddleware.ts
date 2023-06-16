@@ -73,6 +73,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       allowDynamicBooking: true,
       organization: {
         select: {
+          id: true,
           slug: true,
           metadata: true,
         },

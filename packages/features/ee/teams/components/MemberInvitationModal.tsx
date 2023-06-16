@@ -32,7 +32,7 @@ type MemberInvitationModalProps = {
   isOpen: boolean;
   onExit: () => void;
   onSubmit: (values: NewMemberForm) => void;
-  onSettingsOpen: () => void;
+  onSettingsOpen?: () => void;
   teamId: number;
   members: PendingMember[];
   token?: string;
@@ -293,7 +293,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   color="minimal"
                   className="ms-2 me-2"
                   onClick={() => {
-                    props.onSettingsOpen();
+                    props.onSettingsOpen && props.onSettingsOpen();
                     newMemberFormMethods.reset();
                   }}
                   data-testid="edit-invite-link-button">
