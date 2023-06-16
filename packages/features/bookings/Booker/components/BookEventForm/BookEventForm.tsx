@@ -177,7 +177,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const createBookingMutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
       const { uid, paymentUid } = responseData;
-
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
