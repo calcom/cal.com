@@ -36,5 +36,5 @@ export function getWorkflowTemplateOptions(t: TFunction, action: WorkflowActions
   const TEMPLATES = (action && isWhatsappAction(action)) ? WHATSAPP_WORKFLOW_TEMPLATES : BASIC_WORKFLOW_TEMPLATES;
   return TEMPLATES.map((template) => {
     return { label: t(`${template.toLowerCase()}`), value: template };
-  });
+  }) as { label: string; value: any }[];
 }

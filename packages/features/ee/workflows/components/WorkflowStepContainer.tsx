@@ -6,8 +6,7 @@ import { Controller } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
 import { classNames } from "@calcom/lib";
-import { SENDER_ID, SENDER_ID_WHATSAPP } from "@calcom/lib/constants";
-import { SENDER_NAME } from "@calcom/lib/constants";
+import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { WorkflowTemplates, TimeUnit, WorkflowActions } from "@calcom/prisma/enums";
@@ -77,13 +76,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [updateTemplate, setUpdateTemplate] = useState(false);
   const [firstRender, setFirstRender] = useState(true);
 
-  const senderNeeded = (
-    step?.action === WorkflowActions.SMS_NUMBER || 
-    step?.action === WorkflowActions.SMS_ATTENDEE ||
-    step?.action === WorkflowActions.WHATSAPP_ATTENDEE ||
-    step?.action === WorkflowActions.WHATSAPP_NUMBER
-  )
-  const [isSenderIsNeeded, setIsSenderIsNeeded] = useState(senderNeeded ? true : false);
+  const senderNeeded = step?.action === WorkflowActions.SMS_NUMBER || step?.action === WorkflowActions.SMS_ATTENDEE;
+
+  const [isSenderIsNeeded, setIsSenderIsNeeded] = useState(senderNeeded);
   useEffect(() => {
     setNumberVerified(
       !!step &&
@@ -402,8 +397,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           if (val) {
                             const oldValue = form.getValues(`steps.${step.stepNumber - 1}.action`);
 
-                            const setNumberRequiredConfigs = (phoneNumberIsNeeded: boolean) => {
-                              setIsSenderIsNeeded(true);
+                            const setNumberRequiredConfigs = (phoneNumberIsNeeded: boolean, senderNeeded = true) => {
+                              setIsSenderIsNeeded(senderNeeded);
                               setIsEmailAddressNeeded(false);
                               setIsPhoneNumberNeeded(phoneNumberIsNeeded);
                               setNumberVerified(false);
@@ -420,11 +415,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
                               setIsEmailSubjectNeeded(false);
                             } else if (isWhatsappAction(val.value)) {
-                              setNumberRequiredConfigs(val.value === WorkflowActions.WHATSAPP_NUMBER);
+                              setNumberRequiredConfigs(val.value === WorkflowActions.WHATSAPP_NUMBER, false);
 
                               if (!isWhatsappAction(oldValue)) {
                                 form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
-                                form.setValue(`steps.${step.stepNumber - 1}.sender`, SENDER_ID_WHATSAPP);
+                                form.setValue(`steps.${step.stepNumber - 1}.sender`, "");
                               }
 
                               setIsEmailSubjectNeeded(false);
@@ -593,7 +588,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   )}
                 </div>
               )}
-              <div className="bg-muted mt-2 rounded-md p-4 pt-0">
+              {!isWhatsappAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (<div className="bg-muted mt-2 rounded-md p-4 pt-0">
                 {isSenderIsNeeded ? (
                   <>
                     <div className="pt-4">
@@ -624,7 +619,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     </div>
                   </>
                 )}
-              </div>
+              </div>)}
               {canRequirePhoneNumber(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
                 <div className="mt-2">
                   <Controller

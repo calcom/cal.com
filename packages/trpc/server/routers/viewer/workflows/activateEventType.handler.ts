@@ -118,7 +118,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
       } else if (reminder.method === WorkflowMethods.SMS) {
         deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
-      }  else if (reminder.method === WorkflowMethods.WHATSAPP) {
+      } else if (reminder.method === WorkflowMethods.WHATSAPP) {
         deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
       }
     });

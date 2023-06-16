@@ -6,7 +6,6 @@ import prisma from "@calcom/prisma";
 import logger from "@calcom/lib/logger";
 import { BookingInfo, deleteScheduledSMSReminder, timeUnitLowerCase } from "./smsReminderManager";
 
-import { getSenderId } from "../alphanumericSenderIdSupport";
 import * as twilio from "./smsProviders/twilioProvider";
 import { whatsappEventCancelledTemplate, whatsappEventCompletedTemplate, whatsappEventRescheduledTemplate, whatsappReminderTemplate } from "./templates/whatsapp";
 
@@ -34,8 +33,6 @@ export const scheduleWhatsappReminder = async (
   const currentDate = dayjs();
   const timeUnit: timeUnitLowerCase | undefined = timeSpan.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
   let scheduledDate = null;
-
-  const senderID = getSenderId(reminderPhone, sender, true);
 
   //WHATSAPP_ATTENDEE action does not need to be verified
   //isVerificationPending is from all already existing workflows (once they edit their workflow, they will also have to verify the number)
@@ -90,7 +87,7 @@ export const scheduleWhatsappReminder = async (
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        await twilio.sendSMS(reminderPhone, message, senderID, true);
+        await twilio.sendSMS(reminderPhone, message, "", true);
       } catch (error) {
         console.log(`Error sending WHATSAPP with error ${error}`);
       }
@@ -109,7 +106,7 @@ export const scheduleWhatsappReminder = async (
             reminderPhone,
             message,
             scheduledDate.toDate(),
-            senderID,
+            "",
             true
           );
 

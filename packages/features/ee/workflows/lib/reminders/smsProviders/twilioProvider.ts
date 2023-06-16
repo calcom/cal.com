@@ -37,7 +37,7 @@ export const sendSMS = async (phoneNumber: string, body: string, sender: string,
     body: body,
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
     to: getSMSNumber(phoneNumber, whatsapp),
-    from: sender ? getSMSNumber(sender, whatsapp) : getDefaultSender(whatsapp),
+    from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
   });
 
   return response;
@@ -51,7 +51,7 @@ export const scheduleSMS = async (phoneNumber: string, body: string, scheduledDa
     to: getSMSNumber(phoneNumber, whatsapp),
     scheduleType: "fixed",
     sendAt: scheduledDate,
-    from: sender ? getSMSNumber(sender, whatsapp) : getDefaultSender(whatsapp),
+    from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
   });
 
   return response;

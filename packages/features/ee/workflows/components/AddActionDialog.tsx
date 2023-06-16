@@ -5,8 +5,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { SENDER_ID, SENDER_ID_WHATSAPP } from "@calcom/lib/constants";
-import { SENDER_NAME } from "@calcom/lib/constants";
+import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -57,7 +56,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog, addAction } = props;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
-  const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(false);
+  const [isSenderIdNeeded, setIsSenderIsNeeded] = useState(false);
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(false);
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
 
@@ -90,30 +89,28 @@ export const AddActionDialog = (props: IAddActionDialog) => {
       form.setValue("action", newValue.value);
       if (newValue.value === WorkflowActions.SMS_NUMBER) {
         setIsPhoneNumberNeeded(true);
-        setIsSenderIdNeeded(true);
+        setIsSenderIsNeeded(true);
         setIsEmailAddressNeeded(false);
         form.resetField("senderId", { defaultValue: SENDER_ID })
       } else if (newValue.value === WorkflowActions.EMAIL_ADDRESS) {
         setIsEmailAddressNeeded(true);
-        setIsSenderIdNeeded(false);
+        setIsSenderIsNeeded(false);
         setIsPhoneNumberNeeded(false);
       } else if (newValue.value === WorkflowActions.SMS_ATTENDEE) {
-        setIsSenderIdNeeded(true);
+        setIsSenderIsNeeded(true);
         setIsEmailAddressNeeded(false);
         setIsPhoneNumberNeeded(false);
         form.resetField("senderId", { defaultValue: SENDER_ID })
       } else if (newValue.value === WorkflowActions.WHATSAPP_NUMBER) {
+        setIsSenderIsNeeded(false);
         setIsPhoneNumberNeeded(true);
-        setIsSenderIdNeeded(true);
         setIsEmailAddressNeeded(false);
-        form.resetField("senderId", { defaultValue: SENDER_ID_WHATSAPP })
       } else if (newValue.value === WorkflowActions.WHATSAPP_ATTENDEE) {
-        setIsSenderIdNeeded(true);
+        setIsSenderIsNeeded(false);
         setIsEmailAddressNeeded(false);
         setIsPhoneNumberNeeded(false);
-        form.resetField("senderId", { defaultValue: SENDER_ID_WHATSAPP })
       } else {
-        setIsSenderIdNeeded(false);
+        setIsSenderIsNeeded(false);
         setIsEmailAddressNeeded(false);
         setIsPhoneNumberNeeded(false);
       }
@@ -130,6 +127,13 @@ export const AddActionDialog = (props: IAddActionDialog) => {
     return (
       WorkflowActions.SMS_ATTENDEE === workflowStep ||
       WorkflowActions.WHATSAPP_ATTENDEE === workflowStep
+    )
+  }
+
+  const showSender = (action: string) => {
+    return !isSenderIdNeeded && !(
+      WorkflowActions.WHATSAPP_NUMBER === action ||
+      WorkflowActions.WHATSAPP_ATTENDEE === action
     )
   }
 
@@ -154,7 +158,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                 setIsOpenDialog(false);
                 setIsPhoneNumberNeeded(false);
                 setIsEmailAddressNeeded(false);
-                setIsSenderIdNeeded(false);
+                setIsSenderIsNeeded(false);
               }}>
               <div className="mt-5 space-y-1">
                 <Label htmlFor="label">{t("action")}:</Label>
@@ -211,7 +215,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                   <EmailField required label={t("email_address")} {...form.register("sendTo")} />
                 </div>
               )}
-              {isSenderIdNeeded ? (
+              {isSenderIdNeeded && (
                 <>
                   <div className="mt-5">
                     <Label>{t("sender_id")}</Label>
@@ -226,7 +230,8 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                     <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
                   )}
                 </>
-              ) : (
+              )}
+              {showSender(form.getValues('action')) && (
                 <div className="mt-5">
                   <Label>{t("sender_name")}</Label>
                   <Input type="text" placeholder={SENDER_NAME} {...form.register(`senderName`)} />
@@ -256,7 +261,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                     form.unregister("numberRequired");
                     setIsPhoneNumberNeeded(false);
                     setIsEmailAddressNeeded(false);
-                    setIsSenderIdNeeded(false);
+                    setIsSenderIsNeeded(false);
                   }}
                 />
                 <Button type="submit">{t("add")}</Button>
