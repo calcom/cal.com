@@ -58,7 +58,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const trpcContext = trpc.useContext();
 
   const [modalImportMode, setModalInputMode] = useState<ModalMode>(
-    props.orgMembers ? "ORGANIZATION" : "INDIVIDUAL"
+    props?.orgMembers && props.orgMembers?.length > 0 ? "ORGANIZATION" : "INDIVIDUAL"
   );
 
   const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
@@ -95,7 +95,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       },
       { value: "BULK", label: t("invite_team_bulk_segment"), iconLeft: <Users /> },
     ];
-    if (props.orgMembers) {
+    if (props?.orgMembers && props.orgMembers?.length > 0) {
       array.unshift({
         value: "ORGANIZATION",
         label: t("organization"),

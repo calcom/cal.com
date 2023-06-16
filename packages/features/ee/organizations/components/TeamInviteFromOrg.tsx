@@ -11,6 +11,8 @@ type TeamInviteFromOrgProps = PropsWithChildren<{
   orgMembers?: RouterOutputs["viewer"]["organizations"]["getMembers"];
 }>;
 
+const keysToCheck = ["name", "email", "username"] as const; // array of keys to check
+
 export default function TeamInviteFromOrg({
   handleOnChecked,
   selectedEmails,
@@ -18,16 +20,22 @@ export default function TeamInviteFromOrg({
 }: TeamInviteFromOrgProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredMembers = orgMembers?.filter(
-    (member) => member?.user?.name && member.user.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredMembers = orgMembers?.filter((member) => {
+    if (!searchQuery) {
+      return true; // return all members if searchQuery is empty
+    }
+    const { user } = member ?? {}; // destructuring with default value in case member is undefined
+    return keysToCheck.some((key) => user?.[key]?.toLowerCase().includes(searchQuery.toLowerCase()));
+  });
+
+  console.log({ filteredMembers, orgMembers });
   return (
     <div className="bg-muted border-subtle flex flex-col rounded-md border p-4">
       <div className="-my-1">
         <TextField placeholder="Search..." onChange={(e) => setSearchQuery(e.target.value)} />
       </div>
       <hr className="border-subtle -mx-4 mt-2" />
-      <div className="flex flex-col space-y-0.5 pt-2">
+      <div className="scrollbar min-h-48 flex max-h-48 flex-col space-y-0.5 overflow-y-scroll pt-2">
         <>
           {filteredMembers &&
             filteredMembers.map((member) => {
@@ -36,7 +44,7 @@ export default function TeamInviteFromOrg({
                 : selectedEmails === member.user.email;
               return (
                 <UserToInviteItem
-                  key={member.user.username}
+                  key={member.user.id}
                   member={member}
                   isSelected={isSelected}
                   onChange={() => handleOnChecked(member.user.email)}
@@ -60,6 +68,7 @@ function UserToInviteItem({
 }) {
   return (
     <div
+      key={member.userId}
       onClick={() => onChange()} // We handle this on click on the div also - for a11y we handle it with label and checkbox below
       className={classNames(
         "flex cursor-pointer items-center rounded-md py-1 px-2",
