@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   changes:
+    name: Detect changes
     runs-on: buildjet-4vcpu-ubuntu-2204
     permissions:
       pull-requests: read

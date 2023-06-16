@@ -6,6 +6,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -29,6 +31,7 @@ import {
   showToast,
   TextField,
   Editor,
+  DialogFooter,
 } from "@calcom/ui";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
@@ -80,6 +83,7 @@ export default function CreateEventTypeDialog({
   const { t } = useLocale();
   const router = useRouter();
   const [firstRender, setFirstRender] = useState(true);
+  const orgBranding = useOrgBrandingValues();
 
   const {
     data: { teamId, eventPage: pageSlug },
@@ -135,6 +139,9 @@ export default function CreateEventTypeDialog({
   });
 
   const flags = useFlagMap();
+  const urlPrefix = orgBranding
+    ? `${orgBranding.slug}.${subdomainSuffix()}`
+    : process.env.NEXT_PUBLIC_WEBSITE_URL;
 
   return (
     <Dialog
@@ -159,7 +166,7 @@ export default function CreateEventTypeDialog({
           handleSubmit={(values) => {
             createMutation.mutate(values);
           }}>
-          <div className="mt-3 space-y-6">
+          <div className="mt-3 space-y-6 pb-10">
             {teamId && (
               <TextField
                 type="hidden"
@@ -180,11 +187,10 @@ export default function CreateEventTypeDialog({
               }}
             />
 
-            {process.env.NEXT_PUBLIC_WEBSITE_URL !== undefined &&
-            process.env.NEXT_PUBLIC_WEBSITE_URL?.length >= 21 ? (
+            {urlPrefix && urlPrefix.length >= 21 ? (
               <div>
                 <TextField
-                  label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
+                  label={`${t("url")}: ${urlPrefix}`}
                   required
                   addOnLeading={<>/{!isManagedEventType ? pageSlug : t("username_placeholder")}/</>}
                   {...register("slug")}
@@ -204,8 +210,7 @@ export default function CreateEventTypeDialog({
                   required
                   addOnLeading={
                     <>
-                      {process.env.NEXT_PUBLIC_WEBSITE_URL}/
-                      {!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                      {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
                     </>
                   }
                   {...register("slug")}
@@ -293,12 +298,12 @@ export default function CreateEventTypeDialog({
               </div>
             )}
           </div>
-          <div className="mt-8 flex justify-end gap-x-2">
+          <DialogFooter showDivider>
             <DialogClose />
             <Button type="submit" loading={createMutation.isLoading}>
               {t("continue")}
             </Button>
-          </div>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>

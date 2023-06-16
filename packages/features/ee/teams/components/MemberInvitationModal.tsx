@@ -1,11 +1,14 @@
 import { PaperclipIcon, UserIcon, Users } from "lucide-react";
 import { Trans } from "next-i18next";
 import { useMemo, useState } from "react";
+import type { FormEvent } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { classNames } from "@calcom/lib";
+import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { trpc } from "@calcom/trpc";
 import {
   Button,
   Checkbox as CheckboxField,
@@ -13,12 +16,14 @@ import {
   DialogContent,
   DialogFooter,
   Form,
-  TextField,
   Label,
+  showToast,
+  TextField,
   ToggleGroup,
   Select,
   TextAreaField,
 } from "@calcom/ui";
+import { Link } from "@calcom/ui/components/icon";
 
 import type { PendingMember } from "../lib/types";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
@@ -26,8 +31,11 @@ import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
 type MemberInvitationModalProps = {
   isOpen: boolean;
   onExit: () => void;
-  onSubmit: (values: NewMemberForm) => void;
+  onSubmit: (values: NewMemberForm, resetFields: () => void) => void;
+  onSettingsOpen?: () => void;
+  teamId: number;
   members: PendingMember[];
+  token?: string;
 };
 
 type MembershipRoleOption = {
@@ -43,9 +51,33 @@ export interface NewMemberForm {
 
 type ModalMode = "INDIVIDUAL" | "BULK";
 
+interface FileEvent<T = Element> extends FormEvent<T> {
+  target: EventTarget & T;
+}
+
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
+  const trpcContext = trpc.useContext();
+
   const [modalImportMode, setModalInputMode] = useState<ModalMode>("INDIVIDUAL");
+
+  const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
+    onSuccess(token) {
+      copyInviteLinkToClipboard(token);
+      trpcContext.viewer.teams.get.invalidate();
+      trpcContext.viewer.teams.list.invalidate();
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  const copyInviteLinkToClipboard = async (token: string) => {
+    const inviteLink = `${WEBAPP_URL}/teams?token=${token}`;
+    await navigator.clipboard.writeText(inviteLink);
+    showToast(t("invite_link_copied"), "success");
+  };
+
   const options: MembershipRoleOption[] = useMemo(() => {
     return [
       { value: MembershipRole.MEMBER, label: t("member") },
@@ -61,6 +93,31 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       props.members.some((member) => member?.username === value) ||
       props.members.some((member) => member?.email === value)
     );
+  };
+
+  const handleFileUpload = (e: FileEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) {
+      return;
+    }
+    const file = e.target.files[0];
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const contents = e?.target?.result as string;
+        const values = contents?.split(",").map((email) => email.trim().toLocaleLowerCase());
+        newMemberFormMethods.setValue("emailOrUsername", values);
+      };
+
+      reader.readAsText(file);
+    }
+  };
+
+  const resetFields = () => {
+    newMemberFormMethods.reset();
+    newMemberFormMethods.setValue("emailOrUsername", "");
+    setModalInputMode("INDIVIDUAL");
   };
 
   return (
@@ -103,8 +160,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           />
         </div>
 
-        <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values)}>
-          <div className="space-y-6">
+        <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values, resetFields)}>
+          <div className="mt-6 mb-10 space-y-6">
             {/* Indivdual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
               <Controller
@@ -171,12 +228,20 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   }}
                 />
                 <Button
-                  disabled
                   type="button"
                   color="secondary"
                   StartIcon={PaperclipIcon}
                   className="mt-3 justify-center stroke-2">
-                  Upload a .csv file
+                  <label htmlFor="bulkInvite">
+                    Upload a .csv file
+                    <input
+                      id="bulkInvite"
+                      type="file"
+                      accept=".csv"
+                      style={{ display: "none" }}
+                      onChange={handleFileUpload}
+                    />
+                  </label>
                 </Button>
               </div>
             )}
@@ -213,6 +278,35 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 />
               )}
             />
+            <div className="flex">
+              <Button
+                type="button"
+                color="minimal"
+                variant="icon"
+                onClick={() =>
+                  props.token
+                    ? copyInviteLinkToClipboard(props.token)
+                    : createInviteMutation.mutate({ teamId: props.teamId })
+                }
+                className={classNames("gap-2", props.token && "opacity-50")}
+                data-testid="copy-invite-link-button">
+                <Link className="text-default h-4 w-4" aria-hidden="true" />
+                {t("copy_invite_link")}
+              </Button>
+              {props.token && (
+                <Button
+                  type="button"
+                  color="minimal"
+                  className="ms-2 me-2"
+                  onClick={() => {
+                    props.onSettingsOpen && props.onSettingsOpen();
+                    newMemberFormMethods.reset();
+                  }}
+                  data-testid="edit-invite-link-button">
+                  {t("edit_invite_link")}
+                </Button>
+              )}
+            </div>
           </div>
           <DialogFooter showDivider>
             <Button
@@ -220,7 +314,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               color="minimal"
               onClick={() => {
                 props.onExit();
-                newMemberFormMethods.reset();
+                resetFields();
               }}>
               {t("cancel")}
             </Button>

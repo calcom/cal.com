@@ -14,7 +14,7 @@ test.afterEach(({ users }) => users.deleteAll());
 // eslint-disable-next-line playwright/no-skipped-test
 test.skip("dynamic booking", async ({ page, users }) => {
   const pro = await users.create();
-  await pro.login();
+  await pro.apiLogin();
 
   const free = await users.create({ username: "free" });
   await page.goto(`/${pro.username}+${free.username}`);
@@ -47,14 +47,13 @@ test.skip("dynamic booking", async ({ page, users }) => {
 
   await test.step("Can cancel the recently created booking", async () => {
     await page.goto("/bookings/upcoming");
-    await page.locator('[data-testid="cancel"]').first().click();
+    await page.locator('[data-testid="cancel"]').click();
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking");
     });
-    await page.locator('[data-testid="cancel"]').click();
+    await page.locator('[data-testid="confirm_cancel"]').click();
 
-    const cancelledHeadline = await page.locator('[data-testid="cancelled-headline"]').innerText();
-
-    expect(cancelledHeadline).toBe("This event is cancelled");
+    const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
+    await expect(cancelledHeadline).toBeVisible();
   });
 });

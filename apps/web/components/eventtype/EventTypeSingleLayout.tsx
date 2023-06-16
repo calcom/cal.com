@@ -185,7 +185,7 @@ function EventTypeSingleLayout({
       info:
         isManagedEventType || isChildrenManagedEventType
           ? eventType.schedule === null
-            ? "member_default_schedule"
+            ? "members_default_schedule"
             : isChildrenManagedEventType
             ? `${
                 eventType.scheduleName
@@ -390,7 +390,7 @@ function EventTypeSingleLayout({
           <Button
             className="ml-4 lg:ml-0"
             type="submit"
-            loading={formMethods.formState.isSubmitting || isUpdateMutationLoading}
+            loading={isUpdateMutationLoading}
             data-testid="update-eventtype"
             form="event-type-form">
             {t("save")}
