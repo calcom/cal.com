@@ -32,7 +32,7 @@ type MemberInvitationModalProps = {
   isOpen: boolean;
   onExit: () => void;
   onSubmit: (values: NewMemberForm, resetFields: () => void) => void;
-  onSettingsOpen: () => void;
+  onSettingsOpen?: () => void;
   teamId: number;
   members: PendingMember[];
   token?: string;
