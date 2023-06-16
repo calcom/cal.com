@@ -438,7 +438,6 @@ function keepParentInformedAboutDimensionChanges() {
 
 if (isBrowser) {
   log("Embed SDK loaded", { isEmbed: window?.isEmbed?.() || false });
-
   const url = new URL(document.URL);
   embedStore.theme = window?.getEmbedTheme?.();
   if (url.searchParams.get("prerender") !== "true" && window?.isEmbed?.()) {
