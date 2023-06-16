@@ -153,6 +153,8 @@ const paramsSchema = z.object({ type: z.string(), user: z.string() });
 // Booker page fetches a tiny bit of data server side, to determine early
 // whether the page should show an away state or dynamic booking not allowed.
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  console.log("[user]/[type] -new-booker - header", context.req.headers);
+
   const { user } = paramsSchema.parse(context.params);
   const isDynamicGroup = user.includes("+");
 

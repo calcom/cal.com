@@ -359,6 +359,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { user: userParam } = paramsSchema.parse(context.query);
+  console.log("[user]/[type] - header", context.req.headers);
   // dynamic groups are not generated at build time, but otherwise are probably cached until infinity.
   const isDynamicGroup = userParam.includes("+");
   if (isDynamicGroup) {

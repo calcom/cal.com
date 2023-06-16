@@ -71,6 +71,7 @@ const middleware: NextMiddleware = async (req) => {
   // Ensure that embed query param is there in when /embed is added.
   // query param is the way in which client side code knows that it is in embed mode.
   if (url.pathname.endsWith("/embed") && typeof url.searchParams.get("embed") !== "string") {
+    console.log("url.pathname", url.pathname, url.searchParams.get("embed"));
     url.searchParams.set("embed", "");
     return NextResponse.redirect(url);
   }
