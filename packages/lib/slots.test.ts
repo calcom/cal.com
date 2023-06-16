@@ -249,4 +249,37 @@ describe("Tests the slot logic", () => {
       })
     ).toHaveLength(48);
   });
+
+  it("tests the final slot of the day is included", async () => {
+    const slots = getSlots(
+      {
+        "inviteeDate": dayjs.tz("2023-07-13T00:00:00.000+02:00", "Europe/Brussels"),
+        "eventLength": 15,
+        "workingHours":[
+          {
+            "days": [1,2,3,4,5],
+            "startTime": 480,
+            "endTime": 960,
+            "userId": 9
+          },
+          {
+            "days":[4],
+            "startTime": 1170,
+            "endTime":1379,
+            "userId":9
+          }
+        ],
+        "dateOverrides": [],
+        "offsetStart":0,
+        "dateRanges":[
+          { "start": dayjs("2023-07-13T07:00:00.000Z"), "end": dayjs("2023-07-13T15:00:00.000Z") },
+          { "start": dayjs("2023-07-13T18:30:00.000Z"), "end": dayjs("2023-07-13T20:59:59.000Z") }
+        ],
+        "minimumBookingNotice": 120,
+        "frequency": 15,
+        "organizerTimeZone": "Europe/London"
+      }).reverse();
+
+      expect(slots[0].time.format()).toBe("2023-07-13T22:45:00+02:00");
+  });
 });

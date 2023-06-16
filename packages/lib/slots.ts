@@ -185,11 +185,7 @@ function buildSlotsWithDateRanges({
       : range.end;
 
     slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes");
-
-    while (
-      slotStartTime.add(eventLength, "minutes").isBefore(rangeEnd) ||
-      slotStartTime.add(eventLength, "minutes").isSame(rangeEnd)
-    ) {
+    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").isAfter(rangeEnd)) {
       slots.push({
         time: slotStartTime.tz(timeZone),
       });
@@ -218,7 +214,7 @@ const getSlots = ({
   organizerTimeZone,
 }: GetSlots) => {
   if (dateRanges) {
-    return buildSlotsWithDateRanges({
+    const slots = buildSlotsWithDateRanges({
       dateRanges,
       frequency,
       eventLength,
@@ -227,6 +223,7 @@ const getSlots = ({
       organizerTimeZone,
       offsetStart,
     });
+    return slots;
   }
 
   // current date in invitee tz
