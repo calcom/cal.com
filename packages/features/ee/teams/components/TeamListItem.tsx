@@ -146,14 +146,21 @@ export default function TeamListItem(props: Props) {
         onExit={() => {
           setOpenMemberInvitationModal(false);
         }}
-        onSubmit={(values) => {
-          inviteMemberMutation.mutate({
-            teamId: team.id,
-            language: i18n.language,
-            role: values.role,
-            usernameOrEmail: values.emailOrUsername,
-            sendEmailInvitation: values.sendInviteEmail,
-          });
+        onSubmit={(values, resetFields) => {
+          inviteMemberMutation.mutate(
+            {
+              teamId: team.id,
+              language: i18n.language,
+              role: values.role,
+              usernameOrEmail: values.emailOrUsername,
+              sendEmailInvitation: values.sendInviteEmail,
+            },
+            {
+              onSuccess: () => {
+                resetFields();
+              },
+            }
+          );
         }}
         onSettingsOpen={() => {
           setOpenMemberInvitationModal(false);

@@ -67,7 +67,6 @@ const MembersView = () => {
 
   const router = useRouter();
   const session = useSession();
-
   const utils = trpc.useContext();
   const teamId = Number(router.query.id);
 
@@ -177,14 +176,21 @@ const MembersView = () => {
               teamId={team.id}
               token={team.inviteToken?.token}
               onExit={() => setShowMemberInvitationModal(false)}
-              onSubmit={(values) => {
-                inviteMemberMutation.mutate({
-                  teamId,
-                  language: i18n.language,
-                  role: values.role,
-                  usernameOrEmail: values.emailOrUsername,
-                  sendEmailInvitation: values.sendInviteEmail,
-                });
+              onSubmit={(values, resetFields) => {
+                inviteMemberMutation.mutate(
+                  {
+                    teamId,
+                    language: i18n.language,
+                    role: values.role,
+                    usernameOrEmail: values.emailOrUsername,
+                    sendEmailInvitation: values.sendInviteEmail,
+                  },
+                  {
+                    onSuccess: () => {
+                      resetFields();
+                    },
+                  }
+                );
               }}
               onSettingsOpen={() => {
                 setShowMemberInvitationModal(false);

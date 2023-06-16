@@ -121,15 +121,21 @@ export const AddNewTeamMembersForm = ({
             teamId={teamId}
             token={team?.inviteToken?.token}
             onExit={() => setMemberInviteModal(false)}
-            onSubmit={async (values, resetFields) => {
-              await inviteMemberMutation.mutate({
-                teamId,
-                language: i18n.language,
-                role: values.role,
-                usernameOrEmail: values.emailOrUsername,
-                sendEmailInvitation: values.sendInviteEmail,
-              });
-              resetFields();
+            onSubmit={(values, resetFields) => {
+              inviteMemberMutation.mutate(
+                {
+                  teamId,
+                  language: i18n.language,
+                  role: values.role,
+                  usernameOrEmail: values.emailOrUsername,
+                  sendEmailInvitation: values.sendInviteEmail,
+                },
+                {
+                  onSuccess: () => {
+                    resetFields();
+                  },
+                }
+              );
             }}
             onSettingsOpen={() => {
               setMemberInviteModal(false);
