@@ -49,7 +49,7 @@ describe("processDateOverrides", () => {
 });
 
 describe("buildDateRanges", () => {
-  it("should return the correct date override given a specific availability, timezone, and date", () => {
+  it("should return the correct date ranges", () => {
     const items = [
       {
         date: new Date(Date.UTC(2023, 5, 13)),
@@ -69,15 +69,21 @@ describe("buildDateRanges", () => {
     const timeZone = "America/New_York";
 
     const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
+    // [
+    //  { s: '2023-06-13T10:00:00-04:00', e: '2023-06-13T15:00:00-04:00' },
+    //  { s: '2023-06-14T08:00:00-04:00', e: '2023-06-14T17:00:00-04:00' }
+    // ]
 
-    // it fails:
-    // results is length of 2
-    // date override is correct but working hours from the 12th is also there
-    expect(results.length).toBe(1);
+    expect(results.length).toBe(2);
 
     expect(results[0]).toEqual({
       start: dayjs("2023-06-13T14:00:00Z").tz(timeZone),
       end: dayjs("2023-06-13T19:00:00Z").tz(timeZone),
+    });
+
+    expect(results[1]).toEqual({
+      start: dayjs("2023-06-14T12:00:00Z").tz(timeZone),
+      end: dayjs("2023-06-14T21:00:00Z").tz(timeZone),
     });
   });
 });
