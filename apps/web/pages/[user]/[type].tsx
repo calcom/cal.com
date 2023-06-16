@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { getUsernameList } from "@calcom/lib/defaultEvents";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -238,7 +239,6 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
   const { type: typeParam, user: userParam } = paramsSchema.parse(context.params);
   const usernameList = getUsernameList(userParam);
-  console.log("getDynamicGroupPageProps", usernameList, userParam);
   const length = parseInt(typeParam);
   const eventType = getDefaultEvent("" + length);
 
@@ -360,9 +360,8 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { user: userParam } = paramsSchema.parse(context.params);
-  console.log("gSSP,[user]/[type]", context.params);
   // dynamic groups are not generated at build time, but otherwise are probably cached until infinity.
-  const isDynamicGroup = userParam.includes("+");
+  const isDynamicGroup = getUsernameList(userParam).length > 1;
   if (isDynamicGroup) {
     return await getDynamicGroupPageProps(context);
   } else {
