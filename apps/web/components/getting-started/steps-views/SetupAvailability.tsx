@@ -22,21 +22,20 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const { nextStep } = props;
 
   const router = useRouter();
-  let queryAvailability;
-  if (defaultScheduleId) {
-    queryAvailability = trpc.viewer.availability.schedule.get.useQuery(
-      { scheduleId: defaultScheduleId },
-      {
-        enabled: router.isReady,
-      }
-    );
+  
+  queryAvailability = trpc.viewer.availability.schedule.get.useQuery(
+  { scheduleId: defaultScheduleId },
+  {
+    enabled: router.isReady,
   }
-
+  );
+  
   const availabilityForm = useForm({
-    defaultValues: {
-      schedule: queryAvailability?.data?.availability || DEFAULT_SCHEDULE,
-    },
+  defaultValues: {
+    schedule: queryAvailability?.data?.availability || DEFAULT_SCHEDULE,
+  },
   });
+
 
   const mutationOptions = {
     onError: (error: TRPCClientErrorLike<AppRouter>) => {
