@@ -96,9 +96,13 @@ module.exports = {
           from: { opacity: 0, transform: "translateY(10px)" },
           to: { opacity: 1, transform: "none" },
         },
+        spinning: {
+          "100%": { transform: "rotate(360deg)" },
+        },
       },
       animation: {
         "fade-in-up": "fade-in-up 600ms var(--animation-delay, 0ms) cubic-bezier(.21,1.02,.73,1) forwards",
+        spinning: "spinning 0.75s linear infinite",
       },
       boxShadow: {
         dropdown: "0px 2px 6px -1px rgba(0, 0, 0, 0.08)",
