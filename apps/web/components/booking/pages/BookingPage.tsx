@@ -153,13 +153,13 @@ const BookingFields = ({
           field.options = options.filter(
             (location): location is NonNullable<(typeof options)[number]> => !!location
           );
-          // If we have only one option and it has an input, we don't show the field label because Option name acts as label.
+          // If we have only one option, and it has an input, we don't show the field label because Option name acts as label.
           // e.g. If it's just Attendee Phone Number option then we don't show `Location` label
           if (field.options.length === 1) {
             if (field.optionsInputs[field.options[0].value]) {
               noLabel = true;
             } else {
-              // If there's only one option and it doesn't have an input, we don't show the field at all because it's visible in the left side bar
+              // If there's only one option, and it doesn't have an input, we don't show the field at all because it's visible in the left side bar
               hidden = true;
             }
           }
@@ -460,7 +460,7 @@ const BookingPage = ({
       );
 
     if (recurringDates.length) {
-      // Identify set of bookings to one intance of recurring event to support batch changes
+      // Identify set of bookings to one instance of recurring event to support batch changes
       const recurringEventId = uuidv4();
       const recurringBookings = recurringDates.map((recurringDate) => ({
         ...bookingValues,
