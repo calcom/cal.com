@@ -39,6 +39,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   seatsPerTimeSlot: true,
   bookingFields: true,
   team: true,
+  successRedirectUrl: true,
   workflows: {
     include: {
       workflow: {
