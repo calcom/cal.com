@@ -20,10 +20,12 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const { t } = useLocale();
   const { nextStep } = props;
 
-  const queryAvailability = trpc.viewer.availability.schedule.get.useQuery(
-    { scheduleId: defaultScheduleId! },
+  const router = useRouter();
+
+  queryAvailability = trpc.viewer.availability.schedule.get.useQuery(
+    { scheduleId: defaultScheduleId },
     {
-      enabled: !!defaultScheduleId,
+      enabled: router.isReady,
     }
   );
 
