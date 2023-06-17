@@ -32,7 +32,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
         severity === "success" && "bg-inverted text-inverted",
         severity === "neutral" && "bg-subtle text-default"
       )}>
-      <div className="relative flex flex-col md:flex-row">
+      <div className="relative flex md:flex-row">
         {CustomIcon ? (
           <div className="flex-shrink-0">
             <CustomIcon aria-hidden="true" className={classNames("text-default h-5 w-5", iconClassName)} />
@@ -71,13 +71,15 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
             )}
           </div>
         )}
+        <div className="flex sm:flex-row flex-col flex-grow">
 
-        <div className="ml-3 flex-grow">
+        <div className="ml-3 ">
           <h3 className="text-sm font-medium">{props.title}</h3>
           <div className="text-sm">{props.message}</div>
         </div>
         {/* @TODO: Shouldn't be absolute. This makes it harder to give margin etc. */}
-        {props.actions && <div className="absolute top-1 right-1 text-sm md:relative">{props.actions}</div>}
+        {props.actions && <div className="ml-auto text-sm md:relative mt-2 sm:mt-0">{props.actions}</div>}
+        </div>
       </div>
     </div>
   );
