@@ -1,4 +1,4 @@
-name: Add PRs to project 'Reviewing PRs'
+name: Add PRs to project Reviewing PRs
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   add-PR-to-project:
-    name: Add PR to project
+    name: Add PRs to project Reviewing PRs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/add-to-project@v0.1.0
