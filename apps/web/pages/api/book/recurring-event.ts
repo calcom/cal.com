@@ -6,6 +6,8 @@ import type { BookingResponse, RecurringBookingCreateBody } from "@calcom/featur
 import { defaultResponder } from "@calcom/lib/server";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
+// @TODO: Didn't look at the contents of this function in order to not break old booking page.
+
 async function handler(req: NextApiRequest & { userId?: number }, res: NextApiResponse) {
   const data: RecurringBookingCreateBody[] = req.body;
   const session = await getServerSession({ req, res });
