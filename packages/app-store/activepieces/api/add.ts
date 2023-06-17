@@ -11,7 +11,7 @@ const handler: AppDeclarativeHandler = {
   handlerType: "add",
   redirect: {
     newTab: true,
-    url: "https://activepieces.com/",
+    url: "https://www.activepieces.com/pieces/cal-com",
   },
   createCredential: ({ appType, user, slug }) =>
     createDefaultInstallation({ appType, userId: user.id, slug, key: {} }),
