@@ -76,7 +76,6 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
             <h3 className="text-sm font-medium">{props.title}</h3>
             <div className="text-sm">{props.message}</div>
           </div>
-          {/* @TODO: Shouldn't be absolute. This makes it harder to give margin etc. */}
           {props.actions && <div className="ml-auto mt-2 text-sm sm:mt-0 md:relative">{props.actions}</div>}
         </div>
       </div>
