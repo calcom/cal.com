@@ -1,7 +1,10 @@
 // TODO: i18n
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { useRouter } from "next/router";
 
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
+import { FilterResults } from "@calcom/features/filters/components/FilterResults";
+import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
+import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -9,10 +12,15 @@ import useApp from "@calcom/lib/hooks/useApp";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
+import type {
+  AppGetServerSidePropsContext,
+  AppPrisma,
+  AppSsrInit,
+  AppUser,
+} from "@calcom/types/AppGetServerSideProps";
 import { Badge, ButtonGroup, EmptyScreen, List, ListLinkItem, Tooltip, Button } from "@calcom/ui";
+import { CreateButtonWithTeamsList } from "@calcom/ui";
 import {
-  Plus,
   GitMerge,
   ExternalLink,
   Link as LinkIcon,
@@ -32,22 +40,43 @@ import {
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { FormAction, FormActionsDropdown, FormActionsProvider } from "../../components/FormActions";
-import { getSerializableForm } from "../../lib/getSerializableForm";
+import {
+  createAction,
+  FormAction,
+  FormActionsDropdown,
+  FormActionsProvider,
+} from "../../components/FormActions";
+import { isFallbackRoute } from "../../lib/isFallbackRoute";
+
+function NewFormButton() {
+  const { t } = useLocale();
+  const router = useRouter();
+  return (
+    <CreateButtonWithTeamsList
+      subtitle={t("create_routing_form_on").toUpperCase()}
+      data-testid="new-routing-form"
+      createFunction={(teamId) => {
+        createAction({ router, teamId: teamId ?? null });
+      }}
+    />
+  );
+}
 
 export default function RoutingForms({
-  forms: forms_,
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const { t } = useLocale();
   const { hasPaidPlan } = useHasPaidPlan();
+  const router = useRouter();
 
-  const { data: forms, isLoading } = trpc.viewer.appRoutingForms.forms.useQuery(undefined, {
-    initialData: forms_,
+  const filters = getTeamsFiltersFromQuery(router.query);
+
+  const queryRes = trpc.viewer.appRoutingForms.forms.useQuery({
+    filters,
   });
 
   const { data: typeformApp } = useApp("typeform");
-
+  const forms = queryRes.data?.filtered;
   const features = [
     {
       icon: <FileText className="h-5 w-5 text-orange-500" />,
@@ -81,22 +110,10 @@ export default function RoutingForms({
     },
   ];
 
-  function NewFormButton() {
-    return (
-      <FormAction
-        variant="fab"
-        routingForm={null}
-        data-testid="new-routing-form"
-        StartIcon={Plus}
-        action="create">
-        {t("new")}
-      </FormAction>
-    );
-  }
   return (
     <ShellMain
       heading="Routing Forms"
-      CTA={hasPaidPlan && forms?.length && <NewFormButton />}
+      CTA={hasPaidPlan && forms?.length ? <NewFormButton /> : null}
       subtitle={t("routing_forms_description")}>
       <UpgradeTip
         title={t("teams_plan_required")}
@@ -119,37 +136,61 @@ export default function RoutingForms({
         <FormActionsProvider appUrl={appUrl}>
           <div className="-mx-4 md:-mx-8">
             <div className="mb-10 w-full px-4 pb-2 sm:px-6 md:px-8">
-              {!forms?.length ? (
-                <EmptyScreen
-                  Icon={GitMerge}
-                  headline={t("create_your_first_form")}
-                  description={t("create_your_first_form_description")}
-                  buttonRaw={<NewFormButton />}
-                />
-              ) : null}
-              {forms?.length ? (
+              <div className="flex">
+                <TeamsFilter />
+              </div>
+              <FilterResults
+                queryRes={queryRes}
+                emptyScreen={
+                  <EmptyScreen
+                    Icon={GitMerge}
+                    headline={t("create_your_first_form")}
+                    description={t("create_your_first_form_description")}
+                    buttonRaw={<NewFormButton />}
+                  />
+                }
+                noResultsScreen={
+                  <EmptyScreen
+                    Icon={GitMerge}
+                    headline={t("no_results_for_filter")}
+                    description={t("change_filter_common")}
+                  />
+                }
+                SkeletonLoader={SkeletonLoaderTeamList}>
                 <div className="bg-default mb-16 overflow-hidden">
                   <List data-testid="routing-forms-list">
-                    {forms.map((form, index) => {
+                    {forms?.map(({ form, readOnly }) => {
                       if (!form) {
                         return null;
                       }
 
                       const description = form.description || "";
-                      const disabled = form.disabled;
                       form.routes = form.routes || [];
                       const fields = form.fields || [];
+                      const userRoutes = form.routes.filter((route) => !isFallbackRoute(route));
                       return (
                         <ListLinkItem
-                          key={index}
+                          key={form.id}
                           href={appUrl + "/form-edit/" + form.id}
                           heading={form.name}
-                          disabled={disabled}
+                          disabled={readOnly}
                           subHeading={description}
                           className="space-x-2 rtl:space-x-reverse"
                           actions={
                             <>
-                              <FormAction className="self-center" action="toggle" routingForm={form} />
+                              {form.team?.name && (
+                                <div className="border-r-2 border-neutral-300">
+                                  <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
+                                    {form.team.name}
+                                  </Badge>
+                                </div>
+                              )}
+                              <FormAction
+                                disabled={readOnly}
+                                className="self-center"
+                                action="toggle"
+                                routingForm={form}
+                              />
                               <ButtonGroup combined>
                                 <Tooltip content={t("preview")}>
                                   <FormAction
@@ -159,7 +200,6 @@ export default function RoutingForms({
                                     StartIcon={ExternalLink}
                                     color="secondary"
                                     variant="icon"
-                                    disabled={disabled}
                                   />
                                 </Tooltip>
                                 <FormAction
@@ -168,7 +208,6 @@ export default function RoutingForms({
                                   color="secondary"
                                   variant="icon"
                                   StartIcon={LinkIcon}
-                                  disabled={disabled}
                                   tooltip={t("copy_link_to_form")}
                                 />
                                 <FormAction
@@ -177,10 +216,9 @@ export default function RoutingForms({
                                   color="secondary"
                                   variant="icon"
                                   StartIcon={Code}
-                                  disabled={disabled}
                                   tooltip={t("embed")}
                                 />
-                                <FormActionsDropdown form={form}>
+                                <FormActionsDropdown disabled={readOnly}>
                                   <FormAction
                                     action="edit"
                                     routingForm={form}
@@ -232,7 +270,7 @@ export default function RoutingForms({
                               {fields.length} {fields.length === 1 ? "field" : "fields"}
                             </Badge>
                             <Badge variant="gray" startIcon={GitMerge}>
-                              {form.routes.length} {form.routes.length === 1 ? "route" : "routes"}
+                              {userRoutes.length} {userRoutes.length === 1 ? "route" : "routes"}
                             </Badge>
                             <Badge variant="gray" startIcon={MessageCircle}>
                               {form._count.responses} {form._count.responses === 1 ? "response" : "responses"}
@@ -243,7 +281,7 @@ export default function RoutingForms({
                     })}
                   </List>
                 </div>
-              ) : null}
+              </FilterResults>
             </div>
           </div>
         </FormActionsProvider>
@@ -263,7 +301,8 @@ RoutingForms.getLayout = (page: React.ReactElement) => {
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
   prisma: AppPrisma,
-  user: AppUser
+  user: AppUser,
+  ssrInit: AppSsrInit
 ) {
   if (!user) {
     return {
@@ -273,31 +312,18 @@ export const getServerSideProps = async function getServerSideProps(
       },
     };
   }
-  const forms = await prisma.app_RoutingForms_Form.findMany({
-    where: {
-      userId: user.id,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    include: {
-      _count: {
-        select: {
-          responses: true,
-        },
-      },
-    },
+  const ssr = await ssrInit(context);
+
+  const filters = getTeamsFiltersFromQuery(context.query);
+
+  await ssr.viewer.appRoutingForms.forms.prefetch({
+    filters,
   });
-
-  const serializableForms = [];
-  for (const [, form] of Object.entries(forms)) {
-    serializableForms.push(await getSerializableForm(form));
-  }
-
+  // Prefetch this so that New Button is immediately available
+  await ssr.viewer.teamsAndUserProfilesQuery.prefetch();
   return {
     props: {
-      ...(await serverSideTranslations(context.locale ?? "", ["common"])),
-      forms: serializableForms,
+      trpcState: ssr.dehydrate(),
     },
   };
 };

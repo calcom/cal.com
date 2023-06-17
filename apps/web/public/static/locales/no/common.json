@@ -109,6 +109,7 @@
   "team_upgrade_banner_description": "Takk for at du prøvde vår nye team-plan. Vi la merke til at teamet ditt \"{{teamName}}\" må oppgraderes.",
   "team_upgrade_banner_action": "Oppgrader her",
   "team_upgraded_successfully": "Teamet ditt ble oppgradert!",
+  "org_upgrade_banner_action": "Oppgrader her",
   "use_link_to_reset_password": "Bruk lenken nedenfor for å tilbakestille passordet ditt",
   "hey_there": "Hei der,",
   "forgot_your_password_calcom": "Glemt passordet? - {{appName}}",
@@ -217,6 +218,7 @@
   "done": "Ferdig",
   "all_done": "Alt klart!",
   "all_apps": "Alt",
+  "all": "Alt",
   "check_email_reset_password": "Sjekk e-posten din. Vi har sendt deg en lenke for å tilbakestille passordet ditt.",
   "finish": "Fullfør",
   "few_sentences_about_yourself": "Noen setninger om deg selv. Dette vil vises på din personlige url-side.",
@@ -1321,7 +1323,6 @@
   "your_team_disbanded_successfully": "Teamet ditt har blitt oppløst",
   "error_creating_team": "Feil ved opprettelse av team",
   "you": "Deg",
-  "send_email": "Send e-post",
   "member_already_invited": "Medlemmet er allerede invitert",
   "enter_email_or_username": "Skriv inn en e-post eller brukernavn",
   "team_name_taken": "Dette navnet er allerede tatt",
@@ -1405,5 +1406,6 @@
   "install_google_calendar": "Installer Google Kalender",
   "configure": "Konfigurer",
   "sso_configuration": "Enkel Pålogging",
-  "booking_confirmation_failed": "Booking-bekreftelse feilet"
+  "booking_confirmation_failed": "Booking-bekreftelse feilet",
+  "organization_url_taken": "Denne URL'en er allerede tatt"
 }

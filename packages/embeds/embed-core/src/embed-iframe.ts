@@ -2,7 +2,6 @@ import { useRouter } from "next/router";
 import type { CSSProperties } from "react";
 import { useState, useEffect } from "react";
 
-import embedInit from "@calcom/embed-core/embed-iframe-init";
 import type { BookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 
@@ -439,8 +438,6 @@ function keepParentInformedAboutDimensionChanges() {
 
 if (isBrowser) {
   log("Embed SDK loaded", { isEmbed: window?.isEmbed?.() || false });
-  // Exposes certain global variables/fns that are used by the app to get interface with the embed.
-  embedInit();
   const url = new URL(document.URL);
   embedStore.theme = window?.getEmbedTheme?.();
   if (url.searchParams.get("prerender") !== "true" && window?.isEmbed?.()) {

@@ -39,11 +39,11 @@ import type { SerializableForm } from "../types/types";
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 
 const newFormModalQuerySchema = z.object({
-  action: z.string(),
+  action: z.literal("new").or(z.literal("duplicate")),
   target: z.string().optional(),
 });
 
-const openModal = (router: NextRouter, option: { target?: string; action: string }) => {
+const openModal = (router: NextRouter, option: z.infer<typeof newFormModalQuerySchema>) => {
   const query = {
     ...router.query,
     dialog: "new-form",
@@ -68,8 +68,8 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
     onSuccess: (_data, variables) => {
       router.push(`${appUrl}/form-edit/${variables.id}`);
     },
-    onError: () => {
-      showToast(t("something_went_wrong"), "error");
+    onError: (err) => {
+      showToast(err.message || t("something_went_wrong"), "error");
     },
     onSettled: () => {
       utils.viewer.appRoutingForms.forms.invalidate();
@@ -84,13 +84,16 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
 
   const { action, target } = router.query as z.infer<typeof newFormModalQuerySchema>;
 
+  const formToDuplicate = action === "duplicate" ? target : null;
+  const teamId = action === "new" ? Number(target) : null;
+
   const { register } = hookForm;
   return (
     <Dialog name="new-form" clearQueryParamsOnClose={["target", "action"]}>
       <DialogContent className="overflow-y-auto">
         <div className="mb-4">
           <h3 className="text-emphasis text-lg font-bold leading-6" id="modal-title">
-            {t("add_new_form")}
+            {teamId ? t("add_new_team_form") : t("add_new_form")}
           </h3>
           <div>
             <p className="text-subtle text-sm">{t("form_description")}</p>
@@ -105,7 +108,8 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
               id: formId,
               ...values,
               addFallback: true,
-              duplicateFrom: action === "duplicate" ? target : null,
+              teamId,
+              duplicateFrom: formToDuplicate,
             });
           }}>
           <div className="mt-3 space-y-4">
@@ -151,12 +155,17 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
 
 const dropdownCtx = createContext<{ dropdown: boolean }>({ dropdown: false });
 
-export const FormActionsDropdown = ({ form, children }: { form: RoutingForm; children: React.ReactNode }) => {
-  const { disabled } = form;
+export const FormActionsDropdown = ({
+  children,
+  disabled,
+}: {
+  disabled?: boolean;
+  children: React.ReactNode;
+}) => {
   return (
     <dropdownCtx.Provider value={{ dropdown: true }}>
       <Dropdown>
-        <DropdownMenuTrigger data-testid="form-dropdown" asChild>
+        <DropdownMenuTrigger disabled={disabled} data-testid="form-dropdown" asChild>
           <Button
             type="button"
             variant="icon"
@@ -190,15 +199,20 @@ function Dialogs({
       await utils.viewer.appRoutingForms.forms.cancel();
       const previousValue = utils.viewer.appRoutingForms.forms.getData();
       if (previousValue) {
-        const filtered = previousValue.filter(({ id }) => id !== formId);
-        utils.viewer.appRoutingForms.forms.setData(undefined, filtered);
+        const filtered = previousValue.filtered.filter(({ form: { id } }) => id !== formId);
+        utils.viewer.appRoutingForms.forms.setData(
+          {},
+          {
+            ...previousValue,
+            filtered,
+          }
+        );
       }
       return { previousValue };
     },
     onSuccess: () => {
       showToast(t("form_deleted"), "success");
       setDeleteDialogOpen(false);
-      router.replace(`${appUrl}/forms`);
     },
     onSettled: () => {
       utils.viewer.appRoutingForms.forms.invalidate();
@@ -206,7 +220,7 @@ function Dialogs({
     },
     onError: (err, newTodo, context) => {
       if (context?.previousValue) {
-        utils.viewer.appRoutingForms.forms.setData(undefined, context.previousValue);
+        utils.viewer.appRoutingForms.forms.setData({}, context.previousValue);
       }
       showToast(err.message || t("something_went_wrong"), "error");
     },
@@ -266,13 +280,19 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
       await utils.viewer.appRoutingForms.forms.cancel();
       const previousValue = utils.viewer.appRoutingForms.forms.getData();
       if (previousValue) {
-        const itemIndex = previousValue.findIndex(({ id }) => id === formId);
-        const prevValueTemp = [...previousValue];
+        const formIndex = previousValue.filtered.findIndex(({ form: { id } }) => id === formId);
+        const previousListOfForms = [...previousValue.filtered];
 
-        if (itemIndex !== -1 && prevValueTemp[itemIndex] && disabled !== undefined) {
-          prevValueTemp[itemIndex].disabled = disabled;
+        if (formIndex !== -1 && previousListOfForms[formIndex] && disabled !== undefined) {
+          previousListOfForms[formIndex].form.disabled = disabled;
         }
-        utils.viewer.appRoutingForms.forms.setData(undefined, prevValueTemp);
+        utils.viewer.appRoutingForms.forms.setData(
+          {},
+          {
+            filtered: previousListOfForms,
+            totalCount: previousValue.totalCount,
+          }
+        );
       }
       return { previousValue };
     },
@@ -289,9 +309,9 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
     },
     onError: (err, value, context) => {
       if (context?.previousValue) {
-        utils.viewer.appRoutingForms.forms.setData(undefined, context.previousValue);
+        utils.viewer.appRoutingForms.forms.setData({}, context.previousValue);
       }
-      showToast(t("something_went_wrong"), "error");
+      showToast(err.message || t("something_went_wrong"), "error");
     },
   });
 
@@ -354,7 +374,12 @@ type FormActionProps<T> = {
   //TODO: Provide types here
   action: FormActionType;
   children?: React.ReactNode;
-  render?: (props: { routingForm: RoutingForm | null; className?: string; label?: string }) => JSX.Element;
+  render?: (props: {
+    routingForm: RoutingForm | null;
+    className?: string;
+    label?: string;
+    disabled?: boolean | null | undefined;
+  }) => JSX.Element;
   extraClassNames?: string;
 } & ButtonProps;
 
@@ -416,7 +441,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       loading: _delete.isLoading,
     },
     create: {
-      onClick: () => openModal(router, { action: "new" }),
+      onClick: () => createAction({ router, teamId: null }),
     },
     copyRedirectUrl: {
       onClick: () => {
@@ -425,7 +450,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       },
     },
     toggle: {
-      render: ({ routingForm, label = "", ...restProps }) => {
+      render: ({ routingForm, label = "", disabled, ...restProps }) => {
         if (!routingForm) {
           return <></>;
         }
@@ -437,6 +462,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
               extraClassNames
             )}>
             <Switch
+              disabled={!!disabled}
               checked={!routingForm.disabled}
               label={label}
               onCheckedChange={(checked) => toggle.onAction({ routingForm, checked })}
@@ -486,3 +512,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     </DropdownMenuItem>
   );
 });
+
+export const createAction = ({ router, teamId }: { router: NextRouter; teamId: number | null }) => {
+  openModal(router, { action: "new", target: teamId ? String(teamId) : "" });
+};
