@@ -3,15 +3,19 @@ import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
-import { StepCard, Steps } from "@calcom/ui";
+import { APP_NAME } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { StepCard, Steps, Button } from "@calcom/ui";
 
-export default function WizardLayout({
+export function WizardLayout({
   children,
   maxSteps = 2,
   currentStep = 0,
+  isOptionalCallback,
 }: {
   children: React.ReactNode;
-} & { maxSteps?: number; currentStep?: number }) {
+} & { maxSteps?: number; currentStep?: number; isOptionalCallback?: () => void }) {
+  const { t } = useLocale();
   const [meta, setMeta] = useState({ title: "", subtitle: " " });
   const router = useRouter();
   const { title, subtitle } = meta;
@@ -35,7 +39,9 @@ export default function WizardLayout({
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">
             <div className="mx-auto sm:max-w-[520px]">
               <header>
-                <p className="font-cal mb-3 text-[28px] font-medium leading-7">{title}&nbsp;</p>
+                <p className="font-cal mb-3 text-[28px] font-medium leading-7">
+                  {title.replace(` | ${APP_NAME}`, "")}&nbsp;
+                </p>
                 <p className="text-subtle font-sans text-sm font-normal">{subtitle}&nbsp;</p>
               </header>
               <Steps maxSteps={maxSteps} currentStep={currentStep} navigateToStep={noop} />
@@ -43,6 +49,13 @@ export default function WizardLayout({
             <StepCard>{children}</StepCard>
           </div>
         </div>
+        {isOptionalCallback && (
+          <div className="mt-4 flex justify-center">
+            <Button color="minimal" onClick={isOptionalCallback}>
+              {t("ill_do_this_later")}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -86,6 +86,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           theme: true,
           brandColor: true,
           darkBrandColor: true,
+          parent: {
+            select: {
+              logo: true,
+              name: true,
+            },
+          },
         },
       },
       users: {
