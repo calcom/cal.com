@@ -113,7 +113,7 @@ export const createHandler = async ({ input }: CreateOptions) => {
       .update(adminEmail + process.env.CALENDSO_ENCRYPTION_KEY)
       .digest("hex");
 
-    totp.options = { step: 90 };
+    totp.options = { step: 900 };
     const code = totp.generate(secret);
 
     await sendOrganizationEmailVerification({
