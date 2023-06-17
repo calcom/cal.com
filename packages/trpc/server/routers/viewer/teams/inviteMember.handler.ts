@@ -26,7 +26,6 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
   if (input.role === MembershipRole.OWNER && !(await isTeamOwner(ctx.user?.id, input.teamId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
-
   const translation = await getTranslation(input.language ?? "en", "common");
 
   const team = await prisma.team.findFirst({
@@ -35,7 +34,8 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     },
   });
 
-  if (!team) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+  if (!team)
+    throw new TRPCError({ code: "NOT_FOUND", message: `${input.isOrg ? "Organization" : "Team"} not found` });
 
   const emailsToInvite = Array.isArray(input.usernameOrEmail)
     ? input.usernameOrEmail
@@ -47,6 +47,13 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
       },
     });
+
+    if (input.isOrg && invitee) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `Email ${usernameOrEmail} already exists, you can't invite existing users.`,
+      });
+    }
 
     if (!invitee) {
       // liberal email match
@@ -62,6 +69,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         data: {
           email: usernameOrEmail,
           invitedTo: input.teamId,
+          ...(input.isOrg && { organizationId: input.teamId }),
           teams: {
             create: {
               teamId: input.teamId,
@@ -80,14 +88,15 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
           expires: new Date(new Date().setHours(168)), // +1 week
         },
       });
-      if (ctx?.user?.name && team?.name) {
+      if (team?.name) {
         await sendTeamInviteEmail({
           language: translation,
-          from: ctx.user.name,
+          from: ctx.user.name || `${team.name}'s admin`,
           to: usernameOrEmail,
           teamName: team.name,
           joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`, // we know that the user has not completed onboarding yet, so we can redirect them to the onboarding flow
           isCalcomMember: false,
+          isOrg: input.isOrg,
         });
       }
     } else {
@@ -148,6 +157,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
           to: sendTo,
           teamName: team.name,
           ...inviteTeamOptions,
+          isOrg: input.isOrg,
         });
       }
     }

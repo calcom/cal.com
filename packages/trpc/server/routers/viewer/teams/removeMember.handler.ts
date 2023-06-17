@@ -25,6 +25,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
   // Only a team owner can remove another team owner.
   if ((await isTeamOwner(input.memberId, input.teamId)) && !(await isTeamOwner(ctx.user.id, input.teamId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
+
   if (ctx.user.id === input.memberId && isAdmin)
     throw new TRPCError({
       code: "FORBIDDEN",
@@ -39,6 +40,23 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
       user: true,
     },
   });
+
+  if (input.isOrg) {
+    // Deleting membership from all child teams
+    await prisma.membership.deleteMany({
+      where: {
+        team: {
+          parentId: input.teamId,
+        },
+        userId: membership.userId,
+      },
+    });
+
+    await prisma.user.update({
+      where: { id: membership.userId },
+      data: { organizationId: null },
+    });
+  }
 
   // Deleted managed event types from this team from this member
   await ctx.prisma.eventType.deleteMany({

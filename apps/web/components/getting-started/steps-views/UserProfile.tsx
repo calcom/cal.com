@@ -8,21 +8,15 @@ import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
-import { Avatar } from "@calcom/ui";
+import { Avatar, Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
-
-import type { IOnboardingPageProps } from "../../../pages/getting-started/[[...step]]";
 
 type FormData = {
   bio: string;
 };
-interface IUserProfileProps {
-  user: IOnboardingPageProps["user"];
-}
 
-const UserProfile = (props: IUserProfileProps) => {
-  const { user } = props;
+const UserProfile = () => {
+  const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null);
   const { setValue, handleSubmit, getValues } = useForm<FormData>({
