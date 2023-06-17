@@ -14,7 +14,7 @@
   "verify_email_subject": "{{appName}}: Verify your account",
   "check_your_email": "Check your email",
   "verify_email_page_body": "We've sent an email to {{email}}. It is important to verify your email address to guarantee the best email and calendar deliverability from {{appName}}.",
-  "verify_email_banner_body": "Verify your email adress to guarantee the best email and calendar deliverability",
+  "verify_email_banner_body": "Verify your email address to guarantee the best email and calendar deliverability",
   "verify_email_email_header": "Verify your email address",
   "verify_email_email_button": "Verify email",
   "verify_email_email_body": "Please verify your email address by clicking the button below.",
