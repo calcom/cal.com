@@ -222,7 +222,7 @@
   "sign_in": "Log in",
   "go_back_login": "Ga terug naar de inlogpagina",
   "error_during_login": "Er is een fout opgetreden tijdens het inloggen. Ga terug naar de inlogpagina en probeer het opnieuw.",
-  "request_password_reset": "E-mail voor opnieuw instellen van wachtwoord versturen",
+  "request_password_reset": "Verstuur wachtwoord herstel e-mail",
   "send_invite": "Uitnodiging versturen",
   "forgot_password": "Wachtwoord vergeten?",
   "forgot": "Vergeten?",
