@@ -4,7 +4,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
-import { Button, TopBanner, showToast } from "@calcom/ui";
+import { TopBanner, showToast } from "@calcom/ui";
 import { Mail } from "@calcom/ui/components/icon";
 
 import { useFlagMap } from "../../flags/context/provider";
@@ -26,13 +26,14 @@ function VerifyEmailBanner() {
         text={t("verify_email_banner_body", { appName: APP_NAME })}
         variant="warning"
         actions={
-          <Button
+          <a
+            className="underline hover:cursor-pointer"
             onClick={() => {
               mutation.mutate();
               showToast(t("email_sent"), "success");
             }}>
             {t("resend_email")}
-          </Button>
+          </a>
         }
       />
     </>

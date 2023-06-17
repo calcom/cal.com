@@ -1457,7 +1457,7 @@
   "your_org_disbanded_successfully": "Votre organisation a bien été dissoute",
   "error_creating_team": "Erreur lors de la création de l'équipe",
   "you": "Vous",
-  "resend_email": "Envoyer un e-mail",
+  "send_email": "Envoyer un e-mail",
   "member_already_invited": "Le membre a déjà été invité",
   "enter_email_or_username": "Saisissez une adresse e-mail ou un nom d'utilisateur",
   "team_name_taken": "Ce nom est déjà pris",
