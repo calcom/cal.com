@@ -29,7 +29,7 @@ export default function AppsLayout({ children, actions, emptyStore, ...rest }: A
             <EmptyScreen
               Icon={AlertCircle}
               headline={isAdmin ? t("no_apps") : t("no_apps_contact_admin")}
-              description={isAdmin ? "You can enable apps in the settings" : ""}
+              description={isAdmin ? "You can enable apps in the settings" : "Please contact your admin"}
               buttonText={isAdmin ? t("apps_settings") : ""}
               buttonOnClick={() => router.push("/settings/admin/apps/calendar")}
             />
