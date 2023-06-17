@@ -17,7 +17,7 @@ export const OrganizationEventTypeFilter = () => {
   const { t } = useLocale();
   const session = useSession();
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeAllQueryParams } = useFilterQuery();
-  const [dropdownTitle, setDropdownTitle] = useState<string>(t("all_apps"));
+  const [dropdownTitle, setDropdownTitle] = useState<string>(t("all"));
 
   const { data: teams, status } = trpc.viewer.teams.list.useQuery();
   const isNotEmpty = !!teams?.length;
@@ -28,13 +28,13 @@ export const OrganizationEventTypeFilter = () => {
         <CheckboxField
           id="all-eventtypes-checkbox"
           icon={<Layers className="h-4 w-4" />}
-          checked={dropdownTitle === t("all_apps")}
+          checked={dropdownTitle === t("all")}
           onChange={(e) => {
             removeAllQueryParams();
-            setDropdownTitle(t("all_apps"));
+            setDropdownTitle(t("all"));
             //  TODO: What to do when all event types is unchecked
           }}
-          label={t("all_apps")}
+          label={t("all")}
         />
       </CheckboxFieldContainer>
       <CheckboxFieldContainer>

@@ -60,7 +60,7 @@ export const TeamsFilter = () => {
           onChange={(e) => {
             removeAllQueryParams();
           }}
-          label={t("all_apps")}
+          label={t("all")}
         />
 
         <FilterCheckboxField
