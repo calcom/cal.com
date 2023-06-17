@@ -1414,7 +1414,6 @@
   "your_team_disbanded_successfully": "귀하의 팀이 성공적으로 해산되었습니다",
   "error_creating_team": "팀을 만드는 중 오류 발생",
   "you": "귀하",
-  "send_email": "이메일 보내기",
   "member_already_invited": "구성원이 이미 초대되었습니다",
   "enter_email_or_username": "이메일 또는 사용자 이름을 입력하세요",
   "team_name_taken": "이미 사용 중인 이름입니다",
