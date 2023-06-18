@@ -202,7 +202,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                               min="1"
                               max={eventType.recurringEvent.count}
                               isFullWidth={false}
-                              className="mb-0 me-2 inline w-14"
+                              className="me-2 mb-0 inline w-14"
                               onChange={(event) => {
                                 setRecurringEventCount(parseInt(event?.target.value));
                               }}
@@ -258,14 +258,14 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                   weekStart={
                     typeof profile.weekStart === "string"
                       ? ([
-                        "Sunday",
-                        "Monday",
-                        "Tuesday",
-                        "Wednesday",
-                        "Thursday",
-                        "Friday",
-                        "Saturday",
-                      ].indexOf(profile.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
+                          "Sunday",
+                          "Monday",
+                          "Tuesday",
+                          "Wednesday",
+                          "Thursday",
+                          "Friday",
+                          "Saturday",
+                        ].indexOf(profile.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
                       : profile.weekStart /* Allows providing weekStart as number */
                   }
                   eventType={eventType}
