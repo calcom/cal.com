@@ -19,15 +19,17 @@ function detectTransport(): SendmailTransport.Options | SMTPConnection.Options |
       },
       secure: port === 465,
       tls: {
-        rejectUnauthorized: isENVDev ? false : true,
+        rejectUnauthorized: !isENVDev,
       },
     };
 
     if (isENVDev) {
       transport = {
-        port: 1025,
+        port: process.env.EMAIL_SERVER_PORT,
       };
     }
+
+    Object.freeze(transport);
 
     return transport;
   }
