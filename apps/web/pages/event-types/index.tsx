@@ -799,7 +799,7 @@ const CTA = () => {
 
 const Actions = () => {
   return (
-    <div className="flex items-center">
+    <div className="hidden md:flex items-center">
       <OrganizationEventTypeFilter />
       <VerticalDivider />
     </div>
