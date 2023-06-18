@@ -109,7 +109,7 @@ const Days = ({
   nextMonthButton: () => void;
 }) => {
   // Create placeholder elements for empty days in first week
-  const weekdayOfFirst = browsingDate.day();
+  const weekdayOfFirst = browsingDate.date(1).day();
   const currentDate = minDate.utcOffset(browsingDate.utcOffset());
   const availableDates = (includedDates: string[] | undefined) => {
     const dates = [];
