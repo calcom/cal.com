@@ -1,7 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { debounce } from "lodash";
 import { signOut } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -76,15 +77,25 @@ type FormValues = {
 };
 
 const ProfileView = () => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const utils = trpc.useContext();
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
   const { data: avatar, isLoading: isLoadingAvatar } = trpc.viewer.avatar.useQuery();
-  const mutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: () => {
+  const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
+    onSuccess: async (res) => {
       showToast(t("settings_updated_successfully"), "success");
+      if (res.googleEmailChange && tempFormValues) {
+        setLoading(true);
+        await debouncedHandleSubmitPasswordRequest({ email: tempFormValues.email });
+        if (error) {
+          showToast(error.message, "error");
+        } else {
+          showToast(t("password_reset_email", { email: tempFormValues.email }), "success");
+        }
+      }
       utils.viewer.me.invalidate();
       utils.viewer.avatar.invalidate();
+      setConfirmGOAuthEmailChangeWarningDialogOpen(false);
       setTempFormValues(null);
     },
     onError: () => {
@@ -92,14 +103,43 @@ const ProfileView = () => {
     },
   });
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = React.useState<{ message: string } | null>(null);
   const [confirmPasswordOpen, setConfirmPasswordOpen] = useState(false);
   const [tempFormValues, setTempFormValues] = useState<FormValues | null>(null);
   const [confirmPasswordErrorMessage, setConfirmPasswordDeleteErrorMessage] = useState("");
+  const [confirmGOAuthEmailChangeWarningDialogOpen, setConfirmGOAuthEmailChangeWarningDialogOpen] =
+    useState(false);
 
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
   const form = useForm<DeleteAccountValues>();
+
+  const submitResetPasswordRequest = async ({ email }: { email: string }) => {
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email: email, language: i18n.language }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        setError(json);
+      }
+
+      return json;
+    } catch (reason) {
+      setError({ message: t("unexpected_error_try_again") });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const debouncedHandleSubmitPasswordRequest = debounce(submitResetPasswordRequest, 250);
 
   const onDeleteMeSuccessMutation = async () => {
     await utils.viewer.me.invalidate();
@@ -115,7 +155,7 @@ const ProfileView = () => {
 
   const confirmPasswordMutation = trpc.viewer.auth.verifyPassword.useMutation({
     onSuccess() {
-      if (tempFormValues) mutation.mutate(tempFormValues);
+      if (tempFormValues) updateProfileMutation.mutate(tempFormValues);
       setConfirmPasswordOpen(false);
     },
     onError() {
@@ -142,7 +182,9 @@ const ProfileView = () => {
     },
   });
 
-  const isCALIdentityProviver = user?.identityProvider === IdentityProvider.CAL;
+  const isCALIdentityProvider = user?.identityProvider === IdentityProvider.CAL;
+
+  const isGoogleIdentityProvider = user?.identityProvider === IdentityProvider.GOOGLE;
 
   const onConfirmPassword = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();
@@ -151,9 +193,15 @@ const ProfileView = () => {
     confirmPasswordMutation.mutate({ passwordInput: password });
   };
 
+  const onConfirmGoogleEmailChange = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
+    e.preventDefault();
+
+    if (tempFormValues) updateProfileMutation.mutate(tempFormValues);
+  };
+
   const onConfirmButton = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();
-    if (isCALIdentityProviver) {
+    if (isCALIdentityProvider) {
       const totpCode = form.getValues("totpCode");
       const password = passwordRef.current.value;
       deleteMeMutation.mutate({ password, totpCode });
@@ -164,7 +212,7 @@ const ProfileView = () => {
 
   const onConfirm = ({ totpCode }: DeleteAccountValues, e: BaseSyntheticEvent | undefined) => {
     e?.preventDefault();
-    if (isCALIdentityProviver) {
+    if (isCALIdentityProvider) {
       const password = passwordRef.current.value;
       deleteMeMutation.mutate({ password, totpCode });
     } else {
@@ -203,13 +251,17 @@ const ProfileView = () => {
       <ProfileForm
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
-        isLoading={mutation.isLoading}
+        isLoading={updateProfileMutation.isLoading}
         onSubmit={(values) => {
-          if (values.email !== user.email && isCALIdentityProviver) {
+          if (values.email !== user.email && isCALIdentityProvider) {
             setTempFormValues(values);
             setConfirmPasswordOpen(true);
+          } else if (values.email !== user.email && isGoogleIdentityProvider) {
+            setTempFormValues(values);
+            // Opens a dialog warning the change
+            setConfirmGOAuthEmailChangeWarningDialogOpen(true);
           } else {
-            mutation.mutate(values);
+            updateProfileMutation.mutate(values);
           }
         }}
         extraField={
@@ -246,7 +298,7 @@ const ProfileView = () => {
             <p className="text-default mb-7">
               {t("delete_account_confirmation_message", { appName: APP_NAME })}
             </p>
-            {isCALIdentityProviver && (
+            {isCALIdentityProvider && (
               <PasswordField
                 data-testid="password"
                 name="password"
@@ -258,7 +310,7 @@ const ProfileView = () => {
               />
             )}
 
-            {user?.twoFactorEnabled && isCALIdentityProviver && (
+            {user?.twoFactorEnabled && isCALIdentityProvider && (
               <Form handleSubmit={onConfirm} className="pb-4" form={form}>
                 <TwoFactor center={false} />
               </Form>
@@ -304,6 +356,27 @@ const ProfileView = () => {
               <DialogClose />
             </DialogFooter>
           </>
+        </DialogContent>
+      </Dialog>
+
+      {/* If changing email from Google Login, confirm password */}
+      <Dialog
+        open={confirmGOAuthEmailChangeWarningDialogOpen}
+        onOpenChange={setConfirmGOAuthEmailChangeWarningDialogOpen}>
+        <DialogContent
+          title={t("confirm_google_auth_change")}
+          description={t("confirm_google_auth_email_change")}
+          type="creation"
+          Icon={AlertTriangle}>
+          <DialogFooter>
+            <Button
+              color="primary"
+              disabled={updateProfileMutation.isLoading || loading}
+              onClick={(e) => onConfirmGoogleEmailChange(e)}>
+              {t("confirm")}
+            </Button>
+            <DialogClose />
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

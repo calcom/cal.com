@@ -11,6 +11,7 @@ import slugify from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -99,20 +100,54 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     }
   }
 
-  const updatedUser = await prisma.user.update({
-    where: {
-      id: user.id,
-    },
-    data,
-    select: {
-      id: true,
-      username: true,
-      email: true,
-      metadata: true,
-      name: true,
-      createdDate: true,
-    },
-  });
+  let updatedUser;
+  let googleEmailChange = false;
+
+  // check if we are changing email and identity provider is google
+  if (input.email && user.identityProvider === IdentityProvider.GOOGLE) {
+    const email = input.email;
+    // Only validate if we're changing email
+    if (email !== user.email) {
+      data.identityProvider = IdentityProvider.CAL;
+      data.identityProviderId = null;
+      updatedUser = await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data,
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          identityProvider: true,
+          identityProviderId: true,
+          metadata: true,
+          name: true,
+          createdDate: true,
+        },
+      });
+      if (updatedUser) {
+        googleEmailChange = true;
+      }
+    }
+  } else {
+    updatedUser = await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data,
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        metadata: true,
+        name: true,
+        createdDate: true,
+      },
+    });
+  }
+
+  Object.freeze(updatedUser);
 
   // Sync Services
   await syncServicesUpdateWebUser(updatedUser);
@@ -149,5 +184,5 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       .then(() => console.info("Booking pages revalidated"))
       .catch((e) => console.error(e));
   }*/
-  return input;
+  return { ...input, googleEmailChange: googleEmailChange };
 };
