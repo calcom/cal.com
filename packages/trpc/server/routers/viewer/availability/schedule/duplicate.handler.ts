@@ -35,7 +35,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateScheduleOptions)
       },
     });
 
-    if (!schedule || (schedule.userId !== user.id && !input.isManagedEventType)) {
+    if (!schedule || schedule.userId !== user.id) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
       });
