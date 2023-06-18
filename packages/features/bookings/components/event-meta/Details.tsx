@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import React from "react";
 
 import classNames from "@calcom/lib/classNames";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Clock, CheckSquare, RefreshCcw, CreditCard } from "@calcom/ui/components/icon";
 
@@ -145,7 +146,8 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             );
 
           case EventDetailBlocks.PRICE:
-            if (event.price === 0) return null;
+            const paymentAppData = getPaymentAppData(event);
+            if (event.price <= 0 || paymentAppData.price <= 0) return null;
 
             return (
               <EventMetaBlock key={block} icon={CreditCard}>
