@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useRouter } from "next/router";
 
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import Shell from "@calcom/features/shell/Shell";
@@ -19,6 +20,8 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
   const utils = trpc.useContext();
 
   const meQuery = trpc.viewer.me.useQuery();
+
+  const router = useRouter();
 
   const deleteMutation = trpc.viewer.availability.schedule.delete.useMutation({
     onMutate: async ({ scheduleId }) => {
@@ -69,13 +72,8 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
 
   const duplicateMutation = trpc.viewer.availability.schedule.duplicate.useMutation({
     onSuccess: async ({ schedule }) => {
-      await utils.viewer.availability.list.invalidate();
-      showToast(
-        t("availability_updated_successfully", {
-          scheduleName: schedule.name,
-        }),
-        "success"
-      );
+      await router.push(`/availability/${schedule.id}`);
+      showToast(t("schedule_created_successfully", { scheduleName: schedule.name }), "success");
     },
     onError: (err) => {
       if (err instanceof HttpError) {
