@@ -87,8 +87,8 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
   week_view: {
     default: {
       width: "100vw",
-      minHeight: "450px",
-      height: "100vh",
+      minHeight: "100vh",
+      height: "auto",
       gridTemplateAreas: `
       "meta header header"
       "meta main main"
@@ -100,8 +100,8 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
   column_view: {
     default: {
       width: "100vw",
-      minHeight: "450px",
-      height: "100vh",
+      minHeight: "100vh",
+      height: "auto",
       gridTemplateAreas: `
       "meta header header"
       "meta main main"
