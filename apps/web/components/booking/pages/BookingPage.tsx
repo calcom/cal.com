@@ -561,14 +561,14 @@ const BookingPage = ({
                         recurringStrings.slice(0, 5).map((timeFormatted, key) => {
                           return <p key={key}>{timeFormatted}</p>;
                         })}
-                      {!rescheduleUid && eventType.recurringEvent?.freq && recurringStrings.length > 5 && (
+                      {!rescheduleUid && eventType?.recurringEvent?.freq && +recurringStrings.length > 5 && (
                         <div className="flex">
                           <Tooltip
                             content={recurringStrings.slice(5).map((timeFormatted, key) => (
                               <p key={key}>{timeFormatted}</p>
                             ))}>
                             <p className=" text-sm">
-                              + {t("plus_more", { count: recurringStrings.length - 5 })}
+                              + {t("plus_more", { count: +recurringStrings.length - 5 })}
                             </p>
                           </Tooltip>
                         </div>
