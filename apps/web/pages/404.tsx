@@ -205,9 +205,9 @@ export default function Custom404() {
                 </p>
                 <h1 className="font-cal text-emphasis mt-2 text-4xl font-extrabold sm:text-5xl">
                   {isSuccessPage
-                    ? "Booking not found"
+                    ? t("booking_not_found")
                     : isInvalidToken
-                    ? "Invalid verification link"
+                    ? t("invalid_verification_link")
                     : t("page_doesnt_exist")}
                 </h1>
                 {isSubpage ? (
