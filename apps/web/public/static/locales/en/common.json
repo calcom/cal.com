@@ -547,7 +547,7 @@
   "team_description": "A few sentences about your team. This will appear on your team's url page.",
   "org_description": "A few sentances about your organization. This will appear on your organization's url page.",
   "members": "Members",
-  "organization_members":"Organisation members",
+  "organization_members":"Organization members",
   "member": "Member",
   "number_member_one": "{{count}} member",
   "number_member_other": "{{count}} members",
@@ -1864,7 +1864,7 @@
   "about_your_organization": "About your organization",
   "about_your_organization_description": "Organizations are shared environments where you can create multiple teams with shared members, event types, apps, workflows and more.",
   "create_your_teams": "Create your teams",
-  "create_your_teams_description": "Start scheduling together by adding your team members to your organisation",
+  "create_your_teams_description": "Start scheduling together by adding your team members to your organization",
   "invite_organization_admins": "Invite your organization admins",
   "invite_organization_admins_description": "These admins will have access to all teams in your organization. You can add team admins and members later.",
   "set_a_password": "Set a password",
@@ -1890,5 +1890,8 @@
   "my_settings": "My Settings",
   "sender_id_info": "Name or number shown as the sender of an SMS (some countries do not allow alphanumeric sender IDs)",
   "no_organization_slug": "There was an error creating teams for this organization. Missing URL slug.",
+  "org_name": "Organization name",
+  "org_url": "Organization URL",
+  "copy_link_org": "Copy link to organization",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
