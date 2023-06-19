@@ -139,12 +139,12 @@ const BookerComponent = ({
             <StickyOnDesktop
               key="meta"
               className={classNames(
-                "relative z-10 flex",
+                "relative z-10 flex [grid-area:meta]",
                 layout !== BookerLayouts.MONTH_VIEW && "sm:min-h-screen"
               )}>
               <BookerSection
                 area="meta"
-                className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
+                className="max-w-screen flex h-full w-full flex-col md:w-[var(--booker-meta-width)]">
                 <EventMeta />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
