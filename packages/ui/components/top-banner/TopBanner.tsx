@@ -1,10 +1,12 @@
 import classNames from "classnames";
 import { noop } from "lodash";
-import type { ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
 
+import type { LucideIcon, LucideProps } from "@calcom/ui/components/icon";
 import { X, AlertTriangle, Info } from "@calcom/ui/components/icon";
 
 export type TopBannerProps = {
+  Icon?: ComponentType<LucideProps> & LucideIcon;
   text: string;
   variant?: keyof typeof variantClassName;
   actions?: ReactNode;
@@ -17,8 +19,26 @@ const variantClassName = {
   error: "bg-red-400",
 };
 
+const defaultIconProps = {
+  className: "text-emphasis h-4 w-4 stroke-[2.5px]",
+  "aria-hidden": "true",
+} satisfies LucideProps;
+
 export function TopBanner(props: TopBannerProps) {
-  const { variant = "default", text, actions, onClose } = props;
+  const { Icon, variant = "default", text, actions, onClose } = props;
+
+  const renderDefaultIconByVariant = () => {
+    switch (variant) {
+      case "error":
+        return <AlertTriangle {...defaultIconProps} />;
+      case "warning":
+        return <Info {...defaultIconProps} />;
+      default:
+        return null;
+    }
+  };
+  const defaultIcon = renderDefaultIconByVariant();
+
   return (
     <div
       data-testid="banner"
@@ -28,12 +48,7 @@ export function TopBanner(props: TopBannerProps) {
       )}>
       <div className="flex flex-1 flex-col items-start justify-center gap-2 p-1 lg:flex-row lg:items-center">
         <p className="text-emphasis flex flex-col items-start justify-center gap-2 text-left font-sans text-sm font-medium leading-4 lg:flex-row lg:items-center">
-          {variant === "error" && (
-            <AlertTriangle className="text-emphasis h-4 w-4 stroke-[2.5px]" aria-hidden="true" />
-          )}
-          {variant === "warning" && (
-            <Info className="text-emphasis h-4 w-4 stroke-[2.5px]" aria-hidden="true" />
-          )}
+          {Icon ? <Icon {...defaultIconProps} /> : defaultIcon}
           {text}
         </p>
         {actions && <div className="text-sm font-medium">{actions}</div>}

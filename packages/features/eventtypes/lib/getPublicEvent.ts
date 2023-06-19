@@ -16,7 +16,7 @@ import {
   EventTypeMetaDataSchema,
   customInputSchema,
   userMetadata as userMetadataSchema,
-  bookerLayouts,
+  bookerLayouts as bookerLayoutsSchema,
   BookerLayouts,
 } from "@calcom/prisma/zod-utils";
 
@@ -39,6 +39,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   seatsPerTimeSlot: true,
   bookingFields: true,
   team: true,
+  successRedirectUrl: true,
   workflows: {
     include: {
       workflow: {
@@ -69,6 +70,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       username: true,
       name: true,
       theme: true,
+      metadata: true,
     },
   },
   hidden: true,
@@ -132,7 +134,7 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
         theme: null,
-        bookerLayouts: bookerLayouts.parse(
+        bookerLayouts: bookerLayoutsSchema.parse(
           firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
         ),
       },
@@ -167,7 +169,7 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
 
   return {
     ...event,
-    bookerLayouts: bookerLayouts.parse(eventMetaData?.bookerLayouts || null),
+    bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
     description: markdownToSafeHTML(event.description),
     metadata: eventMetaData,
     customInputs: customInputSchema.array().parse(event.customInputs || []),
@@ -220,7 +222,7 @@ function getProfileFromEvent(event: Event) {
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
     theme: profile.theme,
-    bookerLayouts: bookerLayouts.parse(
+    bookerLayouts: bookerLayoutsSchema.parse(
       eventMetaData?.bookerLayouts ||
         (userMetaData && "defaultBookerLayouts" in userMetaData ? userMetaData.defaultBookerLayouts : null)
     ),

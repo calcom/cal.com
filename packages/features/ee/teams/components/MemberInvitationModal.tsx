@@ -33,7 +33,7 @@ type MemberInvitationModalProps = {
   isOpen: boolean;
   onExit: () => void;
   orgMembers?: RouterOutputs["viewer"]["organizations"]["getMembers"];
-  onSubmit: (values: NewMemberForm) => void;
+  onSubmit: (values: NewMemberForm, resetFields: () => void) => void;
   onSettingsOpen?: () => void;
   teamId: number;
   members: PendingMember[];
@@ -135,6 +135,12 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     }
   };
 
+  const resetFields = () => {
+    newMemberFormMethods.reset();
+    newMemberFormMethods.setValue("emailOrUsername", "");
+    setModalInputMode("INDIVIDUAL");
+  };
+
   return (
     <Dialog
       name="inviteModal"
@@ -168,7 +174,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           />
         </div>
 
-        <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values)}>
+        <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values, resetFields)}>
           <div className="mt-6 mb-10 space-y-6">
             {/* Indivdual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
@@ -322,7 +328,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               color="minimal"
               onClick={() => {
                 props.onExit();
-                newMemberFormMethods.reset();
+                resetFields();
               }}>
               {t("cancel")}
             </Button>

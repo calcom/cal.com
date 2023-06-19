@@ -123,7 +123,7 @@ async function handler(req: NextApiRequest) {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req.headers.host ?? "");
   if (!teamId)
     return getUserAvailability({
-      orgSlug: isValidOrgDomain ? currentOrgDomain : undefined,
+      orgSlug: isValidOrgDomain ? currentOrgDomain || undefined : undefined,
       username,
       dateFrom,
       dateTo,
