@@ -167,9 +167,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       layout: layout || BookerLayouts.MONTH_VIEW,
       // Preselect today's date in week / column view, since they use this to show the week title.
       selectedDate:
-        selectedDateInStore || ["week_view", "column_view"].includes(layout)
-          ? dayjs().format("YYYY-MM-DD")
-          : null,
+        selectedDateInStore ||
+        (["week_view", "column_view"].includes(layout) ? dayjs().format("YYYY-MM-DD") : null),
     });
 
     // Unset selected timeslot if user is rescheduling. This could happen

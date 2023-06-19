@@ -789,6 +789,7 @@ const CTA = () => {
 
   return (
     <CreateButton
+      data-testid="new-event-type"
       subtitle={t("create_event_on").toUpperCase()}
       options={profileOptions}
       createDialog={() => <CreateEventTypeDialog profileOptions={profileOptions} />}
@@ -798,7 +799,7 @@ const CTA = () => {
 
 const Actions = () => {
   return (
-    <div className="flex items-center">
+    <div className="hidden items-center md:flex">
       <OrganizationEventTypeFilter />
       <VerticalDivider />
     </div>
