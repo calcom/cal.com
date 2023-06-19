@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { extractDomainFromWebsiteUrl } from "@calcom/ee/organizations/lib/utils";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -100,10 +101,7 @@ export const CreateANewTeamForm = () => {
                 name="slug"
                 placeholder="acme"
                 label={t("team_url")}
-                addOnLeading={`${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace("https://", "")?.replace(
-                  "http://",
-                  ""
-                )}/team/`}
+                addOnLeading={`${extractDomainFromWebsiteUrl}/team/`}
                 defaultValue={value}
                 onChange={(e) => {
                   newTeamFormMethods.setValue("slug", slugify(e?.target.value), {

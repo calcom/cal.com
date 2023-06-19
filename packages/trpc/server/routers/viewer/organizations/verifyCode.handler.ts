@@ -24,6 +24,7 @@ export const verifyCodeHandler = async ({ ctx, input }: VerifyCodeOptions) => {
     .update(email + process.env.CALENDSO_ENCRYPTION_KEY)
     .digest("hex");
 
+  totp.options = { step: 900 };
   const isValidToken = totp.check(code, secret);
 
   if (!isValidToken) throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_code" });
