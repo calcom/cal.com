@@ -1,9 +1,11 @@
+import axios from "axios";
 import { isSupportedCountry } from "libphonenumber-js";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
 import { classNames } from "@calcom/lib";
+import { trpc } from "@calcom/trpc/react";
 
 export type PhoneInputProps = {
   value?: string;
@@ -57,14 +59,25 @@ function BasePhoneInput({ name, className = "", onChange, ...rest }: PhoneInputP
 }
 
 const useDefaultCountry = () => {
-  const [defaultCountry, setDefaultCountry] = useState("us");
+  const [defaultCountry, setDefaultCountry] = useState("");
+  trpc.viewer.public.countryCode.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: false,
+    onSuccess: async (data) => {
+      try {
+        if (isSupportedCountry(data?.countryCode)) {
+          setDefaultCountry(data.countryCode.toLowerCase());
+        } else {
+          const response = await axios.get("https://ipapi.co/json/");
+          setDefaultCountry(response.data.country.toLowerCase());
+        }
+      } catch (error) {
+        setDefaultCountry("us");
+      }
+    },
+  });
 
-  useEffect(() => {
-    const userCountryCode = navigator.language.split("-")[1];
-    if (userCountryCode && isSupportedCountry(userCountryCode)) {
-      setDefaultCountry(userCountryCode.toLowerCase());
-    }
-  }, []);
   return defaultCountry;
 };
 
