@@ -13,7 +13,7 @@ import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
 import { Button, Label, MultiSelectCheckboxes, TextField } from "@calcom/ui";
 import { ArrowDown, Trash2 } from "@calcom/ui/components/icon";
 
-import { getDefaultTemplateForWorkflowStep, isSMSOrWhatsappAction } from "../lib/actionHelperFunctions";
+import { isSMSOrWhatsappAction, isWhatsappAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
@@ -98,7 +98,7 @@ export default function WorkflowDetailsPage(props: Props) {
       workflowId: workflowId,
       reminderBody: null,
       emailSubject: null,
-      template: getDefaultTemplateForWorkflowStep(action, form.getValues('trigger')),
+      template: isWhatsappAction(action) ? WorkflowTemplates.REMINDER : WorkflowTemplates.CUSTOM,
       numberRequired: numberRequired || false,
       sender: isSMSOrWhatsappAction(action) ? sender || SENDER_ID : SENDER_ID,
       senderName: !isSMSOrWhatsappAction(action) ? senderName || SENDER_NAME : SENDER_NAME,

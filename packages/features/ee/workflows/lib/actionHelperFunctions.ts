@@ -33,30 +33,6 @@ export function getWhatsappTemplateForTrigger(trigger: WorkflowTriggerEvents): W
   }
 }
 
-export function getDefaultTemplateForWorkflowStep (action: WorkflowActions, trigger: WorkflowTriggerEvents): WorkflowTemplates {
-  if (!isWhatsappAction(action)) {
-    return WorkflowTemplates.REMINDER
-  } else {
-    return getWhatsappTemplateForTrigger(trigger)
-  }
-}
-
-export function getWhatsappTemplateForAction(action: WorkflowActions, template: WorkflowTemplates): string | null {
-  switch(template) {
-    case "CANCELLED":
-      return whatsappEventCancelledTemplate(true, action)
-    case "COMPLETED":
-      return whatsappEventCompletedTemplate(true, action)
-    case "RESCHEDULED":
-      return whatsappEventRescheduledTemplate(true, action)
-    case "CUSTOM":
-    case "REMINDER":
-      return whatsappReminderTemplate(true, action)
-    default:
-      return whatsappReminderTemplate(true, action)
-  }
-}
-
 export function getWhatsappTemplateFunction(template: WorkflowTemplates): typeof whatsappReminderTemplate {
   switch(template) {
     case "CANCELLED":
@@ -71,4 +47,9 @@ export function getWhatsappTemplateFunction(template: WorkflowTemplates): typeof
     default:
       return whatsappReminderTemplate
   }
+}
+
+export function getWhatsappTemplateForAction(action: WorkflowActions, template: WorkflowTemplates): string | null {
+  const templateFunction = getWhatsappTemplateFunction(template)
+  return templateFunction(true, action)
 }
