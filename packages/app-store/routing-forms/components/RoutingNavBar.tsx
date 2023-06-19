@@ -6,7 +6,7 @@ export default function RoutingNavBar({
   form,
   appUrl,
 }: {
-  form: ReturnType<typeof getSerializableForm>;
+  form: Awaited<ReturnType<typeof getSerializableForm>>;
   appUrl: string;
 }) {
   const tabs = [

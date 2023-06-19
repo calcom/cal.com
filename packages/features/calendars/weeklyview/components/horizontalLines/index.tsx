@@ -1,6 +1,7 @@
 import { useId } from "react";
 
 import type dayjs from "@calcom/dayjs";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 
 export const HorizontalLines = ({
   hours,
@@ -11,7 +12,9 @@ export const HorizontalLines = ({
   numberOfGridStopsPerCell: number;
   containerOffsetRef: React.RefObject<HTMLDivElement>;
 }) => {
-  const finalHour = hours[hours.length - 1].add(1, "hour").format("h A");
+  const { timeFormat } = useTimePreferences();
+  // We need to force the minute to zero, because otherwise in ex GMT+5.5, it would show :30 minute times (but at the positino of :00)
+  const finalHour = hours[hours.length - 1].add(1, "hour").minute(0).format(timeFormat);
   const id = useId();
   return (
     <div
@@ -19,15 +22,14 @@ export const HorizontalLines = ({
       style={{
         gridTemplateRows: `repeat(${hours.length}, minmax(var(--gridDefaultSize),1fr)`,
       }}>
-      <div className="row-end-1 h-7 " ref={containerOffsetRef} />
+      <div className="row-end-1 h-[--calendar-offset-top] " ref={containerOffsetRef} />
       {hours.map((hour) => (
-        <>
-          <div key={`${id}-${hour.get("hour")}`}>
-            <div className="text-muted sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5">
-              {hour.format("h A")}
-            </div>
+        <div key={`${id}-${hour.get("hour")}`}>
+          <div className="text-muted sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5">
+            {/* We need to force the minute to zero, because otherwise in ex GMT+5.5, it would show :30 minute times (but at the positino of :00) */}
+            {hour.minute(0).format(timeFormat)}
           </div>
-        </>
+        </div>
       ))}
       <div key={`${id}-${finalHour}`}>
         <div className="text-muted sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5">

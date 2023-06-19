@@ -57,7 +57,8 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
   // Delete a key from the query
   function removeByKey(key: OutputOptionalKeys) {
     const { [key]: _, ...newQuery } = parsedQuery;
-    router.replace({ query: newQuery as Output }, undefined, { shallow: true });
+    const search = new URLSearchParams(newQuery).toString();
+    router.replace({ query: search }, undefined, { shallow: true });
   }
 
   // push item to existing key
