@@ -86,7 +86,7 @@ export const createHandler = async ({ input }: CreateOptions) => {
             name,
             ...(!IS_TEAM_BILLING_ENABLED && { slug }),
             metadata: {
-              requestedSlug: slug,
+              ...(IS_TEAM_BILLING_ENABLED && { requestedSlug: slug }),
               isOrganization: true,
             },
           },
