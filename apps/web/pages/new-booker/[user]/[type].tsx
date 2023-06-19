@@ -101,7 +101,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const user = await prisma.user.findFirst({
     where: {
-      username,
+      /** TODO: We should standarize this */
+      username: username.toLowerCase().replace(/( |%20)/g, "+"),
       organization: isValidOrgDomain
         ? {
             slug: currentOrgDomain,

@@ -279,20 +279,6 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               )}
             />
             <div className="flex">
-              <Button
-                type="button"
-                color="minimal"
-                variant="icon"
-                onClick={() =>
-                  props.token
-                    ? copyInviteLinkToClipboard(props.token)
-                    : createInviteMutation.mutate({ teamId: props.teamId })
-                }
-                className={classNames("gap-2", props.token && "opacity-50")}
-                data-testid="copy-invite-link-button">
-                <Link className="text-default h-4 w-4" aria-hidden="true" />
-                {t("copy_invite_link")}
-              </Button>
               {props.token && (
                 <Button
                   type="button"
@@ -309,6 +295,23 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             </div>
           </div>
           <DialogFooter showDivider>
+            <div className= "relative right-40">
+            <Button
+                type="button"
+                color="minimal"
+                variant="icon"
+                onClick={() =>
+                  props.token
+                    ? copyInviteLinkToClipboard(props.token)
+                    : createInviteMutation.mutate({ teamId: props.teamId })
+                }
+                className={classNames("gap-2", props.token && "opacity-50")}
+                data-testid="copy-invite-link-button">
+                <Link className="text-default h-4 w-4" aria-hidden="true" />
+                {t("copy_invite_link")}
+              </Button>
+            </div>
+        
             <Button
               type="button"
               color="minimal"
