@@ -58,6 +58,11 @@ interface FileEvent<T = Element> extends FormEvent<T> {
   target: EventTarget & T;
 }
 
+function toggleElementInArray(value: string[] | string, element: string): string[] {
+  const array = Array.isArray(value) ? value : [value];
+  return array.includes(element) ? array.filter((item) => item !== element) : [...array, element];
+}
+
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
   const trpcContext = trpc.useContext();
@@ -276,11 +281,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                       handleOnChecked={(userEmail) => {
                         // If 'value' is not an array, create a new array with 'userEmail' to allow future updates to the array.
                         // If 'value' is an array, update the array by either adding or removing 'userEmail'.
-                        const newValue = Array.isArray(value)
-                          ? value.includes(userEmail)
-                            ? value.filter((email) => email !== userEmail)
-                            : [...value, userEmail]
-                          : [userEmail];
+                        const newValue = toggleElementInArray(value, userEmail);
                         onChange(newValue);
                       }}
                       orgMembers={props.orgMembers}
