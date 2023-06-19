@@ -51,11 +51,11 @@ import { defaultResponder } from "@calcom/lib/server";
  *                 properties:
  *                    name:
  *                      type: string
- *                      description: 'Name of the Attendee'
+ *                      description: 'Attendee full name'
  *                    email:
  *                      type: string
  *                      format: email
- *                      description: 'Email ID of the Attendee'
+ *                      description: 'Attendee email address'
  *                    metadata:
  *                      type: object
  *                      properties: {}
