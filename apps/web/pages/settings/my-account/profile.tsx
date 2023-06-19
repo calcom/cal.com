@@ -91,6 +91,8 @@ const ProfileView = () => {
           showToast(error.message, "error");
         } else {
           showToast(t("password_reset_email", { email: tempFormValues.email }), "success");
+          // sign out the user to avoid unauthorized access error
+          signOut({ callbackUrl: "/auth/logout" });
         }
       }
       utils.viewer.me.invalidate();
@@ -359,7 +361,7 @@ const ProfileView = () => {
         </DialogContent>
       </Dialog>
 
-      {/* If changing email from Google Login, confirm password */}
+      {/* If changing email from Google Login */}
       <Dialog
         open={confirmGOAuthEmailChangeWarningDialogOpen}
         onOpenChange={setConfirmGOAuthEmailChangeWarningDialogOpen}>

@@ -218,7 +218,7 @@
   "create_account": "Create Account",
   "confirm_password": "Confirm password",
   "confirm_google_auth_change": "This will change the way you log in",
-  "confirm_google_auth_email_change": "Changing the email address will disconnect your Google account you use to log in to Cal.com. We will ask you to verify your new email address. Moving forward, use your new email address to log in instead of your Google Account.",
+  "confirm_google_auth_email_change": "Changing the email address will disconnect your Google account to log in to Cal.com. We will ask you to verify your new email address. Moving forward, you will be logged out and use your new email address to log in instead of your Google Account after setting your password by following the instructions that will be sent to your mail.",
   "create_your_account": "Create your account",
   "sign_up": "Sign up",
   "youve_been_logged_out": "You've been logged out",
