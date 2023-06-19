@@ -7,19 +7,23 @@ describe("CalendarManager tests", () => {
     it("should only return credentials for calendar apps", () => {
       const googleCalendarCredentials = {
         id: "1",
-        appId: "appIdOne",
+        appId: "google-calendar",
         type: "google_calendar",
         userId: "3",
-        key: "google_calendar_key",
+        key: {
+          access_token: "google_calendar_key"
+        },
         invalid: false
       };
 
       const credentials = [googleCalendarCredentials, {
         id: "2",
-        appId: "appIdTwo",
+        appId: "office365-video",
         type: "office365_video",
         userId: "4",
-        key: "office365_video_key",
+        key: {
+          access_token: "office365_video_key"
+        },
         invalid: false
       }];
 
