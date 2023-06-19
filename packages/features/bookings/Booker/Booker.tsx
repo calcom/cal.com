@@ -139,7 +139,7 @@ const BookerComponent = ({
             <StickyOnDesktop
               key="meta"
               className={classNames(
-                "relative z-10 flex",
+                "relative z-10 flex [grid-area:meta]",
                 layout !== BookerLayouts.MONTH_VIEW && "sm:min-h-screen"
               )}>
               <BookerSection

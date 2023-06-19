@@ -50,7 +50,7 @@ export const AddNewTeamsForm = () => {
       }
     },
     onError: (error) => {
-      showToast(error.message, "error");
+      showToast(t(error.message), "error");
     },
   });
 
