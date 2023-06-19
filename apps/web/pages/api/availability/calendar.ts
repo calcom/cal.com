@@ -1,10 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { z } from "zod";
 
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import notEmpty from "@calcom/lib/notEmpty";
 import { revalidateCalendarCache } from "@calcom/lib/server/revalidateCalendarCache";
 import prisma from "@calcom/prisma";
+
+const selectedCalendarSelectSchema = z.object({
+  integration: z.string(),
+  externalId: z.string(),
+});
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession({ req, res });
@@ -32,18 +38,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { credentials, ...user } = userWithCredentials;
 
   if (req.method === "POST") {
+    const { integration, externalId } = selectedCalendarSelectSchema.parse(req.body);
     await prisma.selectedCalendar.upsert({
       where: {
         userId_integration_externalId: {
           userId: user.id,
-          integration: req.body.integration,
-          externalId: req.body.externalId,
+          integration,
+          externalId,
         },
       },
       create: {
         userId: user.id,
-        integration: req.body.integration,
-        externalId: req.body.externalId,
+        integration,
+        externalId,
       },
       // already exists
       update: {},
@@ -52,12 +59,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "DELETE") {
+    const { integration, externalId } = selectedCalendarSelectSchema.parse(req.query);
     await prisma.selectedCalendar.delete({
       where: {
         userId_integration_externalId: {
           userId: user.id,
-          externalId: req.body.externalId,
-          integration: req.body.integration,
+          externalId,
+          integration,
         },
       },
     });
