@@ -1888,5 +1888,6 @@
   "my_profile": "Mon profil",
   "my_settings": "Mes paramètres",
   "sender_id_info": "Nom ou numéro affiché comme expéditeur d'un SMS (certains pays n'autorisent pas les ID d'expéditeur alphanumériques)",
+  "no_organization_slug": "Une erreur s'est produite lors de la création des équipes pour cette organisation. Le slug du lien est manquant.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
