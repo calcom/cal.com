@@ -69,7 +69,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
           userId: ctx.user.id,
         },
         {
-          teamId: userEventType.teamId,
+          teamId: userEventType.teamId || undefined,
         },
       ],
     },

@@ -12,7 +12,7 @@ export const TimeFormatToggle = () => {
   return (
     <ToggleGroup
       onValueChange={(newFormat) => {
-        if (newFormat !== timeFormat) setTimeFormat(newFormat as TimeFormat);
+        if (newFormat && newFormat !== timeFormat) setTimeFormat(newFormat as TimeFormat);
       }}
       defaultValue={timeFormat}
       value={timeFormat}

@@ -166,10 +166,10 @@ enum UserPermissionRole {
 
 model User {
   id                   Int                     @id @default(autoincrement())
-  username             String?                 @unique
+  username             String?
   name                 String?
   /// @zod.email()
-  email                String                  @unique
+  email                String
   emailVerified        DateTime?
   password             String?
   bio                  String?
@@ -225,8 +225,16 @@ model User {
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
   verifiedNumbers      VerifiedNumber[]
   hosts                Host[]
+  organizationId       Int?
+  organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
+  // Linking account code for orgs v2
+  //linkedByUserId       Int?
+  //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
+  //linkedUsers          User[]                  @relation("linked_account")*/
 
-  @@index([email])
+  @@unique([email])
+  @@unique([email, username])
+  @@unique([username, organizationId])
   @@index([emailVerified])
   @@index([identityProvider])
   @@index([identityProviderId])
@@ -234,28 +242,39 @@ model User {
 }
 
 model Team {
-  id                  Int              @id @default(autoincrement())
+  id                  Int                @id @default(autoincrement())
   /// @zod.min(1)
   name                String
   /// @zod.min(1)
-  slug                String?          @unique
+  slug                String?
   logo                String?
   appLogo             String?
   appIconLogo         String?
   bio                 String?
-  hideBranding        Boolean          @default(false)
-  hideBookATeamMember Boolean          @default(false)
+  hideBranding        Boolean            @default(false)
+  hideBookATeamMember Boolean            @default(false)
   members             Membership[]
   eventTypes          EventType[]
   workflows           Workflow[]
-  createdAt           DateTime         @default(now())
+  createdAt           DateTime           @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
   metadata            Json?
   theme               String?
-  brandColor          String           @default("#292929")
-  darkBrandColor      String           @default("#fafafa")
+  brandColor          String             @default("#292929")
+  darkBrandColor      String             @default("#fafafa")
   verifiedNumbers     VerifiedNumber[]
+  parentId            Int?
+  parent              Team?              @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
+  children            Team[]             @relation("organization")
+  orgUsers            User[]             @relation("scope")
+  inviteToken         VerificationToken?
   webhooks            Webhook[]
+  timeFormat          Int?
+  timeZone            String           @default("Europe/London")
+  weekStart           String           @default("Sunday")
+  routingForms        App_RoutingForms_Form[]
+
+  @@unique([slug, parentId])
 }
 
 enum MembershipRole {
@@ -279,12 +298,15 @@ model Membership {
 }
 
 model VerificationToken {
-  id         Int      @id @default(autoincrement())
-  identifier String
-  token      String   @unique
-  expires    DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  identifier    String
+  token         String   @unique
+  expires       DateTime
+  expiresInDays Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  teamId        Int?     @unique
+  team          Team?    @relation(fields: [teamId], references: [id])
 
   @@unique([identifier, token])
   @@index([token])
@@ -494,6 +516,7 @@ enum PaymentOption {
 
 enum WebhookTriggerEvents {
   BOOKING_CREATED
+  BOOKING_PAID
   BOOKING_RESCHEDULED
   BOOKING_REQUESTED
   BOOKING_CANCELLED
@@ -626,7 +649,11 @@ model App_RoutingForms_Form {
   name        String
   fields      Json?
   user        User                            @relation("routing-form", fields: [userId], references: [id], onDelete: Cascade)
+  // This is the user who created the form and also the user who has read-write access to the form
+  // If teamId is set, the members of the team would also have access to form readOnly or read-write depending on their permission level as team member.
   userId      Int
+  team        Team?                           @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId      Int?
   responses   App_RoutingForms_FormResponse[]
   disabled    Boolean                         @default(false)
   /// @zod.custom(imports.RoutingFormSettings)

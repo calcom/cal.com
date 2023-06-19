@@ -11,6 +11,7 @@ export type LocationOption = {
   value: EventLocationType["type"];
   icon?: string;
   disabled?: boolean;
+  address?: string;
 };
 
 export type SingleValueLocationOption = SingleValue<LocationOption>;

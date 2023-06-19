@@ -9,7 +9,7 @@ function detectTransport(): SendmailTransport.Options | SMTPConnection.Options |
   }
 
   if (process.env.EMAIL_SERVER_HOST) {
-    const port = parseInt(process.env.EMAIL_SERVER_PORT!);
+    const port = parseInt(process.env.EMAIL_SERVER_PORT || "");
     const transport = {
       host: process.env.EMAIL_SERVER_HOST,
       port,

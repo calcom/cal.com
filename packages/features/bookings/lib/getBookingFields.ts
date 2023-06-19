@@ -241,7 +241,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       ],
     },
     {
-      defaultLabel: "reschedule_reason",
+      defaultLabel: "reason_for_reschedule",
       type: "textarea",
       editable: "system-but-optional",
       name: "rescheduleReason",

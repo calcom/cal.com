@@ -62,12 +62,14 @@ const Skeleton = <T extends keyof JSX.IntrinsicElements | React.FC>({
   );
 };
 
-const SkeletonText: React.FC<SkeletonBaseProps & { invisible?: boolean }> = ({
+const SkeletonText: React.FC<SkeletonBaseProps & { invisible?: boolean; style?: React.CSSProperties }> = ({
   className = "",
   invisible = false,
+  style,
 }) => {
   return (
     <span
+      style={style}
       className={classNames(
         `font-size-0 bg-emphasis inline-block animate-pulse rounded-md empty:before:inline-block empty:before:content-['']`,
         className,
