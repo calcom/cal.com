@@ -29,6 +29,7 @@ import {
   ChevronRight,
   Plus,
   Menu,
+  Building,
 } from "@calcom/ui/components/icon";
 
 const tabs: VerticalTabItemProps[] = [
@@ -75,6 +76,41 @@ const tabs: VerticalTabItemProps[] = [
     ],
   },
   {
+    name: "organization",
+    href: "/settings/organizations",
+    icon: Building,
+    children: [
+      {
+        name: "profile",
+        href: "/settings/organizations/profile",
+      },
+      {
+        name: "general",
+        href: "/settings/organizations/general",
+      },
+      {
+        name: "members",
+        href: "/settings/organizations/members",
+      },
+      {
+        name: "appearance",
+        href: "/settings/organizations/appearance",
+      },
+      {
+        name: "billing",
+        href: "/settings/organizations/billing",
+      },
+      {
+        name: "saml_config",
+        href: "/settings/organizations/sso",
+      },
+      {
+        name: "developer",
+        href: "/settings/organizations/developer",
+      },
+    ],
+  },
+  {
     name: "teams",
     href: "/settings/teams",
     icon: Users,
@@ -104,6 +140,7 @@ tabs.find((tab) => {
 
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
+const organizationRequiredKeys = ["organization"];
 
 const useTabs = () => {
   const session = useSession();
@@ -127,6 +164,8 @@ const useTabs = () => {
 
   // check if name is in adminRequiredKeys
   return tabs.filter((tab) => {
+    if (organizationRequiredKeys.includes(tab.name)) return !!session.data?.user?.organizationId;
+
     if (isAdmin) return true;
     return !adminRequiredKeys.includes(tab.name);
   });
@@ -298,7 +337,11 @@ const SettingsSidebarContainer = ({
                               textClassNames="px-3 text-emphasis font-medium text-sm"
                               disableChevron
                             />
-                            {(team.role === MembershipRole.OWNER || team.role === MembershipRole.ADMIN) && (
+                            {(team.role === MembershipRole.OWNER ||
+                              team.role === MembershipRole.ADMIN ||
+                              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                              // @ts-ignore this exists wtf?
+                              (team.isOrgAdmin && team.isOrgAdmin)) && (
                               <>
                                 {/* TODO */}
                                 {/* <VerticalTabItem
@@ -313,20 +356,25 @@ const SettingsSidebarContainer = ({
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
                                   disableChevron
                                 />
-                                <VerticalTabItem
-                                  name={t("billing")}
-                                  href={`/settings/teams/${team.id}/billing`}
-                                  textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  disableChevron
-                                />
-                                {HOSTED_CAL_FEATURES && (
-                                  <VerticalTabItem
-                                    name={t("sso_configuration")}
-                                    href={`/settings/teams/${team.id}/sso`}
-                                    textClassNames="px-3 text-emphasis font-medium text-sm"
-                                    disableChevron
-                                  />
-                                )}
+                                {/* Hide if there is a parent ID */}
+                                {!team.parentId ? (
+                                  <>
+                                    <VerticalTabItem
+                                      name={t("billing")}
+                                      href={`/settings/teams/${team.id}/billing`}
+                                      textClassNames="px-3 text-emphasis font-medium text-sm"
+                                      disableChevron
+                                    />
+                                    {HOSTED_CAL_FEATURES && (
+                                      <VerticalTabItem
+                                        name={t("saml_config")}
+                                        href={`/settings/teams/${team.id}/sso`}
+                                        textClassNames="px-3 text-emphasis font-medium text-sm"
+                                        disableChevron
+                                      />
+                                    )}
+                                  </>
+                                ) : null}
                               </>
                             )}
                           </CollapsibleContent>

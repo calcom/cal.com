@@ -26,6 +26,7 @@ export function Header({
   const addToSelectedDate = useBookerStore((state) => state.addToSelectedDate);
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
   const selectedDate = dayjs(selectedDateString);
+  const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
 
   const onLayoutToggle = useCallback(
     (newLayout: string) => {
@@ -35,7 +36,7 @@ export function Header({
     [setLayout, layout]
   );
 
-  if (isMobile || !enabledLayouts) return null;
+  if (isMobile || isEmbed || !enabledLayouts) return null;
 
   // Only reason we create this component, is because it is used 3 times in this component,
   // and this way we can't forget to update one of the props in all places :)
@@ -46,11 +47,7 @@ export function Header({
   // In month view we only show the layout toggle.
   if (isMonthView) {
     if (enabledLayouts.length <= 1) return null;
-    return (
-      <div className="fixed top-3 right-3 z-10">
-        <LayoutToggleWithData />
-      </div>
-    );
+    return <LayoutToggleWithData />;
   }
 
   return (
@@ -122,7 +119,7 @@ const LayoutToggle = ({
       {
         value: BookerLayouts.COLUMN_VIEW,
         label: <Columns width="16" height="16" />,
-        tooltip: t("switch_multiday"),
+        tooltip: t("switch_columnview"),
       },
     ].filter((layout) => enabledLayouts?.includes(layout.value as BookerLayouts));
   }, [t, enabledLayouts]);

@@ -40,7 +40,7 @@ export const AvailableTimes = ({
   const isToday = dayjs().isSame(date, "day");
 
   return (
-    <div className={classNames("text-default", className)}>
+    <div className={classNames("text-default flex flex-col", className)}>
       <header className="bg-default before:bg-default dark:bg-muted dark:before:bg-muted mb-3 flex w-full flex-row items-center font-medium">
         <span
           className={classNames(
@@ -83,6 +83,7 @@ export const AvailableTimes = ({
               key={slot.time}
               disabled={bookingFull}
               data-testid="time"
+              data-disabled={bookingFull}
               data-time={slot.time}
               onClick={() => onTimeSelect(slot.time)}
               className="min-h-9 mb-2 flex h-auto w-full flex-col justify-center py-2"

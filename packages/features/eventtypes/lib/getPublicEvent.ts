@@ -16,7 +16,7 @@ import {
   EventTypeMetaDataSchema,
   customInputSchema,
   userMetadata as userMetadataSchema,
-  bookerLayouts,
+  bookerLayouts as bookerLayoutsSchema,
   BookerLayouts,
 } from "@calcom/prisma/zod-utils";
 
@@ -39,6 +39,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   seatsPerTimeSlot: true,
   bookingFields: true,
   team: true,
+  successRedirectUrl: true,
   workflows: {
     include: {
       workflow: {
@@ -68,6 +69,8 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       weekStart: true,
       username: true,
       name: true,
+      theme: true,
+      metadata: true,
     },
   },
   hidden: true,
@@ -131,7 +134,7 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
         theme: null,
-        bookerLayouts: bookerLayouts.parse(
+        bookerLayouts: bookerLayoutsSchema.parse(
           firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
         ),
       },
@@ -166,7 +169,7 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
 
   return {
     ...event,
-    bookerLayouts: bookerLayouts.parse(eventMetaData?.bookerLayouts || null),
+    bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
     description: markdownToSafeHTML(event.description),
     metadata: eventMetaData,
     customInputs: customInputSchema.array().parse(event.customInputs || []),
@@ -191,7 +194,20 @@ function getProfileFromEvent(event: Event) {
   if (!profile) throw new Error("Event has no owner");
 
   const username = "username" in profile ? profile.username : team?.slug;
-  if (!username) throw new Error("Event has no username/team slug");
+  if (!username) {
+    if (event.slug === "test") {
+      // @TODO: This is a temporary debug statement that should be removed asap.
+      throw new Error(
+        "Ciaran event error" +
+          JSON.stringify(team) +
+          " -- " +
+          JSON.stringify(hosts) +
+          " -- " +
+          JSON.stringify(owner)
+      );
+    }
+    throw new Error("Event has no username/team slug");
+  }
   const weekStart = hosts?.[0]?.user?.weekStart || owner?.weekStart || "Monday";
   const basePath = team ? `/team/${username}` : `/${username}`;
   const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
@@ -206,7 +222,7 @@ function getProfileFromEvent(event: Event) {
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
     theme: profile.theme,
-    bookerLayouts: bookerLayouts.parse(
+    bookerLayouts: bookerLayoutsSchema.parse(
       eventMetaData?.bookerLayouts ||
         (userMetaData && "defaultBookerLayouts" in userMetaData ? userMetaData.defaultBookerLayouts : null)
     ),
