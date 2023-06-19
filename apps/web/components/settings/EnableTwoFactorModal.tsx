@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Dialog, DialogContent, Form, TextField } from "@calcom/ui";
+import { Button, Dialog, DialogContent, DialogFooter, Form, TextField } from "@calcom/ui";
 
 import TwoFactor from "@components/auth/TwoFactor";
 
@@ -156,14 +156,14 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
                 <img src={dataUri} alt="" />
               }
             </div>
-            <p data-testid="two-factor-secret" className="text-center font-mono text-xs">
+            <p data-testid="two-factor-secret" className="mb-4 text-center font-mono text-xs">
               {secret}
             </p>
           </>
         </WithStep>
         <Form handleSubmit={handleEnable} form={form}>
           <WithStep step={SetupStep.EnterTotpCode} current={step}>
-            <div className="mb-4">
+            <div className="pb-2">
               <TwoFactor center />
 
               {errorMessage && (
@@ -173,7 +173,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
               )}
             </div>
           </WithStep>
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+          <DialogFooter className="mt-6 sm:flex sm:flex-row-reverse" showDivider>
             <WithStep step={SetupStep.ConfirmPassword} current={step}>
               <Button
                 type="submit"
@@ -200,7 +200,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
             <Button color="secondary" onClick={onCancel}>
               {t("cancel")}
             </Button>
-          </div>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>

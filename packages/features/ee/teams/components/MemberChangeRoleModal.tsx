@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogContent, Select } from "@calcom/ui";
+import { Button, Dialog, DialogContent, DialogFooter, Select } from "@calcom/ui";
 
 type MembershipRoleOption = {
   label: string;
@@ -100,14 +100,14 @@ export default function MemberChangeRoleModal(props: {
                 {errorMessage}
               </p>
             )}
-            <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <DialogFooter showDivider className="mt-10 sm:flex sm:flex-row-reverse">
               <Button type="submit" color="primary" className="ms-2 me-2">
                 {t("save")}
               </Button>
               <Button type="button" color="secondary" onClick={props.onExit}>
                 {t("cancel")}
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </>
       </DialogContent>

@@ -75,7 +75,7 @@ export function BulkEditDefaultConferencingModal(props: { open: boolean; setOpen
               </div>
             ))}
           </div>
-          <DialogFooter>
+          <DialogFooter showDivider className="mt-[30px]">
             <DialogClose
               onClick={() => {
                 utils.viewer.getUsersDefaultConferencingApp.invalidate();

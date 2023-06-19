@@ -244,7 +244,7 @@ const EditKeysModal: FC<{
             ))}
           </Form>
         )}
-        <DialogFooter>
+        <DialogFooter showDivider className="mt-8">
           <DialogClose onClick={handleModelClose} />
           <Button form="edit-keys" type="submit">
             {t("save")}

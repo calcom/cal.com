@@ -235,7 +235,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                   />
                 </div>
               )}
-              <DialogFooter>
+              <DialogFooter showDivider className="mt-10">
                 <DialogClose
                   onClick={() => {
                     setIsOpenDialog(false);

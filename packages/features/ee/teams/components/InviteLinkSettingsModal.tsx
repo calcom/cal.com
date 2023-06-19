@@ -88,7 +88,7 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
               </div>
             )}
           />
-          <DialogFooter>
+          <DialogFooter showDivider className="mt-10">
             <Button
               type="button"
               color="secondary"
