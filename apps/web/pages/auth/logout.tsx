@@ -1,7 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,6 +20,7 @@ type Props = inferSSRProps<typeof getServerSideProps>;
 export function Logout(props: Props) {
   const { status } = useSession();
   if (status === "authenticated") signOut({ redirect: false });
+  const [changeEmail, setChangeEmail] = useState(false);
   const router = useRouter();
   useEffect(() => {
     if (props.query?.survey === "true") {
@@ -27,6 +28,12 @@ export function Logout(props: Props) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.query?.survey]);
+  useEffect(() => {
+    if (props.query?.changeEmail === "true") {
+      setChangeEmail(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.query?.changeEmail]);
   const { t } = useLocale();
 
   return (
@@ -40,7 +47,7 @@ export function Logout(props: Props) {
             {t("youve_been_logged_out")}
           </h3>
           <div className="mt-2">
-            <p className="text-subtle text-sm">{t("hope_to_see_you_soon")}</p>
+            <p className="text-subtle text-sm">{changeEmail ? t("reset_your_password") : t("hope_to_see_you_soon")}</p>
           </div>
         </div>
       </div>

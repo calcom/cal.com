@@ -92,7 +92,7 @@ const ProfileView = () => {
         } else {
           showToast(t("password_reset_email", { email: tempFormValues.email }), "success");
           // sign out the user to avoid unauthorized access error
-          signOut({ callbackUrl: "/auth/logout" });
+          signOut({ callbackUrl: "/auth/logout?changeEmail=true" });
         }
       }
       utils.viewer.me.invalidate();
