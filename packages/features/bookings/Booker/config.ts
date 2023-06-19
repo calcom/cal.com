@@ -70,7 +70,7 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
       "meta main main"
       `,
       gridTemplateColumns: "var(--booker-meta-width) var(--booker-main-width)",
-      gridTemplateRows: "auto",
+      gridTemplateRows: "1fr 0fr",
     },
     selecting_time: {
       width: "calc(var(--booker-meta-width) + var(--booker-main-width) + var(--booker-timeslots-width))",
@@ -81,7 +81,7 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
       "meta main timeslots"
       `,
       gridTemplateColumns: "var(--booker-meta-width) 1fr var(--booker-timeslots-width)",
-      gridTemplateRows: "auto",
+      gridTemplateRows: "1fr 0fr",
     },
   },
   week_view: {
