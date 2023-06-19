@@ -15,7 +15,7 @@ export const appHostnames = [
  * return the org slug
  * @param hostname
  */
-export function getOrgDomain(hostname: string) {
+export function getOrgSlug(hostname: string) {
   // Find which hostname is being currently used
   const currentHostname = appHostnames.find((ahn) => {
     const url = new URL(WEBAPP_URL);
@@ -31,7 +31,7 @@ export function getOrgDomain(hostname: string) {
 }
 
 export function orgDomainConfig(hostname: string) {
-  const currentOrgDomain = getOrgDomain(hostname);
+  const currentOrgDomain = getOrgSlug(hostname);
   return {
     currentOrgDomain,
     isValidOrgDomain:
@@ -42,4 +42,8 @@ export function orgDomainConfig(hostname: string) {
 export function subdomainSuffix() {
   const urlSplit = WEBAPP_URL.replace("https://", "")?.replace("http://", "").split(".");
   return urlSplit.length === 3 ? urlSplit.slice(1).join(".") : urlSplit.join(".");
+}
+
+export function getOrgFullDomain(slug: string, options: { protocol: boolean } = { protocol: true }) {
+  return `${options.protocol ? `${new URL(WEBAPP_URL).protocol}//` : ""}${slug}.${subdomainSuffix()}/`;
 }

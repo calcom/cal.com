@@ -8,7 +8,6 @@ import { useEffect, useState, memo } from "react";
 import { z } from "zod";
 
 import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
-import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
@@ -371,9 +370,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
-          const calLink = `${
-            orgBranding ? `${new URL(CAL_URL).protocol}//${orgBranding.slug}.${subdomainSuffix()}` : CAL_URL
-          }/${embedLink}`;
+          const calLink = `${orgBranding?.fullDomain ?? CAL_URL}/${embedLink}`;
           const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
           const isChildrenManagedEventType =
             type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
@@ -698,10 +695,10 @@ const EventTypeListHeading = ({
   profile,
   membershipCount,
   teamId,
-  orgSlug,
 }: EventTypeListHeadingProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
+  const orgBranding = useOrgBrandingValues();
 
   const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
     onSuccess(data) {
@@ -739,9 +736,9 @@ const EventTypeListHeading = ({
         )}
         {profile?.slug && (
           <Link href={`${CAL_URL}/${profile.slug}`} className="text-subtle block text-xs">
-            {orgSlug
-              ? `${orgSlug}.${subdomainSuffix()}/${profile.slug}`
-              : `${CAL_URL?.replace("https://", "")}/${profile.slug}`}
+            {orgBranding
+              ? `${orgBranding.fullDomain.replace("https://", "").replace("http://", "")}${profile.slug}`
+              : `${CAL_URL?.replace("https://", "").replace("http://", "")}/${profile.slug}`}
           </Link>
         )}
       </div>

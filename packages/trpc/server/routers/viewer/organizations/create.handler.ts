@@ -25,7 +25,7 @@ const vercelCreateDomain = async (domain: string) => {
   const response = await fetch(
     `https://api.vercel.com/v8/projects/${process.env.PROJECT_ID_VERCEL}/domains?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
-      body: `{\n  "name": "${domain}.${subdomainSuffix()}"\n}`,
+      body: JSON.stringify({ name: `${domain}.${subdomainSuffix()}` }),
       headers: {
         Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN_VERCEL}`,
         "Content-Type": "application/json",

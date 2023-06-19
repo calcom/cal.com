@@ -4,6 +4,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { extractDomainFromWebsiteUrl } from "@calcom/ee/organizations/lib/utils";
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -24,6 +25,7 @@ export const CreateANewTeamForm = () => {
   const telemetry = useTelemetry();
   const returnToParsed = querySchema.safeParse(router.query);
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
+  const orgBranding = useOrgBrandingValues();
 
   const returnToParam =
     (returnToParsed.success ? getSafeRedirectUrl(returnToParsed.data.returnTo) : "/settings/teams") ||
@@ -101,7 +103,10 @@ export const CreateANewTeamForm = () => {
                 name="slug"
                 placeholder="acme"
                 label={t("team_url")}
-                addOnLeading={`${extractDomainFromWebsiteUrl}/team/`}
+                addOnLeading={`${
+                  orgBranding?.fullDomain.replace("https://", "").replace("http://", "") ??
+                  `${extractDomainFromWebsiteUrl}/team/`
+                }`}
                 defaultValue={value}
                 onChange={(e) => {
                   newTeamFormMethods.setValue("slug", slugify(e?.target.value), {
