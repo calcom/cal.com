@@ -42,11 +42,6 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       identityProvider: true,
       brandColor: true,
       darkBrandColor: true,
-      organization: {
-        select: {
-          id: true,
-        },
-      },
       away: true,
       credentials: {
         select: {
