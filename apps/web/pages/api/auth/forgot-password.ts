@@ -5,14 +5,11 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { sendPasswordResetEmail } from "@calcom/emails";
 import { PASSWORD_RESET_EXPIRY_HOURS } from "@calcom/emails/templates/forgot-password-email";
-import rateLimit from "@calcom/lib/rateLimit";
+import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import rateLimiter from "@calcom/lib/rateLimit";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
-
-const limiter = rateLimit({
-  intervalInMs: 60 * 1000, // 1 minute
-});
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const t = await getTranslation(req.body.language ?? "en", "common");
@@ -37,10 +34,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   // 10 requests per minute
 
-  try {
-    limiter.check(10, ip);
-  } catch (e) {
-    return res.status(429).json({ message: "Too Many Requests." });
+  const limiter = await rateLimiter();
+  const limit = await limiter({
+    identifier: ip,
+  });
+
+  if (!limit.success) {
+    throw new Error(ErrorCode.RateLimitExceeded);
   }
 
   try {

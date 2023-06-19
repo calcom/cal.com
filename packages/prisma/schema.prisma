@@ -269,6 +269,9 @@ model Team {
   orgUsers            User[]             @relation("scope")
   inviteToken         VerificationToken?
   webhooks            Webhook[]
+  timeFormat          Int?
+  timeZone            String           @default("Europe/London")
+  weekStart           String           @default("Sunday")
   routingForms        App_RoutingForms_Form[]
 
   @@unique([slug, parentId])

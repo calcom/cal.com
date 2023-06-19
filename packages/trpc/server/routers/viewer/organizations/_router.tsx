@@ -8,10 +8,14 @@ import { ZVerifyCodeInputSchema } from "./verifyCode.schema";
 
 type OrganizationsRouterHandlerCache = {
   create?: typeof import("./create.handler").createHandler;
+  listCurrent?: typeof import("./list.handler").listHandler;
+  publish?: typeof import("./publish.handler").publishHandler;
+  checkIfOrgNeedsUpgrade?: typeof import("./checkIfOrgNeedsUpgrade.handler").checkIfOrgNeedsUpgradeHandler;
   update?: typeof import("./update.handler").updateHandler;
   verifyCode?: typeof import("./verifyCode.handler").verifyCodeHandler;
   createTeams?: typeof import("./createTeams.handler").createTeamsHandler;
   setPassword?: typeof import("./setPassword.handler").setPasswordHandler;
+  listMembers?: typeof import("./listMembers.handler").listMembersHandler;
   getBrand?: typeof import("./getBrand.handler").getBrandHandler;
 };
 
@@ -82,6 +86,44 @@ export const viewerOrganizationsRouter = router({
       input,
     });
   }),
+  listCurrent: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.listCurrent) {
+      UNSTABLE_HANDLER_CACHE.listCurrent = await import("./list.handler").then((mod) => mod.listHandler);
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.listCurrent) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.listCurrent({
+      ctx,
+    });
+  }),
+  checkIfOrgNeedsUpgrade: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.checkIfOrgNeedsUpgrade) {
+      UNSTABLE_HANDLER_CACHE.checkIfOrgNeedsUpgrade = await import("./checkIfOrgNeedsUpgrade.handler").then(
+        (mod) => mod.checkIfOrgNeedsUpgradeHandler
+      );
+    }
+
+    if (!UNSTABLE_HANDLER_CACHE.checkIfOrgNeedsUpgrade) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.checkIfOrgNeedsUpgrade({ ctx });
+  }),
+  publish: authedProcedure.mutation(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.publish) {
+      UNSTABLE_HANDLER_CACHE.publish = await import("./publish.handler").then((mod) => mod.publishHandler);
+    }
+
+    if (!UNSTABLE_HANDLER_CACHE.publish) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.publish({ ctx });
+  }),
   setPassword: authedProcedure.input(ZSetPasswordSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.setPassword) {
       UNSTABLE_HANDLER_CACHE.setPassword = await import("./setPassword.handler").then(
@@ -97,6 +139,22 @@ export const viewerOrganizationsRouter = router({
     return UNSTABLE_HANDLER_CACHE.setPassword({
       ctx,
       input,
+    });
+  }),
+  listMembers: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.listMembers) {
+      UNSTABLE_HANDLER_CACHE.listMembers = await import("./listMembers.handler").then(
+        (mod) => mod.listMembersHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.listMembers) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.listMembers({
+      ctx,
     });
   }),
   getBrand: authedProcedure.query(async ({ ctx }) => {
