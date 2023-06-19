@@ -167,6 +167,11 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
 
   const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
 
+  const users = getUsersFromEvent(event) || (await getOwnerFromUsersArray(prisma, event.id));
+  if (users === null) {
+    throw new Error("Event has no owner");
+  }
+
   return {
     ...event,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
@@ -178,7 +183,7 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
     recurringEvent: isRecurringEvent(event.recurringEvent) ? parseRecurringEvent(event.recurringEvent) : null,
     // Sets user data on profile object for easier access
     profile: getProfileFromEvent(event),
-    users: getUsersFromEvent(event),
+    users,
   };
 };
 
@@ -234,11 +239,20 @@ function getUsersFromEvent(event: Event) {
   if (team) {
     return (hosts || []).map(mapHostsToUsers);
   }
-
-  if (!owner) throw new Error("Event has no owner");
-
+  if (!owner) {
+    return null;
+  }
   const { username, name, weekStart } = owner;
   return [{ username, name, weekStart }];
+}
+
+async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number) {
+  const { users } = await prisma.eventType.findUniqueOrThrow({
+    where: { id: eventTypeId },
+    select: { users: { select: { username: true, name: true, weekStart: true } } },
+  });
+  if (!users.length) return null;
+  return [users[0]];
 }
 
 function mapHostsToUsers(host: { user: Pick<User, "username" | "name" | "weekStart"> }) {
