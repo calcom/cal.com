@@ -44,4 +44,4 @@ jobs:
         with:   
           header: pr-title-lint-error
           message: |
-            Thanks you for following the naming! 🙏 
+            Thank you for following the naming conventions! 🙏 
