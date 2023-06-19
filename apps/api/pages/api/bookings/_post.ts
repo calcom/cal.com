@@ -29,6 +29,7 @@ import { defaultResponder } from "@calcom/lib/server";
  *               - responses
  *               - timeZone
  *               - language
+ *               - metadata
  *             properties:
  *               eventTypeId:
  *                 type: integer
@@ -46,7 +47,6 @@ import { defaultResponder } from "@calcom/lib/server";
  *                 required:
  *                    - name
  *                    - email
- *                    - metadata
  *                    - location
  *                 properties:
  *                    name:
@@ -56,13 +56,13 @@ import { defaultResponder } from "@calcom/lib/server";
  *                      type: string
  *                      format: email
  *                      description: 'Attendee email address'
- *                    metadata:
- *                      type: object
- *                      properties: {}
- *                      description: 'Any metadata associated with the booking'
  *                    location:
  *                      type: string
  *                      description: 'Meeting location'
+ *               metadata:
+ *                 type: object
+ *                 properties: {}
+ *                 description: 'Any metadata associated with the booking'
  *               timeZone:
  *                 type: string
  *                 description: 'TimeZone of the Attendee'
