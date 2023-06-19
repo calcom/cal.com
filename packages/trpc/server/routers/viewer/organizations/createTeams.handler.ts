@@ -24,7 +24,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   });
   const metadata = teamMetadataSchema.parse(organization?.metadata);
 
-  if (!metadata?.requestedSlug || !organization?.slug)
+  if (!metadata?.requestedSlug && !organization?.slug)
     throw new TRPCError({ code: "BAD_REQUEST", message: "no_organization_slug" });
 
   const userMembership = await prisma.membership.findFirst({
