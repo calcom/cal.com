@@ -115,7 +115,7 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
 
   return (
     <div>
-      <HorizontalTabs tabs={tabs} navActions={<TeamsFilter popoverTriggerClassNames="mb-0" />} />
+      <HorizontalTabs tabs={tabs} />
       {events.length && (
         <EventTypeList
           types={events[0].eventTypes}
@@ -859,7 +859,6 @@ const EventTypesPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const filters = getTeamsFiltersFromQuery(router.query);
-  console.log("filters", filters);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer as any, { filters });
@@ -882,7 +881,7 @@ const EventTypesPage = () => {
           customLoader={<SkeletonLoader />}
           success={({ data }) => (
             <>
-              {data.eventTypeGroups.length > 1 && (
+              {data.eventTypeGroups.length >= 1 && (
                 <>
                   {isMobile ? (
                     <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
@@ -906,15 +905,6 @@ const EventTypesPage = () => {
                     ))
                   )}
                 </>
-              )}
-
-              {data.eventTypeGroups.length === 1 && (
-                <EventTypeList
-                  types={data.eventTypeGroups[0].eventTypes}
-                  group={data.eventTypeGroups[0]}
-                  groupIndex={0}
-                  readOnly={data.eventTypeGroups[0].metadata.readOnly}
-                />
               )}
 
               {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView />}
