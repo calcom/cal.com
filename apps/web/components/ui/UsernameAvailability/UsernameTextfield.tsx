@@ -21,7 +21,7 @@ interface ICustomUsernameProps {
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
 }
 
-const UsernameTextfield = (props: ICustomUsernameProps) => {
+const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.ComponentProps<typeof TextField>>) => {
   const { t } = useLocale();
   const {
     currentUsername,
@@ -31,6 +31,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
     usernameRef,
     onSuccessMutation,
     onErrorMutation,
+    ...rest
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
@@ -79,7 +80,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
 
   const ActionButtons = () => {
     return usernameIsAvailable && currentUsername !== inputUsernameValue ? (
-      <div className="ms-2 me-2 mt-px flex flex-row space-x-2">
+      <div className="ms-2 me-2 flex flex-row space-x-2">
         <Button
           type="button"
           onClick={() => setOpenDialogSaveUsername(true)}
@@ -116,9 +117,6 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             ref={usernameRef}
             name="username"
             value={inputUsernameValue}
-            addOnLeading={
-              <>{process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/</>
-            }
             autoComplete="none"
             autoCapitalize="none"
             autoCorrect="none"
@@ -133,6 +131,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
               setInputUsernameValue(event.target.value);
             }}
             data-testid="username-input"
+            {...rest}
           />
           {currentUsername !== inputUsernameValue && (
             <div className="absolute right-[2px] top-6 flex flex-row">
@@ -142,7 +141,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             </div>
           )}
         </div>
-        <div className="mt-5 hidden md:inline">
+        <div className="mt-7 hidden md:inline">
           <ActionButtons />
         </div>
       </div>

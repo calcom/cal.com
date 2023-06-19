@@ -66,6 +66,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           teamId: true,
           recurringEvent: true,
           title: true,
+          eventName: true,
           description: true,
           requiresConfirmation: true,
           price: true,
@@ -659,7 +660,7 @@ async function handler(req: CustomRequest) {
 
   await Promise.all(prismaPromises.concat(apiDeletes));
 
-  await sendCancelledEmails(evt);
+  await sendCancelledEmails(evt, { eventName: bookingToDelete?.eventType?.eventName });
 
   req.statusCode = 200;
   return { message: "Booking successfully cancelled." };

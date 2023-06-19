@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
 import type { serverSideTranslations } from "next-i18next/serverSideTranslations";
@@ -60,10 +61,10 @@ export async function createContextInner(opts: CreateInnerContextOptions) {
  * Creates context for an incoming request
  * @link https://trpc.io/docs/context
  */
-export const createContext = async ({ req, res }: CreateContextOptions) => {
+export const createContext = async ({ req, res }: CreateContextOptions, sessionGetter?: GetSessionFn) => {
   const locale = getLocaleFromHeaders(req);
-
-  const contextInner = await createContextInner({ locale });
+  const session = !!sessionGetter ? await sessionGetter({ req, res }) : null;
+  const contextInner = await createContextInner({ locale, session });
   return {
     ...contextInner,
     req,

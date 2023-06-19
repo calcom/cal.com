@@ -70,7 +70,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
       <h2 className="text-emphasis hidden text-base font-semibold leading-none sm:block">
         {searchText
           ? t("search")
-          : t("explore_apps", {
+          : t("category_apps", {
               category:
                 (selectedCategory && selectedCategory[0].toUpperCase() + selectedCategory.slice(1)) ||
                 t("all_apps"),
@@ -146,6 +146,7 @@ export function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
         ? router.query.category
         : null;
     setSelectedCategory(queryCategory);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.query.category]);
 
   const filteredApps = apps
