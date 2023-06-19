@@ -879,40 +879,55 @@ const EventTypesPage = () => {
         CTA={<CTA />}>
         <WithQuery
           customLoader={<SkeletonLoader />}
-          success={({ data }) => (
-            <>
-              {data.eventTypeGroups.length >= 1 && (
-                <>
-                  {isMobile ? (
-                    <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
-                  ) : (
-                    data.eventTypeGroups.map((group: EventTypeGroup, index: number) => (
-                      <div className="flex flex-col" key={group.profile.slug}>
-                        <EventTypeListHeading
-                          profile={group.profile}
-                          membershipCount={group.metadata.membershipCount}
-                          teamId={group.teamId}
-                          orgSlug={orgBranding?.slug}
-                        />
+          success={({ data }) => {
+            const isFilteredByOnlyOneItem =
+              (filters?.teamIds?.length === 1 || filters?.userIds?.length === 1) &&
+              data.eventTypeGroups.length === 1;
 
-                        <EventTypeList
-                          types={group.eventTypes}
-                          group={group}
-                          groupIndex={index}
-                          readOnly={group.metadata.readOnly}
-                        />
-                      </div>
-                    ))
-                  )}
-                </>
-              )}
+            return (
+              <>
+                {data.eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
+                  <>
+                    {isMobile ? (
+                      <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
+                    ) : (
+                      data.eventTypeGroups.map((group: EventTypeGroup, index: number) => (
+                        <div className="flex flex-col" key={group.profile.slug}>
+                          <EventTypeListHeading
+                            profile={group.profile}
+                            membershipCount={group.metadata.membershipCount}
+                            teamId={group.teamId}
+                            orgSlug={orgBranding?.slug}
+                          />
 
-              {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView />}
+                          <EventTypeList
+                            types={group.eventTypes}
+                            group={group}
+                            groupIndex={index}
+                            readOnly={group.metadata.readOnly}
+                          />
+                        </div>
+                      ))
+                    )}
+                  </>
+                ) : (
+                  data.eventTypeGroups.length === 1 && (
+                    <EventTypeList
+                      types={data.eventTypeGroups[0].eventTypes}
+                      group={data.eventTypeGroups[0]}
+                      groupIndex={0}
+                      readOnly={data.eventTypeGroups[0].metadata.readOnly}
+                    />
+                  )
+                )}
 
-              <EmbedDialog />
-              {router.query.dialog === "duplicate" && <DuplicateDialog />}
-            </>
-          )}
+                {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView />}
+
+                <EmbedDialog />
+                {router.query.dialog === "duplicate" && <DuplicateDialog />}
+              </>
+            );
+          }}
         />
       </Shell>
     </div>
