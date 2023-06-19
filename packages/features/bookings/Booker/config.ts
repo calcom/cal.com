@@ -87,8 +87,8 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
   week_view: {
     default: {
       width: "100vw",
-      minHeight: "450px",
-      height: "100vh",
+      minHeight: "100vh",
+      height: "auto",
       gridTemplateAreas: `
       "meta header header"
       "meta main main"
@@ -100,8 +100,8 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
   column_view: {
     default: {
       width: "100vw",
-      minHeight: "450px",
-      height: "100vh",
+      minHeight: "100vh",
+      height: "auto",
       gridTemplateAreas: `
       "meta header header"
       "meta main main"
@@ -142,7 +142,8 @@ export const getBookerSizeClassNames = (layout: BookerLayout, bookerState: Booke
 export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerState) => {
   const prefersReducedMotion = useReducedMotion();
   const [animationScope, animate] = useAnimate();
-
+  const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
+  ``;
   useEffect(() => {
     const animationConfig = resizeAnimationConfig[layout][state] || resizeAnimationConfig[layout].default;
 
@@ -163,12 +164,18 @@ export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerStat
       minHeight: animationConfig?.minHeight,
     };
 
-    // We don't animate if users has set prefers-reduced-motion,
-    // or when the layout is mobile.
-    if (prefersReducedMotion || layout === "mobile") {
+    // In this cases we don't animate the booker at all.
+    if (prefersReducedMotion || layout === "mobile" || isEmbed) {
       const styles = { ...nonAnimatedProperties, ...animatedProperties };
       Object.keys(styles).forEach((property) => {
-        animationScope.current.style[property] = styles[property as keyof typeof styles];
+        if (property === "height") {
+          // Change 100vh to 100% in embed, since 100vh in iframe will behave weird, because
+          // the iframe will constantly grow. 100% will simply make sure it grows with the iframe.
+          animationScope.current.style.height =
+            animatedProperties.height === "100vh" && isEmbed ? "100%" : animatedProperties.height;
+        } else {
+          animationScope.current.style[property] = styles[property as keyof typeof styles];
+        }
       });
     } else {
       Object.keys(nonAnimatedProperties).forEach((property) => {
@@ -180,7 +187,31 @@ export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerStat
         ease: cubicBezier(0.4, 0, 0.2, 1),
       });
     }
-  }, [animate, animationScope, layout, prefersReducedMotion, state]);
+  }, [animate, isEmbed, animationScope, layout, prefersReducedMotion, state]);
 
   return animationScope;
+};
+
+/**
+ * These configures the amount of days that are shown on top of the selected date.
+ */
+export const extraDaysConfig = {
+  mobile: {
+    // Desktop tablet feels weird on mobile layout,
+    // but this is simply here to make the types a lot easier..
+    desktop: 0,
+    tablet: 0,
+  },
+  [BookerLayouts.MONTH_VIEW]: {
+    desktop: 0,
+    tablet: 0,
+  },
+  [BookerLayouts.WEEK_VIEW]: {
+    desktop: 7,
+    tablet: 4,
+  },
+  [BookerLayouts.COLUMN_VIEW]: {
+    desktop: 4,
+    tablet: 2,
+  },
 };

@@ -73,8 +73,15 @@ async function getEmailsToInvite(usernameOrEmail: string | string[]) {
       message: "You must provide at least one email address to invite.",
     });
 
-  return emailsToInvite;
-}
+    if (input.isOrg && invitee) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `Email ${usernameOrEmail} already exists, you can't invite existing users.`,
+      });
+    }
+
+    if (!invitee) {
+      // liberal email match
 
 async function getUserToInviteOrThrowIfExists({
   usernameOrEmail,

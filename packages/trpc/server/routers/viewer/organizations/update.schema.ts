@@ -5,7 +5,8 @@ export const ZUpdateInputSchema = z.object({
   orgId: z
     .string()
     .regex(/^\d+$/)
-    .transform((id) => parseInt(id)),
+    .transform((id) => parseInt(id))
+    .optional(),
   bio: z.string().optional(),
   logo: z
     .string()

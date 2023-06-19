@@ -43,10 +43,10 @@ export const AddNewTeamsForm = () => {
       if (data.duplicatedSlugs.length) {
         showToast(t("duplicated_slugs_warning", { slugs: data.duplicatedSlugs.join(", ") }), "warning");
         setTimeout(() => {
-          router.push(`/getting-started`);
+          router.push(`/event-types`);
         }, 3000);
       } else {
-        router.push(`/getting-started`);
+        router.push(`/event-types`);
       }
     },
     onError: (error) => {

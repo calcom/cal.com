@@ -135,7 +135,7 @@ const tabs: VerticalTabItemProps[] = [
 tabs.find((tab) => {
   // Add "SAML SSO" to the tab
   if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
-    tab.children?.push({ name: "saml_config", href: "/settings/security/sso" });
+    tab.children?.push({ name: "sso_configuration", href: "/settings/security/sso" });
   }
 });
 

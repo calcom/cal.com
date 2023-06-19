@@ -256,7 +256,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const crypto = await import("crypto");
-  const { isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
 
   const usernameList = getUsernameList(context.query.user as string);
   const dataFetchStart = Date.now();
@@ -265,6 +265,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       username: {
         in: usernameList,
       },
+      organization: isValidOrgDomain
+        ? {
+            slug: currentOrgDomain,
+          }
+        : null,
     },
     select: {
       id: true,

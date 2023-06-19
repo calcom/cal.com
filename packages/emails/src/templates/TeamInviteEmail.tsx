@@ -67,9 +67,7 @@ export const TeamInviteEmail = (
       </p>
       <div style={{ display: "flex", justifyContent: "center" }}>
         <CallToAction
-          label={props.language(props.isCalcomMember ? "email_user_cta" : "email_not_cal_member_cta", {
-            entity: props.language(props.isOrg ? "organization" : "team").toLowerCase(),
-          })}
+          label={props.language(props.isCalcomMember ? "email_user_cta" : "create_your_account")}
           href={props.joinLink}
           endIconName="linkIcon"
         />
@@ -138,7 +136,6 @@ export const TeamInviteEmail = (
           <>
             {props.language("email_no_user_signoff", {
               appName: APP_NAME,
-              entity: props.language(props.isOrg ? "organization" : "team").toLowerCase(),
             })}
           </>
         </p>
