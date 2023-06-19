@@ -14,7 +14,7 @@ import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
 import { randomString } from "@calcom/lib/random";
-import rateLimit from "@calcom/lib/rateLimit";
+import rateLimiter from "@calcom/lib/rateLimit";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -102,12 +102,12 @@ const providers: Provider[] = [
       if (!user) {
         throw new Error(ErrorCode.IncorrectUsernamePassword);
       }
-
-      const limiter = await rateLimit({
+      const limiter = await rateLimiter();
+      const rateLimit = await limiter({
         identifier: user.email,
       });
 
-      if (!limiter.success) {
+      if (!rateLimit.success) {
         throw new Error(ErrorCode.RateLimitExceeded);
       }
 
