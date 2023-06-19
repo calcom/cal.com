@@ -40,13 +40,14 @@ export function Header({
 
   // Only reason we create this component, is because it is used 3 times in this component,
   // and this way we can't forget to update one of the props in all places :)
-  const LayoutToggleWithData = () => (
-    <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
-  );
+  const LayoutToggleWithData = () => {
+    return enabledLayouts.length <= 1 ? null : (
+      <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
+    );
+  };
 
   // In month view we only show the layout toggle.
   if (isMonthView) {
-    if (enabledLayouts.length <= 1) return null;
     return <LayoutToggleWithData />;
   }
 
