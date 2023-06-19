@@ -45,6 +45,18 @@ export const webhookProcedure = authedProcedure
       });
 
       if (webhook) {
+        if (teamId && teamId !== webhook.teamId) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+          });
+        }
+
+        if (eventTypeId && eventTypeId !== webhook.eventTypeId) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+          });
+        }
+
         if (webhook.teamId) {
           const user = await prisma.user.findFirst({
             where: {

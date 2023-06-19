@@ -1,6 +1,6 @@
 import type { TFunction } from "next-i18next";
 
-import { APP_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
+import { APP_NAME, SUPPORT_MAIL_ADDRESS, COMPANY_NAME } from "@calcom/lib/constants";
 
 import { BaseEmailHtml } from "../components";
 
@@ -55,7 +55,7 @@ export const OrganisationAccountVerifyEmail = (
               style={{ color: "#3E3E3E" }}
               target="_blank"
               rel="noreferrer">
-              <>{props.language("the_calcom_team")}</>
+              <>{props.language("the_calcom_team", { companyName: COMPANY_NAME })}</>
             </a>
           </>
         </p>

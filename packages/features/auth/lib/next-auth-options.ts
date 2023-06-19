@@ -69,7 +69,7 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.InternalServerError);
       }
 
-      const user = await prisma.user.findFirst({
+      const user = await prisma.user.findUnique({
         where: {
           email: credentials.email.toLowerCase(),
         },
@@ -443,7 +443,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: existingUser.role,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
-          organizationId: existingUser.organizationId,
+          organizationId: token?.organizationId,
         };
       }
 
@@ -462,7 +462,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: token.role as UserPermissionRole,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
-          organizationId: token.organizationId as number,
+          organizationId: token?.organizationId,
         },
       };
       return calendsoSession;

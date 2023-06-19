@@ -49,7 +49,7 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
       { value: 1, label: t("one_day") },
       { value: 7, label: t("seven_days") },
       { value: 30, label: t("thirty_days") },
-      { value: undefined, label: t("never_expire") },
+      { value: undefined, label: t("never_expires") },
     ];
   }, [t]);
 

@@ -136,9 +136,17 @@ export const EventSetupTab = (
     selectedMultipleDuration.find((opt) => opt.value === eventType.length) ?? null
   );
 
-  const openLocationModal = (type: EventLocationType["type"]) => {
+  const openLocationModal = (type: EventLocationType["type"], address = "") => {
     const option = getLocationFromType(type, locationOptions);
-    setSelectedLocation(option);
+    if (option && option.value === LocationType.InPerson) {
+      const inPersonOption = {
+        ...option,
+        address,
+      };
+      setSelectedLocation(inPersonOption);
+    } else {
+      setSelectedLocation(option);
+    }
     setShowLocationModal(true);
   };
 
@@ -298,10 +306,14 @@ export const EventSetupTab = (
                         onClick={() => {
                           locationFormMethods.setValue("locationType", location.type);
                           locationFormMethods.unregister("locationLink");
-                          locationFormMethods.unregister("locationAddress");
+                          if (location.type === LocationType.InPerson) {
+                            locationFormMethods.setValue("locationAddress", location.address);
+                          } else {
+                            locationFormMethods.unregister("locationAddress");
+                          }
                           locationFormMethods.unregister("locationPhoneNumber");
                           setEditingLocationType(location.type);
-                          openLocationModal(location.type);
+                          openLocationModal(location.type, location.address);
                         }}
                         aria-label={t("edit")}
                         className="hover:text-emphasis text-subtle mr-1 p-1">
@@ -517,7 +529,18 @@ export const EventSetupTab = (
         defaultValues={formMethods.getValues("locations")}
         selection={
           selectedLocation
-            ? { value: selectedLocation.value, label: t(selectedLocation.label), icon: selectedLocation.icon }
+            ? selectedLocation.address
+              ? {
+                  value: selectedLocation.value,
+                  label: t(selectedLocation.label),
+                  icon: selectedLocation.icon,
+                  address: selectedLocation.address,
+                }
+              : {
+                  value: selectedLocation.value,
+                  label: t(selectedLocation.label),
+                  icon: selectedLocation.icon,
+                }
             : undefined
         }
         setSelectedLocation={setSelectedLocation}

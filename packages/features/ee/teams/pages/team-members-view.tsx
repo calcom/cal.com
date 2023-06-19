@@ -67,7 +67,6 @@ const MembersView = () => {
 
   const router = useRouter();
   const session = useSession();
-
   const utils = trpc.useContext();
 
   const teamId = Number(router.query.id);
@@ -98,32 +97,7 @@ const MembersView = () => {
 
   const isLoading = isOrgListLoading || isTeamsLoading;
 
-  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
-    async onSuccess(data) {
-      await utils.viewer.teams.get.invalidate();
-      setShowMemberInvitationModal(false);
-      if (data.sendEmailInvitation) {
-        if (Array.isArray(data.usernameOrEmail)) {
-          showToast(
-            t("email_invite_team_bulk", {
-              userCount: data.usernameOrEmail.length,
-            }),
-            "success"
-          );
-        } else {
-          showToast(
-            t("email_invite_team", {
-              email: data.usernameOrEmail,
-            }),
-            "success"
-          );
-        }
-      }
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
+  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 
   const isInviteOpen = !team?.membership.accepted;
 
@@ -192,14 +166,43 @@ const MembersView = () => {
               teamId={team.id}
               token={team.inviteToken?.token}
               onExit={() => setShowMemberInvitationModal(false)}
-              onSubmit={(values) => {
-                inviteMemberMutation.mutate({
-                  teamId,
-                  language: i18n.language,
-                  role: values.role,
-                  usernameOrEmail: values.emailOrUsername,
-                  sendEmailInvitation: values.sendInviteEmail,
-                });
+              onSubmit={(values, resetFields) => {
+                inviteMemberMutation.mutate(
+                  {
+                    teamId,
+                    language: i18n.language,
+                    role: values.role,
+                    usernameOrEmail: values.emailOrUsername,
+                    sendEmailInvitation: values.sendInviteEmail,
+                  },
+                  {
+                    onSuccess: async (data) => {
+                      await utils.viewer.teams.get.invalidate();
+                      setShowMemberInvitationModal(false);
+                      if (data.sendEmailInvitation) {
+                        if (Array.isArray(data.usernameOrEmail)) {
+                          showToast(
+                            t("email_invite_team_bulk", {
+                              userCount: data.usernameOrEmail.length,
+                            }),
+                            "success"
+                          );
+                          resetFields();
+                        } else {
+                          showToast(
+                            t("email_invite_team", {
+                              email: data.usernameOrEmail,
+                            }),
+                            "success"
+                          );
+                        }
+                      }
+                    },
+                    onError: (error) => {
+                      showToast(error.message, "error");
+                    },
+                  }
+                );
               }}
               onSettingsOpen={() => {
                 setShowMemberInvitationModal(false);
