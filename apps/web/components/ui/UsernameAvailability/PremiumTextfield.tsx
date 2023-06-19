@@ -8,14 +8,12 @@ import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/ut
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { User } from "@calcom/prisma/client";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Button, Dialog, DialogClose, DialogContent, Input, Label } from "@calcom/ui";
-import { Star as StarSolid } from "@calcom/ui/components/icon";
-import { Check, Edit2, ExternalLink } from "@calcom/ui/components/icon";
+import { Check, Edit2, ExternalLink, Star as StarSolid } from "@calcom/ui/components/icon";
 
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",
@@ -29,7 +27,6 @@ interface ICustomUsernameProps {
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
-  user: Pick<User, "username" | "metadata">;
   readonly?: boolean;
 }
 
@@ -57,8 +54,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     onSuccessMutation,
     onErrorMutation,
     readonly: disabled,
-    user,
   } = props;
+  const [user] = trpc.viewer.me.useSuspenseQuery();
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
   const router = useRouter();

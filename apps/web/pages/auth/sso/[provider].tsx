@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import {
   hostedCal,
@@ -68,11 +69,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const session = await getServerSession({ req, res });
   const ssr = await ssrInit(context);
+  const { currentOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
 
   if (session) {
     // Validating if username is Premium, while this is true an email its required for stripe user confirmation
     if (usernameParam && session.user.email) {
-      const availability = await checkUsername(usernameParam);
+      const availability = await checkUsername(usernameParam, currentOrgDomain);
       if (availability.available && availability.premium) {
         const stripePremiumUrl = await getStripePremiumUsernameUrl({
           userEmail: session.user.email,

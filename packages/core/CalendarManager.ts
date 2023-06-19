@@ -185,13 +185,20 @@ export const getCachedResults = async (
  * On development environment it takes a long time because Next must compiles the whole page.
  * @param username
  * @param month A string representing year and month using YYYY-MM format
+ * @param organizationSlug A string with the organization slug
  */
-const getNextCache = async (username: string, month: string): Promise<EventBusyDate[][]> => {
+const getNextCache = async (
+  username: string,
+  month: string,
+  organizationSlug?: string | null
+): Promise<EventBusyDate[][]> => {
   let localCache: EventBusyDate[][] = [];
   const { NODE_ENV } = process.env;
   const cacheDir = `${NODE_ENV === "development" ? NODE_ENV : process.env.BUILD_ID}`;
   const baseUrl = `${WEBAPP_URL}/_next/data/${cacheDir}/en`;
-  const url = `${baseUrl}/${username}/calendar-cache/${month}.json?user=${username}&month=${month}`;
+  const url = organizationSlug
+    ? `${baseUrl}/${username}/calendar-cache/${month}/${organizationSlug}.json?user=${username}&month=${month}&orgSlug=${organizationSlug}`
+    : `${baseUrl}/${username}/calendar-cache/${month}.json?user=${username}&month=${month}`;
   try {
     localCache = await fetch(url)
       .then((r) => r.json())
@@ -218,17 +225,18 @@ const getMonths = (dateFrom: string, dateTo: string): string[] => {
   return months;
 };
 
-const createCalendarCachePage = (username: string, month: string): void => {
+const createCalendarCachePage = (username: string, month: string, organizationSlug?: string | null): void => {
   // No need to wait for this, the purpose is to force re-validation every second as indicated
   // in page getStaticProps.
-  fetch(`${WEBAPP_URL}/${username}/calendar-cache/${month}`).catch(console.log);
+  fetch(`${WEBAPP_URL}/${username}/calendar-cache/${month}/${organizationSlug}`).catch(console.log);
 };
 export const getBusyCalendarTimes = async (
   username: string,
   withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
-  selectedCalendars: SelectedCalendar[]
+  selectedCalendars: SelectedCalendar[],
+  organizationSlug?: string | null
 ) => {
   let results: EventBusyDate[][] = [];
   const months = getMonths(dateFrom, dateTo);
@@ -239,16 +247,16 @@ export const getBusyCalendarTimes = async (
       // Add 14 hours from the start date to avoid problems in UTC+ time zones.
       const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
       results = await getCalendarsEvents(withCredentials, startDate, endDate, selectedCalendars);
-      logger.info("Generating calendar cache in background");
+      console.log("Generating calendar cache in background");
       // on cold start the calendar cache page generated in the background
-      Promise.all(months.map((month) => createCalendarCachePage(username, month)));
+      Promise.all(months.map((month) => createCalendarCachePage(username, month, organizationSlug)));
     } else {
       if (months.length === 1) {
-        results = await getNextCache(username, dayjs(dateFrom).format("YYYY-MM"));
+        results = await getNextCache(username, dayjs(dateFrom).format("YYYY-MM"), organizationSlug);
       } else {
         // if dateFrom and dateTo is from different months get cache by each month
         const data: EventBusyDate[][][] = await Promise.all(
-          months.map((month) => getNextCache(username, month))
+          months.map((month) => getNextCache(username, month, organizationSlug))
         );
         results = data.flat(1);
       }

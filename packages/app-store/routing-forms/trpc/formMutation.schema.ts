@@ -13,6 +13,7 @@ export const ZFormMutationInputSchema = z.object({
   routes: zodRoutes,
   addFallback: z.boolean().optional(),
   duplicateFrom: z.string().nullable().optional(),
+  teamId: z.number().nullish().default(null),
   shouldConnect: z.boolean().optional(),
   settings: RoutingFormSettings.optional(),
 });
