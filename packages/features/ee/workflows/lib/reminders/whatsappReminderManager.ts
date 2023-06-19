@@ -23,7 +23,6 @@ export const scheduleWhatsappReminder = async (
   message: string,
   workflowStepId: number,
   template: WorkflowTemplates,
-  sender: string,
   userId?: number | null,
   teamId?: number | null,
   isVerificationPending = false

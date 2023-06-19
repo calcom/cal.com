@@ -126,7 +126,6 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
               step.reminderBody || "",
               step.id,
               step.template,
-              step.sender || SENDER_ID,
               workflow.userId,
               workflow.teamId,
               step.numberVerificationPending
@@ -222,7 +221,6 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
               step.reminderBody || "",
               step.id,
               step.template,
-              step.sender || SENDER_ID,
               workflow.userId,
               workflow.teamId,
               step.numberVerificationPending

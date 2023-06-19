@@ -239,7 +239,6 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             step.reminderBody || "",
             step.id,
             step.template,
-            step.sender || SENDER_ID,
             booking.userId,
             eventTypeWorkflow.teamId
           );

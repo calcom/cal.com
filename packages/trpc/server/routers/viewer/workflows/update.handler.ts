@@ -349,7 +349,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 step.reminderBody || "",
                 step.id || 0,
                 step.template,
-                step.sender || SENDER_ID,
                 user.id,
                 userWorkflow.teamId
               );
@@ -572,7 +571,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               newStep.reminderBody || "",
               newStep.id || 0,
               newStep.template,
-              newStep.sender || SENDER_ID,
               user.id,
               userWorkflow.teamId
             );
@@ -719,7 +717,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 step.reminderBody || "",
                 createdStep.id,
                 step.template,
-                step.sender || SENDER_ID,
                 user.id,
                 userWorkflow.teamId
               );

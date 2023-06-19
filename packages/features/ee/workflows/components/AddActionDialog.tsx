@@ -56,7 +56,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog, addAction } = props;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
-  const [isSenderIdNeeded, setIsSenderIsNeeded] = useState(false);
+  const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(false);
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(false);
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
 
@@ -89,28 +89,28 @@ export const AddActionDialog = (props: IAddActionDialog) => {
       form.setValue("action", newValue.value);
       if (newValue.value === WorkflowActions.SMS_NUMBER) {
         setIsPhoneNumberNeeded(true);
-        setIsSenderIsNeeded(true);
+        setIsSenderIdNeeded(true);
         setIsEmailAddressNeeded(false);
         form.resetField("senderId", { defaultValue: SENDER_ID })
       } else if (newValue.value === WorkflowActions.EMAIL_ADDRESS) {
         setIsEmailAddressNeeded(true);
-        setIsSenderIsNeeded(false);
+        setIsSenderIdNeeded(false);
         setIsPhoneNumberNeeded(false);
       } else if (newValue.value === WorkflowActions.SMS_ATTENDEE) {
-        setIsSenderIsNeeded(true);
+        setIsSenderIdNeeded(true);
         setIsEmailAddressNeeded(false);
         setIsPhoneNumberNeeded(false);
         form.resetField("senderId", { defaultValue: SENDER_ID })
       } else if (newValue.value === WorkflowActions.WHATSAPP_NUMBER) {
-        setIsSenderIsNeeded(false);
+        setIsSenderIdNeeded(false);
         setIsPhoneNumberNeeded(true);
         setIsEmailAddressNeeded(false);
       } else if (newValue.value === WorkflowActions.WHATSAPP_ATTENDEE) {
-        setIsSenderIsNeeded(false);
+        setIsSenderIdNeeded(false);
         setIsEmailAddressNeeded(false);
         setIsPhoneNumberNeeded(false);
       } else {
-        setIsSenderIsNeeded(false);
+        setIsSenderIdNeeded(false);
         setIsEmailAddressNeeded(false);
         setIsPhoneNumberNeeded(false);
       }
@@ -158,7 +158,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                 setIsOpenDialog(false);
                 setIsPhoneNumberNeeded(false);
                 setIsEmailAddressNeeded(false);
-                setIsSenderIsNeeded(false);
+                setIsSenderIdNeeded(false);
               }}>
               <div className="mt-5 space-y-1">
                 <Label htmlFor="label">{t("action")}:</Label>
@@ -261,7 +261,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                     form.unregister("numberRequired");
                     setIsPhoneNumberNeeded(false);
                     setIsEmailAddressNeeded(false);
-                    setIsSenderIsNeeded(false);
+                    setIsSenderIdNeeded(false);
                   }}
                 />
                 <Button type="submit">{t("add")}</Button>

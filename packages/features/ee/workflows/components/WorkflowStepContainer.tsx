@@ -116,17 +116,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       if (isSMSAction(action)) {
         form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, smsReminderTemplate(
           true,
-          form.getValues(`steps.${step.stepNumber - 1}.action`)
+          action
         ));
       } else if (isWhatsappAction(action)) {
         form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, whatsappReminderTemplate(
           true,
-          form.getValues(`steps.${step.stepNumber - 1}.action`)
+          action
         ))
       } else {
         const reminderBodyTemplate = emailReminderTemplate(
           true,
-          form.getValues(`steps.${step.stepNumber - 1}.action`)
+          action
         ).emailBody;
         form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, reminderBodyTemplate);
       }
