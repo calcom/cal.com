@@ -28,7 +28,6 @@ export default function TeamInviteFromOrg({
     return keysToCheck.some((key) => user?.[key]?.toLowerCase().includes(searchQuery.toLowerCase()));
   });
 
-  console.log({ filteredMembers, orgMembers });
   return (
     <div className="bg-muted border-subtle flex flex-col rounded-md border p-4">
       <div className="-my-1">
