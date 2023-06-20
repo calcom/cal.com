@@ -97,8 +97,6 @@ const cvaCardTypeByVariant = cva("", {
 
 type CVACardType = Required<Pick<VariantProps<typeof cvaCardTypeByVariant>, "variant">>;
 
-// @TODO: use CVA
-
 export interface BaseCardProps extends CVACardType {
   image?: string;
   icon?: ReactNode;
