@@ -1408,7 +1408,6 @@
   "team_url_required": "Ekip URL'si girilmelidir",
   "team_url_taken": "Bu URL zaten kullanılıyor",
   "team_publish": "Ekibi yayınla",
-  "number_sms_notifications": "Telefon numarası (SMS bildirimleri)",
   "attendee_email_variable": "Katılımcı e-postası",
   "attendee_email_info": "Rezervasyon yaptıran kişinin e-postası",
   "kbar_search_placeholder": "Komut girin veya arayın...",
