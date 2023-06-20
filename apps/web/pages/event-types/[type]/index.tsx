@@ -3,7 +3,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { GetServerSidePropsContext } from "next";
 import { Trans } from "next-i18next";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -17,9 +17,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { Prisma } from "@calcom/prisma/client";
 import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
-import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type {
+  BookerLayoutSettings,
+  customInputSchema,
+  EventTypeMetaDataSchema,
+} from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -96,6 +101,7 @@ export type FormValues = {
   hosts: { userId: number; isFixed: boolean }[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
   availability?: AvailabilityOption;
+  bookerLayouts: BookerLayoutSettings;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -184,17 +190,17 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
   const metadata = eventType.metadata;
   // fallback to !!eventType.schedule when 'useHostSchedulesForTeamEvent' is undefined
-  if (!!team) {
+  if (!!team && metadata !== null) {
     metadata.config = {
       ...metadata.config,
       useHostSchedulesForTeamEvent:
-        typeof eventType.metadata.config?.useHostSchedulesForTeamEvent !== "undefined"
-          ? eventType.metadata.config?.useHostSchedulesForTeamEvent === true
+        typeof eventType.metadata?.config?.useHostSchedulesForTeamEvent !== "undefined"
+          ? eventType.metadata?.config?.useHostSchedulesForTeamEvent === true
           : !!eventType.schedule,
     };
   } else {
     // Make sure non-team events NEVER have this config key;
-    delete metadata.config?.useHostSchedulesForTeamEvent;
+    delete metadata?.config?.useHostSchedulesForTeamEvent;
   }
 
   const bookingFields: Prisma.JsonObject = {};
@@ -203,41 +209,43 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     bookingFields[name] = name;
   });
 
-  const defaultValues = {
-    title: eventType.title,
-    locations: eventType.locations || [],
-    recurringEvent: eventType.recurringEvent || null,
-    description: eventType.description ?? undefined,
-    schedule: eventType.schedule || undefined,
-    bookingLimits: eventType.bookingLimits || undefined,
-    durationLimits: eventType.durationLimits || undefined,
-    length: eventType.length,
-    offsetStart: eventType.offsetStart,
-    hidden: eventType.hidden,
-    periodDates: {
-      startDate: periodDates.startDate,
-      endDate: periodDates.endDate,
-    },
-    bookingFields: eventType.bookingFields,
-    periodType: eventType.periodType,
-    periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
-    schedulingType: eventType.schedulingType,
-    minimumBookingNotice: eventType.minimumBookingNotice,
-    metadata,
-    hosts: eventType.hosts,
-    children: eventType.children.map((ch) => ({
-      ...ch,
-      created: true,
-      owner: {
-        ...ch.owner,
-        eventTypeSlugs:
-          eventType.team?.members
-            .find((mem) => mem.user.id === ch.owner.id)
-            ?.user.eventTypes.map((evTy) => evTy.slug)
-            .filter((slug) => slug !== eventType.slug) ?? [],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const defaultValues: any = useMemo(() => {
+    return {
+      title: eventType.title,
+      locations: eventType.locations || [],
+      recurringEvent: eventType.recurringEvent || null,
+      description: eventType.description ?? undefined,
+      schedule: eventType.schedule || undefined,
+      bookingLimits: eventType.bookingLimits || undefined,
+      durationLimits: eventType.durationLimits || undefined,
+      length: eventType.length,
+      hidden: eventType.hidden,
+      periodDates: {
+        startDate: periodDates.startDate,
+        endDate: periodDates.endDate,
       },
-    })),
-  } as const;
+      bookingFields: eventType.bookingFields,
+      periodType: eventType.periodType,
+      periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
+      schedulingType: eventType.schedulingType,
+      minimumBookingNotice: eventType.minimumBookingNotice,
+      metadata,
+      hosts: eventType.hosts,
+      children: eventType.children.map((ch) => ({
+        ...ch,
+        created: true,
+        owner: {
+          ...ch.owner,
+          eventTypeSlugs:
+            eventType.team?.members
+              .find((mem) => mem.user.id === ch.owner.id)
+              ?.user.eventTypes.map((evTy) => evTy.slug)
+              .filter((slug) => slug !== eventType.slug) ?? [],
+        },
+      })),
+    };
+  }, [eventType, periodDates, metadata]);
 
   const formMethods = useForm<FormValues>({
     defaultValues,
@@ -270,6 +278,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       //TODO: What's the best way to sync the form with backend
       formMethods.setValue("bookingFields", defaultValues.bookingFields);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultValues]);
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
@@ -332,6 +341,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       seatsPerTimeSlotEnabled,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       minimumBookingNoticeInDurationType,
+      bookerLayouts,
       ...input
     } = values;
 
@@ -344,6 +354,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       const isValid = validateIntervalLimitOrder(durationLimits);
       if (!isValid) throw new Error(t("event_setup_duration_limits_error"));
     }
+
+    const layoutError = validateBookerLayouts(metadata?.bookerLayouts || null);
+    if (layoutError) throw new Error(t(layoutError));
 
     if (metadata?.multipleDuration !== undefined) {
       if (metadata?.multipleDuration.length < 1) {
@@ -359,8 +372,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       throw new Error(t("seats_and_no_show_fee_error"));
     }
 
+    const { availability, ...rest } = input;
     updateMutation.mutate({
-      ...input,
+      ...rest,
       locations,
       recurringEvent,
       periodStartDate: periodDates.startDate,
@@ -415,9 +429,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               // We don't need to send send these values to the backend
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
               seatsPerTimeSlotEnabled,
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              minimumBookingNoticeInDurationType,
-              availability,
               ...input
             } = values;
 
@@ -431,6 +442,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               if (!isValid) throw new Error(t("event_setup_duration_limits_error"));
             }
 
+            const layoutError = validateBookerLayouts(metadata?.bookerLayouts || null);
+            if (layoutError) throw new Error(t(layoutError));
+
             if (metadata?.multipleDuration !== undefined) {
               if (metadata?.multipleDuration.length < 1) {
                 throw new Error(t("event_setup_multiple_duration_error"));
@@ -440,9 +454,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 }
               }
             }
-
+            const { availability, ...rest } = input;
             updateMutation.mutate({
-              ...input,
+              ...rest,
               locations,
               recurringEvent,
               periodStartDate: periodDates.startDate,

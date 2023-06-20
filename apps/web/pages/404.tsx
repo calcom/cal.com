@@ -42,6 +42,10 @@ export default function Custom404() {
   const isSubpage = router.asPath.includes("/", 2) || isSuccessPage;
   const isSignup = router.asPath.startsWith("/signup");
   const isCalcom = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com";
+
+  // In case of invalid email verification token, we intentionally redirect to 404 from the API
+  const isInvalidToken = router.asPath === "/404";
+
   /**
    * If we're on 404 and the route is insights it means it is disabled
    * TODO: Abstract this for all disabled features
@@ -200,12 +204,18 @@ export default function Custom404() {
                   {t("error_404")}
                 </p>
                 <h1 className="font-cal text-emphasis mt-2 text-4xl font-extrabold sm:text-5xl">
-                  {isSuccessPage ? "Booking not found" : t("page_doesnt_exist")}
+                  {isSuccessPage
+                    ? t("booking_not_found")
+                    : isInvalidToken
+                    ? t("invalid_verification_link")
+                    : t("page_doesnt_exist")}
                 </h1>
                 {isSubpage ? (
                   <span className="mt-2 inline-block text-lg ">
                     {t("check_spelling_mistakes_or_go_back")}
                   </span>
+                ) : isInvalidToken ? (
+                  <span className="mt-2 inline-block text-lg">{t("token_invalid_expired")}</span>
                 ) : isCalcom ? (
                   <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
                     {t("the_username")}{" "}

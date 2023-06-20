@@ -1,4 +1,4 @@
-import type { App_RoutingForms_Form } from "@prisma/client";
+import type { App_RoutingForms_Form, Team } from "@prisma/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -34,10 +34,18 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
-import { ExternalLink, Link as LinkIcon, Download, Code, Trash } from "@calcom/ui/components/icon";
+import {
+  ExternalLink,
+  Link as LinkIcon,
+  Download,
+  Code,
+  Trash,
+  MessageCircle,
+} from "@calcom/ui/components/icon";
 
 import { RoutingPages } from "../lib/RoutingPages";
 import { getSerializableForm } from "../lib/getSerializableForm";
+import { isFallbackRoute } from "../lib/isFallbackRoute";
 import { processRoute } from "../lib/processRoute";
 import type { Response, Route, SerializableForm } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
@@ -47,6 +55,10 @@ import RoutingNavBar from "./RoutingNavBar";
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 
 export type RoutingFormWithResponseCount = RoutingForm & {
+  team: {
+    slug: Team["slug"];
+    name: Team["name"];
+  } | null;
   _count: {
     responses: number;
   };
@@ -124,7 +136,7 @@ const Actions = ({
           tooltip={t("delete")}
         />
         {typeformApp?.isInstalled ? (
-          <FormActionsDropdown form={form}>
+          <FormActionsDropdown>
             <FormAction
               data-testid="copy-redirect-url"
               routingForm={form}
@@ -139,7 +151,7 @@ const Actions = ({
       </ButtonGroup>
 
       <div className="flex md:hidden">
-        <FormActionsDropdown form={form}>
+        <FormActionsDropdown>
           <FormAction
             routingForm={form}
             color="minimal"
@@ -280,7 +292,16 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
         <FormActionsProvider appUrl={appUrl}>
           <Meta title={form.name} description={form.description || ""} />
           <ShellMain
-            heading={form.name}
+            heading={
+              <div className="flex">
+                <div>{form.name}</div>
+                {form.team && (
+                  <Badge className="mt-1 ml-4" variant="gray">
+                    {form.team.name}
+                  </Badge>
+                )}
+              </div>
+            }
             subtitle={form.description || ""}
             backPath={`/${appUrl}/forms`}
             CTA={<Actions form={form} mutation={mutation} />}>
@@ -371,18 +392,26 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                       {t("test_preview")}
                     </Button>
                   </div>
+                  {form.routes?.every(isFallbackRoute) && (
+                    <Alert
+                      className="mt-6 !bg-orange-100 font-semibold text-orange-900"
+                      iconClassName="!text-orange-900"
+                      severity="neutral"
+                      title={t("no_routes_defined")}
+                    />
+                  )}
                   {!form._count?.responses && (
                     <>
                       <Alert
-                        className="mt-6"
+                        className="mt-2 px-4 py-3"
                         severity="neutral"
                         title={t("no_responses_yet")}
-                        message={t("responses_collection_waiting_description")}
+                        CustomIcon={MessageCircle}
                       />
                     </>
                   )}
                 </div>
-                <div className="border-subtle w-full rounded-md border p-8">
+                <div className="border-subtle bg-muted w-full rounded-md border p-8">
                   <RoutingNavBar appUrl={appUrl} form={form} />
                   <Page hookForm={hookForm} form={form} appUrl={appUrl} />
                 </div>
@@ -523,8 +552,8 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
     };
   }
 
-  const isFormEditAllowed = (await import("../lib/isFormEditAllowed")).isFormEditAllowed;
-  if (!(await isFormEditAllowed({ userId: user.id, formId }))) {
+  const isFormCreateEditAllowed = (await import("../lib/isFormCreateEditAllowed")).isFormCreateEditAllowed;
+  if (!(await isFormCreateEditAllowed({ userId: user.id, formId, targetTeamId: null }))) {
     return {
       notFound: true,
     };
@@ -535,6 +564,12 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
       id: formId,
     },
     include: {
+      team: {
+        select: {
+          name: true,
+          slug: true,
+        },
+      },
       _count: {
         select: {
           responses: true,
@@ -551,7 +586,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
   return {
     props: {
       trpcState: ssr.dehydrate(),
-      form: await getSerializableForm(form),
+      form: await getSerializableForm({ form }),
     },
   };
 };

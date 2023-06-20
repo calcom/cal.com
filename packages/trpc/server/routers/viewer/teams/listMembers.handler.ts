@@ -43,7 +43,7 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersOptions) => 
   });
 
   type UserMap = Record<number, (typeof teams)[number]["members"][number]["user"]>;
-  // flattern users to be unique by id
+  // flatten users to be unique by id
   const users = teams
     .flatMap((t) => t.members)
     .reduce((acc, m) => (m.user.id in acc ? acc : { ...acc, [m.user.id]: m.user }), {} as UserMap);

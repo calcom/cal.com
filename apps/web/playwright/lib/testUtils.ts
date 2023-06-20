@@ -46,6 +46,7 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
 
   // listen on random port
   server.listen(0);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const port: number = (server.address() as any).port;
   const url = `http://localhost:${port}`;
   return {
@@ -91,7 +92,7 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
   await page.waitForTimeout(1000);
   // TODO: Find out why the first day is always booked on tests
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-  await page.locator('[data-testid="time"]').nth(0).click();
+  await page.locator('[data-testid="time"][data-disabled="false"]').nth(0).click();
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
@@ -109,7 +110,7 @@ export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   await page.waitForTimeout(1000);
   // TODO: Find out why the first day is always booked on tests
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-  await page.locator('[data-testid="time"]').nth(1).click();
+  await page.locator('[data-testid="time"][data-disabled="false"]').nth(1).click();
 }
 
 async function bookEventOnThisPage(page: Page) {
@@ -169,3 +170,30 @@ export const createNewSeatedEventType = async (page: Page, args: { eventTitle: s
   await page.locator('[data-testid="offer-seats-toggle"]').click();
   await page.locator('[data-testid="update-eventtype"]').click();
 };
+
+export async function gotoRoutingLink({
+  page,
+  formId,
+  queryString = "",
+}: {
+  page: Page;
+  formId?: string;
+  queryString?: string;
+}) {
+  let previewLink = null;
+  if (!formId) {
+    // Instead of clicking on the preview link, we are going to the preview link directly because the earlier opens a new tab which is a bit difficult to manage with Playwright
+    const href = await page.locator('[data-testid="form-action-preview"]').getAttribute("href");
+    if (!href) {
+      throw new Error("Preview link not found");
+    }
+    previewLink = href;
+  } else {
+    previewLink = `/forms/${formId}`;
+  }
+
+  await page.goto(`${previewLink}${queryString ? `?${queryString}` : ""}`);
+
+  // HACK: There seems to be some issue with the inputs to the form getting reset if we don't wait.
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+}

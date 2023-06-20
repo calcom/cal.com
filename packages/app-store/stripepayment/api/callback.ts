@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const response = await stripe.oauth.token({
     grant_type: "authorization_code",
-    code: code!.toString(),
+    code: code?.toString(),
   });
 
   const data: StripeData = { ...response, default_currency: "" };
