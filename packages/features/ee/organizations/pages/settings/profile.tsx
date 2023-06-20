@@ -7,6 +7,8 @@ import { useState, useLayoutEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -31,7 +33,6 @@ import {
 } from "@calcom/ui";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
-import { extractDomainFromWebsiteUrl } from "../../lib/utils";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
@@ -47,6 +48,7 @@ const OrgProfileView = () => {
   const utils = trpc.useContext();
   const session = useSession();
   const [firstRender, setFirstRender] = useState(true);
+  const orgBranding = useOrgBrandingValues();
 
   useLayoutEffect(() => {
     document.body.focus();
@@ -88,7 +90,9 @@ const OrgProfileView = () => {
     (currentOrganisation.user.role === MembershipRole.OWNER ||
       currentOrganisation.user.role === MembershipRole.ADMIN);
 
-  const permalink = `${currentOrganisation?.slug}.cal.com`;
+  const permalink = `${new URL(process.env.NEXT_PUBLIC_WEBSITE_URL || "").protocol}//${
+    orgBranding?.slug
+  }.${subdomainSuffix()}`;
 
   const isBioEmpty =
     !currentOrganisation ||
@@ -163,7 +167,7 @@ const OrgProfileView = () => {
                   <div className="mt-8">
                     <TextField
                       name="name"
-                      label={t("team_name")}
+                      label={t("org_name")}
                       value={value}
                       onChange={(e) => {
                         form.setValue("name", e?.target.value);
@@ -175,10 +179,10 @@ const OrgProfileView = () => {
               <div className="mt-8">
                 <TextField
                   name="slug"
-                  label={t("team_url")}
+                  label={t("org_url")}
                   value={currentOrganisation.slug ?? ""}
                   disabled
-                  addOnSuffix={`.${extractDomainFromWebsiteUrl}`}
+                  addOnSuffix={`.${subdomainSuffix()}`}
                 />
               </div>
               <div className="mt-8">
@@ -201,7 +205,7 @@ const OrgProfileView = () => {
             <div className="flex">
               <div className="flex-grow">
                 <div>
-                  <Label className="text-emphasis">{t("team_name")}</Label>
+                  <Label className="text-emphasis">{t("org_name")}</Label>
                   <p className="text-default text-sm">{currentOrganisation?.name}</p>
                 </div>
                 {currentOrganisation && !isBioEmpty && (
@@ -221,7 +225,7 @@ const OrgProfileView = () => {
                     navigator.clipboard.writeText(permalink);
                     showToast("Copied to clipboard", "success");
                   }}>
-                  {t("copy_link_team")}
+                  {t("copy_link_org")}
                 </LinkIconButton>
               </div>
             </div>
