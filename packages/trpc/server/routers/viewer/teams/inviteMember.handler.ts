@@ -6,8 +6,8 @@ import { sendOrganizationAutoJoinEmail, sendTeamInviteEmail } from "@calcom/emai
 import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import type { MembershipRole } from "@calcom/prisma/enums";
@@ -67,7 +67,7 @@ async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
 async function getEmailsToInvite(usernameOrEmail: string | string[]) {
   const emailsToInvite = Array.isArray(usernameOrEmail) ? usernameOrEmail : [usernameOrEmail];
 
-  if (emailsToInvite.length === 0)
+  if (emailsToInvite.length === 0) {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "You must provide at least one email address to invite.",

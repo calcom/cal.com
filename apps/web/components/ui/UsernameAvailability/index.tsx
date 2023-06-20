@@ -24,9 +24,9 @@ interface UsernameAvailabilityFieldProps {
 function useUserNamePrefix(organization: RouterOutputs["viewer"]["me"]["organization"]): string {
   return organization
     ? organization.slug
-      ? `${organization.slug}.${subdomainSuffix()}`
+      ? `${organization.slug}.${subdomainSuffix()}/`
       : organization.metadata && organization.metadata.requestedSlug
-      ? `${organization.metadata.requestedSlug}.${subdomainSuffix()}`
+      ? `${organization.metadata.requestedSlug}.${subdomainSuffix()}/`
       : process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")
     : process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "");
 }

@@ -22,7 +22,7 @@ const variantClassName = {
 const defaultIconProps = {
   className: "text-emphasis h-4 w-4 stroke-[2.5px]",
   "aria-hidden": "true",
-} satisfies LucideProps;
+} as LucideProps;
 
 export function TopBanner(props: TopBannerProps) {
   const { Icon, variant = "default", text, actions, onClose } = props;
