@@ -64,16 +64,21 @@ test.describe("Workflow tests", () => {
       expect(workflowReminders[0].scheduledDate.toISOString()).toBe(scheduledDate.toISOString());
     });
 
-    //todo: test cancelling of booking and deleting workflow reminder
-    //todo: test the other triggers
+    /*
+      More tests:
+        -  cancel booking and test if workflow reminders are deleted
+        -  test all other triggers (cancelled, rescheduled, new event booked)
+    */
   });
 
   /*
-  test.describe("Team Workflows", () => {
-    test("Admin can create and update team workflow", async ({ page, users }) => {
-      // managed-event-types.e2e.ts has as flow for creating a team (not sure if there is anything better)
+    test.describe("Team Workflows", () => {
+      test("Admin can create and update team workflow", async ({ page, users }) => {
+
+      });
+      test("Members can not create and update team workflows", async ({ page, users }) => {
+
+      });
     });
-    test("Members can not create and update team workflows", async ({ page, users }) => {});
-  });
   */
 });
