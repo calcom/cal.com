@@ -33,6 +33,9 @@ describe("parseTeamId", () => {
   it("should throw an error if the provided teamId is not a positive number", () => {
     expect(() => parseTeamId({ username: "test", teamId: "-123" })).toThrow();
   });
+  it("should throw an error if the provided teamId is not a number", () => {
+    expect(() => parseTeamId({ username: "test", teamId: "notanumber" })).toThrow();
+  });
 });
 
 describe("checkSelfImpersonation", () => {

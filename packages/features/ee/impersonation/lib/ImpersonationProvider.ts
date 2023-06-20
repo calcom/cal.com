@@ -48,8 +48,7 @@ const auditAndReturnNextUser = async (
 type Credentials = Record<"username" | "teamId", string> | undefined;
 
 export function parseTeamId(creds: Partial<Credentials>) {
-  const teamId = creds?.teamId ? teamIdschema.parse({ teamId: creds.teamId }).teamId : undefined;
-  return teamId;
+  return creds?.teamId ? teamIdschema.parse({ teamId: creds.teamId }).teamId : undefined;
 }
 
 export function checkSelfImpersonation(session: Session | null, creds: Partial<Credentials>) {
