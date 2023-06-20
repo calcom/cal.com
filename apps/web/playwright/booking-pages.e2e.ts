@@ -21,9 +21,7 @@ testBothBookers.describe("free user", (bookerVariant) => {
     await page.goto(`/${free.username}`);
   });
 
-  test("cannot book same slot multiple times", async ({ page }, testInfo) => {
-    // Considering there is booking happening twice, it would need more than default test timeout
-    test.setTimeout(testInfo.timeout * 2);
+  test("cannot book same slot multiple times", async ({ page }) => {
     // Click first event type
     await page.click('[data-testid="event-type-link"]');
 
