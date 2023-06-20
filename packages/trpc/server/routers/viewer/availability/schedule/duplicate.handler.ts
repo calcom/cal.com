@@ -27,11 +27,6 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateScheduleOptions)
         name: true,
         availability: true,
         timeZone: true,
-        eventType: {
-          select: {
-            id: true,
-          },
-        },
       },
     });
 
@@ -57,6 +52,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateScheduleOptions)
             days: schedule.days,
             startTime: schedule.startTime,
             endTime: schedule.endTime,
+            date: schedule.date,
           })),
         },
       },
