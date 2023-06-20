@@ -108,6 +108,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
                   createFunction={(teamId?: number) => {
                     router.push(`webhooks/new${teamId ? `?teamId=${teamId}` : ""}`);
                   }}
+                  data-testid="new_webhook"
                 />
               }
             />
