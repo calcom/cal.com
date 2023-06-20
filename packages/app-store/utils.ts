@@ -56,8 +56,6 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
   > = {};
   integrations.forEach((app) => {
     if (app.locationOption) {
-      console.log("🚀 ~ file: utils.ts:58 ~ integrations.forEach ~ app:", app);
-
       // All apps that are labeled as a locationOption are video apps. Extract the secondary category if available
       const nonVideoCategories = app.categories.find((category) => category !== "video");
       const category = nonVideoCategories ? nonVideoCategories : app.category ?? "video";
