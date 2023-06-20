@@ -1409,7 +1409,6 @@
   "team_url_required": "팀 URL을 입력하세요",
   "team_url_taken": "이미 사용 중인 URL입니다",
   "team_publish": "팀 게시",
-  "number_sms_notifications": "전화번호 (SMS notifications)",
   "attendee_email_variable": "참석자 이메일",
   "attendee_email_info": "예약자 이메일",
   "kbar_search_placeholder": "명령어를 입력하거나 검색하세요...",

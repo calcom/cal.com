@@ -1318,7 +1318,6 @@
   "team_url_required": "Må angi en team URL",
   "team_url_taken": "Denne URL'en er allerede tatt",
   "team_publish": "Publiser team",
-  "number_sms_notifications": "Telefonnummer (SMS varsler)",
   "attendee_email_variable": "Deltakerens e-post",
   "attendee_email_info": "Den som booker sin e-post",
   "kbar_search_placeholder": "Skriv inn en kommando eller søk...",
