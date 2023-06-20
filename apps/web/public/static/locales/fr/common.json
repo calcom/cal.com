@@ -1471,7 +1471,7 @@
   "attendee_email_info": "Adresse e-mail du participant",
   "kbar_search_placeholder": "Saisissez une commande ou une recherche...",
   "invalid_credential": "Oh non ! On dirait que l’autorisation a expiré ou a été révoquée. Veuillez la réinstaller.",
-  "reschedule_reason_success_page": "Raison de la replanification",
+  "reschedule_reason": "Raison de la replanification",
   "choose_common_schedule_team_event": "Choisissez un horaire commun",
   "choose_common_schedule_team_event_description": "Activez cette option si vous souhaitez utiliser des disponibilités communes entre les hôtes. Si cette option est désactivée, chaque hôte recevra les réservations en fonction de ses disponibilités par défaut.",
   "reason": "Raison",

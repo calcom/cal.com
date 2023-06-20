@@ -1413,7 +1413,7 @@
   "attendee_email_info": "Personens e-postadress för bokning",
   "kbar_search_placeholder": "Ange ett kommando eller sök ...",
   "invalid_credential": "Åh nej! Det verkar som om behörigheten löpt ut eller återkallats. Installera om igen.",
-  "reschedule_reason_success_page": "Anledning till ombokning",
+  "reschedule_reason": "Anledning till ombokning",
   "choose_common_schedule_team_event": "Välj ett gemensamt schema",
   "choose_common_schedule_team_event_description": "Aktivera den här funktionen om du vill använda ett gemensamt schema mellan värdarna. När den är inaktiverad bokas varje värd enligt sitt standardschema.",
   "reason": "Orsak",

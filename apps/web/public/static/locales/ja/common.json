@@ -1413,7 +1413,7 @@
   "attendee_email_info": "予約者のメールアドレス",
   "kbar_search_placeholder": "コマンドを入力するか、検索してください...",
   "invalid_credential": "アクセス許可の有効期限が切れたか、取り消されたようです。もう一度インストールしてください。",
-  "reschedule_reason_success_page": "スケジュール変更の理由",
+  "reschedule_reason": "スケジュール変更の理由",
   "choose_common_schedule_team_event": "共通のスケジュールを選択",
   "choose_common_schedule_team_event_description": "ホスト間で共通のスケジュールを使用する場合には、これを有効にしてください。無効にすると、各ホストに対してはデフォルトのスケジュールに基づいて予約が行われます。",
   "reason": "理由",
