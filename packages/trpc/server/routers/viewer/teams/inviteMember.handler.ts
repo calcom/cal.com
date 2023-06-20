@@ -72,6 +72,7 @@ async function getEmailsToInvite(usernameOrEmail: string | string[]) {
       code: "BAD_REQUEST",
       message: "You must provide at least one email address to invite.",
     });
+  }
 
   return emailsToInvite;
 }
