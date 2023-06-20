@@ -3,6 +3,7 @@ import type { MailData } from "@sendgrid/helpers/classes/mail";
 import sgMail from "@sendgrid/mail";
 
 import dayjs from "@calcom/dayjs";
+import { IS_PRODUCTION } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
@@ -60,6 +61,8 @@ export const scheduleEmailReminder = async (
     console.error("Sendgrid credentials are missing from the .env file");
     return;
   }
+
+  const sandboxMode = IS_PRODUCTION ? false : true;
 
   let name = "";
   let attendeeName = "";
@@ -146,6 +149,11 @@ export const scheduleEmailReminder = async (
             html: emailContent.emailBody,
             batchId: batchIdResponse[1].batch_id,
             replyTo: evt.organizer.email,
+            mailSettings: {
+              sandboxMode: {
+                enable: sandboxMode,
+              },
+            },
           });
         }
       } else {
@@ -159,6 +167,11 @@ export const scheduleEmailReminder = async (
           html: emailContent.emailBody,
           batchId: batchIdResponse[1].batch_id,
           replyTo: evt.organizer.email,
+          mailSettings: {
+            sandboxMode: {
+              enable: sandboxMode,
+            },
+          },
         });
       }
     } catch (error) {
@@ -187,6 +200,11 @@ export const scheduleEmailReminder = async (
           batchId: batchIdResponse[1].batch_id,
           sendAt: scheduledDate.unix(),
           replyTo: evt.organizer.email,
+          mailSettings: {
+            sandboxMode: {
+              enable: sandboxMode,
+            },
+          },
         });
 
         await prisma.workflowReminder.create({

@@ -5,6 +5,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
@@ -30,6 +31,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     res.status(405).json({ message: "No SendGrid API key or email" });
     return;
   }
+
+  const sandboxMode = IS_PRODUCTION ? false : true;
 
   //delete batch_ids with already past scheduled date from scheduled_sends
   const remindersToDelete = await prisma.workflowReminder.findMany({
@@ -241,6 +244,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             batchId: batchId,
             sendAt: dayjs(reminder.scheduledDate).unix(),
             replyTo: reminder.booking.user?.email || senderEmail,
+            mailSettings: {
+              sandboxMode: {
+                enable: sandboxMode,
+              },
+            },
           });
         }
 
