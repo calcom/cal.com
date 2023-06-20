@@ -1414,7 +1414,7 @@
   "attendee_email_info": "예약자 이메일",
   "kbar_search_placeholder": "명령어를 입력하거나 검색하세요...",
   "invalid_credential": "죄송합니다! 권한이 만료되었거나 취소된 것 같습니다. 다시 설치하십시오.",
-  "reschedule_reason_success_page": "일정 변경 사유",
+  "reschedule_reason": "일정 변경 사유",
   "choose_common_schedule_team_event": "공통 일정 선택",
   "choose_common_schedule_team_event_description": "호스트 간에 공통 일정을 사용하려면 이 옵션을 활성화하세요. 비활성화되면 각 호스트는 기본 일정에 따라 예약됩니다.",
   "reason": "사유",

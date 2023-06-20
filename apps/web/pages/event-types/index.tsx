@@ -13,7 +13,8 @@ import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
-import { OrganizationEventTypeFilter } from "@calcom/features/eventtypes/components/OrganizationEventTypeFilter";
+import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
+import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -47,7 +48,6 @@ import {
   HeadSeo,
   Skeleton,
   Label,
-  VerticalDivider,
   Alert,
 } from "@calcom/ui";
 import {
@@ -800,8 +800,7 @@ const CTA = () => {
 const Actions = () => {
   return (
     <div className="hidden items-center md:flex">
-      <OrganizationEventTypeFilter />
-      <VerticalDivider />
+      <TeamsFilter popoverTriggerClassNames="mb-0" showVerticalDivider={true} />
     </div>
   );
 };
@@ -834,9 +833,6 @@ const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
   );
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer as any);
-
 const EventTypesPage = () => {
   const { t } = useLocale();
   const router = useRouter();
@@ -862,6 +858,10 @@ const EventTypesPage = () => {
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  const filters = getTeamsFiltersFromQuery(router.query);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer as any, { filters });
 
   return (
     <div>
@@ -879,47 +879,55 @@ const EventTypesPage = () => {
         CTA={<CTA />}>
         <WithQuery
           customLoader={<SkeletonLoader />}
-          success={({ data }) => (
-            <>
-              {data.eventTypeGroups.length > 1 ? (
-                <>
-                  {isMobile ? (
-                    <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
-                  ) : (
-                    data.eventTypeGroups.map((group: EventTypeGroup, index: number) => (
-                      <div className="flex flex-col" key={group.profile.slug}>
-                        <EventTypeListHeading
-                          profile={group.profile}
-                          membershipCount={group.metadata.membershipCount}
-                          teamId={group.teamId}
-                          orgSlug={orgBranding?.slug}
-                        />
+          success={({ data }) => {
+            const isFilteredByOnlyOneItem =
+              (filters?.teamIds?.length === 1 || filters?.userIds?.length === 1) &&
+              data.eventTypeGroups.length === 1;
 
-                        <EventTypeList
-                          types={group.eventTypes}
-                          group={group}
-                          groupIndex={index}
-                          readOnly={group.metadata.readOnly}
-                        />
-                      </div>
-                    ))
-                  )}
-                </>
-              ) : data.eventTypeGroups.length === 1 ? (
-                <EventTypeList
-                  types={data.eventTypeGroups[0].eventTypes}
-                  group={data.eventTypeGroups[0]}
-                  groupIndex={0}
-                  readOnly={data.eventTypeGroups[0].metadata.readOnly}
-                />
-              ) : (
-                <CreateFirstEventTypeView />
-              )}
+            return (
+              <>
+                {data.eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
+                  <>
+                    {isMobile ? (
+                      <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
+                    ) : (
+                      data.eventTypeGroups.map((group: EventTypeGroup, index: number) => (
+                        <div className="flex flex-col" key={group.profile.slug}>
+                          <EventTypeListHeading
+                            profile={group.profile}
+                            membershipCount={group.metadata.membershipCount}
+                            teamId={group.teamId}
+                            orgSlug={orgBranding?.slug}
+                          />
 
-              <EmbedDialog />
-              {router.query.dialog === "duplicate" && <DuplicateDialog />}
-            </>
-          )}
+                          <EventTypeList
+                            types={group.eventTypes}
+                            group={group}
+                            groupIndex={index}
+                            readOnly={group.metadata.readOnly}
+                          />
+                        </div>
+                      ))
+                    )}
+                  </>
+                ) : (
+                  data.eventTypeGroups.length === 1 && (
+                    <EventTypeList
+                      types={data.eventTypeGroups[0].eventTypes}
+                      group={data.eventTypeGroups[0]}
+                      groupIndex={0}
+                      readOnly={data.eventTypeGroups[0].metadata.readOnly}
+                    />
+                  )
+                )}
+
+                {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView />}
+
+                <EmbedDialog />
+                {router.query.dialog === "duplicate" && <DuplicateDialog />}
+              </>
+            );
+          }}
         />
       </Shell>
     </div>

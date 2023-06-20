@@ -394,7 +394,7 @@ export default function Success(props: SuccessProps) {
                     {(isCancelled || reschedule) && cancellationReason && (
                       <>
                         <div className="font-medium">
-                          {isCancelled ? t("reason") : t("reschedule_reason_success_page")}
+                          {isCancelled ? t("reason") : t("reschedule_reason")}
                         </div>
                         <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
                       </>

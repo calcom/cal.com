@@ -1413,7 +1413,7 @@
   "attendee_email_info": "Het e-mailadres van de persoon die boekt",
   "kbar_search_placeholder": "Typ een opdracht of zoek...",
   "invalid_credential": "Oh nee! Het lijkt erop dat de machtiging is verlopen of is ingetrokken. Installeer het opnieuw.",
-  "reschedule_reason_success_page": "Reden voor opnieuw plannen",
+  "reschedule_reason": "Reden voor opnieuw plannen",
   "choose_common_schedule_team_event": "Kies een gezamenlijke planning",
   "choose_common_schedule_team_event_description": "Schakel dit in als u een gemeenschappelijke planning tussen organisatoren wilt gebruiken. Indien uitgeschakeld, wordt elke organisator geboekt op basis van zijn standaardplanning.",
   "reason": "Reden",

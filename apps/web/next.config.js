@@ -186,8 +186,11 @@ const nextConfig = {
     // .* matches / as well(Note: *(i.e wildcard) doesn't match / but .*(i.e. RegExp) does)
     // It would match /free/30min but not /bookings/upcoming because 'bookings' is an item in pages
     // It would also not match /free/30min/embed because we are ensuring just two slashes
-    const userTypeRouteRegExp = `/:user((?!${pages.join("|")})[^/]*)/:type`;
-
+    // ?!book ensures it doesn't match /free/book page which doesn't have a corresponding new-booker page.
+    // [^/]+ makes the RegExp match the full path, it seems like a partial match doesn't work.
+    const userTypeRouteRegExp = `/:user((?!${pages.join("/|")}$)[^/]*)/:type((?!book)[^/]+)`;
+    const teamTypeRouteRegExp = "/team/:slug/:type((?!book)[^/]+)";
+    const privateLinkRouteRegExp = "/d/:link/:slug((?!book)[^/]+)";
     let rewrites = [
       {
         source: "/org/:slug",
@@ -232,12 +235,12 @@ const nextConfig = {
           has: [{ type: "cookie", key: "new-booker-enabled" }],
         },
         {
-          source: "/team/:slug/:type",
+          source: teamTypeRouteRegExp,
           destination: "/new-booker/team/:slug/:type",
           has: [{ type: "cookie", key: "new-booker-enabled" }],
         },
         {
-          source: "/d/:link/:slug",
+          source: privateLinkRouteRegExp,
           destination: "/new-booker/d/:link/:slug",
           has: [{ type: "cookie", key: "new-booker-enabled" }],
         },
@@ -292,11 +295,11 @@ const nextConfig = {
             destination: "/new-booker/:user/:type",
           },
           {
-            source: "/team/:slug/:type",
+            source: teamTypeRouteRegExp,
             destination: "/new-booker/team/:slug/:type",
           },
           {
-            source: "/d/:link/:slug",
+            source: privateLinkRouteRegExp,
             destination: "/new-booker/d/:link/:slug",
           },
         ]

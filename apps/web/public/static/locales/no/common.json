@@ -1323,7 +1323,7 @@
   "attendee_email_info": "Den som booker sin e-post",
   "kbar_search_placeholder": "Skriv inn en kommando eller søk...",
   "invalid_credential": "Å nei! Det ser ut til at tillatelsen er utløpt eller tilbakekalt. Vennligst installer på nytt.",
-  "reschedule_reason_success_page": "Årsak for endring av tidspunkt",
+  "reschedule_reason": "Årsak for endring av tidspunkt",
   "choose_common_schedule_team_event": "Velg en felles timeplan",
   "choose_common_schedule_team_event_description": "Aktiver dette hvis du vil bruke en felles tidsplan mellom verter. Når den er deaktivert, vil hver vert bookes basert på deres standard tidsplan.",
   "reason": "Årsak",
