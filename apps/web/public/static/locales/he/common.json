@@ -1426,7 +1426,7 @@
   "attendee_email_info": "כתובת הדוא\"ל של האדם שביצע את ההזמנה",
   "kbar_search_placeholder": "הקלד/י פקודה או חפש/י...",
   "invalid_credential": "נראה שתוקף ההרשאה פג או שההרשאה בוטלה. יש להתקין מחדש שוב.",
-  "reschedule_reason_success_page": "הסיבה לקביעת מועד חדש",
+  "reschedule_reason": "הסיבה לקביעת מועד חדש",
   "choose_common_schedule_team_event": "בחירת לוח זמנים משותף",
   "choose_common_schedule_team_event_description": "יש להפעיל אפשרות זו אם רוצים להשתמש בלוח זמנים משותף בין המארחים. אם האפשרות הזו מבוטלת, כל מארח יוזמן לפי לוח הזמנים המשמש כברירת המחדל שלו.",
   "reason": "סיבה",

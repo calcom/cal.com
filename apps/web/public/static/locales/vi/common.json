@@ -1413,7 +1413,7 @@
   "attendee_email_info": "Email người tham gia lịch hẹn",
   "kbar_search_placeholder": "Nhập một lệnh hoặc tìm kiếm...",
   "invalid_credential": "Ôi không! Có vẻ như quyền đã hết hạn hoặc đã bị thu hồi. Vui lòng cài đặt lại.",
-  "reschedule_reason_success_page": "Lý do dời lịch",
+  "reschedule_reason": "Lý do dời lịch",
   "choose_common_schedule_team_event": "Chọn một lịch chung",
   "choose_common_schedule_team_event_description": "Bật mục này nếu bạn muốn dùng lịch thông thường giữa các chủ sự kiện. Khi tắt đi, mỗi chủ sự kiện sẽ được đặt lịch theo lịch mặc định của họ.",
   "reason": "Lý do",
