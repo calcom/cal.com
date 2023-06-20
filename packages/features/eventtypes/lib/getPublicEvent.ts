@@ -153,20 +153,11 @@ export const getPublicEvent = async (
         },
       }
     : {
-        OR: [
-          {
-            users: {
-              some: {
-                username,
-              },
-            },
+        users: {
+          some: {
+            username,
           },
-          {
-            team: {
-              slug: username,
-            },
-          },
-        ],
+        },
       };
 
   // In case it's not a group event, it's either a single user or a team, and we query that data.
