@@ -1440,7 +1440,7 @@
   "attendee_email_info": "Imejl osobe koja rezerviše",
   "kbar_search_placeholder": "Unesite komandu ili pretražite...",
   "invalid_credential": "O, ne! Izgleda da je dozvola istekla ili je povučena. Instalirajte ponovo.",
-  "reschedule_reason_success_page": "Razlog za promenu rasporeda",
+  "reschedule_reason": "Razlog za promenu rasporeda",
   "choose_common_schedule_team_event": "Izaberite zajednički raspored",
   "choose_common_schedule_team_event_description": "Omogućite to ako želite da koristite zajednički raspored između domaćina. Kada je onemogućen, svaki domaćin može rezervisati na osnovu svog podrazumevanog rasporeda.",
   "reason": "Razlog",

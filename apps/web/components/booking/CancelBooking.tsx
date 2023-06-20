@@ -93,7 +93,7 @@ export default function CancelBooking(props: Props) {
                     headers: {
                       "Content-Type": "application/json",
                     },
-                    method: "DELETE",
+                    method: "POST",
                   });
 
                   if (res.status >= 200 && res.status < 300) {

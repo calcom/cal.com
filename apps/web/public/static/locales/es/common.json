@@ -1413,7 +1413,7 @@
   "attendee_email_info": "El correo electrónico de la persona que reserva",
   "kbar_search_placeholder": "Escriba un comando o búsqueda...",
   "invalid_credential": "¡Oh no! Parece que el permiso ha caducado o se ha revocado. Vuelva a instalarlo.",
-  "reschedule_reason_success_page": "Razón de la reprogramación",
+  "reschedule_reason": "Razón de la reprogramación",
   "choose_common_schedule_team_event": "Elige un horario común para todos",
   "choose_common_schedule_team_event_description": "Habilite esto si desea utilizar un cronograma común entre anfitriones. Cuando esté desactivado, cada anfitrión se reservará en relación a su horario predeterminado.",
   "reason": "Motivo",

@@ -336,46 +336,44 @@ function UserDropdown({ small }: UserDropdownProps) {
   }
   return (
     <Dropdown open={menuOpen}>
-      <div className="ltr:md:-ml-5 rtl:md:-mr-5">
-        <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
-          <button
+      <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
+        <button
+          className={classNames(
+            "hover:bg-emphasis group mx-0 flex cursor-pointer appearance-none items-center rounded-full text-left outline-none focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
+            small ? "p-2" : "px-2 py-1"
+          )}>
+          <span
             className={classNames(
-              "hover:bg-emphasis group mx-0 ml-0.5 flex cursor-pointer appearance-none items-center rounded-full text-left outline-none focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
-              small ? "p-2" : "px-2 py-1"
+              small ? "h-4 w-4" : "h-6 w-6 ltr:mr-2 rtl:ml-2",
+              "relative flex-shrink-0 rounded-full bg-gray-300"
             )}>
+            <Avatar
+              size={small ? "xs" : "sm"}
+              imageSrc={avatar?.avatar || WEBAPP_URL + "/" + user.username + "/avatar.png"}
+              alt={user.username || "Nameless User"}
+              className="overflow-hidden"
+            />
             <span
               className={classNames(
-                small ? "h-4 w-4" : "h-6 w-6 ltr:mr-2 rtl:ml-2",
-                "relative flex-shrink-0 rounded-full bg-gray-300"
-              )}>
-              <Avatar
-                size={small ? "xs" : "sm"}
-                imageSrc={avatar?.avatar || WEBAPP_URL + "/" + user.username + "/avatar.png"}
-                alt={user.username || "Nameless User"}
-                className="overflow-hidden"
-              />
-              <span
-                className={classNames(
-                  "border-muted absolute -bottom-1 -right-1 rounded-full border-2 bg-green-500",
-                  user.away ? "bg-yellow-500" : "bg-green-500",
-                  small ? "-bottom-0.5 -right-0.5 h-2.5 w-2.5" : "bottom-0 right-0 h-3 w-3"
-                )}
+                "border-muted absolute -bottom-1 -right-1 rounded-full border-2 bg-green-500",
+                user.away ? "bg-yellow-500" : "bg-green-500",
+                small ? "-bottom-0.5 -right-0.5 h-2.5 w-2.5" : "bottom-0 right-0 h-3 w-3"
+              )}
+            />
+          </span>
+          {!small && (
+            <span className="flex flex-grow items-center">
+              <span className="line-clamp-1 flex-grow text-sm leading-none">
+                <span className="text-emphasis block font-medium">{user.name || "Nameless User"}</span>
+              </span>
+              <ChevronDown
+                className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
+                aria-hidden="true"
               />
             </span>
-            {!small && (
-              <span className="flex flex-grow items-center">
-                <span className="line-clamp-1 flex-grow text-sm leading-none">
-                  <span className="text-emphasis block font-medium">{user.name || "Nameless User"}</span>
-                </span>
-                <ChevronDown
-                  className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
-                  aria-hidden="true"
-                />
-              </span>
-            )}
-          </button>
-        </DropdownMenuTrigger>
-      </div>
+          )}
+        </button>
+      </DropdownMenuTrigger>
 
       <DropdownMenuPortal>
         <FreshChatProvider>
@@ -1030,7 +1028,7 @@ function MainContainer({
     <main className="bg-default relative z-0 flex-1 focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
-      <div className="max-w-full py-4 px-4 md:py-8 lg:px-12">
+      <div className="max-w-full px-4 py-4 md:py-8 lg:px-12">
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>
