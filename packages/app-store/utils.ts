@@ -56,24 +56,23 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
   > = {};
   integrations.forEach((app) => {
     if (app.locationOption) {
+      console.log("🚀 ~ file: utils.ts:58 ~ integrations.forEach ~ app:", app);
+
       // All apps that are labeled as a locationOption are video apps. Extract the secondary category if available
-      let category =
-        app.categories.length >= 2 ? app.categories.find((category) => category !== "video") : app.category;
-      if (!category) category = "video";
-      app.credentials.forEach((credential) => {
-        const option = {
-          ...app.locationOption,
-          icon: app.logo,
-          slug: app.slug,
-          teamName: credential.team ? credential.team.name : null,
-          credentialId: credential.id,
-        };
-        if (apps[category]) {
-          apps[category] = [...apps[category], option];
-        } else {
-          apps[category] = [option];
-        }
-      });
+      const nonVideoCategories = app.categories.find((category) => category !== "video");
+      const category = nonVideoCategories ? nonVideoCategories : app.category ?? "video";
+
+      const option = {
+        ...app.locationOption,
+        // label: app.locationOption?.label || app.name,
+        icon: app.logo,
+        slug: app.slug,
+      };
+      if (apps[category]) {
+        apps[category] = [...apps[category], option];
+      } else {
+        apps[category] = [option];
+      }
     }
   });
 
