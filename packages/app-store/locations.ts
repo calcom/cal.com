@@ -150,6 +150,7 @@ export type LocationObject = {
   type: string;
   address?: string;
   displayLocationPublicly?: boolean;
+  credentialId?: number;
 } & Partial<
   Record<"address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone", string>
 >;
@@ -338,10 +339,7 @@ export const getLocationValueForDB = (
         return;
       }
 
-      bookingLocation = {
-        ...bookingLocation,
-        location: location[eventLocationType.defaultValueVariable] || bookingLocation,
-      };
+      bookingLocation = location[eventLocationType.defaultValueVariable] || bookingLocation;
     }
   });
   return { bookingLocation, bookingLocationCredentialId };
