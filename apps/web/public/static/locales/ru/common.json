@@ -1408,7 +1408,6 @@
   "team_url_required": "Необходимо ввести URL-адрес команды",
   "team_url_taken": "Этот URL-адрес уже занят",
   "team_publish": "Опубликовать команду",
-  "number_sms_notifications": "Номер телефона (SMS-уведомления)",
   "attendee_email_variable": "Электронная почта участника",
   "attendee_email_info": "Электронная почта участника, на которого оформляется бронирование",
   "kbar_search_placeholder": "Введите команду или начните поиск...",

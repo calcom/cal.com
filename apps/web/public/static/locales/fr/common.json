@@ -1466,7 +1466,6 @@
   "team_url_required": "Vous devez saisir un lien d'équipe",
   "team_url_taken": "Ce lien est déjà pris",
   "team_publish": "Publier l'équipe",
-  "number_sms_notifications": "Numéro de téléphone (notifications par SMS)",
   "attendee_email_variable": "Adresse e-mail du participant",
   "attendee_email_info": "Adresse e-mail du participant",
   "kbar_search_placeholder": "Saisissez une commande ou une recherche...",
