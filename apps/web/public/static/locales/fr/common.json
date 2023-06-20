@@ -547,6 +547,7 @@
   "team_description": "Quelques mots à propos de votre équipe. Ces informations apparaîtront sur la page publique de votre équipe.",
   "org_description": "Quelques phrases à propos de votre organisation. Elles apparaîtront sur la page de profil public de votre organisation.",
   "members": "Membres",
+  "organization_members": "Membres de l'organisation",
   "member": "Membre",
   "number_member_one": "{{count}} membre",
   "number_member_other": "{{count}} membres",
@@ -1862,6 +1863,7 @@
   "about_your_organization": "À propos de votre organisation",
   "about_your_organization_description": "Les organisations sont des environnements partagés dans lesquels vous pouvez créer plusieurs équipes avec des membres partagés, des types d'événements, des applications, des workflows, etc.",
   "create_your_teams": "Créer vos équipes",
+  "create_your_teams_description": "Commencez à planifier ensemble en ajoutant les membres de votre équipe à votre organisation",
   "invite_organization_admins": "Inviter les administrateurs de votre organisation",
   "invite_organization_admins_description": "Ces administrateurs auront accès à toutes les équipes de votre organisation. Vous pouvez ajouter des administrateurs et des membres d'équipe plus tard.",
   "set_a_password": "Définir un mot de passe",
@@ -1889,5 +1891,6 @@
   "no_organization_slug": "Une erreur s'est produite lors de la création des équipes pour cette organisation. Le slug du lien est manquant.",
   "org_name": "Nom de l'organisation",
   "org_url": "Lien de l'organisation",
+  "copy_link_org": "Copier le lien vers l’organisation",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
