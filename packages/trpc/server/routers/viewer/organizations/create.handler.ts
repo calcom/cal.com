@@ -86,7 +86,7 @@ export const createHandler = async ({ input }: CreateOptions) => {
             name,
             ...(!IS_TEAM_BILLING_ENABLED && { slug }),
             metadata: {
-              requestedSlug: slug,
+              ...(IS_TEAM_BILLING_ENABLED && { requestedSlug: slug }),
               isOrganization: true,
             },
           },
@@ -113,7 +113,7 @@ export const createHandler = async ({ input }: CreateOptions) => {
       .update(adminEmail + process.env.CALENDSO_ENCRYPTION_KEY)
       .digest("hex");
 
-    totp.options = { step: 90 };
+    totp.options = { step: 900 };
     const code = totp.generate(secret);
 
     await sendOrganizationEmailVerification({
