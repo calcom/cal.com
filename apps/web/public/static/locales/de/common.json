@@ -1413,7 +1413,7 @@
   "attendee_email_info": "Die E-Mail-Adresse der buchenden Person",
   "kbar_search_placeholder": "Geben Sie einen Befehl ein oder suchen Sie ...",
   "invalid_credential": "Oh nein! Es sieht so aus, als ob die Berechtigung abgelaufen ist oder entzogen wurden. Bitte erneut installieren.",
-  "reschedule_reason_success_page": "Verlegungsgrund",
+  "reschedule_reason": "Verlegungsgrund",
   "choose_common_schedule_team_event": "Gemeinsamen Zeitplan auswählen",
   "choose_common_schedule_team_event_description": "Aktivieren Sie dies, wenn Sie einen gemeinsamen Zeitplan zwischen Hosts verwenden möchten. Wenn deaktiviert, ist jeder Host basierend auf seinen Standardplan buchbar.",
   "reason": "Grund",

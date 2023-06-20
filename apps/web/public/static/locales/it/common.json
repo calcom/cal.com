@@ -1443,7 +1443,7 @@
   "attendee_email_info": "E-mail della persona che prenota",
   "kbar_search_placeholder": "Digita un comando o esegui una ricerca...",
   "invalid_credential": "Errore! Sembra che l'autorizzazione sia scaduta o che sia stata revocata. Prova a reinstallare.",
-  "reschedule_reason_success_page": "Motivo della riprogrammazione",
+  "reschedule_reason": "Motivo della riprogrammazione",
   "choose_common_schedule_team_event": "Scegli un programma comune",
   "choose_common_schedule_team_event_description": "Abilita questa opzione se desideri utilizzare un programma comune per tutti gli organizzatori. Quando l'opzione è disabilitata, ciascun organizzatore verrà prenotato in base al proprio programma predefinito.",
   "reason": "Motivo",

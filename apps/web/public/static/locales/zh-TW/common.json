@@ -1413,7 +1413,7 @@
   "attendee_email_info": "預約人電子郵件",
   "kbar_search_placeholder": "輸入指令或搜尋…",
   "invalid_credential": "糟糕！權限似乎過期或遭到撤銷。請重新安裝。",
-  "reschedule_reason_success_page": "重新預約的原因",
+  "reschedule_reason": "重新預約的原因",
   "choose_common_schedule_team_event": "選擇公用行程表",
   "choose_common_schedule_team_event_description": "若要在多個主辦者之間使用公用行程表，請啟用此選項。停用時，會根據每個主辦者預設的行程表預約對方的時間。",
   "reason": "原因",
