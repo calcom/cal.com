@@ -6,6 +6,8 @@ import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server";
+import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -43,12 +45,38 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     // Extract this from the input so it doesn't get saved in the db
     // eslint-disable-next-line
     userId,
-    // eslint-disable-next-line
-    teamId,
     bookingFields,
     offsetStart,
     ...rest
   } = input;
+
+  const eventType = await ctx.prisma.eventType.findUniqueOrThrow({
+    where: { id },
+    select: {
+      children: {
+        select: {
+          userId: true,
+        },
+      },
+      workflows: {
+        select: {
+          workflowId: true,
+        },
+      },
+      team: {
+        select: {
+          name: true,
+          id: true,
+        },
+      },
+    },
+  });
+
+  if (input.teamId && eventType.team?.id && input.teamId !== eventType.team.id) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  const teamId = input.teamId || eventType.team?.id;
 
   ensureUniqueBookingFields(bookingFields);
 
@@ -111,6 +139,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     data.offsetStart = offsetStart;
   }
 
+  const bookerLayoutsError = validateBookerLayouts(input.metadata?.bookerLayouts || null);
+  if (bookerLayoutsError) {
+    const t = await getTranslation("en", "common");
+    throw new TRPCError({ code: "BAD_REQUEST", message: t(bookerLayoutsError) });
+  }
+
   if (schedule) {
     // Check that the schedule belongs to the user
     const userScheduleQuery = await ctx.prisma.schedule.findFirst({
@@ -141,7 +175,23 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
   }
 
-  if (hosts) {
+  if (teamId && hosts) {
+    // check if all hosts can be assigned (memberships that have accepted invite)
+    const memberships =
+      (await ctx.prisma.membership.findMany({
+        where: {
+          teamId,
+          accepted: true,
+        },
+      })) || [];
+    const teamMemberIds = memberships.map((membership) => membership.userId);
+    // guard against missing IDs, this may mean a member has just been removed
+    // or this request was forged.
+    if (!hosts.every((host) => teamMemberIds.includes(host.userId))) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+      });
+    }
     data.hosts = {
       deleteMany: {},
       create: hosts.map((host) => ({
@@ -248,48 +298,26 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     }
   }
-  const [oldEventType, eventType] = await ctx.prisma.$transaction([
-    ctx.prisma.eventType.findFirst({
-      where: { id },
-      select: {
-        children: {
-          select: {
-            userId: true,
-          },
-        },
-        workflows: {
-          select: {
-            workflowId: true,
-          },
-        },
-        team: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    }),
-    ctx.prisma.eventType.update({
-      where: { id },
-      data,
-    }),
-  ]);
+  const updatedEventType = await ctx.prisma.eventType.update({
+    where: { id },
+    data,
+  });
 
   // Handling updates to children event types (managed events types)
   await updateChildrenEventTypes({
     eventTypeId: id,
     currentUserId: ctx.user.id,
-    oldEventType,
+    oldEventType: eventType,
     hashedLink,
     connectedLink,
-    updatedEventType: eventType,
+    updatedEventType,
     children,
     prisma: ctx.prisma,
   });
   const res = ctx.res as NextApiResponse;
   if (typeof res?.revalidate !== "undefined") {
     try {
-      await res?.revalidate(`/${ctx.user.username}/${eventType.slug}`);
+      await res?.revalidate(`/${ctx.user.username}/${updatedEventType.slug}`);
     } catch (e) {
       // if reach this it is because the event type page has not been created, so it is not possible to revalidate it
       logger.debug((e as Error)?.message);

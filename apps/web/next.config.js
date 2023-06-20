@@ -2,7 +2,7 @@ require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const os = require("os");
 const glob = require("glob");
-
+const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
 const { i18n } = require("./next-i18next.config");
 
@@ -56,6 +56,20 @@ if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CRED
     '- Disabled \'Google Calendar\' integration. Reason: Invalid value for GOOGLE_API_CREDENTIALS environment variable. When set, this value needs to contain valid JSON like {"web":{"client_id":"<clid>","client_secret":"<secret>","redirect_uris":["<yourhost>/api/integrations/googlecalendar/callback>"]}. You can download this JSON from your OAuth Client @ https://console.cloud.google.com/apis/credentials.'
   );
 }
+
+const informAboutDuplicateTranslations = () => {
+  const valueSet = new Set();
+
+  for (const key in englishTranslation) {
+    if (valueSet.has(englishTranslation[key])) {
+      console.warn("\x1b[33mDuplicate value found in:", "\x1b[0m", key);
+    } else {
+      valueSet.add(englishTranslation[key]);
+    }
+  }
+};
+
+informAboutDuplicateTranslations();
 
 const plugins = [];
 if (process.env.ANALYZE === "true") {
@@ -169,7 +183,17 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    return [
+    // .* matches / as well(Note: *(i.e wildcard) doesn't match / but .*(i.e. RegExp) does)
+    // It would match /free/30min but not /bookings/upcoming because 'bookings' is an item in pages
+    // It would also not match /free/30min/embed because we are ensuring just two slashes
+    // ?!book ensures it doesn't match /free/book page which doesn't have a corresponding new-booker page.
+    // [^/]+ makes the RegExp match the full path, it seems like a partial match doesn't work.
+    const userTypeRouteRegExp = `/:user((?!${pages.join("|")})[^/]*)/:type((?!book)[^/]+)`;
+    let rewrites = [
+      {
+        source: "/org/:slug",
+        destination: "/team/:slug",
+      },
       {
         source: "/:user/avatar.png",
         destination: "/api/user/avatar?username=:user",
@@ -201,26 +225,85 @@ const nextConfig = {
         source: "/cancel/:path*",
         destination: "/booking/:path*",
       },
+      // Keep cookie based booker enabled just in case we disable new-booker globally
+      ...[
+        {
+          source: userTypeRouteRegExp,
+          destination: "/new-booker/:user/:type",
+          has: [{ type: "cookie", key: "new-booker-enabled" }],
+        },
+        {
+          source: "/team/:slug/:type",
+          destination: "/new-booker/team/:slug/:type",
+          has: [{ type: "cookie", key: "new-booker-enabled" }],
+        },
+        {
+          source: "/d/:link/:slug",
+          destination: "/new-booker/d/:link/:slug",
+          has: [{ type: "cookie", key: "new-booker-enabled" }],
+        },
+      ],
+      // Keep cookie based booker enabled to test new-booker embed in production
+      ...[
+        {
+          source: `/:user((?!${pages.join("|")}).*)/:type/embed`,
+          destination: "/new-booker/:user/:type/embed",
+          has: [{ type: "cookie", key: "new-booker-enabled" }],
+        },
+        {
+          source: "/team/:slug/:type/embed",
+          destination: "/new-booker/team/:slug/:type/embed",
+          has: [{ type: "cookie", key: "new-booker-enabled" }],
+        },
+      ],
       /* TODO: have these files being served from another deployment or CDN {
         source: "/embed/embed.js",
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
       }, */
-      {
-        source: `/:user((?!${pages.join("|")}).*)/:type`,
-        destination: "/new-booker/:user/:type",
-        has: [{ type: "cookie", key: "new-booker-enabled" }],
-      },
-      {
-        source: "/team/:slug/:type",
-        destination: "/new-booker/team/:slug/:type",
-        has: [{ type: "cookie", key: "new-booker-enabled" }],
-      },
-      {
-        source: "/d/:link/:slug",
-        destination: "/new-booker/d/:link/:slug",
-        has: [{ type: "cookie", key: "new-booker-enabled" }],
-      },
+
+      /**
+       * Enables new booker using cookie. It works even if NEW_BOOKER_ENABLED_FOR_NON_EMBED, NEW_BOOKER_ENABLED_FOR_EMBED are disabled
+       */
     ];
+
+    // Enable New Booker for all Embed Requests
+    if (process.env.NEW_BOOKER_ENABLED_FOR_EMBED === "1") {
+      console.log("Enabling New Booker for Embed");
+      rewrites.push(
+        ...[
+          {
+            source: `/:user((?!${pages.join("|")}).*)/:type/embed`,
+            destination: "/new-booker/:user/:type/embed",
+          },
+          {
+            source: "/team/:slug/:type/embed",
+            destination: "/new-booker/team/:slug/:type/embed",
+          },
+        ]
+      );
+    }
+
+    // Enable New Booker for All but embed Requests
+    if (process.env.NEW_BOOKER_ENABLED_FOR_NON_EMBED === "1") {
+      console.log("Enabling New Booker for Non-Embed");
+      rewrites.push(
+        ...[
+          {
+            source: userTypeRouteRegExp,
+            destination: "/new-booker/:user/:type",
+          },
+          {
+            source: "/team/:slug/:type",
+            destination: "/new-booker/team/:slug/:type",
+          },
+          {
+            source: "/d/:link/:slug",
+            destination: "/new-booker/d/:link/:slug",
+          },
+        ]
+      );
+    }
+    return rewrites;
   },
   async headers() {
     return [
@@ -277,6 +360,11 @@ const nextConfig = {
       {
         source: "/settings/teams",
         destination: "/teams",
+        permanent: true,
+      },
+      {
+        source: "/settings/admin",
+        destination: "/settings/admin/flags",
         permanent: true,
       },
       /* V2 testers get redirected to the new settings */
