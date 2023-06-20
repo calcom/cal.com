@@ -112,7 +112,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               <h2 className="text-emphasis mb-2 text-xl font-semibold leading-5 tracking-[0.01em]">
                 {t("available_apps_lower_case")}
               </h2>
-              <p className="mb-6 text-sm font-normal text-gray-600">
+              <p className="text-default mb-6 text-sm font-normal">
                 <Trans i18nKey="available_apps_desc">
                   You have no apps installed. View popular apps below and explore more in our &nbsp;
                   <Link className="cursor-pointer underline" href="/apps">
@@ -122,7 +122,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               </p>
             </>
           ) : null}
-          <div className="bg-default divide-y rounded-md border before:border-0">
+          <div className="bg-default border-subtle divide-subtle divide-y rounded-md border before:border-0">
             {notInstalledApps?.map((app) => (
               <EventTypeAppCard
                 getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
