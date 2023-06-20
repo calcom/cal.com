@@ -718,9 +718,9 @@ export default function Success(props: SuccessProps) {
                     <div>
                       <p className="font-semibold">{t("google_new_spam_policy")}</p>
                       <span className="underline">
-                        <Link href="https://cal.com/blog/google-s-new-spam-policy-may-be-affecting-your-invitations">
+                        <a target="_blank" href="https://cal.com/blog/google-s-new-spam-policy-may-be-affecting-your-invitations">
                           {t("resolve")}
-                        </Link>
+                        </a>
                       </span>
                     </div>
                   }
