@@ -30,6 +30,7 @@ export default function Type({ slug, user, booking, away, isBrandingHidden }: Pa
         rescheduleBooking={booking}
         isAway={away}
         hideBranding={isBrandingHidden}
+        isTeamEvent
       />
     </main>
   );

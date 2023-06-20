@@ -35,6 +35,7 @@ const BookerComponent = ({
   month,
   rescheduleBooking,
   hideBranding = false,
+  isTeamEvent,
 }: BookerProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
@@ -80,6 +81,7 @@ const BookerComponent = ({
     rescheduleUid,
     rescheduleBooking,
     layout: defaultLayout,
+    isTeamEvent,
   });
 
   useEffect(() => {
