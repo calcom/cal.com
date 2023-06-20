@@ -1408,7 +1408,6 @@
   "team_url_required": "يجب إدخال عنوان URL للفريق",
   "team_url_taken": "عنوان URL هذا مأخوذ بالفعل",
   "team_publish": "نشر فريق",
-  "number_sms_notifications": "رقم الهاتف (إشعارات الرسائل النصية)",
   "attendee_email_variable": "اسم الحاضر",
   "attendee_email_info": "البريد الإلكتروني للشخص الحجز",
   "kbar_search_placeholder": "اكتب أمرًا أو بحثًا...",
