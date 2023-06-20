@@ -1413,7 +1413,7 @@
   "attendee_email_info": "Adres e-mail osoby rezerwującej",
   "kbar_search_placeholder": "Wpisz polecenie lub wyszukaj...",
   "invalid_credential": "O nie! Wygląda na to, że uprawnienia wygasły lub zostały cofnięte. Zainstaluj aplikację ponownie.",
-  "reschedule_reason_success_page": "Powód zmiany terminu",
+  "reschedule_reason": "Powód zmiany terminu",
   "choose_common_schedule_team_event": "Wybierz wspólny harmonogram",
   "choose_common_schedule_team_event_description": "Włącz tę opcję, jeśli chcesz używać wspólnego harmonogramu gospodarzy. Jeśli ją wyłączysz, rezerwacje u każdego gospodarza będą dokonywane na podstawie jego domyślnego harmonogramu.",
   "reason": "Powód",

@@ -186,8 +186,9 @@ const nextConfig = {
     // .* matches / as well(Note: *(i.e wildcard) doesn't match / but .*(i.e. RegExp) does)
     // It would match /free/30min but not /bookings/upcoming because 'bookings' is an item in pages
     // It would also not match /free/30min/embed because we are ensuring just two slashes
-    const userTypeRouteRegExp = `/:user((?!${pages.join("|")})[^/]*)/:type`;
-
+    // ?!book ensures it doesn't match /free/book page which doesn't have a corresponding new-booker page.
+    // [^/]+ makes the RegExp match the full path, it seems like a partial match doesn't work.
+    const userTypeRouteRegExp = `/:user((?!${pages.join("|")})[^/]*)/:type((?!book)[^/]+)`;
     let rewrites = [
       {
         source: "/org/:slug",
