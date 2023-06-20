@@ -139,7 +139,7 @@ const BookerComponent = ({
             <StickyOnDesktop
               key="meta"
               className={classNames(
-                "relative z-10 flex",
+                "relative z-10 flex [grid-area:meta]",
                 layout !== BookerLayouts.MONTH_VIEW && "sm:min-h-screen"
               )}>
               <BookerSection
@@ -158,7 +158,7 @@ const BookerComponent = ({
             <BookerSection
               key="book-event-form"
               area="main"
-              className="border-subtle sticky top-0 ml-[-1px] h-full px-5 py-3 md:w-[var(--booker-main-width)] md:border-l"
+              className="border-subtle sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInLeft}
               visible={bookerState === "booking" && layout === BookerLayouts.MONTH_VIEW}>
               <BookEventForm onCancel={() => setSelectedTimeslot(null)} />
