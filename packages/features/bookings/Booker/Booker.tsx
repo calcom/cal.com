@@ -144,7 +144,7 @@ const BookerComponent = ({
               )}>
               <BookerSection
                 area="meta"
-                className="max-w-screen flex h-full w-full flex-col md:w-[var(--booker-meta-width)]">
+                className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
                 <EventMeta />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
@@ -158,7 +158,7 @@ const BookerComponent = ({
             <BookerSection
               key="book-event-form"
               area="main"
-              className="border-subtle sticky top-0 ml-[-1px] h-full px-5 py-3 md:w-[var(--booker-main-width)] md:border-l"
+              className="border-subtle sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInLeft}
               visible={bookerState === "booking" && layout === BookerLayouts.MONTH_VIEW}>
               <BookEventForm onCancel={() => setSelectedTimeslot(null)} />

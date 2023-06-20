@@ -1413,7 +1413,7 @@
   "attendee_email_info": "Rezervasyon yaptıran kişinin e-postası",
   "kbar_search_placeholder": "Komut girin veya arayın...",
   "invalid_credential": "Hata! İznin süresi dolmuş veya iptal edilmiş gibi görünüyor. Lütfen yeniden yükleyin.",
-  "reschedule_reason_success_page": "Yeniden planlama nedeni",
+  "reschedule_reason": "Yeniden planlama nedeni",
   "choose_common_schedule_team_event": "Ortak bir program seçin",
   "choose_common_schedule_team_event_description": "Toplantı sahipleri arasında ortak bir plan kullanmak istiyorsanız bunu etkinleştirin. Devre dışı bırakıldığında, her toplantı sahibi varsayılan programına göre rezerve edilir.",
   "reason": "Sebep",

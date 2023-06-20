@@ -1413,7 +1413,7 @@
   "attendee_email_info": "O e-mail da pessoa que fez a reserva",
   "kbar_search_placeholder": "Digite um comando ou procure...",
   "invalid_credential": "Ah, não! Parece que a permissão expirou ou foi revogada. Reinstale novamente.",
-  "reschedule_reason_success_page": "Motivo de reagendamento",
+  "reschedule_reason": "Motivo de reagendamento",
   "choose_common_schedule_team_event": "Escolha uma agenda compartilhada",
   "choose_common_schedule_team_event_description": "Ative esta opção se você quiser usar uma agenda compartilhada entre os hosts. Ao desativar esta opção, cada host será reservado conforme seu horário padrão.",
   "reason": "Motivo",

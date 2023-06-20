@@ -1426,7 +1426,7 @@
   "attendee_email_info": "预约人的电子邮件",
   "kbar_search_placeholder": "输入命令或搜索...",
   "invalid_credential": "哦不！看起来权限已过期或被撤销。请重新安装。",
-  "reschedule_reason_success_page": "重新安排原因",
+  "reschedule_reason": "重新安排原因",
   "choose_common_schedule_team_event": "选择通用时间表",
   "choose_common_schedule_team_event_description": "如果您希望在主持人之间使用通用时间表，请启用此选项。如果禁用，将根据主持人的默认时间表预约每个主持人。",
   "reason": "原因",

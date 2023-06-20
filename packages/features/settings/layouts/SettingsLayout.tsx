@@ -178,7 +178,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
       className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md py-2 px-3 text-sm font-medium leading-4"
       data-testid={`vertical-tab-${name}`}>
       <ArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0" />
-      <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate">
+      <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate" loadingClassName="ms-3">
         {name}
       </Skeleton>
     </Link>
@@ -245,7 +245,13 @@ const SettingsSidebarContainer = ({
                       alt="User Avatar"
                     />
                   )}
-                  <p className="truncate text-sm font-medium leading-5">{t(tab.name)}</p>
+                  <Skeleton
+                    title={tab.name}
+                    as="p"
+                    className="truncate text-sm font-medium leading-5"
+                    loadingClassName="ms-3">
+                    {t(tab.name)}
+                  </Skeleton>
                 </div>
               </div>
               <div className="my-3 space-y-0.5">
@@ -270,7 +276,13 @@ const SettingsSidebarContainer = ({
                     {tab && tab.icon && (
                       <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
                     )}
-                    <p className="truncate text-sm font-medium leading-5">{t(tab.name)}</p>
+                    <Skeleton
+                      title={tab.name}
+                      as="p"
+                      className="truncate text-sm font-medium leading-5"
+                      loadingClassName="ms-3">
+                      {t(tab.name)}
+                    </Skeleton>
                   </div>
                 </Link>
                 {teams &&
@@ -386,6 +398,7 @@ const SettingsSidebarContainer = ({
                   href={`${WEBAPP_URL}/settings/teams/new`}
                   textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
                   icon={Plus}
+                  iconClassName="me-3"
                   disableChevron
                 />
               </div>

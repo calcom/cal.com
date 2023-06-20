@@ -1413,7 +1413,7 @@
   "attendee_email_info": "E-mailul persoanei care efectuează rezervarea",
   "kbar_search_placeholder": "Scrie o comandă sau caută...",
   "invalid_credential": "Vai, nu! Se pare că permisiunea a expirat sau a fost revocată. Reinstalați din nou.",
-  "reschedule_reason_success_page": "Motiv reprogramare",
+  "reschedule_reason": "Motiv reprogramare",
   "choose_common_schedule_team_event": "Alegeți un program comun",
   "choose_common_schedule_team_event_description": "Activați această opțiune dacă doriți să folosiți un program comun între gazde. Atunci când este dezactivată, fiecare gazdă va fi rezervată în funcție de programul său implicit.",
   "reason": "Motiv",

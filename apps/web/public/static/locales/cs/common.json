@@ -1413,7 +1413,7 @@
   "attendee_email_info": "E-mail osoby provádějící rezervaci",
   "kbar_search_placeholder": "Zadejte příkaz nebo vyhledejte...",
   "invalid_credential": "Ale ne! Zdá se, že platnost oprávnění vypršela nebo byla zrušena. Proveďte  novou instalaci.",
-  "reschedule_reason_success_page": "Důvod změny termínu",
+  "reschedule_reason": "Důvod změny termínu",
   "choose_common_schedule_team_event": "Vyberte společný plán",
   "choose_common_schedule_team_event_description": "Tuto možnost povolte, pokud chcete používat společný plán mezi hostiteli. Při zakázání této možnosti bude každý hostitel rezervován na základě svého výchozího plánu.",
   "reason": "Důvod",

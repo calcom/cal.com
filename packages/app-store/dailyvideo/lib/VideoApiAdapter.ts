@@ -30,7 +30,6 @@ const dailyReturnTypeSchema = z.object({
     enable_chat: z.boolean(),
     enable_knocking: z.boolean(),
     enable_prejoin_ui: z.boolean(),
-    enable_new_call_ui: z.boolean(),
   }),
 });
 
@@ -123,7 +122,6 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       return {
         privacy: "public",
         properties: {
-          enable_new_call_ui: true,
           enable_prejoin_ui: true,
           enable_knocking: true,
           enable_screenshare: true,
@@ -136,7 +134,6 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     return {
       privacy: "public",
       properties: {
-        enable_new_call_ui: true,
         enable_prejoin_ui: true,
         enable_knocking: true,
         enable_screenshare: true,
