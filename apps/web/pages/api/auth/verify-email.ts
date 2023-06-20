@@ -19,11 +19,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!foundToken) {
-    return res.status(401).json({ message: "No token found" });
+    return res.redirect(`${WEBAPP_URL}/404`);
   }
 
   if (dayjs(foundToken?.expires).isBefore(dayjs())) {
-    return res.status(401).json({ message: "Token expired" });
+    return res.redirect(`${WEBAPP_URL}/404`);
   }
 
   const user = await prisma.user.update({
