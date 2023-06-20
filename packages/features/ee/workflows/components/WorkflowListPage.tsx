@@ -4,7 +4,8 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { CAL_URL } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -21,6 +22,8 @@ import {
 } from "@calcom/ui";
 import { Edit2, Link as LinkIcon, MoreHorizontal, Trash2 } from "@calcom/ui/components/icon";
 
+import { useOrgBrandingValues } from "../../organizations/hooks";
+import { subdomainSuffix } from "../../organizations/lib/orgDomains";
 import { getActionIcon } from "../lib/getActionIcon";
 import { DeleteDialog } from "./DeleteDialog";
 
@@ -30,6 +33,7 @@ export type WorkflowType = Workflow & {
     name: string;
     members: Membership[];
     slug: string | null;
+    logo?: string | null;
   } | null;
   steps: WorkflowStep[];
   activeOn: {
@@ -53,6 +57,9 @@ export default function WorkflowListPage({ workflows }: Props) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [workflowToDeleteId, setwWorkflowToDeleteId] = useState(0);
   const router = useRouter();
+
+  const orgBranding = useOrgBrandingValues();
+  const urlPrefix = orgBranding ? `${orgBranding.slug}.${subdomainSuffix()}` : CAL_URL;
 
   return (
     <>
@@ -160,7 +167,10 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 ? `/settings/teams/${workflow.team?.id}/profile`
                                 : "/settings/my-account/profile"
                             }
-                            imageSrc={`${WEBAPP_URL}/${workflow.team?.slug}/avatar.png` || undefined}
+                            imageSrc={getPlaceholderAvatar(
+                              workflow?.team.logo,
+                              workflow.team?.name as string
+                            )}
                             size="xxs"
                             className="mt-[3px] inline-flex justify-center"
                           />

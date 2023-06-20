@@ -38,6 +38,7 @@ const includedFields = {
       slug: true,
       name: true,
       members: true,
+      logo: true,
     },
   },
 };
