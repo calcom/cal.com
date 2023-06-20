@@ -14,7 +14,7 @@ import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
 import { randomString } from "@calcom/lib/random";
-import rateLimit from "@calcom/lib/rateLimit";
+import rateLimiter from "@calcom/lib/rateLimit";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -69,7 +69,7 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.InternalServerError);
       }
 
-      const user = await prisma.user.findFirst({
+      const user = await prisma.user.findUnique({
         where: {
           email: credentials.email.toLowerCase(),
         },
@@ -102,11 +102,14 @@ const providers: Provider[] = [
       if (!user) {
         throw new Error(ErrorCode.IncorrectUsernamePassword);
       }
-
-      const limiter = rateLimit({
-        intervalInMs: 60 * 1000, // 1 minute
+      const limiter = await rateLimiter();
+      const rateLimit = await limiter({
+        identifier: user.email,
       });
-      await limiter.check(10, user.email); // 10 requests per minute
+
+      if (!rateLimit.success) {
+        throw new Error(ErrorCode.RateLimitExceeded);
+      }
 
       if (user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
         throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
@@ -443,7 +446,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: existingUser.role,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
-          organizationId: existingUser.organizationId,
+          organizationId: token?.organizationId,
         };
       }
 
@@ -462,7 +465,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: token.role as UserPermissionRole,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
-          organizationId: token.organizationId as number,
+          organizationId: token?.organizationId,
         },
       };
       return calendsoSession;

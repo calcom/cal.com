@@ -18,10 +18,14 @@ type CreateTeamsOptions = {
 export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => {
   const { teamNames, orgId } = input;
 
-  const organization = await prisma.team.findFirst({ where: { id: orgId }, select: { metadata: true } });
+  const organization = await prisma.team.findFirst({
+    where: { id: orgId },
+    select: { slug: true, metadata: true },
+  });
   const metadata = teamMetadataSchema.parse(organization?.metadata);
 
-  if (!metadata?.requestedSlug) throw new TRPCError({ code: "BAD_REQUEST", message: "no_organization" });
+  if (!metadata?.requestedSlug && !organization?.slug)
+    throw new TRPCError({ code: "BAD_REQUEST", message: "no_organization_slug" });
 
   const userMembership = await prisma.membership.findFirst({
     where: {
@@ -49,15 +53,24 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
 
   const duplicatedSlugs = existingSlugs.filter((slug) => teamNames.includes(slug));
 
-  await prisma.team.createMany({
-    data: teamNames.flatMap((name) => {
+  await prisma.$transaction(
+    teamNames.flatMap((name) => {
       if (!duplicatedSlugs.includes(name)) {
-        return { name, parentId: orgId, slug: slugify(name) };
+        return prisma.team.create({
+          data: {
+            name,
+            parentId: orgId,
+            slug: slugify(name),
+            members: {
+              create: { userId: ctx.user.id, role: MembershipRole.OWNER, accepted: true },
+            },
+          },
+        });
       } else {
         return [];
       }
-    }),
-  });
+    })
+  );
 
   return { duplicatedSlugs };
 };

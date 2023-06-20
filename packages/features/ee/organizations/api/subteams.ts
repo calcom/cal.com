@@ -18,7 +18,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const {
     data: { org: slug },
   } = parsedQuery;
-  if (!slug) if (!slug) return res.status(400).json({ message: "Org is needed" });
+  if (!slug) return res.status(400).json({ message: "Org is needed" });
 
   const org = await prisma.team.findFirst({ where: { slug }, select: { children: true, metadata: true } });
 
