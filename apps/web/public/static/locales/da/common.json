@@ -1349,7 +1349,7 @@
   "attendee_email_info": "Personen der booker's e-mail",
   "kbar_search_placeholder": "Indtast en kommando eller søgning...",
   "invalid_credential": "Åh nej! Det ser ud til at tilladelsen er udløbet eller blevet tilbagekaldt. Geninstaller venligst igen.",
-  "reschedule_reason_success_page": "Årsag til omlægning",
+  "reschedule_reason": "Årsag til omlægning",
   "choose_common_schedule_team_event": "Vælg en fælles tidsplan",
   "choose_common_schedule_team_event_description": "Aktivér dette hvis du ønsker at bruge en fælles tidsplan mellem værter. Når deaktiveret, vil hver vært blive booket baseret på deres standardtidsplan.",
   "reason": "Årsag",
