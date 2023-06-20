@@ -143,7 +143,7 @@ export const viewerOrganizationsRouter = router({
       input,
     });
   }),
-  getMembers: authedProcedure.input(ZGetMembersInput).mutation(async ({ ctx, input }) => {
+  getMembers: authedProcedure.input(ZGetMembersInput).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.getMembers) {
       UNSTABLE_HANDLER_CACHE.getMembers = await import("./getMembers.handler").then(
         (mod) => mod.getMembersHandler
