@@ -188,7 +188,8 @@ const nextConfig = {
     // It would also not match /free/30min/embed because we are ensuring just two slashes
     // ?!book ensures it doesn't match /free/book page which doesn't have a corresponding new-booker page.
     // [^/]+ makes the RegExp match the full path, it seems like a partial match doesn't work.
-    const userTypeRouteRegExp = `/:user((?!${pages.join("|")})[^/]*)/:type((?!book)[^/]+)`;
+    const userTypeRouteRegExp = `/:user((?!${pages.join("/|")}$)[^/]*)/:type((?!book)[^/]+)`;
+    const teamTypeRouteRegExp = "/team/:slug/:type((?!book)[^/]+)";
     let rewrites = [
       {
         source: "/org/:slug",
@@ -233,7 +234,7 @@ const nextConfig = {
           has: [{ type: "cookie", key: "new-booker-enabled" }],
         },
         {
-          source: "/team/:slug/:type",
+          source: teamTypeRouteRegExp,
           destination: "/new-booker/team/:slug/:type",
           has: [{ type: "cookie", key: "new-booker-enabled" }],
         },
@@ -293,7 +294,7 @@ const nextConfig = {
             destination: "/new-booker/:user/:type",
           },
           {
-            source: "/team/:slug/:type",
+            source: teamTypeRouteRegExp,
             destination: "/new-booker/team/:slug/:type",
           },
           {
