@@ -59,9 +59,12 @@ if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CRED
 
 const informAboutDuplicateTranslations = () => {
   const valueSet = new Set();
-
+  // reschedule_reason is old key stored in DB in eventType.bookingFields.
+  // reason_for_reschedule is now being stored.
+  // So we have to have both
+  const exceptions = ["reschedule_reason", "reason_for_reschedule"];
   for (const key in englishTranslation) {
-    if (valueSet.has(englishTranslation[key])) {
+    if (valueSet.has(englishTranslation[key]) && !exceptions.includes(key)) {
       console.warn("\x1b[33mDuplicate value found in:", "\x1b[0m", key);
     } else {
       valueSet.add(englishTranslation[key]);
