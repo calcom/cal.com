@@ -1408,7 +1408,6 @@
   "team_url_required": "Debe introducir una URL del equipo",
   "team_url_taken": "Esta URL ya está en uso",
   "team_publish": "Publicar equipo",
-  "number_sms_notifications": "Número de teléfono (notificaciones por SMS)",
   "attendee_email_variable": "Correo electrónico del asistente",
   "attendee_email_info": "El correo electrónico de la persona que reserva",
   "kbar_search_placeholder": "Escriba un comando o búsqueda...",
