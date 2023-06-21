@@ -38,13 +38,13 @@ describe('next.config.js - RegExp', ()=>{
     // -  /:user/ -> (?<user>[^/]+)
     // -  /:user(?!404)[^/]+/ -> (?<user>((?!404)[^/]+))
 
-    // userTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type((?!book)[^/]+)`;
+    // userTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type((?!book$)[^/]+)`;
     userTypeRouteRegExp = getRegExpFromNextJsRewriteRegExp(`/(?<user>((?!${pages.join("/|")})[^/]*))/(?<type>((?!book$)[^/]+))`);
     
-    // teamTypeRouteRegExp = "/team/:slug/:type((?!book)[^/]+)";
+    // teamTypeRouteRegExp = "/team/:slug/:type((?!book$)[^/]+)";
     teamTypeRouteRegExp = getRegExpFromNextJsRewriteRegExp("/team/(?<slug>[^/]+)/(?<type>((?!book$)[^/]+))");
 
-    // privateLinkRouteRegExp = "/d/:link/:slug((?!book)[^/]+)";
+    // privateLinkRouteRegExp = "/d/:link/:slug((?!book$)[^/]+)";
     privateLinkRouteRegExp = getRegExpFromNextJsRewriteRegExp("/d/(?<link>[^/]+)/(?<slug>((?!book$)[^/]+))");
     
     // embedUserTypeRouteRegExp = `/:user((?!${pages.join("|")}).*)/:type/embed`;

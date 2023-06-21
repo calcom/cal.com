@@ -87,9 +87,9 @@ plugins.push(withAxiom);
 // It would also not match /free/30min/embed because we are ensuring just two slashes
 // ?!book ensures it doesn't match /free/book page which doesn't have a corresponding new-booker page.
 // [^/]+ makes the RegExp match the full path, it seems like a partial match doesn't work.
-const userTypeRouteRegExp = `/:user((?!${pages.join("/|")}$)[^/]*)/:type((?!book)[^/]+)`;
-const teamTypeRouteRegExp = "/team/:slug/:type((?!book)[^/]+)";
-const privateLinkRouteRegExp = "/d/:link/:slug((?!book)[^/]+)";
+const userTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type((?!book$)[^/]+)`;
+const teamTypeRouteRegExp = "/team/:slug/:type((?!book$)[^/]+)";
+const privateLinkRouteRegExp = "/d/:link/:slug((?!book$)[^/]+)";
 const embedUserTypeRouteRegExp = `/:user((?!${pages.join("|")}).*)/:type/embed`;
 const embedTeamTypeRouteRegExp = "/team/:slug/:type/embed";
 /** @type {import("next").NextConfig} */
