@@ -26,32 +26,33 @@ export function Header({
   const addToSelectedDate = useBookerStore((state) => state.addToSelectedDate);
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
   const selectedDate = dayjs(selectedDateString);
+  const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
 
   const onLayoutToggle = useCallback(
-    (newLayout: string) => setLayout(newLayout as BookerLayout),
-    [setLayout]
+    (newLayout: string) => {
+      if (layout === newLayout || !newLayout) return;
+      setLayout(newLayout as BookerLayout);
+    },
+    [setLayout, layout]
   );
 
-  if (isMobile || !enabledLayouts) return null;
+  if (isMobile || isEmbed || !enabledLayouts) return null;
 
   // Only reason we create this component, is because it is used 3 times in this component,
   // and this way we can't forget to update one of the props in all places :)
-  const LayoutToggleWithData = () => (
-    <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
-  );
+  const LayoutToggleWithData = () => {
+    return enabledLayouts.length <= 1 ? null : (
+      <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
+    );
+  };
 
   // In month view we only show the layout toggle.
   if (isMonthView) {
-    if (enabledLayouts.length <= 1) return null;
-    return (
-      <div className="fixed top-3 right-3 z-10">
-        <LayoutToggleWithData />
-      </div>
-    );
+    return <LayoutToggleWithData />;
   }
 
   return (
-    <div className="border-subtle relative z-10 flex border-l border-b p-4">
+    <div className="border-subtle relative z-10 flex border-l border-b px-5 py-4">
       <div className="flex items-center gap-3">
         <h3 className="min-w-[150px] text-base font-semibold leading-4">
           {selectedDate.format("MMM D")}-{selectedDate.add(extraDays, "days").format("D")},{" "}
@@ -74,24 +75,22 @@ export function Header({
           />
         </ButtonGroup>
       </div>
-      {enabledLayouts.length > 1 && (
-        <div className="ml-auto flex gap-3">
-          <TimeFormatToggle />
-          <div className="fixed top-4 right-4">
-            <LayoutToggleWithData />
-          </div>
-          {/*
+      <div className="ml-auto flex gap-2">
+        <TimeFormatToggle />
+        <div className="fixed top-4 right-4">
+          <LayoutToggleWithData />
+        </div>
+        {/*
           This second layout toggle is hidden, but needed to reserve the correct spot in the DIV
           for the fixed toggle above to fit into. If we wouldn't make it fixed in this view, the transition
           would be really weird, because the element is positioned fixed in the month view, and then
           when switching layouts wouldn't anymmore, causing it to animate from the center to the top right,
           while it actuall already was on place. That's why we have this element twice.
         */}
-          <div className="pointer-events-none opacity-0" aria-hidden>
-            <LayoutToggleWithData />
-          </div>
+        <div className="pointer-events-none opacity-0" aria-hidden>
+          <LayoutToggleWithData />
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -121,7 +120,7 @@ const LayoutToggle = ({
       {
         value: BookerLayouts.COLUMN_VIEW,
         label: <Columns width="16" height="16" />,
-        tooltip: t("switch_multiday"),
+        tooltip: t("switch_columnview"),
       },
     ].filter((layout) => enabledLayouts?.includes(layout.value as BookerLayouts));
   }, [t, enabledLayouts]);

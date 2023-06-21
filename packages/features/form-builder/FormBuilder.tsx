@@ -426,10 +426,7 @@ export const FormBuilder = function FormBuilder({
         }>
         <DialogContent className="max-h-none p-0" data-testid="edit-field-dialog">
           <div className="h-auto max-h-[85vh] overflow-auto px-8 pt-8 pb-7">
-            <DialogHeader
-              title={t("add_a_booking_question")}
-              subtitle={t("booking_questions_description")}
-            />
+            <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
             <Form
               id="form-builder"
               form={fieldForm}
