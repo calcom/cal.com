@@ -72,6 +72,13 @@ describe('next.config.js - RegExp', ()=>{
 			type: '30'
 		})
 
+    expect(userTypeRouteRegExp.exec('/teampro+pro/30')?.groups).toContain({
+      user: 'teampro+pro',
+      type: '30'
+    })
+
+    expect(userTypeRouteRegExp.exec('/teampro+pro/book')).toEqual(null)
+
     // Because /book doesn't have a corresponding new-booker route.
     expect(userTypeRouteRegExp.exec('/free/book')).toEqual(null)
 
@@ -80,6 +87,7 @@ describe('next.config.js - RegExp', ()=>{
 			user: 'free',
 			type: 'booked'
 		})
+    
 
     expect(embedUserTypeRouteRegExp.exec('/free/30/embed')?.groups).toContain({
       user: 'free',
