@@ -362,13 +362,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { user: userParam } = paramsSchema.parse(context.params);
   // dynamic groups are not generated at build time, but otherwise are probably cached until infinity.
   const isDynamicGroup = getUsernameList(userParam).length > 1;
-  console.log(
-    "DynamicGroupLog",
-    JSON.stringify({
-      userParam,
-      isDynamicGroup,
-    })
-  );
   if (isDynamicGroup) {
     return await getDynamicGroupPageProps(context);
   } else {
