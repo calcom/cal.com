@@ -5,16 +5,24 @@ export default function EmbedInitIframe() {
     return;
   }
 
-  const embedNameSpaceFromQueryParam = new URL(document.URL).searchParams.get("embed");
+  const url = new URL(document.URL);
+  const embedNameSpaceFromQueryParam = url.searchParams.get("embed");
+  const hasEmbedPath = url.pathname.endsWith("/embed");
+  const defaultNamespace = "";
 
   // Namespace is initially set in query param `embed` but the query param might get lost during soft navigation
   // So, we also check for the namespace in `window.name` which is set when iframe is created by embed.ts and persists for the duration of iframe's life
   // Note that, window.name isn't lost during hard navigation as well. Though, hard navigation isn't something that would happen in the app, but it's critical to be able to detect embed mode even after that(just in case)
   // We might just use window.name but if just in case something resets the `window.name`, we will still have the namespace in query param
+  // It must be null for non-embed scenario.
   const embedNamespace =
     typeof embedNameSpaceFromQueryParam === "string"
       ? embedNameSpaceFromQueryParam
-      : window.name.replace(/cal-embed=(.*)/, "$1").trim();
+      : window.name.includes("cal-embed=")
+      ? window.name.replace(/cal-embed=(.*)/, "$1").trim()
+      : hasEmbedPath
+      ? defaultNamespace // If query param is not there but /embed is used then assume default namespace.
+      : null;
 
   window.isEmbed = () => {
     // By default namespace is "". That would also work if we just check the type of variable

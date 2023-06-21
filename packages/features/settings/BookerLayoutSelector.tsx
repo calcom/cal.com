@@ -7,7 +7,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import { bookerLayoutOptions, type BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Label, Checkbox, Button } from "@calcom/ui";
@@ -23,6 +23,13 @@ type BookerLayoutSelectorProps = {
    * settings.
    */
   fallbackToUserSettings?: boolean;
+  /**
+   * isDark boolean should be passed in when the user selected 'dark mode' in the theme settings in profile/appearance.
+   * So it's not based on the user's system settings, but on the user's preference for the booker.
+   * This boolean is then used to show a dark version of the layout image. It's only easthetic, no functionality is attached
+   * to this boolean.
+   */
+  isDark?: boolean;
 };
 
 const defaultFieldName = "metadata.bookerLayouts";
@@ -32,6 +39,7 @@ export const BookerLayoutSelector = ({
   description,
   name,
   fallbackToUserSettings,
+  isDark,
 }: BookerLayoutSelectorProps) => {
   const { control, getValues } = useFormContext();
   const { t } = useLocale();
@@ -44,7 +52,7 @@ export const BookerLayoutSelector = ({
   return (
     <>
       <Label className="mb-0">{title ? title : t("bookerlayout_title")}</Label>
-      <p className="text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[500px]">
+      <p className="text-subtle max-w-full break-words py-1 text-sm">
         {description ? description : t("bookerlayout_description")}
       </p>
       <Controller
@@ -58,6 +66,7 @@ export const BookerLayoutSelector = ({
             showUserSettings={shouldShowUserSettings}
             settings={value}
             onChange={onChange}
+            isDark={isDark}
           />
         )}
       />
@@ -69,11 +78,12 @@ type BookerLayoutFieldsProps = {
   settings: BookerLayoutSettings;
   onChange: (settings: BookerLayoutSettings) => void;
   showUserSettings: boolean;
+  isDark?: boolean;
 };
 
 type BookerLayoutState = { [key in BookerLayouts]: boolean };
 
-const BookerLayoutFields = ({ settings, onChange, showUserSettings }: BookerLayoutFieldsProps) => {
+const BookerLayoutFields = ({ settings, onChange, showUserSettings, isDark }: BookerLayoutFieldsProps) => {
   const { t } = useLocale();
   const { isLoading: isUserLoading, data: user } = useMeQuery();
   const [isOverridingSettings, setIsOverridingSettings] = useState(false);
@@ -85,19 +95,28 @@ const BookerLayoutFields = ({ settings, onChange, showUserSettings }: BookerLayo
   // Converts the settings array into a boolean object, which can be used as form values.
   const toggleValues: BookerLayoutState = bookerLayoutOptions.reduce((layouts, layout) => {
     layouts[layout] = !shownSettings?.enabledLayouts
-      ? true
+      ? defaultBookerLayoutSettings.enabledLayouts.indexOf(layout) > -1
       : shownSettings.enabledLayouts.indexOf(layout) > -1;
     return layouts;
   }, {} as BookerLayoutState);
 
   const onLayoutToggleChange = useCallback(
     (changedLayout: BookerLayouts, checked: boolean) => {
+      const newEnabledLayouts = Object.keys(toggleValues).filter((layout) => {
+        if (changedLayout === layout) return checked === true;
+        return toggleValues[layout as BookerLayouts] === true;
+      }) as BookerLayouts[];
+
+      const isDefaultLayoutToggledOff = newEnabledLayouts.indexOf(defaultLayout) === -1;
+      const firstEnabledLayout = newEnabledLayouts[0];
+
       onChange({
-        enabledLayouts: Object.keys(toggleValues).filter((layout) => {
-          if (changedLayout === layout) return checked === true;
-          return toggleValues[layout as BookerLayouts] === true;
-        }) as BookerLayouts[],
-        defaultLayout,
+        enabledLayouts: newEnabledLayouts,
+        // If default layout is toggled off, we set the default layout to the first enabled layout
+        // if there's none enabled, we set it to month view.
+        defaultLayout: isDefaultLayoutToggledOff
+          ? firstEnabledLayout || BookerLayouts.MONTH_VIEW
+          : defaultLayout,
       });
     },
     [defaultLayout, onChange, toggleValues]
@@ -134,7 +153,7 @@ const BookerLayoutFields = ({ settings, onChange, showUserSettings }: BookerLayo
             <label>
               <img
                 className="mb-3 w-full max-w-none cursor-pointer"
-                src={`/bookerlayout_${layout}.svg`}
+                src={`/bookerlayout_${layout}${isDark ? "_dark" : ""}.svg`}
                 alt="Layout preview"
               />
               <Checkbox
@@ -149,6 +168,7 @@ const BookerLayoutFields = ({ settings, onChange, showUserSettings }: BookerLayo
         ))}
       </div>
       <div
+        hidden={Object.values(toggleValues).filter((value) => value === true).length <= 1}
         className={classNames(
           "transition-opacity",
           disableFields && "pointer-events-none opacity-40",
@@ -162,7 +182,8 @@ const BookerLayoutFields = ({ settings, onChange, showUserSettings }: BookerLayo
           onValueChange={(layout: BookerLayouts) => onDefaultLayoutChange(layout)}>
           {bookerLayoutOptions.map((layout) => (
             <RadioGroup.Item
-              className="aria-checked:bg-emphasis hover:bg-subtle focus:bg-subtle w-full rounded-[4px] p-1 text-sm transition-colors"
+              className="aria-checked:bg-emphasis hover:[&:not(:disabled)]:bg-subtle focus:[&:not(:disabled)]:bg-subtle w-full rounded-[4px] p-1 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+              disabled={toggleValues[layout] === false}
               key={layout}
               value={layout}>
               {t(`bookerlayout_${layout}`)}

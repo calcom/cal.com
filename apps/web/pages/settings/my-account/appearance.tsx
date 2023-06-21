@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import type { z } from "zod";
 
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
@@ -9,6 +10,7 @@ import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
+import type { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import {
   Alert,
@@ -64,9 +66,16 @@ const AppearanceView = () => {
       brandColor: user?.brandColor || "#292929",
       darkBrandColor: user?.darkBrandColor || "#fafafa",
       hideBranding: user?.hideBranding,
-      defaultBookerLayouts: user?.defaultBookerLayouts,
+      metadata: user?.metadata as z.infer<typeof userMetadata>,
     },
   });
+
+  const selectedTheme = formMethods.watch("theme");
+  const selectedThemeIsDark =
+    selectedTheme === "dark" ||
+    (selectedTheme === "" &&
+      typeof document !== "undefined" &&
+      document.documentElement.classList.contains("dark"));
 
   const {
     formState: { isSubmitting, isDirty },
@@ -99,7 +108,7 @@ const AppearanceView = () => {
     <Form
       form={formMethods}
       handleSubmit={(values) => {
-        const layoutError = validateBookerLayouts(values.defaultBookerLayouts || null);
+        const layoutError = validateBookerLayouts(values?.metadata?.defaultBookerLayouts || null);
         if (layoutError) throw new Error(t(layoutError));
 
         mutation.mutate({
@@ -127,14 +136,14 @@ const AppearanceView = () => {
         <ThemeLabel
           variant="light"
           value="light"
-          label={t("theme_light")}
+          label={t("light")}
           defaultChecked={user.theme === "light"}
           register={formMethods.register}
         />
         <ThemeLabel
           variant="dark"
           value="dark"
-          label={t("theme_dark")}
+          label={t("dark")}
           defaultChecked={user.theme === "dark"}
           register={formMethods.register}
         />
@@ -142,6 +151,7 @@ const AppearanceView = () => {
 
       <hr className="border-subtle my-8 border [&:has(+hr)]:hidden" />
       <BookerLayoutSelector
+        isDark={selectedThemeIsDark}
         name="metadata.defaultBookerLayouts"
         title={t("bookerlayout_user_settings_title")}
         description={t("bookerlayout_user_settings_description")}
@@ -261,7 +271,8 @@ const AppearanceView = () => {
         type="submit"
         loading={mutation.isLoading}
         color="primary"
-        className="mt-8">
+        className="mt-8"
+        data-testid="update-theme-btn">
         {t("update")}
       </Button>
     </Form>

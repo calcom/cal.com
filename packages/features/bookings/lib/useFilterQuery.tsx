@@ -6,7 +6,7 @@ import { queryNumberArray, useTypedQuery } from "@calcom/lib/hooks/useTypedQuery
 export const filterQuerySchema = z.object({
   teamIds: queryNumberArray.optional(),
   userIds: queryNumberArray.optional(),
-  status: z.enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"]),
+  status: z.enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"]).optional(),
   eventTypeIds: queryNumberArray.optional(),
 });
 
