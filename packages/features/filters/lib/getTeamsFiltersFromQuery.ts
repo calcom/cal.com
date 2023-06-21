@@ -24,5 +24,10 @@ export const getTeamsFiltersFromQuery = (query: ParsedUrlQuery) => {
   // [1,2] is equivalent to [2,1] when fetching filter data.
   filters.teamIds = filters.teamIds?.sort();
   filters.userIds = filters.userIds?.sort();
+
+  if (!filters.teamIds?.length && !filters.userIds?.length) {
+    return undefined;
+  }
+
   return filters;
 };
