@@ -1344,7 +1344,6 @@
   "team_url_required": "Der skal indtastes et team URL",
   "team_url_taken": "Denne URL er allerede i brug",
   "team_publish": "Publicer team",
-  "number_sms_notifications": "Telefonnummer (SMS notifikationer)",
   "attendee_email_variable": "Deltagers e-mail",
   "attendee_email_info": "Personen der booker's e-mail",
   "kbar_search_placeholder": "Indtast en kommando eller søgning...",
