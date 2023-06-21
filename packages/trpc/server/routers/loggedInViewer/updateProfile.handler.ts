@@ -151,6 +151,10 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         createdDate: true,
       },
     });
+    // when the email changes, the user needs to sign in again.
+    if (input.email && user.identityProvider === IdentityProvider.CAL) {
+      signOutUser = true;
+    }
   }
 
   Object.freeze(updatedUser);
