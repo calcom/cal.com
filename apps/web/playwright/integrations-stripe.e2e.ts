@@ -60,7 +60,10 @@ test.describe("Stripe integration", () => {
     const now = new Date();
     await stripeFrame.locator('[name="expiry"]').fill(`${now.getMonth()} / ${now.getFullYear() + 1}`);
     await stripeFrame.locator('[name="cvc"]').fill("111");
-    await stripeFrame.locator('[name="postalCode"]').fill("111111");
+    const postcalCodeIsVisible = await stripeFrame.locator('[name="postalCode"]').isVisible();
+    if (postcalCodeIsVisible) {
+      await stripeFrame.locator('[name="postalCode"]').fill("111111");
+    }
     await page.click('button:has-text("Pay now")');
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
