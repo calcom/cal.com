@@ -362,7 +362,7 @@ function UserDropdown({ small }: UserDropdownProps) {
             />
           </span>
           {!small && (
-            <span className="flex flex-grow items-center">
+            <span className="flex flex-grow items-center gap-2">
               <span className="line-clamp-1 flex-grow text-sm leading-none">
                 <span className="text-emphasis block font-medium">{user.name || "Nameless User"}</span>
               </span>
