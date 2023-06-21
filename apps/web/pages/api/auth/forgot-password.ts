@@ -7,6 +7,14 @@ import rateLimiter from "@calcom/lib/rateLimit";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 
+function delay(cb: () => unknown, delay: number) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(cb());
+    }, delay);
+  });
+}
+
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const t = await getTranslation(req.body.language ?? "en", "common");
 
@@ -42,10 +50,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     await passwordResetRequest(email.data, req.body.language ?? "en");
     // By adding a random delay any attacker is unable to bruteforce existing email addresses.
-    const delay = Math.floor(Math.random() * 2000) + 1000;
-    setTimeout(() => {
-      res.status(201).json({ message: t("password_reset_email_sent") });
-    }, delay);
+    const delayInMs = Math.floor(Math.random() * 2000) + 1000;
+    return await delay(() => {
+      return res.status(201).json({ message: t("password_reset_email_sent") });
+    }, delayInMs);
   } catch (reason) {
     console.error(reason);
     return res.status(500).json({ message: "Unable to create password reset request" });
