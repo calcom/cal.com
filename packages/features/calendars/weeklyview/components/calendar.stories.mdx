@@ -14,6 +14,7 @@ import { events, blockingDates } from "../_storybookData";
 import "../styles/styles.css";
 import { CalendarEvent } from "../types/events";
 import { Calendar } from "./Calendar";
+import { start } from "@calcom/storybook/storybook-static/969.ea6432869e1d816d9022.manager.bundle";
 
 <Meta title="UI/Calendar" component={Calendar} />
 
@@ -55,15 +56,31 @@ export const Template = (args) => <Calendar {...args} />;
 </Canvas>
 
 <Canvas>
-  <Story name="Onclick Handlers">
-    <Calendar
-      startHour={8}
-      endHour={17}
-      events={events}
-      onEventClick={(e) => alert(e.title)}
-      onEmptyCellClick={(date) => alert(date.toString())}
-      sortEvents
-      hoverEventDuration={30}
-    />
+  <Story name="Onclick Handlers"
+         args={{
+            startHour: 8,
+            endHour: 17,
+            hoverEventDuration: 30,
+          }}
+         argTypes={{
+           startHour: {
+             control: { type: "number", min: 0, max: 23, step: 1 },
+           },
+            endHour: {
+              control: { type: "number", min: 0, max: 23, step: 1 },
+            },
+           hoverEventDuration: {
+             control: { type: "number", min: 0, max: 60, step: 1 },
+           },
+         }}
+  >
+    {({...args}) => (
+      <Calendar {...args}
+                events={events}
+                onEventClick={(e) => alert(e.title)}
+                onEmptyCellClick={(date) => alert(date.toString())}
+                sortEvents
+      />
+    )}
   </Story>
 </Canvas>
