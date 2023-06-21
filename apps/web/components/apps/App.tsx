@@ -446,6 +446,7 @@ const InstallAppButtonChild = ({
           {userAdminTeams.map((team) => (
             <DropdownItem
               type="button"
+              data-testid={team.isUser ? "install-app-button-personal" : "anything else"}
               key={team.id}
               disabled={
                 credentials &&
