@@ -1421,7 +1421,6 @@
   "team_url_required": "יש להזין כתובת URL של הצוות",
   "team_url_taken": "כתובת ה-URL הזו כבר תפוסה",
   "team_publish": "פרסום צוות",
-  "number_sms_notifications": "מספר טלפון (התראות SMS)",
   "attendee_email_variable": "כתובת הדוא\"ל של המשתתף",
   "attendee_email_info": "כתובת הדוא\"ל של האדם שביצע את ההזמנה",
   "kbar_search_placeholder": "הקלד/י פקודה או חפש/י...",
