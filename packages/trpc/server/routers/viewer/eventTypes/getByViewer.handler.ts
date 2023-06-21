@@ -45,7 +45,9 @@ const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   },
   children: {
     include: {
-      users: true,
+      users: {
+        select: baseUserSelect,
+      },
     },
   },
   parentId: true,
