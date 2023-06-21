@@ -86,7 +86,7 @@ const ProfileView = () => {
       if (res.signOutUser && tempFormValues) {
         showToast(t("password_reset_email", { email: tempFormValues.email }), "success");
         // sign out the user to avoid unauthorized access error
-        signOut({ callbackUrl: "/auth/logout?changeEmail=true" });
+        await signOut({ callbackUrl: "/auth/logout?changeEmail=true" });
       }
       utils.viewer.me.invalidate();
       utils.viewer.avatar.invalidate();
@@ -98,7 +98,6 @@ const ProfileView = () => {
     },
   });
 
-  const [error, setError] = React.useState<{ message: string } | null>(null);
   const [confirmPasswordOpen, setConfirmPasswordOpen] = useState(false);
   const [tempFormValues, setTempFormValues] = useState<FormValues | null>(null);
   const [confirmPasswordErrorMessage, setConfirmPasswordDeleteErrorMessage] = useState("");
