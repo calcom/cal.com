@@ -310,7 +310,7 @@ export const insightsRouter = router({
         endDate: z.string(),
         eventTypeId: z.coerce.number().optional(),
         memberUserId: z.coerce.number().optional(),
-        timeView: z.enum(["week", "month", "year"]),
+        timeView: z.enum(["week", "month", "year", "day"]),
         userId: z.coerce.number().optional(),
         isOrg: z.boolean().optional(),
       })
@@ -339,7 +339,14 @@ export const insightsRouter = router({
         return [];
       }
 
-      const timeView = inputTimeView;
+      let timeView = inputTimeView;
+
+      if (timeView === "week") {
+        // Difference between start and end date is less than 14 days use day view
+        if (endDate.diff(startDate, "day") < 14) {
+          timeView = "day";
+        }
+      }
 
       let whereConditional: Prisma.BookingTimeStatusWhereInput = {};
 
@@ -448,11 +455,13 @@ export const insightsRouter = router({
           Rescheduled: 0,
           Cancelled: 0,
         };
-        const startOfEndOf = timeView === "year" ? "year" : timeView === "month" ? "month" : "week";
-
-        const startDate = dayjs(date).startOf(startOfEndOf);
-        const endDate = dayjs(date).endOf(startOfEndOf);
-
+        const startOfEndOf = timeView;
+        let startDate = dayjs(date).startOf(startOfEndOf);
+        let endDate = dayjs(date).endOf(startOfEndOf);
+        if (timeView === "week") {
+          startDate = dayjs(date).startOf("day");
+          endDate = dayjs(date).add(6, "day").endOf("day");
+        }
         const promisesResult = await Promise.all([
           EventsInsights.getCreatedEventsInTimeRange(
             {

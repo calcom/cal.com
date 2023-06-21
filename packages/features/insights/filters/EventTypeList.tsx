@@ -49,7 +49,7 @@ export const EventTypeList = () => {
       }}
       defaultValue={eventTypeValue}
       value={eventTypeValue}
-      className="w-52 min-w-[180px] max-w-[91vw] sm:max-w-[180px] lg:max-w-[150px]"
+      className="w-full min-w-[180px] sm:max-w-[180px] lg:max-w-[150px]"
       placeholder={
         <div className="flex flex-row">
           <p>{t("select_event_type")}</p>

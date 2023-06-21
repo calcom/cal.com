@@ -81,9 +81,9 @@ export default function InsightsPage() {
               <div className="mt-0 ml-auto">
                 <Heading />
               </div>
-              <div className="mt-6 mb-4 ml-auto flex flex-row flex-wrap justify-between gap-2">
-                <Filters />
-              </div>
+
+              <Filters />
+
               <div className="mb-4 space-y-6">
                 <BookingKPICards />
 

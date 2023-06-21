@@ -81,7 +81,7 @@ export const TeamAndSelfList = () => {
         isMulti={false}
         value={teamValue}
         defaultValue={selectedTeamId ? { value: data[0].id, label: data[0].name } : null}
-        className="h-[38px] w-[91vw] min-w-[160px] sm:max-w-[180px] lg:max-w-[150px]"
+        className="h-[38px] w-full min-w-[180px] sm:max-w-[180px] lg:max-w-[150px]"
         options={UserListOptions}
         onChange={(input) => {
           if (!!input?.userId) {

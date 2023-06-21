@@ -10,7 +10,7 @@ type Option = { value: number; label: string };
 
 const mapUserToOption = (user: User): Option => ({
   value: user.id,
-  label: user.name ?? "",
+  label: user.name ?? user.email, // every user should have at least email
 });
 
 export const UserListInTeam = () => {
@@ -25,7 +25,8 @@ export const UserListInTeam = () => {
   if (!selectedFilter?.includes("user")) return null;
   if (!selectedTeamId) return null;
 
-  const userListOptions = data?.map(mapUserToOption) ?? ([] as { value: number; label: string }[]);
+  const userListOptions =
+    data?.map(mapUserToOption) ?? ([{ label: "No users found", value: 0 } as Option] as Option[]);
   const selectedTeamUser = data?.find((item) => item.id === selectedMemberUserId);
   const userValue = selectedTeamUser ? mapUserToOption(selectedTeamUser) : null;
 
@@ -34,7 +35,7 @@ export const UserListInTeam = () => {
   return (
     <Select<Option>
       isSearchable={true}
-      className="w-52 min-w-[180px] max-w-[91vw] sm:max-w-[180px] lg:max-w-[150px]"
+      className="min-w-[180px] sm:max-w-[180px] lg:max-w-[150px]"
       defaultValue={userValue}
       value={userValue}
       options={userListOptions}

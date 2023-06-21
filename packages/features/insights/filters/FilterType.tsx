@@ -1,6 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Select } from "@calcom/ui";
-import { Filter } from "@calcom/ui/components/icon";
+import { Plus } from "@calcom/ui/components/icon";
 
 import { useFilterContext } from "../context/provider";
 
@@ -42,11 +42,11 @@ export const FilterType = () => {
           setSelectedFilter([newValue.value]);
         }
       }}
-      className="w-52 min-w-[180px] max-w-[91vw] sm:max-w-[180px] lg:max-w-[150px]"
+      className="flex-2 w-full min-w-[180px] sm:max-w-[180px] lg:max-w-[150px]"
       placeholder={
-        <div className="text-emphasis flex flex-row">
-          <Filter className="m-auto h-4 w-4" />
-          {t("add_filter")}
+        <div className="text-emphasis flex">
+          <Plus className="mr-2 h-4 w-4" />
+          <p>{t("add_filter")}</p>
         </div>
       }
     />
