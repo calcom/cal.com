@@ -1408,7 +1408,6 @@
   "team_url_required": "Team-URL muss eingegeben werden",
   "team_url_taken": "Diese URL ist bereits vergeben",
   "team_publish": "Team veröffentlichen",
-  "number_sms_notifications": "Telefonnummer (SMS-Benachrichtigungen)",
   "attendee_email_variable": "Teilnehmer E-Mail",
   "attendee_email_info": "Die E-Mail-Adresse der buchenden Person",
   "kbar_search_placeholder": "Geben Sie einen Befehl ein oder suchen Sie ...",

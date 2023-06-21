@@ -41,6 +41,13 @@ export interface BookerProps {
    * within the atom (i.e. without a server side component).
    */
   rescheduleBooking?: GetBookingType;
+  /**
+   * If this boolean is passed, we will only check team events with this slug and event slug.
+   * If it's not passed, we will first query a generic user event, and only if that doesn't exist
+   * fetch the team event. In case there's both a team + user with the same slug AND same event slug,
+   * that will always result in the user event being returned.
+   */
+  isTeamEvent?: boolean;
 }
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";

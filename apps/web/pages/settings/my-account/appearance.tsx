@@ -70,6 +70,13 @@ const AppearanceView = () => {
     },
   });
 
+  const selectedTheme = formMethods.watch("theme");
+  const selectedThemeIsDark =
+    selectedTheme === "dark" ||
+    (selectedTheme === "" &&
+      typeof document !== "undefined" &&
+      document.documentElement.classList.contains("dark"));
+
   const {
     formState: { isSubmitting, isDirty },
     reset,
@@ -144,6 +151,7 @@ const AppearanceView = () => {
 
       <hr className="border-subtle my-8 border [&:has(+hr)]:hidden" />
       <BookerLayoutSelector
+        isDark={selectedThemeIsDark}
         name="metadata.defaultBookerLayouts"
         title={t("bookerlayout_user_settings_title")}
         description={t("bookerlayout_user_settings_description")}

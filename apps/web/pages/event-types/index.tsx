@@ -420,7 +420,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           truncateAfter={4}
                           items={type.children
                             .flatMap((ch) => ch.users)
-                            .map((user: User) => ({
+                            .map((user: Pick<User, "name" | "username">) => ({
                               alt: user.name || "",
                               image: `${WEBAPP_URL}/${user.username}/avatar.png`,
                               title: user.name || "",
