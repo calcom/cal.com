@@ -84,7 +84,7 @@ const ProfileView = () => {
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       showToast(t("settings_updated_successfully"), "success");
-      if (res.googleEmailChange && tempFormValues) {
+      if (res.authEmailChange && tempFormValues) {
         setLoading(true);
         await debouncedHandleSubmitPasswordRequest({ email: tempFormValues.email });
         if (error) {
@@ -97,7 +97,7 @@ const ProfileView = () => {
       }
       utils.viewer.me.invalidate();
       utils.viewer.avatar.invalidate();
-      setConfirmGOAuthEmailChangeWarningDialogOpen(false);
+      setConfirmAuthEmailChangeWarningDialogOpen(false);
       setTempFormValues(null);
     },
     onError: () => {
@@ -110,7 +110,7 @@ const ProfileView = () => {
   const [confirmPasswordOpen, setConfirmPasswordOpen] = useState(false);
   const [tempFormValues, setTempFormValues] = useState<FormValues | null>(null);
   const [confirmPasswordErrorMessage, setConfirmPasswordDeleteErrorMessage] = useState("");
-  const [confirmGOAuthEmailChangeWarningDialogOpen, setConfirmGOAuthEmailChangeWarningDialogOpen] =
+  const [confirmAuthEmailChangeWarningDialogOpen, setConfirmAuthEmailChangeWarningDialogOpen] =
     useState(false);
 
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
@@ -186,8 +186,6 @@ const ProfileView = () => {
 
   const isCALIdentityProvider = user?.identityProvider === IdentityProvider.CAL;
 
-  const isGoogleIdentityProvider = user?.identityProvider === IdentityProvider.GOOGLE;
-
   const onConfirmPassword = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();
 
@@ -195,7 +193,7 @@ const ProfileView = () => {
     confirmPasswordMutation.mutate({ passwordInput: password });
   };
 
-  const onConfirmGoogleEmailChange = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
+  const onConfirmAuthEmailChange = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();
 
     if (tempFormValues) updateProfileMutation.mutate(tempFormValues);
@@ -258,10 +256,10 @@ const ProfileView = () => {
           if (values.email !== user.email && isCALIdentityProvider) {
             setTempFormValues(values);
             setConfirmPasswordOpen(true);
-          } else if (values.email !== user.email && isGoogleIdentityProvider) {
+          } else if (values.email !== user.email && !isCALIdentityProvider) {
             setTempFormValues(values);
             // Opens a dialog warning the change
-            setConfirmGOAuthEmailChangeWarningDialogOpen(true);
+            setConfirmAuthEmailChangeWarningDialogOpen(true);
           } else {
             updateProfileMutation.mutate(values);
           }
@@ -361,20 +359,20 @@ const ProfileView = () => {
         </DialogContent>
       </Dialog>
 
-      {/* If changing email from Google Login */}
+      {/* If changing email from !CAL Login */}
       <Dialog
-        open={confirmGOAuthEmailChangeWarningDialogOpen}
-        onOpenChange={setConfirmGOAuthEmailChangeWarningDialogOpen}>
+        open={confirmAuthEmailChangeWarningDialogOpen}
+        onOpenChange={setConfirmAuthEmailChangeWarningDialogOpen}>
         <DialogContent
-          title={t("confirm_google_auth_change")}
-          description={t("confirm_google_auth_email_change")}
+          title={t("confirm_auth_change")}
+          description={t("confirm_auth_email_change")}
           type="creation"
           Icon={AlertTriangle}>
           <DialogFooter>
             <Button
               color="primary"
               disabled={updateProfileMutation.isLoading || loading}
-              onClick={(e) => onConfirmGoogleEmailChange(e)}>
+              onClick={(e) => onConfirmAuthEmailChange(e)}>
               {t("confirm")}
             </Button>
             <DialogClose />

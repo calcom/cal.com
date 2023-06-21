@@ -101,10 +101,10 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
 
   let updatedUser;
-  let googleEmailChange = false;
+  let authEmailChange = false;
 
-  // check if we are changing email and identity provider is google
-  if (input.email && user.identityProvider === IdentityProvider.GOOGLE) {
+  // check if we are changing email and identity provider is not CAL
+  if (input.email && user.identityProvider !== IdentityProvider.CAL) {
     const email = input.email;
     // Only validate if we're changing email
     if (email !== user.email) {
@@ -127,7 +127,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         },
       });
       if (updatedUser) {
-        googleEmailChange = true;
+        authEmailChange = true;
       }
     }
   } else {
@@ -184,5 +184,5 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       .then(() => console.info("Booking pages revalidated"))
       .catch((e) => console.error(e));
   }*/
-  return { ...input, googleEmailChange: googleEmailChange };
+  return { ...input, authEmailChange: authEmailChange };
 };
