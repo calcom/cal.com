@@ -105,27 +105,27 @@ const sheetVariants = cva(
       {
         position: ["right", "left"],
         size: "default",
-        class: "w-1/3",
+        class: "w-1/3 h-[calc(100vh-2rem)]",
       },
       {
         position: ["right", "left"],
         size: "sm",
-        class: "w-1/4",
+        class: "w-1/4 h-[calc(100vh-2rem)]",
       },
       {
         position: ["right", "left"],
         size: "lg",
-        class: "w-1/2",
+        class: "w-1/2 h-[calc(100vh-2rem)]",
       },
       {
         position: ["right", "left"],
         size: "xl",
-        class: "w-5/6",
+        class: "w-5/6 h-[calc(100vh-2rem)]",
       },
       {
         position: ["right", "left"],
         size: "full",
-        class: "w-screen",
+        class: "w-screen h-[calc(100vh-2rem)]",
       },
     ],
     defaultVariants: {
