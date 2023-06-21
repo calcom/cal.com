@@ -4,6 +4,12 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 
 import appStore from "..";
 
+interface CalendarApp {
+  lib?: {
+    CalendarService: any;
+  };
+}
+
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
 
 export const getCalendar = async (credential: CredentialPayload | null): Promise<Calendar | null> => {
@@ -19,8 +25,9 @@ export const getCalendar = async (credential: CredentialPayload | null): Promise
     return null;
   }
 
-  const calendarApp = await calendarAppImportFn();
-  if (!(calendarApp && "lib" in calendarApp && "CalendarService" in calendarApp.lib)) {
+  const calendarApp = (await calendarAppImportFn()) as CalendarApp;
+
+  if (!calendarApp.lib?.CalendarService) {
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
