@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
-
+import type Prisma from "@prisma/client";
 import { test } from "./lib/fixtures";
-import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
+import { todo, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
@@ -34,42 +34,46 @@ test.describe("Stripe integration", () => {
 
   test("Can book a paid booking", async ({ page, users }) => {
     const user = await users.create();
-    const eventType = user.eventTypes.find((e) => e.slug === "paid");
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
     await user.apiLogin();
     await page.goto("/apps/installed");
+
     await user.getPaymentCredential();
+    await user.setupEventWithPrice(eventType);
+    await user.bookAndPaidEvent(eventType);
+    // success
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
-    await page.goto(`/event-types/${eventType?.id}?tabName=apps`);
-    await page.locator("div > .ml-auto").first().click();
-    await expect(page.getByPlaceholder("Price")).toBeVisible();
-    await page.getByPlaceholder("Price").fill("100");
-    await page.getByTestId("update-eventtype").click();
+  });
 
+  test("Pending payment booking should not be confirmed by default", async ({ page, users }) => {
+
+    const user = await users.create();
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    await user.apiLogin();
+    await page.goto("/apps/installed");
+
+    await user.getPaymentCredential();
+    await user.setupEventWithPrice(eventType);
+
+    // booking process without payment
     await page.goto(`${user.username}/${eventType?.slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
     // --- fill form
     await page.fill('[name="name"]', "Stripe Stripeson");
     await page.fill('[name="email"]', "test@example.com");
 
-    await Promise.all([page.waitForURL("/payment/*"), page.press('[name="email"]', "Enter")]);
+    await Promise.all([
+      page.waitForURL("/payment/*"),
+      page.press('[name="email"]', "Enter")
+    ]);
 
-    const stripeFrame = page.frameLocator("iframe").first();
-    expect(stripeFrame).toBeTruthy();
-    await expect(stripeFrame.getByText("Card number")).toBeVisible();
-    await stripeFrame.locator('[name="number"]').fill("4242 4242 4242 4242");
-    const now = new Date();
-    await stripeFrame.locator('[name="expiry"]').fill(`${now.getMonth()} / ${now.getFullYear() + 1}`);
-    await stripeFrame.locator('[name="cvc"]').fill("111");
-    const postcalCodeIsVisible = await stripeFrame.locator('[name="postalCode"]').isVisible();
-    if (postcalCodeIsVisible) {
-      await stripeFrame.locator('[name="postalCode"]').fill("111111");
-    }
-    await page.click('button:has-text("Pay now")');
+    await page.goto(`/bookings/upcoming`);
 
-    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+    await expect(page.getByText("Unconfirmed")).toBeVisible();
+    await expect(page.getByText("Pending payment").last()).toBeVisible();
+
   });
-
-  todo("Pending payment booking should not be confirmed by default");
   todo("Payment should confirm pending payment booking");
   todo("Payment should trigger a BOOKING_PAID webhook");
   todo("Paid booking should be able to be rescheduled");
