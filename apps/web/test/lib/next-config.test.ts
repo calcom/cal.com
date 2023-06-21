@@ -52,14 +52,6 @@ describe('next.config.js - RegExp', ()=>{
     
     // embedTeamTypeRouteRegExp = "/team/:slug/:type/embed";
     embedTeamTypeRouteRegExp = getRegExpFromNextJsRewriteRegExp("/team/(?<slug>[^/]+)/(?<type>[^/]+)/embed");
-
-    console.log({
-      userTypeRouteRegExp,
-      teamTypeRouteRegExp,
-      privateLinkRouteRegExp,
-      embedUserTypeRouteRegExp,
-      embedTeamTypeRouteRegExp
-    })
   });
   
   afterAll(()=>{
