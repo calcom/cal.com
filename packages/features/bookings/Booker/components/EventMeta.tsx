@@ -1,6 +1,7 @@
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
 
+import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
@@ -25,6 +26,13 @@ export const EventMeta = () => {
   const rescheduleBooking = useBookerStore((state) => state.rescheduleBooking);
   const { i18n, t } = useLocale();
   const { data: event, isLoading } = useEvent();
+  const embedUiConfig = useEmbedUiConfig();
+  const isEmbed = useIsEmbed();
+  const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
+
+  if (hideEventTypeDetails) {
+    return null;
+  }
 
   return (
     <div className="relative z-10 p-6">
