@@ -93,8 +93,6 @@ const pages = glob
   )
   .filter((v, i, self) => self.indexOf(v) === i && !v.startsWith("[user]"));
 
-console.log("STATIC PAGES", pages);
-
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
