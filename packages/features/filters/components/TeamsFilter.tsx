@@ -7,7 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { AnimatedPopover, Avatar, Divider } from "@calcom/ui";
+import { AnimatedPopover, Avatar, Divider, VerticalDivider } from "@calcom/ui";
 import { Layers, User } from "@calcom/ui/components/icon";
 
 import { filterQuerySchema } from "../lib/getTeamsFiltersFromQuery";
@@ -20,7 +20,13 @@ function useFilterQuery() {
   return useTypedQuery(filterQuerySchema.passthrough());
 }
 
-export const TeamsFilter = () => {
+export const TeamsFilter = ({
+  popoverTriggerClassNames,
+  showVerticalDivider = false,
+}: {
+  popoverTriggerClassNames?: string;
+  showVerticalDivider?: boolean;
+}) => {
   const { t } = useLocale();
   const session = useSession();
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeAllQueryParams } = useFilterQuery();
@@ -40,7 +46,7 @@ export const TeamsFilter = () => {
       if (selectedTeamsNames) {
         checkedOptions.push(...selectedTeamsNames);
       }
-      return checkedOptions.join(",");
+      return `${t("team")}: ${checkedOptions.join(",")}`;
     }
     if (query.userIds) {
       return t("yours");
@@ -51,56 +57,59 @@ export const TeamsFilter = () => {
   if (!teams || !teams.length) return null;
 
   return (
-    <AnimatedPopover text={getCheckedOptionsNames()}>
-      <FilterCheckboxFieldsContainer>
-        <FilterCheckboxField
-          id="all"
-          icon={<Layers className="h-4 w-4" />}
-          checked={!query.teamIds && !query.userIds?.includes(session.data?.user.id || 0)}
-          onChange={(e) => {
-            removeAllQueryParams();
-          }}
-          label={t("all_apps")}
-        />
-
-        <FilterCheckboxField
-          id="yours"
-          icon={<User className="h-4 w-4" />}
-          checked={!!query.userIds?.includes(session.data?.user.id || 0)}
-          onChange={(e) => {
-            if (e.target.checked) {
-              pushItemToKey("userIds", session.data?.user.id || 0);
-            } else if (!e.target.checked) {
-              removeItemByKeyAndValue("userIds", session.data?.user.id || 0);
-            }
-          }}
-          label={t("yours")}
-        />
-        <Divider />
-        {teams?.map((team) => (
+    <div className="flex items-center">
+      <AnimatedPopover text={getCheckedOptionsNames()} popoverTriggerClassNames={popoverTriggerClassNames}>
+        <FilterCheckboxFieldsContainer>
           <FilterCheckboxField
-            key={team.id}
-            id={team.name}
-            label={team.name}
-            checked={!!query.teamIds?.includes(team.id)}
+            id="all"
+            icon={<Layers className="h-4 w-4" />}
+            checked={!query.teamIds && !query.userIds?.includes(session.data?.user.id || 0)}
+            onChange={(e) => {
+              removeAllQueryParams();
+            }}
+            label={t("all_apps")}
+          />
+
+          <FilterCheckboxField
+            id="yours"
+            icon={<User className="h-4 w-4" />}
+            checked={!!query.userIds?.includes(session.data?.user.id || 0)}
             onChange={(e) => {
               if (e.target.checked) {
-                pushItemToKey("teamIds", team.id);
+                pushItemToKey("userIds", session.data?.user.id || 0);
               } else if (!e.target.checked) {
-                removeItemByKeyAndValue("teamIds", team.id);
+                removeItemByKeyAndValue("userIds", session.data?.user.id || 0);
               }
             }}
-            icon={
-              <Avatar
-                alt={team?.name}
-                imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)}
-                size="xs"
-              />
-            }
+            label={t("yours")}
           />
-        ))}
-      </FilterCheckboxFieldsContainer>
-    </AnimatedPopover>
+          <Divider />
+          {teams?.map((team) => (
+            <FilterCheckboxField
+              key={team.id}
+              id={team.name}
+              label={team.name}
+              checked={!!query.teamIds?.includes(team.id)}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  pushItemToKey("teamIds", team.id);
+                } else if (!e.target.checked) {
+                  removeItemByKeyAndValue("teamIds", team.id);
+                }
+              }}
+              icon={
+                <Avatar
+                  alt={team?.name}
+                  imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)}
+                  size="xs"
+                />
+              }
+            />
+          ))}
+        </FilterCheckboxFieldsContainer>
+      </AnimatedPopover>
+      {showVerticalDivider && <VerticalDivider />}
+    </div>
   );
 };
 

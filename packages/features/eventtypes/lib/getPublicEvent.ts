@@ -7,7 +7,7 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { PrismaClient } from "@calcom/prisma/client";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
@@ -71,13 +71,20 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       name: true,
       theme: true,
       metadata: true,
+      brandColor: true,
+      darkBrandColor: true,
     },
   },
   hidden: true,
 });
 
-export const getPublicEvent = async (username: string, eventSlug: string, prisma: PrismaClient) => {
-  const usernameList = username.split("+");
+export const getPublicEvent = async (
+  username: string,
+  eventSlug: string,
+  isTeamEvent: boolean | undefined,
+  prisma: PrismaClient
+) => {
+  const usernameList = getUsernameList(username);
 
   // In case of dynamic group event, we fetch user's data and use the default event.
   if (usernameList.length > 1) {
@@ -141,24 +148,26 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
     };
   }
 
+  const usersOrTeamQuery = isTeamEvent
+    ? {
+        team: {
+          slug: username,
+        },
+      }
+    : {
+        users: {
+          some: {
+            username,
+          },
+        },
+        team: null,
+      };
+
   // In case it's not a group event, it's either a single user or a team, and we query that data.
   const event = await prisma.eventType.findFirst({
     where: {
       slug: eventSlug,
-      OR: [
-        {
-          users: {
-            some: {
-              username,
-            },
-          },
-        },
-        {
-          team: {
-            slug: username,
-          },
-        },
-      ],
+      ...usersOrTeamQuery,
     },
     select: publicEventSelect,
   });

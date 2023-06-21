@@ -1408,7 +1408,6 @@
   "team_url_required": "Team-URL måste anges",
   "team_url_taken": "Denna URL används redan",
   "team_publish": "Publicera team",
-  "number_sms_notifications": "Telefonnummer (SMS-notiser)",
   "attendee_email_variable": "Deltagarens e-postadress",
   "attendee_email_info": "Personens e-postadress för bokning",
   "kbar_search_placeholder": "Ange ett kommando eller sök ...",
