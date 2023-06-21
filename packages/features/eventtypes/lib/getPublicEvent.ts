@@ -158,6 +158,8 @@ export const getPublicEvent = async (
             username,
           },
         },
+        team: null,
+        
       };
 
   // In case it's not a group event, it's either a single user or a team, and we query that data.
