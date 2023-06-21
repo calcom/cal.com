@@ -56,9 +56,10 @@ test.describe("Stripe integration", () => {
     const stripeFrame = page.frameLocator("iframe").first();
     expect(stripeFrame).toBeTruthy();
     await expect(stripeFrame.getByText("Card number")).toBeVisible();
-    await stripeFrame.locator('[placeholder="1234 1234 1234 1234"]').fill("4242 4242 4242 4242");
-    await stripeFrame.locator('[placeholder="MM / YY"]').fill("12 / 24");
-    await stripeFrame.locator('[placeholder="CVC"]').fill("111");
+    await stripeFrame.locator('[name="number"]').fill("4242 4242 4242 4242");
+    const now = new Date();
+    await stripeFrame.locator('[name="expiry"]').fill(`${now.getMonth()} / ${now.getFullYear() + 1}`);
+    await stripeFrame.locator('[name="cvc"]').fill("111");
     await stripeFrame.locator('[name="postalCode"]').fill("111111");
     await page.click('button:has-text("Pay now")');
 
