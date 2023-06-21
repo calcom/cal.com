@@ -38,6 +38,7 @@ const generateHashedLink = (id: number) => {
 
 export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, "eventType" | "team">) => {
   const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
+  const { data: user } = trpc.viewer.me.useQuery();
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
 
@@ -49,6 +50,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const bookingFields: Prisma.JsonObject = {};
 
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
+  const selectedThemeIsDark =
+    user?.theme === "dark" ||
+    (!user?.theme && typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
 
   eventType.bookingFields.forEach(({ name }) => {
     bookingFields[name] = name + " input";
@@ -162,7 +166,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       </div>
       <hr className="border-subtle [&:has(+div:empty)]:hidden" />
       <div>
-        <BookerLayoutSelector fallbackToUserSettings />
+        <BookerLayoutSelector fallbackToUserSettings isDark={selectedThemeIsDark} />
       </div>
       <hr className="border-subtle" />
       <FormBuilder

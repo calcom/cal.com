@@ -23,6 +23,13 @@ type BookerLayoutSelectorProps = {
    * settings.
    */
   fallbackToUserSettings?: boolean;
+  /**
+   * isDark boolean should be passed in when the user selected 'dark mode' in the theme settings in profile/appearance.
+   * So it's not based on the user's system settings, but on the user's preference for the booker.
+   * This boolean is then used to show a dark version of the layout image. It's only easthetic, no functionality is attached
+   * to this boolean.
+   */
+  isDark?: boolean;
 };
 
 const defaultFieldName = "metadata.bookerLayouts";
@@ -32,6 +39,7 @@ export const BookerLayoutSelector = ({
   description,
   name,
   fallbackToUserSettings,
+  isDark,
 }: BookerLayoutSelectorProps) => {
   const { control, getValues } = useFormContext();
   const { t } = useLocale();
@@ -58,6 +66,7 @@ export const BookerLayoutSelector = ({
             showUserSettings={shouldShowUserSettings}
             settings={value}
             onChange={onChange}
+            isDark={isDark}
           />
         )}
       />
@@ -69,11 +78,12 @@ type BookerLayoutFieldsProps = {
   settings: BookerLayoutSettings;
   onChange: (settings: BookerLayoutSettings) => void;
   showUserSettings: boolean;
+  isDark?: boolean;
 };
 
 type BookerLayoutState = { [key in BookerLayouts]: boolean };
 
-const BookerLayoutFields = ({ settings, onChange, showUserSettings }: BookerLayoutFieldsProps) => {
+const BookerLayoutFields = ({ settings, onChange, showUserSettings, isDark }: BookerLayoutFieldsProps) => {
   const { t } = useLocale();
   const { isLoading: isUserLoading, data: user } = useMeQuery();
   const [isOverridingSettings, setIsOverridingSettings] = useState(false);
@@ -143,7 +153,7 @@ const BookerLayoutFields = ({ settings, onChange, showUserSettings }: BookerLayo
             <label>
               <img
                 className="mb-3 w-full max-w-none cursor-pointer"
-                src={`/bookerlayout_${layout}.svg`}
+                src={`/bookerlayout_${layout}${isDark ? "_dark" : ""}.svg`}
                 alt="Layout preview"
               />
               <Checkbox

@@ -112,25 +112,38 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
   },
 };
 
-export const getBookerSizeClassNames = (layout: BookerLayout, bookerState: BookerState) => {
+export const getBookerSizeClassNames = (
+  layout: BookerLayout,
+  bookerState: BookerState,
+  hideEventTypeDetails = false
+) => {
+  const getBookerMetaClass = (className: string) => {
+    if (hideEventTypeDetails) {
+      return "";
+    }
+    return className;
+  };
+
   return [
-    // Size settings are abstracted on their own lines purely for readbility.
+    // Size settings are abstracted on their own lines purely for readability.
     // General sizes, used always
     "[--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
     // Small calendar defaults
-    layout === BookerLayouts.MONTH_VIEW && "[--booker-meta-width:240px]",
+    layout === BookerLayouts.MONTH_VIEW && getBookerMetaClass("[--booker-meta-width:240px]"),
     // Meta column get's wider in booking view to fit the full date on a single row in case
     // of a multi occurance event. Also makes form less wide, which also looks better.
     layout === BookerLayouts.MONTH_VIEW &&
       bookerState === "booking" &&
-      "[--booker-main-width:420px] lg:[--booker-meta-width:340px]",
+      `[--booker-main-width:420px] ${getBookerMetaClass("lg:[--booker-meta-width:340px]")}`,
     // Smaller meta when not in booking view.
     layout === BookerLayouts.MONTH_VIEW &&
       bookerState !== "booking" &&
-      "[--booker-main-width:480px] lg:[--booker-meta-width:280px]",
+      `[--booker-main-width:480px] ${getBookerMetaClass("lg:[--booker-meta-width:280px]")}`,
     // Fullscreen view settings.
     layout !== BookerLayouts.MONTH_VIEW &&
-      "[--booker-main-width:480px] [--booker-meta-width:340px] lg:[--booker-meta-width:424px]",
+      `[--booker-main-width:480px] [--booker-meta-width:340px] ${getBookerMetaClass(
+        "lg:[--booker-meta-width:424px]"
+      )}`,
   ];
 };
 
