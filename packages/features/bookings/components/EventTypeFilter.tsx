@@ -55,12 +55,12 @@ export const EventTypeFilter = () => {
   const isNotEmpty = eventTypes.data.length > 0;
 
   return eventTypes.status === "success" && isNotEmpty ? (
-    <AnimatedPopover text={t("event_type")}>
+    <AnimatedPopover text={t("event_type")} defaultOpen={true}>
       <div className="">
         {groupedEventTypes &&
           Object.keys(groupedEventTypes).map((teamName) => (
             <Fragment key={teamName}>
-              <div className="text-subtle p-4 text-xs font-medium uppercase leading-none">
+              <div className="text-subtle px-4 py-2 text-xs font-medium uppercase leading-none">
                 {teamName === "user_own_event_types" ? t("individual") : teamName}
               </div>
               {groupedEventTypes[teamName].map((eventType) => (

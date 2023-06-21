@@ -111,6 +111,15 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
         },
       ],
     },
+    locationValues: {
+      AND: [
+        {
+          location: {
+            in: input.filters?.locationValues,
+          },
+        },
+      ],
+    },
   };
 
   const filtersCombined: Prisma.BookingWhereInput[] =

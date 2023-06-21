@@ -6,6 +6,7 @@ export const ZGetInputSchema = z.object({
     userIds: z.number().array().optional(),
     status: z.enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"]),
     eventTypeIds: z.number().array().optional(),
+    locationValues: z.string().array().optional(),
   }),
   limit: z.number().min(1).max(100).nullish(),
   cursor: z.number().nullish(), // <-- "cursor" needs to exist when using useInfiniteQuery, but can be any type
