@@ -3,6 +3,7 @@ import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
+import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { getTranslation } from "@calcom/lib/server";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
@@ -34,6 +35,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     metadata: input.metadata as Prisma.InputJsonValue,
   };
 
+  // some actions can invalidate a user session.
+  let signOutUser = false;
   let isPremiumUsername = false;
 
   const layoutError = validateBookerLayouts(input?.metadata?.defaultBookerLayouts || null);
@@ -101,7 +104,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
 
   let updatedUser;
-  let authEmailChange = false;
 
   // check if we are changing email and identity provider is not CAL
   if (input.email && user.identityProvider !== IdentityProvider.CAL) {
@@ -124,10 +126,14 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
           metadata: true,
           name: true,
           createdDate: true,
+          locale: true,
         },
       });
       if (updatedUser) {
-        authEmailChange = true;
+        // Because the email has changed, we are now attempting to use the CAL provider-
+        // which has no password yet. We have to send the reset password email.
+        await passwordResetRequest(updatedUser.email, updatedUser.locale || "en");
+        signOutUser = true;
       }
     }
   } else {
@@ -184,5 +190,5 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       .then(() => console.info("Booking pages revalidated"))
       .catch((e) => console.error(e));
   }*/
-  return { ...input, authEmailChange: authEmailChange };
+  return { ...input, signOutUser };
 };

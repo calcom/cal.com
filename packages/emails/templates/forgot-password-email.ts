@@ -1,4 +1,4 @@
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 
 import { APP_NAME } from "@calcom/lib/constants";
 
@@ -13,8 +13,6 @@ export type PasswordReset = {
   };
   resetLink: string;
 };
-
-export const PASSWORD_RESET_EXPIRY_HOURS = 6;
 
 export default class ForgotPasswordEmail extends BaseEmail {
   passwordEvent: PasswordReset;

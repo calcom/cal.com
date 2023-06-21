@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { debounce } from "lodash";
 import { signOut } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import React, { useRef, useState } from "react";
@@ -77,23 +76,17 @@ type FormValues = {
 };
 
 const ProfileView = () => {
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
   const utils = trpc.useContext();
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
   const { data: avatar, isLoading: isLoadingAvatar } = trpc.viewer.avatar.useQuery();
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       showToast(t("settings_updated_successfully"), "success");
-      if (res.authEmailChange && tempFormValues) {
-        setLoading(true);
-        await debouncedHandleSubmitPasswordRequest({ email: tempFormValues.email });
-        if (error) {
-          showToast(error.message, "error");
-        } else {
-          showToast(t("password_reset_email", { email: tempFormValues.email }), "success");
-          // sign out the user to avoid unauthorized access error
-          signOut({ callbackUrl: "/auth/logout?changeEmail=true" });
-        }
+      if (res.signOutUser && tempFormValues) {
+        showToast(t("password_reset_email", { email: tempFormValues.email }), "success");
+        // sign out the user to avoid unauthorized access error
+        signOut({ callbackUrl: "/auth/logout?changeEmail=true" });
       }
       utils.viewer.me.invalidate();
       utils.viewer.avatar.invalidate();
@@ -105,7 +98,6 @@ const ProfileView = () => {
     },
   });
 
-  const [loading, setLoading] = useState(false);
   const [error, setError] = React.useState<{ message: string } | null>(null);
   const [confirmPasswordOpen, setConfirmPasswordOpen] = useState(false);
   const [tempFormValues, setTempFormValues] = useState<FormValues | null>(null);
@@ -117,31 +109,6 @@ const ProfileView = () => {
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
   const form = useForm<DeleteAccountValues>();
-
-  const submitResetPasswordRequest = async ({ email }: { email: string }) => {
-    try {
-      const res = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        body: JSON.stringify({ email: email, language: i18n.language }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const json = await res.json();
-      if (!res.ok) {
-        setError(json);
-      }
-
-      return json;
-    } catch (reason) {
-      setError({ message: t("unexpected_error_try_again") });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const debouncedHandleSubmitPasswordRequest = debounce(submitResetPasswordRequest, 250);
 
   const onDeleteMeSuccessMutation = async () => {
     await utils.viewer.me.invalidate();

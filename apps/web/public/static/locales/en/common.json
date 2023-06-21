@@ -77,6 +77,7 @@
   "event_awaiting_approval_recurring": "A recurring event is waiting for your approval",
   "someone_requested_an_event": "Someone has requested to schedule an event on your calendar.",
   "someone_requested_password_reset": "Someone has requested a link to change your password.",
+  "password_reset_email_sent": "If the email is registered, a password reset link has been sent.",
   "password_reset_instructions": "If you didn't request this, you can safely ignore this email and your password will not be changed.",
   "event_awaiting_approval_subject": "Awaiting Approval: {{title}} at {{date}}",
   "event_still_awaiting_approval": "An event is still waiting for your approval",
