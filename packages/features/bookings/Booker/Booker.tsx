@@ -4,6 +4,7 @@ import { useEffect, useRef, useMemo } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
+import { useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
@@ -103,6 +104,9 @@ const BookerComponent = ({
     }
   }, [layout]);
 
+  const embedUiConfig = useEmbedUiConfig();
+  const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
+
   if (event.isSuccess && !event.data) {
     return <NotFound />;
   }
@@ -114,7 +118,7 @@ const BookerComponent = ({
           ref={animationScope}
           className={classNames(
             // Sets booker size css variables for the size of all the columns.
-            ...getBookerSizeClassNames(layout, bookerState),
+            ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
             "bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
             layout === BookerLayouts.MONTH_VIEW && "border-subtle rounded-md border",
             !isEmbed && "sm:transition-[width] sm:duration-300",
