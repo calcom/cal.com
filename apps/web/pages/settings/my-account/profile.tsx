@@ -338,7 +338,7 @@ const ProfileView = () => {
           <DialogFooter>
             <Button
               color="primary"
-              disabled={updateProfileMutation.isLoading || loading}
+              disabled={updateProfileMutation.isLoading}
               onClick={(e) => onConfirmAuthEmailChange(e)}>
               {t("confirm")}
             </Button>
