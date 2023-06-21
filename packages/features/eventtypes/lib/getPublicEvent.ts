@@ -7,7 +7,7 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { PrismaClient } from "@calcom/prisma/client";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
@@ -84,7 +84,7 @@ export const getPublicEvent = async (
   isTeamEvent: boolean | undefined,
   prisma: PrismaClient
 ) => {
-  const usernameList = username.split("+");
+  const usernameList = getUsernameList(username);
 
   // In case of dynamic group event, we fetch user's data and use the default event.
   if (usernameList.length > 1) {
