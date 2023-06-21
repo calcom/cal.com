@@ -33,18 +33,14 @@ const PeopleFilter = () => {
 
   const members = trpc.viewer.teams.listMembers.useQuery({});
 
-  if (!members.data) return null;
-
-  const isNotEmpty = members.data.length > 0;
-
-  const filteredMembers = members.data.filter((member) =>
+  const filteredMembers = members?.data?.filter((member) =>
     searchText.trim() !== ""
       ? member?.name?.toLowerCase()?.includes(searchText.toLowerCase()) ||
         member?.username?.toLowerCase()?.includes(searchText.toLowerCase())
       : true
   );
 
-  return members.status === "success" && isNotEmpty ? (
+  return (
     <AnimatedPopover text={t("people")}>
       <FilterSearchField onChange={(e) => setSearchText(e.target.value)} placeholder={t("search")} />
       <FilterCheckboxFieldsContainer>
@@ -72,7 +68,7 @@ const PeopleFilter = () => {
         ))}
       </FilterCheckboxFieldsContainer>
     </AnimatedPopover>
-  ) : null;
+  );
 };
 
 const LocationFilter = () => {
@@ -142,37 +138,36 @@ export function FiltersContainer() {
 
   return (
     <div className="flex w-full space-x-2 rtl:space-x-reverse">
-      <Dropdown>
-        <DropdownMenuTrigger asChild>
-          <div className="hover:border-emphasis border-default text-default hover:text-emphasis mb-4 flex h-9 max-h-72 items-center justify-between whitespace-nowrap rounded-md border px-3 py-2 text-sm hover:cursor-pointer focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1">
-            <Plus className="mr-2 h-4 w-4" />
-            <Tooltip content={t("add_filter")}>
-              <div>{t("add_filter")}</div>
-            </Tooltip>
-          </div>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56">
-          {addFilterOptions?.map((option) => (
-            <DropdownMenuItem key={option.label}>
-              <DropdownItem
-                type="button"
-                StartIcon={option.StartIcon}
-                onClick={() => {
-                  toggleOption(option);
-                }}>
-                {t(option.label)}
-              </DropdownItem>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </Dropdown>
+      {addFilterOptions.length > 0 && (
+        <Dropdown>
+          <DropdownMenuTrigger asChild>
+            <div className="hover:border-emphasis border-default text-default hover:text-emphasis mb-4 flex h-9 max-h-72 items-center justify-between whitespace-nowrap rounded-md border px-3 py-2 text-sm hover:cursor-pointer focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1">
+              <Plus className="mr-2 h-4 w-4" />
+              <Tooltip content={t("add_filter")}>
+                <div>{t("add_filter")}</div>
+              </Tooltip>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56">
+            {addFilterOptions?.map((option) => (
+              <DropdownMenuItem key={option.label}>
+                <DropdownItem
+                  type="button"
+                  StartIcon={option.StartIcon}
+                  onClick={() => {
+                    toggleOption(option);
+                  }}>
+                  {t(option.label)}
+                </DropdownItem>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </Dropdown>
+      )}
 
-      {/* {isPeopleFilterActive && <PeopleFilter />}
-      {isEventTypeFilterActive && <EventTypeFilter />} */}
-      {/* {isLocationFilterActive && <LocationFilter />} */}
-      <PeopleFilter />
-      <EventTypeFilter />
-      <LocationFilter />
+      {isPeopleFilterActive && <PeopleFilter />}
+      {isEventTypeFilterActive && <EventTypeFilter />}
+      {isLocationFilterActive && <LocationFilter />}
 
       <TeamsFilter />
     </div>

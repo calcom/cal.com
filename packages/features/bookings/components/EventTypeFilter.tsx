@@ -64,7 +64,7 @@ export const EventTypeFilter = () => {
                 {teamName === "user_own_event_types" ? t("individual") : teamName}
               </div>
               {groupedEventTypes[teamName].map((eventType) => (
-                <div key={eventType.id} className="item-center flex px-4 py-1.5">
+                <div key={eventType.id} className="flex items-center px-4 py-1.5">
                   <Checkbox
                     checked={query.eventTypeIds?.includes(eventType.id)}
                     onChange={(e) => {

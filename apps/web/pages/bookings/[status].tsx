@@ -51,7 +51,6 @@ export default function Bookings() {
   const router = useRouter();
   const { status } = router.isReady ? querySchema.parse(router.query) : { status: "upcoming" as const };
   const { t } = useLocale();
-  console.log("FFA", filterQuery);
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
