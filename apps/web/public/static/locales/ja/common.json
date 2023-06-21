@@ -1408,7 +1408,6 @@
   "team_url_required": "チームの URL の入力は必須です",
   "team_url_taken": "この URL は既に使用されています",
   "team_publish": "チームを公開",
-  "number_sms_notifications": "電話番号（SMS 通知）",
   "attendee_email_variable": "出席者のメールアドレス",
   "attendee_email_info": "予約者のメールアドレス",
   "kbar_search_placeholder": "コマンドを入力するか、検索してください...",

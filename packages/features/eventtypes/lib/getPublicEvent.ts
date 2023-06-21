@@ -76,7 +76,12 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   hidden: true,
 });
 
-export const getPublicEvent = async (username: string, eventSlug: string, prisma: PrismaClient) => {
+export const getPublicEvent = async (
+  username: string,
+  eventSlug: string,
+  isTeamEvent: boolean | undefined,
+  prisma: PrismaClient
+) => {
   const usernameList = username.split("+");
 
   // In case of dynamic group event, we fetch user's data and use the default event.
@@ -141,24 +146,26 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
     };
   }
 
+  const usersOrTeamQuery = isTeamEvent
+    ? {
+        team: {
+          slug: username,
+        },
+      }
+    : {
+        users: {
+          some: {
+            username,
+          },
+        },
+        team: null,
+      };
+
   // In case it's not a group event, it's either a single user or a team, and we query that data.
   const event = await prisma.eventType.findFirst({
     where: {
       slug: eventSlug,
-      OR: [
-        {
-          users: {
-            some: {
-              username,
-            },
-          },
-        },
-        {
-          team: {
-            slug: username,
-          },
-        },
-      ],
+      ...usersOrTeamQuery,
     },
     select: publicEventSelect,
   });
