@@ -140,6 +140,10 @@ describe('next.config.js - RegExp', ()=>{
 
     expect(userTypeRouteRegExp.exec('/teams')).toEqual(null)
     expect(teamTypeRouteRegExp.exec('/teams')).toEqual(null)
+
+    // Note that even though it matches /embed/embed.js, but it's served from /public and the regexes are in afterEach, it won't hit the flow.
+    // expect(userTypeRouteRegExp.exec('/embed/embed.js')).toEqual(null)
+    // expect(teamTypeRouteRegExp.exec('/embed/embed.js')).toEqual(null)
   })
 })
 
