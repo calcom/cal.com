@@ -156,6 +156,13 @@ const paramsSchema = z.object({ type: z.string(), user: z.string() });
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { user } = paramsSchema.parse(context.params);
   const isDynamicGroup = getUsernameList(user).length > 1;
+  console.log(
+    "DynamicGroupLog",
+    JSON.stringify({
+      user,
+      isDynamicGroup,
+    })
+  );
 
   return isDynamicGroup ? await getDynamicGroupPageProps(context) : await getUserPageProps(context);
 };
