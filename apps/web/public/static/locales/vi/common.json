@@ -1408,7 +1408,6 @@
   "team_url_required": "Cần phải nhập một URL của nhóm",
   "team_url_taken": "URL này đã có người lấy rồi",
   "team_publish": "Đăng nhóm",
-  "number_sms_notifications": "Số điện thoại (thông báo SMS)",
   "attendee_email_variable": "Email người tham dự",
   "attendee_email_info": "Email người tham gia lịch hẹn",
   "kbar_search_placeholder": "Nhập một lệnh hoặc tìm kiếm...",

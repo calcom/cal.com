@@ -1435,7 +1435,6 @@
   "team_url_required": "Morate da unesete URL tima",
   "team_url_taken": "Ovaj URL je zauzet",
   "team_publish": "Objavite tim",
-  "number_sms_notifications": "Broj telefona (obaveštenja putem SMS-a)",
   "attendee_email_variable": "Imejl polaznika",
   "attendee_email_info": "Imejl osobe koja rezerviše",
   "kbar_search_placeholder": "Unesite komandu ili pretražite...",
