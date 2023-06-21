@@ -280,8 +280,10 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       await page.goto("/auth/logout");
     },
     getPaymentCredential: async () => getPaymentCredential(store.page),
-    setupEventWithPrice: async (eventType: Pick<Prisma.EventType, "id">) => setupEventWithPrice(eventType, store.page),
-    bookAndPaidEvent: async (eventType: Pick<Prisma.EventType, "slug">) => bookAndPaidEvent(user, eventType, store.page),
+    setupEventWithPrice: async (eventType: Pick<Prisma.EventType, "id">) =>
+      setupEventWithPrice(eventType, store.page),
+    bookAndPaidEvent: async (eventType: Pick<Prisma.EventType, "slug">) =>
+      bookAndPaidEvent(user, eventType, store.page),
     // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
     debug: async (message: string | Record<string, JSONValue>) => {
       await prisma.user.update({
@@ -318,15 +320,15 @@ const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): Prism
     schedules:
       opts?.completedOnboarding ?? true
         ? {
-          create: {
-            name: "Working Hours",
-            availability: {
-              createMany: {
-                data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
+            create: {
+              name: "Working Hours",
+              availability: {
+                createMany: {
+                  data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
+                },
               },
             },
-          },
-        }
+          }
         : undefined,
   };
 };
@@ -382,7 +384,11 @@ export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id"
   await page.getByTestId("update-eventtype").click();
 }
 
-export async function bookAndPaidEvent(user: Pick<Prisma.User, "username">, eventType: Pick<Prisma.EventType, "slug">, page: Page) {
+export async function bookAndPaidEvent(
+  user: Pick<Prisma.User, "username">,
+  eventType: Pick<Prisma.EventType, "slug">,
+  page: Page
+) {
   // booking process with stripe integration
   await page.goto(`${user.username}/${eventType?.slug}`);
   await selectFirstAvailableTimeSlotNextMonth(page);
@@ -390,10 +396,7 @@ export async function bookAndPaidEvent(user: Pick<Prisma.User, "username">, even
   await page.fill('[name="name"]', "Stripe Stripeson");
   await page.fill('[name="email"]', "test@example.com");
 
-  await Promise.all([
-    page.waitForURL("/payment/*"),
-    page.press('[name="email"]', "Enter")
-  ]);
+  await Promise.all([page.waitForURL("/payment/*"), page.press('[name="email"]', "Enter")]);
 
   const stripeFrame = page.frameLocator("iframe").first();
   await stripeFrame.locator('[name="number"]').fill("4242 4242 4242 4242");

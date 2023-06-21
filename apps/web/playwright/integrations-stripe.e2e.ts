@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
+
 import { test } from "./lib/fixtures";
 import { todo, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
@@ -43,11 +44,9 @@ test.describe("Stripe integration", () => {
     await user.bookAndPaidEvent(eventType);
     // success
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-
   });
 
   test("Pending payment booking should not be confirmed by default", async ({ page, users }) => {
-
     const user = await users.create();
     const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
     await user.apiLogin();
@@ -63,16 +62,12 @@ test.describe("Stripe integration", () => {
     await page.fill('[name="name"]', "Stripe Stripeson");
     await page.fill('[name="email"]', "test@example.com");
 
-    await Promise.all([
-      page.waitForURL("/payment/*"),
-      page.press('[name="email"]', "Enter")
-    ]);
+    await Promise.all([page.waitForURL("/payment/*"), page.press('[name="email"]', "Enter")]);
 
     await page.goto(`/bookings/upcoming`);
 
     await expect(page.getByText("Unconfirmed")).toBeVisible();
     await expect(page.getByText("Pending payment").last()).toBeVisible();
-
   });
   todo("Payment should confirm pending payment booking");
   todo("Payment should trigger a BOOKING_PAID webhook");
