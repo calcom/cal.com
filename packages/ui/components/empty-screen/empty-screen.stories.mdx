@@ -16,8 +16,8 @@ The CTA button can prompt the user to add the info/ apps needed for the page.
     name="EmptyScreen"
     args={{
       headline: 'Empty state header',
-      description: 'Do consectetur qui ex deserunt do est veniam commodo. Eiusmod eiusmod dolore nostrud pariatur mollit sit commodo. Learn More.',
-      buttonText: 'Button text',
+      description: 'Do consectetur qui ex deserunt do est veniam commodo. Eiusmod eiusmod dolore nostrud pariatur mollit sit commodo.',
+      buttonText: 'Learn More',
     }}
     argTypes={{
       headline: {
@@ -39,6 +39,7 @@ The CTA button can prompt the user to add the info/ apps needed for the page.
             headline={headline}
             description={description}
             buttonText={buttonText}
+            buttonOnClick={() => alert("Learned More!!")}
           />
         </VariantRow>
       </VariantsTable>
