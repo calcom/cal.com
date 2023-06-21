@@ -71,6 +71,8 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       name: true,
       theme: true,
       metadata: true,
+      brandColor: true,
+      darkBrandColor: true,
     },
   },
   hidden: true,
