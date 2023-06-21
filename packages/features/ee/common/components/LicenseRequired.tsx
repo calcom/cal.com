@@ -1,11 +1,12 @@
 import DOMPurify from "dompurify";
 import { useSession } from "next-auth/react";
+import { Trans } from "next-i18next";
 import type { AriaRole, ComponentType } from "react";
 import React, { Fragment } from "react";
 
 import { APP_NAME, CONSOLE_URL, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmptyScreen } from "@calcom/ui";
+import { EmptyScreen, TopBanner } from "@calcom/ui";
 import { AlertTriangle } from "@calcom/ui/components/icon";
 
 type LicenseRequiredProps = {
@@ -25,6 +26,28 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
     <Component {...rest}>
       {hasValidLicense === null || hasValidLicense ? (
         children
+      ) : process.env.NODE_ENV === "development" ? (
+        /** We only show a warning in development mode, but allow the feature to be displayed for development/testing purposes */
+        <>
+          <TopBanner
+            text=""
+            actions={
+              <>
+                {t("enterprise_license")}.{" "}
+                <Trans i18nKey="enterprise_license_development">
+                  You can test this feature on development mode. For production usage please have an
+                  administrator go to{" "}
+                  <a href={`${WEBAPP_URL}/auth/setup`} className="underline">
+                    /auth/setup
+                  </a>{" "}
+                  to enter a license key.
+                </Trans>
+              </>
+            }
+            variant="warning"
+          />
+          {children}
+        </>
       ) : (
         <EmptyScreen
           Icon={AlertTriangle}
