@@ -1,7 +1,7 @@
+import type { Prisma } from "@prisma/client";
+
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import type { Prisma } from ".prisma/client";
 
 export type UserAdminTeams =
   | (Prisma.TeamGetPayload<{

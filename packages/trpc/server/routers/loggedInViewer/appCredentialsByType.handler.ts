@@ -1,4 +1,4 @@
-import getUserAdminTeams from "@calcom/ee/teams/lib/getUserAdminTeams";
+import getUserAdminTeams from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
