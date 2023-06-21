@@ -1,4 +1,3 @@
-import axios from "axios";
 import { isSupportedCountry } from "libphonenumber-js";
 import { useState } from "react";
 import PhoneInput from "react-phone-input-2";
@@ -59,22 +58,15 @@ function BasePhoneInput({ name, className = "", onChange, ...rest }: PhoneInputP
 }
 
 const useDefaultCountry = () => {
-  const [defaultCountry, setDefaultCountry] = useState("");
+  const [defaultCountry, setDefaultCountry] = useState("us");
   trpc.viewer.public.countryCode.useQuery(undefined, {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: false,
-    onSuccess: async (data) => {
-      try {
-        if (isSupportedCountry(data?.countryCode)) {
-          setDefaultCountry(data.countryCode.toLowerCase());
-        } else {
-          const response = await axios.get("https://ipapi.co/json/");
-          setDefaultCountry(response.data.country.toLowerCase());
-        }
-      } catch (error) {
-        setDefaultCountry("us");
-      }
+    onSuccess: (data) => {
+      isSupportedCountry(data?.countryCode)
+        ? setDefaultCountry(data.countryCode.toLowerCase())
+        : setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
     },
   });
 
