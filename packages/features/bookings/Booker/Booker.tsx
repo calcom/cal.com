@@ -119,6 +119,8 @@ const BookerComponent = ({
         <div
           ref={animationScope}
           className={classNames(
+            // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
+            "main",
             // Sets booker size css variables for the size of all the columns.
             ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
             "bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
