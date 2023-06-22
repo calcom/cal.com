@@ -6,6 +6,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -81,6 +83,7 @@ export default function CreateEventTypeDialog({
   const { t } = useLocale();
   const router = useRouter();
   const [firstRender, setFirstRender] = useState(true);
+  const orgBranding = useOrgBrandingValues();
 
   const {
     data: { teamId, eventPage: pageSlug },
@@ -136,6 +139,9 @@ export default function CreateEventTypeDialog({
   });
 
   const flags = useFlagMap();
+  const urlPrefix = orgBranding
+    ? `${orgBranding.slug}.${subdomainSuffix()}`
+    : process.env.NEXT_PUBLIC_WEBSITE_URL;
 
   return (
     <Dialog
@@ -181,11 +187,10 @@ export default function CreateEventTypeDialog({
               }}
             />
 
-            {process.env.NEXT_PUBLIC_WEBSITE_URL !== undefined &&
-            process.env.NEXT_PUBLIC_WEBSITE_URL?.length >= 21 ? (
+            {urlPrefix && urlPrefix.length >= 21 ? (
               <div>
                 <TextField
-                  label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
+                  label={`${t("url")}: ${urlPrefix}`}
                   required
                   addOnLeading={<>/{!isManagedEventType ? pageSlug : t("username_placeholder")}/</>}
                   {...register("slug")}
@@ -205,8 +210,7 @@ export default function CreateEventTypeDialog({
                   required
                   addOnLeading={
                     <>
-                      {process.env.NEXT_PUBLIC_WEBSITE_URL}/
-                      {!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                      {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
                     </>
                   }
                   {...register("slug")}
