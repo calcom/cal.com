@@ -180,7 +180,7 @@ export const getUsernameList = (users: string | string[] | undefined): string[] 
   const allUsers = users.map((user) =>
     user
       .toLowerCase()
-      .replace(/( |%20)/g, "+")
+      .replace(/( |%20|%2b)/g, "+")
       .split("+")
   );
 

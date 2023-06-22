@@ -31,8 +31,8 @@ import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
 type MemberInvitationModalProps = {
   isOpen: boolean;
   onExit: () => void;
-  onSubmit: (values: NewMemberForm) => void;
-  onSettingsOpen: () => void;
+  onSubmit: (values: NewMemberForm, resetFields: () => void) => void;
+  onSettingsOpen?: () => void;
   teamId: number;
   members: PendingMember[];
   token?: string;
@@ -114,6 +114,12 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     }
   };
 
+  const resetFields = () => {
+    newMemberFormMethods.reset();
+    newMemberFormMethods.setValue("emailOrUsername", "");
+    setModalInputMode("INDIVIDUAL");
+  };
+
   return (
     <Dialog
       name="inviteModal"
@@ -154,7 +160,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           />
         </div>
 
-        <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values)}>
+        <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values, resetFields)}>
           <div className="mt-6 mb-10 space-y-6">
             {/* Indivdual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
@@ -273,7 +279,24 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               )}
             />
             <div className="flex">
-              <Button
+              {props.token && (
+                <Button
+                  type="button"
+                  color="minimal"
+                  className="ms-2 me-2"
+                  onClick={() => {
+                    props.onSettingsOpen && props.onSettingsOpen();
+                    newMemberFormMethods.reset();
+                  }}
+                  data-testid="edit-invite-link-button">
+                  {t("edit_invite_link")}
+                </Button>
+              )}
+            </div>
+          </div>
+          <DialogFooter showDivider>
+            <div className= "relative right-40">
+            <Button
                 type="button"
                 color="minimal"
                 variant="icon"
@@ -287,28 +310,14 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 <Link className="text-default h-4 w-4" aria-hidden="true" />
                 {t("copy_invite_link")}
               </Button>
-              {props.token && (
-                <Button
-                  type="button"
-                  color="minimal"
-                  className="ms-2 me-2"
-                  onClick={() => {
-                    props.onSettingsOpen();
-                    newMemberFormMethods.reset();
-                  }}
-                  data-testid="edit-invite-link-button">
-                  {t("edit_invite_link")}
-                </Button>
-              )}
             </div>
-          </div>
-          <DialogFooter showDivider>
+        
             <Button
               type="button"
               color="minimal"
               onClick={() => {
                 props.onExit();
-                newMemberFormMethods.reset();
+                resetFields();
               }}>
               {t("cancel")}
             </Button>

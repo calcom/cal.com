@@ -41,7 +41,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     throw new TRPCError({ code: "BAD_REQUEST", message: t(layoutError) });
   }
 
-  if (input.username) {
+  if (input.username && !user.organizationId) {
     const username = slugify(input.username);
     // Only validate if we're changing usernames
     if (username !== user.username) {
@@ -129,13 +129,13 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
   // Revalidate booking pages
-  const res = ctx.res as NextApiResponse;
+  // Disabled because the booking pages are currently not using getStaticProps
+  /*const res = ctx.res as NextApiResponse;
   if (typeof res?.revalidate !== "undefined") {
     const eventTypes = await prisma.eventType.findMany({
       where: {
         userId: user.id,
         team: null,
-        hidden: false,
       },
       select: {
         id: true,
@@ -143,9 +143,11 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       },
     });
     // waiting for this isn't needed
-    Promise.all(eventTypes.map((eventType) => res?.revalidate(`/${ctx.user.username}/${eventType.slug}`)))
+    Promise.all(
+      eventTypes.map((eventType) => res?.revalidate(`/new-booker/${ctx.user.username}/${eventType.slug}`))
+    )
       .then(() => console.info("Booking pages revalidated"))
       .catch((e) => console.error(e));
-  }
+  }*/
   return input;
 };
