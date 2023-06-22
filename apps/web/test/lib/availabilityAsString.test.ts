@@ -103,6 +103,9 @@ it("correctly produces days and times - 24 hours", async () => {
   expect(replaceUnicodeSpace(result)).toBe("Mon - Wed, 09:00 - 17:00");
 });
 
+// INFO: This is because on GitHub, the international date formatting
+// produces Unicode characters. Instead of using line for line code from the
+// availability.ts file, opted for this instead.
 function replaceUnicodeSpace(string) {
   return string.replace(/\u202f/g, ' ');
 }
