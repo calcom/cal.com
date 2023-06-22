@@ -124,7 +124,6 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                         : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
                     }
                     {...register("username")}
-                    disabled={orgSlug}
                     required
                   />
                   <EmailField
