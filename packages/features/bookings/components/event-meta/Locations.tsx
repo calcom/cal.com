@@ -9,13 +9,31 @@ import { EventMetaBlock } from "./Details";
 export const EventLocations = ({ event }: { event: PublicEvent }) => {
   const { t } = useLocale();
   const locations = event.locations;
+  console.log("location", locations);
   if (!locations?.length) return null;
+
+  const getLocationToDisplay = (location: PublicEvent["locations"][number]) => {
+    const locationType = getEventLocationType(location.type);
+    const defaultLocationLabel = t(locationType?.label ?? "");
+
+    switch (locationType?.label) {
+      case "in_person":
+        return location?.address ?? defaultLocationLabel;
+
+      case "organizer_phone_number":
+        return location?.hostPhoneNumber ?? defaultLocationLabel;
+
+      case "link_meeting":
+        return location?.link ?? defaultLocationLabel;
+
+      default:
+        return defaultLocationLabel;
+    }
+  };
 
   return (
     <EventMetaBlock icon={MapPin}>
-      {locations.length === 1 && (
-        <div key={locations[0].type}>{t(getEventLocationType(locations[0].type)?.label ?? "")}</div>
-      )}
+      {locations.length === 1 && <div key={locations[0].type}>{t(getLocationToDisplay(locations[0]))}</div>}
       {locations.length > 1 && (
         <div
           key={locations[0].type}
@@ -27,7 +45,7 @@ export const EventLocations = ({ event }: { event: PublicEvent }) => {
                 <ul className="list-disc pl-3">
                   {locations.map((location) => (
                     <li key={location.type}>
-                      <span>{t(getEventLocationType(location.type)?.label ?? "")}</span>
+                      <span>{t(getLocationToDisplay(location))}</span>
                     </li>
                   ))}
                 </ul>
