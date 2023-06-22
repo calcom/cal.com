@@ -104,5 +104,5 @@ it("correctly produces days and times - 24 hours", async () => {
 });
 
 function replaceUnicodeSpace(string) {
-  return string.replace('\u202f', ' ');
+  return string.replace(/\u202f/g, ' ');
 }
