@@ -44,7 +44,12 @@ type PreviewState = {
     height: string;
   };
   theme: Theme;
-  floatingPopup: Record<string, string | boolean | undefined>;
+  floatingPopup: {
+    config: {
+      layout: BookerLayouts;
+    };
+    [key: string]: string | boolean | undefined | Record<string, string>;
+  };
   elementClick: Record<string, string>;
   palette: {
     brandColor: string;
@@ -175,14 +180,16 @@ const Codes: Record<string, Record<string, (...args: any[]) => string>> = {
       return code`
 import Cal, { getCalApi } from "@calcom/embed-react";
 import { useEffect } from "react";
-function MyComponent() {
+export default function MyApp() {
   useEffect(()=>{
     (async function () {
       const cal = await getCalApi();
       ${uiInstructionCode}
     })();
   }, [])
-  return <Cal calLink="${calLink}" style={{width:"${width}",height:"${height}",overflow:"scroll"}} />;
+  return <Cal calLink="${calLink}" ${
+        previewState.layout ? "config={{layout: '" + previewState.layout + "'}}" : ""
+      } style={{width:"${width}",height:"${height}",overflow:"scroll"}} />;
 };`;
     },
     "floating-popup": ({
@@ -205,7 +212,15 @@ function MyComponent() {
   }, [])
 };`;
     },
-    "element-click": ({ calLink, uiInstructionCode }: { calLink: string; uiInstructionCode: string }) => {
+    "element-click": ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: PreviewState;
+    }) => {
       return code`
 import Cal, { getCalApi } from "@calcom/embed-react";
 import { useEffect } from "react";
@@ -216,15 +231,26 @@ function MyComponent() {
       ${uiInstructionCode}
     })();
   }, [])
-  return <button data-cal-link="${calLink}" />;
+  return <button data-cal-link="${calLink}" ${`data-cal-config='${JSON.stringify({
+        layout: previewState.layout,
+      })}'`}  />;
 };`;
     },
   },
   HTML: {
-    inline: ({ calLink, uiInstructionCode }: { calLink: string; uiInstructionCode: string }) => {
+    inline: ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: PreviewState;
+    }) => {
       return code`Cal("inline", {
   elementOrSelector:"#my-cal-inline",
-  calLink: "${calLink}"
+  calLink: "${calLink}",
+  layout: "${previewState.layout}"
 });
 
 ${uiInstructionCode}`;
@@ -240,8 +266,22 @@ ${uiInstructionCode}`;
       return code`Cal("floatingButton", ${floatingButtonArg});
 ${uiInstructionCode}`;
     },
-    "element-click": ({ calLink, uiInstructionCode }: { calLink: string; uiInstructionCode: string }) => {
-      return code`// Important: Make sure to add \`data-cal-link="${calLink}"\` attribute to the element you want to open Cal on click
+    "element-click": ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: PreviewState;
+    }) => {
+      return code`
+// Important: Please add following attributes to the element you want to open Cal on click
+// \`data-cal-link="${calLink}"\` 
+// \`data-cal-config='${JSON.stringify({
+        layout: previewState.layout,
+      })}'\` 
+
 ${uiInstructionCode}`;
     },
   },
@@ -710,13 +750,13 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       height: "100%",
     },
     theme: Theme.auto,
+    layout: BookerLayouts.MONTH_VIEW,
     floatingPopup: {},
     elementClick: {},
     hideEventTypeDetails: false,
     palette: {
       brandColor: "#000000",
     },
-    layout: BookerLayouts.MONTH_VIEW,
   });
 
   const close = () => {
@@ -778,8 +818,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     name: "ui",
     arg: {
       theme: previewState.theme,
-      hideEventTypeDetails: previewState.hideEventTypeDetails,
       layout: previewState.layout,
+      hideEventTypeDetails: previewState.hideEventTypeDetails,
       styles: {
         branding: {
           ...previewState.palette,
@@ -1102,8 +1142,15 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                               return;
                             }
                             setPreviewState((previewState) => {
+                              const config = {
+                                ...previewState.floatingPopup.config,
+                                layout: option.value,
+                              };
                               return {
                                 ...previewState,
+                                floatingPopup: {
+                                  config,
+                                },
                                 layout: option.value,
                               };
                             });
