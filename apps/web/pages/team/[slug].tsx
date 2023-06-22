@@ -29,6 +29,7 @@ import Team from "@components/team/screens/Team";
 import { ssrInit } from "@server/lib/ssr";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
+
 function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }: TeamPageProps) {
   useTheme(team.theme);
   const showMembers = useToggleQuery("members");

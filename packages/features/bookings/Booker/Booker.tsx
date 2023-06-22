@@ -4,6 +4,7 @@ import { useEffect, useRef, useMemo } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
+import { useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
@@ -35,6 +36,7 @@ const BookerComponent = ({
   month,
   rescheduleBooking,
   hideBranding = false,
+  isTeamEvent,
 }: BookerProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
@@ -80,6 +82,7 @@ const BookerComponent = ({
     rescheduleUid,
     rescheduleBooking,
     layout: defaultLayout,
+    isTeamEvent,
   });
 
   useEffect(() => {
@@ -103,18 +106,27 @@ const BookerComponent = ({
     }
   }, [layout]);
 
+  const embedUiConfig = useEmbedUiConfig();
+  const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
+
   if (event.isSuccess && !event.data) {
     return <NotFound />;
   }
 
   return (
     <>
-      <div className="text-default flex min-h-full w-full flex-col items-center overflow-clip">
+      <div
+        className={classNames(
+          "text-default flex min-h-full w-full flex-col items-center",
+          layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip"
+        )}>
         <div
           ref={animationScope}
           className={classNames(
+            // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
+            "main",
             // Sets booker size css variables for the size of all the columns.
-            ...getBookerSizeClassNames(layout, bookerState),
+            ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
             "bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
             layout === BookerLayouts.MONTH_VIEW && "border-subtle rounded-md border",
             !isEmbed && "sm:transition-[width] sm:duration-300",
@@ -210,7 +222,7 @@ const BookerComponent = ({
         <m.span
           key="logo"
           className={classNames(
-            "mt-auto mb-6 pt-6 [&_img]:h-[15px]",
+            "relative -z-50 mt-auto mb-6 pt-6 [&_img]:h-[15px]",
             layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
           )}>
           {!hideBranding ? <PoweredBy logoOnly /> : null}

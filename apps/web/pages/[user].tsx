@@ -37,7 +37,8 @@ import PageWrapper from "@components/PageWrapper";
 
 import { ssrInit } from "@server/lib/ssr";
 
-export default function User(props: inferSSRProps<typeof getServerSideProps> & EmbedProps) {
+export type UserPageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
+export function UserPage(props: UserPageProps) {
   const {
     users,
     profile,
@@ -102,6 +103,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const query = { ...router.query };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
+  delete query.orgSlug;
   const nameOrUsername = user.name || user.username || "";
 
   /*
@@ -207,8 +209,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   );
 }
 
-User.isBookingPage = true;
-User.PageWrapper = PageWrapper;
+UserPage.isBookingPage = true;
+UserPage.PageWrapper = PageWrapper;
 
 const getEventTypesWithHiddenFromDB = async (userId: number) => {
   return (
@@ -360,6 +362,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
   const markdownStrippedBio = stripMarkdown(user?.bio || "");
+
   return {
     props: {
       users,
@@ -385,3 +388,5 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   };
 };
+
+export default UserPage;
