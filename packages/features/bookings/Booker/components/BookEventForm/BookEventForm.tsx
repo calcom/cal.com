@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import { useMemo, useRef } from "react";
 import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
-import type { TFunction } from "react-i18next";
+import type { TFunction } from "next-i18next";
 import { z } from "zod";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
