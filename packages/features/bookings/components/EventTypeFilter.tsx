@@ -51,13 +51,21 @@ export const EventTypeFilter = () => {
   });
 
   if (!eventTypes.data) return null;
+  const isEmpty = eventTypes.data.length === 0;
 
-  const isNotEmpty = eventTypes.data.length > 0;
+  const getTextForPopover = () => {
+    const eventTypeIds = query.eventTypeIds;
+    if (eventTypeIds) {
+      return `${t("event_type")}:  ${t("number_selected", { count: eventTypeIds.length })}`;
+    }
+    return `${t("event_type")}: ${t("all")}`;
+  };
 
-  return eventTypes.status === "success" && isNotEmpty ? (
-    <AnimatedPopover text={t("event_type")} defaultOpen={true}>
-      <div className="">
+  return (
+    <AnimatedPopover text={getTextForPopover()}>
+      <div>
         {groupedEventTypes &&
+          !isEmpty &&
           Object.keys(groupedEventTypes).map((teamName) => (
             <Fragment key={teamName}>
               <div className="text-subtle px-4 py-2 text-xs font-medium uppercase leading-none">
@@ -80,7 +88,10 @@ export const EventTypeFilter = () => {
               ))}
             </Fragment>
           ))}
+        {isEmpty && (
+          <h2 className="text-default px-4 py-2 text-sm font-medium">{t("no_options_available")}</h2>
+        )}
       </div>
     </AnimatedPopover>
-  ) : null;
+  );
 };

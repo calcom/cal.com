@@ -33,22 +33,32 @@ const PeopleFilter = () => {
 
   const members = trpc.viewer.teams.listMembers.useQuery({});
 
-  const filteredMembers = members?.data?.filter((member) =>
-    searchText.trim() !== ""
-      ? member?.name?.toLowerCase()?.includes(searchText.toLowerCase()) ||
-        member?.username?.toLowerCase()?.includes(searchText.toLowerCase())
-      : true
-  );
+  const filteredMembers = members?.data
+    ?.filter((member) => member.accepted)
+    ?.filter((member) =>
+      searchText.trim() !== ""
+        ? member?.name?.toLowerCase()?.includes(searchText.toLowerCase()) ||
+          member?.username?.toLowerCase()?.includes(searchText.toLowerCase())
+        : true
+    );
+
+  const getTextForPopover = () => {
+    const userIds = query.userIds;
+    if (userIds) {
+      return `${t("people")}:  ${t("number_selected", { count: userIds.length })}`;
+    }
+    return `${t("people")}: ${t("all")}`;
+  };
 
   return (
-    <AnimatedPopover text={t("people")}>
+    <AnimatedPopover text={getTextForPopover()}>
       <FilterSearchField onChange={(e) => setSearchText(e.target.value)} placeholder={t("search")} />
       <FilterCheckboxFieldsContainer>
         {filteredMembers?.map((member) => (
           <FilterCheckboxField
             key={member.id}
             id={member.id.toString()}
-            label={member?.name ?? "No Name"}
+            label={member?.name ?? member.username ?? "No Name"}
             checked={!!query.userIds?.includes(member.id)}
             onChange={(e) => {
               if (e.target.checked) {
@@ -66,6 +76,9 @@ const PeopleFilter = () => {
             }
           />
         ))}
+        {filteredMembers?.length === 0 && (
+          <h2 className="text-default px-4 py-2 text-sm font-medium">{t("no_options_available")}</h2>
+        )}
       </FilterCheckboxFieldsContainer>
     </AnimatedPopover>
   );
@@ -77,8 +90,16 @@ const LocationFilter = () => {
 
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeByKey } = useFilterQuery();
 
+  const getTextForPopover = () => {
+    const locationValues = query.locationValues;
+    if (locationValues) {
+      return `${t("location")}:  ${t("number_selected", { count: locationValues.length })}`;
+    }
+    return `${t("location")}: ${t("all")}`;
+  };
+
   return (
-    <AnimatedPopover text={t("location")}>
+    <AnimatedPopover text={getTextForPopover()}>
       <FilterCheckboxFieldsContainer>
         {locations?.data?.map((location) => {
           return (
