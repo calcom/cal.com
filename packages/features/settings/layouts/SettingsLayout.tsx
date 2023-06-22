@@ -100,14 +100,6 @@ const tabs: VerticalTabItemProps[] = [
         name: "billing",
         href: "/settings/organizations/billing",
       },
-      {
-        name: "saml_config",
-        href: "/settings/organizations/sso",
-      },
-      {
-        name: "developer",
-        href: "/settings/organizations/developer",
-      },
     ],
   },
   {
@@ -302,7 +294,7 @@ const SettingsSidebarContainer = ({
                               }),
                             ])
                           }>
-                          <CollapsibleTrigger>
+                          <CollapsibleTrigger asChild>
                             <div
                               className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-3 py-[10px]  text-left text-sm font-medium leading-none"
                               onClick={() =>

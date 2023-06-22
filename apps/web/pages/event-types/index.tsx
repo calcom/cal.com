@@ -420,7 +420,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           truncateAfter={4}
                           items={type.children
                             .flatMap((ch) => ch.users)
-                            .map((user: User) => ({
+                            .map((user: Pick<User, "name" | "username">) => ({
                               alt: user.name || "",
                               image: `${WEBAPP_URL}/${user.username}/avatar.png`,
                               title: user.name || "",
@@ -861,7 +861,7 @@ const EventTypesPage = () => {
   const filters = getTeamsFiltersFromQuery(router.query);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer as any, { filters });
+  const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer as any, filters && { filters });
 
   return (
     <div>
