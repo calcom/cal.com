@@ -1,4 +1,4 @@
-import { getEventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui";
 import { MapPin } from "@calcom/ui/components/icon";
@@ -13,27 +13,21 @@ export const EventLocations = ({ event }: { event: PublicEvent }) => {
   if (!locations?.length) return null;
 
   const getLocationToDisplay = (location: PublicEvent["locations"][number]) => {
-    const locationType = getEventLocationType(location.type);
-    const defaultLocationLabel = t(locationType?.label ?? "");
+    const eventLocationType = getEventLocationType(location.type);
+    const translatedLocation = getTranslatedLocation(location, eventLocationType, t);
 
-    switch (locationType?.label) {
-      case "in_person":
-        return location?.address ?? defaultLocationLabel;
-
-      case "organizer_phone_number":
-        return location?.hostPhoneNumber ?? defaultLocationLabel;
-
-      case "link_meeting":
-        return location?.link ?? defaultLocationLabel;
-
-      default:
-        return defaultLocationLabel;
-    }
+    return translatedLocation;
   };
 
   return (
     <EventMetaBlock icon={MapPin}>
-      {locations.length === 1 && <div key={locations[0].type}>{t(getLocationToDisplay(locations[0]))}</div>}
+      {locations.length === 1 && (
+        <Tooltip content={getLocationToDisplay(locations[0])}>
+          <div className="" key={locations[0].type}>
+            {getLocationToDisplay(locations[0])}
+          </div>
+        </Tooltip>
+      )}
       {locations.length > 1 && (
         <div
           key={locations[0].type}
@@ -45,7 +39,7 @@ export const EventLocations = ({ event }: { event: PublicEvent }) => {
                 <ul className="list-disc pl-3">
                   {locations.map((location) => (
                     <li key={location.type}>
-                      <span>{t(getLocationToDisplay(location))}</span>
+                      <span>{getLocationToDisplay(location)}</span>
                     </li>
                   ))}
                 </ul>
