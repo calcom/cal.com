@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
 
 type UseScheduleWithCacheArgs = {
@@ -22,13 +23,12 @@ export const useSchedule = ({
 }: UseScheduleWithCacheArgs) => {
   const monthDayjs = month ? dayjs(month) : dayjs();
   const nextMonthDayjs = monthDayjs.add(1, "month");
-
   // Why the non-null assertions? All of these arguments are checked in the enabled condition,
   // and the query will not run if they are null. However, the check in `enabled` does
   // no satisfy typscript.
   return trpc.viewer.public.slots.getSchedule.useQuery(
     {
-      usernameList: username && username.indexOf("+") > -1 ? username.split("+") : [username!],
+      usernameList: getUsernameList(username ?? ""),
       eventTypeSlug: eventSlug!,
       // @TODO: Old code fetched 2 days ago if we were fetching the current month.
       // Do we want / need to keep that behavior?
