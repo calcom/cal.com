@@ -74,6 +74,8 @@ export const createHandler = async ({ input }: CreateOptions) => {
     .digest("hex");
   const hashedPassword = await hashPassword(password);
 
+  const emailDomain = adminEmail.split("@")[1];
+
   if (check === false) {
     const createOwnerOrg = await prisma.user.create({
       data: {
@@ -88,6 +90,8 @@ export const createHandler = async ({ input }: CreateOptions) => {
             metadata: {
               ...(IS_TEAM_BILLING_ENABLED && { requestedSlug: slug }),
               isOrganization: true,
+              isOrganizationVerified: false,
+              orgAutoAcceptEmail: emailDomain,
             },
           },
         },
