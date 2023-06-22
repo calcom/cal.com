@@ -64,9 +64,9 @@ const useDefaultCountry = () => {
     refetchOnReconnect: false,
     retry: false,
     onSuccess: (data) => {
-      if (isSupportedCountry(data?.countryCode)) {
-        setDefaultCountry(data.countryCode.toLowerCase());
-      }
+      isSupportedCountry(data?.countryCode)
+        ? setDefaultCountry(data.countryCode.toLowerCase())
+        : setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
     },
   });
 
