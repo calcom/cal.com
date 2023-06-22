@@ -19,7 +19,7 @@ it("correctly handles 1 day", async () => {
     hour12: true
   });
 
-  expect(result).toBe("Mon, 9:00 AM - 5:00 PM");
+  expect(result.toString()).toBe("Mon, 9:00 AM - 5:00 PM");
 });
 
 it("correctly handles all days", async () => {
@@ -39,7 +39,7 @@ it("correctly handles all days", async () => {
     hour12: true
   });
 
-  expect(result).toBe("Mon - Sun, 9:00 AM - 5:00 PM");
+  expect(result.toString()).toBe("Mon - Sun, 9:00 AM - 5:00 PM");
 });
 
 it("correctly handles staggered days", async () => {
@@ -59,7 +59,7 @@ it("correctly handles staggered days", async () => {
     hour12: true
   });
 
-  expect(result).toBe("Mon, Wed, Fri, Sun, 9:00 AM - 5:00 PM");
+  expect(result.toString()).toBe("Mon, Wed, Fri, Sun, 9:00 AM - 5:00 PM");
 });
 
 it("correctly produces days and times - 12 hours", async () => {
@@ -79,7 +79,7 @@ it("correctly produces days and times - 12 hours", async () => {
     hour12: true
   });
 
-  expect(result).toBe("Mon - Wed, 9:00 AM - 5:00 PM");
+  expect(result.toString()).toBe("Mon - Wed, 9:00 AM - 5:00 PM");
 });
 
 it("correctly produces days and times - 24 hours", async () => {
@@ -99,5 +99,5 @@ it("correctly produces days and times - 24 hours", async () => {
     hour12: false
   });
 
-  expect(result).toBe("Mon - Wed, 09:00 - 17:00");
+  expect(result.toString()).toBe("Mon - Wed, 09:00 - 17:00");
 });
