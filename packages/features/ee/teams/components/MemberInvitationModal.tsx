@@ -295,39 +295,39 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             </div>
           </div>
           <DialogFooter showDivider>
-            <div className= "relative right-40">
-            <Button
-                type="button"
-                color="minimal"
-                variant="icon"
-                onClick={() =>
-                  props.token
-                    ? copyInviteLinkToClipboard(props.token)
-                    : createInviteMutation.mutate({ teamId: props.teamId })
-                }
-                className={classNames("gap-2", props.token && "opacity-50")}
-                data-testid="copy-invite-link-button">
-                <Link className="text-default h-4 w-4" aria-hidden="true" />
-                {t("copy_invite_link")}
-              </Button>
+            <div className="flex w-full flex-col items-end gap-2 md:flex-row md:items-center md:justify-between">
+              <div>
+                <Button
+                  type="button"
+                  color="minimal"
+                  variant="icon"
+                  onClick={() =>
+                    props.token
+                      ? copyInviteLinkToClipboard(props.token)
+                      : createInviteMutation.mutate({ teamId: props.teamId })
+                  }
+                  className={classNames("gap-2", props.token && "opacity-50")}
+                  data-testid="copy-invite-link-button">
+                  <Link className="text-default h-4 w-4" aria-hidden="true" />
+                  {t("copy_invite_link")}
+                </Button>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  color="minimal"
+                  onClick={() => {
+                    props.onExit();
+                    resetFields();
+                  }}>
+                  {t("cancel")}
+                </Button>
+                <Button type="submit" color="primary" data-testid="invite-new-member-button">
+                  {t("send_invite")}
+                </Button>
+              </div>
             </div>
-        
-            <Button
-              type="button"
-              color="minimal"
-              onClick={() => {
-                props.onExit();
-                resetFields();
-              }}>
-              {t("cancel")}
-            </Button>
-            <Button
-              type="submit"
-              color="primary"
-              className="ms-2 me-2"
-              data-testid="invite-new-member-button">
-              {t("send_invite")}
-            </Button>
           </DialogFooter>
         </Form>
       </DialogContent>
