@@ -9,7 +9,7 @@ import { EventMetaBlock } from "./Details";
 export const EventLocations = ({ event }: { event: PublicEvent }) => {
   const { t } = useLocale();
   const locations = event.locations;
-  console.log("location", locations);
+
   if (!locations?.length) return null;
 
   const getLocationToDisplay = (location: PublicEvent["locations"][number]) => {
