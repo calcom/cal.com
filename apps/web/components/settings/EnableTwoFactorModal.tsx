@@ -1,6 +1,5 @@
 import type { BaseSyntheticEvent } from "react";
-import { useEffect } from "react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
