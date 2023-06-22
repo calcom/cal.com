@@ -7,7 +7,6 @@ import * as path from "path";
 dotEnv.config({ path: ".env" });
 
 const outputDir = path.join(__dirname, "test-results");
-
 // Dev Server on local can be slow to start up and process requests. So, keep timeouts really high on local, so that tests run reliably locally
 
 // So, if not in CI, keep the timers high, if the test is stuck somewhere and there is unnecessary wait developer can see in browser that it's stuck
@@ -22,7 +21,6 @@ const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
 
 const IS_EMBED_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/embed-core"));
 const IS_EMBED_REACT_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/embed-react"));
-
 const webServer: PlaywrightTestConfig["webServer"] = [
   {
     command:
