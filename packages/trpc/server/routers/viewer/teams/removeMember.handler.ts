@@ -4,7 +4,6 @@ import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { closeComDeleteTeamMembership } from "@calcom/lib/sync/SyncServiceManager";
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -32,7 +31,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
       message: "You can not remove yourself from a team you own.",
     });
 
-  const membership = await prisma.membership.delete({
+  const membership = await ctx.prisma.membership.delete({
     where: {
       userId_teamId: { userId: input.memberId, teamId: input.teamId },
     },
@@ -41,9 +40,19 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
     },
   });
 
+  // remove user as host from team events associated with this membership
+  await ctx.prisma.host.deleteMany({
+    where: {
+      userId: input.memberId,
+      eventType: {
+        teamId: input.teamId,
+      },
+    },
+  });
+
   if (input.isOrg) {
     // Deleting membership from all child teams
-    await prisma.membership.deleteMany({
+    await ctx.prisma.membership.deleteMany({
       where: {
         team: {
           parentId: input.teamId,
@@ -52,7 +61,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
       },
     });
 
-    await prisma.user.update({
+    await ctx.prisma.user.update({
       where: { id: membership.userId },
       data: { organizationId: null },
     });

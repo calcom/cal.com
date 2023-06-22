@@ -295,7 +295,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             </div>
           </div>
           <DialogFooter showDivider>
-            <div className= "relative right-40">
+            <div className= "relative mr-auto">
             <Button
                 type="button"
                 color="minimal"
