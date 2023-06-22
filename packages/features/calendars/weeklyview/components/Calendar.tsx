@@ -64,7 +64,7 @@ export function Calendar(props: CalendarComponentProps) {
               <CurrentTime />
               <div className="bg-default dark:bg-muted ring-muted sticky left-0 z-10 w-14 flex-none ring-1" />
               <div
-                className="grid flex-auto grid-cols-1 grid-rows-1 [--disabled-gradient-foreground:#E6E7EB] [--disabled-gradient-background:#F8F9FB] dark:[--disabled-gradient-background:#262626] dark:[--disabled-gradient-foreground:#393939]"
+                className="grid flex-auto grid-cols-1 grid-rows-1 [--disabled-gradient-background:#F8F9FB] [--disabled-gradient-foreground:#E6E7EB] dark:[--disabled-gradient-background:#262626] dark:[--disabled-gradient-foreground:#393939]"
                 style={{
                   backgroundColor: "var(--disabled-gradient-background)",
                   background:
