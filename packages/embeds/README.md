@@ -7,7 +7,7 @@ This folder contains all the various flavours of embeds.
 
 Please see the respective folder READMEs for details on them.
 
-## Publishing to NPM - Soon to be automated using changesets github action
+## Publishing to NPM. It will soon be automated using changesets github action
 To publish the packages. Following steps should be followed. All commands are to be run at the root.
 
 1. `yarn changeset` -> Creates changelog files and adds summary to changelog. Select embed packages only here.

@@ -115,10 +115,16 @@ const BookerComponent = ({
 
   return (
     <>
-      <div className="text-default flex min-h-full w-full flex-col items-center overflow-clip">
+      <div
+        className={classNames(
+          "text-default flex min-h-full w-full flex-col items-center",
+          layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip"
+        )}>
         <div
           ref={animationScope}
           className={classNames(
+            // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
+            "main",
             // Sets booker size css variables for the size of all the columns.
             ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
             "bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
@@ -216,7 +222,7 @@ const BookerComponent = ({
         <m.span
           key="logo"
           className={classNames(
-            "mt-auto mb-6 pt-6 [&_img]:h-[15px]",
+            "relative -z-50 mt-auto mb-6 pt-6 [&_img]:h-[15px]",
             layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
           )}>
           {!hideBranding ? <PoweredBy logoOnly /> : null}
