@@ -24,7 +24,7 @@ type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
 type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonStylesConfig>>;
 
 /**
- * This is in memory persistence needed so that when user browses through the embed, the configurations from the instructions aren't lost.
+ * This is in-memory persistence needed so that when user browses through the embed, the configurations from the instructions aren't lost.
  */
 const embedStore = {
   // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
