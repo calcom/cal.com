@@ -295,8 +295,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             </div>
           </div>
           <DialogFooter showDivider>
-            <div className= "relative right-40">
-            <Button
+            <div className="relative right-40">
+              <Button
                 type="button"
                 color="minimal"
                 variant="icon"
@@ -311,7 +311,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 {t("copy_invite_link")}
               </Button>
             </div>
-        
+
             <Button
               type="button"
               color="minimal"
