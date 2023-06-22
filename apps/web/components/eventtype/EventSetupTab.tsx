@@ -118,7 +118,6 @@ export const EventSetupTab = (
   const [multipleDuration, setMultipleDuration] = useState(eventType.metadata?.multipleDuration);
 
   const locationOptions = props.locationOptions.map((locationOption) => {
-    console.log(locationOption.options);
     const options = locationOption.options.filter((option) => {
       // Skip "Organizer's Default App" for non-team members
       return !team ? option.label !== t("organizer_default_conferencing_app") : true;

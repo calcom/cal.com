@@ -6,7 +6,7 @@ import type { AppCategories, Prisma } from "@calcom/prisma/client";
 
 /**
  * syncAppMeta makes sure any app metadata that has been replicated into the database
- * remains synchronised with any changes made to the app config files.
+ * remains synchronized with any changes made to the app config files.
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
@@ -32,6 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       continue;
     }
 
+    // Check for any changes in the app categories (tolerates changes in ordering)
     if (
       dbApp.categories.length !== app.categories.length ||
       !dbApp.categories.every((category) => app.categories.includes(category))
@@ -39,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       updates["categories"] = app.categories as AppCategories[];
     }
 
-    if (dbApp.dirName !== app.dirName ?? app.slug) {
+    if (dbApp.dirName !== (app.dirName ?? app.slug)) {
       updates["dirName"] = app.dirName ?? app.slug;
     }
 
