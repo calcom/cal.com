@@ -2,7 +2,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { COMPANY_NAME, IS_SELF_HOSTED } from "@calcom/lib/constants";
-import pkg from "@calcom/web/package.json";
+
+// Relative to prevent triggering a recompile
+import pkg from "../../../../apps/web/package.json";
 
 export const CalComVersion = `v.${pkg.version}-${!IS_SELF_HOSTED ? "h" : "sh"}`;
 
