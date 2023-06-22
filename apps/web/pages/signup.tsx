@@ -271,8 +271,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         email: verificationToken.identifier,
         username,
       },
-      orgSlug:
-        (orgInfo?.organization && (orgInfo?.organization.slug || userOrgMetadata?.requestedSlug)) ?? null,
+      orgSlug: (orgInfo?.organization?.slug || userOrgMetadata?.requestedSlug) ?? null,
     },
   };
 };
