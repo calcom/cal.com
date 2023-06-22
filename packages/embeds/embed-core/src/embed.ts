@@ -139,7 +139,7 @@ export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Rec
   // TODO: It should have a dedicated prefill prop
   // prefill: {},
 
-  // TODO: Move layout and theme as nested props of ui as it makes it clear that these two can be configuring using `ui` instruction as well any time.
+  // TODO: Move layout and theme as nested props of ui as it makes it clear that these two can be configured using `ui` instruction as well any time.
   // ui: {layout; theme}
   layout?: `${BookerLayouts}`;
   theme?: EmbedThemeConfig;
