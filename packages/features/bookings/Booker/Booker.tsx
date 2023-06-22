@@ -117,7 +117,7 @@ const BookerComponent = ({
     <>
       <div
         className={classNames(
-          "text-default flex min-h-full w-full flex-col items-center overflow-clip",
+          "text-default flex min-h-full w-full flex-col items-center",
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip"
         )}>
         <div
