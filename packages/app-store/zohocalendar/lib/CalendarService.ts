@@ -38,7 +38,7 @@ export default class ZohoCalendarService implements Calendar {
 
     const refreshAccessToken = async () => {
       try {
-        const appKeys = await getAppKeysFromSlug("zoho-calendar");
+        const appKeys = await getAppKeysFromSlug("zohocalendar");
         const { client_id, client_secret } = zohoKeysSchema.parse(appKeys);
 
         const params = {
@@ -95,6 +95,20 @@ export default class ZohoCalendarService implements Calendar {
       },
       ...init,
     });
+  };
+
+  private getUserInfo = async () => {
+    const credentials = await this.auth.getToken();
+
+    const response = await fetch(`https://accounts.zoho.com/oauth/user/info`, {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + credentials.access_token,
+        "Content-Type": "application/json",
+      },
+    });
+
+    return this.handleData(response, this.log);
   };
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
@@ -222,13 +236,15 @@ export default class ZohoCalendarService implements Calendar {
         }
       }
 
-      const email = selectedCalendars[0].email;
+      if (!selectedCalendars[0]) return [];
+
+      const userInfo = await this.getUserInfo();
 
       const query = stringify({
         sdate: dayjs(dateFrom).format("YYYYMMDD[T]HHmmss[Z]"),
         edate: dayjs(dateTo).format("YYYYMMDD[T]HHmmss[Z]"),
         ftype: "eventbased",
-        uemail: email,
+        uemail: userInfo.Email,
       });
 
       const response = await this.fetcher(`/calendars/freebusy?${query}`, {
@@ -237,7 +253,7 @@ export default class ZohoCalendarService implements Calendar {
 
       const data = await this.handleData(response, this.log);
 
-      if (data.fb_not_enabled) return [];
+      if (data.fb_not_enabled || data.NODATA) return [];
 
       const busyData =
         data.freebusy

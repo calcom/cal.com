@@ -19,7 +19,12 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     client_id,
     response_type: "code",
     redirect_uri: WEBAPP_URL + "/api/integrations/zohocalendar/callback",
-    scope: ["ZohoCalendar.calendar.ALL", "ZohoCalendar.event.ALL", "ZohoCalendar.freebusy.READ"],
+    scope: [
+      "ZohoCalendar.calendar.ALL",
+      "ZohoCalendar.event.ALL",
+      "ZohoCalendar.freebusy.READ",
+      "AaaServer.profile.READ",
+    ],
     access_type: "offline",
     state,
     prompt: "consent",
