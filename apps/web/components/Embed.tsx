@@ -45,7 +45,7 @@ type PreviewState = {
   };
   theme: Theme;
   floatingPopup: {
-    config: {
+    config?: {
       layout: BookerLayouts;
     };
     [key: string]: string | boolean | undefined | Record<string, string>;
@@ -1143,7 +1143,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             }
                             setPreviewState((previewState) => {
                               const config = {
-                                ...previewState.floatingPopup.config,
+                                ...(previewState.floatingPopup.config ?? {}),
                                 layout: option.value,
                               };
                               return {
