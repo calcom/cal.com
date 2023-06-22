@@ -106,6 +106,6 @@ it("correctly produces days and times - 24 hours", async () => {
 // INFO: This is because on GitHub, the international date formatting
 // produces Unicode characters. Instead of using line for line code from the
 // availability.ts file, opted for this instead.
-function replaceUnicodeSpace(string) {
+function replaceUnicodeSpace(string: string) {
   return string.replace(/\u202f/g, ' ');
 }
