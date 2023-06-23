@@ -374,7 +374,7 @@ function BookingListItem(booking: BookingItemProps) {
         </td>
         <td className={"w-full px-4" + (isRejected ? " line-through" : "")} onClick={onClickTableData}>
           {/* Time and Badges for mobile */}
-          <div className="w-full pt-4 pb-2 sm:hidden">
+          <div className="w-full pb-2 pt-4 sm:hidden">
             <div className="flex w-full items-center justify-between sm:hidden">
               <div className="text-emphasis text-sm leading-6">{startTime}</div>
               <div className="text-subtle pr-2 text-sm">
@@ -423,7 +423,7 @@ function BookingListItem(booking: BookingItemProps) {
               <span> </span>
 
               {paymentAppData.enabled && !booking.paid && booking.payment.length && (
-                <Badge className="ms-2 me-2 hidden sm:inline-flex" variant="orange">
+                <Badge className="me-2 ms-2 hidden sm:inline-flex" variant="orange">
                   {t("pending_payment")}
                 </Badge>
               )}
