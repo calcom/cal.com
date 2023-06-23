@@ -16,6 +16,7 @@ import objectKeys from "@calcom/lib/objectKeys";
 import turndown from "@calcom/lib/turndownService";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui";
 import {
   Avatar,
   Button,
@@ -148,7 +149,7 @@ const ProfileView = () => {
   return (
     <>
       <Meta title={t("profile")} description={t("profile_team_description")} />
-      {!isLoading && (
+      {!isLoading ? (
         <>
           {isAdmin ? (
             <Form
@@ -326,6 +327,40 @@ const ProfileView = () => {
             </Dialog>
           )}
         </>
+      ):(
+        <>
+          <SkeletonContainer as="form">
+            <div className="flex items-center">
+              <div className="ms-4">
+                <SkeletonContainer>
+                  <div className="bg-emphasis rounded-full w-16 h-16" />
+                </SkeletonContainer>
+              </div>
+            </div>
+            <hr className="border-subtle my-8" />
+            <SkeletonContainer>
+              <div className="mt-8">
+                <SkeletonText className="w-48 h-6" />
+              </div>
+            </SkeletonContainer>
+            <SkeletonContainer>
+              <div className="mt-8">
+                <SkeletonText className="w-48 h-6" />
+              </div>
+            </SkeletonContainer>
+            <div className="mt-8">
+              <SkeletonContainer>
+                <div className="h-24 bg-emphasis rounded-md" />
+              </SkeletonContainer>
+              <SkeletonText className="w-32 h-12 mt-4" />
+            </div>
+            <SkeletonContainer>
+              <div className="mt-8">
+                <SkeletonText className="w-24 h-9" />
+              </div>
+            </SkeletonContainer>
+        </SkeletonContainer>
+      </>
       )}
     </>
   );
