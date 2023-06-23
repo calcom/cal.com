@@ -1408,7 +1408,6 @@
   "team_url_required": "Musisz wprowadzić adres URL zespołu",
   "team_url_taken": "Ten adres URL jest już zajęty",
   "team_publish": "Opublikuj zespół",
-  "number_sms_notifications": "Numer telefonu (powiadomienia SMS)",
   "attendee_email_variable": "Adres e-mail uczestnika",
   "attendee_email_info": "Adres e-mail osoby rezerwującej",
   "kbar_search_placeholder": "Wpisz polecenie lub wyszukaj...",

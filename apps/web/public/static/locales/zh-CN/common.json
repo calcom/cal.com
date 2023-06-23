@@ -1421,7 +1421,6 @@
   "team_url_required": "必须输入团队链接",
   "team_url_taken": "此链接已被占用",
   "team_publish": "发布团队",
-  "number_sms_notifications": "电话号码(短信通知)",
   "attendee_email_variable": "参与者电子邮件",
   "attendee_email_info": "预约人的电子邮件",
   "kbar_search_placeholder": "输入命令或搜索...",

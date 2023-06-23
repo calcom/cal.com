@@ -20,20 +20,20 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
             <>
               <div className="hidden sm:flex">
                 {t("add_variable")}
-                <ChevronDown className="mt-[2px] ml-1 h-4 w-4" />
+                <ChevronDown className="ml-1 mt-[2px] h-4 w-4" />
               </div>
               <div className="block sm:hidden">+</div>
             </>
           ) : (
             <div className="flex">
               {t("add_variable")}
-              <ChevronDown className="mt-[2px] ml-1 h-4 w-4" />
+              <ChevronDown className="ml-1 mt-[2px] h-4 w-4" />
             </div>
           )}
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <div className="pt-4 pb-1">
+        <div className="pb-1 pt-4">
           <div className="text-subtle mb-2 px-4 text-left text-xs">
             {t("add_dynamic_variables").toLocaleUpperCase()}
           </div>

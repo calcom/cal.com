@@ -37,7 +37,7 @@ export default function SendgridSetup() {
   return (
     <div className="bg-emphasis flex h-screen">
       <div className="bg-default m-auto rounded p-5 md:w-[520px] md:p-10">
-        <div className="flex flex-col space-y-5 md:flex-row md:space-y-0 md:space-x-5">
+        <div className="flex flex-col space-y-5 md:flex-row md:space-x-5 md:space-y-0">
           <div>
             <img src="/api/app-store/sendgrid/logo.png" alt="Sendgrid" className="h-12 w-12 max-w-2xl" />
           </div>
