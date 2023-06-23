@@ -1,4 +1,4 @@
-import { checkRateLimitAndThrowError } from './checkRateLimitAndThrow';
+import { checkRateLimitAndThrowError } from './checkRateLimitAndThrowError';
 import { rateLimiter  } from './rateLimit';
 import type { RatelimitResponse } from './rateLimit';
 import { describe, expect, it,vi } from "vitest";
