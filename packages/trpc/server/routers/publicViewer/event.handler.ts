@@ -10,6 +10,6 @@ interface EventHandlerOptions {
 }
 
 export const eventHandler = async ({ ctx, input }: EventHandlerOptions) => {
-  const event = await getPublicEvent(input.username, input.eventSlug, ctx.prisma);
+  const event = await getPublicEvent(input.username, input.eventSlug, input.isTeamEvent, ctx.prisma);
   return event;
 };
