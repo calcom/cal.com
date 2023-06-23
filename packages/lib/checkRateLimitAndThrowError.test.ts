@@ -50,4 +50,20 @@ describe('checkRateLimitAndThrowError', () => {
       checkRateLimitAndThrowError({ rateLimitingType, identifier })
     ).resolves.not.toThrow();
   });
+  it('should notthrow even if upstash is not enabled', async () => {
+
+    // returned value when upstash env vars are not set
+    vi.mocked(rateLimiter).mockReturnValue(() => {
+      return {
+         success: true, limit: 10, remaining: 999, reset: 0 
+      } as RatelimitResponse
+    })
+
+    const identifier = 'test-identifier';
+    const rateLimitingType = 'core';
+
+    await expect(
+      checkRateLimitAndThrowError({ rateLimitingType, identifier })
+    ).resolves.not.toThrow();
+  });
 });

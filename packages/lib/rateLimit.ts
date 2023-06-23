@@ -37,7 +37,7 @@ export function rateLimiter() {
 
   if (!UPSATCH_ENV_FOUND) {
     log.warn("Disabled due to not finding UPSTASH env variables");
-    return () => ({ success: true } as RatelimitResponse);
+    return () => ({ success: true, limit: 10, remaining: 999, reset: 0 } as RatelimitResponse);
   }
 
   const redis = Redis.fromEnv();
