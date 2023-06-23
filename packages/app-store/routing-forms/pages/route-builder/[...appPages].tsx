@@ -262,7 +262,7 @@ const Route = ({
 
             {((route.isFallback && hasRules(route)) || !route.isFallback) && (
               <>
-                <Divider className="mt-3 mb-6" />
+                <Divider className="mb-6 mt-3" />
                 <Query
                   {...config}
                   value={route.state.tree}

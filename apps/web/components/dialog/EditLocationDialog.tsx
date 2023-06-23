@@ -259,7 +259,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
             {booking && (
               <>
-                <p className="text-emphasis mt-6 mb-2 ml-1 text-sm font-bold">{t("current_location")}:</p>
+                <p className="text-emphasis mb-2 ml-1 mt-6 text-sm font-bold">{t("current_location")}:</p>
                 <p className="text-emphasis mb-2 ml-1 text-sm">
                   {getHumanReadableLocationValue(booking.location, t)}
                 </p>
