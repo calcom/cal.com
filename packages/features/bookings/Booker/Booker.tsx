@@ -230,7 +230,7 @@ const BookerComponent = ({
               <AvailableTimeSlots
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
-                seatsPerTimeslot={event.data?.seatsPerTimeSlot}
+                seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
               />
             </BookerSection>
           </AnimatePresence>
