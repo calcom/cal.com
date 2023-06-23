@@ -383,7 +383,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                 <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                   {!(firstItem && firstItem.id === type.id) && (
                     <button
-                      className="bg-default text-muted hover:text-emphasis border-default hover:border-emphasis invisible absolute left-[5px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                      className="bg-default text-muted hover:text-emphasis border-default hover:border-emphasis invisible absolute left-[5px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
                       onClick={() => moveEventType(index, -1)}>
                       <ArrowUp className="h-5 w-5" />
                     </button>
@@ -391,7 +391,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 
                   {!(lastItem && lastItem.id === type.id) && (
                     <button
-                      className="bg-default text-muted border-default hover:text-emphasis hover:border-emphasis invisible absolute left-[5px] mt-8 -ml-4 hidden h-6 w-6  scale-0 items-center justify-center rounded-md border p-1 transition-all  group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                      className="bg-default text-muted border-default hover:text-emphasis hover:border-emphasis invisible absolute left-[5px] -ml-4 mt-8 hidden h-6 w-6  scale-0 items-center justify-center rounded-md border p-1 transition-all  group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
                       onClick={() => moveEventType(index, 1)}>
                       <ArrowDown className="h-5 w-5" />
                     </button>
@@ -401,7 +401,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       {type.team && !isManagedEventType && (
                         <AvatarGroup
-                          className="relative top-1 right-3"
+                          className="relative right-3 top-1"
                           size="sm"
                           truncateAfter={4}
                           items={type.users.map(
@@ -415,7 +415,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       )}
                       {isManagedEventType && (
                         <AvatarGroup
-                          className="relative top-1 right-3"
+                          className="relative right-3 top-1"
                           size="sm"
                           truncateAfter={4}
                           items={type.children
@@ -640,7 +640,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           )}
                         <DropdownMenuSeparator />
                         {!isManagedEventType && (
-                          <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between py-2 px-4">
+                          <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2">
                             <Skeleton
                               as={Label}
                               htmlFor="hiddenSwitch"
@@ -728,10 +728,10 @@ const EventTypeListHeading = ({
           {profile?.name || ""}
         </Link>
         {membershipCount && teamId && (
-          <span className="text-subtle ms-2 me-2 relative -top-px text-xs">
+          <span className="text-subtle relative -top-px me-2 ms-2 text-xs">
             <Link href={`/settings/teams/${teamId}/members`}>
               <Badge variant="gray">
-                <Users className="mr-1 -mt-px inline h-3 w-3" />
+                <Users className="-mt-px mr-1 inline h-3 w-3" />
                 {membershipCount}
               </Badge>
             </Link>
@@ -747,7 +747,7 @@ const EventTypeListHeading = ({
       </div>
       {!profile?.slug && !!teamId && (
         <button onClick={() => publishTeamMutation.mutate({ teamId })}>
-          <Badge variant="gray" className="mb-1 -ml-2">
+          <Badge variant="gray" className="-ml-2 mb-1">
             {t("upgrade")}
           </Badge>
         </button>

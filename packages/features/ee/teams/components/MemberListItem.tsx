@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import { signIn } from "next-auth/react";
+
 import { useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -173,6 +174,7 @@ export default function MemberListItem(props: Props) {
                   className={classNames(!editMode ? "rounded-r-md" : "")}
                   variant="icon"
                   StartIcon={ExternalLink}
+                  disabled={!props.member.accepted}
                 />
               </Tooltip>
               {editMode && (
@@ -227,7 +229,12 @@ export default function MemberListItem(props: Props) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem className="outline-none">
-                    <DropdownItem type="button" StartIcon={ExternalLink}>
+                    <DropdownItem
+                      disabled={!props.member.accepted}
+                      href={!props.member.accepted?undefined : "/" + props.member.username}
+                      target="_blank"
+                      type="button"
+                      StartIcon={ExternalLink}>
                       {t("view_public_page")}
                     </DropdownItem>
                   </DropdownMenuItem>
