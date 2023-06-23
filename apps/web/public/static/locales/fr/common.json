@@ -1902,5 +1902,9 @@
   "org_name": "Nom de l'organisation",
   "org_url": "Lien de l'organisation",
   "copy_link_org": "Copier le lien vers l’organisation",
+  "404_the_org": "L'organisation",
+  "404_the_team": "L'équipe",
+  "404_claim_entity_org": "Réservez votre sous-domaine pour votre organisation",
+  "404_claim_entity_team": "Revendiquez cette équipe et commencez à gérer vos plannings collectivement",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
