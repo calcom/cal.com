@@ -90,6 +90,7 @@ const UserSelect = {
   name: true,
   email: true,
   avatar: true,
+  username: true,
 };
 
 const emptyResponseEventsByStatus = {
