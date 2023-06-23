@@ -4,6 +4,7 @@ import { useEffect, useRef, useMemo } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
+import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -115,6 +116,7 @@ const BookerComponent = ({
 
   return (
     <>
+      {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
       <div
         className={classNames(
           "text-default flex min-h-full w-full flex-col items-center",
