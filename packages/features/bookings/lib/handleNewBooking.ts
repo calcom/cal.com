@@ -46,11 +46,13 @@ import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import getIP from "@calcom/lib/getIP";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
+import { checkRateLimitAndThrowError } from "@calcom/lib/rateLimit";
 import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { slugify } from "@calcom/lib/slugify";
@@ -611,6 +613,13 @@ async function handler(
   }
 ) {
   const { userId } = req;
+
+  const userIp = getIP(req);
+
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: userIp,
+  });
 
   // handle dynamic user
   let eventType =
