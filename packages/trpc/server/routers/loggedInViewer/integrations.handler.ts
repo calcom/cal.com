@@ -106,6 +106,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         credentialIds,
         invalidCredentialIds,
         teams,
+        isInstalled: !!credentialIds.length || !!teams.length || app.isGlobal,
       };
     }
   );
