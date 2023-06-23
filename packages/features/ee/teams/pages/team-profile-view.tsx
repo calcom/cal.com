@@ -79,6 +79,7 @@ const ProfileView = () => {
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
     { teamId: Number(router.query.id) },
     {
+      enabled: !!router.query.id,
       onError: () => {
         router.push("/settings");
       },
