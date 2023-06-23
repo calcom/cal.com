@@ -59,7 +59,7 @@ export const EventOccurences = ({ event }: { event: PublicEvent }) => {
       {getRecurringFreq({ t, recurringEvent: event.recurringEvent })}
       <br />
       <Input
-        className="my-1 mr-3 inline-flex h-[26px] w-[46px] py-0 px-1"
+        className="my-1 mr-3 inline-flex h-[26px] w-[46px] px-1 py-0"
         type="number"
         defaultValue={event.recurringEvent.count}
         onChange={(event) => {

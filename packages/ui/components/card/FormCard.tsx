@@ -72,7 +72,7 @@ export default function FormCard({
             </button>
           ) : null}
         </div>
-        <Divider className="mt-3 mb-6" />
+        <Divider className="mb-6 mt-3" />
         {children}
       </div>
     </div>

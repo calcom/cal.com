@@ -168,18 +168,14 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        message = `${err.data.code}: You are not able to update this event`;
+        message = `${err.data.code}: ${t("error_event_type_unauthorized_update")}`;
       }
 
       if (err.data?.code === "PARSE_ERROR" || err.data?.code === "BAD_REQUEST") {
-        message = `${err.data.code}: ${err.message}`;
+        message = `${err.data.code}: ${t(err.message)}`;
       }
 
-      if (message) {
-        showToast(message, "error");
-      } else {
-        showToast(err.message, "error");
-      }
+      showToast(message ? t(message) : t(err.message), "error");
     },
   });
 
