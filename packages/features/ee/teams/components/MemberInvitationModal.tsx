@@ -152,16 +152,20 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             options={[
               {
                 value: "INDIVIDUAL",
-                label: t("invite_team_individual_segment"),
+                label: <span className="line-clamp-1">{t("invite_team_individual_segment")}</span>,
                 iconLeft: <UserIcon />,
               },
-              { value: "BULK", label: t("invite_team_bulk_segment"), iconLeft: <Users /> },
+              {
+                value: "BULK",
+                label: <span className="line-clamp-1">{t("invite_team_bulk_segment")}</span>,
+                iconLeft: <Users />,
+              },
             ]}
           />
         </div>
 
         <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values, resetFields)}>
-          <div className="mt-6 mb-10 space-y-6">
+          <div className="mb-10 mt-6 space-y-6">
             {/* Indivdual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
               <Controller
@@ -283,7 +287,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 <Button
                   type="button"
                   color="minimal"
-                  className="ms-2 me-2"
+                  className="me-2 ms-2"
                   onClick={() => {
                     props.onSettingsOpen && props.onSettingsOpen();
                     newMemberFormMethods.reset();
@@ -295,39 +299,39 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             </div>
           </div>
           <DialogFooter showDivider>
-            <div className= "relative right-40">
-            <Button
-                type="button"
-                color="minimal"
-                variant="icon"
-                onClick={() =>
-                  props.token
-                    ? copyInviteLinkToClipboard(props.token)
-                    : createInviteMutation.mutate({ teamId: props.teamId })
-                }
-                className={classNames("gap-2", props.token && "opacity-50")}
-                data-testid="copy-invite-link-button">
-                <Link className="text-default h-4 w-4" aria-hidden="true" />
-                {t("copy_invite_link")}
-              </Button>
+            <div className="flex w-full flex-col items-end gap-2 md:flex-row md:items-center md:justify-between">
+              <div>
+                <Button
+                  type="button"
+                  color="minimal"
+                  variant="icon"
+                  onClick={() =>
+                    props.token
+                      ? copyInviteLinkToClipboard(props.token)
+                      : createInviteMutation.mutate({ teamId: props.teamId })
+                  }
+                  className={classNames("gap-2", props.token && "opacity-50")}
+                  data-testid="copy-invite-link-button">
+                  <Link className="text-default h-4 w-4" aria-hidden="true" />
+                  {t("copy_invite_link")}
+                </Button>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  color="minimal"
+                  onClick={() => {
+                    props.onExit();
+                    resetFields();
+                  }}>
+                  {t("cancel")}
+                </Button>
+                <Button type="submit" color="primary" data-testid="invite-new-member-button">
+                  {t("send_invite")}
+                </Button>
+              </div>
             </div>
-        
-            <Button
-              type="button"
-              color="minimal"
-              onClick={() => {
-                props.onExit();
-                resetFields();
-              }}>
-              {t("cancel")}
-            </Button>
-            <Button
-              type="submit"
-              color="primary"
-              className="ms-2 me-2"
-              data-testid="invite-new-member-button">
-              {t("send_invite")}
-            </Button>
           </DialogFooter>
         </Form>
       </DialogContent>

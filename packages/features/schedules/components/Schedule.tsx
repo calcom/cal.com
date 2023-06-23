@@ -80,7 +80,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
             {!!watchDayRange.length && <div className="hidden sm:block">{CopyButton}</div>}
           </div>
         ) : (
-          <SkeletonText className="mt-2.5 ml-1 h-6 w-48" />
+          <SkeletonText className="ml-1 mt-2.5 h-6 w-48" />
         )}
       </>
     </div>

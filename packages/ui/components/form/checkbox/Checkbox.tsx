@@ -44,7 +44,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                 className: classNames(
                   "relative flex items-start",
                   !error && descriptionAsLabel ? "text-emphasis" : "text-emphasis",
-                  error && "text-red-800"
+                  error && "text-error"
                 ),
               },
               <>
@@ -56,11 +56,12 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     disabled={disabled}
                     id={rest.id ? rest.id : id}
                     className={classNames(
-                      "text-primary-600 focus:ring-primary-500 border-default bg-default h-4 w-4 rounded ltr:mr-2 rtl:ml-2",
+                      "text-primary-600 focus:ring-primary-500 border-default bg-default focus:bg-default active:bg-default h-4 w-4 rounded checked:hover:bg-gray-600 focus:outline-none focus:ring-0 ltr:mr-2 rtl:ml-2",
                       !error && disabled
                         ? "cursor-not-allowed bg-gray-300 checked:bg-gray-300 hover:bg-gray-300 hover:checked:bg-gray-300"
-                        : "hover:bg-subtle checked:bg-gray-800",
-                      error && "border-red-800 checked:bg-red-800 hover:bg-red-400",
+                        : "hover:bg-subtle hover:border-emphasis checked:bg-gray-800",
+                      error &&
+                        "border-error hover:bg-error hover:border-error checked:bg-darkerror checked:hover:border-error checked:hover:bg-darkerror",
                       rest.className
                     )}
                   />
