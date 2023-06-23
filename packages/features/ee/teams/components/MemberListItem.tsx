@@ -27,7 +27,7 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
-import { ExternalLink, MoreHorizontal, Edit2, Lock, Trash } from "@calcom/ui/components/icon";
+import { ExternalLink, MoreHorizontal, Edit2, Lock, UserX } from "@calcom/ui/components/icon";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
@@ -212,8 +212,8 @@ export default function MemberListItem(props: Props) {
                         type="button"
                         onClick={() => setShowDeleteModal(true)}
                         color="destructive"
-                        StartIcon={Trash}>
-                        {t("delete")}
+                        StartIcon={UserX}>
+                        {t("remove")}
                       </DropdownItem>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -246,8 +246,8 @@ export default function MemberListItem(props: Props) {
                           type="button"
                           color="destructive"
                           onClick={() => setShowDeleteModal(true)}
-                          StartIcon={Trash}>
-                          {t("delete")}
+                          StartIcon={UserX}>
+                          {t("remove")}
                         </DropdownItem>
                       </DropdownMenuItem>
                     </>

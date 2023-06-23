@@ -250,7 +250,7 @@ const ProfileView = () => {
                 (team.metadata as Prisma.JsonObject)?.requestedSlug && (
                   <Button
                     color="secondary"
-                    className="mt-8 ml-2"
+                    className="ml-2 mt-8"
                     type="button"
                     onClick={() => {
                       publishMutation.mutate({ teamId: team.id });

@@ -16,9 +16,10 @@ import { useBookerStore } from "../store";
  */
 export const useEvent = () => {
   const [username, eventSlug] = useBookerStore((state) => [state.username, state.eventSlug], shallow);
+  const isTeamEvent = useBookerStore((state) => state.isTeamEvent);
 
   return trpc.viewer.public.event.useQuery(
-    { username: username ?? "", eventSlug: eventSlug ?? "" },
+    { username: username ?? "", eventSlug: eventSlug ?? "", isTeamEvent },
     { refetchOnWindowFocus: false, enabled: Boolean(username) && Boolean(eventSlug) }
   );
 };

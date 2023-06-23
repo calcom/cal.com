@@ -5,7 +5,8 @@ import type { GetServerSidePropsContext } from "next";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { Maybe } from "@calcom/trpc/server";
 
-import { i18n } from "../../../next-i18next.config";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { i18n } = require("@calcom/config/next-i18next.config");
 
 export function getLocaleFromHeaders(req: IncomingMessage): string {
   let preferredLocale: string | null | undefined;

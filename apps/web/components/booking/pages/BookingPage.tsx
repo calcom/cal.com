@@ -534,7 +534,7 @@ const BookingPage = ({
           )}>
           <div className="sm:flex">
             {showEventTypeDetails && (
-              <div className="sm:border-subtle text-default flex flex-col px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6">
+              <div className="sm:border-subtle text-default flex flex-col px-6 pb-0 pt-6 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
                   <BookingDescriptionPayment eventType={eventType} t={t} i18n={i18n} />
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
@@ -577,11 +577,11 @@ const BookingPage = ({
                   </div>
                   {booking?.startTime && rescheduleUid && (
                     <div>
-                      <p className="mt-8 mb-2 text-sm " data-testid="former_time_p">
+                      <p className="mb-2 mt-8 text-sm " data-testid="former_time_p">
                         {t("former_time")}
                       </p>
                       <p className="line-through ">
-                        <Calendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                        <Calendar className="-mt-1 ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                         {isClientTimezoneAvailable &&
                           typeof booking.startTime === "string" &&
                           parseDateTimeWithTimeZone(booking.startTime, i18n.language, timezone, {
