@@ -5,7 +5,13 @@ import { useFormContext } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label, Input } from "@calcom/ui";
 
-export default function TwoFactor({ center = true }) {
+interface TwoFactorProps {
+  center?: boolean;
+  onSubmit?: (values: any, e: any) => void;
+  disabling?: boolean;
+}
+
+export default function TwoFactor({ center = true, onSubmit, disabling }: TwoFactorProps) {
   const [value, onChange] = useState("");
   const { t } = useLocale();
   const methods = useFormContext();
@@ -19,6 +25,21 @@ export default function TwoFactor({ center = true }) {
 
   useEffect(() => {
     if (value) methods.setValue("totpCode", value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  useEffect(() => {
+    if (disabling) return; // Don't submit if we're disabling 2FA
+    if (onSubmit) {
+      if (digits.every((digit) => digit.value)) {
+        try {
+          onSubmit({ totpCode: value }, undefined);
+        } catch (e) {
+          console.log(e);
+          return;
+        }
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 

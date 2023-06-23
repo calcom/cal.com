@@ -164,7 +164,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
         <Form handleSubmit={handleEnable} form={form}>
           <WithStep step={SetupStep.EnterTotpCode} current={step}>
             <div className="mb-4">
-              <TwoFactor center />
+              <TwoFactor center onSubmit={handleEnable} />
 
               {errorMessage && (
                 <p data-testid="error-submitting-code" className="mt-1 text-sm text-red-700">
