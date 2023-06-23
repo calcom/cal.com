@@ -143,7 +143,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
                     </div>
                   )}
                   <div className="flex flex-col" key={group.profile.slug}>
-                    <div className="border-subtle mt-3 mb-8 rounded-md border">
+                    <div className="border-subtle mb-8 mt-3 rounded-md border">
                       {group.webhooks.map((webhook, index) => (
                         <WebhookListItem
                           key={webhook.id}

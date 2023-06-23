@@ -20,7 +20,7 @@ export function DateValues({ days, containerNavRef }: Props) {
             <button
               key={day.toString()}
               type="button"
-              className="flex flex-1 flex-col items-center pt-2 pb-3">
+              className="flex flex-1 flex-col items-center pb-3 pt-2">
               {day.format("dd")}{" "}
               <span
                 className={classNames(

@@ -284,7 +284,7 @@ export const EventSetupTab = (
               return (
                 <li
                   key={`${location.type}${index}`}
-                  className="border-default text-default mb-2 h-9 rounded-md border py-1.5 px-2 hover:cursor-pointer">
+                  className="border-default text-default mb-2 h-9 rounded-md border px-2 py-1.5 hover:cursor-pointer">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <img
@@ -298,7 +298,7 @@ export const EventSetupTab = (
                         )}
                         alt={`${eventLocationType.label} logo`}
                       />
-                      <span className="line-clamp-1 ms-1 text-sm">{eventLabel}</span>
+                      <span className="ms-1 line-clamp-1 text-sm">{eventLabel}</span>
                     </div>
                     <div className="flex">
                       <button
@@ -332,7 +332,7 @@ export const EventSetupTab = (
                 location.type === MeetLocationType && destinationCalendar?.integration !== "google_calendar"
             ) && (
               <div className="text-default flex text-sm">
-                <Check className="mt-0.5 mr-1.5 h-2 w-2.5" />
+                <Check className="mr-1.5 mt-0.5 h-2 w-2.5" />
                 <Trans i18nKey="event_type_requres_google_cal">
                   <p>
                     The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
