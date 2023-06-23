@@ -1,4 +1,5 @@
 import type { TFunction } from "next-i18next";
+import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import logger from "@calcom/lib/logger";
@@ -144,6 +145,14 @@ export const defaultLocations: DefaultEventLocationType[] = [
     iconUrl: "/phone.svg",
     category: "phone",
   },
+];
+
+const translateAbleKeys = [
+  "in_person_attendee_address",
+  "in_person",
+  "attendee_phone_number",
+  "link_meeting",
+  "organizer_phone_number",
 ];
 
 export type LocationObject = {
@@ -388,3 +397,19 @@ export function getSuccessPageLocationMessage(
   }
   return locationToDisplay;
 }
+
+export const getTranslatedLocation = (
+  location: PrivacyFilteredLocationObject,
+  eventLocationType: ReturnType<typeof getEventLocationType>,
+  t: TFunction
+) => {
+  if (!eventLocationType) return null;
+  const locationKey = z.string().default("").parse(locationKeyToString(location));
+  const translatedLocation = location.type.startsWith("integrations:")
+    ? eventLocationType.label
+    : translateAbleKeys.includes(locationKey)
+    ? t(locationKey)
+    : locationKey;
+
+  return translatedLocation;
+};

@@ -57,7 +57,7 @@ const ApiKeysView = () => {
           <div>
             {isLoading ? null : data?.length ? (
               <>
-                <div className="mt-6 mb-8 rounded-md border">
+                <div className="mb-8 mt-6 rounded-md border">
                   {data.map((apiKey, index) => (
                     <ApiKeyListItem
                       key={apiKey.id}

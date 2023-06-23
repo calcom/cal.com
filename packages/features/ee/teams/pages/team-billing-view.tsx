@@ -20,7 +20,7 @@ const BillingView = () => {
           <h2 className="font-medium">{t("view_and_manage_billing_details")}</h2>
           <p>{t("view_and_edit_billing_details")}</p>
         </div>
-        <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pt-0 sm:pl-3">
+        <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pl-3 sm:pt-0">
           <Button color="primary" href={billingHref} target="_blank" EndIcon={ExternalLink}>
             {t("billing_portal")}
           </Button>
