@@ -75,8 +75,6 @@ const DisableTwoFactorAuthModal = ({ onDisable, onCancel }: DisableTwoFactorAuth
               {...form.register("password")}
               className="border-default mt-1 block w-full rounded-md border px-3 py-2 text-sm focus:border-black focus:outline-none focus:ring-black"
             />
-            <Label className="mt-4"> {t("2fa_code")}</Label>
-
             <TwoFactor center={false} />
             {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
           </div>
