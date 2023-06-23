@@ -896,6 +896,7 @@
   "create_events_on": "Créer des événements dans :",
   "enterprise_license": "Il s'agit d'une fonctionnalité d'entreprise",
   "enterprise_license_description": "Pour activer cette fonctionnalité, demandez à un administrateur d'accéder à {{setupUrl}} pour saisir une clé de licence. Si une clé de licence est déjà en place, veuillez contacter {{supportMail}} pour obtenir de l'aide.",
+  "enterprise_license_development": "Vous pouvez tester cette fonctionnalité en mode développement. Pour une utilisation en production, veuillez demander à un administrateur d'aller à <2>/auth/setup</2> pour entrer une clé de licence.",
   "missing_license": "Licence manquante",
   "signup_requires": "Licence commerciale requise",
   "signup_requires_description": "{{companyName}} ne propose actuellement pas de version open source gratuite de la page d'inscription. Pour recevoir un accès complet aux composants d'inscription, vous devez acquérir une licence commerciale. Pour un usage personnel, nous recommandons la plateforme de données Prisma ou toute autre interface Postgres pour créer des comptes.",

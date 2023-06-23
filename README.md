@@ -121,9 +121,9 @@ Here is what you need to be able to run Cal.com.
    ```sh
    git clone https://github.com/calcom/cal.com.git
    ```
-   > If you are on windows, run the following command on `gitbash` with admin privileges: <br>
-   ```git clone -c core.symlinks=true https://github.com/calcom/cal.com.git``` <br>
-   See [docs](https://cal.com/docs/how-to-guides/how-to-troubleshoot-symbolic-link-issues-on-windows#enable-symbolic-links) for more details.
+
+   > If you are on windows, run the following command on `gitbash` with admin privileges: <br> > `git clone -c core.symlinks=true https://github.com/calcom/cal.com.git` <br>
+   > See [docs](https://cal.com/docs/how-to-guides/how-to-troubleshoot-symbolic-link-issues-on-windows#enable-symbolic-links) for more details.
 
 1. Go to the project folder
 
@@ -158,6 +158,7 @@ yarn dx
 ```sh
 echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 ```
+
 #### Gitpod Setup
 
 1. Click the button below to open this project in Gitpod.
@@ -166,8 +167,6 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/calcom/cal.com)
 
-
-
 #### Manual setup
 
 1. Configure environment variables in the `.env` file. Replace `<user>`, `<pass>`, `<db-host>`, and `<db-port>` with their applicable values
@@ -175,24 +174,26 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    ```
    DATABASE_URL='postgresql://<user>:<pass>@<db-host>:<db-port>'
    ```
+
    <details>
    <summary>If you don't know how to configure the DATABASE_URL, then follow the steps here to create a quick local DB</summary>
 
    1. [Download](https://www.postgresql.org/download/) and install postgres in your local (if you don't have it already).
 
-   2. Create your own local db by executing `createDB <DB name>` 
+   2. Create your own local db by executing `createDB <DB name>`
 
    3. Now open your psql shell with the DB you created: `psql -h localhost -U postgres -d <DB name>`
 
-   4. Inside the psql shell execute `\conninfo`. And you will get the following info.   
+   4. Inside the psql shell execute `\conninfo`. And you will get the following info.  
       ![image](https://user-images.githubusercontent.com/39329182/236612291-51d87f69-6dc1-4a23-bf4d-1ca1754e0a35.png)
 
-   5. Now extract all the info and add it to your DATABASE_URL. The url would look something like this 
-   `postgresql://postgres:postgres@localhost:5432/Your-DB-Name`.
+   5. Now extract all the info and add it to your DATABASE_URL. The url would look something like this
+      `postgresql://postgres:postgres@localhost:5432/Your-DB-Name`.
 
    </details>
 
    If you don't want to create a local DB. Then you can also consider using services like railway.app or render.
+
    - [Setup postgres DB with railway.app](https://arctype.com/postgres/setup/railway-postgres)
    - [Setup postgres DB with render](https://render.com/docs/databases)
 
@@ -208,10 +209,11 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    ```
 
    In a production environment, run:
-   
+
    ```sh
    yarn workspace @calcom/prisma db-deploy
    ```
+
 1. Run [mailhog](https://github.com/mailhog/MailHog) to view emails sent during development
 
    ```sh
@@ -490,7 +492,9 @@ following
 10. You're good to go. Now you can easily add your ZohoCRM integration in the Cal.com settings.
 
 ### Obtaining Zoho Bigin Client ID and Secret
+
 [Follow these steps](./packages/app-store/zoho-bigin/)
+
 ## Workflows
 
 ### Setting up SendGrid for Email reminders

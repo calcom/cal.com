@@ -4,6 +4,7 @@ import { useEffect, useRef, useMemo } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
+import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -115,10 +116,17 @@ const BookerComponent = ({
 
   return (
     <>
-      <div className="text-default flex min-h-full w-full flex-col items-center overflow-clip">
+      {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
+      <div
+        className={classNames(
+          "text-default flex min-h-full w-full flex-col items-center",
+          layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip"
+        )}>
         <div
           ref={animationScope}
           className={classNames(
+            // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
+            "main",
             // Sets booker size css variables for the size of all the columns.
             ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
             "bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
@@ -132,7 +140,7 @@ const BookerComponent = ({
             <BookerSection
               area="header"
               className={classNames(
-                layout === BookerLayouts.MONTH_VIEW && "fixed top-3 right-3 z-10",
+                layout === BookerLayouts.MONTH_VIEW && "fixed right-3 top-3 z-10",
                 (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
                   "bg-muted sticky top-0 z-10"
               )}>
@@ -216,7 +224,7 @@ const BookerComponent = ({
         <m.span
           key="logo"
           className={classNames(
-            "mt-auto mb-6 pt-6 [&_img]:h-[15px]",
+            "mb-6 mt-auto pt-6 [&_img]:h-[15px]",
             layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
           )}>
           {!hideBranding ? <PoweredBy logoOnly /> : null}
