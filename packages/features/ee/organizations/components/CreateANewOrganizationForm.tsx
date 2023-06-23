@@ -2,8 +2,9 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
-import useDigitInput from "react-digit-input";
+import { useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { usePinInput } from "react-pin-input-hook";
 
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -49,13 +50,15 @@ export const VerifyCodeDialog = ({
   // Not using the mutation isLoading flag because after verifying we submit the underlying org creation form
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [value, onChange] = useState("");
+  const [value, setValue] = useState("");
 
-  const digits = useDigitInput({
-    acceptedCharacters: /^[0-9]$/,
-    length: 6,
-    value,
-    onChange,
+  const { fields } = usePinInput({
+    onComplete: (val) => {
+      setValue(String(val));
+      if (submitButtonRef.current) {
+        submitButtonRef.current.click();
+      }
+    },
   });
 
   const verifyCodeMutation = trpc.viewer.organizations.verifyCode.useMutation({
@@ -73,11 +76,13 @@ export const VerifyCodeDialog = ({
 
   const digitClassName = "h-12 w-12 !text-xl text-center";
 
+  const submitButtonRef = useRef<HTMLButtonElement | null>(null);
+
   return (
     <Dialog
       open={isOpenDialog}
       onOpenChange={(open) => {
-        onChange("");
+        setValue("");
         setError("");
         setIsOpenDialog(open);
       }}>
@@ -87,19 +92,9 @@ export const VerifyCodeDialog = ({
             <DialogHeader title={t("verify_your_email")} subtitle={t("enter_digit_code", { email })} />
             <Label htmlFor="code">{t("code")}</Label>
             <div className="flex flex-row justify-between">
-              <Input
-                className={digitClassName}
-                name="2fa1"
-                inputMode="decimal"
-                {...digits[0]}
-                autoFocus
-                autoComplete="one-time-code"
-              />
-              <Input className={digitClassName} name="2fa2" inputMode="decimal" {...digits[1]} />
-              <Input className={digitClassName} name="2fa3" inputMode="decimal" {...digits[2]} />
-              <Input className={digitClassName} name="2fa4" inputMode="decimal" {...digits[3]} />
-              <Input className={digitClassName} name="2fa5" inputMode="decimal" {...digits[4]} />
-              <Input className={digitClassName} name="2fa6" inputMode="decimal" {...digits[5]} />
+              {fields.map((fieldProps, index) => (
+                <Input key={`2fa${index}`} className={digitClassName} {...fieldProps} />
+              ))}
             </div>
             {error && (
               <div className="mt-2 flex items-center gap-x-2 text-sm text-red-700">
@@ -112,6 +107,7 @@ export const VerifyCodeDialog = ({
             <DialogFooter>
               <DialogClose />
               <Button
+                ref={submitButtonRef}
                 disabled={isLoading}
                 onClick={() => {
                   setError("");

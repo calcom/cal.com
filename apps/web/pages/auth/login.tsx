@@ -6,6 +6,7 @@ import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import type { CSSProperties } from "react";
+import { useRef } from "react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
@@ -135,6 +136,7 @@ export default function Login({
     else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
   };
 
+  const submitButtonRef = useRef<HTMLButtonElement | null>(null);
   return (
     <div
       style={
@@ -193,10 +195,20 @@ export default function Login({
                 </div>
               </div>
 
-              {twoFactorRequired && <TwoFactor center />}
+              {twoFactorRequired && (
+                <TwoFactor
+                  onComplete={() => {
+                    if (submitButtonRef.current) {
+                      submitButtonRef.current.click();
+                    }
+                  }}
+                  center
+                />
+              )}
 
               {errorMessage && <Alert severity="error" title={errorMessage} />}
               <Button
+                ref={submitButtonRef}
                 type="submit"
                 color="primary"
                 disabled={formState.isSubmitting}
