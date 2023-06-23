@@ -15,21 +15,27 @@ import { ArrowRight } from "@calcom/ui/components/icon";
 import type { NewTeamFormValues } from "../lib/types";
 
 const querySchema = z.object({
-  returnTo: z.string(),
+  returnTo: z.string().optional(),
+  slug: z.string().optional(),
 });
 
 export const CreateANewTeamForm = () => {
   const { t } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
-  const returnToParsed = querySchema.safeParse(router.query);
+  const parsedQuery = querySchema.safeParse(router.query);
+  console.log({ parsedQuery });
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
 
   const returnToParam =
-    (returnToParsed.success ? getSafeRedirectUrl(returnToParsed.data.returnTo) : "/settings/teams") ||
+    (parsedQuery.success ? getSafeRedirectUrl(parsedQuery.data.returnTo) : "/settings/teams") ||
     "/settings/teams";
 
-  const newTeamFormMethods = useForm<NewTeamFormValues>();
+  const newTeamFormMethods = useForm<NewTeamFormValues>({
+    defaultValues: {
+      slug: parsedQuery.success ? parsedQuery.data.slug : "",
+    },
+  });
 
   const createTeamMutation = trpc.viewer.teams.create.useMutation({
     onSuccess: (data) => {
