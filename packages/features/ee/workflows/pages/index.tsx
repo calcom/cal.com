@@ -40,7 +40,7 @@ function WorkflowsPage() {
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: You are not able to create this workflow`;
+        const message = `${err.data.code}: ${t("error_workflow_unauthorized_create")}`;
         showToast(message, "error");
       }
     },

@@ -65,7 +65,7 @@ const DuplicateDialog = () => {
       }
 
       if (err.data?.code === "UNAUTHORIZED" || err.data?.code === "FORBIDDEN") {
-        const message = `${err.data.code}: You are not able to create this event`;
+        const message = `${err.data.code}: ${t("error_event_type_unauthorized_create")}`;
         showToast(message, "error");
       }
     },
