@@ -17,7 +17,7 @@ import { TimeFormatToggle } from "./TimeFormatToggle";
 type AvailableTimesProps = {
   date: Dayjs;
   slots: Slots[string];
-  onTimeSelect: (time: string) => void;
+  onTimeSelect: (time: string, attendees: number, seatsPerTimeSlot?: number | null) => void;
   seatsPerTimeSlot?: number | null;
   showTimeformatToggle?: boolean;
   className?: string;
@@ -85,7 +85,7 @@ export const AvailableTimes = ({
               data-testid="time"
               data-disabled={bookingFull}
               data-time={slot.time}
-              onClick={() => onTimeSelect(slot.time)}
+              onClick={() => onTimeSelect(slot.time, slot.attendees || 0, seatsPerTimeSlot)}
               className="min-h-9 mb-2 flex h-auto w-full flex-col justify-center py-2"
               color="secondary">
               {dayjs.utc(slot.time).tz(timezone).format(timeFormat)}

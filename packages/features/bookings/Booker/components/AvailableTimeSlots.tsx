@@ -12,7 +12,7 @@ import { useEvent, useScheduleForEvent } from "../utils/event";
 type AvailableTimeSlotsProps = {
   extraDays?: number;
   limitHeight?: boolean;
-  seatsPerTimeslot?: number | null;
+  seatsPerTimeSlot?: number | null;
 };
 
 /**
@@ -22,7 +22,7 @@ type AvailableTimeSlotsProps = {
  * will also fetch the next `extraDays` days and show multiple days
  * in columns next to each other.
  */
-export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }: AvailableTimeSlotsProps) => {
+export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }: AvailableTimeSlotsProps) => {
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const duration = useBookerStore((state) => state.selectedDuration);
@@ -30,8 +30,10 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }:
   const event = useEvent();
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
 
-  const onTimeSelect = (time: string) => {
+  const onTimeSelect = (time: string, attendees: number, seatsPerTimeSlot?: number | null) => {
     setSelectedTimeslot(time);
+
+    if (seatsPerTimeSlot && seatsPerTimeSlot - attendees > 1) return;
 
     if (!event.data) return;
     reserveSlotMutation.mutate({
@@ -87,7 +89,7 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }:
               onTimeSelect={onTimeSelect}
               date={dayjs(slots.date)}
               slots={slots.slots}
-              seatsPerTimeslot={seatsPerTimeslot}
+              seatsPerTimeSlot={seatsPerTimeSlot}
             />
           ))}
     </div>
