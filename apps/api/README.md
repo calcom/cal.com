@@ -7,7 +7,7 @@
   <a href="https://cal.com/docs/enterprise-features/api#api-server-specifications">Read the API docs</a>
 </div>
 
-# Cal.com Public API
+# Commercial Cal.com Public API 
 
 Welcome to the Public API ("/apps/api") of the Cal.com.
 
