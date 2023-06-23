@@ -1896,6 +1896,8 @@
   "my_profile": "My Profile",
   "my_settings": "My Settings",
   "sender_id_info": "Name or number shown as the sender of an SMS (some countries do not allow alphanumeric sender IDs)",
+  "google_new_spam_policy": "Google’s new spam policy could prevent you from receiving any email and calendar notifications about this booking.",
+  "resolve": "Resolve",
   "no_organization_slug": "There was an error creating teams for this organization. Missing URL slug.",
   "org_name": "Organization name",
   "org_url": "Organization URL",
