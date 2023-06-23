@@ -37,6 +37,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   // some actions can invalidate a user session.
   let signOutUser = false;
+  let passwordReset = false;
   let isPremiumUsername = false;
 
   const layoutError = validateBookerLayouts(input?.metadata?.defaultBookerLayouts || null);
@@ -134,6 +135,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         // which has no password yet. We have to send the reset password email.
         await passwordResetRequest(updatedUser.email, updatedUser.locale || "en");
         signOutUser = true;
+        passwordReset = true;
       }
     }
   } else {
@@ -194,5 +196,5 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       .then(() => console.info("Booking pages revalidated"))
       .catch((e) => console.error(e));
   }*/
-  return { ...input, signOutUser };
+  return { ...input, signOutUser, passwordReset };
 };

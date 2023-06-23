@@ -20,7 +20,8 @@ type Props = inferSSRProps<typeof getServerSideProps>;
 export function Logout(props: Props) {
   const { status } = useSession();
   if (status === "authenticated") signOut({ redirect: false });
-  const [changeEmail, setChangeEmail] = useState(false);
+  const [emailChange, setEmailChange] = useState(false);
+  const [passReset, setPassReset] = useState(false);
   const router = useRouter();
   useEffect(() => {
     if (props.query?.survey === "true") {
@@ -29,11 +30,17 @@ export function Logout(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.query?.survey]);
   useEffect(() => {
-    if (props.query?.changeEmail === "true") {
-      setChangeEmail(true);
+    if (props.query?.emailChange === "true") {
+      setEmailChange(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.query?.changeEmail]);
+  }, [props.query?.emailChange]);
+  useEffect(() => {
+    if (props.query?.passReset === "true") {
+      setPassReset(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.query?.passReset]);
   const { t } = useLocale();
 
   return (
@@ -47,7 +54,13 @@ export function Logout(props: Props) {
             {t("youve_been_logged_out")}
           </h3>
           <div className="mt-2">
-            <p className="text-subtle text-sm">{changeEmail ? t("reset_your_password") : t("hope_to_see_you_soon")}</p>
+            <p className="text-subtle text-sm">
+              {passReset
+                ? t("reset_your_password")
+                : emailChange
+                ? t("email_change")
+                : t("hope_to_see_you_soon")}
+            </p>
           </div>
         </div>
       </div>
