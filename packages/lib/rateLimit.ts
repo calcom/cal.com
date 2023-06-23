@@ -46,7 +46,7 @@ export function rateLimiter() {
       redis,
       analytics: true,
       prefix: "ratelimit",
-      limiter: Ratelimit.fixedWindow(1, "60s"),
+      limiter: Ratelimit.fixedWindow(10, "60s"),
     }),
     forcedSlowMode: new Ratelimit({
       redis,
