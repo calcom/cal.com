@@ -99,4 +99,9 @@ export const RESERVED_SUBDOMAINS = [
   "cal",
   "my",
   "team",
+  "support",
+  "security",
+  "blog",
+  "learn",
+  "admin",
 ];
