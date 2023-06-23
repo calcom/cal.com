@@ -167,7 +167,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
       href="/"
-      className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md py-2 px-3 text-sm font-medium leading-4"
+      className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4"
       data-testid={`vertical-tab-${name}`}>
       <ArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0" />
       <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate" loadingClassName="ms-3">
@@ -466,7 +466,7 @@ export default function SettingsLayout({
           {sideContainerOpen && (
             <button
               onClick={() => setSideContainerOpen(false)}
-              className="fixed top-0 left-0 z-10 h-full w-full bg-black/50">
+              className="fixed left-0 top-0 z-10 h-full w-full bg-black/50">
               <span className="sr-only">{t("hide_navigation")}</span>
             </button>
           )}
