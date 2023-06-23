@@ -654,7 +654,7 @@ const NavigationItem: React.FC<{
           href={item.href}
           aria-label={t(item.name)}
           className={classNames(
-            "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md py-2 px-3 text-sm font-medium",
+            "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md px-3 py-2 text-sm font-medium",
             isChild
               ? `[&[aria-current='page']]:text-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
                   props.index === 0 ? "mt-0" : "mt-px"
@@ -907,7 +907,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 target={item.target}
                 className={classNames(
                   "text-left",
-                  "[&[aria-current='page']]:bg-emphasis  text-default justify-right group flex items-center rounded-md py-2 px-3 text-sm font-medium",
+                  "[&[aria-current='page']]:bg-emphasis  text-default justify-right group flex items-center rounded-md px-3 py-2 text-sm font-medium",
                   "[&[aria-current='page']]:text-emphasis mt-0.5 w-full text-sm",
                   isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
                   index === 0 && "mt-3"
@@ -1052,7 +1052,7 @@ function TopNav() {
     <>
       <nav
         style={isEmbed ? { display: "none" } : {}}
-        className="bg-muted border-subtle sticky top-0 z-40 flex w-full items-center justify-between border-b bg-opacity-50 py-1.5 px-4 backdrop-blur-lg sm:p-4 md:hidden">
+        className="bg-muted border-subtle sticky top-0 z-40 flex w-full items-center justify-between border-b bg-opacity-50 px-4 py-1.5 backdrop-blur-lg sm:p-4 md:hidden">
         <Link href="/event-types">
           <Logo />
         </Link>

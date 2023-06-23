@@ -103,7 +103,7 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
             <Button
               type="submit"
               color="primary"
-              className="ms-2 me-2"
+              className="me-2 ms-2"
               data-testid="invite-new-member-button">
               {t("save")}
             </Button>

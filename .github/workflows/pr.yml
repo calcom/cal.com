@@ -34,12 +34,15 @@ jobs:
             app-store:
               - 'apps/web/**'
               - 'packages/app-store/**'
+              - 'playwright.config.ts'
             embed:
               - 'apps/web/**'
               - 'packages/embeds/**'
+              - 'playwright.config.ts'
             embed-react:
               - 'apps/web/**'
               - 'packages/embeds/**'
+              - 'playwright.config.ts'
 
   env:
     name: Create env file
