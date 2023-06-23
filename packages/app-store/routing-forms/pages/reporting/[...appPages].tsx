@@ -71,7 +71,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
           {headers.current?.map((header, index) => (
             <th
               className={classNames(
-                "border-default border-b py-3 px-2  text-left text-base font-medium",
+                "border-default border-b px-2 py-3  text-left text-base font-medium",
                 index !== (headers.current?.length || 0) - 1 ? "border-r" : ""
               )}
               key={index}>
@@ -97,7 +97,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
                     return (
                       <td
                         className={classNames(
-                          "border-default overflow-x-hidden py-3 px-2 text-left",
+                          "border-default overflow-x-hidden px-2 py-3 text-left",
                           isLastRow ? "" : "border-b",
                           isLastColumn ? "" : "border-r"
                         )}
