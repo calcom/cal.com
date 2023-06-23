@@ -46,7 +46,7 @@ export function BulkEditDefaultConferencingModal(props: { open: boolean; setOpen
           }}>
           <div className="flex flex-col space-y-2">
             {data.eventTypes.length > 0 && (
-              <div className="flex items-center space-x-2 rounded-md py-2.5 px-3">
+              <div className="flex items-center space-x-2 rounded-md px-3 py-2.5">
                 <Checkbox
                   description={t("select_all")}
                   descriptionAsLabel
@@ -58,7 +58,7 @@ export function BulkEditDefaultConferencingModal(props: { open: boolean; setOpen
               </div>
             )}
             {data.eventTypes.map((eventType) => (
-              <div key={eventType.id} className="bg-muted flex items-center space-x-2 rounded-md py-2.5 px-3">
+              <div key={eventType.id} className="bg-muted flex items-center space-x-2 rounded-md px-3 py-2.5">
                 <Checkbox
                   description={eventType.title}
                   descriptionAsLabel

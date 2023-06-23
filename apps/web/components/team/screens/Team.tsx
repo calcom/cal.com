@@ -32,7 +32,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
         />
         <section className="line-clamp-4 mt-2 w-full space-y-1">
           <p className="text-default font-medium">{member.name}</p>
-          <div className="line-clamp-3 text-subtle overflow-ellipsis text-sm font-normal">
+          <div className="text-subtle line-clamp-3 overflow-ellipsis text-sm font-normal">
             {!isBioEmpty ? (
               <>
                 <div
