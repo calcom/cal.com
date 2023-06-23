@@ -84,7 +84,7 @@ const DisableTwoFactorAuthModal = ({
             />
             <Label className="mt-4"> {t("2fa_code")}</Label>
 
-            <TwoFactor center={false} disabling={true}/>
+            <TwoFactor center={false} disabling={true} />
             {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
           </div>
 

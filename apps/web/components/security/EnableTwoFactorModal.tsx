@@ -168,7 +168,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
         <Form handleSubmit={handleEnable} form={form}>
           <WithStep step={SetupStep.EnterTotpCode} current={step}>
             <div className="mb-4">
-              <TwoFactor center onSubmit={handleEnable}/>
+              <TwoFactor center onSubmit={handleEnable} />
 
               {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
             </div>
