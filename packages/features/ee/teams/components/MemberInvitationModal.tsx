@@ -152,10 +152,14 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             options={[
               {
                 value: "INDIVIDUAL",
-                label: t("invite_team_individual_segment"),
+                label: <span className="line-clamp-1">{t("invite_team_individual_segment")}</span>,
                 iconLeft: <UserIcon />,
               },
-              { value: "BULK", label: t("invite_team_bulk_segment"), iconLeft: <Users /> },
+              {
+                value: "BULK",
+                label: <span className="line-clamp-1">{t("invite_team_bulk_segment")}</span>,
+                iconLeft: <Users />,
+              },
             ]}
           />
         </div>
