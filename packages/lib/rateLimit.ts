@@ -1,19 +1,17 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
-import { TRPCError } from "@trpc/server";
-
 import { isIpInBanListString } from "./getIP";
 import logger from "./logger";
 
 const log = logger.getChildLogger({ prefix: ["RateLimit"] });
 
-type RateLimitHelper = {
+export type RateLimitHelper = {
   rateLimitingType?: "core" | "forcedSlowMode";
   identifier: string;
 };
 
-type RatelimitResponse = {
+export type RatelimitResponse = {
   /**
    * Whether the request may pass(true) or exceeded the limit(false)
    */
@@ -34,7 +32,7 @@ type RatelimitResponse = {
   pending: Promise<unknown>;
 };
 
-function rateLimiter() {
+export function rateLimiter() {
   const UPSATCH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
 
   if (!UPSATCH_ENV_FOUND) {
@@ -68,21 +66,3 @@ function rateLimiter() {
 
   return rateLimit;
 }
-
-export async function checkRateLimitAndThrowError({
-  rateLimitingType = "core",
-  identifier,
-}: RateLimitHelper) {
-  const { remaining, reset } = await rateLimiter()({ rateLimitingType, identifier });
-
-  if (remaining < 0) {
-    const convertToSeconds = (ms: number) => Math.floor(ms / 1000);
-    const secondsToWait = convertToSeconds(reset - Date.now());
-    throw new TRPCError({
-      code: "TOO_MANY_REQUESTS",
-      message: `Rate limit exceeded. Try again in ${secondsToWait} seconds.`,
-    });
-  }
-}
-
-export default rateLimiter;
