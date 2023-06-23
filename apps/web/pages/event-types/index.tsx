@@ -858,7 +858,7 @@ const EventTypesPage = () => {
   const filters = getTeamsFiltersFromQuery(router.query);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer as any, { filters });
+  const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer as any, filters && { filters });
 
   return (
     <div>
