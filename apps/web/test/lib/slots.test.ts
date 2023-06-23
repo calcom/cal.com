@@ -1,11 +1,11 @@
-import { describe, expect, it,beforeAll,vi } from "vitest";
+import { describe, expect, it, beforeAll, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { MINUTES_DAY_END, MINUTES_DAY_START } from "@calcom/lib/availability";
 import getSlots from "@calcom/lib/slots";
 
 
-beforeAll(()=>{
+beforeAll(() => {
   vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
 })
 
