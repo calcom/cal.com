@@ -19,7 +19,7 @@ export const EventLocations = ({ event }: { event: PublicEvent }) => {
       {locations.length > 1 && (
         <div
           key={locations[0].type}
-          className="before:bg-subtle relative before:pointer-events-none before:absolute before:inset-0 before:left-[-30px] before:top-[-5px] before:bottom-[-5px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity hover:before:opacity-100">
+          className="before:bg-subtle relative before:pointer-events-none before:absolute before:inset-0 before:bottom-[-5px] before:left-[-30px] before:top-[-5px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity hover:before:opacity-100">
           <Tooltip
             content={
               <>

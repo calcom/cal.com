@@ -59,7 +59,7 @@ export default function Custom404() {
           }}
         />
         <div className="min-h-screen bg-white px-4" data-testid="404-page">
-          <main className="mx-auto max-w-xl pt-16 pb-6 sm:pt-24">
+          <main className="mx-auto max-w-xl pb-6 pt-16 sm:pt-24">
             <div className="text-center">
               <p className="text-sm font-semibold uppercase tracking-wide text-black">{t("error_404")}</p>
               <h1 className="font-cal mt-2 text-4xl font-extrabold text-gray-900 sm:text-5xl">
@@ -91,7 +91,7 @@ export default function Custom404() {
         }}
       />
       <div className="bg-default min-h-screen px-4" data-testid="404-page">
-        <main className="mx-auto max-w-xl pt-16 pb-6 sm:pt-24">
+        <main className="mx-auto max-w-xl pb-6 pt-16 sm:pt-24">
           {isSignup && process.env.NEXT_PUBLIC_WEBAPP_URL !== "https://app.cal.com" ? (
             <div>
               <div>
