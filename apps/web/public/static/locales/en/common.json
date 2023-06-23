@@ -187,7 +187,7 @@
   "guests": "Guests",
   "guest": "Guest",
   "web_conferencing_details_to_follow": "Web conferencing details to follow in the confirmation email.",
-  "the_username": "The username",
+  "404_the_user": "The username",
   "username": "Username",
   "is_still_available": "is still available.",
   "documentation": "Documentation",
@@ -198,7 +198,7 @@
   "blog_description": "Read our latest news and articles",
   "join_our_community": "Join our community",
   "join_our_slack": "Join our Slack",
-  "claim_username_and_schedule_events": "Claim your username and schedule events",
+  "404_claim_entity_user": "Claim your username and schedule events",
   "popular_pages": "Popular pages",
   "register_now": "Register now",
   "register": "Register",
@@ -1902,5 +1902,9 @@
   "org_name": "Organization name",
   "org_url": "Organization URL",
   "copy_link_org": "Copy link to organization",
+  "404_the_org": "The organization",
+  "404_the_team": "The team",
+  "404_claim_entity_org": "Claim your subdomain for your organization",
+  "404_claim_entity_team": "Claim this team and start managing schedules collectively",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
