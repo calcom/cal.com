@@ -11,6 +11,7 @@ import z from "zod";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { LocationObject } from "@calcom/app-store/locations";
+import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
@@ -761,7 +762,9 @@ async function handler(
   }));
 
   let locationBodyString = location;
-  let defaultLocationUrl = undefined;
+
+  // TODO: It's definition should be moved to getLocationValueForDb
+  let organizerOrFirstDynamicGroupMemberDefaultLocationUrl = undefined;
 
   if (dynamicUserList.length > 1) {
     users = users.sort((a, b) => {
@@ -771,7 +774,8 @@ async function handler(
     });
     const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata);
     locationBodyString = firstUsersMetadata?.defaultConferencingApp?.appLink || locationBodyString;
-    defaultLocationUrl = firstUsersMetadata?.defaultConferencingApp?.appLink;
+    organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
+      firstUsersMetadata?.defaultConferencingApp?.appLink;
   }
 
   if (
@@ -838,14 +842,16 @@ async function handler(
 
   const [organizerUser] = users;
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
+
   // use host default
-  if (isTeamEventType && locationBodyString === "conferencing") {
+  if (isTeamEventType && locationBodyString === OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
     if (organizerMetadata) {
       const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
       locationBodyString = app?.appData?.location?.type || locationBodyString;
-      defaultLocationUrl = organizerMetadata?.defaultConferencingApp?.appLink;
+      organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
+        organizerMetadata?.defaultConferencingApp?.appLink;
     } else {
       locationBodyString = "";
     }
@@ -877,7 +883,11 @@ async function handler(
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
-  const bookingLocation = getLocationValueForDB(locationBodyString, eventType.locations);
+  // For static link based video apps, it would have the static URL value instead of it's type(e.g. integrations:campfire_video)
+  // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
+  const bookingLocation = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
+    ? organizerOrFirstDynamicGroupMemberDefaultLocationUrl
+    : getLocationValueForDB(locationBodyString, eventType.locations);
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const teamMemberPromises =
@@ -2026,7 +2036,8 @@ async function handler(
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
         handleAppsStatus(results, booking);
-        videoCallUrl = metadata.hangoutLink || defaultLocationUrl || videoCallUrl;
+        videoCallUrl =
+          metadata.hangoutLink || organizerOrFirstDynamicGroupMemberDefaultLocationUrl || videoCallUrl;
       }
       if (noEmail !== true) {
         let isHostConfirmationEmailsDisabled = false;
