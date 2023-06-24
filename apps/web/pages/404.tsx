@@ -3,22 +3,37 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
+import { orgDomainConfig, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HeadSeo } from "@calcom/ui";
-import { BookOpen, Check, ChevronRight, FileText, Slack } from "@calcom/ui/components/icon";
+import { BookOpen, Check, ChevronRight, FileText, Slack, Shield } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 
 import { ssgInit } from "@server/lib/ssg";
 
+enum pageType {
+  ORG = "org",
+  TEAM = "team",
+  USER = "user",
+  OTHER = "other",
+}
+
 export default function Custom404() {
   const { t } = useLocale();
 
   const router = useRouter();
-  const [username] = router.asPath.replace("%20", "-").split(/[?#]/);
+  const [username, setUsername] = useState<string>("");
+  const [currentPageType, setCurrentPageType] = useState<pageType>(pageType.USER);
 
   const links = [
+    {
+      title: "Enterprise",
+      description: "Learn more about organizations and subdomains in our enterprise plan.",
+      icon: Shield,
+      href: `${WEBSITE_URL}/enterprise`,
+    },
     {
       title: t("documentation"),
       description: t("documentation_description"),
@@ -33,10 +48,29 @@ export default function Custom404() {
     },
   ];
 
-  const [url, setUrl] = useState(`${WEBSITE_URL}/signup?username=`);
+  const [url, setUrl] = useState(`${WEBSITE_URL}/signup`);
   useEffect(() => {
-    setUrl(`${WEBSITE_URL}/signup?username=${username.replace("/", "")}`);
-  }, [username]);
+    const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(window.location.host);
+    const [routerUsername] = router.asPath.replace("%20", "-").split(/[?#]/);
+    if (!isValidOrgDomain || !currentOrgDomain) {
+      const splitPath = routerUsername.split("/");
+      if (splitPath[1] === "team" && splitPath.length === 3) {
+        // Accessing a non-existent team
+        setUsername(splitPath[2]);
+        setCurrentPageType(pageType.TEAM);
+        setUrl(`${WEBSITE_URL}/signup?callbackUrl=settings/teams/new%3Fslug%3D${username.replace("/", "")}`);
+      } else {
+        setUsername(routerUsername);
+        setUrl(`${WEBSITE_URL}/signup?username=${username.replace("/", "")}`);
+      }
+    } else {
+      setUsername(currentOrgDomain);
+      setCurrentPageType(pageType.ORG);
+      setUrl(
+        `${WEBSITE_URL}/signup?callbackUrl=settings/organizations/new%3Fslug%3D${username.replace("/", "")}`
+      );
+    }
+  }, []);
 
   const isSuccessPage = router.asPath.startsWith("/booking");
   const isSubpage = router.asPath.includes("/", 2) || isSuccessPage;
@@ -79,6 +113,8 @@ export default function Custom404() {
       </>
     );
   }
+
+  if (!username) return null;
 
   return (
     <>
@@ -202,13 +238,13 @@ export default function Custom404() {
                 <h1 className="font-cal text-emphasis mt-2 text-4xl font-extrabold sm:text-5xl">
                   {isSuccessPage ? "Booking not found" : t("page_doesnt_exist")}
                 </h1>
-                {isSubpage ? (
+                {isSubpage && currentPageType !== pageType.TEAM ? (
                   <span className="mt-2 inline-block text-lg ">
                     {t("check_spelling_mistakes_or_go_back")}
                   </span>
                 ) : isCalcom ? (
                   <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
-                    {t("the_username")}{" "}
+                    {t(`404_the_${currentPageType.toLowerCase()}`)}{" "}
                     <strong className="text-blue-500">
                       {new URL(WEBSITE_URL).hostname}
                       {username}
@@ -217,18 +253,17 @@ export default function Custom404() {
                   </a>
                 ) : (
                   <span className="mt-2 inline-block text-lg">
-                    {t("the_username")}{" "}
+                    {t(`404_the_${currentPageType.toLowerCase()}`)}{" "}
                     <strong className="text-lgtext-green-500 mt-2 inline-block">{username}</strong>{" "}
                     {t("is_still_available")}
                   </span>
                 )}
               </div>
               <div className="mt-12">
-                <h2 className="text-subtle text-sm font-semibold uppercase tracking-wide">
-                  {t("popular_pages")}
-                </h2>
-                {!isSubpage && isCalcom && (
-                  <ul role="list" className="mt-4">
+                {((!isSubpage && isCalcom) ||
+                  currentPageType === pageType.ORG ||
+                  currentPageType === pageType.TEAM) && (
+                  <ul role="list" className="my-4">
                     <li className="border-2 border-green-500 px-4 py-2">
                       <a
                         href={url}
@@ -245,11 +280,20 @@ export default function Custom404() {
                             <span className="focus-within:ring-empthasis rounded-sm focus-within:ring-2 focus-within:ring-offset-2">
                               <span className="focus:outline-none">
                                 <span className="absolute inset-0" aria-hidden="true" />
-                                {t("register")} <strong className="text-green-500">{username}</strong>
+                                {t("register")}{" "}
+                                <strong className="text-green-500">{`${
+                                  currentPageType === pageType.TEAM
+                                    ? `${new URL(WEBSITE_URL).host}/team/`
+                                    : ""
+                                }${username}${
+                                  currentPageType === pageType.ORG ? `.${subdomainSuffix()}` : ""
+                                }`}</strong>
                               </span>
                             </span>
                           </h3>
-                          <p className="text-subtle text-base">{t("claim_username_and_schedule_events")}</p>
+                          <p className="text-subtle text-base">
+                            {t(`404_claim_entity_${currentPageType.toLowerCase()}`)}
+                          </p>
                         </div>
                         <div className="flex-shrink-0 self-center">
                           <ChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
@@ -258,33 +302,37 @@ export default function Custom404() {
                     </li>
                   </ul>
                 )}
-
-                <ul role="list" className="border-subtle divide-subtle mt-4 divide-y">
-                  {links.map((link, linkIdx) => (
-                    <li key={linkIdx} className="px-4 py-2">
-                      <Link
-                        href={link.href}
-                        className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
-                        <div className="flex-shrink-0">
-                          <span className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
-                            <link.icon className="text-default h-6 w-6" aria-hidden="true" />
-                          </span>
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="text-emphasis text-base font-medium">
-                            <span className="focus-within:ring-empthasis rounded-sm focus-within:ring-2 focus-within:ring-offset-2">
-                              <span className="absolute inset-0" aria-hidden="true" />
-                              {link.title}
+                <h2 className="text-subtle text-sm font-semibold uppercase tracking-wide">
+                  {t("popular_pages")}
+                </h2>
+                <ul role="list" className="border-subtle divide-subtle divide-y">
+                  {links
+                    .filter((_, idx) => currentPageType === pageType.ORG || idx !== 0)
+                    .map((link, linkIdx) => (
+                      <li key={linkIdx} className="px-4 py-2">
+                        <Link
+                          href={link.href}
+                          className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
+                          <div className="flex-shrink-0">
+                            <span className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
+                              <link.icon className="text-default h-6 w-6" aria-hidden="true" />
                             </span>
-                          </h3>
-                          <p className="text-subtle text-base">{link.description}</p>
-                        </div>
-                        <div className="flex-shrink-0 self-center">
-                          <ChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
-                        </div>
-                      </Link>
-                    </li>
-                  ))}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="text-emphasis text-base font-medium">
+                              <span className="focus-within:ring-empthasis rounded-sm focus-within:ring-2 focus-within:ring-offset-2">
+                                <span className="absolute inset-0" aria-hidden="true" />
+                                {link.title}
+                              </span>
+                            </h3>
+                            <p className="text-subtle text-base">{link.description}</p>
+                          </div>
+                          <div className="flex-shrink-0 self-center">
+                            <ChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
                   <li className="px-4 py-2">
                     <a
                       href={JOIN_SLACK}
