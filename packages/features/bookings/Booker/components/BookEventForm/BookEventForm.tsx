@@ -51,6 +51,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const username = useBookerStore((state) => state.username);
   const formValues = useBookerStore((state) => state.formValues);
   const setFormValues = useBookerStore((state) => state.setFormValues);
+  const seatedEventData = useBookerStore((state) => state.seatedEventData);
   const isRescheduling = !!rescheduleUid && !!rescheduleBooking;
   const event = useEvent();
   const eventType = event.data;
@@ -260,6 +261,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       timeZone: timezone,
       language: i18n.language,
       rescheduleUid: rescheduleUid || undefined,
+      bookingUid: seatedEventData?.bookingUid || undefined,
       username: username || "",
       metadata: Object.keys(router.query)
         .filter((key) => key.startsWith("metadata"))
