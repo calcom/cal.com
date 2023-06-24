@@ -13,13 +13,15 @@
   --cal-bg-success: #E2FBE8;
   --cal-bg-attention: #FCEED8;
   --cal-bg-error: #F9E3E2;
+  --cal-bg-dark-error: #752522;
 
 
   /* Borders */
   --cal-border-emphasis:#9CA3AF;
-  --cal-border: #D1D5DB:
+  --cal-border: #D1D5DB;
   --cal-border-subtle:#E5E7EB;
   --cal-border-muted:#F3F4F6;
+  --cal-border-error: #aa2e26;
 
   /* Content/Text */
   --cal-text-emphasis: #111827;
@@ -56,6 +58,7 @@
   --cal-bg-success: #E2FBE8;
   --cal-bg-attention: #FCEED8;
   --cal-bg-error: #F9E3E2;
+  --cal-bg-dark-error: #752522;
 
 
   /* Borders */
@@ -63,6 +66,7 @@
   --cal-border: #444444;
   --cal-border-subtle:#2b2b2b;
   --cal-border-muted:#1c1c1c;
+  --cal-border-error: #aa2e26;
 
   /* Content/Text */
   --cal-text-emphasis: #f3f4f6;

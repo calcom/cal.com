@@ -26,7 +26,7 @@ export const TotalBookingUsersTable = ({
                     className="m-2"
                     gravatarFallbackMd5={item.emailMd5}
                   />
-                  <p className="text-default my-auto mx-0">
+                  <p className="text-default mx-0 my-auto">
                     <strong>{item.user.name}</strong>
                   </p>
                 </TableCell>
