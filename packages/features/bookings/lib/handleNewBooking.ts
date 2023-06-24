@@ -1220,7 +1220,7 @@ async function handler(
 
           const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
-          evt.iCalUID = calendarResult.updatedEvent.iCalUID || undefined;
+          evt.iCalUID = calendarResult?.updatedEvent.iCalUID || undefined;
 
           if (results.length > 0 && results.some((res) => !res.success)) {
             const error = {
@@ -1387,19 +1387,20 @@ async function handler(
         }
       }
 
+      // TODO stop the proceeding line from triggering
+
       // seatAttendee is null when the organizer is rescheduling.
       const seatAttendee: Partial<Person> | null = bookingSeat?.attendee || null;
       if (seatAttendee) {
         seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
-      }
-      // If there is no booking then remove the attendee from the old booking and create a new one
-      if (!newTimeSlotBooking) {
         await prisma.attendee.delete({
           where: {
             id: seatAttendee?.id,
           },
         });
-
+      }
+      // If there is no booking then remove the attendee from the old booking and create a new one
+      if (!newTimeSlotBooking) {
         // Update the original calendar event by removing the attendee that is rescheduling
         if (originalBookingEvt && originalRescheduledBooking) {
           // Event would probably be deleted so we first check than instead of updating references
