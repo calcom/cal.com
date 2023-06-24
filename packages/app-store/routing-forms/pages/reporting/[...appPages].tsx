@@ -57,9 +57,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
   const headers = useRef<string[] | null>(null);
 
   if (!isLoading && !data) {
-    return (
-        <div>Error loading report {error?.message} </div>
-    );
+    return <div>Error loading report {error?.message} </div>;
   }
   headers.current = (data?.pages && data?.pages[0]?.headers) || headers.current;
 
