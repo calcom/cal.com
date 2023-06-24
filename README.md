@@ -147,6 +147,8 @@ Here is what you need to be able to run Cal.com.
 > - **Requires Docker and Docker Compose to be installed**
 > - Will start a local Postgres instance with a few test users - the credentials will be logged in the console
 
+
+
 ```sh
 yarn dx
 ```
