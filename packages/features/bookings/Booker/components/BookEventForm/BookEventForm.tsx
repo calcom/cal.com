@@ -40,10 +40,10 @@ type BookEventFormProps = {
 };
 
 export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
-  const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation(undefined, {
+  const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
     trpc: { context: { skipBatch: true } },
   });
-  const releaseSlotMutation = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation(undefined, {
+  const releaseSlotMutation = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation({
     trpc: { context: { skipBatch: true } },
   });
   const router = useRouter();
