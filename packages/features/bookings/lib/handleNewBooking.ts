@@ -1066,6 +1066,12 @@ async function handler(
           message?: string;
         })
       | null = null;
+    console.log(
+      "🚀 ~ file: handleNewBooking.ts:1075 ~ handleSeats ~ reqBody.bookingUid:",
+      reqBody.bookingUid
+    );
+    console.log("🚀 ~ file: handleNewBooking.ts:1080 ~ handleSeats ~ rescheduleUid:", rescheduleUid);
+
     const booking = await prisma.booking.findFirst({
       where: {
         OR: [
@@ -1077,6 +1083,7 @@ async function handler(
             startTime: evt.startTime,
           },
         ],
+        status: BookingStatus.ACCEPTED,
       },
       select: {
         uid: true,
@@ -1387,8 +1394,6 @@ async function handler(
         }
       }
 
-      // TODO stop the proceeding line from triggering
-
       // seatAttendee is null when the organizer is rescheduling.
       const seatAttendee: Partial<Person> | null = bookingSeat?.attendee || null;
       if (seatAttendee) {
@@ -1398,76 +1403,77 @@ async function handler(
             id: seatAttendee?.id,
           },
         });
-      }
-      // If there is no booking then remove the attendee from the old booking and create a new one
-      if (!newTimeSlotBooking) {
-        // Update the original calendar event by removing the attendee that is rescheduling
-        if (originalBookingEvt && originalRescheduledBooking) {
-          // Event would probably be deleted so we first check than instead of updating references
-          const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
-            return attendee.email !== bookerEmail;
-          });
-          const deletedReference = await lastAttendeeDeleteBooking(
-            originalRescheduledBooking,
-            filteredAttendees,
-            originalBookingEvt
-          );
 
-          if (!deletedReference) {
-            await eventManager.updateCalendarAttendees(originalBookingEvt, originalRescheduledBooking);
+        // If there is no booking then remove the attendee from the old booking and create a new one
+        if (!newTimeSlotBooking) {
+          // Update the original calendar event by removing the attendee that is rescheduling
+          if (originalBookingEvt && originalRescheduledBooking) {
+            // Event would probably be deleted so we first check than instead of updating references
+            const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
+              return attendee.email !== bookerEmail;
+            });
+            const deletedReference = await lastAttendeeDeleteBooking(
+              originalRescheduledBooking,
+              filteredAttendees,
+              originalBookingEvt
+            );
+
+            if (!deletedReference) {
+              await eventManager.updateCalendarAttendees(originalBookingEvt, originalRescheduledBooking);
+            }
           }
+
+          // We don't want to trigger rescheduling logic of the original booking
+          originalRescheduledBooking = null;
+
+          return null;
         }
 
-        // We don't want to trigger rescheduling logic of the original booking
-        originalRescheduledBooking = null;
+        // Need to change the new seat reference and attendee record to remove it from the old booking and add it to the new booking
+        // https://stackoverflow.com/questions/4980963/database-insert-new-rows-or-update-existing-ones
+        if (seatAttendee?.id && bookingSeat?.id) {
+          await Promise.all([
+            await prisma.attendee.update({
+              where: {
+                id: seatAttendee.id,
+              },
+              data: {
+                bookingId: newTimeSlotBooking.id,
+              },
+            }),
+            await prisma.bookingSeat.update({
+              where: {
+                id: bookingSeat.id,
+              },
+              data: {
+                bookingId: newTimeSlotBooking.id,
+              },
+            }),
+          ]);
+        }
 
-        return null;
+        const copyEvent = cloneDeep(evt);
+
+        const updateManager = await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
+
+        const results = updateManager.results;
+
+        const calendarResult = results.find((result) => result.type.includes("_calendar"));
+
+        evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
+          ? calendarResult?.updatedEvent[0]?.iCalUID
+          : calendarResult?.updatedEvent?.iCalUID || undefined;
+
+        await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
+        const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
+          return attendee.email !== bookerEmail;
+        });
+        await lastAttendeeDeleteBooking(originalRescheduledBooking, filteredAttendees, originalBookingEvt);
+
+        const foundBooking = await findBookingQuery(newTimeSlotBooking.id);
+
+        resultBooking = { ...foundBooking, seatReferenceUid: bookingSeat?.referenceUid };
       }
-
-      // Need to change the new seat reference and attendee record to remove it from the old booking and add it to the new booking
-      // https://stackoverflow.com/questions/4980963/database-insert-new-rows-or-update-existing-ones
-      if (seatAttendee?.id && bookingSeat?.id) {
-        await Promise.all([
-          await prisma.attendee.update({
-            where: {
-              id: seatAttendee.id,
-            },
-            data: {
-              bookingId: newTimeSlotBooking.id,
-            },
-          }),
-          await prisma.bookingSeat.update({
-            where: {
-              id: bookingSeat.id,
-            },
-            data: {
-              bookingId: newTimeSlotBooking.id,
-            },
-          }),
-        ]);
-      }
-
-      const copyEvent = cloneDeep(evt);
-
-      const updateManager = await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
-
-      const results = updateManager.results;
-
-      const calendarResult = results.find((result) => result.type.includes("_calendar"));
-
-      evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
-        ? calendarResult?.updatedEvent[0]?.iCalUID
-        : calendarResult?.updatedEvent?.iCalUID || undefined;
-
-      await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
-      const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
-        return attendee.email !== bookerEmail;
-      });
-      await lastAttendeeDeleteBooking(originalRescheduledBooking, filteredAttendees, originalBookingEvt);
-
-      const foundBooking = await findBookingQuery(newTimeSlotBooking.id);
-
-      resultBooking = { ...foundBooking, seatReferenceUid: bookingSeat?.referenceUid };
     } else {
       // Need to add translation for attendees to pass type checks. Since these values are never written to the db we can just use the new attendee language
       const bookingAttendees = booking.attendees.map((attendee) => {
