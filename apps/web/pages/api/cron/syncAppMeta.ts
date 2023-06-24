@@ -19,7 +19,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  console.log(`🧐 Checking DB apps are in-sync with app metadata`);
+  const isDryRun = process.env.CRON_ENABLE_APP_SYNC !== "true";
+
+  console.log(`🧐 Checking DB apps are in-sync with app metadata ${isDryRun ? "(dry run)" : ""}`);
 
   const dbApps = await prisma.app.findMany();
 
@@ -28,7 +30,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const updates: Prisma.AppUpdateManyMutationInput = {};
 
     if (!app) {
-      console.error(`💀 App ${dbApp.slug} (${dbApp.dirName}) no longer exists.`);
+      console.error(
+        `💀 App ${dbApp.slug} (${dbApp.dirName}) no longer exists. ${isDryRun ? "(dry run)" : ""}`
+      );
       continue;
     }
 
@@ -45,13 +49,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (Object.keys(updates).length > 0) {
-      console.log(`🔨 Updating app ${dbApp.slug} with ${Object.keys(updates).join(", ")}`);
-      await prisma.app.update({
-        where: { slug: dbApp.slug },
-        data: updates,
-      });
+      console.log(
+        `🔨 Updating app ${dbApp.slug} with ${Object.keys(updates).join(", ")} ${isDryRun ? "(dry run)" : ""}`
+      );
+      if (!isDryRun) {
+        await prisma.app.update({
+          where: { slug: dbApp.slug },
+          data: updates,
+        });
+      }
     } else {
-      console.log(`✅ App ${dbApp.slug} is up-to-date and correct`);
+      console.log(`✅ App ${dbApp.slug} is up-to-date and correct ${isDryRun ? "(dry run)" : ""}`);
     }
   }
 
