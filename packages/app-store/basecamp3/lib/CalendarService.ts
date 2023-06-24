@@ -4,20 +4,12 @@ import type { Prisma } from "@prisma/client";
 import ICAL from "ical.js";
 import type { Attendee, DateArray, DurationObject, Person } from "ics";
 import { createEvent } from "ics";
-import type { DAVAccount, DAVCalendar, DAVObject } from "tsdav";
-import {
-  createAccount,
-  createCalendarObject,
-  deleteCalendarObject,
-  fetchCalendarObjects,
-  fetchCalendars,
-  updateCalendarObject,
-} from "tsdav";
-import { v4 as uuidv4 } from "uuid";
+import type { DAVAccount } from "tsdav";
+import { createAccount, fetchCalendarObjects, updateCalendarObject } from "tsdav";
 
 import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
-import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
 import type {
@@ -30,17 +22,13 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+import { userAgent } from "./constants";
+import { getBasecampKeys } from "./getBasecampKeys";
+
 const TIMEZONE_FORMAT = "YYYY-MM-DDTHH:mm:ss[Z]";
 const DEFAULT_CALENDAR_TYPE = "caldav";
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
-
-type FetchObjectsWithOptionalExpandOptionsType = {
-  selectedCalendars: IntegrationCalendar[];
-  startISOString: string;
-  dateTo: string;
-  headers?: Record<string, string>;
-};
 
 function hasFileExtension(url: string): boolean {
   // Get the last portion of the URL (after the last '/')
@@ -75,92 +63,115 @@ const getAttendees = (attendees: Person[]): Attendee[] =>
 export default class BasecampCalendarService implements Calendar {
   private url = "";
   private credentials: Record<string, string> = {};
+  private auth: Promise<{ configureToken: () => Promise<void> }>;
   private headers: Record<string, string> = {};
-  protected integrationName = "basecamp3";
+  protected integrationName = "";
+  private accessToken = "";
+  private scheduleId = "";
+  private userId = "";
+  private projectId = "";
   private log: typeof logger;
 
   constructor(credential: CredentialPayload) {
-    console.log("HEEK INITIALIZAING");
-    const {
-      username,
-      password,
-      url: credentialURL,
-    } = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
-
+    this.integrationName = "basecamp3";
+    this.auth = this.basecampAuth(credential).then((c) => c);
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    console.log("HEEEK DONE INITIALIZING");
+  }
+
+  private basecampAuth = async (credential: CredentialPayload) => {
+    const credentialKey = credential.key;
+    this.scheduleId = credentialKey.scheduleId;
+    this.userId = credentialKey.account.id;
+    this.projectId = credentialKey.projectId;
+    const isTokenValid = (credentialToken) => {
+      const isValid = credentialToken.access_token && credentialToken.expires_at > Date.now();
+      if (isValid) this.accessToken = credentialToken.access_token;
+      return isValid;
+    };
+    const refreshAccessToken = async (credentialToken) => {
+      try {
+        const { client_id: clientId, client_secret: clientSecret } = await getBasecampKeys();
+        const tokenInfo = await fetch(
+          `https://launchpad.37signals.com/authorization/token?type=refresh&refresh_token=${credentialToken.refresh_token}&client_id=${clientId}&redirect_uri=${WEBAPP_URL}&client_secret=${clientSecret}`,
+          { method: "POST", headers: { "User-Agent": userAgent } }
+        );
+        const tokenInfoJson = await tokenInfo.json();
+        tokenInfoJson["expires_at"] = Date.now() + 1000 * 3600 * 24 * 14;
+        this.accessToken = tokenInfoJson.access_token;
+        await prisma?.credential.update({
+          where: { userId: credential.userId },
+          data: {
+            key: { ...credentialKey, ...tokenInfoJson },
+          },
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    return {
+      configureToken: () =>
+        isTokenValid(credentialKey) ? Promise.resolve() : refreshAccessToken(credentialKey),
+    };
+  };
+
+  private async getBasecampDescription(event: CalendarEvent): string {
+    const timeZone = await this.getUserTimezoneFromDB(event.organizer.id);
+    const date = new Date(event.startTime).toDateString();
+    const startTime = new Date(event.startTime).toISOString();
+    const endTime = new Date(event.endTime).toISOString();
+    const baseString = `Event title: ${event.title}\nDate and time ${date}, ${startTime} - ${endTime} ${timeZone}\n View on Cal.com\n<a target=\"_blank\" rel=\"noreferrer\" class=\"autolinked\" data-behavior=\"truncate\" href=\"https://app.cal.com/booking/${event.uid}\">https://app.cal.com/booking/${event.uid}</a>`;
+    const guestString =
+      "\nGuests: " +
+      event.attendees.reduce((acc, attendee) => {
+        return (
+          acc +
+          `\n${attendee.name}:<a target=\"_blank\" rel=\"noreferrer\" class=\"autolinked\" data-behavior=\"truncate\" href=\"mailto:${attendee.email}\">${attendee.email}</a>\n`
+        );
+      }, "");
+
+    const videoString = event.videoCallData ? `\nJoin on video: ${event.videoCallData.url}` : "";
+    return baseString + guestString + videoString;
   }
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
-    console.log("HEEK CREATING EVENT");
     try {
-      const calendars = await this.listCalendars(event);
-
-      const uid = uuidv4();
-
-      // We create local ICS files
-      const { error, value: iCalString } = createEvent({
-        uid,
-        startInputType: "utc",
-        start: convertDate(event.startTime),
-        duration: getDuration(event.startTime, event.endTime),
-        title: event.title,
-        description: getRichDescription(event),
-        location: getLocation(event),
-        organizer: { email: event.organizer.email, name: event.organizer.name },
-        attendees: [
-          ...getAttendees(event.attendees),
-          ...(event.team?.members ? getAttendees(event.team.members) : []),
-        ],
-        /** according to https://datatracker.ietf.org/doc/html/rfc2446#section-3.2.1, in a published iCalendar component.
-         * "Attendees" MUST NOT be present
-         * `attendees: this.getAttendees(event.attendees),`
-         * [UPDATE]: Since we're not using the PUBLISH method to publish the iCalendar event and creating the event directly on iCal,
-         * this shouldn't be an issue and we should be able to add attendees to the event right here.
-         */
-      });
-
-      if (error || !iCalString)
-        throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
-
-      // We create the event directly on iCal
-      const responses = await Promise.all(
-        calendars
-          .filter((c) =>
-            event.destinationCalendar?.externalId
-              ? c.externalId === event.destinationCalendar.externalId
-              : true
-          )
-          .map((calendar) =>
-            createCalendarObject({
-              calendar: {
-                url: calendar.externalId,
-              },
-              filename: `${uid}.ics`,
-              // according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1, Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property.
-              iCalString: iCalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
-              headers: this.headers,
-            })
-          )
+      const auth = await this.auth;
+      await auth.configureToken();
+      const description = await this.getBasecampDescription(event);
+      const basecampEvent = await fetch(
+        `https://3.basecampapi.com/${this.userId}/buckets/${this.projectId}/schedules/${this.scheduleId}/entries.json`,
+        {
+          method: "POST",
+          headers: {
+            "User-Agent": userAgent,
+            Authorization: `Bearer ${this.accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            description,
+            summary: `Cal.com: ${event.title}`,
+            starts_at: new Date(event.startTime).toISOString(),
+            ends_at: new Date(event.endTime).toISOString(),
+          }),
+        }
       );
-
-      if (responses.some((r) => !r.ok)) {
-        throw new Error(
-          `Error creating event: ${(await Promise.all(responses.map((r) => r.text()))).join(", ")}`
-        );
-      }
-
-      return {
-        uid,
-        id: uid,
+      const meetingJson = await basecampEvent.json();
+      const id = meetingJson.id;
+      this.log.debug("event:creation:ok", { json: meetingJson });
+      console.log("EVENT_IDD", id);
+      return Promise.resolve({
+        id,
+        uid: id,
         type: this.integrationName,
         password: "",
         url: "",
-        additionalInfo: {},
-      };
-    } catch (reason) {
-      logger.error(reason);
-
-      throw reason;
+        additionalInfo: { meetingJson },
+      });
+    } catch (err) {
+      this.log.debug("event:creation:notOk");
+      Promise.reject({ error: "Unable to book basecamp meeting" });
     }
   }
 
@@ -248,20 +259,27 @@ export default class BasecampCalendarService implements Calendar {
 
   async deleteEvent(uid: string): Promise<void> {
     try {
-      const events = await this.getEventsByUID(uid);
-
-      const eventsToDelete = events.filter((event) => event.uid === uid);
-      await Promise.all(
-        eventsToDelete.map((event) => {
-          return deleteCalendarObject({
-            calendarObject: {
-              url: event.url,
-              etag: event?.etag,
-            },
-            headers: this.headers,
-          });
-        })
+      console.log("UUUID", uid);
+      const auth = await this.auth;
+      await auth.configureToken();
+      console.log(
+        "URLTQ",
+        `https://3.basecampapi.com/${this.userId}/buckets/${this.projectId}/recordings/${uid}/status/trashed.json`
       );
+      const deletedEventResponse = await fetch(
+        `https://3.basecampapi.com/${this.userId}/buckets/${this.projectId}/recordings/${uid}/status/trashed.json`,
+        {
+          method: "PUT",
+          headers: {
+            "User-Agent": userAgent,
+            Authorization: `Bearer ${this.accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (deletedEventResponse.ok) {
+        Promise.resolve("Deleted basecamp meeting");
+      } else Promise.reject("Error cancelling basecamp event");
     } catch (reason) {
       this.log.error(reason);
 
@@ -312,182 +330,15 @@ export default class BasecampCalendarService implements Calendar {
   };
 
   async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    _dateFrom: string,
+    _dateTo: string,
+    _selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
-    const startISOString = new Date(dateFrom).toISOString();
-
-    const objects = await this.fetchObjectsWithOptionalExpand({
-      selectedCalendars,
-      startISOString,
-      dateTo,
-      headers: this.headers,
-    });
-
-    const userId = this.getUserId(selectedCalendars);
-    // we use the userId from selectedCalendars to fetch the user's timeZone from the database primarily for all-day events without any timezone information
-    const userTimeZone = userId ? await this.getUserTimezoneFromDB(userId) : "Europe/London";
-    const events: { start: string; end: string }[] = [];
-    objects.forEach((object) => {
-      if (object.data == null || JSON.stringify(object.data) == "{}") return;
-      let vcalendar: ICAL.Component;
-      try {
-        const jcalData = ICAL.parse(sanitizeCalendarObject(object));
-        vcalendar = new ICAL.Component(jcalData);
-      } catch (e) {
-        console.error("Error parsing calendar object: ", e);
-        return;
-      }
-      const vevents = vcalendar.getAllSubcomponents("vevent");
-      vevents.forEach((vevent) => {
-        // if event status is free or transparent, return
-        if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
-
-        const event = new ICAL.Event(vevent);
-        const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
-        const timezone = dtstart ? dtstart["timezone"] : undefined;
-        // We check if the dtstart timezone is in UTC which is actually represented by Z instead, but not recognized as that in ICAL.js as UTC
-        const isUTC = timezone === "Z";
-        const tzid: string | undefined = vevent?.getFirstPropertyValue("tzid") || isUTC ? "UTC" : timezone;
-        // In case of icalendar, when only tzid is available without vtimezone, we need to add vtimezone explicitly to take care of timezone diff
-        if (!vcalendar.getFirstSubcomponent("vtimezone")) {
-          const timezoneToUse = tzid || userTimeZone;
-          if (timezoneToUse) {
-            try {
-              const timezoneComp = new ICAL.Component("vtimezone");
-              timezoneComp.addPropertyWithValue("tzid", timezoneToUse);
-              const standard = new ICAL.Component("standard");
-
-              // get timezone offset
-              const tzoffsetfrom = dayjs(event.startDate.toJSDate()).tz(timezoneToUse).format("Z");
-              const tzoffsetto = dayjs(event.endDate.toJSDate()).tz(timezoneToUse).format("Z");
-
-              // set timezone offset
-              standard.addPropertyWithValue("tzoffsetfrom", tzoffsetfrom);
-              standard.addPropertyWithValue("tzoffsetto", tzoffsetto);
-              // provide a standard dtstart
-              standard.addPropertyWithValue("dtstart", "1601-01-01T00:00:00");
-              timezoneComp.addSubcomponent(standard);
-              vcalendar.addSubcomponent(timezoneComp);
-            } catch (e) {
-              // Adds try-catch to ensure the code proceeds when Apple Calendar provides non-standard TZIDs
-              console.log("error in adding vtimezone", e);
-            }
-          } else {
-            console.error("No timezone found");
-          }
-        }
-        const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
-
-        if (event.isRecurring()) {
-          let maxIterations = 365;
-          if (["HOURLY", "SECONDLY", "MINUTELY"].includes(event.getRecurrenceTypes())) {
-            console.error(`Won't handle [${event.getRecurrenceTypes()}] recurrence`);
-            return;
-          }
-
-          const start = dayjs(dateFrom);
-          const end = dayjs(dateTo);
-          const startDate = ICAL.Time.fromDateTimeString(startISOString);
-          startDate.hour = event.startDate.hour;
-          startDate.minute = event.startDate.minute;
-          startDate.second = event.startDate.second;
-          const iterator = event.iterator(startDate);
-          let current: ICAL.Time;
-          let currentEvent;
-          let currentStart = null;
-          let currentError;
-
-          while (
-            maxIterations > 0 &&
-            (currentStart === null || currentStart.isAfter(end) === false) &&
-            // this iterator was poorly implemented, normally done is expected to be
-            // returned
-            (current = iterator.next())
-          ) {
-            maxIterations -= 1;
-
-            try {
-              // @see https://github.com/mozilla-comm/ical.js/issues/514
-              currentEvent = event.getOccurrenceDetails(current);
-            } catch (error) {
-              if (error instanceof Error && error.message !== currentError) {
-                currentError = error.message;
-                this.log.error("error", error);
-              }
-            }
-            if (!currentEvent) return;
-            // do not mix up caldav and icalendar! For the recurring events here, the timezone
-            // provided is relevant, not as pointed out in https://datatracker.ietf.org/doc/html/rfc4791#section-9.6.5
-            // where recurring events are always in utc (in caldav!). Thus, apply the time zone here.
-            if (vtimezone) {
-              const zone = new ICAL.Timezone(vtimezone);
-              currentEvent.startDate = currentEvent.startDate.convertToZone(zone);
-              currentEvent.endDate = currentEvent.endDate.convertToZone(zone);
-            }
-            currentStart = dayjs(currentEvent.startDate.toJSDate());
-
-            if (currentStart.isBetween(start, end) === true) {
-              events.push({
-                start: currentStart.toISOString(),
-                end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
-              });
-            }
-          }
-          if (maxIterations <= 0) {
-            console.warn("could not find any occurrence for recurring event in 365 iterations");
-          }
-          return;
-        }
-
-        if (vtimezone) {
-          const zone = new ICAL.Timezone(vtimezone);
-          event.startDate = event.startDate.convertToZone(zone);
-          event.endDate = event.endDate.convertToZone(zone);
-        }
-
-        return events.push({
-          start: dayjs(event.startDate.toJSDate()).toISOString(),
-          end: dayjs(event.endDate.toJSDate()).toISOString(),
-        });
-      });
-    });
-
-    return Promise.resolve(events);
+    return Promise.resolve([]);
   }
 
-  async listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]> {
-    try {
-      const account = await this.getAccount();
-
-      const calendars = (await fetchCalendars({
-        account,
-        headers: this.headers,
-      })) /** @url https://github.com/natelindev/tsdav/pull/139 */ as (Omit<DAVCalendar, "displayName"> & {
-        displayName?: string | Record<string, unknown>;
-      })[];
-
-      return calendars.reduce<IntegrationCalendar[]>((newCalendars, calendar) => {
-        if (!calendar.components?.includes("VEVENT")) return newCalendars;
-
-        newCalendars.push({
-          externalId: calendar.url,
-          /** @url https://github.com/calcom/cal.com/issues/7186 */
-          name: typeof calendar.displayName === "string" ? calendar.displayName : "",
-          primary: event?.destinationCalendar?.externalId
-            ? event.destinationCalendar.externalId === calendar.url
-            : false,
-          integration: this.integrationName,
-          email: this.credentials.username ?? "",
-        });
-        return newCalendars;
-      }, []);
-    } catch (reason) {
-      logger.error(reason);
-
-      throw reason;
-    }
+  async listCalendars(_event?: CalendarEvent): Promise<IntegrationCalendar[]> {
+    return Promise.resolve([]);
   }
 
   /**
@@ -504,66 +355,6 @@ export default class BasecampCalendarService implements Calendar {
    *   @param {Object} options.headers - Headers to be included in the API requests.
    * @returns {Promise<Array>} - A promise that resolves to a flattened array of calendar objects with the structure { url: ..., etag: ..., data: ...}.
    */
-
-  async fetchObjectsWithOptionalExpand({
-    selectedCalendars,
-    startISOString,
-    dateTo,
-    headers,
-  }: FetchObjectsWithOptionalExpandOptionsType): Promise<DAVObject[]> {
-    const filteredCalendars = selectedCalendars.filter((sc) => sc.externalId);
-    const fetchPromises = filteredCalendars.map(async (sc) => {
-      const response = await fetchCalendarObjects({
-        urlFilter: (url) => this.isValidFormat(url),
-        calendar: {
-          url: sc.externalId,
-        },
-        headers,
-        expand: true,
-        timeRange: {
-          start: startISOString,
-          end: new Date(dateTo).toISOString(),
-        },
-      });
-
-      const processedResponse = await Promise.all(
-        response.map(async (calendarObject) => {
-          const calendarObjectHasEtag = calendarObject.etag !== undefined;
-          const calendarObjectDataUndefined = calendarObject.data === undefined;
-          if (calendarObjectDataUndefined && calendarObjectHasEtag) {
-            const responseWithoutExpand = await fetchCalendarObjects({
-              urlFilter: (url) => this.isValidFormat(url),
-              calendar: {
-                url: sc.externalId,
-              },
-              headers,
-              expand: false,
-              timeRange: {
-                start: startISOString,
-                end: new Date(dateTo).toISOString(),
-              },
-            });
-
-            return responseWithoutExpand.find(
-              (obj) => obj.url === calendarObject.url && obj.etag === calendarObject.etag
-            );
-          }
-          return calendarObject;
-        })
-      );
-      return processedResponse;
-    });
-    const resolvedPromises = await Promise.allSettled(fetchPromises);
-    const fulfilledPromises = resolvedPromises.filter(
-      (promise): promise is PromiseFulfilledResult<(DAVObject | undefined)[]> =>
-        promise.status === "fulfilled"
-    );
-    const flatResult = fulfilledPromises
-      .map((promise) => promise.value)
-      .flat()
-      .filter((obj) => obj !== null);
-    return flatResult as DAVObject[];
-  }
 
   private async getEvents(
     calId: string,

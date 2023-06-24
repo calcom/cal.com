@@ -14,17 +14,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { client_id, client_secret } = await getAppKeysFromSlug("basecamp3");
 
   const redirectUri = WEBAPP_URL + "/api/integrations/basecamp3/callback";
-  const result = await fetch(
+  // gets access token
+  const accessTokenResponse = await fetch(
     `https://launchpad.37signals.com/authorization/token?type=web_server&client_id=${client_id}&redirect_uri=${redirectUri}&client_secret=${client_secret}&code=${code}`,
     {
       method: "POST",
     }
   );
 
-  if (result.status !== 200) {
+  if (accessTokenResponse.status !== 200) {
     let errorMessage = "Error with Basecamp 3 API";
     try {
-      const responseBody = await result.json();
+      const responseBody = await accessTokenResponse.json();
       errorMessage = responseBody.error;
     } catch (e) {}
 
@@ -32,23 +33,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const responseBody = await result.json();
+  const tokenResponseBody = await accessTokenResponse.json();
 
-  if (responseBody.error) {
-    res.status(400).json({ message: responseBody.error });
+  if (tokenResponseBody.error) {
+    res.status(400).json({ message: tokenResponseBody.error });
     return;
   }
-
-  const authorizationResponse = await fetch("https://launchpad.37signals.com/authorization.json", {
+  // expiry date of 2 weeks
+  tokenResponseBody["expires_at"] = Date.now() + 1000 * 3600 * 24 * 14;
+  // get user details such as projects and account info
+  const userAuthResponse = await fetch("https://launchpad.37signals.com/authorization.json", {
     headers: {
       "User-Agent": userAgent,
-      Authorization: `Bearer ${responseBody.access_token}`,
+      Authorization: `Bearer ${tokenResponseBody.access_token}`,
     },
   });
-  if (authorizationResponse.status !== 200) {
+  if (userAuthResponse.status !== 200) {
     let errorMessage = "Error with Basecamp 3 API";
     try {
-      const body = await authorizationResponse.json();
+      const body = await userAuthResponse.json();
       errorMessage = body.error;
     } catch (e) {}
 
@@ -56,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const authResponseBody = await authorizationResponse.json();
+  const authResponseBody = await userAuthResponse.json();
   const userId = req.session?.user.id;
   if (!userId) {
     return res.status(404).json({ message: "No user found" });
@@ -70,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       credentials: {
         create: {
           type: appConfig.type,
-          key: { ...responseBody, account: authResponseBody.accounts[0] },
+          key: { ...tokenResponseBody, account: authResponseBody.accounts[0] },
           appId: appConfig.slug,
         },
       },

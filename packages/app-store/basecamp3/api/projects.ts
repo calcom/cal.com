@@ -22,7 +22,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     headers: { "User-Agent": userAgent, Authorization: `Bearer ${credential.key.access_token}` },
   });
   const data = await resp.json();
-  console.log("dataz", data);
+  console.log("dataz", credential.key);
   return res.json({ data, currentProject: credential.key.projectId });
 }
 
@@ -39,10 +39,22 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   if (!credential) {
     return res.status(400).json({ message: "No app credential found for user" });
   }
-
+  // get schedule id
+  const basecampUserId = credential.key.account.id;
+  const scheduleResponse = await fetch(
+    `https://3.basecampapi.com/${basecampUserId}/projects/${projectId}.json`,
+    {
+      headers: {
+        "User-Agent": userAgent,
+        Authorization: `Bearer ${credential.key.access_token}`,
+      },
+    }
+  );
+  const scheduleJson = await scheduleResponse.json();
+  const scheduleId = scheduleJson.dock.find((dock) => dock.name === "schedule").id;
   await prisma.credential.update({
     where: { id: credential.id },
-    data: { key: { ...credential.key, projectId: Number(projectId) } },
+    data: { key: { ...credential.key, projectId: Number(projectId), scheduleId } },
   });
 
   return res.json({ message: "Updated basecamp project" });

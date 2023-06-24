@@ -13,13 +13,15 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const [enabled, setEnabled] = useState(getAppData("enabled"));
   const [projects, setProjects] = useState(undefined);
   const [selectedProject, setSelectedProject] = useState(undefined);
+
   useEffect(() => {
     fetch("/api/integrations/basecamp3/projects")
       .then((resp) => resp.json())
       .then((json) => {
+        console.log("jsoni", json);
         setSelectedProject({
           value: json?.currentProject,
-          label: json.data.find((project) => project.id === json?.currentProject).name,
+          label: json?.data?.find((project) => project.id === json?.currentProject)?.name,
         });
         setProjects(
           json.data.map((project) => {
@@ -30,7 +32,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           })
         );
       });
-  }, [eventType]);
+  }, []);
 
   console.log(selectedProject, "basecampProject");
   console.log(projects, "projects");
@@ -64,7 +66,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 method: "POST",
               }).then((resp) => resp.json());
             }}
-            defaultValue={selectedProject}
+            // defaultValue={selectedProject}
           />
         </div>
         <div className="mt-2">

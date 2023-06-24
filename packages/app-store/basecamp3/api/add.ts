@@ -5,7 +5,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
-import { getBasecampKeys } from "../lib";
+import { getBasecampKeys } from "../lib/getBasecampKeys";
 
 async function handler(req: NextApiRequest) {
   await prisma.user.findFirstOrThrow({
