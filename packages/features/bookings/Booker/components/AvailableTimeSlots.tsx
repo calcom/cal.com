@@ -27,13 +27,26 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }:
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const duration = useBookerStore((state) => state.selectedDuration);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
+  const setSeatedEventData = useBookerStore((state) => state.setSeatedEventData);
   const event = useEvent();
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
 
-  const onTimeSelect = (time: string, attendees: number, seatsPerTimeSlot?: number | null) => {
+  const onTimeSelect = (
+    time: string,
+    attendees: number,
+    seatsPerTimeSlot?: number | null,
+    bookingUid?: string
+  ) => {
     setSelectedTimeslot(time);
 
-    if (seatsPerTimeSlot && seatsPerTimeSlot - attendees > 1) return;
+    if (seatsPerTimeSlot && seatsPerTimeSlot - attendees > 1) {
+      setSeatedEventData({
+        seatsPerTimeSlot,
+        attendees,
+        bookingUid,
+      });
+      return;
+    }
 
     if (!event.data) return;
     reserveSlotMutation.mutate({

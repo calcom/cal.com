@@ -25,6 +25,12 @@ type StoreInitializeType = {
   isTeamEvent?: boolean;
 };
 
+type SeatedEventData = {
+  seatsPerTimeSlot?: number | null;
+  attendees?: number;
+  bookingUid?: string;
+};
+
 export type BookerStore = {
   /**
    * Event details. These are stored in store for easier
@@ -96,6 +102,8 @@ export type BookerStore = {
    * both the slug and the event slug.
    */
   isTeamEvent: boolean;
+  seatedEventData: SeatedEventData;
+  setSeatedEventData: (seatedEventData: SeatedEventData) => void;
 };
 
 /**
@@ -145,6 +153,14 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     get().setSelectedDate(null);
   },
   isTeamEvent: false,
+  seatedEventData: {
+    seatsPerTimeSlot: undefined,
+    attendees: undefined,
+    bookingUid: undefined,
+  },
+  setSeatedEventData: (seatedEventData: SeatedEventData) => {
+    set({ seatedEventData });
+  },
   initialize: ({
     username,
     eventSlug,
