@@ -58,9 +58,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
 
   if (!isLoading && !data) {
     return (
-      <LicenseRequired>
         <div>Error loading report {error?.message} </div>
-      </LicenseRequired>
     );
   }
   headers.current = (data?.pages && data?.pages[0]?.headers) || headers.current;

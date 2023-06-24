@@ -112,7 +112,6 @@ export default function RoutingForms({
   ];
 
   return (
-    <LicenseRequired>
       <ShellMain
         heading="Routing Forms"
         CTA={hasPaidPlan && forms?.length ? <NewFormButton /> : null}
@@ -290,7 +289,6 @@ export default function RoutingForms({
           </FormActionsProvider>
         </UpgradeTip>
       </ShellMain>
-    </LicenseRequired>
   );
 }
 
