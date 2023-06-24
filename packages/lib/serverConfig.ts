@@ -10,7 +10,7 @@ function detectTransport(): SendmailTransport.Options | SMTPConnection.Options |
 
   if (process.env.EMAIL_SERVER_HOST) {
     const port = parseInt(process.env.EMAIL_SERVER_PORT || "");
-    let transport = {
+    const transport = {
       host: process.env.EMAIL_SERVER_HOST,
       port,
       auth: {
@@ -22,14 +22,6 @@ function detectTransport(): SendmailTransport.Options | SMTPConnection.Options |
         rejectUnauthorized: !isENVDev,
       },
     };
-
-    if (isENVDev) {
-      transport = {
-        port: process.env.EMAIL_SERVER_PORT,
-      };
-    }
-
-    Object.freeze(transport);
 
     return transport;
   }
