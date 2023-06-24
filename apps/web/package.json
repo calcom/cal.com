@@ -24,6 +24,7 @@
     "yarn": "3.4.1"
   },
   "dependencies": {
+    "@badrap/bar-of-progress": "^0.2.2",
     "@boxyhq/saml-jackson": "1.8.2",
     "@calcom/app-store": "*",
     "@calcom/app-store-cli": "*",
