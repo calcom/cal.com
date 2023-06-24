@@ -44,11 +44,13 @@ export const EventMeta = () => {
     },
     {
       onSuccess: (data) => {
-        setSeatedEventData({
-          attendees: data._count.attendees,
-          seatsPerTimeSlot: data.eventType.seatsPerTimeSlot,
-          bookingUid: router.query.bookingUid as string,
-        });
+        if (data) {
+          setSeatedEventData({
+            attendees: data._count.attendees,
+            seatsPerTimeSlot: data.eventType?.seatsPerTimeSlot,
+            bookingUid: router.query.bookingUid as string,
+          });
+        }
       },
       enabled: !!router.query.bookingUid && !seatedEventData.attendees,
     }
