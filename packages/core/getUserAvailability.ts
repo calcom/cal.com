@@ -11,6 +11,7 @@ import { checkBookingLimit } from "@calcom/lib/server";
 import { performance } from "@calcom/lib/server/perfObserver";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema, stringToDayjs } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimit } from "@calcom/types/Calendar";
 
@@ -92,6 +93,7 @@ export const getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Da
         gte: dateFrom.format(),
         lte: dateTo.format(),
       },
+      status: BookingStatus.ACCEPTED,
     },
     select: {
       uid: true,
