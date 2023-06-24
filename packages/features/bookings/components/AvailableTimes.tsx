@@ -38,6 +38,7 @@ export const AvailableTimes = ({
 }: AvailableTimesProps) => {
   const { t, i18n } = useLocale();
   const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
+  const rescheduleBooking = useBookerStore((state) => state.rescheduleBooking);
   const hasTimeSlots = !!seatsPerTimeSlot;
   const [layout] = useBookerStore((state) => [state.layout], shallow);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
@@ -86,7 +87,7 @@ export const AvailableTimes = ({
           return (
             <Button
               key={slot.time}
-              disabled={bookingFull}
+              disabled={bookingFull || !!(slot.bookingUid && slot.bookingUid === rescheduleBooking?.uid)}
               data-testid="time"
               data-disabled={bookingFull}
               data-time={slot.time}
