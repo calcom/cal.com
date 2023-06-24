@@ -56,6 +56,11 @@ const BookerComponent = ({
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
     shallow
   );
+  // const seatedEventData = useBookerStore((state) => state.seatedEventData);
+  const [seatedEventData, setSeatedEventData] = useBookerStore(
+    (state) => [state.seatedEventData, state.setSeatedEventData],
+    shallow
+  );
 
   const extraDays = isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop;
   const bookerLayouts = event.data?.profile?.bookerLayouts || defaultBookerLayoutSettings;
@@ -190,7 +195,14 @@ const BookerComponent = ({
               className="border-subtle sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInLeft}
               visible={bookerState === "booking" && !shouldShowFormInDialog}>
-              <BookEventForm onCancel={() => setSelectedTimeslot(null)} />
+              <BookEventForm
+                onCancel={() => {
+                  setSelectedTimeslot(null);
+                  if (seatedEventData.bookingUid) {
+                    setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
+                  }
+                }}
+              />
             </BookerSection>
 
             <BookerSection

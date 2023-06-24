@@ -160,6 +160,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   setSeatedEventData: (seatedEventData: SeatedEventData) => {
     set({ seatedEventData });
+    updateQueryParam("bookingUid", seatedEventData.bookingUid ?? "");
   },
   initialize: ({
     username,
@@ -170,6 +171,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     rescheduleBooking = null,
     layout,
     isTeamEvent,
+    bookingUid,
   }: StoreInitializeType) => {
     const selectedDateInStore = get().selectedDate;
 

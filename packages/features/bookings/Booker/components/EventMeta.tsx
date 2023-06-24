@@ -1,5 +1,7 @@
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/router";
+import { shallow } from "zustand/shallow";
 
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
@@ -7,7 +9,8 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { Calendar, Globe } from "@calcom/ui/components/icon";
+import { trpc } from "@calcom/trpc";
+import { Calendar, Globe, User } from "@calcom/ui/components/icon";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
@@ -24,11 +27,32 @@ export const EventMeta = () => {
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
   const rescheduleBooking = useBookerStore((state) => state.rescheduleBooking);
+  const [seatedEventData, setSeatedEventData] = useBookerStore(
+    (state) => [state.seatedEventData, state.setSeatedEventData],
+    shallow
+  );
   const { i18n, t } = useLocale();
   const { data: event, isLoading } = useEvent();
   const embedUiConfig = useEmbedUiConfig();
   const isEmbed = useIsEmbed();
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
+  const router = useRouter();
+
+  const bookingAttendeesQuery = trpc.viewer.public.booking.useQuery(
+    {
+      bookingUid: router.query.bookingUid as string,
+    },
+    {
+      onSuccess: (data) => {
+        setSeatedEventData({
+          attendees: data._count.attendees,
+          seatsPerTimeSlot: data.eventType.seatsPerTimeSlot,
+          bookingUid: router.query.bookingUid as string,
+        });
+      },
+      enabled: !!router.query.bookingUid && !seatedEventData.attendees,
+    }
+  );
 
   if (hideEventTypeDetails) {
     return null;
@@ -101,6 +125,31 @@ export const EventMeta = () => {
                 </span>
               )}
             </EventMetaBlock>
+            {bookerState === "booking" && seatedEventData.attendees && seatedEventData.seatsPerTimeSlot && (
+              <EventMetaBlock
+                icon={User}
+                className={`${
+                  seatedEventData.attendees / seatedEventData.seatsPerTimeSlot >= 0.5
+                    ? "text-rose-600"
+                    : seatedEventData.attendees / seatedEventData.seatsPerTimeSlot >= 0.33
+                    ? "text-yellow-500"
+                    : "text-bookinghighlight"
+                }`}>
+                <div className="text-bookinghighlight flex items-start text-sm">
+                  <p>
+                    {seatedEventData.attendees
+                      ? seatedEventData.seatsPerTimeSlot - seatedEventData.attendees
+                      : seatedEventData.seatsPerTimeSlot}{" "}
+                    / {seatedEventData.seatsPerTimeSlot}{" "}
+                    {t("seats_available", {
+                      count: seatedEventData.attendees
+                        ? seatedEventData.seatsPerTimeSlot - seatedEventData.attendees
+                        : seatedEventData.seatsPerTimeSlot,
+                    })}
+                  </p>
+                </div>
+              </EventMetaBlock>
+            )}
           </div>
         </m.div>
       )}

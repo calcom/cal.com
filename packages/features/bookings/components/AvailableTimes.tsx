@@ -17,7 +17,12 @@ import { TimeFormatToggle } from "./TimeFormatToggle";
 type AvailableTimesProps = {
   date: Dayjs;
   slots: Slots[string];
-  onTimeSelect: (time: string, attendees: number, seatsPerTimeSlot?: number | null) => void;
+  onTimeSelect: (
+    time: string,
+    attendees: number,
+    seatsPerTimeSlot?: number | null,
+    bookingUid?: string
+  ) => void;
   seatsPerTimeSlot?: number | null;
   showTimeformatToggle?: boolean;
   className?: string;
