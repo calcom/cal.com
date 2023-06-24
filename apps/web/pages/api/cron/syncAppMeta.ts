@@ -1,8 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { AppCategories, Prisma } from "@calcom/prisma/client";
+
+const isDryRun = process.env.CRON_ENABLE_APP_SYNC !== "true";
+const log = logger.getChildLogger({
+  prefix: ["[api/cron/syncAppMeta]", ...(isDryRun ? ["(dry-run)"] : [])],
+});
 
 /**
  * syncAppMeta makes sure any app metadata that has been replicated into the database
@@ -19,9 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const isDryRun = process.env.CRON_ENABLE_APP_SYNC !== "true";
-
-  console.log(`🧐 Checking DB apps are in-sync with app metadata ${isDryRun ? "(dry run)" : ""}`);
+  log.info(`🧐 Checking DB apps are in-sync with app metadata`);
 
   const dbApps = await prisma.app.findMany();
 
@@ -30,9 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const updates: Prisma.AppUpdateManyMutationInput = {};
 
     if (!app) {
-      console.error(
-        `💀 App ${dbApp.slug} (${dbApp.dirName}) no longer exists. ${isDryRun ? "(dry run)" : ""}`
-      );
+      log.warn(`💀 App ${dbApp.slug} (${dbApp.dirName}) no longer exists.`);
       continue;
     }
 
@@ -49,9 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (Object.keys(updates).length > 0) {
-      console.log(
-        `🔨 Updating app ${dbApp.slug} with ${Object.keys(updates).join(", ")} ${isDryRun ? "(dry run)" : ""}`
-      );
+      log.info(`🔨 Updating app ${dbApp.slug} with ${Object.keys(updates).join(", ")}`);
       if (!isDryRun) {
         await prisma.app.update({
           where: { slug: dbApp.slug },
@@ -59,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
     } else {
-      console.log(`✅ App ${dbApp.slug} is up-to-date and correct ${isDryRun ? "(dry run)" : ""}`);
+      log.info(`✅ App ${dbApp.slug} is up-to-date and correct`);
     }
   }
 
