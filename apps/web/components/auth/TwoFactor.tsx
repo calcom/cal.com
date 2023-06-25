@@ -1,3 +1,4 @@
+import type { BaseSyntheticEvent } from "react";
 import React, { useEffect, useState } from "react";
 import useDigitInput from "react-digit-input";
 import { useFormContext } from "react-hook-form";
@@ -5,9 +6,13 @@ import { useFormContext } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label, Input } from "@calcom/ui";
 
+interface EnableTwoFactorValues {
+  totpCode: string;
+}
+
 interface TwoFactorProps {
   center?: boolean;
-  onSubmit?: (values: any, e: any) => void;
+  onSubmit?: (values: EnableTwoFactorValues, e: BaseSyntheticEvent | undefined) => void;
   disabling?: boolean;
 }
 
