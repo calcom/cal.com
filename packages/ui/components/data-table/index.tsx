@@ -13,8 +13,11 @@ import {
 } from "@tanstack/react-table";
 import * as React from "react";
 
+import type { SVGComponent } from "@calcom/types/SVGComponent";
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table/TableNew";
 import { DataTablePagination } from "./DataTablePagination";
+import { DataTableSelectionBar } from "./DataTableSelectionBar";
 import type { FilterableItems } from "./DataTableToolbar";
 import { DataTableToolbar } from "./DataTableToolbar";
 
@@ -23,6 +26,11 @@ export interface DataTableProps<TData, TValue> {
   data: TData[];
   searchKey?: string;
   filterableItems?: FilterableItems;
+  selectionOptions?: {
+    label: string;
+    onClick: () => void;
+    icon?: SVGComponent;
+  }[];
 }
 
 export function DataTable<TData, TValue>({
@@ -30,6 +38,7 @@ export function DataTable<TData, TValue>({
   data,
   filterableItems,
   searchKey,
+  selectionOptions,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -59,7 +68,7 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="space-y-4">
+    <div className="relative space-y-4">
       <DataTableToolbar table={table} filterableItems={filterableItems} searchKey={searchKey} />
       <div className="rounded-md border">
         <Table>
@@ -100,6 +109,7 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
       <DataTablePagination table={table} />
+      <DataTableSelectionBar table={table} actions={selectionOptions} />
     </div>
   );
 }

@@ -1,9 +1,28 @@
+import { StopCircle, Users } from "lucide-react";
+
 export type DataTableUserStorybook = {
   id: string;
   username: string;
   email: string;
   role: "admin" | "user";
 };
+
+export const dataTableSelectionActions = [
+  {
+    label: "Add To Team",
+    onClick: () => {
+      console.log("Add To Team");
+    },
+    icon: Users,
+  },
+  {
+    label: "Delete",
+    onClick: () => {
+      console.log("Delete");
+    },
+    icon: StopCircle,
+  },
+];
 
 export const dataTableDemousers: DataTableUserStorybook[] = [
   {
