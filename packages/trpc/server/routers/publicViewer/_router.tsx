@@ -138,7 +138,7 @@ export const publicViewerRouter = router({
 
   booking: publicProcedure.input(ZBookingInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.booking) {
-      UNSTABLE_HANDLER_CACHE.booking = await import("./booking.handler").then((mod) => mod.eventHandler);
+      UNSTABLE_HANDLER_CACHE.booking = await import("./booking.handler").then((mod) => mod.bookingHandler);
     }
 
     // Unreachable code but required for type safety
