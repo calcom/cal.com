@@ -4603,6 +4603,8 @@ __metadata:
     "@types/react-dom": ^18.0.9
     "@wojtekmaj/react-daterange-picker": ^3.3.1
     class-variance-authority: ^0.4.0
+    cmdk: ^0.2.0
+    cmk: ^0.1.1
     downshift: ^6.1.9
     lucide-react: ^0.171.0
     next: ^13.4.6
@@ -8234,7 +8236,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-dialog@npm:^1.0.0":
+"@radix-ui/react-dialog@npm:1.0.0, @radix-ui/react-dialog@npm:^1.0.0":
   version: 1.0.0
   resolution: "@radix-ui/react-dialog@npm:1.0.0"
   dependencies:
@@ -16620,6 +16622,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cmdk@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "cmdk@npm:0.2.0"
+  dependencies:
+    "@radix-ui/react-dialog": 1.0.0
+    command-score: 0.1.2
+  peerDependencies:
+    react: ^18.0.0
+    react-dom: ^18.0.0
+  checksum: b81add6daebb192e0ab79bd776aa22c75a9aa5c8ca3c40d6c99cbe3ab4f276bf580eb49d1e568126b6af1e72c0012b53ec260c241a594baf782a80b866a0d17e
+  languageName: node
+  linkType: hard
+
+"cmk@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "cmk@npm:0.1.1"
+  checksum: a05deef766a368c96d80bae89eb5046dfd708b0f3ca86ffa936f78ec2a49b4d9e5cab0c7a8b4e208b490354eaaf233a6e656a868c50876b4fdf5cd90de9e358d
+  languageName: node
+  linkType: hard
+
 "co-prompt@npm:^1.0.0":
   version: 1.0.0
   resolution: "co-prompt@npm:1.0.0"
@@ -16761,7 +16783,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"command-score@npm:^0.1.2":
+"command-score@npm:0.1.2, command-score@npm:^0.1.2":
   version: 0.1.2
   resolution: "command-score@npm:0.1.2"
   checksum: b733fd552d7e569070da3d474b1ed5f54785fdf3dd61670002e0a00b2eff1a547c2b6d3af3683c012f4f39c6455f9e7ee5e9997a79c08048ec37ec2195d3df08
