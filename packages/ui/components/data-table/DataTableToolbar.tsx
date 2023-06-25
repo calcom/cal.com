@@ -25,7 +25,7 @@ interface DataTableToolbarProps<TData> {
 export function DataTableToolbar<TData>({ table, filterableItems }: DataTableToolbarProps<TData>) {
   // TODO: Is there a better way to check if the table is filtered?
   // If you select ALL filters for a column, the table is not filtered and we dont get a reset button
-  const isFiltered = table.getPreFilteredRowModel().rows.length > table.getFilteredRowModel().rows.length;
+  const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
     <div className="flex items-center justify-between">

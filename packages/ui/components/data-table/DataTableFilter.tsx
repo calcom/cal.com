@@ -8,6 +8,7 @@ import { Badge } from "../badge";
 import { Button } from "../button";
 import {
   Dropdown,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -55,23 +56,24 @@ export function DataTableFilter<TData, TValue>({ column, title, options }: DataT
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         {/* <CommandInput placeholder={title} /> */}
-        <DropdownMenuItem>
-          {options.map((option) => {
-            const isSelected = selectedValues.has(option.value);
-            return (
-              <DropdownMenuItem
-                key={option.value}
-                onSelect={() => {
-                  if (isSelected) {
-                    selectedValues.delete(option.value);
-                  } else {
-                    selectedValues.add(option.value);
-                  }
-                  console.log(option.value);
+        {options.map((option) => {
+          const isSelected = selectedValues.has(option.value);
+          return (
+            <DropdownMenuItem
+              checked={isSelected}
+              key={option.value}
+              onSelect={() => {
+                if (isSelected) {
+                  selectedValues.delete(option.value);
+                } else {
+                  selectedValues.add(option.value);
+                }
+                console.log(option.value);
 
-                  const filterValues = Array.from(selectedValues);
-                  column?.setFilterValue(filterValues.length ? filterValues : undefined);
-                }}>
+                const filterValues = Array.from(selectedValues);
+                column?.setFilterValue(filterValues.length ? filterValues : undefined);
+              }}>
+              <DropdownItem className="w-full">
                 <div
                   className={classNames(
                     "border-primary mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
@@ -86,10 +88,10 @@ export function DataTableFilter<TData, TValue>({ column, title, options }: DataT
                     {facets.get(option.value)}
                   </span>
                 )}
-              </DropdownMenuItem>
-            );
-          })}
-        </DropdownMenuItem>
+              </DropdownItem>
+            </DropdownMenuItem>
+          );
+        })}
         {selectedValues.size > 0 && (
           <>
             <DropdownMenuSeparator />

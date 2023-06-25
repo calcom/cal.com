@@ -39,7 +39,7 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
         {...props}
         sideOffset={sideOffset}
         className={classNames(
-          "shadow-dropdown w-50 bg-default border-subtle relative z-10 ml-1.5 origin-top-right rounded-md border text-sm",
+          "shadow-dropdown bg-default border-subtle relative z-10 ml-1.5 w-52 origin-top-right rounded-md border text-sm",
           "[&>*:first-child]:mt-1 [&>*:last-child]:mb-1"
         )}
         ref={forwardedRef}>
@@ -73,7 +73,7 @@ type DropdownMenuCheckboxItemProps = ComponentProps<(typeof DropdownMenuPrimitiv
 export const DropdownMenuCheckboxItem = forwardRef<HTMLDivElement, DropdownMenuCheckboxItemProps>(
   ({ children, ...props }, forwardedRef) => {
     return (
-      <DropdownMenuPrimitive.CheckboxItem {...props} ref={forwardedRef}>
+      <DropdownMenuPrimitive.CheckboxItem {...props} ref={forwardedRef} className="">
         {children}
         <DropdownMenuPrimitive.ItemIndicator>
           <CheckCircle />
@@ -136,11 +136,12 @@ export const DropdownItem = (props: DropdownItemProps) => {
       {...rest}
       className={classNames(
         "hover:text-emphasis text-default inline-flex w-full items-center space-x-2 px-3 py-2 disabled:cursor-not-allowed",
-        color === "destructive" ? "hover:bg-error hover:text-red-700" : "hover:bg-subtle"
+        color === "destructive" ? "hover:bg-error hover:text-red-700" : "hover:bg-subtle",
+        props.className
       )}>
       <>
         {StartIcon && <StartIcon className="h-4 w-4" />}
-        <div className="text-sm font-medium leading-5">{children}</div>
+        <div className="flex text-sm font-medium leading-5">{children}</div>
         {EndIcon && <EndIcon className="h-4 w-4" />}
       </>
     </ButtonOrLink>
