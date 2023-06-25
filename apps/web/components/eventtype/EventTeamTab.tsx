@@ -43,7 +43,7 @@ export const mapMemberToChildrenOption = (
       eventTypeSlugs: member.eventTypes ?? [],
     },
     value: `${member.id ?? ""}`,
-    label: member.name ?? "",
+    label: member.name || member.email || "",
   };
 };
 

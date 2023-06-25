@@ -114,9 +114,6 @@ export default async function getEventTypeById({
           id: true,
           slug: true,
           members: {
-            where: {
-              accepted: true,
-            },
             select: {
               role: true,
               user: {
