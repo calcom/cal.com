@@ -53,6 +53,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const setFormValues = useBookerStore((state) => state.setFormValues);
   const seatedEventData = useBookerStore((state) => state.seatedEventData);
   const isRescheduling = !!rescheduleUid && !!rescheduleBooking;
+  const seatReferenceUid = useBookerStore((state) => state.seatReferenceUid);
   const event = useEvent();
   const eventType = event.data;
 
@@ -76,10 +77,26 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       guests: router.query.guests || router.query.guest,
     });
 
-    const defaultUserValues = {
-      email: rescheduleUid ? rescheduleBooking?.attendees[0].email : parsedQuery["email"] || "",
-      name: rescheduleUid ? rescheduleBooking?.attendees[0].name : parsedQuery["name"] || "",
-    };
+    let defaultUserValues = {};
+
+    if (seatReferenceUid) {
+      const attendee = rescheduleBooking?.attendees.find((attendee) => {
+        return attendee.bookingSeat?.referenceUid === seatReferenceUid;
+      });
+      if (attendee) {
+        defaultUserValues = { email: attendee?.email, name: attendee?.name };
+      }
+    } else if (rescheduleUid && Object.keys(defaultUserValues).length === 0) {
+      defaultUserValues = {
+        email: rescheduleBooking?.attendees[0].email,
+        name: rescheduleBooking?.attendees[0].name,
+      };
+    } else {
+      defaultUserValues = {
+        email: parsedQuery["email"] || "",
+        name: parsedQuery["name"] || "",
+      };
+    }
 
     if (!isRescheduling) {
       const defaults = {

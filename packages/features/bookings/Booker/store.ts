@@ -23,6 +23,7 @@ type StoreInitializeType = {
   rescheduleBooking: GetBookingType | null | undefined;
   layout: BookerLayout;
   isTeamEvent?: boolean;
+  seatReferenceUid?: string;
 };
 
 type SeatedEventData = {
@@ -104,6 +105,7 @@ export type BookerStore = {
   isTeamEvent: boolean;
   seatedEventData: SeatedEventData;
   setSeatedEventData: (seatedEventData: SeatedEventData) => void;
+  seatReferenceUid: string | null;
 };
 
 /**
@@ -162,6 +164,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     set({ seatedEventData });
     updateQueryParam("bookingUid", seatedEventData.bookingUid ?? "");
   },
+  seatReferenceUid: getQueryParam("seatReferenceUid") || null,
   initialize: ({
     username,
     eventSlug,
@@ -171,7 +174,6 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     rescheduleBooking = null,
     layout,
     isTeamEvent,
-    bookingUid,
   }: StoreInitializeType) => {
     const selectedDateInStore = get().selectedDate;
 
@@ -236,6 +238,7 @@ export const useInitializeBookerStore = ({
   rescheduleBooking = null,
   layout,
   isTeamEvent,
+  seatReferenceUid,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
@@ -248,6 +251,7 @@ export const useInitializeBookerStore = ({
       rescheduleBooking,
       layout,
       isTeamEvent,
+      seatReferenceUid,
     });
   }, [
     initializeStore,
@@ -259,5 +263,6 @@ export const useInitializeBookerStore = ({
     rescheduleBooking,
     layout,
     isTeamEvent,
+    seatReferenceUid,
   ]);
 };
