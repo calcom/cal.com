@@ -171,7 +171,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
           profile: { name: `${team.name}`, image: getPlaceholderAvatar(team.logo, team.name) },
         }}
       />
-      <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pt-12 pb-12">
+      <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pb-12 pt-12">
         <div className="mx-auto mb-8 max-w-3xl text-center">
           <div className="relative">
             <Avatar

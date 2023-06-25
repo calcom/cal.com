@@ -4,6 +4,7 @@ import { useEffect, useRef, useMemo } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
+import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -19,7 +20,7 @@ import { BookerSection } from "./components/Section";
 import { Away, NotFound } from "./components/Unavailable";
 import { extraDaysConfig, fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
-import type { BookerProps } from "./types";
+import type { BookerLayout, BookerProps } from "./types";
 import { useEvent } from "./utils/event";
 import { validateLayout } from "./utils/layout";
 import { getQueryParam } from "./utils/query-param";
@@ -113,9 +114,29 @@ const BookerComponent = ({
     return <NotFound />;
   }
 
+  // In Embed, a Dialog doesn't look good, we disable it intentionally for the layouts that support showing Form without Dialog(i.e. no-dialog Form)
+  const shouldShowFormInDialogMap: Record<BookerLayout, boolean> = {
+    // mobile supports showing the Form without Dialog
+    mobile: !isEmbed,
+    // We don't show Dialog in month_view currently. Can be easily toggled though as it supports no-dialog Form
+    month_view: false,
+    // week_view doesn't support no-dialog Form
+    // When it's supported, disable it for embed
+    week_view: true,
+    // column_view doesn't support no-dialog Form
+    // When it's supported, disable it for embed
+    column_view: true,
+  };
+
+  const shouldShowFormInDialog = shouldShowFormInDialogMap[layout];
   return (
     <>
-      <div className="text-default flex min-h-full w-full flex-col items-center overflow-clip">
+      {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
+      <div
+        className={classNames(
+          "text-default flex min-h-full w-full flex-col items-center",
+          layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip"
+        )}>
         <div
           ref={animationScope}
           className={classNames(
@@ -134,7 +155,7 @@ const BookerComponent = ({
             <BookerSection
               area="header"
               className={classNames(
-                layout === BookerLayouts.MONTH_VIEW && "fixed top-3 right-3 z-10",
+                layout === BookerLayouts.MONTH_VIEW && "fixed right-3 top-3 z-10",
                 (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
                   "bg-muted sticky top-0 z-10"
               )}>
@@ -168,7 +189,7 @@ const BookerComponent = ({
               area="main"
               className="border-subtle sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInLeft}
-              visible={bookerState === "booking" && layout === BookerLayouts.MONTH_VIEW}>
+              visible={bookerState === "booking" && !shouldShowFormInDialog}>
               <BookEventForm onCancel={() => setSelectedTimeslot(null)} />
             </BookerSection>
 
@@ -218,7 +239,7 @@ const BookerComponent = ({
         <m.span
           key="logo"
           className={classNames(
-            "mt-auto mb-6 pt-6 [&_img]:h-[15px]",
+            "mb-6 mt-auto pt-6 [&_img]:h-[15px]",
             layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
           )}>
           {!hideBranding ? <PoweredBy logoOnly /> : null}
@@ -226,7 +247,7 @@ const BookerComponent = ({
       </div>
 
       <BookFormAsModal
-        visible={layout !== BookerLayouts.MONTH_VIEW && bookerState === "booking"}
+        visible={bookerState === "booking" && shouldShowFormInDialog}
         onCancel={() => setSelectedTimeslot(null)}
       />
     </>
