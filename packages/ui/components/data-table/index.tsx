@@ -21,10 +21,16 @@ import { DataTableToolbar } from "./DataTableToolbar";
 export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  searchKey?: string;
   filterableItems?: FilterableItems;
 }
 
-export function DataTable<TData, TValue>({ columns, data, filterableItems }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({
+  columns,
+  data,
+  filterableItems,
+  searchKey,
+}: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -54,7 +60,7 @@ export function DataTable<TData, TValue>({ columns, data, filterableItems }: Dat
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} filterableItems={filterableItems} />
+      <DataTableToolbar table={table} filterableItems={filterableItems} searchKey={searchKey} />
       <div className="rounded-md border">
         <Table>
           <TableHeader>
