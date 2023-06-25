@@ -1066,11 +1066,6 @@ async function handler(
           message?: string;
         })
       | null = null;
-    console.log(
-      "🚀 ~ file: handleNewBooking.ts:1075 ~ handleSeats ~ reqBody.bookingUid:",
-      reqBody.bookingUid
-    );
-    console.log("🚀 ~ file: handleNewBooking.ts:1080 ~ handleSeats ~ rescheduleUid:", rescheduleUid);
 
     const booking = await prisma.booking.findFirst({
       where: {
@@ -1116,6 +1111,7 @@ async function handler(
         where: {
           startTime: evt.startTime,
           eventTypeId: eventType.id,
+          status: BookingStatus.ACCEPTED,
         },
         select: {
           id: true,
@@ -1202,6 +1198,7 @@ async function handler(
             },
             data: {
               startTime: evt.startTime,
+              endTime: evt.endTime,
               cancellationReason: rescheduleReason,
             },
             include: {
@@ -1211,6 +1208,7 @@ async function handler(
               attendees: true,
             },
           });
+          console.log("🚀 ~ file: handleNewBooking.ts:1209 ~ handleSeats ~ newBooking:", newBooking);
 
           addVideoCallDataToEvt(newBooking.references);
 
