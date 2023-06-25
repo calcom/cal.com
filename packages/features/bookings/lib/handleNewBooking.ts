@@ -640,6 +640,7 @@ async function handler(
     notes: additionalNotes,
     smsReminderNumber,
     rescheduleReason,
+    seatReferenceUid,
     ...reqBody
   } = getBookingData({
     req,
@@ -970,11 +971,11 @@ async function handler(
   type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
   let originalRescheduledBooking: BookingType = null;
 
-  if (rescheduleUid) {
+  if (seatReferenceUid && rescheduleUid) {
     // rescheduleUid can be bookingUid and bookingSeatUid
     bookingSeat = await prisma.bookingSeat.findUnique({
       where: {
-        referenceUid: rescheduleUid,
+        referenceUid: seatReferenceUid,
       },
       include: {
         booking: true,
@@ -1396,14 +1397,15 @@ async function handler(
       const seatAttendee: Partial<Person> | null = bookingSeat?.attendee || null;
       if (seatAttendee) {
         seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
-        await prisma.attendee.delete({
-          where: {
-            id: seatAttendee?.id,
-          },
-        });
 
         // If there is no booking then remove the attendee from the old booking and create a new one
         if (!newTimeSlotBooking) {
+          await prisma.attendee.delete({
+            where: {
+              id: seatAttendee?.id,
+            },
+          });
+
           // Update the original calendar event by removing the attendee that is rescheduling
           if (originalBookingEvt && originalRescheduledBooking) {
             // Event would probably be deleted so we first check than instead of updating references
