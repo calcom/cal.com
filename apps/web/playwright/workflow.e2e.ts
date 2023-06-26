@@ -64,11 +64,9 @@ test.describe("Workflow tests", () => {
       expect(workflowReminders[0].scheduledDate.toISOString()).toBe(scheduledDate.toISOString());
     });
 
-    /*
-      More tests:
-        -  cancel booking and test if workflow reminders are deleted
-        -  test all other triggers (cancelled, rescheduled, new event booked)
-    */
+    // add all other actions to this workflow and test if they triggered
+    // cancel booking and test if workflow reminders are deleted
+    // test all other triggers
   });
 
   /*
