@@ -1,6 +1,11 @@
 import { expect } from "@playwright/test";
 
+import dayjs from "@calcom/dayjs";
+import prisma from "@calcom/prisma";
+import { WorkflowMethods } from "@calcom/prisma/enums";
+
 import { test } from "./lib/fixtures";
+import { selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
 
@@ -27,36 +32,36 @@ test.describe("Workflow tests", () => {
       // check if workflow is saved
       await expect(page.locator('[data-testid="workflow-list"] > li')).toHaveCount(1);
 
-      // // book event type
-      // await page.goto(`/${user.username}/${eventType.slug}`);
-      // await selectFirstAvailableTimeSlotNextMonth(page);
+      // book event type
+      await page.goto(`/${user.username}/${eventType.slug}`);
+      await selectFirstAvailableTimeSlotNextMonth(page);
 
-      // await page.fill('[name="name"]', "Test");
-      // await page.fill('[name="email"]', "test@example.com");
-      // await page.press('[name="email"]', "Enter");
+      await page.fill('[name="name"]', "Test");
+      await page.fill('[name="email"]', "test@example.com");
+      await page.press('[name="email"]', "Enter");
 
-      // // Make sure booking is completed
-      // await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+      // Make sure booking is completed
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
-      // const booking = await prisma.booking.findFirst({
-      //   where: {
-      //     eventTypeId: eventType.id,
-      //   },
-      // });
+      const booking = await prisma.booking.findFirst({
+        where: {
+          eventTypeId: eventType.id,
+        },
+      });
 
-      // // check if workflow triggered
-      // const workflowReminders = await prisma.workflowReminder.findMany({
-      //   where: {
-      //     bookingUid: booking?.uid ?? "",
-      //   },
-      // });
+      // check if workflow triggered
+      const workflowReminders = await prisma.workflowReminder.findMany({
+        where: {
+          bookingUid: booking?.uid ?? "",
+        },
+      });
 
-      // expect(workflowReminders).toHaveLength(1);
+      expect(workflowReminders).toHaveLength(1);
 
-      // const scheduledDate = dayjs(booking?.startTime).subtract(1, "day").toDate();
+      const scheduledDate = dayjs(booking?.startTime).subtract(1, "day").toDate();
 
-      // expect(workflowReminders[0].method).toBe(WorkflowMethods.EMAIL);
-      // expect(workflowReminders[0].scheduledDate.toISOString()).toBe(scheduledDate.toISOString());
+      expect(workflowReminders[0].method).toBe(WorkflowMethods.EMAIL);
+      expect(workflowReminders[0].scheduledDate.toISOString()).toBe(scheduledDate.toISOString());
     });
 
     /*
