@@ -207,7 +207,7 @@ describe("Tests the slot logic", () => {
   });
 
   it("shows correct time slots for 20 minutes long events with working hours that do not end at a full hour ", async () => {
-    // 72 20-minutes events in a 24h day => so why should it only by 71? 2021-06-21T21:40:00.000Z is missing
+    // 72 20-minutes events in a 24h day
     expect(
       getSlots({
         inviteeDate: dayjs.utc().add(1, "day"),
