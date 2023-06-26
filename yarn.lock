@@ -4186,7 +4186,6 @@ __metadata:
     dompurify: ^2.4.1
     framer-motion: ^10.12.8
     lexical: ^0.9.0
-    mockdate: ^3.0.5
     react-select: ^5.7.0
     react-sticky-box: ^2.0.4
     zustand: ^4.3.2
@@ -4788,7 +4787,6 @@ __metadata:
     memory-cache: ^0.2.0
     micro: ^10.0.1
     mime-types: ^2.1.35
-    mockdate: ^3.0.5
     module-alias: ^2.2.2
     msw: ^0.42.3
     next: ^13.4.6
@@ -26474,13 +26472,6 @@ __metadata:
   version: 4.14.0
   resolution: "mock-fs@npm:4.14.0"
   checksum: dccd976a8d753e19d3c7602ea422d1f7137def3c1128c177e1f5500fe8c50ec15fe0937cfc3a15c4577fe7adb9a37628b92da9294d13d90f08be4b669b0fca76
-  languageName: node
-  linkType: hard
-
-"mockdate@npm:^3.0.5":
-  version: 3.0.5
-  resolution: "mockdate@npm:3.0.5"
-  checksum: 72b66786d9e072379693f80bf9fb82eb5153c9741030a4294184e3ccaf952d0713fae8966f77780580cf902f8ec7ccc95577b0ad47980d255e2ffb71fc7ca49c
   languageName: node
   linkType: hard
 
