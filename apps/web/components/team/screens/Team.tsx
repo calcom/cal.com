@@ -30,9 +30,9 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
           alt={member.name || ""}
           imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
         />
-        <section className="line-clamp-4 mt-2 w-full space-y-1">
+        <section className="mt-2 line-clamp-4 w-full space-y-1">
           <p className="text-default font-medium">{member.name}</p>
-          <div className="line-clamp-3 text-subtle overflow-ellipsis text-sm font-normal">
+          <div className="text-subtle line-clamp-3 overflow-ellipsis text-sm font-normal">
             {!isBioEmpty ? (
               <>
                 <div
