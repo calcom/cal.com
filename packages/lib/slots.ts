@@ -168,19 +168,22 @@ function buildSlotsWithDateRanges({
 
     console.log("before", slotStartTime.format(), startTimeWithMinNotice.format());
 
+    console.log(
+      Math.ceil((slotStartTime.hour() * 60 + slotStartTime.minute()) / frequency) * frequency,
+      frequency,
+      slotStartTime.hour() * 60 + slotStartTime.minute()
+    );
+
     slotStartTime =
       slotStartTime.utc().minute() % frequency !== 0
         ? slotStartTime
-            .hour(0)
-            .minute(0)
-            .second(0)
+            .startOf("day")
             .add(
               Math.ceil((slotStartTime.hour() * 60 + slotStartTime.minute()) / frequency) * frequency,
               "minute"
             )
         : slotStartTime;
 
-    console.log(Math.ceil((slotStartTime.hour() * 60 + slotStartTime.minute()) / frequency) * frequency);
     console.log("after", slotStartTime.format());
 
     // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
