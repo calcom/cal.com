@@ -271,17 +271,6 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     })
   );
 
-  /*console.log("run", eventType.schedulingType);
-  userAvailability.map((avail, i) =>
-    console.log(
-      i,
-      avail.dateRanges.map((range) => ({
-        s: range.start.utc().format(),
-        e: range.end.utc().format(),
-      }))
-    )
-  );*/
-
   // flattens availability of multiple users
   const dateOverrides = userAvailability.flatMap((availability) =>
     availability.dateOverrides.map((override) => ({ userId: availability.user.id, ...override }))
@@ -318,13 +307,6 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
   });
 
-  /*console.log({
-    dateRanges: getAggregatedAvailability(userAvailability, eventType.schedulingType).map((range) => ({
-      s: range.start.utc().format(),
-      e: range.end.utc().format(),
-    })),
-  });*/
-
   let availableTimeSlots: typeof timeSlots = [];
   // Load cached busy slots
   const selectedSlots =
@@ -348,47 +330,6 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   });
 
   availableTimeSlots = timeSlots;
-
-  //This should already be handled in getAggregatedAvailability
-
-  // availableTimeSlots = timeSlots.filter((slot) => {
-  //   const fixedHosts = userAvailability.filter((availability) => availability.user.isFixed);
-  //   return fixedHosts.every((schedule) => {
-  //     const startCheckForAvailability = performance.now();
-
-  //     const isAvailable = checkIfIsAvailable({
-  //       time: slot.time,
-  //       ...schedule,
-  //       ...availabilityCheckProps,
-  //     });
-  //     const endCheckForAvailability = performance.now();
-  //     checkForAvailabilityCount++;
-  //     checkForAvailabilityTime += endCheckForAvailability - startCheckForAvailability;
-  //     return isAvailable;
-  //   });
-  // });
-  // what else are you going to call it?
-  // const looseHostAvailability = userAvailability.filter(({ user: { isFixed } }) => !isFixed);
-  // if (looseHostAvailability.length > 0) {
-  //   availableTimeSlots = availableTimeSlots
-  //     .map((slot) => {
-  //       slot.userIds = slot.userIds?.filter((slotUserId) => {
-  //         const userSchedule = looseHostAvailability.find(
-  //           ({ user: { id: userId } }) => userId === slotUserId
-  //         );
-  //         if (!userSchedule) {
-  //           return false;
-  //         }
-  //         return checkIfIsAvailable({
-  //           time: slot.time,
-  //           ...userSchedule,
-  //           ...availabilityCheckProps,
-  //         });
-  //       });
-  //       return slot;
-  //     })
-  //     .filter((slot) => !!slot.userIds?.length);
-  // }
 
   const isSlot = (
     item:

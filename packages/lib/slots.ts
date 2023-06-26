@@ -177,7 +177,6 @@ function buildSlotsWithDateRanges({
         : slotStartTime;
 
     // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
-    // This surely can be handled shorter than that
     const rangeEnd = range.end
       .add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes")
       .isSame(range.end.endOf("day").add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes"), "minute")

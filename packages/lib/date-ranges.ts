@@ -58,15 +58,6 @@ export function processDateOverride({ item, timeZone }: { item: DateOverride; ti
   };
 }
 
-// logic before, in case we need to revert
-// export function processDateOverride({ item, timeZone }: { item: DateOverride; timeZone: string }) {
-//   const date = dayjs.utc(item.date).tz(timeZone);
-//   return {
-//     start: date.hour(item.startTime.getUTCHours()).minute(item.startTime.getUTCMinutes()).second(0),
-//     end: date.hour(item.endTime.getUTCHours()).minute(item.endTime.getUTCMinutes()).second(0),
-//   };
-// }
-
 export function buildDateRanges({
   availability,
   timeZone /* Organizer timeZone */,
