@@ -4,27 +4,25 @@ import dayjs from "@calcom/dayjs";
 import { MINUTES_DAY_END, MINUTES_DAY_START } from "@calcom/lib/availability";
 
 import getSlots from "./slots";
+import type { DateRange } from "./date-ranges";
 
+let dateRangesNextDay: DateRange[];
+
+let dateRangesMockDay: DateRange[];
 
 beforeAll(() => {
   vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
-})
 
-const startTime = dayjs.utc().startOf("day");
+  dateRangesMockDay = [{ start: dayjs.utc().startOf("day"), end: dayjs.utc().endOf("day") }];
 
-// let dateRanges: DateRange[] = [];
-// for (let date = startTime; date.isBefore(startTime.add(5, "day")); date = date.add(1, "day")) {
-//   dateRanges.push({
-//     start: date,
-//     end: date.endOf("day"),
-//   });
-// }
+  dateRangesNextDay = [
+    {
+      start: dayjs.utc().add(1, "day").startOf("day"),
+      end: dayjs.utc().add(1, "day").endOf("day"),
+    },
+  ];
+});
 
-const dateRangesMockDay = [{ start: dayjs.utc().startOf("day"), end: dayjs.utc().endOf("day") }];
-
-const dateRangesNextDay = [
-  { start: dayjs.utc().add(1, "day").startOf("day"), end: dayjs.utc().add(1, "day").endOf("day") },
-];
 
 describe("Tests the date-range slot logic", () => {
   it("can fit 24 hourly slots for an empty day", async () => {
