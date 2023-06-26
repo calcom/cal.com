@@ -1,6 +1,5 @@
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/router";
 import { shallow } from "zustand/shallow";
 
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -9,7 +8,6 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { trpc } from "@calcom/trpc";
 import { Calendar, Globe, User } from "@calcom/ui/components/icon";
 
 import { fadeInUp } from "../config";
@@ -36,24 +34,10 @@ export const EventMeta = () => {
   const embedUiConfig = useEmbedUiConfig();
   const isEmbed = useIsEmbed();
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
-  const router = useRouter();
 
-  const bookingAttendeesQuery = trpc.viewer.public.booking.useQuery(
-    {
-      bookingUid: router.query.bookingUid as string,
-    },
-    {
-      onSuccess: (data) => {
-        if (data) {
-          setSeatedEventData({
-            attendees: data._count.attendees,
-            seatsPerTimeSlot: data.eventType?.seatsPerTimeSlot,
-            bookingUid: router.query.bookingUid as string,
-          });
-        }
-      },
-      enabled: !!router.query.bookingUid && !seatedEventData.attendees,
-    }
+  console.log(
+    "🚀 ~ file: EventMeta.tsx:110 ~ EventMeta ~ seatedEventData.attendees && seatedEventData.seatsPerTimeSlot:",
+    !!seatedEventData.attendees && !!seatedEventData.seatsPerTimeSlot
   );
 
   if (hideEventTypeDetails) {
@@ -127,13 +111,13 @@ export const EventMeta = () => {
                 </span>
               )}
             </EventMetaBlock>
-            {bookerState === "booking" && seatedEventData.attendees && seatedEventData.seatsPerTimeSlot && (
+            {bookerState === "booking" && seatedEventData.seatsPerTimeSlot ? (
               <EventMetaBlock
                 icon={User}
                 className={`${
-                  seatedEventData.attendees / seatedEventData.seatsPerTimeSlot >= 0.5
+                  seatedEventData?.attendees || 0 / seatedEventData.seatsPerTimeSlot >= 0.5
                     ? "text-rose-600"
-                    : seatedEventData.attendees / seatedEventData.seatsPerTimeSlot >= 0.33
+                    : seatedEventData?.attendees || 0 / seatedEventData.seatsPerTimeSlot >= 0.33
                     ? "text-yellow-500"
                     : "text-bookinghighlight"
                 }`}>
@@ -151,7 +135,7 @@ export const EventMeta = () => {
                   </p>
                 </div>
               </EventMetaBlock>
-            )}
+            ) : null}
           </div>
         </m.div>
       )}
