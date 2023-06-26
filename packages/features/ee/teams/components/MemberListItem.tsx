@@ -1,6 +1,5 @@
 import classNames from "classnames";
 import { signIn } from "next-auth/react";
-
 import { useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -231,7 +230,7 @@ export default function MemberListItem(props: Props) {
                   <DropdownMenuItem className="outline-none">
                     <DropdownItem
                       disabled={!props.member.accepted}
-                      href={!props.member.accepted?undefined : "/" + props.member.username}
+                      href={!props.member.accepted ? undefined : "/" + props.member.username}
                       target="_blank"
                       type="button"
                       StartIcon={ExternalLink}>
