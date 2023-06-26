@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
   showToast,
 } from "@calcom/ui";
-import { Globe, MoreHorizontal, Trash, Clock } from "@calcom/ui/components/icon";
+import { Globe, MoreHorizontal, Trash, Clock, Copy } from "@calcom/ui/components/icon";
 
 export function ScheduleListItem({
   schedule,
@@ -23,6 +23,7 @@ export function ScheduleListItem({
   displayOptions,
   updateDefault,
   isDeletable,
+  duplicateFunction,
 }: {
   schedule: RouterOutputs["viewer"]["availability"]["list"]["schedules"][number];
   deleteFunction: ({ scheduleId }: { scheduleId: number }) => void;
@@ -32,6 +33,7 @@ export function ScheduleListItem({
   };
   isDeletable: boolean;
   updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
+  duplicateFunction: ({ scheduleId }: { scheduleId: number }) => void;
 }) {
   const { t, i18n } = useLocale();
 
@@ -101,6 +103,19 @@ export function ScheduleListItem({
                     {t("set_as_default")}
                   </DropdownItem>
                 )}
+              </DropdownMenuItem>
+              <DropdownMenuItem className="outline-none">
+                <DropdownItem
+                  type="button"
+                  data-testid={"schedule-duplicate" + schedule.id}
+                  StartIcon={Copy}
+                  onClick={() => {
+                    duplicateFunction({
+                      scheduleId: schedule.id,
+                    });
+                  }}>
+                  {t("duplicate")}
+                </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuItem className="min-w-40 focus:ring-muted">
                 <DropdownItem
