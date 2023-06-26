@@ -1,6 +1,7 @@
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
 
+import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
@@ -25,6 +26,13 @@ export const EventMeta = () => {
   const rescheduleBooking = useBookerStore((state) => state.rescheduleBooking);
   const { i18n, t } = useLocale();
   const { data: event, isLoading } = useEvent();
+  const embedUiConfig = useEmbedUiConfig();
+  const isEmbed = useIsEmbed();
+  const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
+
+  if (hideEventTypeDetails) {
+    return null;
+  }
 
   return (
     <div className="relative z-10 p-6">
@@ -77,7 +85,7 @@ export const EventMeta = () => {
               {bookerState === "booking" ? (
                 <>{timezone}</>
               ) : (
-                <span className="min-w-32 current-timezone before:bg-subtle -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:left-[-30px] before:top-[-3px] before:bottom-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity">
+                <span className="min-w-32 current-timezone before:bg-subtle -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity">
                   <TimezoneSelect
                     menuPosition="fixed"
                     classNames={{
