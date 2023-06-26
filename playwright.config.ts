@@ -7,6 +7,7 @@ import * as path from "path";
 dotEnv.config({ path: ".env" });
 
 const outputDir = path.join(__dirname, "test-results");
+
 // Dev Server on local can be slow to start up and process requests. So, keep timeouts really high on local, so that tests run reliably locally
 
 // So, if not in CI, keep the timers high, if the test is stuck somewhere and there is unnecessary wait developer can see in browser that it's stuck
@@ -21,6 +22,7 @@ const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
 
 const IS_EMBED_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/embed-core"));
 const IS_EMBED_REACT_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/embed-react"));
+
 const webServer: PlaywrightTestConfig["webServer"] = [
   {
     command:
@@ -32,7 +34,7 @@ const webServer: PlaywrightTestConfig["webServer"] = [
 ];
 
 if (IS_EMBED_TEST) {
-  ensureAppServerIsReadyToServeEmbed(webServer);
+  ensureAppServerIsReadyToServeEmbed(webServer[0]);
 
   webServer.push({
     command: "yarn workspace @calcom/embed-core dev",
@@ -43,7 +45,7 @@ if (IS_EMBED_TEST) {
 }
 
 if (IS_EMBED_REACT_TEST) {
-  ensureAppServerIsReadyToServeEmbed(webServer);
+  ensureAppServerIsReadyToServeEmbed(webServer[0]);
 
   webServer.push({
     command: "yarn workspace @calcom/embed-react dev",
@@ -263,8 +265,11 @@ expect.extend({
 });
 
 export default config;
-function ensureAppServerIsReadyToServeEmbed(webServer: { port?: number; url?: string }[]) {
-  delete webServer[0].port;
-  webServer[0].url = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/embed/embed.js`;
-  console.log('Ensuring that /embed/embed.js is 200 before starting tests')
+
+function ensureAppServerIsReadyToServeEmbed(webServer: { port?: number; url?: string }) {
+  // We should't depend on an embed dependency for App's tests. So, conditionally modify App webServer.
+  // Only one of port or url can be specified, so remove port.
+  delete webServer.port;
+  webServer.url = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/embed/embed.js`;
+  console.log("Ensuring that /embed/embed.js is 200 before starting tests");
 }

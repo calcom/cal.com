@@ -49,7 +49,7 @@ export default function TeamAvailabilityModal(props: Props) {
               </div>
             </div>
             <div>
-              <div className="text-brand-900 mt-4 mb-5 text-2xl font-semibold">{t("availability")}</div>
+              <div className="text-brand-900 mb-5 mt-4 text-2xl font-semibold">{t("availability")}</div>
               <DatePicker
                 minDate={new Date()}
                 date={selectedDate.toDate() || dayjs().toDate()}

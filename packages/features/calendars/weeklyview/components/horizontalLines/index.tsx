@@ -25,14 +25,14 @@ export const HorizontalLines = ({
       <div className="row-end-1 h-[--calendar-offset-top] " ref={containerOffsetRef} />
       {hours.map((hour) => (
         <div key={`${id}-${hour.get("hour")}`}>
-          <div className="text-muted sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5">
+          <div className="text-muted sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5">
             {/* We need to force the minute to zero, because otherwise in ex GMT+5.5, it would show :30 minute times (but at the positino of :00) */}
             {hour.minute(0).format(timeFormat)}
           </div>
         </div>
       ))}
       <div key={`${id}-${finalHour}`}>
-        <div className="text-muted sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5">
+        <div className="text-muted sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5">
           {finalHour}
         </div>
       </div>
