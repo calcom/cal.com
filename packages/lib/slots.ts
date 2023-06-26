@@ -163,7 +163,7 @@ function buildSlotsWithDateRanges({
 
   const slots: { time: Dayjs; userIds?: number[] }[] = [];
   dateRanges.forEach((range) => {
-    const startTimeWithMinNotice = dayjs().utc().add(minimumBookingNotice, "minute");
+    const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
     let slotStartTime = range.start.isAfter(startTimeWithMinNotice) ? range.start : startTimeWithMinNotice;
 
     console.log("before", slotStartTime.format(), startTimeWithMinNotice.format());
@@ -171,13 +171,16 @@ function buildSlotsWithDateRanges({
     slotStartTime =
       slotStartTime.utc().minute() % frequency !== 0
         ? slotStartTime
-            .startOf("day")
+            .hour(0)
+            .minute(0)
+            .second(0)
             .add(
               Math.ceil((slotStartTime.hour() * 60 + slotStartTime.minute()) / frequency) * frequency,
               "minute"
             )
         : slotStartTime;
 
+    console.log(Math.ceil((slotStartTime.hour() * 60 + slotStartTime.minute()) / frequency) * frequency);
     console.log("after", slotStartTime.format());
 
     // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
