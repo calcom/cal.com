@@ -21,7 +21,7 @@ interface IUserToValue {
 
 const mapUserToValue = ({ id, name, username, email }: IUserToValue) => ({
   value: `${id || ""}`,
-  label: `${name || ""}`,
+  label: `${name || email || ""}`,
   avatar: `${WEBAPP_URL}/${username}/avatar.png`,
   email,
 });
@@ -291,6 +291,7 @@ export const EventTeamTab = ({
       // description: t("round_robin_description"),
     },
   ];
+  console.log(teamMembers);
   const teamMembersOptions = teamMembers.map(mapUserToValue);
   const childrenEventTypeOptions = teamMembers.map((member) => {
     return mapMemberToChildrenOption(member, eventType.slug);

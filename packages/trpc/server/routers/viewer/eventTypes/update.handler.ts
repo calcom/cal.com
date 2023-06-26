@@ -176,22 +176,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (teamId && hosts) {
-    // check if all hosts can be assigned (memberships that have accepted invite)
-    const memberships =
-      (await ctx.prisma.membership.findMany({
-        where: {
-          teamId,
-          accepted: true,
-        },
-      })) || [];
-    const teamMemberIds = memberships.map((membership) => membership.userId);
-    // guard against missing IDs, this may mean a member has just been removed
-    // or this request was forged.
-    if (!hosts.every((host) => teamMemberIds.includes(host.userId))) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-      });
-    }
     data.hosts = {
       deleteMany: {},
       create: hosts.map((host) => ({
