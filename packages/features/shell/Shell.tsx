@@ -564,11 +564,8 @@ const navigation: NavigationItemType[] = [
   },
   {
     name: "Routing Forms",
-    href: "/apps/routing-forms/forms",
+    href: "/routing-forms/forms",
     icon: FileText,
-    isCurrent: ({ router }) => {
-      return router.asPath.startsWith("/apps/routing-forms/");
-    },
   },
   {
     name: "workflows",
@@ -616,17 +613,9 @@ const Navigation = () => {
 };
 
 function useShouldDisplayNavigationItem(item: NavigationItemType) {
-  const { status } = useSession();
-  const { data: routingForms } = trpc.viewer.appById.useQuery(
-    { appId: "routing-forms" },
-    {
-      enabled: status === "authenticated" && requiredCredentialNavigationItems.includes(item.name),
-      trpc: {},
-    }
-  );
   const flags = useFlagMap();
   if (isKeyInObject(item.name, flags)) return flags[item.name];
-  return !requiredCredentialNavigationItems.includes(item.name) || routingForms?.isInstalled;
+  return true;
 }
 
 const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, router }) => {

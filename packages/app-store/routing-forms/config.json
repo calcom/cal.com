@@ -9,6 +9,9 @@
   "variant": "other",
   "categories": ["other"],
   "publisher": "Cal.com, Inc.",
+  "isSystemApp": true,
+  "requiresCredentials": false,
+  "simplePath": "/routing-forms",
   "email": "help@cal.com",
   "licenseRequired": true,
   "teamsPlanRequired": {

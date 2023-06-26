@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 
+import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
 import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -127,6 +128,12 @@ export async function getServerSideProps(
     params.appPages = pages.slice(1);
     const session = await getServerSession({ req, res });
     const user = session?.user;
+    const app = await getAppWithMetadata({ slug: appName });
+    if (!app) {
+      return {
+        notFound: true,
+      };
+    }
 
     const result = await route.getServerSideProps(
       context as GetServerSidePropsContext<{
@@ -153,7 +160,7 @@ export async function getServerSideProps(
     return {
       props: {
         appName,
-        appUrl: `/apps/${appName}`,
+        appUrl: app.simplePath || `/apps/${appName}`,
         ...result.props,
       },
     };

@@ -126,6 +126,8 @@ export interface App {
   /** only required for "usage-based" billing. % of commission for paid bookings */
   commission?: number;
   licenseRequired?: boolean;
+  isSystemApp: boolean;
+  requiresCredentials: boolean;
   teamsPlanRequired?: {
     upgradeUrl: string;
   };
