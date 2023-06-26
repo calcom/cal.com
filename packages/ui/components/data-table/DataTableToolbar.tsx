@@ -21,9 +21,10 @@ interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   filterableItems?: FilterableItems;
   searchKey?: string;
+  tableCTA?: React.ReactNode;
 }
 
-export function DataTableToolbar<TData>({ table, filterableItems, searchKey }: DataTableToolbarProps<TData>) {
+export function DataTableToolbar<TData>({ table, filterableItems, tableCTA }: DataTableToolbarProps<TData>) {
   // TODO: Is there a better way to check if the table is filtered?
   // If you select ALL filters for a column, the table is not filtered and we dont get a reset button
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -62,6 +63,8 @@ export function DataTableToolbar<TData>({ table, filterableItems, searchKey }: D
             );
           }
         })}
+
+      {tableCTA ? tableCTA : null}
     </div>
   );
 }

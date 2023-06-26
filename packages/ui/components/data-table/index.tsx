@@ -31,12 +31,14 @@ export interface DataTableProps<TData, TValue> {
     onClick: () => void;
     icon?: SVGComponent;
   }[];
+  tableCTA?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   filterableItems,
+  tableCTA,
   searchKey,
   selectionOptions,
 }: DataTableProps<TData, TValue>) {
@@ -69,7 +71,12 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="relative space-y-4">
-      <DataTableToolbar table={table} filterableItems={filterableItems} searchKey={searchKey} />
+      <DataTableToolbar
+        table={table}
+        filterableItems={filterableItems}
+        searchKey={searchKey}
+        tableCTA={tableCTA}
+      />
       <div className="rounded-md border">
         <Table>
           <TableHeader>

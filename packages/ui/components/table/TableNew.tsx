@@ -5,7 +5,7 @@ import { classNames } from "@calcom/lib";
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
     <div className="w-full overflow-auto">
-      <table ref={ref} className={classNames("caption-bottom w-full text-sm", className)} {...props} />
+      <table ref={ref} className={classNames("w-full caption-bottom text-sm", className)} {...props} />
     </div>
   )
 );

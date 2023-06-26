@@ -17,7 +17,6 @@ export function DataTableSelectionBar<TData>({ table, actions }: DataTableSelect
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
   if (numberOfSelectedRows === 0) return null;
-  console.log({ actions });
 
   return (
     <div className="bg-brand-default text-brand item-center absolute bottom-0 left-1/2 flex -translate-x-1/2 gap-4 rounded-lg p-2">
