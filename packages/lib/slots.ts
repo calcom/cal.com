@@ -176,6 +176,8 @@ function buildSlotsWithDateRanges({
             )
         : slotStartTime;
 
+    console.log(slotStartTime.format());
+
     // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
     const rangeEnd = range.end
       .add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes")

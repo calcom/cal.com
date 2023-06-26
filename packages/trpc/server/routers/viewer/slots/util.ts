@@ -260,17 +260,6 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
 
-      console.log(
-        JSON.stringify({
-          timeZone,
-          workingHours,
-          dateOverrides,
-          dateRanges,
-          busy,
-          user: currentUser,
-        })
-      );
-
       return {
         timeZone,
         workingHours,
@@ -317,8 +306,6 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
   });
-
-  console.log(JSON.stringify(timeSlots));
 
   let availableTimeSlots: typeof timeSlots = [];
   // Load cached busy slots
