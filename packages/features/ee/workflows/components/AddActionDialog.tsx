@@ -168,7 +168,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
               {isPhoneNumberNeeded && (
                 <div className="mt-5 space-y-1">
                   <Label htmlFor="sendTo">{t("phone_number")}</Label>
-                  <div className="mt-1 mb-5">
+                  <div className="mb-5 mt-1">
                     <Controller
                       control={form.control}
                       name="sendTo"
@@ -200,7 +200,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                     <div className="flex">
                       <Label>{t("sender_id")}</Label>
                       <Tooltip content={t("sender_id_info")}>
-                        <Info className="mr-1 mt-0.5 ml-2 h-4 w-4 text-gray-500" />
+                        <Info className="ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
                       </Tooltip>
                     </div>
                     <Input
