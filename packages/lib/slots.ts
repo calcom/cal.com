@@ -179,7 +179,7 @@ function buildSlotsWithDateRanges({
         ? slotStartTime
             .startOf("day")
             .add(
-              Math.ceil((slotStartTime.hour() * 60 + slotStartTime.minute()) / frequency) * frequency,
+              slotStartTime.hour() * 60 + Math.ceil(slotStartTime.minute() / frequency) * frequency,
               "minute"
             )
         : slotStartTime;
