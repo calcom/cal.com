@@ -2,7 +2,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { GetServerSidePropsContext } from "next";
-import { Trans } from "next-i18next";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -30,7 +29,7 @@ import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
-import { ConfirmationDialogContent, Dialog, Form, showToast } from "@calcom/ui";
+import { Form, showToast } from "@calcom/ui";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -75,6 +74,8 @@ const EventWorkflowsTab = dynamic(() => import("@components/eventtype/EventWorkf
 const EventWebhooksTab = dynamic(() =>
   import("@components/eventtype/EventWebhooksTab").then((mod) => mod.EventWebhooksTab)
 );
+
+const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/ManagedEventDialog"));
 
 export type FormValues = {
   title: string;
@@ -498,46 +499,23 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           <div ref={animationParentRef}>{tabMap[tabName]}</div>
         </Form>
       </EventTypeSingleLayout>
-      <Dialog
-        open={slugExistsChildrenDialogOpen.length > 0}
-        onOpenChange={() => {
-          setSlugExistsChildrenDialogOpen([]);
-        }}>
-        <ConfirmationDialogContent
+
+      {slugExistsChildrenDialogOpen.length && (
+        <ManagedEventTypeDialog
+          slugExistsChildrenDialogOpen={slugExistsChildrenDialogOpen}
           isLoading={formMethods.formState.isSubmitting}
-          variety="warning"
-          title={t("managed_event_dialog_title", {
-            slug,
-            count: slugExistsChildrenDialogOpen.length,
-          })}
-          confirmBtnText={t("managed_event_dialog_confirm_button", {
-            count: slugExistsChildrenDialogOpen.length,
-          })}
-          cancelBtnText={t("go_back")}
+          onOpenChange={() => {
+            setSlugExistsChildrenDialogOpen([]);
+          }}
+          slug={slug}
           onConfirm={(e: { preventDefault: () => void }) => {
             e.preventDefault();
             handleSubmit(formMethods.getValues());
             telemetry.event(telemetryEventTypes.slugReplacementAction);
             setSlugExistsChildrenDialogOpen([]);
-          }}>
-          <p className="mt-5">
-            <Trans
-              i18nKey="managed_event_dialog_information"
-              values={{
-                names: `${slugExistsChildrenDialogOpen
-                  .map((ch) => ch.owner.name)
-                  .slice(0, -1)
-                  .join(", ")} ${
-                  slugExistsChildrenDialogOpen.length > 1 ? t("and") : ""
-                } ${slugExistsChildrenDialogOpen.map((ch) => ch.owner.name).slice(-1)}`,
-                slug,
-              }}
-              count={slugExistsChildrenDialogOpen.length}
-            />
-          </p>{" "}
-          <p className="mt-5">{t("managed_event_dialog_clarification")}</p>
-        </ConfirmationDialogContent>
-      </Dialog>
+          }}
+        />
+      )}
     </>
   );
 };
