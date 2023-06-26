@@ -39,7 +39,7 @@ export function DataTableFilter<TData, TValue>({ column, title, options }: DataT
           {selectedValues?.size > 0 && (
             <>
               <div className="ml-2 hidden space-x-1 md:flex">
-                {selectedValues.size > 1 ? (
+                {selectedValues.size > 2 ? (
                   <Badge color="gray" className="rounded-sm px-1 font-normal">
                     {selectedValues.size}
                   </Badge>
