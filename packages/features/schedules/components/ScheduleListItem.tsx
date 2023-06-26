@@ -15,7 +15,8 @@ import {
   DropdownMenuTrigger,
   showToast,
 } from "@calcom/ui";
-import { Globe, MoreHorizontal, Trash, Clock, Copy } from "@calcom/ui/components/icon";
+
+import { Globe, MoreHorizontal, Trash, Star, Copy } from "@calcom/ui/components/icon";
 
 export function ScheduleListItem({
   schedule,
@@ -93,7 +94,7 @@ export function ScheduleListItem({
                 {!schedule.isDefault && (
                   <DropdownItem
                     type="button"
-                    StartIcon={Clock}
+                    StartIcon={Star}
                     onClick={() => {
                       updateDefault({
                         scheduleId: schedule.id,
