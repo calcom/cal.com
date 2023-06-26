@@ -186,7 +186,10 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    const subdomain = getSubdomainRegExp(process.env.NEXT_PUBLIC_WEBAPP_URL);
+    const subdomainRegExp = getSubdomainRegExp(process.env.NEXT_PUBLIC_WEBAPP_URL);
+    // Important Note: Do update the RegExp in apps/web/test/lib/next-config.test.ts when changing it.
+    const orgPagesRouteRegExp = `^(?<orgSlug>${subdomainRegExp})\\..*`;
+
     const beforeFiles = [
       ...(process.env.ORGANIZATIONS_ENABLED
         ? [
@@ -194,7 +197,7 @@ const nextConfig = {
               has: [
                 {
                   type: "host",
-                  value: `^(?<orgSlug>${subdomain})\\..*`,
+                  value: orgPagesRouteRegExp,
                 },
               ],
               source: "/",
@@ -204,7 +207,7 @@ const nextConfig = {
               has: [
                 {
                   type: "host",
-                  value: `^(?<orgSlug>${subdomain})\\..*`,
+                  value: orgPagesRouteRegExp,
                 },
               ],
               source: `/:user((?!${pages.join("|")}|_next|public)[a-zA-Z0-9\-_]+)`,
@@ -214,7 +217,7 @@ const nextConfig = {
               has: [
                 {
                   type: "host",
-                  value: `^(?<orgSlug>${subdomain}[^.]+)\\..*`,
+                  value: `^(?<orgSlug>${subdomainRegExp}[^.]+)\\..*`,
                 },
               ],
               source: `/:user((?!${pages.join("|")}|_next|public))/:path*`,

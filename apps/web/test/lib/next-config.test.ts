@@ -159,7 +159,7 @@ describe('next.config.js - RegExp', ()=>{
 
 
 describe('next.config.js - Org Rewrite', ()=> {
-  //^(?<orgSlug>${subdomainRegExp})\\..*
+  // RegExp copied from next.config.js
   const pagesRewriteRegex = (subdomainRegExp:string)=> new RegExp(`^(?<orgSlug>${subdomainRegExp})\\..*`)
   describe('SubDomain Retrieval from NEXT_PUBLIC_WEBAPP_URL', ()=>{
     it('https://app.cal.com', ()=>{
