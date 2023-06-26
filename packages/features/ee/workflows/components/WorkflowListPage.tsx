@@ -4,6 +4,8 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
+import { CAL_URL } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -16,12 +18,14 @@ import {
   DropdownMenuTrigger,
   Tooltip,
   Badge,
+  Avatar,
 } from "@calcom/ui";
 import { Edit2, Link as LinkIcon, MoreHorizontal, Trash2 } from "@calcom/ui/components/icon";
 
+import { useOrgBrandingValues } from "../../organizations/hooks";
+import { subdomainSuffix } from "../../organizations/lib/orgDomains";
 import { getActionIcon } from "../lib/getActionIcon";
 import { DeleteDialog } from "./DeleteDialog";
-import EmptyScreen from "./EmptyScreen";
 
 export type WorkflowType = Workflow & {
   team: {
@@ -29,6 +33,7 @@ export type WorkflowType = Workflow & {
     name: string;
     members: Membership[];
     slug: string | null;
+    logo?: string | null;
   } | null;
   steps: WorkflowStep[];
   activeOn: {
@@ -45,20 +50,16 @@ export type WorkflowType = Workflow & {
 };
 interface Props {
   workflows: WorkflowType[] | undefined;
-  profileOptions: {
-    image?: string | null;
-    label: string | null;
-    teamId: number | null | undefined;
-    slug: string | null;
-  }[];
-  hasNoWorkflows?: boolean;
 }
-export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkflows }: Props) {
+export default function WorkflowListPage({ workflows }: Props) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [workflowToDeleteId, setwWorkflowToDeleteId] = useState(0);
   const router = useRouter();
+
+  const orgBranding = useOrgBrandingValues();
+  const urlPrefix = orgBranding ? `${orgBranding.slug}.${subdomainSuffix()}` : CAL_URL;
 
   return (
     <>
@@ -143,16 +144,41 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                             )}
                           </Badge>
                         </li>
-                        {workflow.teamId && (
-                          <li>
-                            <Badge variant="gray">
-                              <>{workflow.team?.name}</>
-                            </Badge>
-                          </li>
-                        )}
+                        <div className="block md:hidden">
+                          {workflow.team?.name && (
+                            <li>
+                              <Badge variant="gray">
+                                <>{workflow.team.name}</>
+                              </Badge>
+                            </li>
+                          )}
+                        </div>
                       </ul>
                     </div>
                   </Link>
+                  <div>
+                    <div className="hidden md:block">
+                      {workflow.team?.name && (
+                        <Badge className="mr-4 mt-1 p-[1px] px-2" variant="gray">
+                          <Avatar
+                            alt={workflow.team?.name || ""}
+                            href={
+                              workflow.team?.id
+                                ? `/settings/teams/${workflow.team?.id}/profile`
+                                : "/settings/my-account/profile"
+                            }
+                            imageSrc={getPlaceholderAvatar(
+                              workflow?.team.logo,
+                              workflow.team?.name as string
+                            )}
+                            size="xxs"
+                            className="mt-[3px] inline-flex justify-center"
+                          />
+                          <div>{workflow.team.name}</div>
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
 
                   <div className="flex flex-shrink-0">
                     <div className="hidden sm:block">
@@ -222,12 +248,12 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
             setIsOpenDialog={setDeleteDialogOpen}
             workflowId={workflowToDeleteId}
             additionalFunction={async () => {
-              await utils.viewer.workflows.list.invalidate();
+              await utils.viewer.workflows.filteredList.invalidate();
             }}
           />
         </div>
       ) : (
-        <EmptyScreen profileOptions={profileOptions} isFilteredView={!hasNoWorkflows} />
+        <></>
       )}
     </>
   );
