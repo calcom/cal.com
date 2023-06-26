@@ -68,6 +68,12 @@ const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   ...baseEventTypeSelect,
 });
 
+export const compareMembership = (mship1: MembershipRole, mship2: MembershipRole) => {
+  const mshipToNumber = (mship: MembershipRole) =>
+    Object.keys(MembershipRole).findIndex((mmship) => mmship === mship);
+  return mshipToNumber(mship1) > mshipToNumber(mship2);
+};
+
 export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => {
   const { prisma } = ctx;
 
@@ -213,12 +219,6 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     teamId: membership.team.id,
     membershipRole: membership.role,
   }));
-
-  const compareMembership = (mship1: MembershipRole, mship2: MembershipRole) => {
-    const mshipToNumber = (mship: MembershipRole) =>
-      Object.keys(MembershipRole).findIndex((mmship) => mmship === mship);
-    return mshipToNumber(mship1) > mshipToNumber(mship2);
-  };
 
   const filterTeamsEventTypesBasedOnInput = (eventType: ReturnType<typeof mapEventType>) => {
     if (!input?.filters || !hasFilter(input?.filters)) {

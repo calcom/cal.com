@@ -271,7 +271,7 @@ function WorkflowPage() {
               </div>
               {workflow && workflow.team && (
                 <Badge className="ml-4 mt-1" variant="gray">
-                  {workflow.team.slug}
+                  {workflow.team.name}
                 </Badge>
               )}
               {readOnly && (
