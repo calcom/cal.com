@@ -16,6 +16,7 @@ jobs:
     steps:
       - uses: actions/stale@v7
         with:
+          ascending: true
           days-before-issue-stale: 60
           days-before-issue-close: -1
           days-before-pr-stale: 14
