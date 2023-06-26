@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 import { useState, useEffect } from "react";
 
 import type { BookerStore } from "@calcom/features/bookings/Booker/store";
-import type { BookerLayouts } from "@calcom/prisma/zod-utils";
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
@@ -23,6 +23,9 @@ export type UiConfig = {
 type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
 type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonStylesConfig>>;
 
+/**
+ * This is in-memory persistence needed so that when user browses through the embed, the configurations from the instructions aren't lost.
+ */
 const embedStore = {
   // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
   styles: {} as EmbedStyles | undefined,
@@ -37,7 +40,11 @@ const embedStore = {
   setTheme: undefined as ((arg0: EmbedThemeConfig) => void) | undefined,
   theme: undefined as UiConfig["theme"],
   uiConfig: undefined as Omit<UiConfig, "styles" | "theme"> | undefined,
-  setUiConfig: undefined as ((arg0: UiConfig) => void) | undefined,
+  /**
+   * We maintain a list of all setUiConfig setters that are in use at the moment so that we can update all those components.
+   */
+  setUiConfig: [] as ((arg0: UiConfig) => void)[],
+  layout: BookerLayouts,
 };
 
 declare global {
@@ -183,9 +190,21 @@ export const useEmbedTheme = () => {
   return theme;
 };
 
+/**
+ * It serves following purposes
+ * - Gives consistent values for ui config even after Soft Navigation. When a new React component mounts, it would ensure that the component get's the correct value of ui config
+ * - Ensures that all the components using useEmbedUiConfig are updated when ui config changes. It is done by maintaining a list of all non-stale setters.
+ */
 export const useEmbedUiConfig = () => {
   const [uiConfig, setUiConfig] = useState(embedStore.uiConfig || {});
-  embedStore.setUiConfig = setUiConfig;
+  embedStore.setUiConfig.push(setUiConfig);
+  useEffect(() => {
+    return () => {
+      const foundAtIndex = embedStore.setUiConfig.findIndex((item) => item === setUiConfig);
+      // Keep removing the setters that are stale
+      embedStore.setUiConfig.splice(foundAtIndex, 1);
+    };
+  });
   return uiConfig;
 };
 
@@ -307,19 +326,18 @@ const methods = {
       }
     }
 
-    // Set the value here so that if setUiConfig state isn't available and later it's defined,it uses this value
-    embedStore.uiConfig = uiConfig;
+    // Merge new values over the old values
+    uiConfig = {
+      ...embedStore.uiConfig,
+      ...uiConfig,
+    };
 
     if (uiConfig.cssVarsPerTheme) {
       window.CalEmbed.applyCssVars(uiConfig.cssVarsPerTheme);
     }
 
     if (embedStore.setUiConfig) {
-      embedStore.setUiConfig(uiConfig);
-    }
-
-    if (uiConfig.layout) {
-      window.CalEmbed.setLayout?.(uiConfig.layout);
+      runAllUiSetters(uiConfig);
     }
 
     setEmbedStyles(stylesConfig || {});
@@ -440,6 +458,13 @@ if (isBrowser) {
   log("Embed SDK loaded", { isEmbed: window?.isEmbed?.() || false });
   const url = new URL(document.URL);
   embedStore.theme = window?.getEmbedTheme?.();
+
+  embedStore.uiConfig = {
+    // TODO: Add theme as well here
+    // theme:
+    layout: url.searchParams.get("layout") as BookerLayouts,
+  };
+
   if (url.searchParams.get("prerender") !== "true" && window?.isEmbed?.()) {
     log("Initializing embed-iframe");
     // HACK
@@ -491,4 +516,10 @@ if (isBrowser) {
         },
       });
   }
+}
+
+function runAllUiSetters(uiConfig: UiConfig) {
+  // Update EmbedStore so that when a new react component mounts, useEmbedUiConfig can get the persisted value from embedStore.uiConfig
+  embedStore.uiConfig = uiConfig;
+  embedStore.setUiConfig.forEach((setUiConfig) => setUiConfig(uiConfig));
 }
