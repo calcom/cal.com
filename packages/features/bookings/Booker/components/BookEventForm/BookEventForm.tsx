@@ -52,7 +52,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const formValues = useBookerStore((state) => state.formValues);
   const setFormValues = useBookerStore((state) => state.setFormValues);
   const seatedEventData = useBookerStore((state) => state.seatedEventData);
-  const seatReferenceUid = useBookerStore((state) => state.seatReferenceUid);
   const isRescheduling = !!rescheduleUid && !!rescheduleBooking;
   const event = useEvent();
   const eventType = event.data;
