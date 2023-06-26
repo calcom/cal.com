@@ -5,6 +5,7 @@ const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
 const { i18n } = require("./next-i18next.config");
 const { pages } = require("./pages");
+const { getSubdomainRegExp } = require("./getSubdomainRegExp");
 
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
@@ -70,14 +71,6 @@ const informAboutDuplicateTranslations = () => {
 };
 
 informAboutDuplicateTranslations();
-
-const getSubdomain = () => {
-  const _url = new URL(process.env.NEXT_PUBLIC_WEBAPP_URL);
-  const regex = new RegExp(/^([a-z]+\:\/{2})?((?<subdomain>[\w-]+)\.[\w-]+\.\w+)$/);
-  //console.log(_url.hostname, _url.hostname.match(regex));
-  return _url.hostname.match(regex)?.groups?.subdomain || null;
-};
-
 const plugins = [];
 if (process.env.ANALYZE === "true") {
   // only load dependency if env `ANALYZE` was set
@@ -193,9 +186,7 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    const defaultSubdomain = getSubdomain();
-    const subdomain = defaultSubdomain ? `(?!${defaultSubdomain})[^.]+` : "[^.]+";
-
+    const subdomain = getSubdomainRegExp(process.env.NEXT_PUBLIC_WEBAPP_URL);
     const beforeFiles = [
       {
         has: [
