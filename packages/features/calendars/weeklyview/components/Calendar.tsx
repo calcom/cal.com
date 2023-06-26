@@ -62,7 +62,7 @@ export function Calendar(props: CalendarComponentProps) {
             <DateValues containerNavRef={containerNav} days={days} />
             <div className="relative flex flex-auto">
               <CurrentTime />
-              <div className="bg-default dark:bg-muted ring-muted sticky left-0 z-10 w-14 flex-none ring-1" />
+              <div className="bg-default dark:bg-muted ring-muted sticky border-default border-l border-r left-0 z-10 w-14 flex-none ring-1" />
               <div
                 className="grid flex-auto grid-cols-1 grid-rows-1 [--disabled-gradient-background:#F8F9FB] [--disabled-gradient-foreground:#E6E7EB] dark:[--disabled-gradient-background:#262626] dark:[--disabled-gradient-foreground:#393939]"
                 style={{
