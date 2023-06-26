@@ -1823,6 +1823,8 @@
   "one_day": "1 day",
   "seven_days": "7 days",
   "thirty_days": "30 days",
+  "three_months": "3 months",
+  "one_year": "1 year",
   "team_invite_received": "You have been invited to join {{teamName}}",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "You are about to charge the attendee {{amount, currency}}. Are you sure you want to continue?",
