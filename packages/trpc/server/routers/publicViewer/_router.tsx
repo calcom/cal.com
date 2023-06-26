@@ -3,7 +3,6 @@ import sessionMiddleware from "../../middlewares/sessionMiddleware";
 import publicProcedure from "../../procedures/publicProcedure";
 import { router } from "../../trpc";
 import { slotsRouter } from "../viewer/slots/_router";
-import { ZBookingInputSchema } from "./booking.schema";
 import { ZEventInputSchema } from "./event.schema";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
@@ -16,7 +15,6 @@ type PublicViewerRouterHandlerCache = {
   stripeCheckoutSession?: typeof import("./stripeCheckoutSession.handler").stripeCheckoutSessionHandler;
   cityTimezones?: typeof import("./cityTimezones.handler").cityTimezonesHandler;
   event?: typeof import("./event.handler").eventHandler;
-  booking?: typeof import("./booking.handler").bookingHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: PublicViewerRouterHandlerCache = {};
@@ -131,22 +129,6 @@ export const publicViewerRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.event({
-      ctx,
-      input,
-    });
-  }),
-
-  booking: publicProcedure.input(ZBookingInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.booking) {
-      UNSTABLE_HANDLER_CACHE.booking = await import("./booking.handler").then((mod) => mod.bookingHandler);
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.booking) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.booking({
       ctx,
       input,
     });
