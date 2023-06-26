@@ -249,6 +249,7 @@
   "organization_general_description": "Gérez les paramètres de langue et de fuseau horaire de votre équipe.",
   "few_sentences_about_yourself": "Quelques mots à propos de vous. Ces informations apparaîtront sur votre page publique.",
   "nearly_there": "C'est bientôt terminé !",
+  "nearly_there_instructions": "Pour finir, une brève description de vous et une photo vous aideront vraiment à obtenir des réservations et à faire savoir aux gens avec qui ils prennent rendez-vous.",
   "set_availability_instructions": "Définissez des plages de temps pendant lesquelles vous êtes disponible de manière récurrente. Vous pourrez en créer d'autres ultérieurement et les assigner à différents calendriers.",
   "set_availability": "Définissez vos disponibilités",
   "continue_without_calendar": "Continuer sans calendrier",
