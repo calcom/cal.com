@@ -188,36 +188,40 @@ const nextConfig = {
   async rewrites() {
     const subdomain = getSubdomainRegExp(process.env.NEXT_PUBLIC_WEBAPP_URL);
     const beforeFiles = [
-      {
-        has: [
-          {
-            type: "host",
-            value: `^(?<orgSlug>${subdomain})\\..*`,
-          },
-        ],
-        source: "/",
-        destination: "/team/:orgSlug",
-      },
-      {
-        has: [
-          {
-            type: "host",
-            value: `^(?<orgSlug>${subdomain})\\..*`,
-          },
-        ],
-        source: `/:user((?!${pages.join("|")}|_next|public)[a-zA-Z0-9\-_]+)`,
-        destination: "/org/:orgSlug/:user",
-      },
-      {
-        has: [
-          {
-            type: "host",
-            value: `^(?<orgSlug>${subdomain}[^.]+)\\..*`,
-          },
-        ],
-        source: `/:user((?!${pages.join("|")}|_next|public))/:path*`,
-        destination: "/:user/:path*",
-      },
+      ...(process.env.ORGANIZATIONS_ENABLED
+        ? [
+            {
+              has: [
+                {
+                  type: "host",
+                  value: `^(?<orgSlug>${subdomain})\\..*`,
+                },
+              ],
+              source: "/",
+              destination: "/team/:orgSlug",
+            },
+            {
+              has: [
+                {
+                  type: "host",
+                  value: `^(?<orgSlug>${subdomain})\\..*`,
+                },
+              ],
+              source: `/:user((?!${pages.join("|")}|_next|public)[a-zA-Z0-9\-_]+)`,
+              destination: "/org/:orgSlug/:user",
+            },
+            {
+              has: [
+                {
+                  type: "host",
+                  value: `^(?<orgSlug>${subdomain}[^.]+)\\..*`,
+                },
+              ],
+              source: `/:user((?!${pages.join("|")}|_next|public))/:path*`,
+              destination: "/:user/:path*",
+            },
+          ]
+        : []),
     ];
 
     let afterFiles = [

@@ -1,5 +1,6 @@
 
 import { it, expect, describe, beforeAll, afterAll } from "vitest";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { getSubdomainRegExp } = require("../../getSubdomainRegExp");
 let userTypeRouteRegExp: RegExp;
 let teamTypeRouteRegExp:RegExp;
@@ -159,8 +160,8 @@ describe('next.config.js - RegExp', ()=>{
 
 describe('next.config.js - Org Rewrite', ()=> {
   //^(?<orgSlug>${subdomainRegExp})\\..*
-  const pagesRewriteRegex = (subdomainRegExp)=> new RegExp(`^(?<orgSlug>${subdomainRegExp})\\..*`)
-  describe.only('SubDomain Retrieval from NEXT_PUBLIC_WEBAPP_URL', ()=>{
+  const pagesRewriteRegex = (subdomainRegExp:string)=> new RegExp(`^(?<orgSlug>${subdomainRegExp})\\..*`)
+  describe('SubDomain Retrieval from NEXT_PUBLIC_WEBAPP_URL', ()=>{
     it('https://app.cal.com', ()=>{
       const subdomainRegExp = getSubdomainRegExp('https://app.cal.com');
       expect(pagesRewriteRegex(subdomainRegExp).exec('app.cal.com')).toEqual(null)
