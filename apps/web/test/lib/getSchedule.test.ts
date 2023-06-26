@@ -389,9 +389,9 @@ describe("getSchedule", () => {
         timeZone: Timezones["+5:30"],
       });
 
+      // "04:00:00.000Z", - This slot is unavailable because of the booking from 4:00 to 4:15
       expect(scheduleForDayWithOneBooking).toHaveTimeSlots(
         [
-          // "04:00:00.000Z", - This slot is unavailable because of the booking from 4:00 to 4:15
           "04:45:00.000Z",
           "05:30:00.000Z",
           "06:15:00.000Z",
@@ -624,10 +624,10 @@ describe("getSchedule", () => {
         timeZone: Timezones["+5:30"],
       });
 
+      // `04:00:00.000Z`, // - 4 AM is booked
+      // `06:00:00.000Z`, // - 6 AM is not available because 08:00AM slot has a `beforeEventBuffer`
       expect(scheduleForEventOnADayWithNonCalBooking).toHaveTimeSlots(
         [
-          // `04:00:00.000Z`, // - 4 AM is booked
-          // `06:00:00.000Z`, // - 6 AM is not available because 08:00AM slot has a `beforeEventBuffer`
           `08:00:00.000Z`, // - 8 AM is available because of availability of 06:00 - 07:59
           `10:00:00.000Z`,
           `12:00:00.000Z`,
@@ -898,9 +898,9 @@ describe("getSchedule", () => {
         timeZone: Timezones["+5:30"],
       });
 
+      // `04:00:00.000Z`, // <- This slot should be occupied by the Collective Event
       expect(thisUserAvailability).toHaveTimeSlots(
         [
-          // `04:00:00.000Z`, // <- This slot should be occupied by the Collective Event
           `04:45:00.000Z`,
           `05:30:00.000Z`,
           `06:15:00.000Z`,
@@ -1023,11 +1023,12 @@ describe("getSchedule", () => {
 
       // A user with blocked time in another event, still affects Team Event availability
       // It's a collective availability, so both user 101 and 102 are considered for timeslots
+
+      //`04:00:00.000Z`, - Blocked with User 101
+      //`05:30:00.000Z`, - Blocked with User 102 in event 2
       expect(scheduleForTeamEventOnADayWithOneBookingForEachUser).toHaveTimeSlots(
         [
-          //`04:00:00.000Z`, - Blocked with User 101
           `04:45:00.000Z`, // todo: figure out why this doesn't open at :15
-          //`05:30:00.000Z`, - Blocked with User 102 in event 2
           `05:45:00.000Z`,
           `06:30:00.000Z`,
           `07:15:00.000Z`,
@@ -1151,10 +1152,12 @@ describe("getSchedule", () => {
         endTime: `${plus3DateString}T18:29:59.999Z`,
         timeZone: Timezones["+5:30"],
       });
+
       // A user with blocked time in another event, still affects Team Event availability
+
+      //`04:00:00.000Z`, // - Blocked with User 101 as well as User 102, so not available in Round Robin
       expect(scheduleForTeamEventOnADayWithOneBookingForEachUserOnSameTimeSlot).toHaveTimeSlots(
         [
-          //`04:00:00.000Z`, // - Blocked with User 101 as well as User 102, so not available in Round Robin
           `04:45:00.000Z`,
           `05:30:00.000Z`,
           `06:15:00.000Z`,
