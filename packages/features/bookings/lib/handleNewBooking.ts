@@ -640,7 +640,6 @@ async function handler(
     notes: additionalNotes,
     smsReminderNumber,
     rescheduleReason,
-    seatReferenceUid,
     ...reqBody
   } = getBookingData({
     req,
@@ -1209,7 +1208,6 @@ async function handler(
               attendees: true,
             },
           });
-          console.log("🚀 ~ file: handleNewBooking.ts:1209 ~ handleSeats ~ newBooking:", newBooking);
 
           addVideoCallDataToEvt(newBooking.references);
 

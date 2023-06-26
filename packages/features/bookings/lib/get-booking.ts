@@ -133,12 +133,9 @@ export const getBookingByUidOrRescheduleUid = async (uid: string) => {
       select: {
         id: true,
         attendee: {
-          include: {
-            bookingSeat: {
-              select: {
-                referenceUid: true,
-              },
-            },
+          select: {
+            name: true,
+            email: true,
           },
         },
         booking: {

@@ -35,11 +35,6 @@ export const EventMeta = () => {
   const isEmbed = useIsEmbed();
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
 
-  console.log(
-    "🚀 ~ file: EventMeta.tsx:110 ~ EventMeta ~ seatedEventData.attendees && seatedEventData.seatsPerTimeSlot:",
-    !!seatedEventData.attendees && !!seatedEventData.seatsPerTimeSlot
-  );
-
   if (hideEventTypeDetails) {
     return null;
   }
