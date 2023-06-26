@@ -168,7 +168,9 @@
           <a href="?only=ns:default">[Dark Theme][Guests(janedoe@example.com and test@example.com)](Default Namespace)</a>
         </h3>
         <button onclick="Cal('ui',{theme:'light'})">Toggle to Light</button>
-
+        <button onclick="Cal('ui',{layout:'week_view'})">Toggle to Week View</button>
+        <button onclick="Cal('ui',{layout:'month_view'})">Toggle to Month View</button>
+        <button onclick="Cal('ui',{layout:'column_view'})">Toggle to Column View</button>
         <i class="last-action"> You would see last Booking page action in my place </i>
         <div>
           <div class="place" style="width: 100%"></div>
@@ -252,6 +254,14 @@
       <div class="dark"></div>
       <i>Note that one of the embeds would stay in loading state as they are using the same namespace and it is not supported to have more than 1 embeds using same namespace</i>
       </div>
+    </div>
+    <div class="inline-embed-container" id="cal-booking-place-weekView">
+      <h3><a href="?only=ns:weekView">Test Weekly View</a></h3>
+      <div class="place" style="width: 100%"></div>
+    </div>
+    <div class="inline-embed-container" id="cal-booking-place-columnView">
+      <h3><a href="?only=ns:columnView">Test Column View</a></h3>
+      <div class="place" style="width: 100%"></div>
     </div>
     <script src="./playground.ts"></script>
   </body>

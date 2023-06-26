@@ -1,11 +1,11 @@
 import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import { useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
+import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
@@ -23,7 +23,6 @@ import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
 import { useEvent } from "./utils/event";
 import { validateLayout } from "./utils/layout";
-import { getQueryParam } from "./utils/query-param";
 import { useBrandColors } from "./utils/use-brand-colors";
 
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
@@ -46,10 +45,14 @@ const BookerComponent = ({
   const rescheduleUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
   const event = useEvent();
-  const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
-  if (typeof window !== "undefined") {
-    window.CalEmbed.setLayout = setLayout;
-  }
+  const [_layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
+
+  const isEmbed = useIsEmbed();
+  const embedUiConfig = useEmbedUiConfig();
+
+  // In Embed we give preference to embed configuration for the layout.If that's not set, we use the App configuration for the event layout
+  const layout = isEmbed ? validateLayout(embedUiConfig.layout) || _layout : _layout;
+
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
@@ -60,13 +63,10 @@ const BookerComponent = ({
   const extraDays = isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop;
   const bookerLayouts = event.data?.profile?.bookerLayouts || defaultBookerLayoutSettings;
   const animationScope = useBookerResizeAnimation(layout, bookerState);
-  const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
 
-  // We only want the initial url value, that's why we memo it. The embed seems to change the url, which sometimes drops
-  // the layout query param.
-  const layoutFromQueryParam = useMemo(() => validateLayout(getQueryParam("layout") as BookerLayouts), []);
+  // I would expect isEmbed to be not needed here as it's handled in derived variable layout, but somehow removing it breaks the views.
   const defaultLayout = isEmbed
-    ? layoutFromQueryParam || BookerLayouts.MONTH_VIEW
+    ? validateLayout(embedUiConfig.layout) || bookerLayouts.defaultLayout
     : bookerLayouts.defaultLayout;
 
   useBrandColors({
@@ -107,7 +107,6 @@ const BookerComponent = ({
     }
   }, [layout]);
 
-  const embedUiConfig = useEmbedUiConfig();
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
 
   if (event.isSuccess && !event.data) {
@@ -149,7 +148,8 @@ const BookerComponent = ({
             !isEmbed && "sm:transition-[width] sm:duration-300",
             isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
             !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle",
-            layout === BookerLayouts.MONTH_VIEW && isEmbed && "mt-20"
+            // We don't want any margins for Embed. Any margin needed should be added by Embed user.
+            layout === BookerLayouts.MONTH_VIEW && isEmbed && "mt-0"
           )}>
           <AnimatePresence>
             <BookerSection
