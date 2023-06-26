@@ -5,6 +5,7 @@ import { forwardRef } from "react";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { AnimatedPopover, Avatar, Divider, VerticalDivider } from "@calcom/ui";
@@ -84,28 +85,30 @@ export const TeamsFilter = ({
             label={t("yours")}
           />
           <Divider />
-          {teams?.map((team) => (
-            <FilterCheckboxField
-              key={team.id}
-              id={team.name}
-              label={team.name}
-              checked={!!query.teamIds?.includes(team.id)}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  pushItemToKey("teamIds", team.id);
-                } else if (!e.target.checked) {
-                  removeItemByKeyAndValue("teamIds", team.id);
+          {teams
+            ?.filter((team) => !teamMetadataSchema.parse(team.metadata)?.isOrganization)
+            .map((team) => (
+              <FilterCheckboxField
+                key={team.id}
+                id={team.name}
+                label={team.name}
+                checked={!!query.teamIds?.includes(team.id)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    pushItemToKey("teamIds", team.id);
+                  } else if (!e.target.checked) {
+                    removeItemByKeyAndValue("teamIds", team.id);
+                  }
+                }}
+                icon={
+                  <Avatar
+                    alt={team?.name}
+                    imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)}
+                    size="xs"
+                  />
                 }
-              }}
-              icon={
-                <Avatar
-                  alt={team?.name}
-                  imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)}
-                  size="xs"
-                />
-              }
-            />
-          ))}
+              />
+            ))}
         </FilterCheckboxFieldsContainer>
       </AnimatedPopover>
       {showVerticalDivider && <VerticalDivider />}
