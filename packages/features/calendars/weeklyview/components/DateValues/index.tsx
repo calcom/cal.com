@@ -34,7 +34,7 @@ export function DateValues({ days, containerNavRef }: Props) {
         })}
       </div>
       <div className="text-subtle -mr-px hidden  auto-cols-fr text-sm leading-6 sm:flex ">
-        <div className="col-end-1 w-14" />
+        <div className="col-end-1 w-14 border-default border-l" />
         {days.map((day) => {
           const isToday = dayjs().isSame(day, "day");
           return (

@@ -698,6 +698,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           id: true,
           slug: true,
           members: true,
+          name: true,
         },
       },
       steps: {

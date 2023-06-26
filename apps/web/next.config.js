@@ -100,7 +100,7 @@ plugins.push(withAxiom);
 const userTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type((?!book$)[^/]+)`;
 const teamTypeRouteRegExp = "/team/:slug/:type((?!book$)[^/]+)";
 const privateLinkRouteRegExp = "/d/:link/:slug((?!book$)[^/]+)";
-const embedUserTypeRouteRegExp = `/:user((?!${pages.join("|")}).*)/:type/embed`;
+const embedUserTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type/embed`;
 const embedTeamTypeRouteRegExp = "/team/:slug/:type/embed";
 
 /** @type {import("next").NextConfig} */
@@ -312,11 +312,11 @@ const nextConfig = {
       afterFiles.push(
         ...[
           {
-            source: `/:user((?!${pages.join("|")}).*)/:type/embed`,
+            source: embedUserTypeRouteRegExp,
             destination: "/new-booker/:user/:type/embed",
           },
           {
-            source: "/team/:slug/:type/embed",
+            source: embedTeamTypeRouteRegExp,
             destination: "/new-booker/team/:slug/:type/embed",
           },
         ]
