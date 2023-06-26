@@ -1000,7 +1000,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     </div>
                     <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
                       <div className="whitespace-nowrap">Text color</div>
-                      <div className="mt-2 mb-6 w-40 xl:mt-0 xl:w-full">
+                      <div className="mb-6 mt-2 w-40 xl:mt-0 xl:w-full">
                         <ColorPicker
                           className="w-[130px]"
                           popoverAlign="start"

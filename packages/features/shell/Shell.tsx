@@ -199,8 +199,8 @@ const Layout = (props: LayoutProps) => {
 
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
-      <div style={{ paddingTop: `${bannersHeight}px` }} className="flex min-h-screen flex-col">
-        <div ref={bannerRef} className="fixed top-0 z-10 w-full divide-y divide-black">
+      <div className="flex min-h-screen flex-col">
+        <div ref={bannerRef} className="sticky top-0 z-10 w-full divide-y divide-black">
           <TeamsUpgradeBanner />
           <OrgUpgradeBanner />
           <ImpersonatingBanner />
@@ -1052,7 +1052,7 @@ function TopNav() {
     <>
       <nav
         style={isEmbed ? { display: "none" } : {}}
-        className="bg-muted border-subtle sticky top-0 z-40 flex w-full items-center justify-between border-b bg-opacity-50 py-1.5 px-4 backdrop-blur-lg sm:p-4 md:hidden">
+        className="bg-muted border-subtle sticky top-0 z-40 flex w-full items-center justify-between border-b bg-opacity-50 px-4 py-1.5 backdrop-blur-lg sm:p-4 md:hidden">
         <Link href="/event-types">
           <Logo />
         </Link>

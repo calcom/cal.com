@@ -298,10 +298,27 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     }
   }
-  const updatedEventType = await ctx.prisma.eventType.update({
-    where: { id },
-    data,
+
+  const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+    slug: true,
+    schedulingType: true,
   });
+  let updatedEventType: Prisma.EventTypeGetPayload<{ select: typeof updatedEventTypeSelect }>;
+  try {
+    updatedEventType = await ctx.prisma.eventType.update({
+      where: { id },
+      data,
+      select: updatedEventTypeSelect,
+    });
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      if (e.code === "P2002") {
+        // instead of throwing a 500 error, catch the conflict and throw a 400 error.
+        throw new TRPCError({ message: "error_event_type_url_duplicate", code: "BAD_REQUEST" });
+      }
+    }
+    throw e;
+  }
 
   // Handling updates to children event types (managed events types)
   await updateChildrenEventTypes({
