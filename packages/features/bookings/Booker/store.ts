@@ -105,7 +105,6 @@ export type BookerStore = {
   isTeamEvent: boolean;
   seatedEventData: SeatedEventData;
   setSeatedEventData: (seatedEventData: SeatedEventData) => void;
-  seatReferenceUid: string | null;
 };
 
 /**
@@ -164,7 +163,6 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     set({ seatedEventData });
     updateQueryParam("bookingUid", seatedEventData.bookingUid ?? "");
   },
-  seatReferenceUid: getQueryParam("seatReferenceUid") || null,
   initialize: ({
     username,
     eventSlug,

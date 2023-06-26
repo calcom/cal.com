@@ -71,10 +71,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     "/" +
     eventType?.slug;
   const destinationUrl = new URLSearchParams();
-  destinationUrl.set("rescheduleUid", bookingId);
-  if (seatReferenceUid) {
-    destinationUrl.set("seatReferenceUid", seatReferenceUid);
-  }
+
+  destinationUrl.set("rescheduleUid", seatReferenceUid || bookingId);
 
   return {
     redirect: {

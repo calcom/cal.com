@@ -971,11 +971,11 @@ async function handler(
   type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
   let originalRescheduledBooking: BookingType = null;
 
-  if (seatReferenceUid && rescheduleUid) {
+  if (rescheduleUid) {
     // rescheduleUid can be bookingUid and bookingSeatUid
     bookingSeat = await prisma.bookingSeat.findUnique({
       where: {
-        referenceUid: seatReferenceUid,
+        referenceUid: rescheduleUid,
       },
       include: {
         booking: true,
