@@ -1,5 +1,6 @@
-import dayjs from "@calcom/dayjs";
 import { describe, expect, it } from "vitest";
+
+import dayjs from "@calcom/dayjs";
 
 import { buildDateRanges, processDateOverride, processWorkingHours } from "./date-ranges";
 
@@ -110,6 +111,5 @@ describe("buildDateRanges", () => {
       start: dayjs("2023-06-14T07:00:00Z").tz(timeZone),
       end: dayjs("2023-06-14T16:00:00Z").tz(timeZone),
     });
-
-  })
+  });
 });
