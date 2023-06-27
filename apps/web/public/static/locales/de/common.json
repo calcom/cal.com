@@ -736,7 +736,7 @@
   "new_event_type_to_book_description": "Erstellen Sie einen neuen Termintyp, mit dem Personen Zeiten buchen können.",
   "length": "Länge",
   "minimum_booking_notice": "Mindesvorlaufzeit für eine Buchung",
-  "offset_toggle": "Startzeiten versetzen",
+  "offset_toggle": "Versetzte Startzeiten",
   "offset_toggle_description": "Um eine bestimmte Anzahl an Minuten versetzte Zeitfenster, die Buchern angezeigt werden",
   "offset_start": "Versetzt um",
   "offset_start_description": "z.B. wird dies Zeitfenster für Ihre Bucher um {{ adjustedTime }} statt {{ originalTime }} anzeigen",

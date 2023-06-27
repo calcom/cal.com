@@ -1,5 +1,7 @@
 
 import { it, expect, describe, beforeAll, afterAll } from "vitest";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { getSubdomainRegExp } = require("../../getSubdomainRegExp");
 let userTypeRouteRegExp: RegExp;
 let teamTypeRouteRegExp:RegExp;
 let privateLinkRouteRegExp:RegExp
@@ -161,3 +163,36 @@ describe('next.config.js - RegExp', ()=>{
   })
 })
 
+
+describe('next.config.js - Org Rewrite', ()=> {
+  // RegExp copied from next.config.js
+  const orgHostRegExp = (subdomainRegExp:string)=> new RegExp(`^(?<orgSlug>${subdomainRegExp})\\..*`)
+  describe('SubDomain Retrieval from NEXT_PUBLIC_WEBAPP_URL', ()=>{
+    it('https://app.cal.com', ()=>{
+      const subdomainRegExp = getSubdomainRegExp('https://app.cal.com');
+      expect(orgHostRegExp(subdomainRegExp).exec('app.cal.com')).toEqual(null)
+      expect(orgHostRegExp(subdomainRegExp).exec('company.app.cal.com')?.groups?.orgSlug).toEqual('company')
+      expect(orgHostRegExp(subdomainRegExp).exec('org.cal.com')?.groups?.orgSlug).toEqual('org')
+    })
+
+    it('app.cal.com', ()=>{
+      const subdomainRegExp = getSubdomainRegExp('app.cal.com');
+      expect(orgHostRegExp(subdomainRegExp).exec('app.cal.com')).toEqual(null)
+      expect(orgHostRegExp(subdomainRegExp).exec('company.app.cal.com')?.groups?.orgSlug).toEqual('company')
+    })
+
+    it('https://calcom.app.company.com', ()=>{
+      const subdomainRegExp = getSubdomainRegExp('https://calcom.app.company.com');
+      expect(orgHostRegExp(subdomainRegExp).exec('calcom.app.company.com')).toEqual(null)
+      expect(orgHostRegExp(subdomainRegExp).exec('acme.calcom.app.company.com')?.groups?.orgSlug).toEqual('acme')
+    })
+
+    it('https://calcom.example.com', ()=>{
+      const subdomainRegExp = getSubdomainRegExp('https://calcom.example.com');
+      expect(orgHostRegExp(subdomainRegExp).exec('calcom.example.com')).toEqual(null)
+      expect(orgHostRegExp(subdomainRegExp).exec('acme.calcom.example.com')?.groups?.orgSlug).toEqual('acme')
+      // The following also matches which causes anything other than the domain in NEXT_PUBLIC_WEBAPP_URL to give 404
+      expect(orgHostRegExp(subdomainRegExp).exec('some-other.company.com')?.groups?.orgSlug).toEqual('some-other')
+    })
+  })
+})
