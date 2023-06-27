@@ -21,11 +21,11 @@ const mapUserToOption = (user: User): Option => ({
 
 export const UserListInTeam = () => {
   const { t } = useLocale();
-  const { filter, setSelectedMemberUserId } = useFilterContext();
-  const { selectedFilter, selectedTeamId, selectedMemberUserId, isOrg } = filter;
+  const { filter, setConfigFilters } = useFilterContext();
+  const { selectedFilter, selectedTeamId, selectedMemberUserId, isAll } = filter;
   const { data, isSuccess } = trpc.viewer.insights.userList.useQuery({
-    teamId: selectedTeamId,
-    isOrg: isOrg,
+    teamId: selectedTeamId ?? -1,
+    isAll: !!isAll,
   });
 
   if (!selectedFilter?.includes("user")) return null;
@@ -55,9 +55,13 @@ export const UserListInTeam = () => {
             checked={userValue?.value === member?.value}
             onChange={(e) => {
               if (e.target.checked) {
-                setSelectedMemberUserId(member.value);
+                setConfigFilters({
+                  selectedMemberUserId: member.value,
+                });
               } else if (!e.target.checked) {
-                setSelectedMemberUserId(null);
+                setConfigFilters({
+                  selectedMemberUserId: undefined,
+                });
               }
             }}
             icon={

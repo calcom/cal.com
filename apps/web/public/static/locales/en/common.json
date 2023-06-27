@@ -1897,7 +1897,7 @@
   "org_name": "Organization name",
   "org_url": "Organization URL",
   "copy_link_org": "Copy link to organization",
-  "insights_all_org_filter": "All",
+  "insights_all_org_filter": "All insights",
   "insights_team_filter": "Team: {{teamName}}",
   "insights_user_filter": "User: {{userName}}",
   "insights_subtitle": "View booking insights across your events",

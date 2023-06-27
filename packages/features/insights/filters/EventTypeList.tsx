@@ -16,13 +16,13 @@ const mapEventTypeToOption = (eventType: EventType): Option => ({
 
 export const EventTypeList = () => {
   const { t } = useLocale();
-  const { filter, setSelectedEventTypeId } = useFilterContext();
-  const { selectedTeamId, selectedEventTypeId, selectedUserId, isOrg } = filter;
+  const { filter, setConfigFilters } = useFilterContext();
+  const { selectedTeamId, selectedEventTypeId, selectedUserId, isAll } = filter;
   const { selectedFilter } = filter;
   const { data, isSuccess } = trpc.viewer.insights.eventTypeList.useQuery({
     teamId: selectedTeamId ?? undefined,
     userId: selectedUserId ?? undefined,
-    isOrg,
+    isAll,
   });
 
   if (!selectedFilter?.includes("event-type")) return null;
@@ -52,9 +52,14 @@ export const EventTypeList = () => {
               onChange={(e) => {
                 if (e.target.checked) {
                   const selectedEventTypeId = data.find((item) => item.id.toString() === eventType.value)?.id;
-                  !!selectedEventTypeId && setSelectedEventTypeId(selectedEventTypeId);
+                  !!selectedEventTypeId &&
+                    setConfigFilters({
+                      selectedEventTypeId,
+                    });
                 } else if (!e.target.checked) {
-                  setSelectedEventTypeId(null);
+                  setConfigFilters({
+                    selectedEventTypeId: null,
+                  });
                 }
               }}
               description={eventType.label}

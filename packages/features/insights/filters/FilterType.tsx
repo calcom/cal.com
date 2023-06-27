@@ -16,7 +16,7 @@ type Option = { value: "event-type" | "user"; label: string; StartIcon?: SVGComp
 
 export const FilterType = () => {
   const { t } = useLocale();
-  const { setSelectedFilter, filter } = useFilterContext();
+  const { filter, setConfigFilters } = useFilterContext();
   const { selectedFilter, selectedUserId } = filter;
 
   let filterOptions: Option[] = [
@@ -59,7 +59,9 @@ export const FilterType = () => {
               StartIcon={option.StartIcon}
               onClick={() => {
                 // This can multiple values, but for now we only want to have one filter active at a time
-                setSelectedFilter([option.value]);
+                setConfigFilters({
+                  selectedFilter: [option.value],
+                });
               }}
               childrenClassName="w-full">
               <div className="flex w-full items-center justify-between">
