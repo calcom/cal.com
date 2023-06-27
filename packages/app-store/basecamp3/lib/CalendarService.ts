@@ -3,12 +3,10 @@
 import type { Prisma } from "@prisma/client";
 import ICAL from "ical.js";
 import type { Attendee, DateArray, DurationObject, Person } from "ics";
-import { createEvent } from "ics";
 import type { DAVAccount } from "tsdav";
-import { createAccount, fetchCalendarObjects, updateCalendarObject } from "tsdav";
+import { createAccount, fetchCalendarObjects } from "tsdav";
 
 import dayjs from "@calcom/dayjs";
-import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
@@ -116,7 +114,7 @@ export default class BasecampCalendarService implements Calendar {
     };
   };
 
-  private async getBasecampDescription(event: CalendarEvent): string {
+  private async getBasecampDescription(event: CalendarEvent): Promise<string> {
     const timeZone = await this.getUserTimezoneFromDB(event.organizer.id);
     const date = new Date(event.startTime).toDateString();
     const startTime = new Date(event.startTime).toISOString();
@@ -170,7 +168,7 @@ export default class BasecampCalendarService implements Calendar {
         additionalInfo: { meetingJson },
       });
     } catch (err) {
-      this.log.debug("event:creation:notOk");
+      this.log.debug("event:creation:notOk", err);
       Promise.reject({ error: "Unable to book basecamp meeting" });
     }
   }
@@ -180,77 +178,38 @@ export default class BasecampCalendarService implements Calendar {
     event: CalendarEvent
   ): Promise<NewCalendarEventType | NewCalendarEventType[]> {
     try {
-      const events = await this.getEventsByUID(uid);
+      const auth = await this.auth;
+      await auth.configureToken();
+      const description = await this.getBasecampDescription(event);
 
-      /** We generate the ICS files */
-      const { error, value: iCalString } = createEvent({
-        uid,
-        startInputType: "utc",
-        start: convertDate(event.startTime),
-        duration: getDuration(event.startTime, event.endTime),
-        title: event.title,
-        description: getRichDescription(event),
-        location: getLocation(event),
-        organizer: { email: event.organizer.email, name: event.organizer.name },
-        attendees: [
-          ...getAttendees(event.attendees),
-          ...(event.team?.members ? getAttendees(event.team.members) : []),
-        ],
-      });
-
-      if (error) {
-        this.log.debug("Error creating iCalString");
-
-        return {
-          uid,
-          type: event.type,
-          id: typeof event.uid === "string" ? event.uid : "-1",
-          password: "",
-          url: typeof event.location === "string" ? event.location : "-1",
-          additionalInfo: {},
-        };
-      }
-      let calendarEvent: CalendarEventType;
-      const eventsToUpdate = events.filter((e) => e.uid === uid);
-      return Promise.all(
-        eventsToUpdate.map((eventItem) => {
-          calendarEvent = eventItem;
-          return updateCalendarObject({
-            calendarObject: {
-              url: calendarEvent.url,
-              // ensures compliance with standard iCal string (known as iCal2.0 by some) required by various providers
-              data: iCalString?.replace(/METHOD:[^\r\n]+\r\n/g, ""),
-              etag: calendarEvent?.etag,
-            },
-            headers: this.headers,
-          });
-        })
-      ).then((responses) =>
-        responses.map((response) => {
-          if (response.status >= 200 && response.status < 300) {
-            return {
-              uid,
-              type: this.credentials.type,
-              id: typeof calendarEvent.uid === "string" ? calendarEvent.uid : "-1",
-              password: "",
-              url: calendarEvent.url,
-              additionalInfo:
-                typeof event.additionalInformation === "string" ? event.additionalInformation : {},
-            };
-          } else {
-            this.log.error("Error: Status Code", response.status);
-            return {
-              uid,
-              type: event.type,
-              id: typeof event.uid === "string" ? event.uid : "-1",
-              password: "",
-              url: typeof event.location === "string" ? event.location : "-1",
-              additionalInfo:
-                typeof event.additionalInformation === "string" ? event.additionalInformation : {},
-            };
-          }
-        })
+      const basecampEvent = await fetch(
+        `https://3.basecampapi.com/${this.userId}/buckets/${this.projectId}/schedule_entries/${uid}.json`,
+        {
+          method: "PUT",
+          headers: {
+            "User-Agent": userAgent,
+            Authorization: `Bearer ${this.accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            description,
+            summary: `Cal.com: ${event.title}`,
+            starts_at: new Date(event.startTime).toISOString(),
+            ends_at: new Date(event.endTime).toISOString(),
+          }),
+        }
       );
+      const meetingJson = await basecampEvent.json();
+      const id = meetingJson.id;
+
+      return {
+        uid: id,
+        type: event.type,
+        id,
+        password: "",
+        url: "",
+        additionalInfo: { meetingJson },
+      };
     } catch (reason) {
       this.log.error(reason);
       throw reason;
@@ -259,13 +218,8 @@ export default class BasecampCalendarService implements Calendar {
 
   async deleteEvent(uid: string): Promise<void> {
     try {
-      console.log("UUUID", uid);
       const auth = await this.auth;
       await auth.configureToken();
-      console.log(
-        "URLTQ",
-        `https://3.basecampapi.com/${this.userId}/buckets/${this.projectId}/recordings/${uid}/status/trashed.json`
-      );
       const deletedEventResponse = await fetch(
         `https://3.basecampapi.com/${this.userId}/buckets/${this.projectId}/recordings/${uid}/status/trashed.json`,
         {
@@ -282,7 +236,6 @@ export default class BasecampCalendarService implements Calendar {
       } else Promise.reject("Error cancelling basecamp event");
     } catch (reason) {
       this.log.error(reason);
-
       throw reason;
     }
   }
