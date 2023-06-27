@@ -166,6 +166,7 @@ describe('next.config.js - Org Rewrite', ()=> {
       const subdomainRegExp = getSubdomainRegExp('https://app.cal.com');
       expect(pagesRewriteRegex(subdomainRegExp).exec('app.cal.com')).toEqual(null)
       expect(pagesRewriteRegex(subdomainRegExp).exec('company.app.cal.com')?.groups?.orgSlug).toEqual('company')
+      expect(pagesRewriteRegex(subdomainRegExp).exec('org.cal.com')?.groups?.orgSlug).toEqual('org')
     })
 
     it('app.cal.com', ()=>{
