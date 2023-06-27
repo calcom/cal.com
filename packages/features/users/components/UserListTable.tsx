@@ -5,25 +5,27 @@ import { useMemo } from "react";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { Avatar, Badge, DataTable } from "@calcom/ui";
 
-interface UserListTableProps {
-  users: {
+interface User {
+  id: string;
+  username?: string;
+  email: string;
+  role?: MembershipRole;
+  teams: {
     id: string;
-    username?: string;
-    email: string;
-    role?: MembershipRole;
-    teams: {
-      id: string;
-      name: string;
-    }[];
-    timezone?: string;
-  };
+    name: string;
+  }[];
+  timezone?: string;
+}
+
+interface UserListTableProps {
+  users: User[];
 }
 
 export function UserListTable({ users }: UserListTableProps) {
   const { data, status } = useSession();
 
   const memorisedColumns = useMemo(() => {
-    const cols: ColumnDef<UserListTableProps["users"]>[] = [
+    const cols: ColumnDef<UserListTableProps["users"][number]>[] = [
       {
         id: "id",
         accessorFn: (data) => data.id,
@@ -38,8 +40,8 @@ export function UserListTable({ users }: UserListTableProps) {
         cell: ({ row }) => {
           const { username, email } = row.original;
           return (
-            <div className="flex items-center">
-              <Avatar size="xs" alt={username || email} />
+            <div className="flex items-center gap-2">
+              <Avatar size="sm" alt={username || email} imageSrc={`/${username}/avatar.png`} />
               <div className="">
                 <div className="text-emphasis text-sm font-medium leading-none">
                   {username || "No username"}
@@ -103,5 +105,5 @@ export function UserListTable({ users }: UserListTableProps) {
 
   if (!data?.user) return null;
 
-  return <DataTable columns={memorisedColumns} data={[]} />;
+  return <DataTable columns={memorisedColumns} data={users} />;
 }
