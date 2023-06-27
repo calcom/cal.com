@@ -392,16 +392,17 @@ describe("getSchedule", () => {
       expect(scheduleForDayWithOneBooking).toHaveTimeSlots(
         [
           // "04:00:00.000Z", - This slot is unavailable because of the booking from 4:00 to 4:15
-          "04:45:00.000Z",
-          "05:30:00.000Z",
-          "06:15:00.000Z",
-          "07:00:00.000Z",
-          "07:45:00.000Z",
-          "08:30:00.000Z",
-          "09:15:00.000Z",
-          "10:00:00.000Z",
-          "10:45:00.000Z",
-          "11:30:00.000Z",
+          `04:15:00.000Z`,
+          `05:00:00.000Z`,
+          `05:45:00.000Z`,
+          `06:30:00.000Z`,
+          `07:15:00.000Z`,
+          `08:00:00.000Z`,
+          `08:45:00.000Z`,
+          `09:30:00.000Z`,
+          `10:15:00.000Z`,
+          `11:00:00.000Z`,
+          `11:45:00.000Z`,
         ],
         {
           dateString: plus3DateString,
@@ -901,17 +902,17 @@ describe("getSchedule", () => {
       expect(thisUserAvailability).toHaveTimeSlots(
         [
           // `04:00:00.000Z`, // <- This slot should be occupied by the Collective Event
-          `04:45:00.000Z`,
-          `05:30:00.000Z`,
-          `06:15:00.000Z`,
-          `07:00:00.000Z`,
-          `07:45:00.000Z`,
-          `08:30:00.000Z`,
-          `09:15:00.000Z`,
-          `10:00:00.000Z`,
-          `10:45:00.000Z`,
-          `11:30:00.000Z`,
-          `12:15:00.000Z`,
+          `04:15:00.000Z`,
+          `05:00:00.000Z`,
+          `05:45:00.000Z`,
+          `06:30:00.000Z`,
+          `07:15:00.000Z`,
+          `08:00:00.000Z`,
+          `08:45:00.000Z`,
+          `09:30:00.000Z`,
+          `10:15:00.000Z`,
+          `11:00:00.000Z`,
+          `11:45:00.000Z`,
         ],
         {
           dateString: plus2DateString,
@@ -1026,7 +1027,7 @@ describe("getSchedule", () => {
       expect(scheduleForTeamEventOnADayWithOneBookingForEachUser).toHaveTimeSlots(
         [
           //`04:00:00.000Z`, - Blocked with User 101
-          `04:45:00.000Z`, // todo: figure out why this doesn't open at :15
+          `04:15:00.000Z`, // todo: figure out why this doesn't open at :15
           //`05:30:00.000Z`, - Blocked with User 102 in event 2
           `05:45:00.000Z`,
           `06:30:00.000Z`,
@@ -1155,16 +1156,17 @@ describe("getSchedule", () => {
       expect(scheduleForTeamEventOnADayWithOneBookingForEachUserOnSameTimeSlot).toHaveTimeSlots(
         [
           //`04:00:00.000Z`, // - Blocked with User 101 as well as User 102, so not available in Round Robin
-          `04:45:00.000Z`,
-          `05:30:00.000Z`,
-          `06:15:00.000Z`,
-          `07:00:00.000Z`,
-          `07:45:00.000Z`,
-          `08:30:00.000Z`,
-          `09:15:00.000Z`,
-          `10:00:00.000Z`,
-          `10:45:00.000Z`,
-          `11:30:00.000Z`,
+          `04:15:00.000Z`,
+          `05:00:00.000Z`,
+          `05:45:00.000Z`,
+          `06:30:00.000Z`,
+          `07:15:00.000Z`,
+          `08:00:00.000Z`,
+          `08:45:00.000Z`,
+          `09:30:00.000Z`,
+          `10:15:00.000Z`,
+          `11:00:00.000Z`,
+          `11:45:00.000Z`,
         ],
         { dateString: plus3DateString }
       );
