@@ -47,8 +47,8 @@ describe('next.config.js - RegExp', ()=>{
     // privateLinkRouteRegExp = "/d/:link/:slug((?!book$)[^/]+)";
     privateLinkRouteRegExp = getRegExpFromNextJsRewriteRegExp("/d/(?<link>[^/]+)/(?<slug>((?!book$)[^/]+))");
     
-    // embedUserTypeRouteRegExp = `/:user((?!${pages.join("|")}).*)/:type/embed`;
-    embedUserTypeRouteRegExp = getRegExpFromNextJsRewriteRegExp(`/(?<user>((?!${pages.join("|")}).*))/(?<type>[^/]+)/embed`);
+    // embedUserTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type/embed`;
+    embedUserTypeRouteRegExp = getRegExpFromNextJsRewriteRegExp(`/(?<user>((?!${pages.join("/|")})[^/]*))/(?<type>[^/]+)/embed`);
     
     // embedTeamTypeRouteRegExp = "/team/:slug/:type/embed";
     embedTeamTypeRouteRegExp = getRegExpFromNextJsRewriteRegExp("/team/(?<slug>[^/]+)/(?<type>[^/]+)/embed");
@@ -93,6 +93,12 @@ describe('next.config.js - RegExp', ()=>{
       user: 'free',
       type:'30'
     })
+
+    // Edgecase of username starting with team also works
+    expect(embedUserTypeRouteRegExp.exec('/teampro/30/embed')?.groups).toContain({
+			user: 'teampro',
+			type: '30'
+		})
 
     expect(teamTypeRouteRegExp.exec('/team/seeded/30')?.groups).toContain({
 			slug: 'seeded',
