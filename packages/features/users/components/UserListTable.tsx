@@ -74,7 +74,13 @@ export function UserListTable({ users }: UserListTableProps) {
       },
       {
         id: "teams",
-        accessorFn: (data) => data.teams,
+        accessorFn: (data) => {
+          const teamNames = [];
+          for (const team of data.teams) {
+            teamNames.push(team.name);
+          }
+          return teamNames;
+        },
         header: "Teams",
         cell: ({ row, table }) => {
           const { teams } = row.original;
@@ -93,9 +99,6 @@ export function UserListTable({ users }: UserListTableProps) {
               ))}
             </div>
           );
-        },
-        filterFn: (rows, id, filterValue) => {
-          return filterValue.includes(rows.getValue(id));
         },
       },
     ];
