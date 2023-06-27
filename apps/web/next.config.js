@@ -95,6 +95,39 @@ const teamTypeRouteRegExp = "/team/:slug/:type((?!book$)[^/]+)";
 const privateLinkRouteRegExp = "/d/:link/:slug((?!book$)[^/]+)";
 const embedUserTypeRouteRegExp = `/:user((?!${pages.join("|")}).*)/:type/embed`;
 const embedTeamTypeRouteRegExp = "/team/:slug/:type/embed";
+const subdomainRegExp = getSubdomainRegExp(process.env.NEXT_PUBLIC_WEBAPP_URL);
+// Important Note: Do update the RegExp in apps/web/test/lib/next-config.test.ts when changing it.
+const orgHostRegExp = `^(?<orgSlug>${subdomainRegExp})\\..*`;
+
+const matcherConfigRootPath = {
+  has: [
+    {
+      type: "host",
+      value: orgHostRegExp,
+    },
+  ],
+  source: "/",
+};
+
+const matcherConfigOrgMemberPath = {
+  has: [
+    {
+      type: "host",
+      value: orgHostRegExp,
+    },
+  ],
+  source: `/:user((?!${pages.join("|")}|_next|public)[a-zA-Z0-9\-_]+)`,
+};
+
+const matcherConfigUserPath = {
+  has: [
+    {
+      type: "host",
+      value: `^(?<orgSlug>${subdomainRegExp}[^.]+)\\..*`,
+    },
+  ],
+  source: `/:user((?!${pages.join("|")}|_next|public))/:path*`,
+};
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
@@ -186,41 +219,19 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    const subdomainRegExp = getSubdomainRegExp(process.env.NEXT_PUBLIC_WEBAPP_URL);
-    // Important Note: Do update the RegExp in apps/web/test/lib/next-config.test.ts when changing it.
-    const orgPagesRouteRegExp = `^(?<orgSlug>${subdomainRegExp})\\..*`;
-
     const beforeFiles = [
       ...(process.env.ORGANIZATIONS_ENABLED
         ? [
             {
-              has: [
-                {
-                  type: "host",
-                  value: orgPagesRouteRegExp,
-                },
-              ],
-              source: "/",
+              ...matcherConfigRootPath,
               destination: "/team/:orgSlug",
             },
             {
-              has: [
-                {
-                  type: "host",
-                  value: orgPagesRouteRegExp,
-                },
-              ],
-              source: `/:user((?!${pages.join("|")}|_next|public)[a-zA-Z0-9\-_]+)`,
+              ...matcherConfigOrgMemberPath,
               destination: "/org/:orgSlug/:user",
             },
             {
-              has: [
-                {
-                  type: "host",
-                  value: `^(?<orgSlug>${subdomainRegExp}[^.]+)\\..*`,
-                },
-              ],
-              source: `/:user((?!${pages.join("|")}|_next|public))/:path*`,
+              ...matcherConfigUserPath,
               destination: "/:user/:path*",
             },
           ]
@@ -379,6 +390,35 @@ const nextConfig = {
           },
         ],
       },
+      ...[
+        {
+          ...matcherConfigRootPath,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/team/:orgSlug",
+            },
+          ],
+        },
+        {
+          ...matcherConfigOrgMemberPath,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/org/:orgSlug/:user",
+            },
+          ],
+        },
+        {
+          ...matcherConfigUserPath,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/:user/:path",
+            },
+          ],
+        },
+      ],
     ];
   },
   async redirects() {
