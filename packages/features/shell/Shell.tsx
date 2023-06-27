@@ -199,8 +199,8 @@ const Layout = (props: LayoutProps) => {
 
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
-      <div style={{ paddingTop: `${bannersHeight}px` }} className="flex min-h-screen flex-col">
-        <div ref={bannerRef} className="fixed top-0 z-10 w-full divide-y divide-black">
+      <div className="flex min-h-screen flex-col">
+        <div ref={bannerRef} className="sticky top-0 z-10 w-full divide-y divide-black">
           <TeamsUpgradeBanner />
           <OrgUpgradeBanner />
           <ImpersonatingBanner />
