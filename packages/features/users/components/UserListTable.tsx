@@ -71,6 +71,9 @@ export function UserListTable({ users }: UserListTableProps) {
             </Badge>
           );
         },
+        filterFn: (rows, id, filterValue) => {
+          return filterValue.includes(rows.getValue(id));
+        },
       },
       {
         id: "teams",
@@ -85,12 +88,11 @@ export function UserListTable({ users }: UserListTableProps) {
         cell: ({ row, table }) => {
           const { teams } = row.original;
           return (
-            <div className="flex flex-wrap">
+            <div className="flex h-full flex-wrap items-center gap-2">
               {teams.map((team) => (
                 <Badge
                   key={team.id}
                   color="gray"
-                  className="mb-2 mr-2"
                   onClick={() => {
                     table.getColumn("teams")?.setFilterValue(team.name);
                   }}>
@@ -108,5 +110,20 @@ export function UserListTable({ users }: UserListTableProps) {
 
   if (!data?.user) return null;
 
-  return <DataTable columns={memorisedColumns} data={users} />;
+  return (
+    <DataTable
+      columns={memorisedColumns}
+      data={users}
+      filterableItems={[
+        {
+          tableAccessor: "role",
+          title: "Role",
+          options: [
+            { label: "Member", value: "MEMBER" },
+            { label: "Admin", value: "ADMIN" },
+          ],
+        },
+      ]}
+    />
+  );
 }
