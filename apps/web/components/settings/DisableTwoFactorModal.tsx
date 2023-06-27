@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Dialog, DialogContent, Form, Label, PasswordField } from "@calcom/ui";
+import { Button, Dialog, DialogContent, Form, PasswordField } from "@calcom/ui";
 
 import TwoFactor from "@components/auth/TwoFactor";
 
@@ -82,8 +82,6 @@ const DisableTwoFactorAuthModal = ({
               {...form.register("password")}
               className="border-default mt-1 block w-full rounded-md border px-3 py-2 text-sm focus:border-black focus:outline-none focus:ring-black"
             />
-            <Label className="mt-4"> {t("2fa_code")}</Label>
-
             <TwoFactor center={false} />
 
             {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
