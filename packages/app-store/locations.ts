@@ -341,10 +341,8 @@ export const getLocationValueForDB = (
   eventLocations: LocationObject[]
 ) => {
   let bookingLocation = bookingLocationTypeOrValue;
-  let bookingLocationCredentialId = undefined;
   eventLocations.forEach((location) => {
     if (location.type === bookingLocationTypeOrValue) {
-      bookingLocationCredentialId = location?.credentialId;
       const eventLocationType = getEventLocationType(bookingLocationTypeOrValue);
       if (!eventLocationType) {
         return;
@@ -358,7 +356,7 @@ export const getLocationValueForDB = (
       bookingLocation = location[eventLocationType.defaultValueVariable] || bookingLocation;
     }
   });
-  return { bookingLocation, bookingLocationCredentialId };
+  return bookingLocation;
 };
 
 export const getEventLocationValue = (eventLocations: LocationObject[], bookingLocation: LocationObject) => {
