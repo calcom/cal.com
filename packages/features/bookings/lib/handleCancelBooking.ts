@@ -74,6 +74,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           seatsPerTimeSlot: true,
           bookingFields: true,
           seatsShowAttendees: true,
+          teamId: true,
           hosts: {
             select: {
               user: true,
@@ -445,7 +446,10 @@ async function handler(req: CustomRequest) {
 
   /** TODO: Remove this without breaking functionality */
   if (bookingToDelete.location === DailyLocationType) {
-    bookingToDelete.user.credentials.push(FAKE_DAILY_CREDENTIAL);
+    bookingToDelete.user.credentials.push({
+      ...FAKE_DAILY_CREDENTIAL,
+      teamId: bookingToDelete.eventType?.teamId || null,
+    });
   }
 
   const apiDeletes = [];
