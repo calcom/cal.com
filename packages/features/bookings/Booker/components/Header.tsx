@@ -16,10 +16,12 @@ export function Header({
   extraDays,
   isMobile,
   enabledLayouts,
+  nextslots,
 }: {
   extraDays: number;
   isMobile: boolean;
   enabledLayouts: BookerLayouts[];
+  nextslots: number;
 }) {
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStore((state) => state.selectedDate);
@@ -51,11 +53,14 @@ export function Header({
     return <LayoutToggleWithData />;
   }
 
+const endDate = selectedDate.add(extraDays, "days");
+const formattedEndDate = parseInt(selectedDate.format("MM")) !== parseInt(endDate.format("MM"))? endDate.format("D MMM") : endDate.format("D");
+
   return (
     <div className="border-default relative z-10 flex border-b border-l px-5 py-4">
       <div className="flex items-center gap-3">
         <h3 className="min-w-[150px] text-base font-semibold leading-4">
-          {selectedDate.format("MMM D")}-{selectedDate.add(extraDays, "days").format("D")},{" "}
+          {selectedDate.format("MMM D")}-{formattedEndDate},{" "}
           <span className="text-subtle">{selectedDate.format("YYYY")}</span>
         </h3>
         <ButtonGroup>
@@ -64,14 +69,14 @@ export function Header({
             color="minimal"
             StartIcon={ChevronLeft}
             aria-label="Previous Day"
-            onClick={() => addToSelectedDate(-extraDays - 1)}
+            onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? (-nextslots) : (-extraDays - 1))}
           />
           <Button
             variant="icon"
             color="minimal"
             StartIcon={ChevronRight}
             aria-label="Next Day"
-            onClick={() => addToSelectedDate(extraDays + 1)}
+            onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? nextslots : (extraDays + 1))}
           />
         </ButtonGroup>
       </div>
@@ -127,3 +132,5 @@ const LayoutToggle = ({
 
   return <ToggleGroup onValueChange={onLayoutToggle} defaultValue={layout} options={layoutOptions} />;
 };
+
+

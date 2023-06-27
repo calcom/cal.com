@@ -2,17 +2,21 @@ import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
-import { useSlotsForMultipleDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
+import { useSlotsForMultipleDates, useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
 import { trpc } from "@calcom/trpc";
 
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
+import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
   limitHeight?: boolean;
   seatsPerTimeslot?: number | null;
+  sliceFrom?:number;
+  sliceTo?:number;
 };
 
 /**
@@ -22,13 +26,15 @@ type AvailableTimeSlotsProps = {
  * will also fetch the next `extraDays` days and show multiple days
  * in columns next to each other.
  */
-export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }: AvailableTimeSlotsProps) => {
+export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot, sliceFrom, sliceTo}: AvailableTimeSlotsProps) => {
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const duration = useBookerStore((state) => state.selectedDuration);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const event = useEvent();
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
+  const [layout] = useBookerStore((state) => [state.layout]);
+  const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
 
   const onTimeSelect = (time: string) => {
     setSelectedTimeslot(time);
@@ -46,6 +52,7 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }:
 
   const schedule = useScheduleForEvent({
     prefetchNextMonth: !!extraDays && dayjs(date).month() !== dayjs(date).add(extraDays, "day").month(),
+    monthCount: !!extraDays  && dayjs(date).add(1,"month").month() !== dayjs(date).add(extraDays, "day").month() ? 2 : undefined,
   });
 
   // Creates an array of dates to fetch slots for.
@@ -67,7 +74,9 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }:
   );
 
   const isMultipleDates = dates.length > 1;
-  const slotsPerDay = useSlotsForMultipleDates(dates, schedule?.data?.slots);
+  const slotsPerDay = isColumnView?
+      (schedule?.data?.slots) ? useSlotsForAvailableDates(Object.values(schedule.data.slots).slice(sliceFrom, sliceTo)): useSlotsForMultipleDates(dates, schedule?.data?.slots)
+  : useSlotsForMultipleDates(dates, schedule?.data?.slots);
 
   return (
     <div
@@ -88,8 +97,10 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }:
               date={dayjs(slots.date)}
               slots={slots.slots}
               seatsPerTimeslot={seatsPerTimeslot}
+              availableMonth={dayjs(selectedDate).format("MM")!==dayjs(slots.date).format("MM")?dayjs(slots.date).format("MMM"):undefined}
             />
           ))}
     </div>
   );
 };
+

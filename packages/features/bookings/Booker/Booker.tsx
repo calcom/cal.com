@@ -3,6 +3,8 @@ import dynamic from "next/dynamic";
 import { useEffect, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
+import dayjs from "@calcom/dayjs";
+import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -21,7 +23,7 @@ import { Away, NotFound } from "./components/Unavailable";
 import { extraDaysConfig, fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
-import { useEvent } from "./utils/event";
+import { useEvent, useScheduleForEvent } from "./utils/event";
 import { validateLayout } from "./utils/layout";
 import { useBrandColors } from "./utils/use-brand-colors";
 
@@ -60,7 +62,17 @@ const BookerComponent = ({
     shallow
   );
 
-  const extraDays = isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop;
+  const date = dayjs(selectedDate).format("YYYY-MM-DD");
+  const schedule = useScheduleForEvent({prefetchNextMonth: true});
+  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
+  const sliceFrom =  nonEmptyScheduleDays.indexOf(date)!= -1? nonEmptyScheduleDays.indexOf(date): 0;
+  const sliceTo = sliceFrom + (isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop);
+  const availableSlots = nonEmptyScheduleDays.slice(sliceFrom,  sliceTo + 1);
+  const addonDays = nonEmptyScheduleDays.length <= sliceTo ? (sliceTo - nonEmptyScheduleDays.length + 1) * 7  : 0;
+  const newExtraDays = Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2],'day')) + addonDays;
+  const nextslots = Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 1],'day')) + addonDays;
+
+  const extraDays = layout === BookerLayouts.COLUMN_VIEW ? newExtraDays : isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop;
   const bookerLayouts = event.data?.profile?.bookerLayouts || defaultBookerLayoutSettings;
   const animationScope = useBookerResizeAnimation(layout, bookerState);
 
@@ -163,6 +175,7 @@ const BookerComponent = ({
                 enabledLayouts={bookerLayouts.enabledLayouts}
                 extraDays={extraDays}
                 isMobile={isMobile}
+                nextslots={nextslots}
               />
             </BookerSection>
             <StickyOnDesktop
@@ -231,6 +244,8 @@ const BookerComponent = ({
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
                 seatsPerTimeslot={event.data?.seatsPerTimeSlot}
+                sliceFrom={sliceFrom}
+                sliceTo={sliceTo}
               />
             </BookerSection>
           </AnimatePresence>
