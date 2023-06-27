@@ -169,7 +169,8 @@ const BookerComponent = ({
               key="meta"
               className={classNames(
                 "relative z-10 flex [grid-area:meta]",
-                layout !== BookerLayouts.MONTH_VIEW && "sm:min-h-screen"
+                // Important: In Embed if we make min-height:100vh, it will cause the height to continuously keep on increasing
+                layout !== BookerLayouts.MONTH_VIEW && !isEmbed && "sm:min-h-screen"
               )}>
               <BookerSection
                 area="meta"
