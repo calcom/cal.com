@@ -971,6 +971,7 @@
   "confirm_delete_api_key": "Revoke this API key",
   "revoke_api_key": "Revoke API key",
   "api_key_copied": "API key copied!",
+  "api_key_expires_on":"The API key will expire on",
   "delete_api_key_confirm_title": "Permanently remove this API key from your account?",
   "copy": "Copy",
   "expire_date": "Expiration date",

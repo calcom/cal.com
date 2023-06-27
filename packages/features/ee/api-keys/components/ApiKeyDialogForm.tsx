@@ -211,7 +211,7 @@ export default function ApiKeyDialogForm({
                   />
                 )}}
               />
-              <span className="text-subtle text-xs mt-2">The API key will expire on <span className="font-bold"> {dayjs(expiryDate).format('DD-MM-YYYY')}</span></span>
+              <span className="text-subtle text-xs mt-2">{t("api_key_expires_on") }<span className="font-bold"> {dayjs(expiryDate).format('DD-MM-YYYY')}</span></span>
             </div>
           )}
 
