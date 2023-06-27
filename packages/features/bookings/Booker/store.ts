@@ -120,7 +120,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   selectedDate: getQueryParam("date") || null,
   setSelectedDate: (selectedDate: string | null) => {
     set({ selectedDate });
-    updateQueryParam("date", selectedDate ?? "");
+    if (selectedDate) updateQueryParam("date", selectedDate);
+    else removeQueryParam("date");
   },
   addToSelectedDate: (days: number) => {
     const currentSelection = dayjs(get().selectedDate);
@@ -201,7 +202,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   selectedTimeslot: getQueryParam("slot") || null,
   setSelectedTimeslot: (selectedTimeslot: string | null) => {
     set({ selectedTimeslot });
-    updateQueryParam("slot", selectedTimeslot ?? "");
+    if (selectedTimeslot) updateQueryParam("slot", selectedTimeslot);
+    else removeQueryParam("slot");
   },
   formValues: {},
   setFormValues: (formValues: Record<string, any>) => {

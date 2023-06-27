@@ -1,6 +1,7 @@
 import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect, useRef } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useRef, useState } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
@@ -9,6 +10,7 @@ import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
+import useRouterQuery from "@calcom/web/lib/hooks/useRouterQuery";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
@@ -20,7 +22,7 @@ import { BookerSection } from "./components/Section";
 import { Away, NotFound } from "./components/Unavailable";
 import { extraDaysConfig, fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
-import type { BookerLayout, BookerProps } from "./types";
+import type { BookerLayout, BookerProps, BookerState } from "./types";
 import { useEvent } from "./utils/event";
 import { validateLayout } from "./utils/layout";
 import { useBrandColors } from "./utils/use-brand-colors";
@@ -38,6 +40,7 @@ const BookerComponent = ({
   hideBranding = false,
   isTeamEvent,
 }: BookerProps) => {
+  const { back } = useRouter();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const timeslotsRef = useRef<HTMLDivElement>(null);
@@ -53,12 +56,10 @@ const BookerComponent = ({
   // In Embed we give preference to embed configuration for the layout.If that's not set, we use the App configuration for the event layout
   const layout = isEmbed ? validateLayout(embedUiConfig.layout) || _layout : _layout;
 
-  const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
-  const selectedDate = useBookerStore((state) => state.selectedDate);
-  const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
-    (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
-    shallow
-  );
+  const [bookerState, setBookerState] = useState<BookerState>("loading");
+  //const selectedDate = useBookerStore((state) => state.selectedDate);
+  const { date: selectedDate } = useRouterQuery("date");
+  const { slot: selectedTimeslot } = useRouterQuery("slot");
 
   const extraDays = isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop;
   const bookerLayouts = event.data?.profile?.bookerLayouts || defaultBookerLayoutSettings;
@@ -128,6 +129,7 @@ const BookerComponent = ({
   };
 
   const shouldShowFormInDialog = shouldShowFormInDialogMap[layout];
+
   return (
     <>
       {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
@@ -178,7 +180,7 @@ const BookerComponent = ({
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className=" mt-auto px-5 py-3">
-                      <DatePicker />
+                      <DatePicker syncChange />
                     </div>
                   )}
               </BookerSection>
@@ -190,7 +192,7 @@ const BookerComponent = ({
               className="border-subtle sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInLeft}
               visible={bookerState === "booking" && !shouldShowFormInDialog}>
-              <BookEventForm onCancel={() => setSelectedTimeslot(null)} />
+              <BookEventForm onCancel={() => back()} />
             </BookerSection>
 
             <BookerSection
@@ -248,7 +250,7 @@ const BookerComponent = ({
 
       <BookFormAsModal
         visible={bookerState === "booking" && shouldShowFormInDialog}
-        onCancel={() => setSelectedTimeslot(null)}
+        onCancel={() => back()}
       />
     </>
   );

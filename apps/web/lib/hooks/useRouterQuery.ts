@@ -30,7 +30,11 @@ export default function useRouterQuery<T extends string>(name: T) {
     router.replace({ query: { ...router.query, ...query, [name]: newValue } }, undefined, { shallow: true });
   };
 
+  const pushQuery = (newValue: string | number | null | undefined) => {
+    router.push({ query: { ...router.query, ...query, [name]: newValue } }, undefined, { shallow: true });
+  };
+
   return { [name]: query[name], setQuery } as {
     [K in T]: string | undefined;
-  } & { setQuery: typeof setQuery };
+  } & { setQuery: typeof setQuery; pushQuery: typeof pushQuery };
 }

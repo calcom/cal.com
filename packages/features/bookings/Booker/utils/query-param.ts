@@ -1,9 +1,21 @@
+import Router from "next/router";
+
 export const updateQueryParam = (param: string, value: string | number) => {
   if (typeof window === "undefined") return;
 
   const url = new URL(window.location.href);
   url.searchParams.set(param, `${value}`);
-  window.history.pushState({}, "", url.href);
+
+  return Router.push(url, url, { shallow: true });
+};
+
+export const replaceQueryParams = (param: string, value: string | number) => {
+  if (typeof window === "undefined") return;
+
+  const url = new URL(window.location.href);
+  url.searchParams.set(param, `${value}`);
+
+  return Router.replace(url, url, { shallow: true });
 };
 
 export const getQueryParam = (param: string) => {
@@ -17,5 +29,5 @@ export const removeQueryParam = (param: string) => {
 
   const url = new URL(window.location.href);
   url.searchParams.delete(param);
-  window.history.pushState({}, "", url.href);
+  Router.push(url, url, { shallow: true });
 };

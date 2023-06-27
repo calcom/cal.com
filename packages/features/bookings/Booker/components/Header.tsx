@@ -7,6 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { Button, ButtonGroup, ToggleGroup } from "@calcom/ui";
 import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
+import useRouterQuery from "@calcom/web/lib/hooks/useRouterQuery";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
 import { useBookerStore } from "../store";
@@ -22,7 +23,7 @@ export function Header({
   enabledLayouts: BookerLayouts[];
 }) {
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
-  const selectedDateString = useBookerStore((state) => state.selectedDate);
+  const { date: selectedDateString } = useRouterQuery("date");
   const addToSelectedDate = useBookerStore((state) => state.addToSelectedDate);
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
   const selectedDate = dayjs(selectedDateString);

@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -5,8 +6,8 @@ import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/booking
 import { useSlotsForMultipleDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
 import { trpc } from "@calcom/trpc";
+import useRouterQuery from "@calcom/web/lib/hooks/useRouterQuery";
 
-import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
 
 type AvailableTimeSlotsProps = {
@@ -23,15 +24,22 @@ type AvailableTimeSlotsProps = {
  * in columns next to each other.
  */
 export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }: AvailableTimeSlotsProps) => {
+  const router = useRouter();
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
-  const selectedDate = useBookerStore((state) => state.selectedDate);
-  const duration = useBookerStore((state) => state.selectedDuration);
-  const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
+  /*const selectedDate = useBookerStore((state) => state.selectedDate);
+  const duration = useBookerStore((state) => state.selectedDuration);*/
+  const { duration } = useRouterQuery("duration");
+  const { date = dayjs().format("YYYY-MM-DD") } = useRouterQuery("date");
+  // const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const event = useEvent();
-  const date = selectedDate || dayjs().format("YYYY-MM-DD");
 
   const onTimeSelect = (time: string) => {
-    setSelectedTimeslot(time);
+    if (typeof window === undefined) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("month", dayjs(time).format("YYYY-MM"));
+    url.searchParams.set("date", dayjs(time).format("YYYY-MM-DD"));
+    url.searchParams.set("slot", time);
+    router.push(url, url, { shallow: true });
 
     if (!event.data) return;
     reserveSlotMutation.mutate({
@@ -39,7 +47,7 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }:
       eventTypeId: event.data.id,
       slotUtcEndDate: dayjs(time)
         .utc()
-        .add(duration || event.data.length, "minutes")
+        .add(parseInt(duration || `${event.data.length}`), "minutes")
         .format(),
     });
   };

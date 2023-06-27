@@ -44,16 +44,13 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const errorRef = useRef<HTMLDivElement>(null);
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const rescheduleBooking = useBookerStore((state) => state.rescheduleBooking);
-  const eventSlug = useBookerStore((state) => state.eventSlug);
-  const duration = useBookerStore((state) => state.selectedDuration);
-  const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
-  const username = useBookerStore((state) => state.username);
   const formValues = useBookerStore((state) => state.formValues);
   const setFormValues = useBookerStore((state) => state.setFormValues);
   const isRescheduling = !!rescheduleUid && !!rescheduleBooking;
   const event = useEvent();
   const eventType = event.data;
+  const { type: eventSlug, duration, slot: timeslot, user: username } = router.query;
 
   const defaultValues = useMemo(() => {
     if (Object.keys(formValues).length) return formValues;
@@ -159,7 +156,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
         return await router.push(
           createPaymentLink({
             paymentUid,
-            date: timeslot,
+            date: `${timeslot}`,
             name: bookingForm.getValues("responses.name"),
             email: bookingForm.getValues("responses.email"),
             absolute: false,
@@ -175,7 +172,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       const query = {
         isSuccessBookingPage: true,
         email: bookingForm.getValues("responses.email"),
-        eventTypeSlug: eventSlug,
+        eventTypeSlug: `${eventSlug}`,
         seatReferenceUid: "seatReferenceUid" in responseData ? responseData.seatReferenceUid : null,
         formerTime: rescheduleBooking?.startTime ? dayjs(rescheduleBooking.startTime).toString() : undefined,
       };
@@ -205,7 +202,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
         isSuccessBookingPage: true,
         allRemainingBookings: true,
         email: bookingForm.getValues("responses.email"),
-        eventTypeSlug: eventSlug,
+        eventTypeSlug: eventSlug as string,
         formerTime: rescheduleBooking?.startTime ? dayjs(rescheduleBooking.startTime).toString() : undefined,
       };
 
@@ -248,19 +245,19 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     const validDuration =
       duration &&
       event.data.metadata?.multipleDuration &&
-      event.data.metadata?.multipleDuration.includes(duration)
-        ? duration
+      event.data.metadata?.multipleDuration.includes(parseInt(`${duration}`))
+        ? parseInt(`${duration}`)
         : event.data.length;
 
     const bookingInput = {
       values,
       duration: validDuration,
       event: event.data,
-      date: timeslot,
+      date: `${timeslot}`,
       timeZone: timezone,
       language: i18n.language,
-      rescheduleUid: rescheduleUid || undefined,
-      username: username || "",
+      rescheduleUid: (rescheduleUid as string) || undefined,
+      username: `${username || ""}`,
       metadata: Object.keys(router.query)
         .filter((key) => key.startsWith("metadata"))
         .reduce(

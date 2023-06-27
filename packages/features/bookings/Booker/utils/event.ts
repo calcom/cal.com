@@ -1,5 +1,7 @@
+import { useRouter } from "next/router";
 import { shallow } from "zustand/shallow";
 
+import dayjs from "@calcom/dayjs";
 import { useSchedule } from "@calcom/features/schedules";
 import { trpc } from "@calcom/trpc/react";
 
@@ -38,18 +40,17 @@ export const useEvent = () => {
 export const useScheduleForEvent = ({ prefetchNextMonth }: { prefetchNextMonth?: boolean } = {}) => {
   const { timezone } = useTimePreferences();
   const event = useEvent();
-  const [username, eventSlug, month, duration] = useBookerStore(
-    (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
-    shallow
-  );
+  const { query } = useRouter();
+
+  const { user, type, duration, month, date } = query;
 
   return useSchedule({
-    username,
-    eventSlug,
+    username: `${user}`,
+    eventSlug: `${type}`,
     eventId: event.data?.id,
-    month,
+    month: `${date || month || dayjs().format("YYYY-MM")}`,
     timezone,
     prefetchNextMonth,
-    duration,
+    duration: parseInt(`${duration}`),
   });
 };
