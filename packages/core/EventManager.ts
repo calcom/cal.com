@@ -387,22 +387,6 @@ export default class EventManager {
       })
       .find((credential: CredentialPayload) => credential.type.includes(integrationName));
 
-    // If the user doesn't have the credential then search for it via credId (team events)
-    if (event.bookingLocationCredentialId) {
-      const videoCredentialQuery = await prisma.credential.findFirst({
-        where: {
-          id: event.bookingLocationCredentialId,
-        },
-      });
-
-      if (videoCredentialQuery) {
-        const videoApps = getApps([videoCredentialQuery]).flatMap((app) =>
-          app.credentials.map((creds) => ({ ...creds, appName: app.name }))
-        );
-        videoCredential = videoApps.find((app) => app.type.includes(integrationName));
-      }
-    }
-
     /**
      * This might happen if someone tries to use a location with a missing credential, so we fallback to Cal Video.
      * @todo remove location from event types that has missing credentials
