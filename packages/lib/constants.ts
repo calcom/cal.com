@@ -71,37 +71,6 @@ export const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && (!IS_SELF_HOSTED || 
 export const FULL_NAME_LENGTH_MAX_LIMIT = 50;
 export const MINUTES_TO_BOOK = process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5";
 
-// Define which hostnames are expected for the app to work on
-export const ALLOWED_HOSTNAMES = [
-  "cal.com",
-  "cal.dev",
-  "cal-staging.com",
-  "cal.community",
-  "cal.local:3000",
-  // ⬇️ Prevents 404 error for normal localhost development, makes it backwards compatible
-  "localhost:3000",
-];
-
-// Reserved subdomains for our own usage
-export const RESERVED_SUBDOMAINS = [
-  "app",
-  "auth",
-  "docs",
-  "design",
-  "console",
-  "go",
-  "status",
-  "api",
-  "saml",
-  "www",
-  "matrix",
-  "developer",
-  "cal",
-  "my",
-  "team",
-  "support",
-  "security",
-  "blog",
-  "learn",
-  "admin",
-];
+// Needed for orgs
+export const ALLOWED_HOSTNAMES = JSON.parse(`[${process.env.ALLOWED_HOSTNAMES || ""}]`) as string[];
+export const RESERVED_SUBDOMAINS = JSON.parse(`[${process.env.RESERVED_SUBDOMAINS || ""}]`) as string[];
