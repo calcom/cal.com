@@ -797,32 +797,26 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
   const orgBranding = useOrgBrandingValues();
   const publicPageUrl = orgBranding?.slug ? getOrganizationUrl(orgBranding?.slug) : "";
   const bottomNavItems: NavigationItemType[] = [
-    ...(user?.username
-      ? [
-          {
-            name: "view_public_page",
-            href: !!user?.organizationId
-              ? publicPageUrl
-              : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`,
-            icon: ExternalLink,
-            target: "__blank",
-          },
-          {
-            name: "copy_public_page_link",
-            href: "",
-            onClick: (e: { preventDefault: () => void }) => {
-              e.preventDefault();
-              navigator.clipboard.writeText(
-                !!user?.organizationId
-                  ? publicPageUrl
-                  : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`
-              );
-              showToast(t("link_copied"), "success");
-            },
-            icon: Copy,
-          },
-        ]
-      : []),
+    {
+      name: "view_public_page",
+      href: !!user?.organizationId
+        ? publicPageUrl
+        : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`,
+      icon: ExternalLink,
+      target: "__blank",
+    },
+    {
+      name: "copy_public_page_link",
+      href: "",
+      onClick: (e: { preventDefault: () => void }) => {
+        e.preventDefault();
+        navigator.clipboard.writeText(
+          !!user?.organizationId ? publicPageUrl : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`
+        );
+        showToast(t("link_copied"), "success");
+      },
+      icon: Copy,
+    },
     {
       name: "settings",
       href: user?.organizationId
