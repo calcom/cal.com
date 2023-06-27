@@ -104,6 +104,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
             ...configFilters,
             ...newConfigFilters,
           });
+
           const {
             selectedMemberUserId,
             selectedTeamId,
@@ -135,6 +136,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
         },
         clearFilters: () => {
           const { initialConfig } = configFilters;
+
           const teamId = initialConfig?.teamId ? initialConfig.teamId : undefined;
           const userId = initialConfig?.userId ? initialConfig.userId : undefined;
           setConfigFilters({
@@ -147,6 +149,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
             selectedUserId: userId,
             isAll: !!initialConfig?.isAll,
             dateRange: [dayjs().subtract(1, "month"), dayjs(), "t"],
+            initialConfig,
           });
 
           router.push({
