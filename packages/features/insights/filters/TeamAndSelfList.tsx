@@ -49,10 +49,19 @@ export const TeamAndSelfList = () => {
           },
         });
       }
+    } else if (session.data?.user.id) {
+      setConfigFilters({
+        selectedUserId: session.data?.user.id,
+        selectedTeamId: null,
+        isAll: false,
+        initialConfig: {
+          teamId: null,
+          userId: session.data?.user.id,
+          isAll: false,
+        },
+      });
     }
   }, [data, session.data?.user.id]);
-
-  if (!isSuccess || data?.length === 0) return null;
 
   const getTextPopover = () => {
     if (isAll) {
