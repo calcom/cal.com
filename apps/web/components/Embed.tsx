@@ -8,8 +8,11 @@ import { createRef, forwardRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
 import { components } from "react-select";
 
-import { APP_NAME, EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
+import { useFlagMap } from "@calcom/features/flags/context/provider";
+import { APP_NAME, EMBED_LIB_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import {
   Button,
   Dialog,
@@ -35,18 +38,27 @@ const enum Theme {
   dark = "dark",
 }
 
+const EMBED_CAL_ORIGIN = WEBAPP_URL;
+const EMBED_CAL_JS_URL = `${WEBAPP_URL}/embed/embed.js`;
+
 type PreviewState = {
   inline: {
     width: string;
     height: string;
   };
   theme: Theme;
-  floatingPopup: Record<string, string>;
+  floatingPopup: {
+    config?: {
+      layout: BookerLayouts;
+    };
+    [key: string]: string | boolean | undefined | Record<string, string>;
+  };
   elementClick: Record<string, string>;
   palette: {
     brandColor: string;
   };
   hideEventTypeDetails: boolean;
+  layout: BookerLayouts;
 };
 const queryParamsForDialog = ["embedType", "embedTabName", "embedUrl"];
 
@@ -129,11 +141,13 @@ const getEmbedUIInstructionString = ({
   theme,
   brandColor,
   hideEventTypeDetails,
+  layout,
 }: {
   apiName: string;
   theme?: string;
   brandColor: string;
   hideEventTypeDetails: boolean;
+  layout?: string;
 }) => {
   theme = theme !== "auto" ? theme : undefined;
   return getInstructionString({
@@ -147,6 +161,7 @@ const getEmbedUIInstructionString = ({
         },
       },
       hideEventTypeDetails: hideEventTypeDetails,
+      layout,
     },
   });
 };
@@ -168,14 +183,24 @@ const Codes: Record<string, Record<string, (...args: any[]) => string>> = {
       return code`
 import Cal, { getCalApi } from "@calcom/embed-react";
 import { useEffect } from "react";
-function MyComponent() {
+export default function MyApp() {
   useEffect(()=>{
     (async function () {
       const cal = await getCalApi();
       ${uiInstructionCode}
     })();
   }, [])
-  return <Cal calLink="${calLink}" style={{width:"${width}",height:"${height}",overflow:"scroll"}} />;
+  return <Cal 
+    calLink="${calLink}" 
+    style={{width:"${width}",height:"${height}",overflow:"scroll"}}
+    ${previewState.layout ? "config={{layout: '" + previewState.layout + "'}}" : ""}${
+        IS_SELF_HOSTED
+          ? `
+    calOrigin="${EMBED_CAL_ORIGIN}"
+    calJsUrl="${EMBED_CAL_JS_URL}"`
+          : ""
+      }
+  />;
 };`;
     },
     "floating-popup": ({
@@ -186,38 +211,60 @@ function MyComponent() {
       uiInstructionCode: string;
     }) => {
       return code`
-import Cal, { getCalApi } from "@calcom/embed-react";
+import { getCalApi } from "@calcom/embed-react";
 import { useEffect } from "react";
-function MyComponent() {
+export default function App() {
   useEffect(()=>{
     (async function () {
-      const cal = await getCalApi();
+      const cal = await getCalApi(${IS_SELF_HOSTED ? `"${EMBED_CAL_JS_URL}"` : ""});
       cal("floatingButton", ${floatingButtonArg});
       ${uiInstructionCode}
     })();
   }, [])
 };`;
     },
-    "element-click": ({ calLink, uiInstructionCode }: { calLink: string; uiInstructionCode: string }) => {
+    "element-click": ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: PreviewState;
+    }) => {
       return code`
-import Cal, { getCalApi } from "@calcom/embed-react";
+import { getCalApi } from "@calcom/embed-react";
 import { useEffect } from "react";
-function MyComponent() {
+export default function App() {
   useEffect(()=>{
     (async function () {
-      const cal = await getCalApi();
+      const cal = await getCalApi(${IS_SELF_HOSTED ? `"${EMBED_CAL_JS_URL}"` : ""});
       ${uiInstructionCode}
     })();
   }, [])
-  return <button data-cal-link="${calLink}" />;
+  return <button 
+    data-cal-link="${calLink}"${IS_SELF_HOSTED ? `\ndata-cal-origin="${EMBED_CAL_ORIGIN}"` : ""}
+    ${`data-cal-config='${JSON.stringify({
+      layout: previewState.layout,
+    })}'`}  
+    >Click me</button>;
 };`;
     },
   },
   HTML: {
-    inline: ({ calLink, uiInstructionCode }: { calLink: string; uiInstructionCode: string }) => {
+    inline: ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: PreviewState;
+    }) => {
       return code`Cal("inline", {
   elementOrSelector:"#my-cal-inline",
-  calLink: "${calLink}"
+  calLink: "${calLink}",
+  layout: "${previewState.layout}"
 });
 
 ${uiInstructionCode}`;
@@ -233,8 +280,22 @@ ${uiInstructionCode}`;
       return code`Cal("floatingButton", ${floatingButtonArg});
 ${uiInstructionCode}`;
     },
-    "element-click": ({ calLink, uiInstructionCode }: { calLink: string; uiInstructionCode: string }) => {
-      return code`// Important: Make sure to add \`data-cal-link="${calLink}"\` attribute to the element you want to open Cal on click
+    "element-click": ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: PreviewState;
+    }) => {
+      return code`
+// Important: Please add following attributes to the element you want to open Cal on click
+// \`data-cal-link="${calLink}"\` 
+// \`data-cal-config='${JSON.stringify({
+        layout: previewState.layout,
+      })}'\` 
+
 ${uiInstructionCode}`;
     },
   },
@@ -260,6 +321,7 @@ const getEmbedTypeSpecificString = ({
     theme: PreviewState["theme"];
     brandColor: string;
     hideEventTypeDetails: boolean;
+    layout?: BookerLayout;
   };
   if (embedFramework === "react") {
     uiInstructionStringArg = {
@@ -267,6 +329,7 @@ const getEmbedTypeSpecificString = ({
       theme: previewState.theme,
       brandColor: previewState.palette.brandColor,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
+      layout: previewState.layout,
     };
   } else {
     uiInstructionStringArg = {
@@ -274,6 +337,7 @@ const getEmbedTypeSpecificString = ({
       theme: previewState.theme,
       brandColor: previewState.palette.brandColor,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
+      layout: previewState.layout,
     };
   }
   if (!frameworkCodes[embedType]) {
@@ -288,6 +352,7 @@ const getEmbedTypeSpecificString = ({
   } else if (embedType === "floating-popup") {
     const floatingButtonArg = {
       calLink,
+      ...(IS_SELF_HOSTED ? { calOrigin: EMBED_CAL_ORIGIN } : null),
       ...previewState.floatingPopup,
     };
     return frameworkCodes[embedType]({
@@ -626,6 +691,7 @@ const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme;
 const ChooseEmbedTypesDialogContent = () => {
   const { t } = useLocale();
   const router = useRouter();
+
   return (
     <DialogContent className="rounded-lg p-10" type="creation" size="lg">
       <div className="mb-2">
@@ -671,6 +737,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const dialogContentRef = useRef<HTMLDivElement>(null);
+  const flags = useFlagMap();
+  const isBookerLayoutsEnabled = flags["booker-layouts"] === true;
 
   const s = (href: string) => {
     const searchParams = new URLSearchParams(router.asPath.split("?")[1] || "");
@@ -691,12 +759,13 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] = useState(true);
   const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
-  const [previewState, setPreviewState] = useState({
+  const [previewState, setPreviewState] = useState<PreviewState>({
     inline: {
       width: "100%",
       height: "100%",
     },
     theme: Theme.auto,
+    layout: BookerLayouts.MONTH_VIEW,
     floatingPopup: {},
     elementClick: {},
     hideEventTypeDetails: false,
@@ -764,6 +833,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     name: "ui",
     arg: {
       theme: previewState.theme,
+      layout: previewState.layout,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
       styles: {
         branding: {
@@ -796,6 +866,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     { value: Theme.auto, label: "Auto" },
     { value: Theme.dark, label: "Dark Theme" },
     { value: Theme.light, label: "Light Theme" },
+  ];
+
+  const layoutOptions = [
+    { value: BookerLayouts.MONTH_VIEW, label: t("bookerlayout_month_view") },
+    { value: BookerLayouts.WEEK_VIEW, label: t("bookerlayout_week_view") },
+    { value: BookerLayouts.COLUMN_VIEW, label: t("bookerlayout_column_view") },
   ];
 
   const FloatingPopupPositionOptions = [
@@ -979,7 +1055,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     </div>
                     <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
                       <div className="whitespace-nowrap">Text color</div>
-                      <div className="mt-2 mb-6 w-40 xl:mt-0 xl:w-full">
+                      <div className="mb-6 mt-2 w-40 xl:mt-0 xl:w-full">
                         <ColorPicker
                           className="w-[130px]"
                           popoverAlign="start"
@@ -1070,6 +1146,34 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         </div>
                       </Label>
                     ))}
+                    {isBookerLayoutsEnabled && (
+                      <Label className="mb-6">
+                        <div className="mb-2">{t("layout")}</div>
+                        <Select
+                          className="w-full"
+                          defaultValue={layoutOptions[0]}
+                          onChange={(option) => {
+                            if (!option) {
+                              return;
+                            }
+                            setPreviewState((previewState) => {
+                              const config = {
+                                ...(previewState.floatingPopup.config ?? {}),
+                                layout: option.value,
+                              };
+                              return {
+                                ...previewState,
+                                floatingPopup: {
+                                  config,
+                                },
+                                layout: option.value,
+                              };
+                            });
+                          }}
+                          options={layoutOptions}
+                        />
+                      </Label>
+                    )}
                   </div>
                 </CollapsibleContent>
               </Collapsible>

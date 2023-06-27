@@ -254,7 +254,7 @@ export default function Availability() {
                 </ConfirmationDialogContent>
               </Dialog>
               <DropdownMenuSeparator />
-              <div className="flex h-9 flex-row items-center justify-between py-2 px-4 hover:bg-gray-100">
+              <div className="flex h-9 flex-row items-center justify-between px-4 py-2 hover:bg-gray-100">
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"

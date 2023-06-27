@@ -278,18 +278,23 @@ async function handler(req: CustomRequest) {
       }
     }
 
-    await Promise.all(integrationsToDelete).then(async () => {
-      if (lastAttendee) {
-        await prisma.booking.update({
-          where: {
-            id: bookingToDelete.id,
-          },
-          data: {
-            status: BookingStatus.CANCELLED,
-          },
-        });
-      }
-    });
+    try {
+      await Promise.all(integrationsToDelete).then(async () => {
+        if (lastAttendee) {
+          await prisma.booking.update({
+            where: {
+              id: bookingToDelete.id,
+            },
+            data: {
+              status: BookingStatus.CANCELLED,
+            },
+          });
+        }
+      });
+    } catch (error) {
+      // Shouldn't stop code execution if integrations fail
+      // as integrations was already deleted
+    }
 
     const tAttendees = await getTranslation(attendee.locale ?? "en", "common");
 
@@ -510,14 +515,6 @@ async function handler(req: CustomRequest) {
         apiDeletes.push(deleteMeeting(videoCredential, uid));
       }
     }
-    // For bookings made before this refactor we go through the old behaviour of running through each video credential
-  } else {
-    bookingToDelete.user.credentials
-      .filter((credential) => credential.type.endsWith("_video"))
-      .forEach((credential) => {
-        const uidToDelete = bookingToDelete?.references?.[0]?.uid ?? bookingToDelete.uid;
-        apiDeletes.push(deleteMeeting(credential, uidToDelete));
-      });
   }
 
   // Avoiding taking care of recurrence for now as Payments are not supported with Recurring Events at the moment
@@ -626,7 +623,11 @@ async function handler(req: CustomRequest) {
     });
 
     // We skip the deletion of the event, because that would also delete the payment reference, which we should keep
-    await apiDeletes;
+    try {
+      await apiDeletes;
+    } catch (error) {
+      console.error("Error deleting event", error);
+    }
     req.statusCode = 200;
     return { message: "Booking successfully cancelled." };
   }
@@ -655,10 +656,15 @@ async function handler(req: CustomRequest) {
 
   const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
 
-  await Promise.all(prismaPromises.concat(apiDeletes));
+  // @TODO: find a way in the future if a promise fails don't stop the rest of the promises
+  // Also if emails fails try to requeue them
+  try {
+    await Promise.all(prismaPromises.concat(apiDeletes));
 
-  await sendCancelledEmails(evt, { eventName: bookingToDelete?.eventType?.eventName });
-
+    await sendCancelledEmails(evt, { eventName: bookingToDelete?.eventType?.eventName });
+  } catch (error) {
+    console.error("Error deleting event", error);
+  }
   req.statusCode = 200;
   return { message: "Booking successfully cancelled." };
 }

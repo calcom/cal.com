@@ -26,11 +26,13 @@ Fixes # (issue)
 - [ ] Test B
 
 ## Mandatory Tasks
+
 - [ ] Make sure you have self-reviewed the code. A decent size PR without self-review might be rejected.
 
 ## Checklist
 
 <!-- Please remove all the irrelevant bullets to your PR -->
+
 - I haven't read the [contributing guide](https://github.com/calcom/cal.com/blob/main/CONTRIBUTING.md)
 - My code doesn't follow the style guidelines of this project
 - I haven't commented my code, particularly in hard-to-understand areas
