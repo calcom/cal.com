@@ -14,7 +14,13 @@ export type UserAdminTeams =
   | [];
 
 /** Get a user's team & orgs they are admins/owners of. Abstracted to a function to call in tRPC endpoint and SSR. */
-const getUserAdminTeams = async ({ userId, getUserInfo }: { userId: number; getUserInfo?: boolean }) => {
+const getUserAdminTeams = async ({
+  userId,
+  getUserInfo,
+}: {
+  userId: number;
+  getUserInfo?: boolean;
+}): UserAdminTeams => {
   const teams = await prisma.team.findMany({
     where: {
       members: {
@@ -49,7 +55,7 @@ const getUserAdminTeams = async ({ userId, getUserInfo }: { userId: number; getU
     }
   }
 
-  return teams as UserAdminTeams;
+  return teams;
 };
 
 export default getUserAdminTeams;
