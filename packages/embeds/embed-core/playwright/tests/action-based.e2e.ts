@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 
 import { test } from "@calcom/web/playwright/lib/fixtures";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
+import { testBothBookers } from "@calcom/web/playwright/lib/new-booker";
 
 import {
   todo,
@@ -17,10 +18,12 @@ async function bookFirstFreeUserEventThroughEmbed({
   addEmbedListeners,
   page,
   getActionFiredDetails,
+  bookerVariant,
 }: {
   addEmbedListeners: Fixtures["addEmbedListeners"];
   page: Page;
   getActionFiredDetails: Fixtures["getActionFiredDetails"];
+  bookerVariant: string;
 }) {
   const embedButtonLocator = page.locator('[data-cal-link="free"]').first();
   await page.goto("/");
@@ -40,11 +43,11 @@ async function bookFirstFreeUserEventThroughEmbed({
   if (!embedIframe) {
     throw new Error("Embed iframe not found");
   }
-  const booking = await bookFirstEvent("free", embedIframe, page);
+  const booking = await bookFirstEvent("free", embedIframe, page, bookerVariant);
   return booking;
 }
 
-test.describe("Popup Tests", () => {
+testBothBookers.describe("Popup Tests", (bookerVariant) => {
   test.afterEach(async () => {
     await deleteAllBookingsByEmail("embed-user@example.com");
   });
@@ -72,7 +75,7 @@ test.describe("Popup Tests", () => {
     if (!embedIframe) {
       throw new Error("Embed iframe not found");
     }
-    const { uid: bookingId } = await bookFirstEvent("free", embedIframe, page);
+    const { uid: bookingId } = await bookFirstEvent("free", embedIframe, page, bookerVariant);
     const booking = await getBooking(bookingId);
 
     expect(booking.attendees.length).toBe(1);
@@ -85,6 +88,7 @@ test.describe("Popup Tests", () => {
         page,
         addEmbedListeners,
         getActionFiredDetails,
+        bookerVariant,
       });
     });
 
@@ -97,7 +101,7 @@ test.describe("Popup Tests", () => {
       if (!embedIframe) {
         throw new Error("Embed iframe not found");
       }
-      await rescheduleEvent("free", embedIframe, page);
+      await rescheduleEvent("free", embedIframe, page, bookerVariant);
     });
   });
 
