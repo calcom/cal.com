@@ -10,7 +10,7 @@ import { LoadingInsight } from "./LoadingInsights";
 export const PopularEventsTable = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange, selectedMemberUserId, selectedUserId, isOrg } = filter;
+  const { dateRange, selectedMemberUserId, selectedUserId, isAll } = filter;
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
@@ -21,7 +21,7 @@ export const PopularEventsTable = () => {
       teamId: teamId ?? undefined,
       userId: selectedUserId ?? undefined,
       memberUserId: selectedMemberUserId ?? undefined,
-      isOrg,
+      isAll,
     },
     {
       staleTime: 30000,

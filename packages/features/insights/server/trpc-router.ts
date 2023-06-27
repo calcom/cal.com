@@ -12,7 +12,7 @@ import { EventsInsights } from "./events";
 
 const UserBelongsToTeamInput = z.object({
   teamId: z.coerce.number().optional().nullable(),
-  isOrg: z.boolean().optional(),
+  isAll: z.boolean().optional(),
 });
 
 const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, rawInput }) => {
@@ -37,49 +37,33 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, rawIn
     where: membershipWhereConditional,
   });
 
-  // No membership found but teamId was provided
-  // So we can look if team it's an org
-  if (!membership && parse.data.teamId) {
-    // Look if userId is owner/admin of
-    const childTeam = await ctx.prisma.team.findFirst({
-      where: {
-        parentId: ctx.user.organizationId,
-        id: parse.data.teamId,
-      },
-      select: {
-        parentId: true,
-      },
-    });
-    if (!childTeam || !childTeam.parentId) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-
-    // Look if userId is owner/admin of team org
-    const isOwnerAdminOfOrg = await ctx.prisma.membership.findFirst({
+  // Probably we couldn't find a membership because the user is not a direct member of the team
+  // So that would mean ctx.user.organization is present
+  if ((parse.data.isAll && ctx.user.organizationId) || (!membership && ctx.user.organizationId)) {
+    //Look for membership type in organizationId
+    const membershipOrg = await ctx.prisma.membership.findFirst({
       where: {
         userId: ctx.user.id,
-        teamId: childTeam.parentId,
+        teamId: ctx.user.organizationId,
+        accepted: true,
         role: {
           in: ["OWNER", "ADMIN"],
         },
-        accepted: true,
       },
     });
-    if (isOwnerAdminOfOrg && childTeam) {
-      return next({
-        ctx: {
-          ...ctx,
-          user: {
-            ...ctx.user,
-            isOwnerAdminOfParentTeam: true,
-          },
-        },
-      });
+    if (!membershipOrg) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
     }
-  }
 
-  if (!membership) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+    return next({
+      ctx: {
+        ...ctx,
+        user: {
+          ...ctx.user,
+          isOwnerAdminOfParentTeam: true,
+        },
+      },
+    });
   }
 
   return next();
@@ -90,6 +74,7 @@ const UserSelect = {
   name: true,
   email: true,
   avatar: true,
+  username: true,
 };
 
 const emptyResponseEventsByStatus = {
@@ -135,11 +120,11 @@ export const insightsRouter = router({
         eventTypeId: z.coerce.number().optional(),
         memberUserId: z.coerce.number().optional(),
         userId: z.coerce.number().optional(),
-        isOrg: z.boolean().optional(),
+        isAll: z.boolean().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate, eventTypeId, memberUserId, userId, isOrg } = input;
+      const { teamId, startDate, endDate, eventTypeId, memberUserId, userId, isAll } = input;
       if (userId && userId !== ctx.user.id) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
@@ -158,7 +143,7 @@ export const insightsRouter = router({
         whereConditional["userId"] = userId;
       }
 
-      if (isOrg && ctx.user.isOwnerAdminOfParentTeam) {
+      if (isAll && ctx.user.isOwnerAdminOfParentTeam && ctx.user.organizationId) {
         const teamsFromOrg = await ctx.prisma.team.findMany({
           where: {
             parentId: ctx.user.organizationId,
@@ -172,7 +157,7 @@ export const insightsRouter = router({
         }
         teamConditional = {
           id: {
-            in: teamsFromOrg.map((t) => t.id),
+            in: [ctx.user.organizationId, ...teamsFromOrg.map((t) => t.id)],
           },
         };
         const usersFromOrg = await ctx.prisma.membership.findMany({
@@ -196,14 +181,14 @@ export const insightsRouter = router({
             },
             {
               teamId: {
-                in: teamsFromOrg.map((t) => t.id),
+                in: [ctx.user.organizationId, ...teamsFromOrg.map((t) => t.id)],
               },
             },
           ],
         };
       }
 
-      if (teamId && !isOrg) {
+      if (teamId && !isAll) {
         const usersFromTeam = await ctx.prisma.membership.findMany({
           where: {
             teamId: teamId,
@@ -230,7 +215,6 @@ export const insightsRouter = router({
         };
       }
 
-      // Migrate to use prisma views
       const baseBookings = await EventsInsights.getBaseBookingForEventStatus({
         ...whereConditional,
         createdAt: {
@@ -312,7 +296,7 @@ export const insightsRouter = router({
         memberUserId: z.coerce.number().optional(),
         timeView: z.enum(["week", "month", "year", "day"]),
         userId: z.coerce.number().optional(),
-        isOrg: z.boolean().optional(),
+        isAll: z.boolean().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -320,7 +304,7 @@ export const insightsRouter = router({
         teamId,
         eventTypeId,
         memberUserId,
-        isOrg,
+        isAll,
         startDate: startDateString,
         endDate: endDateString,
         timeView: inputTimeView,
@@ -350,7 +334,7 @@ export const insightsRouter = router({
 
       let whereConditional: Prisma.BookingTimeStatusWhereInput = {};
 
-      if (isOrg && ctx.user.isOwnerAdminOfParentTeam) {
+      if (isAll && ctx.user.isOwnerAdminOfParentTeam && ctx.user.organizationId) {
         const teamsFromOrg = await ctx.prisma.team.findMany({
           where: {
             parentId: user.organizationId,
@@ -363,7 +347,7 @@ export const insightsRouter = router({
         const usersFromOrg = await ctx.prisma.membership.findMany({
           where: {
             teamId: {
-              in: teamsFromOrg.map((t) => t.id),
+              in: [ctx.user.organizationId, ...teamsFromOrg.map((t) => t.id)],
             },
             accepted: true,
           },
@@ -383,14 +367,14 @@ export const insightsRouter = router({
             },
             {
               teamId: {
-                in: teamsFromOrg.map((t) => t.id),
+                in: [ctx.user.organizationId, ...teamsFromOrg.map((t) => t.id)],
               },
             },
           ],
         };
       }
 
-      if (teamId && !isOrg) {
+      if (teamId && !isAll) {
         const usersFromTeam = await ctx.prisma.membership.findMany({
           where: {
             teamId,
@@ -509,11 +493,11 @@ export const insightsRouter = router({
         startDate: z.string(),
         endDate: z.string(),
         userId: z.coerce.number().optional(),
-        isOrg: z.boolean().optional(),
+        isAll: z.boolean().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate, memberUserId, userId, isOrg } = input;
+      const { teamId, startDate, endDate, memberUserId, userId, isAll } = input;
 
       const user = ctx.user;
 
@@ -532,7 +516,7 @@ export const insightsRouter = router({
         },
       };
 
-      if (isOrg && ctx.user.isOwnerAdminOfParentTeam) {
+      if (isAll && ctx.user.isOwnerAdminOfParentTeam && ctx.user.organizationId) {
         const teamsFromOrg = await ctx.prisma.team.findMany({
           where: {
             parentId: user.organizationId,
@@ -545,7 +529,7 @@ export const insightsRouter = router({
         const usersFromOrg = await ctx.prisma.membership.findMany({
           where: {
             teamId: {
-              in: teamsFromOrg.map((t) => t.id),
+              in: [ctx.user.organizationId, ...teamsFromOrg.map((t) => t.id)],
             },
             accepted: true,
           },
@@ -566,14 +550,14 @@ export const insightsRouter = router({
             },
             {
               teamId: {
-                in: teamsFromOrg.map((t) => t.id),
+                in: [ctx.user.organizationId, ...teamsFromOrg.map((t) => t.id)],
               },
             },
           ],
         };
       }
 
-      if (teamId && !isOrg) {
+      if (teamId && !isAll) {
         const usersFromTeam = await ctx.prisma.membership.findMany({
           where: {
             teamId,
@@ -712,7 +696,7 @@ export const insightsRouter = router({
         startDate: z.string(),
         endDate: z.string(),
         userId: z.coerce.number().optional(),
-        isOrg: z.boolean().optional(),
+        isAll: z.boolean().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -722,7 +706,7 @@ export const insightsRouter = router({
         endDate: endDateString,
         memberUserId,
         userId,
-        isOrg,
+        isAll,
       } = input;
 
       if (userId && ctx.user?.id !== userId) {
@@ -747,7 +731,7 @@ export const insightsRouter = router({
         whereConditional["userId"] = userId;
       }
 
-      if (isOrg && ctx.user.isOwnerAdminOfParentTeam) {
+      if (isAll && ctx.user.isOwnerAdminOfParentTeam && ctx.user.organizationId) {
         const teamsFromOrg = await ctx.prisma.team.findMany({
           where: {
             parentId: ctx.user?.organizationId,
@@ -761,7 +745,7 @@ export const insightsRouter = router({
           OR: [
             {
               teamId: {
-                in: teamsFromOrg.map((t) => t.id),
+                in: [ctx.user?.organizationId, ...teamsFromOrg.map((t) => t.id)],
               },
             },
             {
@@ -772,7 +756,7 @@ export const insightsRouter = router({
         };
       }
 
-      if (teamId && !isOrg) {
+      if (teamId && !isAll) {
         const usersFromTeam = await ctx.prisma.membership.findMany({
           where: {
             teamId,
@@ -860,11 +844,11 @@ export const insightsRouter = router({
         startDate: z.string(),
         endDate: z.string(),
         eventTypeId: z.coerce.number().optional(),
-        isOrg: z.boolean().optional(),
+        isAll: z.boolean().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate, eventTypeId, isOrg } = input;
+      const { teamId, startDate, endDate, eventTypeId, isAll } = input;
 
       if (!teamId) {
         return [];
@@ -883,7 +867,7 @@ export const insightsRouter = router({
         bookingWhere.eventTypeId = eventTypeId;
       }
 
-      if (isOrg && user.isOwnerAdminOfParentTeam) {
+      if (isAll && user.isOwnerAdminOfParentTeam && user.organizationId) {
         delete bookingWhere.teamId;
         const teamsFromOrg = await ctx.prisma.team.findMany({
           where: {
@@ -896,7 +880,7 @@ export const insightsRouter = router({
         const usersFromTeam = await ctx.prisma.membership.findMany({
           where: {
             teamId: {
-              in: teamsFromOrg.map((t) => t.id),
+              in: [user?.organizationId, ...teamsFromOrg.map((t) => t.id)],
             },
             accepted: true,
           },
@@ -907,7 +891,7 @@ export const insightsRouter = router({
         bookingWhere["OR"] = [
           {
             teamId: {
-              in: teamsFromOrg.map((t) => t.id),
+              in: [user?.organizationId, ...teamsFromOrg.map((t) => t.id)],
             },
           },
           {
@@ -919,7 +903,7 @@ export const insightsRouter = router({
         ];
       }
 
-      if (teamId && !isOrg) {
+      if (teamId && !isAll) {
         const usersFromTeam = await ctx.prisma.membership.findMany({
           where: {
             teamId,
@@ -998,11 +982,11 @@ export const insightsRouter = router({
         startDate: z.string(),
         endDate: z.string(),
         eventTypeId: z.coerce.number().optional(),
-        isOrg: z.boolean().optional(),
+        isAll: z.boolean().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate, eventTypeId, isOrg } = input;
+      const { teamId, startDate, endDate, eventTypeId, isAll } = input;
       if (!teamId) {
         return [];
       }
@@ -1017,7 +1001,7 @@ export const insightsRouter = router({
         },
       };
 
-      if (isOrg && user.isOwnerAdminOfParentTeam) {
+      if (isAll && user.isOwnerAdminOfParentTeam) {
         delete bookingWhere.teamId;
         const teamsFromOrg = await ctx.prisma.team.findMany({
           where: {
@@ -1054,7 +1038,7 @@ export const insightsRouter = router({
         ];
       }
 
-      if (teamId && !isOrg) {
+      if (teamId && !isAll) {
         const usersFromTeam = await ctx.prisma.membership.findMany({
           where: {
             teamId,
@@ -1198,15 +1182,7 @@ export const insightsRouter = router({
           }
         ),
       ];
-      if (userData && userData.id) {
-        result.push({
-          id: 0,
-          slug: "",
-          userId: userData.id,
-          name: userData.name || "No full name found",
-          logo: userData.avatar,
-        });
-      }
+
       return result;
     }
 
@@ -1233,33 +1209,25 @@ export const insightsRouter = router({
     const result: IResultTeamList[] = belongsToTeams.map((membership) => {
       return { ...membership.team };
     });
-    if (userData && userData.id) {
-      result.push({
-        id: 0,
-        slug: "",
-        userId: userData.id,
-        name: userData.name,
-        logo: userData.avatar,
-      });
-    }
+
     return result;
   }),
   userList: userBelongsToTeamProcedure
     .input(
       z.object({
         teamId: z.coerce.number().nullable(),
-        isOrg: z.boolean().nullable(),
+        isAll: z.boolean().nullable(),
       })
     )
     .query(async ({ ctx, input }) => {
       const user = ctx.user;
-      const { teamId, isOrg } = input;
+      const { teamId, isAll } = input;
 
       if (!teamId) {
         return [];
       }
 
-      if (isOrg && user.organizationId && user.isOwnerAdminOfParentTeam) {
+      if (isAll && user.organizationId && user.isOwnerAdminOfParentTeam) {
         const usersInTeam = await ctx.prisma.membership.findMany({
           where: {
             team: {
@@ -1287,11 +1255,15 @@ export const insightsRouter = router({
           },
         },
       });
+      if (!membership) {
+        return [];
+      }
       const isMember = membership && membership.role === "MEMBER";
       // If user is not admin, return himself only
       if (isMember) {
         return [membership.user];
       }
+
       const usersInTeam = await ctx.prisma.membership.findMany({
         where: {
           teamId,
@@ -1311,12 +1283,12 @@ export const insightsRouter = router({
       z.object({
         teamId: z.coerce.number().optional().nullable(),
         userId: z.coerce.number().optional().nullable(),
-        isOrg: z.boolean().optional(),
+        isAll: z.boolean().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
       const { prisma, user } = ctx;
-      const { teamId, userId, isOrg } = input;
+      const { teamId, userId, isAll } = input;
 
       if (!teamId && !userId) {
         return [];
@@ -1326,7 +1298,7 @@ export const insightsRouter = router({
 
       let childrenTeamIds: number[] = [];
 
-      if (isOrg && teamId && user.organizationId && user.isOwnerAdminOfParentTeam) {
+      if (isAll && teamId && user.organizationId && user.isOwnerAdminOfParentTeam) {
         const childTeams = await prisma.team.findMany({
           where: {
             parentId: user.organizationId,
@@ -1339,11 +1311,11 @@ export const insightsRouter = router({
           childrenTeamIds = childTeams.map((team) => team.id);
         }
         membershipWhereConditional["teamId"] = {
-          in: childrenTeamIds,
+          in: [user.organizationId, ...childrenTeamIds],
         };
       }
 
-      if (teamId && !isOrg) {
+      if (teamId && !isAll) {
         membershipWhereConditional["teamId"] = teamId;
         membershipWhereConditional["userId"] = user.id;
       }
@@ -1362,12 +1334,12 @@ export const insightsRouter = router({
       }
 
       const eventTypeWhereConditional: Prisma.EventTypeWhereInput = {};
-      if (isOrg && childrenTeamIds.length > 0) {
+      if (isAll && childrenTeamIds.length > 0 && user.organizationId && user.isOwnerAdminOfParentTeam) {
         eventTypeWhereConditional["teamId"] = {
-          in: childrenTeamIds,
+          in: [user.organizationId, ...childrenTeamIds],
         };
       }
-      if (teamId && !isOrg) {
+      if (teamId && !isAll) {
         eventTypeWhereConditional["teamId"] = teamId;
       }
       if (userId) {

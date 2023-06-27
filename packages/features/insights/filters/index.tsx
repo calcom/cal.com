@@ -23,7 +23,7 @@ const ClearFilters = () => {
         color="secondary"
         target="_blank"
         rel="noreferrer"
-        className="h-[38px] w-full min-w-[180px] border-0 sm:max-w-[180px] lg:max-w-[150px]"
+        className="min-w-24 h-[38px] border-0"
         onClick={() => {
           clearFilters();
         }}>
@@ -40,11 +40,12 @@ export const Filters = () => {
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-nowrap sm:justify-start">
         <TeamAndSelfList />
 
-        <FilterType />
-
         <UserListInTeam />
 
         <EventTypeList />
+
+        <FilterType />
+
         <ClearFilters />
       </div>
 
