@@ -1027,7 +1027,7 @@ describe("getSchedule", () => {
       expect(scheduleForTeamEventOnADayWithOneBookingForEachUser).toHaveTimeSlots(
         [
           //`04:00:00.000Z`, - Blocked with User 101
-          `04:15:00.000Z`, // todo: figure out why this doesn't open at :15
+          `04:15:00.000Z`,
           //`05:30:00.000Z`, - Blocked with User 102 in event 2
           `05:45:00.000Z`,
           `06:30:00.000Z`,
