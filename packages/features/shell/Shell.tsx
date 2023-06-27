@@ -922,7 +922,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                   <Icon
                     className={classNames(
                       "h-4 w-4 flex-shrink-0 [&[aria-current='page']]:text-inherit",
-                      "mx-auto md:ltr:mr-2 md:rtl:ml-2"
+                      "md:ltr:mr-2 md:rtl:ml-2"
                     )}
                     aria-hidden="true"
                     aria-current={
