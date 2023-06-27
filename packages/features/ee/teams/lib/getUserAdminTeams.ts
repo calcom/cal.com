@@ -20,7 +20,7 @@ const getUserAdminTeams = async ({
 }: {
   userId: number;
   getUserInfo?: boolean;
-}): UserAdminTeams => {
+}): Promise<UserAdminTeams> => {
   const teams = await prisma.team.findMany({
     where: {
       members: {
