@@ -102,7 +102,7 @@ const DuplicateDialog = () => {
                 addOnLeading={<>/{pageSlug}/</>}
                 {...register("slug")}
                 onChange={(e) => {
-                  form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
+                  form.setValue("slug", slugify(e?.target.value, false), { shouldTouch: true });
                 }}
               />
             ) : (

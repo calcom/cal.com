@@ -411,7 +411,7 @@ export const EventSetupTab = (
             </>
           }
           {...formMethods.register("slug", {
-            setValueAs: (v) => slugify(v),
+            setValueAs: (v) => slugify(v, false),
           })}
         />
         {multipleDuration ? (

@@ -182,7 +182,7 @@ export default function CreateEventTypeDialog({
               onChange={(e) => {
                 form.setValue("title", e?.target.value);
                 if (form.formState.touchedFields["slug"] === undefined) {
-                  form.setValue("slug", slugify(e?.target.value));
+                  form.setValue("slug", slugify(e?.target.value, false));
                 }
               }}
             />
@@ -195,7 +195,7 @@ export default function CreateEventTypeDialog({
                   addOnLeading={<>/{!isManagedEventType ? pageSlug : t("username_placeholder")}/</>}
                   {...register("slug")}
                   onChange={(e) => {
-                    form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
+                    form.setValue("slug", slugify(e?.target.value, false), { shouldTouch: true });
                   }}
                 />
 

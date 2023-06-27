@@ -1,6 +1,9 @@
-export const slugify = (str: string) => {
+export const slugify = (str: string, toLowerCase?: boolean) => {
+  if (toLowerCase !== false) {
+    str = str.toLocaleLowerCase(); // Convert to lowercase
+  }
+
   return str
-    .toLowerCase() // Convert to lowercase
     .trim() // Remove whitespace from both sides
     .normalize("NFD") // Normalize to decomposed form for handling accents
     .replace(/\p{Diacritic}/gu, "") // Remove any diacritics (accents) from characters

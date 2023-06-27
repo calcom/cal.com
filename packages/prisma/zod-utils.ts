@@ -174,7 +174,7 @@ export const intervalLimitsType = z
   })
   .nullable();
 
-export const eventTypeSlug = z.string().transform((val) => slugify(val.trim()));
+export const eventTypeSlug = z.string().transform((val) => slugify(val.trim(), false));
 
 export const stringToDate = z.string().transform((a) => new Date(a));
 
