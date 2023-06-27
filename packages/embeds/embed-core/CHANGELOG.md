@@ -1,5 +1,11 @@
 # @calcom/embed-core
 
+## 1.3.0
+
+### Minor Changes
+
+- Supports new booker layout
+
 ## 1.2.1
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # @calcom/embed-react
 
+## 1.2.0
+
+### Minor Changes
+
+- Supports new booker layout
+
+### Patch Changes
+
+- Updated dependencies
+  - @calcom/embed-core@1.3.0
+  - @calcom/embed-snippet@1.1.0
+
 ## 1.1.1
 
 ### Patch Changes
