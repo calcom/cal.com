@@ -74,7 +74,6 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           seatsPerTimeSlot: true,
           bookingFields: true,
           seatsShowAttendees: true,
-          teamId: true,
           hosts: {
             select: {
               user: true,
