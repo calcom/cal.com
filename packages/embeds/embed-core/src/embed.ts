@@ -1,6 +1,4 @@
 /// <reference types="../env" />
-import type { BookerLayouts } from "@calcom/prisma/zod-utils";
-
 import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
@@ -17,6 +15,8 @@ export type Message = {
   method: keyof InterfaceWithParent;
   arg: InterfaceWithParent[keyof InterfaceWithParent];
 };
+type BookerLayouts = "month_view" | "week_view" | "column_view";
+
 // HACK: Redefine and don't import WEBAPP_URL as it causes import statement to be present in built file.
 // This is happening because we are not able to generate an App and a lib using single Vite Config.
 const WEBAPP_URL =
@@ -141,7 +141,7 @@ export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Rec
 
   // TODO: Move layout and theme as nested props of ui as it makes it clear that these two can be configured using `ui` instruction as well any time.
   // ui: {layout; theme}
-  layout?: `${BookerLayouts}`;
+  layout?: BookerLayouts;
   theme?: EmbedThemeConfig;
 };
 

@@ -1,5 +1,13 @@
 # @calcom/embed-snippet
 
+## 1.1.1
+
+### Patch Changes
+
+- layout type fix as zod-utils can't be used in npm package
+- Updated dependencies
+  - @calcom/embed-core@1.3.1
+
 ## 1.1.0
 
 ### Minor Changes
