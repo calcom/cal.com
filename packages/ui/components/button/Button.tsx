@@ -116,18 +116,13 @@ const buttonClasses = cva(
       }),
       // Destructive variants
       {
-        disabled: true,
-        color: "destructive",
-        className: "text-red-700/30 hover:text-red-700/30 border border-default text-emphasis",
-      },
-      {
         loading: true,
         color: "destructive",
         className:
           "text-red-700/30 dark:text-red-700/30 hover:text-red-700/30  border border-default text-emphasis",
       },
       ...applyStyleToMultipleVariants({
-        disabled: [false, undefined],
+        disabled: [false, true, undefined],
         color: "destructive",
         className:
           "border border-default text-emphasis hover:text-red-700 focus-visible:text-red-700  hover:border-red-100 focus-visible:border-red-100 hover:bg-error  focus-visible:bg-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-red-700",
@@ -201,7 +196,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         <>
           {variant === "fab" ? (
             <>
-              <StartIcon className="hidden h-4 w-4 stroke-[1.5px] ltr:mr-2 ltr:-ml-1 rtl:-mr-1 rtl:ml-2 md:inline-flex" />
+              <StartIcon className="hidden h-4 w-4 stroke-[1.5px] ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2 md:inline-flex" />
               <Plus className="inline h-6 w-6 md:hidden" />
             </>
           ) : (
@@ -216,7 +211,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       )}
       {variant === "fab" ? <span className="hidden md:inline">{props.children}</span> : props.children}
       {loading && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
           <svg
             className={classNames(
               "mx-4 h-5 w-5 animate-spin",
@@ -238,7 +233,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         <>
           {variant === "fab" ? (
             <>
-              <EndIcon className="ms-2 me-2 -mr-1 hidden h-5 w-5 md:inline" />
+              <EndIcon className="-mr-1 me-2 ms-2 hidden h-5 w-5 md:inline" />
               <Plus className="inline h-6 w-6 md:hidden" />
             </>
           ) : (
@@ -246,7 +241,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
               className={classNames(
                 "inline-flex",
                 variant === "icon" && "h-4 w-4",
-                variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:ml-2 ltr:-mr-1 rtl:mr-2 rtl:-ml-1"
+                variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:-mr-1 ltr:ml-2 rtl:-ml-1 rtl:mr-2"
               )}
             />
           )}

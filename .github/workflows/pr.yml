@@ -16,7 +16,8 @@ concurrency:
 
 jobs:
   changes:
-    runs-on: ubuntu-latest
+    name: Detect changes
+    runs-on: buildjet-4vcpu-ubuntu-2204
     permissions:
       pull-requests: read
     outputs:
@@ -33,12 +34,15 @@ jobs:
             app-store:
               - 'apps/web/**'
               - 'packages/app-store/**'
+              - 'playwright.config.ts'
             embed:
               - 'apps/web/**'
               - 'packages/embeds/**'
+              - 'playwright.config.ts'
             embed-react:
               - 'apps/web/**'
               - 'packages/embeds/**'
+              - 'playwright.config.ts'
 
   env:
     name: Create env file
@@ -64,6 +68,12 @@ jobs:
     name: Production build
     needs: env
     uses: ./.github/workflows/production-build.yml
+    secrets: inherit
+
+  build-without-database:
+    name: Production build (without database)
+    needs: env
+    uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
 
   e2e:
@@ -101,7 +111,7 @@ jobs:
   required:
     needs: [lint, type-check, test, build, e2e]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled')

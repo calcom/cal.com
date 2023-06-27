@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker";
 import type { Booking, EventType, Prisma, Webhook } from "@prisma/client";
+import type { TFunction } from "next-i18next";
 
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
@@ -23,7 +24,7 @@ export const buildPerson = (person?: Partial<Person>): Person => {
     id: faker.datatype.number(),
     language: {
       locale: faker.random.locale(),
-      translate: (key: string) => key,
+      translate: ((key: string) => key) as TFunction,
     },
     ...person,
   };
@@ -71,6 +72,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     position: 1,
     locations: null,
     length: 15,
+    offsetStart: 0,
     hidden: false,
     userId: null,
     teamId: null,
@@ -117,6 +119,7 @@ export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
     secret: faker.lorem.slug(),
     active: true,
     eventTriggers: [],
+    teamId: null,
     ...webhook,
   };
 };
@@ -215,6 +218,7 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     twoFactorSecret: null,
     verified: false,
     weekStart: "",
+    organizationId: null,
     ...user,
   };
 };

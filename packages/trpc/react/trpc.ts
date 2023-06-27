@@ -24,7 +24,6 @@ const ENDPOINTS = [
   "availability",
   "bookings",
   "deploymentSetup",
-  "eth",
   "eventTypes",
   "features",
   "insights",
@@ -33,11 +32,13 @@ const ENDPOINTS = [
   "saml",
   "slots",
   "teams",
+  "organizations",
   "users",
   "viewer",
   "webhook",
   "workflows",
   "appsRouter",
+  "googleWorkspace",
 ] as const;
 export type Endpoint = (typeof ENDPOINTS)[number];
 

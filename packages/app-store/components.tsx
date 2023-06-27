@@ -7,6 +7,7 @@ import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { CAL_URL } from "@calcom/lib/constants";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
+import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -48,15 +49,17 @@ export const InstallAppButtonWithoutPlanCheck = (
 
 export const InstallAppButton = (
   props: {
-    isProOnly?: App["isProOnly"];
+    teamsPlanRequired?: App["teamsPlanRequired"];
     type: App["type"];
     wrapperClassName?: string;
     disableInstall?: boolean;
   } & InstallAppButtonProps
 ) => {
-  const { isLoading, data: user } = trpc.viewer.me.useQuery();
+  const { isLoading: isUserLoading, data: user } = trpc.viewer.me.useQuery();
   const router = useRouter();
   const proProtectionElementRef = useRef<HTMLDivElement | null>(null);
+  const { isLoading: isTeamPlanStatusLoading, hasTeamPlan } = useHasTeamPlan();
+
   useEffect(() => {
     const el = proProtectionElementRef.current;
     if (!el) {
@@ -72,12 +75,19 @@ export const InstallAppButton = (
           e.stopPropagation();
           return;
         }
+
+        if (props.teamsPlanRequired && !hasTeamPlan) {
+          // TODO: I think we should show the UpgradeTip in a Dialog here. This would solve the problem of no way to go back to the App page from the UpgradeTip page(except browser's back button)
+          router.push(props.teamsPlanRequired.upgradeUrl);
+          e.stopPropagation();
+          return;
+        }
       },
       true
     );
-  }, [isLoading, user, router, props.isProOnly]);
+  }, [isUserLoading, user, router, hasTeamPlan, props.teamsPlanRequired]);
 
-  if (isLoading) {
+  if (isUserLoading || isTeamPlanStatusLoading) {
     return null;
   }
 
@@ -102,7 +112,7 @@ export const AppDependencyComponent = ({
   return (
     <div
       className={classNames(
-        "rounded-md py-3 px-4",
+        "rounded-md px-4 py-3",
         dependencyData && dependencyData.some((dependency) => !dependency.installed) ? "bg-info" : "bg-subtle"
       )}>
       {dependencyData &&
@@ -111,7 +121,7 @@ export const AppDependencyComponent = ({
             <div className="items-start space-x-2.5">
               <div className="flex items-start">
                 <div>
-                  <Check className="mt-1 mr-2 font-semibold" />
+                  <Check className="mr-2 mt-1 font-semibold" />
                 </div>
                 <div>
                   <span className="font-semibold">
@@ -134,7 +144,7 @@ export const AppDependencyComponent = ({
             <div className="items-start space-x-2.5">
               <div className="text-info flex items-start">
                 <div>
-                  <AlertCircle className="mt-1 mr-2 font-semibold" />
+                  <AlertCircle className="mr-2 mt-1 font-semibold" />
                 </div>
                 <div>
                   <span className="font-semibold">

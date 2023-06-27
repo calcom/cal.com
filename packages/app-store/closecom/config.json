@@ -5,10 +5,10 @@
   "slug": "closecom",
   "type": "closecom_other_calendar",
   "logo": "icon.svg",
-  "url": "https://cal.com/apps/closecom",
+  "url": "https://cal.com/",
   "variant": "other",
   "categories": ["other"],
-  "publisher": "Cal.com",
+  "publisher": "Cal.com, Inc.",
   "email": "help@cal.com",
   "description": "Close is the inside sales CRM of choice for startups and SMBs. Make more calls, send more emails and close more deals starting today.",
   "__createdUsingCli": true

@@ -70,14 +70,14 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
       <h2 className="text-emphasis hidden text-base font-semibold leading-none sm:block">
         {searchText
           ? t("search")
-          : t("explore_apps", {
+          : t("category_apps", {
               category:
                 (selectedCategory && selectedCategory[0].toUpperCase() + selectedCategory.slice(1)) ||
                 t("all_apps"),
             })}
       </h2>
       {leftVisible && (
-        <button onClick={handleLeft} className="absolute bottom-0 flex md:left-1/2 md:-top-1">
+        <button onClick={handleLeft} className="absolute bottom-0 flex md:-top-1 md:left-1/2">
           <div className="bg-default flex h-12 w-5 items-center justify-end">
             <ChevronLeft className="text-subtle h-4 w-4" />
           </div>
@@ -146,6 +146,7 @@ export function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
         ? router.query.category
         : null;
     setSelectedCategory(queryCategory);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.query.category]);
 
   const filteredApps = apps
@@ -168,7 +169,7 @@ export function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
       <CategoryTab selectedCategory={selectedCategory} searchText={searchText} categories={categories} />
       {filteredApps.length ? (
         <div
-          className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:730px)]:grid-cols-1 [@media(max-width:500px)]:grid-cols-1"
+          className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:500px)]:grid-cols-1 [@media(max-width:730px)]:grid-cols-1"
           ref={appsContainerRef}>
           {filteredApps.map((app) => (
             <AppCard key={app.name} app={app} searchText={searchText} credentials={app.credentials} />

@@ -48,9 +48,9 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="mt-6 mb-8 space-y-6">
+      <div className="mb-8 mt-6 space-y-6">
         <div className="flex items-center">
-          <SkeletonAvatar className="h-12 w-12 px-4" />
+          <SkeletonAvatar className="me-4 h-16 w-16 px-4" />
           <SkeletonButton className="h-6 w-32 rounded-md p-5" />
         </div>
         <SkeletonText className="h-8 w-full" />
@@ -203,6 +203,7 @@ const ProfileView = () => {
       <ProfileForm
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
+        isLoading={mutation.isLoading}
         onSubmit={(values) => {
           if (values.email !== user.email && isCALIdentityProviver) {
             setTempFormValues(values);
@@ -214,7 +215,6 @@ const ProfileView = () => {
         extraField={
           <div className="mt-8">
             <UsernameAvailabilityField
-              user={user}
               onSuccessMutation={async () => {
                 showToast(t("settings_updated_successfully"), "success");
                 await utils.viewer.me.invalidate();
@@ -314,10 +314,12 @@ const ProfileForm = ({
   defaultValues,
   onSubmit,
   extraField,
+  isLoading = false,
 }: {
   defaultValues: FormValues;
   onSubmit: (values: FormValues) => void;
   extraField?: React.ReactNode;
+  isLoading: boolean;
 }) => {
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
@@ -390,7 +392,7 @@ const ProfileForm = ({
           setFirstRender={setFirstRender}
         />
       </div>
-      <Button disabled={isDisabled} color="primary" className="mt-8" type="submit">
+      <Button loading={isLoading} disabled={isDisabled} color="primary" className="mt-8" type="submit">
         {t("update")}
       </Button>
     </Form>

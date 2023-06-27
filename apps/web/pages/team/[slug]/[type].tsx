@@ -76,7 +76,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               },
             },
           },
-
           title: true,
           availability: true,
           description: true,
@@ -130,6 +129,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
                       weekStart: true,
                     },
                   },
+                },
+              },
+              parent: {
+                select: {
+                  logo: true,
+                  name: true,
                 },
               },
             },
@@ -196,6 +201,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         brandColor: team.brandColor,
         darkBrandColor: team.darkBrandColor,
       },
+      themeBasis: team.slug,
       date: dateParam,
       eventType: eventTypeObject,
       workingHours,

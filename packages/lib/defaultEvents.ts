@@ -63,6 +63,7 @@ const commons = {
   periodType: PeriodType.UNLIMITED,
   periodDays: null,
   slotInterval: null,
+  offsetStart: 0,
   locations: [{ type: DailyLocationType }],
   customInputs,
   disableGuests: true,
@@ -179,7 +180,7 @@ export const getUsernameList = (users: string | string[] | undefined): string[] 
   const allUsers = users.map((user) =>
     user
       .toLowerCase()
-      .replace(/( |%20)/g, "+")
+      .replace(/( |%20|%2b)/g, "+")
       .split("+")
   );
 

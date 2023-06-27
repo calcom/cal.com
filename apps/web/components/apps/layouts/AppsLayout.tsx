@@ -18,9 +18,9 @@ export default function AppsLayout({ children, actions, emptyStore, ...rest }: A
   const { t } = useLocale();
   const session = useSession();
   const router = useRouter();
+  const isAdmin = session.data?.user.role === "ADMIN";
 
   if (session.status === "loading") return <></>;
-
   return (
     <Shell {...rest} actions={actions?.("block")} hideHeadingOnMobile>
       <div className="flex flex-col xl:flex-row">
@@ -28,9 +28,9 @@ export default function AppsLayout({ children, actions, emptyStore, ...rest }: A
           {emptyStore ? (
             <EmptyScreen
               Icon={AlertCircle}
-              headline={t("no_apps")}
-              description={session.data?.user.role === "ADMIN" ? "You can enable apps in the settings" : ""}
-              buttonText={session.data?.user.role === "ADMIN" ? t("apps_settings") : ""}
+              headline={isAdmin ? t("no_apps") : t("no_apps_configured")}
+              description={isAdmin ? t("enable_in_settings") : t("please_contact_admin")}
+              buttonText={isAdmin ? t("apps_settings") : ""}
               buttonOnClick={() => router.push("/settings/admin/apps/calendar")}
             />
           ) : (

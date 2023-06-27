@@ -15,6 +15,7 @@ async function getLabelText(field: Locator) {
   return await field.locator("label").first().locator("span").first().innerText();
 }
 
+test.describe.configure({ mode: "parallel" });
 test.describe("Manage Booking Questions", () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
@@ -28,7 +29,7 @@ test.describe("Manage Booking Questions", () => {
     }, testInfo) => {
       // Considering there are many steps in it, it would need more than default test timeout
       test.setTimeout(testInfo.timeout * 3);
-      const user = await createAndLoginUserWithEventTypes({ users });
+      const user = await createAndLoginUserWithEventTypes({ users, page });
 
       const webhookReceiver = await addWebhook(user);
 
@@ -51,9 +52,22 @@ test.describe("Manage Booking Questions", () => {
     }, testInfo) => {
       // Considering there are many steps in it, it would need more than default test timeout
       test.setTimeout(testInfo.timeout * 3);
-      const user = await createAndLoginUserWithEventTypes({ users });
+      const user = await createAndLoginUserWithEventTypes({ users, page });
+      const team = await prisma.team.findFirst({
+        where: {
+          members: {
+            some: {
+              userId: user.id,
+            },
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
 
-      const webhookReceiver = await addWebhook(user);
+      const teamId = team?.id;
+      const webhookReceiver = await addWebhook(undefined, teamId);
 
       await test.step("Go to First Team Event", async () => {
         const $eventTypes = page.locator("[data-testid=event-types]").nth(1).locator("li a");
@@ -73,13 +87,13 @@ async function runTestStepsCommonForTeamAndUserEventType(
   webhookReceiver: {
     port: number;
     close: () => import("http").Server;
-    requestList: (import("http").IncomingMessage & { body?: unknown })[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    requestList: (import("http").IncomingMessage & { body?: any })[];
     url: string;
   },
   bookerVariant: BookerVariants
 ) {
   await page.click('[href$="tabName=advanced"]');
-
   await test.step("Add Question and see that it's shown on Booking Page at appropriate position", async () => {
     await addQuestionAndSave({
       page,
@@ -163,7 +177,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
 
           const [request] = webhookReceiver.requestList;
 
-          const payload = (request.body as any).payload as any;
+          const payload = request.body.payload;
 
           expect(payload.responses).toMatchObject({
             email: {
@@ -200,7 +214,9 @@ async function runTestStepsCommonForTeamAndUserEventType(
 
   await test.step("Do a reschedule and notice that we can't book without giving a value for rescheduleReason", async () => {
     const page = previewTabPage;
-    await rescheduleFromTheLinkOnPage({ page, bookerVariant });
+    await rescheduleFromTheLinkOnPage({ page });
+    // eslint-disable-next-line playwright/no-page-pause
+    await page.pause();
     await expectErrorToBeThereFor({ page, name: "rescheduleReason" });
   });
 }
@@ -232,6 +248,7 @@ async function bookTimeSlot({ page, name, email }: { page: Page; name: string; e
   await page.fill('[name="email"]', email);
   await page.press('[name="email"]', "Enter");
 }
+
 /**
  * 'option' starts from 1
  */
@@ -343,11 +360,20 @@ async function toggleQuestionRequireStatusAndSave({
   await saveEventType(page);
 }
 
-async function createAndLoginUserWithEventTypes({ users }: { users: ReturnType<typeof createUsersFixture> }) {
+async function createAndLoginUserWithEventTypes({
+  users,
+  page,
+}: {
+  users: ReturnType<typeof createUsersFixture>;
+  page: Page;
+}) {
   const user = await users.create(null, {
     hasTeam: true,
   });
-  await user.login();
+  await user.apiLogin();
+  await page.goto("/event-types");
+  // We wait until loading is finished
+  await page.waitForSelector('[data-testid="event-types"]');
   return user;
 }
 
@@ -356,7 +382,7 @@ async function rescheduleFromTheLinkOnPage({
   bookerVariant,
 }: {
   page: Page;
-  bookerVariant: BookerVariants;
+  bookerVariant?: BookerVariants;
 }) {
   await page.locator('[data-testid="reschedule-link"]').click();
   await page.waitForLoadState();
@@ -391,19 +417,35 @@ async function saveEventType(page: Page) {
   await page.locator("[data-testid=update-eventtype]").click();
 }
 
-async function addWebhook(user: Awaited<ReturnType<typeof createAndLoginUserWithEventTypes>>) {
+async function addWebhook(
+  user?: Awaited<ReturnType<typeof createAndLoginUserWithEventTypes>>,
+  teamId?: number | null
+) {
   const webhookReceiver = createHttpServer();
-  await prisma.webhook.create({
-    data: {
-      id: uuid(),
-      userId: user.id,
-      subscriberUrl: webhookReceiver.url,
-      eventTriggers: [
-        WebhookTriggerEvents.BOOKING_CREATED,
-        WebhookTriggerEvents.BOOKING_CANCELLED,
-        WebhookTriggerEvents.BOOKING_RESCHEDULED,
-      ],
-    },
-  });
+
+  const data: {
+    id: string;
+    subscriberUrl: string;
+    eventTriggers: WebhookTriggerEvents[];
+    userId?: number;
+    teamId?: number;
+  } = {
+    id: uuid(),
+    subscriberUrl: webhookReceiver.url,
+    eventTriggers: [
+      WebhookTriggerEvents.BOOKING_CREATED,
+      WebhookTriggerEvents.BOOKING_CANCELLED,
+      WebhookTriggerEvents.BOOKING_RESCHEDULED,
+    ],
+  };
+
+  if (teamId) {
+    data.teamId = teamId;
+  } else if (user) {
+    data.userId = user.id;
+  }
+
+  await prisma.webhook.create({ data });
+
   return webhookReceiver;
 }

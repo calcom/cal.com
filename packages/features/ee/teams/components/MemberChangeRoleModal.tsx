@@ -50,6 +50,8 @@ export default function MemberChangeRoleModal(props: {
   const changeRoleMutation = trpc.viewer.teams.changeMemberRole.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
+      await utils.viewer.organizations.listMembers.invalidate();
+
       props.onExit();
     },
     async onError(err) {
@@ -99,7 +101,7 @@ export default function MemberChangeRoleModal(props: {
               </p>
             )}
             <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-              <Button type="submit" color="primary" className="ms-2 me-2">
+              <Button type="submit" color="primary" className="me-2 ms-2">
                 {t("save")}
               </Button>
               <Button type="button" color="secondary" onClick={props.onExit}>

@@ -86,6 +86,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           theme: true,
           brandColor: true,
           darkBrandColor: true,
+          parent: {
+            select: {
+              logo: true,
+              name: true,
+            },
+          },
         },
       },
       users: {
@@ -153,6 +159,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         image: eventTypeObject.team?.logo || null,
         eventName: null,
       },
+      themeBasis: eventTypeObject.team?.slug,
       eventType: eventTypeObject,
       recurringEventCount,
       booking,

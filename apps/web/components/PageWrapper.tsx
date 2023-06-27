@@ -1,10 +1,13 @@
 import { DefaultSeo } from "next-seo";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
+import Head from "next/head";
 import Script from "next/script";
 
 import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { buildCanonical } from "@calcom/lib/next-seo.config";
 
 import type { AppProps } from "@lib/app-providers";
 import AppProviders from "@lib/app-providers";
@@ -13,7 +16,7 @@ import { seoConfig } from "@lib/config/next-seo.config";
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
 
 export interface CalPageWrapper {
-  (props?: any): JSX.Element;
+  (props?: AppProps): JSX.Element;
   PageWrapper?: AppProps["Component"]["PageWrapper"];
 }
 
@@ -49,9 +52,30 @@ function PageWrapper(props: AppProps) {
   };
   // Use the layout defined at the page level, if available
   const getLayout = Component.getLayout ?? ((page) => page);
+
+  // Canonical: Check if the URL is from cal.com so that we set the canonical conditionally
+  const isCalcom =
+    WEBAPP_URL &&
+    (new URL(WEBAPP_URL).hostname.endsWith("cal.com") || new URL(WEBAPP_URL).hostname.endsWith("cal.dev"));
+  const path = router.asPath;
+
   return (
     <AppProviders {...providerProps}>
-      <DefaultSeo {...seoConfig.defaultNextSeo} />
+      <Head>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+        />
+      </Head>
+      <DefaultSeo
+        // Set canonical to https://cal.com or self-hosted URL
+        canonical={
+          isCalcom
+            ? buildCanonical({ path, origin: "https://cal.com" }) // cal.com & .dev
+            : buildCanonical({ path, origin: WEBAPP_URL }) // self-hosted
+        }
+        {...seoConfig.defaultNextSeo}
+      />
       <I18nLanguageHandler />
       <Script
         nonce={nonce}

@@ -1,6 +1,6 @@
 [
   {
-    "/*": "This file is auto-generated and updated by `yarn app-store create/edit`. Don't edit it manually",
+    "/*": "This file is deprecated now. No new entry should be added to it.",
     "dirName": "routing-forms",
     "categories": ["other"],
     "slug": "routing-forms",
@@ -41,12 +41,6 @@
     "categories": ["video"],
     "slug": "campfire",
     "type": "campfire_video"
-  },
-  {
-    "dirName": "rainbow",
-    "categories": ["web3"],
-    "slug": "rainbow",
-    "type": "rainbow_web3"
   },
   {
     "dirName": "raycast",
@@ -210,6 +204,13 @@
     "categories": ["other"],
     "slug": "zohocrm",
     "type": "zohocrm_other_calendar",
+    "isTemplate": false
+  },
+  {
+    "dirName": "webex",
+    "categories": ["video"],
+    "slug": "webex",
+    "type": "webex_video",
     "isTemplate": false
   },
   {

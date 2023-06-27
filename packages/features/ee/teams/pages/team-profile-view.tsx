@@ -11,10 +11,12 @@ import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import objectKeys from "@calcom/lib/objectKeys";
 import turndown from "@calcom/lib/turndownService";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui";
 import {
   Avatar,
   Button,
@@ -33,6 +35,7 @@ import {
 import { ExternalLink, Link as LinkIcon, Trash2, LogOut } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
+import { extractDomainFromWebsiteUrl } from "../../organizations/lib/utils";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
@@ -76,6 +79,7 @@ const ProfileView = () => {
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
     { teamId: Number(router.query.id) },
     {
+      enabled: !!router.query.id,
       onError: () => {
         router.push("/settings");
       },
@@ -146,7 +150,7 @@ const ProfileView = () => {
   return (
     <>
       <Meta title={t("profile")} description={t("profile_team_description")} />
-      {!isLoading && (
+      {!isLoading ? (
         <>
           {isAdmin ? (
             <Form
@@ -215,7 +219,11 @@ const ProfileView = () => {
                       name="slug"
                       label={t("team_url")}
                       value={value}
-                      addOnLeading={`${WEBAPP_URL}/team/`}
+                      addOnLeading={
+                        team.parent
+                          ? `${team.parent.slug}.${extractDomainFromWebsiteUrl}/`
+                          : `${WEBAPP_URL}/team/`
+                      }
                       onChange={(e) => {
                         form.clearErrors("slug");
                         form.setValue("slug", e?.target.value);
@@ -244,7 +252,7 @@ const ProfileView = () => {
                 (team.metadata as Prisma.JsonObject)?.requestedSlug && (
                   <Button
                     color="secondary"
-                    className="mt-8 ml-2"
+                    className="ml-2 mt-8"
                     type="button"
                     onClick={() => {
                       publishMutation.mutate({ teamId: team.id });
@@ -264,8 +272,8 @@ const ProfileView = () => {
                   <>
                     <Label className="text-emphasis mt-5">{t("about")}</Label>
                     <div
-                      className=" text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                      dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
+                      className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                      dangerouslySetInnerHTML={{ __html: md.render(markdownToSafeHTML(team.bio)) }}
                     />
                   </>
                 )}
@@ -319,6 +327,40 @@ const ProfileView = () => {
               </ConfirmationDialogContent>
             </Dialog>
           )}
+        </>
+      ) : (
+        <>
+          <SkeletonContainer as="form">
+            <div className="flex items-center">
+              <div className="ms-4">
+                <SkeletonContainer>
+                  <div className="bg-emphasis h-16 w-16 rounded-full" />
+                </SkeletonContainer>
+              </div>
+            </div>
+            <hr className="border-subtle my-8" />
+            <SkeletonContainer>
+              <div className="mt-8">
+                <SkeletonText className="h-6 w-48" />
+              </div>
+            </SkeletonContainer>
+            <SkeletonContainer>
+              <div className="mt-8">
+                <SkeletonText className="h-6 w-48" />
+              </div>
+            </SkeletonContainer>
+            <div className="mt-8">
+              <SkeletonContainer>
+                <div className="bg-emphasis h-24 rounded-md" />
+              </SkeletonContainer>
+              <SkeletonText className="mt-4 h-12 w-32" />
+            </div>
+            <SkeletonContainer>
+              <div className="mt-8">
+                <SkeletonText className="h-9 w-24" />
+              </div>
+            </SkeletonContainer>
+          </SkeletonContainer>
         </>
       )}
     </>

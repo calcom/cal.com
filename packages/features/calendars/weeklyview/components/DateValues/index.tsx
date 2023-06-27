@@ -12,7 +12,7 @@ export function DateValues({ days, containerNavRef }: Props) {
   return (
     <div
       ref={containerNavRef}
-      className="bg-default sticky top-0 z-30 flex-none border-b border-b-gray-300 sm:pr-8">
+      className="bg-default dark:bg-muted border-b-subtle sticky top-[var(--calendar-dates-sticky-offset,0px)] z-[80] flex-none border-b sm:pr-8">
       <div className="text-subtle flex text-sm leading-6 sm:hidden" data-dayslength={days.length}>
         {days.map((day) => {
           const isToday = dayjs().isSame(day, "day");
@@ -20,7 +20,7 @@ export function DateValues({ days, containerNavRef }: Props) {
             <button
               key={day.toString()}
               type="button"
-              className="flex flex-1 flex-col items-center pt-2 pb-3">
+              className="flex flex-1 flex-col items-center pb-3 pt-2">
               {day.format("dd")}{" "}
               <span
                 className={classNames(
@@ -34,13 +34,16 @@ export function DateValues({ days, containerNavRef }: Props) {
         })}
       </div>
       <div className="text-subtle -mr-px hidden  auto-cols-fr text-sm leading-6 sm:flex ">
-        <div className="col-end-1 w-14" />
+        <div className="col-end-1 w-14 border-default border-l" />
         {days.map((day) => {
           const isToday = dayjs().isSame(day, "day");
           return (
             <div
               key={day.toString()}
-              className={classNames("flex flex-1 items-center justify-center py-3", isToday && "font-bold")}>
+              className={classNames(
+                "flex flex-1 items-center justify-center py-3 text-xs font-medium uppercase",
+                isToday && "font-bold"
+              )}>
               <span>
                 {day.format("ddd")}{" "}
                 <span

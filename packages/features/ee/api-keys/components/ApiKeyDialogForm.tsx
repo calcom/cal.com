@@ -73,15 +73,15 @@ export default function ApiKeyDialogForm({
                     showToast(t("api_key_copied"), "success");
                   }}
                   type="button"
-                  className="rounded-l-none py-[19px] text-base ">
-                  <Clipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
+                  className="rounded-l-none text-base"
+                  StartIcon={Clipboard}>
                   {t("copy")}
                 </Button>
               </Tooltip>
             </div>
             <span className="text-muted text-sm">
               {apiKeyDetails.neverExpires
-                ? t("never_expire_key")
+                ? t("never_expires")
                 : `${t("expires")} ${apiKeyDetails?.expiresAt?.toLocaleDateString()}`}
             </span>
           </div>
@@ -107,11 +107,11 @@ export default function ApiKeyDialogForm({
             }
           }}
           className="space-y-4">
-          <div className="mt-1 mb-10">
+          <div className="mb-10 mt-1">
             <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
               {defaultValues ? t("edit_api_key") : t("create_api_key")}
             </h2>
-            <p className="text-subtle mt-1 mb-5 text-sm">{t("api_key_modal_subtitle")}</p>
+            <p className="text-subtle mb-5 mt-1 text-sm">{t("api_key_modal_subtitle")}</p>
           </div>
           <div>
             <Controller
@@ -140,7 +140,7 @@ export default function ApiKeyDialogForm({
                   control={form.control}
                   render={({ field: { onChange, value } }) => (
                     <Switch
-                      label={t("never_expire_key")}
+                      label={t("never_expires")}
                       onCheckedChange={onChange}
                       checked={value}
                       disabled={!!defaultValues}

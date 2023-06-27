@@ -18,6 +18,7 @@ import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { handleRefundError } from "@calcom/lib/payment/handleRefundError";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
@@ -64,6 +65,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           teamId: true,
           recurringEvent: true,
           title: true,
+          eventName: true,
           description: true,
           requiresConfirmation: true,
           price: true,
@@ -276,18 +278,23 @@ async function handler(req: CustomRequest) {
       }
     }
 
-    await Promise.all(integrationsToDelete).then(async () => {
-      if (lastAttendee) {
-        await prisma.booking.update({
-          where: {
-            id: bookingToDelete.id,
-          },
-          data: {
-            status: BookingStatus.CANCELLED,
-          },
-        });
-      }
-    });
+    try {
+      await Promise.all(integrationsToDelete).then(async () => {
+        if (lastAttendee) {
+          await prisma.booking.update({
+            where: {
+              id: bookingToDelete.id,
+            },
+            data: {
+              status: BookingStatus.CANCELLED,
+            },
+          });
+        }
+      });
+    } catch (error) {
+      // Shouldn't stop code execution if integrations fail
+      // as integrations was already deleted
+    }
 
     const tAttendees = await getTranslation(attendee.locale ?? "en", "common");
 
@@ -305,8 +312,9 @@ async function handler(req: CustomRequest) {
   // Send Webhook call if hooked to BOOKING.CANCELLED
   const subscriberOptions = {
     userId: bookingToDelete.userId,
-    eventTypeId: (bookingToDelete.eventTypeId as number) || 0,
+    eventTypeId: bookingToDelete.eventTypeId as number,
     triggerEvent: eventTrigger,
+    teamId: bookingToDelete.eventType?.teamId,
   };
 
   const eventTypeInfo: EventTypeInfo = {
@@ -503,17 +511,10 @@ async function handler(req: CustomRequest) {
       );
 
       if (videoCredential) {
+        logger.debug("videoCredential inside cancel booking handler", videoCredential);
         apiDeletes.push(deleteMeeting(videoCredential, uid));
       }
     }
-    // For bookings made before this refactor we go through the old behaviour of running through each video credential
-  } else {
-    bookingToDelete.user.credentials
-      .filter((credential) => credential.type.endsWith("_video"))
-      .forEach((credential) => {
-        const uidToDelete = bookingToDelete?.references?.[0]?.uid ?? bookingToDelete.uid;
-        apiDeletes.push(deleteMeeting(credential, uidToDelete));
-      });
   }
 
   // Avoiding taking care of recurrence for now as Payments are not supported with Recurring Events at the moment
@@ -622,16 +623,14 @@ async function handler(req: CustomRequest) {
     });
 
     // We skip the deletion of the event, because that would also delete the payment reference, which we should keep
-    await apiDeletes;
+    try {
+      await apiDeletes;
+    } catch (error) {
+      console.error("Error deleting event", error);
+    }
     req.statusCode = 200;
     return { message: "Booking successfully cancelled." };
   }
-
-  const attendeeDeletes = prisma.attendee.deleteMany({
-    where: {
-      bookingId: bookingToDelete.id,
-    },
-  });
 
   const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
     where: {
@@ -655,12 +654,17 @@ async function handler(req: CustomRequest) {
     });
   });
 
-  const prismaPromises: Promise<unknown>[] = [attendeeDeletes, bookingReferenceDeletes];
+  const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
 
-  await Promise.all(prismaPromises.concat(apiDeletes));
+  // @TODO: find a way in the future if a promise fails don't stop the rest of the promises
+  // Also if emails fails try to requeue them
+  try {
+    await Promise.all(prismaPromises.concat(apiDeletes));
 
-  await sendCancelledEmails(evt);
-
+    await sendCancelledEmails(evt, { eventName: bookingToDelete?.eventType?.eventName });
+  } catch (error) {
+    console.error("Error deleting event", error);
+  }
   req.statusCode = 200;
   return { message: "Booking successfully cancelled." };
 }

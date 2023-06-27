@@ -108,7 +108,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
 });
 
 export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
   const PERIOD_TYPES = [
@@ -149,16 +149,29 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
   const bookingLimitsLocked = shouldLockDisableProps("bookingLimits");
   const durationLimitsLocked = shouldLockDisableProps("durationLimits");
   const periodTypeLocked = shouldLockDisableProps("periodType");
+  const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
 
   const optionsPeriod = [
     { value: 1, label: t("calendar_days") },
     { value: 0, label: t("business_days") },
   ];
 
+  // offsetStart toggle is client-side only, opened by default if offsetStart is set
+  const offsetStartValue = useWatch({
+    control: formMethods.control,
+    name: "offsetStart",
+  });
+  const [offsetToggle, setOffsetToggle] = useState(() => offsetStartValue > 0);
+
+  // Preview how the offset will affect start times
+  const offsetOriginalTime = new Date();
+  offsetOriginalTime.setHours(9, 0, 0, 0);
+  const offsetAdjustedTime = new Date(offsetOriginalTime.getTime() + offsetStartValue * 60 * 1000);
+
   return (
     <div className="space-y-8">
       <div className="space-y-4 lg:space-y-8">
-        <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
+        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           <div className="w-full">
             <Label htmlFor="beforeBufferTime">
               {t("before_event")}
@@ -232,7 +245,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             />
           </div>
         </div>
-        <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
+        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           <div className="w-full">
             <Label htmlFor="minimumBookingNotice">
               {t("minimum_booking_notice")}
@@ -403,7 +416,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                       </div>
                     )}
                     {period.type === "RANGE" && (
-                      <div className="ms-2 me-2 inline-flex space-x-2 rtl:space-x-reverse">
+                      <div className="me-2 ms-2 inline-flex space-x-2 rtl:space-x-reverse">
                         <Controller
                           name="periodDates"
                           control={formMethods.control}
@@ -424,7 +437,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                         />
                       </div>
                     )}
-                    {period.suffix ? <span className="ms-2 me-2">&nbsp;{period.suffix}</span> : null}
+                    {period.suffix ? <span className="me-2 ms-2">&nbsp;{period.suffix}</span> : null}
                   </div>
                 );
               })}
@@ -432,6 +445,32 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           </SettingsToggle>
         )}
       />
+      <hr className="border-subtle" />
+      <SettingsToggle
+        title={t("offset_toggle")}
+        description={t("offset_toggle_description")}
+        {...offsetStartLockedProps}
+        checked={offsetToggle}
+        onCheckedChange={(active) => {
+          setOffsetToggle(active);
+          if (!active) {
+            formMethods.setValue("offsetStart", 0);
+          }
+        }}>
+        <TextField
+          required
+          type="number"
+          {...offsetStartLockedProps}
+          label={t("offset_start")}
+          defaultValue={eventType.offsetStart}
+          {...formMethods.register("offsetStart")}
+          addOnSuffix={<>{t("minutes")}</>}
+          hint={t("offset_start_description", {
+            originalTime: offsetOriginalTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
+            adjustedTime: offsetAdjustedTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
+          })}
+        />
+      </SettingsToggle>
     </div>
   );
 };

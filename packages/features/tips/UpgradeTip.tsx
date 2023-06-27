@@ -30,7 +30,7 @@ export function UpgradeTip({
 
   if (hasTeamPlan) return children;
 
-  if (isParentLoading || isLoading) return <>{isParentLoading}</>;
+  if (isLoading) return <>{isParentLoading}</>;
 
   return (
     <>
@@ -38,7 +38,7 @@ export function UpgradeTip({
         <picture className="absolute min-h-[295px] w-full rounded-lg object-cover">
           <source srcSet={`${background}-dark.jpg`} media="(prefers-color-scheme: dark)" />
           <img
-            className="absolute min-h-[295px] w-full rounded-lg object-cover"
+            className="absolute min-h-[295px] w-full rounded-lg object-cover object-left md:object-center"
             src={`${background}.jpg`}
             loading="lazy"
             alt={title}
@@ -46,7 +46,7 @@ export function UpgradeTip({
         </picture>
         <div className="relative my-4 px-8 sm:px-14">
           <h1 className={classNames("font-cal text-3xl", dark && "text-inverted")}>{t(title)}</h1>
-          <p className={classNames("mt-4 mb-8 max-w-sm", dark ? "text-inverted" : "text-default")}>
+          <p className={classNames("mb-8 mt-4 max-w-sm", dark ? "text-inverted" : "text-default")}>
             {t(description)}
           </p>
           {buttons}

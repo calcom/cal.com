@@ -122,10 +122,13 @@ function WorkflowPage() {
         setIsMixedEventType(true);
       }
       setSelectedEventTypes(
-        workflow.activeOn.map((active) => ({
-          value: String(active.eventType.id),
-          label: active.eventType.title,
-        })) || []
+        workflow.activeOn.flatMap((active) => {
+          if (workflow.teamId && active.eventType.parentId) return [];
+          return {
+            value: String(active.eventType.id),
+            label: active.eventType.title,
+          };
+        }) || []
       );
       const activeOn = workflow.activeOn
         ? workflow.activeOn.map((active) => ({
@@ -252,11 +255,11 @@ function WorkflowPage() {
         backPath="/workflows"
         title={workflow && workflow.name ? workflow.name : "Untitled"}
         CTA={
-          <div>
-            <Button type="submit" disabled={readOnly}>
-              {t("save")}
-            </Button>
-          </div>
+          !readOnly && (
+            <div>
+              <Button type="submit">{t("save")}</Button>
+            </div>
+          )
         }
         hideHeadingOnMobile
         heading={
@@ -267,8 +270,13 @@ function WorkflowPage() {
                 {workflow && workflow.name ? workflow.name : "untitled"}
               </div>
               {workflow && workflow.team && (
-                <Badge className="mt-1 ml-4" variant="gray">
-                  {workflow.team.slug}
+                <Badge className="ml-4 mt-1" variant="gray">
+                  {workflow.team.name}
+                </Badge>
+              )}
+              {readOnly && (
+                <Badge className="ml-4 mt-1" variant="gray">
+                  {t("readonly")}
                 </Badge>
               )}
             </div>
@@ -286,6 +294,7 @@ function WorkflowPage() {
                     setSelectedEventTypes={setSelectedEventTypes}
                     teamId={workflow ? workflow.teamId || undefined : undefined}
                     isMixedEventType={isMixedEventType}
+                    readOnly={readOnly}
                   />
                 </>
               ) : (

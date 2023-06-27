@@ -12,7 +12,7 @@ import {
   DropdownItem,
   DropdownMenuTrigger,
 } from "@calcom/ui";
-import { Slash, Check, MoreHorizontal, X } from "@calcom/ui/components/icon";
+import { Ban, Check, MoreHorizontal, X } from "@calcom/ui/components/icon";
 
 interface Props {
   team: {
@@ -41,6 +41,7 @@ export default function TeamInviteListItem(props: Props) {
     onSuccess: async () => {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.teams.list.invalidate();
+      await utils.viewer.organizations.listMembers.invalidate();
     },
   });
 
@@ -92,7 +93,7 @@ export default function TeamInviteListItem(props: Props) {
                 variant="icon"
                 color="secondary"
                 onClick={declineInvite}
-                StartIcon={Slash}
+                StartIcon={Ban}
               />
               <Button
                 type="button"

@@ -1,4 +1,3 @@
-import { BadgeCheckIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
@@ -11,6 +10,7 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -23,11 +23,12 @@ import defaultEvents, {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, AvatarGroup, HeadSeo } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import { Verified, ArrowRight } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
@@ -36,8 +37,18 @@ import PageWrapper from "@components/PageWrapper";
 
 import { ssrInit } from "@server/lib/ssr";
 
-export default function User(props: inferSSRProps<typeof getServerSideProps> & EmbedProps) {
-  const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
+export type UserPageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
+export function UserPage(props: UserPageProps) {
+  const {
+    users,
+    profile,
+    eventTypes,
+    isDynamicGroup,
+    dynamicNames,
+    dynamicUsernames,
+    isSingleUser,
+    markdownStrippedBio,
+  } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(user.theme);
   const { t } = useLocale();
@@ -92,9 +103,10 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const query = { ...router.query };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
+  delete query.orgSlug;
   const nameOrUsername = user.name || user.username || "";
 
-  /* 
+  /*
    const telemetry = useTelemetry();
    useEffect(() => {
     if (top !== window) {
@@ -107,11 +119,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
     <>
       <HeadSeo
         title={isDynamicGroup ? dynamicNames.join(", ") : nameOrUsername}
-        description={
-          isDynamicGroup ? `Book events with ${dynamicUsernames.join(", ")}` : (user.bio as string) || ""
-        }
+        description={isDynamicGroup ? `Book events with ${dynamicUsernames.join(", ")}` : markdownStrippedBio}
         meeting={{
-          title: isDynamicGroup ? "" : `${user.bio}`,
+          title: isDynamicGroup ? "" : markdownStrippedBio,
           profile: { name: `${profile.name}`, image: null },
           users: isDynamicGroup
             ? dynamicUsernames.map((username, index) => ({ username, name: dynamicNames[index] }))
@@ -124,19 +134,21 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
             isEmbed ? "border-booker border-booker-width  bg-default rounded-md border" : "",
-            "max-w-3xl py-24 px-4"
+            "max-w-3xl px-4 py-24"
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
               <Avatar imageSrc={user.avatar} size="xl" alt={nameOrUsername} />
               <h1 className="font-cal text-emphasis mb-1 text-3xl">
                 {nameOrUsername}
-                {user.verified && <BadgeCheckIcon className=" mx-1 -mt-1 inline h-6 w-6 text-blue-500" />}
+                {user.verified && (
+                  <Verified className=" mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black" />
+                )}
               </h1>
               {!isBioEmpty && (
                 <>
                   <div
-                    className="  text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                    className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                     dangerouslySetInnerHTML={{ __html: props.safeBio }}
                   />
                 </>
@@ -197,8 +209,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   );
 }
 
-User.isBookingPage = true;
-User.PageWrapper = PageWrapper;
+UserPage.isBookingPage = true;
+UserPage.PageWrapper = PageWrapper;
 
 const getEventTypesWithHiddenFromDB = async (userId: number) => {
   return (
@@ -246,6 +258,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const crypto = await import("crypto");
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
 
   const usernameList = getUsernameList(context.query.user as string);
   const dataFetchStart = Date.now();
@@ -254,6 +267,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       username: {
         in: usernameList,
       },
+      organization: isValidOrgDomain
+        ? {
+            slug: currentOrgDomain,
+          }
+        : null,
     },
     select: {
       id: true,
@@ -263,6 +281,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       bio: true,
       brandColor: true,
       darkBrandColor: true,
+      organizationId: true,
       theme: true,
       away: true,
       verified: true,
@@ -275,7 +294,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     avatar: `${WEBAPP_URL}/${user.username}/avatar.png`,
   }));
 
-  if (!users.length) {
+  if (!users.length || (!isValidOrgDomain && !users.some((user) => user.organizationId === null))) {
     return {
       notFound: true,
     } as {
@@ -342,11 +361,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
+  const markdownStrippedBio = stripMarkdown(user?.bio || "");
+
   return {
     props: {
       users,
       safeBio,
       profile,
+      // Dynamic group has no theme preference right now. It uses system theme.
+      themeBasis: isDynamicGroup ? null : user.username,
       user: {
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },
@@ -361,6 +384,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       dynamicNames,
       dynamicUsernames,
       isSingleUser,
+      markdownStrippedBio,
     },
   };
 };
+
+export default UserPage;

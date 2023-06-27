@@ -8,6 +8,8 @@ import {
   bookTimeSlot,
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,
+  testEmail,
+  testName,
 } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
@@ -63,7 +65,6 @@ testBothBookers.describe("pro user", () => {
   });
 
   test("pro user's page has at least 2 visible events", async ({ page }) => {
-    // await page.pause();
     const $eventTypes = page.locator("[data-testid=event-types] > *");
     expect(await $eventTypes.count()).toBeGreaterThanOrEqual(2);
   });
@@ -77,7 +78,7 @@ testBothBookers.describe("pro user", () => {
     const [eventType] = pro.eventTypes;
     await bookings.create(pro.id, pro.username, eventType.id);
 
-    await pro.login();
+    await pro.apiLogin();
     await page.goto("/bookings/upcoming");
     await page.waitForSelector('[data-testid="bookings"]');
     await page.locator('[data-testid="edit_booking"]').nth(0).click();
@@ -101,20 +102,24 @@ testBothBookers.describe("pro user", () => {
     // Because it tests the entire booking flow + the cancellation + rebooking
     test.setTimeout(testInfo.timeout * 3);
     await bookFirstEvent(page);
+    await expect(page.locator(`[data-testid="attendee-email-${testEmail}"]`)).toHaveText(testEmail);
+    await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
 
     const [pro] = users.get();
-    await pro.login();
+    await pro.apiLogin();
 
     await page.goto("/bookings/upcoming");
-    await page.locator('[data-testid="cancel"]').first().click();
+    await page.locator('[data-testid="cancel"]').click();
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking/");
     });
-    await page.locator('[data-testid="cancel"]').click();
+    await page.locator('[data-testid="confirm_cancel"]').click();
 
-    const cancelledHeadline = await page.locator('[data-testid="cancelled-headline"]').innerText();
+    const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
+    await expect(cancelledHeadline).toBeVisible();
 
-    await expect(cancelledHeadline).toBe("This event is cancelled");
+    await expect(page.locator(`[data-testid="attendee-email-${testEmail}"]`)).toHaveText(testEmail);
+    await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
 
     await page.goto(`/${pro.username}`);
     await bookFirstEvent(page);
@@ -126,7 +131,7 @@ testBothBookers.describe("pro user", () => {
   }) => {
     await bookOptinEvent(page);
     const [pro] = users.get();
-    await pro.login();
+    await pro.apiLogin();
 
     await page.goto("/bookings/unconfirmed");
     await Promise.all([
@@ -155,7 +160,7 @@ testBothBookers.describe("pro user", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     additionalGuests.forEach(async (email) => {
-      await expect(page.locator(`[data-testid="attendee-${email}"]`)).toHaveText(email);
+      await expect(page.locator(`[data-testid="attendee-email-${email}"]`)).toHaveText(email);
     });
   });
 });

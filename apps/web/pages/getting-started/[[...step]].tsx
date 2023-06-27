@@ -3,26 +3,34 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import type { CSSProperties } from "react";
+import { Suspense } from "react";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
+import { trpc } from "@calcom/trpc";
 import { Button, StepCard, Steps } from "@calcom/ui";
-
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import { Loader } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
+import { ConnectedVideoStep } from "@components/getting-started/steps-views/ConnectedVideoStep";
 import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
 import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
 
-export type IOnboardingPageProps = inferSSRProps<typeof getServerSideProps>;
+import { ssrInit } from "@server/lib/ssr";
 
 const INITIAL_STEP = "user-settings";
-const steps = ["user-settings", "connected-calendar", "setup-availability", "user-profile"] as const;
+const steps = [
+  "user-settings",
+  "connected-calendar",
+  "connected-video",
+  "setup-availability",
+  "user-profile",
+] as const;
 
 const stepTransform = (step: (typeof steps)[number]) => {
   const stepIndex = steps.indexOf(step);
@@ -36,10 +44,10 @@ const stepRouteSchema = z.object({
   step: z.array(z.enum(steps)).default([INITIAL_STEP]),
 });
 
-const OnboardingPage = (props: IOnboardingPageProps) => {
+// TODO: Refactor how steps work to be contained in one array/object. Currently we have steps,initalsteps,headers etc. These can all be in one place
+const OnboardingPage = () => {
   const router = useRouter();
-
-  const { user } = props;
+  const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
 
   const result = stepRouteSchema.safeParse(router.query);
@@ -56,6 +64,11 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
       skipText: `${t("connect_calendar_later")}`,
     },
     {
+      title: `${t("connect_your_video_app")}`,
+      subtitle: [`${t("connect_your_video_app_instructions")}`],
+      skipText: `${t("set_up_later")}`,
+    },
+    {
       title: `${t("set_availability")}`,
       subtitle: [
         `${t("set_availability_getting_started_subtitle_1")}`,
@@ -67,6 +80,17 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
       subtitle: [`${t("nearly_there_instructions")}`],
     },
   ];
+
+  // TODO: Add this in when we have solved the ability to move to tokens accept invite and note invitedto
+  // Ability to accept other pending invites if any (low priority)
+  // if (props.hasPendingInvites) {
+  //   headers.unshift(
+  //     props.hasPendingInvites && {
+  //       title: `${t("email_no_user_invite_heading", { appName: APP_NAME })}`,
+  //       subtitle: [], // TODO: come up with some subtitle text here
+  //     }
+  //   );
+  // }
 
   const goToIndex = (index: number) => {
     const newStep = steps[index];
@@ -94,9 +118,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
       }
       key={router.asPath}>
       <Head>
-        <title>
-          {APP_NAME} - {t("getting_started")}
-        </title>
+        <title>{`${APP_NAME} - ${t("getting_started")}`}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -118,16 +140,22 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
               <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToIndex} />
             </div>
             <StepCard>
-              {currentStep === "user-settings" && <UserSettings user={user} nextStep={() => goToIndex(1)} />}
+              <Suspense fallback={<Loader />}>
+                {currentStep === "user-settings" && <UserSettings nextStep={() => goToIndex(1)} />}
+                {currentStep === "connected-calendar" && <ConnectedCalendars nextStep={() => goToIndex(2)} />}
 
-              {currentStep === "connected-calendar" && <ConnectedCalendars nextStep={() => goToIndex(2)} />}
+                {currentStep === "connected-video" && <ConnectedVideoStep nextStep={() => goToIndex(3)} />}
 
-              {currentStep === "setup-availability" && (
-                <SetupAvailability nextStep={() => goToIndex(3)} defaultScheduleId={user.defaultScheduleId} />
-              )}
-
-              {currentStep === "user-profile" && <UserProfile user={user} />}
+                {currentStep === "setup-availability" && (
+                  <SetupAvailability
+                    nextStep={() => goToIndex(4)}
+                    defaultScheduleId={user.defaultScheduleId}
+                  />
+                )}
+                {currentStep === "user-profile" && <UserProfile />}
+              </Suspense>
             </StepCard>
+
             {headers[currentStepIndex]?.skipText && (
               <div className="flex w-full flex-row justify-center">
                 <Button
@@ -152,35 +180,34 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, res } = context;
 
-  const crypto = await import("crypto");
   const session = await getServerSession({ req, res });
 
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
+  const ssr = await ssrInit(context);
+
+  await ssr.viewer.me.prefetch();
+
   const user = await prisma.user.findUnique({
     where: {
       id: session.user.id,
     },
     select: {
-      id: true,
-      username: true,
-      name: true,
-      email: true,
-      bio: true,
-      avatar: true,
-      timeZone: true,
-      weekStart: true,
-      hideBranding: true,
-      theme: true,
-      brandColor: true,
-      darkBrandColor: true,
-      metadata: true,
-      timeFormat: true,
-      allowDynamicBooking: true,
-      defaultScheduleId: true,
       completedOnboarding: true,
+      teams: {
+        select: {
+          accepted: true,
+          team: {
+            select: {
+              id: true,
+              name: true,
+              logo: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -195,10 +222,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       ...(await serverSideTranslations(context.locale ?? "", ["common"])),
-      user: {
-        ...user,
-        emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
-      },
+      trpcState: ssr.dehydrate(),
+      hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,
     },
   };
 };

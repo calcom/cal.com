@@ -16,7 +16,6 @@ import { appDataSchema as office365calendar_zod_ts } from "./office365calendar/z
 import { appDataSchema as office365video_zod_ts } from "./office365video/zod";
 import { appDataSchema as plausible_zod_ts } from "./plausible/zod";
 import { appDataSchema as qr_code_zod_ts } from "./qr_code/zod";
-import { appDataSchema as rainbow_zod_ts } from "./rainbow/zod";
 import { appDataSchema as routing_forms_zod_ts } from "./routing-forms/zod";
 import { appDataSchema as salesforce_zod_ts } from "./salesforce/zod";
 import { appDataSchema as stripepayment_zod_ts } from "./stripepayment/zod";
@@ -24,6 +23,7 @@ import { appDataSchema as tandemvideo_zod_ts } from "./tandemvideo/zod";
 import { appDataSchema as booking_pages_tag_zod_ts } from "./templates/booking-pages-tag/zod";
 import { appDataSchema as event_type_app_card_zod_ts } from "./templates/event-type-app-card/zod";
 import { appDataSchema as vital_zod_ts } from "./vital/zod";
+import { appDataSchema as webex_zod_ts } from "./webex/zod";
 import { appDataSchema as wordpress_zod_ts } from "./wordpress/zod";
 import { appDataSchema as zapier_zod_ts } from "./zapier/zod";
 import { appDataSchema as zoho_bigin_zod_ts } from "./zoho-bigin/zod";
@@ -46,7 +46,6 @@ export const appDataSchemas = {
   office365video: office365video_zod_ts,
   plausible: plausible_zod_ts,
   qr_code: qr_code_zod_ts,
-  rainbow: rainbow_zod_ts,
   "routing-forms": routing_forms_zod_ts,
   salesforce: salesforce_zod_ts,
   stripe: stripepayment_zod_ts,
@@ -54,6 +53,7 @@ export const appDataSchemas = {
   "booking-pages-tag": booking_pages_tag_zod_ts,
   "event-type-app-card": event_type_app_card_zod_ts,
   vital: vital_zod_ts,
+  webex: webex_zod_ts,
   wordpress: wordpress_zod_ts,
   zapier: zapier_zod_ts,
   "zoho-bigin": zoho_bigin_zod_ts,

@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   getLocation,
@@ -8,11 +9,11 @@ import {
 } from "../CalEventParser";
 import { buildCalendarEvent, buildVideoCallData } from "./builder";
 
-jest.mock("@calcom/lib/constants", () => ({
+vi.mock("@calcom/lib/constants", () => ({
   WEBAPP_URL: "http://localhost:3000",
 }));
 
-jest.mock("short-uuid", () => ({
+vi.mock("short-uuid", () => ({
   __esModule: true,
   default: () => ({ fromUUID: () => "FAKE_UUID" }),
 }));

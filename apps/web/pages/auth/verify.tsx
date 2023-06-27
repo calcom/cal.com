@@ -1,4 +1,3 @@
-import { CheckIcon, MailOpenIcon, ExclamationIcon } from "@heroicons/react/outline";
 import { signIn } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -9,6 +8,7 @@ import z from "zod";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast } from "@calcom/ui";
+import { Check, MailOpen, AlertTriangle } from "@calcom/ui/components/icon";
 
 import Loader from "@components/Loader";
 import PageWrapper from "@components/PageWrapper";
@@ -118,11 +118,11 @@ export default function Verify() {
         <div className="m-10 flex max-w-2xl flex-col items-start border border-white p-12 text-left">
           <div className="rounded-full border border-white p-3">
             {hasPaymentFailed ? (
-              <ExclamationIcon className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
+              <AlertTriangle className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
             ) : sessionId ? (
-              <CheckIcon className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
+              <Check className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
             ) : (
-              <MailOpenIcon className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
+              <MailOpen className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
             )}
           </div>
           <h3 className="font-cal my-6 text-3xl font-normal">

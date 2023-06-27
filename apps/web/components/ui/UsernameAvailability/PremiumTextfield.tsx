@@ -1,4 +1,3 @@
-import { StarIcon as StarIconSolid } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { debounce, noop } from "lodash";
 import { useRouter } from "next/router";
@@ -9,13 +8,12 @@ import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/ut
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { User } from "@calcom/prisma/client";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Button, Dialog, DialogClose, DialogContent, Input, Label } from "@calcom/ui";
-import { Check, Edit2, ExternalLink } from "@calcom/ui/components/icon";
+import { Check, Edit2, ExternalLink, Star as StarSolid } from "@calcom/ui/components/icon";
 
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",
@@ -29,7 +27,6 @@ interface ICustomUsernameProps {
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
-  user: Pick<User, "username" | "metadata">;
   readonly?: boolean;
 }
 
@@ -57,8 +54,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     onSuccessMutation,
     onErrorMutation,
     readonly: disabled,
-    user,
   } = props;
+  const [user] = trpc.viewer.me.useSuspenseQuery();
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
   const router = useRouter();
@@ -227,15 +224,19 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             }}
             data-testid="username-input"
           />
-          <div className="absolute top-0 right-2 flex flex-row">
+          <div className="absolute right-2 top-0 flex flex-row">
             <span
               className={classNames(
-                "mx-2 py-1",
-                isInputUsernamePremium ? "text-orange-400" : "",
+                "mx-2 py-2",
+                isInputUsernamePremium ? "text-transparent" : "",
                 usernameIsAvailable ? "" : ""
               )}>
-              {isInputUsernamePremium ? <StarIconSolid className="mt-[2px] h-4 w-4" /> : <></>}
-              {!isInputUsernamePremium && usernameIsAvailable ? <Check className="mt-2 h-4 w-4" /> : <></>}
+              {isInputUsernamePremium ? <StarSolid className="mt-[2px] h-4 w-4 fill-orange-400" /> : <></>}
+              {!isInputUsernamePremium && usernameIsAvailable ? (
+                <Check className="mt-[2px] h-4 w-4" />
+              ) : (
+                <></>
+              )}
             </span>
           </div>
         </div>

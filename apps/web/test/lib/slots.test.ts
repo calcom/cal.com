@@ -1,11 +1,13 @@
-import { expect, it } from "@jest/globals";
-import MockDate from "mockdate";
+import { describe, expect, it, beforeAll, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { MINUTES_DAY_END, MINUTES_DAY_START } from "@calcom/lib/availability";
 import getSlots from "@calcom/lib/slots";
 
-MockDate.set("2021-06-20T11:59:59Z");
+
+beforeAll(() => {
+  vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
+})
 
 describe("Tests the slot logic", () => {
   it("can fit 24 hourly slots for an empty day", async () => {
@@ -24,6 +26,7 @@ describe("Tests the slot logic", () => {
           },
         ],
         eventLength: 60,
+        offsetStart: 0,
         organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(24);
@@ -46,6 +49,7 @@ describe("Tests the slot logic", () => {
           },
         ],
         eventLength: 60,
+        offsetStart: 0,
         organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(12);
@@ -66,6 +70,7 @@ describe("Tests the slot logic", () => {
           },
         ],
         eventLength: 60,
+        offsetStart: 0,
         organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(0);
@@ -87,6 +92,7 @@ describe("Tests the slot logic", () => {
         minimumBookingNotice: 0,
         workingHours,
         eventLength: 60,
+        offsetStart: 0,
         organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(0);
@@ -108,6 +114,7 @@ describe("Tests the slot logic", () => {
           },
         ],
         eventLength: 60,
+        offsetStart: 0,
         organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(11);
@@ -129,8 +136,30 @@ describe("Tests the slot logic", () => {
           },
         ],
         eventLength: 20,
+        offsetStart: 0,
         organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(71);
+  });
+
+  it("can fit 48 25 minute slots with a 5 minute offset for an empty day", async () => {
+    expect(
+      getSlots({
+        inviteeDate: dayjs.utc().add(1, "day"),
+        frequency: 25,
+        minimumBookingNotice: 0,
+        workingHours: [
+          {
+            userId: 1,
+            days: Array.from(Array(7).keys()),
+            startTime: MINUTES_DAY_START,
+            endTime: MINUTES_DAY_END,
+          },
+        ],
+        eventLength: 25,
+        offsetStart: 5,
+        organizerTimeZone: "America/Toronto",
+      })
+    ).toHaveLength(48);
   });
 });

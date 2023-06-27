@@ -78,6 +78,7 @@ export default async function getEventTypeById({
       slug: true,
       description: true,
       length: true,
+      offsetStart: true,
       hidden: true,
       locations: true,
       eventName: true,
@@ -103,6 +104,11 @@ export default async function getEventTypeById({
       successRedirectUrl: true,
       currency: true,
       bookingFields: true,
+      parent: {
+        select: {
+          teamId: true,
+        },
+      },
       team: {
         select: {
           id: true,
@@ -191,6 +197,12 @@ export default async function getEventTypeById({
                     select: {
                       id: true,
                       title: true,
+                      parentId: true,
+                      _count: {
+                        select: {
+                          children: true,
+                        },
+                      },
                     },
                   },
                 },
@@ -229,8 +241,8 @@ export default async function getEventTypeById({
   });
 
   const { locations, metadata, ...restEventType } = rawEventType;
-  const newMetadata = EventTypeMetaDataSchema.parse(metadata || {})!;
-  const apps = newMetadata.apps || {};
+  const newMetadata = EventTypeMetaDataSchema.parse(metadata || {}) || {};
+  const apps = newMetadata?.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
   const stripeMetaData = getPaymentAppData(eventTypeWithParsedMetadata, true);
   newMetadata.apps = {
@@ -245,7 +257,6 @@ export default async function getEventTypeById({
         )?.default_currency || "usd",
     },
     giphy: getEventTypeAppData(eventTypeWithParsedMetadata, "giphy", true),
-    rainbow: getEventTypeAppData(eventTypeWithParsedMetadata, "rainbow", true),
   };
 
   // TODO: How to extract metadata schema from _EventTypeModel to be able to parse it?

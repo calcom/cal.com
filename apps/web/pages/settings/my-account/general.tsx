@@ -13,6 +13,7 @@ import {
   Label,
   Meta,
   Select,
+  SettingsToggle,
   showToast,
   SkeletonButton,
   SkeletonContainer,
@@ -28,7 +29,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="mt-6 mb-8 space-y-6">
+      <div className="mb-8 mt-6 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -45,7 +46,10 @@ interface GeneralViewProps {
   user: RouterOutputs["viewer"]["me"];
 }
 
-const WithQuery = withQuery(trpc.viewer.public.i18n, undefined, { trpc: { context: { skipBatch: true } } });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const WithQuery = withQuery(trpc.viewer.public.i18n as any, undefined, {
+  trpc: { context: { skipBatch: true } },
+});
 
 const GeneralQueryView = () => {
   const { t } = useLocale();
@@ -120,6 +124,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         value: user.weekStart,
         label: nameOfDay(localeProp, user.weekStart === "Sunday" ? 0 : 1),
       },
+      allowDynamicBooking: user.allowDynamicBooking ?? true,
     },
   });
   const {
@@ -213,6 +218,22 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           </>
         )}
       />
+      <div className="mt-8">
+        <Controller
+          name="allowDynamicBooking"
+          control={formMethods.control}
+          render={() => (
+            <SettingsToggle
+              title={t("dynamic_booking")}
+              description={t("allow_dynamic_booking")}
+              checked={formMethods.getValues("allowDynamicBooking")}
+              onCheckedChange={(checked) => {
+                formMethods.setValue("allowDynamicBooking", checked, { shouldDirty: true });
+              }}
+            />
+          )}
+        />
+      </div>
       <Button disabled={isDisabled} color="primary" type="submit" className="mt-8">
         <>{t("update")}</>
       </Button>

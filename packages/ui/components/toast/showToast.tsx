@@ -69,16 +69,12 @@ export function showToast(
 ) {
   switch (variant) {
     case "success":
-      toast.custom((t) => <SuccessToast message={message} toastVisible={t.visible} />, { duration });
-      break;
+      return toast.custom((t) => <SuccessToast message={message} toastVisible={t.visible} />, { duration });
     case "error":
-      toast.custom((t) => <ErrorToast message={message} toastVisible={t.visible} />, { duration });
-      break;
+      return toast.custom((t) => <ErrorToast message={message} toastVisible={t.visible} />, { duration });
     case "warning":
-      toast.custom((t) => <WarningToast message={message} toastVisible={t.visible} />, { duration });
-      break;
+      return toast.custom((t) => <WarningToast message={message} toastVisible={t.visible} />, { duration });
     default:
-      toast.custom((t) => <DefaultToast message={message} toastVisible={t.visible} />, { duration });
-      break;
+      return toast.custom((t) => <DefaultToast message={message} toastVisible={t.visible} />, { duration });
   }
 }
