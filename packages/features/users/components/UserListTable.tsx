@@ -1,9 +1,29 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import { Edit2, LinkIcon, LogOut, MoreHorizontal, Trash } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
-import { Avatar, Badge, DataTable } from "@calcom/ui";
+import {
+  Avatar,
+  Badge,
+  Button,
+  ButtonGroup,
+  Checkbox,
+  ConfirmationDialogContent,
+  DataTable,
+  Dialog,
+  DialogTrigger,
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  Tooltip,
+  showToast,
+} from "@calcom/ui";
 
 interface User {
   id: string;
@@ -13,6 +33,7 @@ interface User {
   teams: {
     id: string;
     name: string;
+    slug: string;
   }[];
   timezone?: string;
 }
@@ -21,18 +42,135 @@ interface UserListTableProps {
   users: User[];
 }
 
+function TableActions({ user }: { user: User }) {
+  const { t } = useLocale();
+  return (
+    <ButtonGroup combined>
+      {user.username && (
+        <Tooltip content={t("copy_link_team")}>
+          <Button
+            color="secondary"
+            onClick={() => {
+              // TODO Fix for orgs
+              // navigator.clipboard.writeText(
+              //   process.env.NEXT_PUBLIC_WEBSITE_URL + "/team/" + team.slug
+              // );
+              showToast(t("link_copied"), "success");
+            }}
+            variant="icon"
+            StartIcon={LinkIcon}
+          />
+        </Tooltip>
+      )}
+      <Dropdown>
+        <DropdownMenuTrigger asChild>
+          <Button
+            className="radix-state-open:rounded-r-md"
+            type="button"
+            color="secondary"
+            variant="icon"
+            StartIcon={MoreHorizontal}
+          />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          {user.role === "ADMIN" ||
+            (user.role === "OWNER" && (
+              <DropdownMenuItem>
+                <DropdownItem
+                  type="button"
+                  href={"/settings/teams/" + user.id + "/profile"}
+                  StartIcon={Edit2}>
+                  {t("edit_team") as string}
+                </DropdownItem>
+              </DropdownMenuItem>
+            ))}
+
+          <DropdownMenuSeparator />
+          {user.role === "OWNER" && (
+            <DropdownMenuItem>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <DropdownItem
+                    color="destructive"
+                    type="button"
+                    StartIcon={Trash}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}>
+                    {t("disband_team")}
+                  </DropdownItem>
+                </DialogTrigger>
+                <ConfirmationDialogContent
+                  variety="danger"
+                  title={t("disband_team")}
+                  confirmBtnText={t("confirm_disband_team")}
+                  // isLoading={props.isLoading}
+                  onConfirm={() => {
+                    // props.onActionSelect("disband");
+                  }}>
+                  {t("disband_team_confirmation_message")}
+                </ConfirmationDialogContent>
+              </Dialog>
+            </DropdownMenuItem>
+          )}
+
+          {user.role !== "ADMIN" && (
+            <DropdownMenuItem>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <DropdownItem
+                    color="destructive"
+                    type="button"
+                    StartIcon={LogOut}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}>
+                    {t("leave_team")}
+                  </DropdownItem>
+                </DialogTrigger>
+                <ConfirmationDialogContent
+                  variety="danger"
+                  title={t("leave_team")}
+                  // onConfirm={declineInvite}
+                  confirmBtnText={t("confirm_leave_team")}>
+                  {t("leave_team_confirmation_message")}
+                </ConfirmationDialogContent>
+              </Dialog>
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </Dropdown>
+    </ButtonGroup>
+  );
+}
+
 export function UserListTable({ users }: UserListTableProps) {
   const { data, status } = useSession();
 
   const memorisedColumns = useMemo(() => {
     const cols: ColumnDef<UserListTableProps["users"][number]>[] = [
       {
-        id: "id",
-        accessorFn: (data) => data.id,
-        header: "ID",
-        cell: ({ row }) => row.original.id,
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+            className="translate-y-[2px]"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+            className="translate-y-[2px]"
+          />
+        ),
+        meta: {
+          hasPermissions: status === "authenticated", // TODO - check if user is admin/owner for the team/org for,
+        },
       },
-
       {
         id: "member",
         accessorFn: (data) => data.email,
@@ -101,6 +239,13 @@ export function UserListTable({ users }: UserListTableProps) {
               ))}
             </div>
           );
+        },
+      },
+      {
+        id: "actions",
+        cell: ({ row }) => {
+          const user = row.original;
+          return <TableActions user={user} />;
         },
       },
     ];

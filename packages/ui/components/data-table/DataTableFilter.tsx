@@ -64,6 +64,7 @@ export function DataTableFilter<TData, TValue>({ column, title, options }: DataT
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>
               {options.map((option) => {
+                // TODO: It would be nice to pull these from data instead of options
                 const isSelected = selectedValues.has(option.value);
                 return (
                   <CommandItem

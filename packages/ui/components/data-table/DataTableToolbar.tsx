@@ -51,10 +51,10 @@ export function DataTableToolbar<TData>({ table, filterableItems, tableCTA }: Da
       {filterableItems &&
         filterableItems?.map((item) => {
           const foundColumn = table.getColumn(item.tableAccessor);
-          console.log(foundColumn?.getCanFilter());
           if (foundColumn?.getCanFilter()) {
             return (
               <DataTableFilter
+                table={table}
                 column={foundColumn}
                 title={item.title}
                 options={item.options}

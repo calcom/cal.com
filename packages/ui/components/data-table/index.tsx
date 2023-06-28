@@ -84,11 +84,11 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  if (
-                    header.column.columnDef.meta?.hasPermissions &&
-                    !header.column.columnDef.meta?.hasPermissions()
-                  )
-                    return null;
+                  // if (
+                  //   header.column.columnDef.meta?.hasPermissions &&
+                  //   !header.column.columnDef.meta?.hasPermissions()
+                  // )
+                  //   return null;
 
                   return (
                     <TableHead key={header.id}>
@@ -106,12 +106,12 @@ export function DataTable<TData, TValue>({
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => {
-                    if (
-                      cell.column.columnDef.meta?.hasPermissions &&
-                      !cell.column.columnDef.meta?.hasPermissions()
-                    ) {
-                      return null;
-                    }
+                    // if (
+                    //   cell.column.columnDef.meta?.hasPermissions &&
+                    //   !cell.column.columnDef.meta?.hasPermissions()
+                    // ) {
+                    //   return null;
+                    // }
                     return (
                       <TableCell key={cell.id}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
