@@ -34,7 +34,7 @@ function mergeOverlappingDateRanges(dateRanges: DateRange[]) {
   for (let i = 1; i < sortedDateRanges.length; i++) {
     const nextRange = sortedDateRanges[i];
     if (
-      currentRange.start.format("DD MM YY") === nextRange.start.format("DD MM YY") &&
+      currentRange.start.utc().format("DD MM YY") === nextRange.start.utc().format("DD MM YY") &&
       currentRange.end.isAfter(nextRange.start)
     ) {
       currentRange = {
