@@ -10,7 +10,7 @@ type IToast = {
 };
 
 export const SuccessToast = ({ message, toastVisible, onClose }: IToast) => (
-  <button
+  <div
     className={classNames(
       "data-testid-toast-success bg-brand-default text-inverted mb-2 flex h-auto items-center space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
@@ -20,11 +20,11 @@ export const SuccessToast = ({ message, toastVisible, onClose }: IToast) => (
       <Check className="h-4 w-4" />
     </span>
     <p data-testid="toast-success">{message}</p>
-  </button>
+  </div>
 );
 
 export const ErrorToast = ({ message, toastVisible, onClose }: IToast) => (
-  <button
+  <div
     className={classNames(
       "animate-fade-in-up bg-error text-error mb-2 flex h-auto items-center space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
@@ -34,11 +34,11 @@ export const ErrorToast = ({ message, toastVisible, onClose }: IToast) => (
       <Info className="h-4 w-4" />
     </span>
     <p data-testid="toast-error">{message}</p>
-  </button>
+  </div>
 );
 
 export const WarningToast = ({ message, toastVisible, onClose }: IToast) => (
-  <button
+  <div
     className={classNames(
       "animate-fade-in-up bg-brand-default text-brand mb-2 flex h-auto items-center space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
@@ -48,11 +48,11 @@ export const WarningToast = ({ message, toastVisible, onClose }: IToast) => (
       <Info className="h-4 w-4" />
     </span>
     <p data-testid="toast-warning">{message}</p>
-  </button>
+  </div>
 );
 
 export const DefaultToast = ({ message, toastVisible, onClose }: IToast) => (
-  <button
+  <div
     className={classNames(
       "animate-fade-in-up bg-brand-default text-inverted mb-2 flex h-auto items-center space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
@@ -62,7 +62,7 @@ export const DefaultToast = ({ message, toastVisible, onClose }: IToast) => (
       <Check className="h-4 w-4" />
     </span>
     <p>{message}</p>
-  </button>
+  </div>
 );
 
 const TOAST_VISIBLE_DURATION = 6000;
