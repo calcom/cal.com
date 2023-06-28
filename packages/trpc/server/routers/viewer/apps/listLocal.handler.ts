@@ -17,7 +17,7 @@ type ListLocalOptions = {
 
 export const listLocalHandler = async ({ ctx, input }: ListLocalOptions) => {
   const { prisma } = ctx;
-  const category = input.category === "conferencing" ? "video" : input.category;
+  const category = input.category;
   const localApps = getLocalAppMetadata();
 
   const dbApps = await prisma.app.findMany({

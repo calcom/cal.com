@@ -759,7 +759,6 @@
   "free_to_use_apps": "Gratis",
   "no_category_apps": "Ingen {{category}} apper",
   "no_category_apps_description_calendar": "Legg til en kalenderapp for å se etter konflikter for å forhindre dobbelt-bookinger",
-  "no_category_apps_description_conferencing": "Prøv å legge til en konferanseapp for å integrere videosamtaler med klientene dine",
   "no_category_apps_description_payment": "Legg til en betalingsapp for å forenkle transaksjoner mellom deg og klientene dine",
   "no_category_apps_description_analytics": "Legg til en analyseapp for bookingsidene dine",
   "no_category_apps_description_automation": "Legg til en automatiserings-app for å bruke",
