@@ -199,8 +199,8 @@ const Layout = (props: LayoutProps) => {
 
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
-      <div style={{ paddingTop: `${bannersHeight}px` }} className="flex min-h-screen flex-col">
-        <div ref={bannerRef} className="fixed top-0 z-10 w-full divide-y divide-black">
+      <div className="flex min-h-screen flex-col">
+        <div ref={bannerRef} className="sticky top-0 z-10 w-full divide-y divide-black">
           <TeamsUpgradeBanner />
           <OrgUpgradeBanner />
           <ImpersonatingBanner />
@@ -654,7 +654,7 @@ const NavigationItem: React.FC<{
           href={item.href}
           aria-label={t(item.name)}
           className={classNames(
-            "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md py-2 px-3 text-sm font-medium",
+            "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md px-3 py-2 text-sm font-medium",
             isChild
               ? `[&[aria-current='page']]:text-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
                   props.index === 0 ? "mt-0" : "mt-px"
@@ -797,32 +797,26 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
   const orgBranding = useOrgBrandingValues();
   const publicPageUrl = orgBranding?.slug ? getOrganizationUrl(orgBranding?.slug) : "";
   const bottomNavItems: NavigationItemType[] = [
-    ...(user?.username
-      ? [
-          {
-            name: "view_public_page",
-            href: !!user?.organizationId
-              ? publicPageUrl
-              : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`,
-            icon: ExternalLink,
-            target: "__blank",
-          },
-          {
-            name: "copy_public_page_link",
-            href: "",
-            onClick: (e: { preventDefault: () => void }) => {
-              e.preventDefault();
-              navigator.clipboard.writeText(
-                !!user?.organizationId
-                  ? publicPageUrl
-                  : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`
-              );
-              showToast(t("link_copied"), "success");
-            },
-            icon: Copy,
-          },
-        ]
-      : []),
+    {
+      name: "view_public_page",
+      href: !!user?.organizationId
+        ? publicPageUrl
+        : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`,
+      icon: ExternalLink,
+      target: "__blank",
+    },
+    {
+      name: "copy_public_page_link",
+      href: "",
+      onClick: (e: { preventDefault: () => void }) => {
+        e.preventDefault();
+        navigator.clipboard.writeText(
+          !!user?.organizationId ? publicPageUrl : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`
+        );
+        showToast(t("link_copied"), "success");
+      },
+      icon: Copy,
+    },
     {
       name: "settings",
       href: user?.organizationId
@@ -907,7 +901,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 target={item.target}
                 className={classNames(
                   "text-left",
-                  "[&[aria-current='page']]:bg-emphasis  text-default justify-right group flex items-center rounded-md py-2 px-3 text-sm font-medium",
+                  "[&[aria-current='page']]:bg-emphasis  text-default justify-right group flex items-center rounded-md px-3 py-2 text-sm font-medium",
                   "[&[aria-current='page']]:text-emphasis mt-0.5 w-full text-sm",
                   isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
                   index === 0 && "mt-3"
@@ -922,7 +916,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                   <Icon
                     className={classNames(
                       "h-4 w-4 flex-shrink-0 [&[aria-current='page']]:text-inherit",
-                      "mx-auto md:ltr:mr-2 md:rtl:ml-2"
+                      "md:ltr:mr-2 md:rtl:ml-2"
                     )}
                     aria-hidden="true"
                     aria-current={
@@ -1052,7 +1046,7 @@ function TopNav() {
     <>
       <nav
         style={isEmbed ? { display: "none" } : {}}
-        className="bg-muted border-subtle sticky top-0 z-40 flex w-full items-center justify-between border-b bg-opacity-50 py-1.5 px-4 backdrop-blur-lg sm:p-4 md:hidden">
+        className="bg-muted border-subtle sticky top-0 z-40 flex w-full items-center justify-between border-b bg-opacity-50 px-4 py-1.5 backdrop-blur-lg sm:p-4 md:hidden">
         <Link href="/event-types">
           <Logo />
         </Link>

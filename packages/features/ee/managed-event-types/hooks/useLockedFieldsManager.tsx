@@ -10,7 +10,7 @@ import { Lock } from "@calcom/ui/components/icon";
 
 const Indicator = (label: string) => (
   <Tooltip content={<>{label}</>}>
-    <div className="bg ml-1 -mt-0.5 inline-flex h-4 w-4 rounded-sm p-0.5">
+    <div className="bg -mt-0.5 ml-1 inline-flex h-4 w-4 rounded-sm p-0.5">
       <Lock className="text-subtle hover:text-muted h-3 w-3" />
     </div>
   </Tooltip>

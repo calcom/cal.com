@@ -78,7 +78,7 @@ export default function InsightsPage() {
             <></>
           ) : (
             <FiltersProvider>
-              <div className="mt-0 ml-auto">
+              <div className="mb-8 ml-auto mt-0 flex w-full flex-wrap justify-between md:-mt-8">
                 <Heading />
               </div>
 
