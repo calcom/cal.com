@@ -134,7 +134,7 @@ export function UserPage(props: UserPageProps) {
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
             isEmbed ? "border-booker border-booker-width  bg-default rounded-md border" : "",
-            "max-w-3xl py-24 px-4"
+            "max-w-3xl px-4 py-24"
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">

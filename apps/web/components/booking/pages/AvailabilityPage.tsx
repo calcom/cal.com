@@ -191,9 +191,9 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                       )}
                       {!rescheduleUid && eventType.recurringEvent && (
                         <div className="flex items-start text-sm font-medium">
-                          <RefreshCcw className="float-left mt-[7px] ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
+                          <RefreshCcw className="float-left ml-[2px] mt-[7px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
                           <div>
-                            <p className="mb-1 -ml-2 inline px-2 py-1">
+                            <p className="-ml-2 mb-1 inline px-2 py-1">
                               {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
                             </p>
 
@@ -218,7 +218,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                       )}
                       {paymentAppData.price > 0 && (
                         <p className="-ml-2 px-2 text-sm font-medium">
-                          <CreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                          <CreditCard className="-mt-1 ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                           {paymentAppData.paymentOption === "HOLD" ? (
                             <>
                               {t("no_show_fee_amount", {

@@ -1,6 +1,4 @@
-import { z } from "zod";
-
-import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
+import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui";
@@ -23,20 +21,7 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
       return null;
     }
 
-    const translateAbleKeys = [
-      "in_person_attendee_address",
-      "in_person",
-      "attendee_phone_number",
-      "link_meeting",
-      "organizer_phone_number",
-    ];
-
-    const locationKey = z.string().default("").parse(locationKeyToString(location));
-    const translatedLocation = location.type.startsWith("integrations:")
-      ? eventLocationType.label
-      : translateAbleKeys.includes(locationKey)
-      ? t(locationKey)
-      : locationKey;
+    const translatedLocation = getTranslatedLocation(location, eventLocationType, t);
 
     return (
       <div key={`${location.type}-${index}`} className="flex flex-row items-center text-sm font-medium">
