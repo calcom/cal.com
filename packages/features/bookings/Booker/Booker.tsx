@@ -5,7 +5,7 @@ import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useEmbedType, useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
@@ -48,10 +48,14 @@ const BookerComponent = ({
   const [_layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
 
   const isEmbed = useIsEmbed();
+  const embedType = useEmbedType();
+  // Floating Button and Element Click both are modal and thus have dark background
+  const hasDarkBackground = isEmbed && embedType !== "inline";
   const embedUiConfig = useEmbedUiConfig();
 
   // In Embed we give preference to embed configuration for the layout.If that's not set, we use the App configuration for the event layout
-  const layout = isEmbed ? validateLayout(embedUiConfig.layout) || _layout : _layout;
+  // But if it's mobile view, there is only one layout supported which is 'mobile'
+  const layout = isEmbed ? (isMobile ? "mobile" : validateLayout(embedUiConfig.layout) || _layout) : _layout;
 
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -133,14 +137,14 @@ const BookerComponent = ({
       {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
       <div
         className={classNames(
+          // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
+          "main",
           "text-default flex min-h-full w-full flex-col items-center",
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip"
         )}>
         <div
           ref={animationScope}
           className={classNames(
-            // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
-            "main",
             // Sets booker size css variables for the size of all the columns.
             ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
             "bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
@@ -241,6 +245,7 @@ const BookerComponent = ({
           key="logo"
           className={classNames(
             "mb-6 mt-auto pt-6 [&_img]:h-[15px]",
+            hasDarkBackground ? "dark" : "",
             layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
           )}>
           {!hideBranding ? <PoweredBy logoOnly /> : null}
