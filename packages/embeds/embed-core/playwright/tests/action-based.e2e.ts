@@ -132,6 +132,30 @@ testBothBookers.describe("Popup Tests", (bookerVariant) => {
     expect(booking.attendees.length).toBe(3);
   });
 
+  test("should open embed iframe with dark theme on floating button clicked", async ({
+    page,
+    addEmbedListeners,
+    getActionFiredDetails,
+  }) => {
+    const calNamespace = "floatingButton";
+    await addEmbedListeners(calNamespace);
+    await page.goto("/?only=ns:floatingButton");
+
+    await page.click('[data-cal-namespace="floatingButton"] > button');
+
+    const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
+    await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
+      pathname: "/pro",
+    });
+
+    if (!embedIframe) {
+      throw new Error("Embed iframe not found");
+    }
+
+    const html = embedIframe.locator("html");
+    await expect(html).toHaveAttribute("class", "light");
+  });
+
   todo("Add snapshot test for embed iframe");
 
   test("should open Routing Forms embed on click", async ({
