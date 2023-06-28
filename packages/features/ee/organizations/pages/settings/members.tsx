@@ -1,10 +1,15 @@
 import { useRouter } from "next/router";
 import { useState } from "react";
+import { shallow } from "zustand/shallow";
 
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import TeamInviteList from "@calcom/features/ee/teams/components/TeamInviteList";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { UserListTable } from "@calcom/features/users/components/UserListTable";
+import { UserListTable } from "@calcom/features/users/components/UserTable/UserListTable";
+import {
+  useInitializeOrgMemberStore,
+  useOrgMemberStore,
+} from "@calcom/features/users/components/UserTable/store";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -61,15 +66,13 @@ const checkIfExist = (comp: string, query: string) =>
 
 const MembersView = () => {
   const { t, i18n } = useLocale();
+  useInitializeOrgMemberStore();
+  const [team, isLoading] = useOrgMemberStore((state) => [state.currentTeam, state.isLoading], shallow);
+
   const router = useRouter();
   const utils = trpc.useContext();
   const showDialog = router.query.inviteModal === "true";
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(showDialog);
-  const { data: team, isLoading } = trpc.viewer.organizations.listMembers.useQuery(undefined, {
-    onError: () => {
-      router.push("/settings");
-    },
-  });
 
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess(data) {
