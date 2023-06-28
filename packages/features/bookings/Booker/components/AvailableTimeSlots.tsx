@@ -4,7 +4,6 @@ import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
 import { useSlotsForMultipleDates, useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
-import { trpc } from "@calcom/trpc";
 
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
@@ -29,7 +28,6 @@ type AvailableTimeSlotsProps = {
 export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot, sliceFrom, sliceTo}: AvailableTimeSlotsProps) => {
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const selectedDate = useBookerStore((state) => state.selectedDate);
-  const duration = useBookerStore((state) => state.selectedDuration);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const event = useEvent();
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
@@ -40,14 +38,6 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot, s
     setSelectedTimeslot(time);
 
     if (!event.data) return;
-    reserveSlotMutation.mutate({
-      slotUtcStartDate: time,
-      eventTypeId: event.data.id,
-      slotUtcEndDate: dayjs(time)
-        .utc()
-        .add(duration || event.data.length, "minutes")
-        .format(),
-    });
   };
 
   const schedule = useScheduleForEvent({
