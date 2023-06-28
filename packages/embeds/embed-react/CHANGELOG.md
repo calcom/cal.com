@@ -1,5 +1,14 @@
 # @calcom/embed-react
 
+## 1.2.2
+
+### Patch Changes
+
+- Improve UI instruction layout typings
+- Updated dependencies
+  - @calcom/embed-snippet@1.1.2
+  - @calcom/embed-core@1.3.2
+
 ## 1.2.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @calcom/embed-core
 
+## 1.3.2
+
+### Patch Changes
+
+- Improve UI instruction layout typings
+
 ## 1.3.1
 
 ### Patch Changes
