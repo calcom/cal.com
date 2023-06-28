@@ -1,6 +1,5 @@
-import type { GlobalCal, GlobalCalWithoutNs } from "./src/embed";
+import type { GlobalCal } from "./src/embed";
 
-type A = GlobalCalWithoutNs;
 const Cal = window.Cal as GlobalCal;
 const callback = function (e) {
   const detail = e.detail;
@@ -8,7 +7,7 @@ const callback = function (e) {
 };
 
 const searchParams = new URL(document.URL).searchParams;
-const only = window.only;
+const only = searchParams.get("only");
 
 if (only === "all" || only === "ns:default") {
   Cal("init", {
@@ -343,5 +342,61 @@ if (only === "all" || only == "ns:floatingButton") {
       guests: ["janedoe@example.com", "test@example.com"],
       theme: "dark",
     },
+  });
+}
+
+if (only === "all" || only == "ns:weekView") {
+  // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
+  Cal("init", "weekView", {
+    debug: true,
+    origin: "http://localhost:3000",
+  });
+
+  Cal.ns.weekView(
+    "inline",
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    {
+      elementOrSelector: "#cal-booking-place-weekView .place",
+      calLink: "pro/paid",
+      config: {
+        iframeAttrs: {
+          id: "cal-booking-place-weekView-iframe",
+        },
+        layout: "week_view",
+      },
+    }
+  );
+  Cal.ns.weekView("on", {
+    action: "*",
+    callback,
+  });
+}
+
+if (only === "all" || only == "ns:columnView") {
+  // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
+  Cal("init", "columnView", {
+    debug: true,
+    origin: "http://localhost:3000",
+  });
+
+  Cal.ns.columnView(
+    "inline",
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    {
+      elementOrSelector: "#cal-booking-place-columnView .place",
+      calLink: "pro/paid",
+      config: {
+        iframeAttrs: {
+          id: "cal-booking-place-columnView-iframe",
+        },
+        layout: "column_view",
+      },
+    }
+  );
+  Cal.ns.columnView("on", {
+    action: "*",
+    callback,
   });
 }

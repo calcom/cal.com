@@ -115,7 +115,7 @@ export const EventSetupTab = (
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
-  const [multipleDuration, setMultipleDuration] = useState(eventType.metadata.multipleDuration);
+  const [multipleDuration, setMultipleDuration] = useState(eventType.metadata?.multipleDuration);
 
   const locationOptions = props.locationOptions.filter((option) => {
     return !team ? option.label !== "Conferencing" : true;
@@ -136,9 +136,17 @@ export const EventSetupTab = (
     selectedMultipleDuration.find((opt) => opt.value === eventType.length) ?? null
   );
 
-  const openLocationModal = (type: EventLocationType["type"]) => {
+  const openLocationModal = (type: EventLocationType["type"], address = "") => {
     const option = getLocationFromType(type, locationOptions);
-    setSelectedLocation(option);
+    if (option && option.value === LocationType.InPerson) {
+      const inPersonOption = {
+        ...option,
+        address,
+      };
+      setSelectedLocation(inPersonOption);
+    } else {
+      setSelectedLocation(option);
+    }
     setShowLocationModal(true);
   };
 
@@ -276,7 +284,7 @@ export const EventSetupTab = (
               return (
                 <li
                   key={`${location.type}${index}`}
-                  className="border-default text-default mb-2 h-9 rounded-md border py-1.5 px-2 hover:cursor-pointer">
+                  className="border-default text-default mb-2 h-9 rounded-md border px-2 py-1.5 hover:cursor-pointer">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <img
@@ -290,7 +298,7 @@ export const EventSetupTab = (
                         )}
                         alt={`${eventLocationType.label} logo`}
                       />
-                      <span className="line-clamp-1 ms-1 text-sm">{eventLabel}</span>
+                      <span className="ms-1 line-clamp-1 text-sm">{eventLabel}</span>
                     </div>
                     <div className="flex">
                       <button
@@ -298,10 +306,14 @@ export const EventSetupTab = (
                         onClick={() => {
                           locationFormMethods.setValue("locationType", location.type);
                           locationFormMethods.unregister("locationLink");
-                          locationFormMethods.unregister("locationAddress");
+                          if (location.type === LocationType.InPerson) {
+                            locationFormMethods.setValue("locationAddress", location.address);
+                          } else {
+                            locationFormMethods.unregister("locationAddress");
+                          }
                           locationFormMethods.unregister("locationPhoneNumber");
                           setEditingLocationType(location.type);
-                          openLocationModal(location.type);
+                          openLocationModal(location.type, location.address);
                         }}
                         aria-label={t("edit")}
                         className="hover:text-emphasis text-subtle mr-1 p-1">
@@ -320,7 +332,7 @@ export const EventSetupTab = (
                 location.type === MeetLocationType && destinationCalendar?.integration !== "google_calendar"
             ) && (
               <div className="text-default flex text-sm">
-                <Check className="mt-0.5 mr-1.5 h-2 w-2.5" />
+                <Check className="mr-1.5 mt-0.5 h-2 w-2.5" />
                 <Trans i18nKey="event_type_requres_google_cal">
                   <p>
                     The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
@@ -517,7 +529,18 @@ export const EventSetupTab = (
         defaultValues={formMethods.getValues("locations")}
         selection={
           selectedLocation
-            ? { value: selectedLocation.value, label: t(selectedLocation.label), icon: selectedLocation.icon }
+            ? selectedLocation.address
+              ? {
+                  value: selectedLocation.value,
+                  label: t(selectedLocation.label),
+                  icon: selectedLocation.icon,
+                  address: selectedLocation.address,
+                }
+              : {
+                  value: selectedLocation.value,
+                  label: t(selectedLocation.label),
+                  icon: selectedLocation.icon,
+                }
             : undefined
         }
         setSelectedLocation={setSelectedLocation}

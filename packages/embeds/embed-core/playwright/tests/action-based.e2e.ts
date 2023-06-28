@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 
 import { test } from "@calcom/web/playwright/lib/fixtures";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
+import { testBothBookers } from "@calcom/web/playwright/lib/new-booker";
 
 import {
   todo,
@@ -17,10 +18,12 @@ async function bookFirstFreeUserEventThroughEmbed({
   addEmbedListeners,
   page,
   getActionFiredDetails,
+  bookerVariant,
 }: {
   addEmbedListeners: Fixtures["addEmbedListeners"];
   page: Page;
   getActionFiredDetails: Fixtures["getActionFiredDetails"];
+  bookerVariant: string;
 }) {
   const embedButtonLocator = page.locator('[data-cal-link="free"]').first();
   await page.goto("/");
@@ -32,7 +35,7 @@ async function bookFirstFreeUserEventThroughEmbed({
 
   await embedButtonLocator.click();
 
-  const embedIframe = await getEmbedIframe({ page, pathname: "/free" });
+  const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/free" });
 
   await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
     pathname: "/free",
@@ -40,11 +43,11 @@ async function bookFirstFreeUserEventThroughEmbed({
   if (!embedIframe) {
     throw new Error("Embed iframe not found");
   }
-  const booking = await bookFirstEvent("free", embedIframe, page);
+  const booking = await bookFirstEvent("free", embedIframe, page, bookerVariant);
   return booking;
 }
 
-test.describe("Popup Tests", () => {
+testBothBookers.describe("Popup Tests", (bookerVariant) => {
   test.afterEach(async () => {
     await deleteAllBookingsByEmail("embed-user@example.com");
   });
@@ -58,12 +61,12 @@ test.describe("Popup Tests", () => {
     const calNamespace = "prerendertestLightTheme";
     await addEmbedListeners(calNamespace);
     await page.goto("/?only=prerender-test");
-    let embedIframe = await getEmbedIframe({ page, pathname: "/free" });
+    let embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/free" });
     expect(embedIframe).toBeFalsy();
 
     await page.click('[data-cal-link="free?light&popup"]');
 
-    embedIframe = await getEmbedIframe({ page, pathname: "/free" });
+    embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/free" });
 
     await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
       pathname: "/free",
@@ -72,7 +75,7 @@ test.describe("Popup Tests", () => {
     if (!embedIframe) {
       throw new Error("Embed iframe not found");
     }
-    const { uid: bookingId } = await bookFirstEvent("free", embedIframe, page);
+    const { uid: bookingId } = await bookFirstEvent("free", embedIframe, page, bookerVariant);
     const booking = await getBooking(bookingId);
 
     expect(booking.attendees.length).toBe(1);
@@ -85,6 +88,7 @@ test.describe("Popup Tests", () => {
         page,
         addEmbedListeners,
         getActionFiredDetails,
+        bookerVariant,
       });
     });
 
@@ -92,12 +96,12 @@ test.describe("Popup Tests", () => {
       await addEmbedListeners("popupReschedule");
       await page.goto(`/?popupRescheduleId=${booking.uid}`);
       await page.click('[data-cal-namespace="popupReschedule"]');
-
-      const embedIframe = await getEmbedIframe({ page, pathname: booking.eventSlug });
+      const calNamespace = "popupReschedule";
+      const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: booking.eventSlug });
       if (!embedIframe) {
         throw new Error("Embed iframe not found");
       }
-      await rescheduleEvent("free", embedIframe, page);
+      await rescheduleEvent("free", embedIframe, page, bookerVariant);
     });
   });
 
@@ -117,12 +121,20 @@ test.describe("Popup Tests", () => {
     const calNamespace = "routingFormAuto";
     await addEmbedListeners(calNamespace);
     await page.goto("/?only=prerender-test");
-    let embedIframe = await getEmbedIframe({ page, pathname: "/forms/948ae412-d995-4865-875a-48302588de03" });
+    let embedIframe = await getEmbedIframe({
+      calNamespace,
+      page,
+      pathname: "/forms/948ae412-d995-4865-875a-48302588de03",
+    });
     expect(embedIframe).toBeFalsy();
     await page.click(
       `[data-cal-namespace=${calNamespace}][data-cal-link="forms/948ae412-d995-4865-875a-48302588de03"]`
     );
-    embedIframe = await getEmbedIframe({ page, pathname: "/forms/948ae412-d995-4865-875a-48302588de03" });
+    embedIframe = await getEmbedIframe({
+      calNamespace,
+      page,
+      pathname: "/forms/948ae412-d995-4865-875a-48302588de03",
+    });
     if (!embedIframe) {
       throw new Error("Routing Form embed iframe not found");
     }

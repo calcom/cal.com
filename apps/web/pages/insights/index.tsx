@@ -25,7 +25,7 @@ const Heading = () => {
   return (
     <div className="min-w-52 hidden md:block">
       <h3 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis truncate text-xl font-semibold tracking-wide xl:max-w-full">
-        {t("analytics_for_organisation")}
+        {t("insights")}
       </h3>
       <p className="text-default hidden text-sm md:block">{t("subtitle_analytics")}</p>
     </div>
@@ -77,7 +77,7 @@ export default function InsightsPage() {
             <></>
           ) : (
             <FiltersProvider>
-              <div className="mb-8 mt-0 ml-auto flex w-full flex-wrap justify-between md:-mt-8">
+              <div className="mb-8 ml-auto mt-0 flex w-full flex-wrap justify-between md:-mt-8">
                 <Heading />
                 <Filters />
               </div>

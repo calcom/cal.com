@@ -35,6 +35,7 @@ import {
   Editor,
   AddVariablesDropdown,
   Input,
+  Tooltip,
 } from "@calcom/ui";
 import { ArrowDown, MoreHorizontal, Trash2, HelpCircle, Info } from "@calcom/ui/components/icon";
 
@@ -475,7 +476,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <PhoneInput
                           placeholder={t("phone_number")}
                           id={`steps.${step.stepNumber - 1}.sendTo`}
-                          className="min-w-fit sm:rounded-r-none sm:rounded-tl-md sm:rounded-bl-md"
+                          className="min-w-fit sm:rounded-r-none sm:rounded-bl-md sm:rounded-tl-md"
                           required
                           disabled={props.readOnly}
                           value={value}
@@ -493,7 +494,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       color="secondary"
                       disabled={numberVerified || props.readOnly || false}
                       className={classNames(
-                        "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-tl-none sm:rounded-bl-none",
+                        "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none",
                         numberVerified ? "hidden" : "mt-3 sm:mt-0"
                       )}
                       onClick={() =>
@@ -531,7 +532,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           />
                           <Button
                             color="secondary"
-                            className="-ml-[3px] h-[38px] min-w-fit sm:block sm:rounded-tl-none sm:rounded-bl-none "
+                            className="-ml-[3px] h-[38px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none "
                             disabled={verifyPhoneNumberMutation.isLoading || props.readOnly}
                             onClick={() => {
                               verifyPhoneNumberMutation.mutate({
@@ -558,7 +559,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 {isSenderIdNeeded ? (
                   <>
                     <div className="pt-4">
-                      <Label>{t("sender_id")}</Label>
+                      <div className="flex">
+                        <Label>{t("sender_id")}</Label>
+                        <Tooltip content={t("sender_id_info")}>
+                          <Info className="ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                        </Tooltip>
+                      </div>
                       <Input
                         type="text"
                         placeholder={SENDER_ID}
@@ -674,7 +680,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <div className="mb-6">
                     <div className="flex items-center">
                       <Label className={classNames("flex-none", props.readOnly ? "mb-2" : "mb-0")}>
-                        {t("subject")}
+                        {t("email_subject")}
                       </Label>
                       {!props.readOnly && (
                         <div className="flex-grow text-right">
@@ -879,7 +885,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               <h1 className="w-full text-xl font-semibold ">{t("how_booking_questions_as_variables")}</h1>
               <div className="bg-muted-3 mb-7 mt-7 rounded-md sm:p-4">
                 <p className="test-sm font-medium">{t("format")}</p>
-                <ul className="text-emphasis mt-2 ml-5 list-disc">
+                <ul className="text-emphasis ml-5 mt-2 list-disc">
                   <li>{t("uppercase_for_letters")}</li>
                   <li>{t("replace_whitespaces_underscores")}</li>
                   <li>{t("ignore_special_characters_booking_questions")}</li>

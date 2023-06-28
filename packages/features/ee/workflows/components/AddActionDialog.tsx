@@ -23,7 +23,9 @@ import {
   Label,
   PhoneInput,
   Select,
+  Tooltip,
 } from "@calcom/ui";
+import { Info } from "@calcom/ui/components/icon";
 
 import { WORKFLOW_ACTIONS } from "../lib/constants";
 import { onlyLettersNumbersSpaces } from "../pages/workflow";
@@ -166,7 +168,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
               {isPhoneNumberNeeded && (
                 <div className="mt-5 space-y-1">
                   <Label htmlFor="sendTo">{t("phone_number")}</Label>
-                  <div className="mt-1 mb-5">
+                  <div className="mb-5 mt-1">
                     <Controller
                       control={form.control}
                       name="sendTo"
@@ -195,7 +197,12 @@ export const AddActionDialog = (props: IAddActionDialog) => {
               {isSenderIdNeeded ? (
                 <>
                   <div className="mt-5">
-                    <Label>{t("sender_id")}</Label>
+                    <div className="flex">
+                      <Label>{t("sender_id")}</Label>
+                      <Tooltip content={t("sender_id_info")}>
+                        <Info className="ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                      </Tooltip>
+                    </div>
                     <Input
                       type="text"
                       placeholder={SENDER_ID}

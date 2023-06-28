@@ -34,7 +34,7 @@ const PasswordView = () => {
     onSettled: () => {
       utils.viewer.me.invalidate();
     },
-    onMutate: async ({ metadata }) => {
+    onMutate: async () => {
       await utils.viewer.me.cancel();
       const previousValue = utils.viewer.me.getData();
       const previousMetadata = userMetadata.parse(previousValue?.metadata);
