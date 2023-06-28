@@ -146,6 +146,7 @@ const MembersView = () => {
               </>
             )}
             <UserListTable
+              currentTeam={team}
               users={[
                 {
                   id: "1",
@@ -157,6 +158,8 @@ const MembersView = () => {
                     {
                       id: "1",
                       name: "test",
+                      role: "ADMIN",
+                      slug: "test",
                     },
                   ],
                 },

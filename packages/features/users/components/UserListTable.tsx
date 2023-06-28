@@ -4,7 +4,8 @@ import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
+import type { RouterOutputs } from "@calcom/trpc";
 import {
   Avatar,
   Badge,
@@ -25,6 +26,9 @@ import {
   showToast,
 } from "@calcom/ui";
 
+import { useOrgBrandingValues } from "../../ee/organizations/hooks";
+import { subdomainSuffix } from "../../ee/organizations/lib/orgDomains";
+
 interface User {
   id: string;
   username?: string;
@@ -34,27 +38,50 @@ interface User {
     id: string;
     name: string;
     slug: string;
+    role: MembershipRole;
   }[];
   timezone?: string;
 }
 
 interface UserListTableProps {
   users: User[];
+  currentTeam: RouterOutputs["viewer"]["organizations"]["listMembers"] | undefined;
 }
 
-function TableActions({ user }: { user: User }) {
+function TableActions({
+  user,
+  orgSlug,
+  currentTeam,
+}: {
+  user: User;
+  orgSlug: string;
+  currentTeam: RouterOutputs["viewer"]["organizations"]["listMembers"] | undefined;
+}) {
   const { t } = useLocale();
+
+  const isInviteOpen = !currentTeam?.membership.accepted;
+
+  const isOwner = currentTeam?.membership.role === MembershipRole.OWNER;
+
+  const isAdminOrOwner =
+    currentTeam &&
+    (currentTeam.membership.role === MembershipRole.OWNER ||
+      currentTeam.membership.role === MembershipRole.ADMIN);
+
   return (
-    <ButtonGroup combined>
+    <ButtonGroup
+      combined
+      containerProps={{
+        className: "ml-auto justify-end",
+      }}>
       {user.username && (
         <Tooltip content={t("copy_link_team")}>
           <Button
             color="secondary"
             onClick={() => {
               // TODO Fix for orgs
-              // navigator.clipboard.writeText(
-              //   process.env.NEXT_PUBLIC_WEBSITE_URL + "/team/" + team.slug
-              // );
+              navigator.clipboard.writeText(`${orgSlug}.${subdomainSuffix()}/${user.username}`);
+              // process.env.NEXT_PUBLIC_WEBSITE_URL + "/team/" + team.slug
               showToast(t("link_copied"), "success");
             }}
             variant="icon"
@@ -73,8 +100,8 @@ function TableActions({ user }: { user: User }) {
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          {user.role === "ADMIN" ||
-            (user.role === "OWNER" && (
+          {isAdminOrOwner && (
+            <>
               <DropdownMenuItem>
                 <DropdownItem
                   type="button"
@@ -83,10 +110,11 @@ function TableActions({ user }: { user: User }) {
                   {t("edit_team") as string}
                 </DropdownItem>
               </DropdownMenuItem>
-            ))}
+              <DropdownMenuSeparator />
+            </>
+          )}
 
-          <DropdownMenuSeparator />
-          {user.role === "OWNER" && (
+          {isOwner && (
             <DropdownMenuItem>
               <Dialog>
                 <DialogTrigger asChild>
@@ -114,7 +142,7 @@ function TableActions({ user }: { user: User }) {
             </DropdownMenuItem>
           )}
 
-          {user.role !== "ADMIN" && (
+          {isOwner && (
             <DropdownMenuItem>
               <Dialog>
                 <DialogTrigger asChild>
@@ -144,8 +172,11 @@ function TableActions({ user }: { user: User }) {
   );
 }
 
-export function UserListTable({ users }: UserListTableProps) {
+export function UserListTable({ users, currentTeam }: UserListTableProps) {
   const { data, status } = useSession();
+  const orgValues = useOrgBrandingValues();
+
+  const orgSlug = orgValues?.slug || "error";
 
   const memorisedColumns = useMemo(() => {
     const cols: ColumnDef<UserListTableProps["users"][number]>[] = [
@@ -167,9 +198,6 @@ export function UserListTable({ users }: UserListTableProps) {
             className="translate-y-[2px]"
           />
         ),
-        meta: {
-          hasPermissions: status === "authenticated", // TODO - check if user is admin/owner for the team/org for,
-        },
       },
       {
         id: "member",
@@ -245,13 +273,13 @@ export function UserListTable({ users }: UserListTableProps) {
         id: "actions",
         cell: ({ row }) => {
           const user = row.original;
-          return <TableActions user={user} />;
+          return <TableActions user={user} orgSlug={orgSlug} currentTeam={currentTeam} />;
         },
       },
     ];
 
     return cols;
-  }, []);
+  }, [currentTeam, status, orgSlug]);
 
   if (!data?.user) return null;
 
