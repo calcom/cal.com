@@ -345,6 +345,34 @@ if (only === "all" || only == "ns:floatingButton") {
   });
 }
 
+if (only === "all" || only == "ns:monthView") {
+  // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
+  Cal("init", "monthView", {
+    debug: true,
+    origin: "http://localhost:3000",
+  });
+
+  Cal.ns.monthView(
+    "inline",
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    {
+      elementOrSelector: "#cal-booking-place-monthView .place",
+      calLink: "pro/paid",
+      config: {
+        iframeAttrs: {
+          id: "cal-booking-place-monthView-iframe",
+        },
+        layout: "month_view",
+      },
+    }
+  );
+  Cal.ns.monthView("on", {
+    action: "*",
+    callback,
+  });
+}
+
 if (only === "all" || only == "ns:weekView") {
   // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
   Cal("init", "weekView", {
