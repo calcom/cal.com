@@ -4,6 +4,7 @@ import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
 import { useSlotsForMultipleDates, useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
+import { trpc } from "@calcom/trpc";
 
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
