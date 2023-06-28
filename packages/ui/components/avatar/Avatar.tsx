@@ -12,7 +12,7 @@ import { Tooltip } from "../tooltip";
 
 export type AvatarProps = {
   className?: string;
-  size: "xs" | "xsm" | "sm" | "md" | "mdLg" | "lg" | "xl";
+  size: "xxs" | "xs" | "xsm" | "sm" | "md" | "mdLg" | "lg" | "xl";
   imageSrc?: Maybe<string>;
   title?: string;
   alt: string;
@@ -24,6 +24,7 @@ export type AvatarProps = {
 };
 
 const sizesPropsBySize = {
+  xxs: "w-3.5 h-3.5 min-w-3.5 min-h-3.5", // 14px
   xs: "w-4 h-4 min-w-4 min-h-4 max-h-4", // 16px
   xsm: "w-5 h-5 min-w-5 min-h-5", // 20px
   sm: "w-6 h-6 min-w-6 min-h-6", // 24px

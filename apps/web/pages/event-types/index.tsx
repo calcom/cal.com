@@ -13,7 +13,8 @@ import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
-import { OrganizationEventTypeFilter } from "@calcom/features/eventtypes/components/OrganizationEventTypeFilter";
+import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
+import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -47,7 +48,6 @@ import {
   HeadSeo,
   Skeleton,
   Label,
-  VerticalDivider,
   Alert,
 } from "@calcom/ui";
 import {
@@ -383,7 +383,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                 <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                   {!(firstItem && firstItem.id === type.id) && (
                     <button
-                      className="bg-default text-muted hover:text-emphasis border-default hover:border-emphasis invisible absolute left-[5px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                      className="bg-default text-muted hover:text-emphasis border-default hover:border-emphasis invisible absolute left-[5px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
                       onClick={() => moveEventType(index, -1)}>
                       <ArrowUp className="h-5 w-5" />
                     </button>
@@ -391,7 +391,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 
                   {!(lastItem && lastItem.id === type.id) && (
                     <button
-                      className="bg-default text-muted border-default hover:text-emphasis hover:border-emphasis invisible absolute left-[5px] mt-8 -ml-4 hidden h-6 w-6  scale-0 items-center justify-center rounded-md border p-1 transition-all  group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                      className="bg-default text-muted border-default hover:text-emphasis hover:border-emphasis invisible absolute left-[5px] -ml-4 mt-8 hidden h-6 w-6  scale-0 items-center justify-center rounded-md border p-1 transition-all  group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
                       onClick={() => moveEventType(index, 1)}>
                       <ArrowDown className="h-5 w-5" />
                     </button>
@@ -401,7 +401,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       {type.team && !isManagedEventType && (
                         <AvatarGroup
-                          className="relative top-1 right-3"
+                          className="relative right-3 top-1"
                           size="sm"
                           truncateAfter={4}
                           items={type.users.map(
@@ -415,12 +415,12 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       )}
                       {isManagedEventType && (
                         <AvatarGroup
-                          className="relative top-1 right-3"
+                          className="relative right-3 top-1"
                           size="sm"
                           truncateAfter={4}
                           items={type.children
                             .flatMap((ch) => ch.users)
-                            .map((user: User) => ({
+                            .map((user: Pick<User, "name" | "username">) => ({
                               alt: user.name || "",
                               image: `${WEBAPP_URL}/${user.username}/avatar.png`,
                               title: user.name || "",
@@ -640,7 +640,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           )}
                         <DropdownMenuSeparator />
                         {!isManagedEventType && (
-                          <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between py-2 px-4">
+                          <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2">
                             <Skeleton
                               as={Label}
                               htmlFor="hiddenSwitch"
@@ -728,10 +728,10 @@ const EventTypeListHeading = ({
           {profile?.name || ""}
         </Link>
         {membershipCount && teamId && (
-          <span className="text-subtle ms-2 me-2 relative -top-px text-xs">
+          <span className="text-subtle relative -top-px me-2 ms-2 text-xs">
             <Link href={`/settings/teams/${teamId}/members`}>
               <Badge variant="gray">
-                <Users className="mr-1 -mt-px inline h-3 w-3" />
+                <Users className="-mt-px mr-1 inline h-3 w-3" />
                 {membershipCount}
               </Badge>
             </Link>
@@ -747,7 +747,7 @@ const EventTypeListHeading = ({
       </div>
       {!profile?.slug && !!teamId && (
         <button onClick={() => publishTeamMutation.mutate({ teamId })}>
-          <Badge variant="gray" className="mb-1 -ml-2">
+          <Badge variant="gray" className="-ml-2 mb-1">
             {t("upgrade")}
           </Badge>
         </button>
@@ -800,8 +800,7 @@ const CTA = () => {
 const Actions = () => {
   return (
     <div className="hidden items-center md:flex">
-      <OrganizationEventTypeFilter />
-      <VerticalDivider />
+      <TeamsFilter popoverTriggerClassNames="mb-0" showVerticalDivider={true} />
     </div>
   );
 };
@@ -834,9 +833,6 @@ const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
   );
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer as any);
-
 const EventTypesPage = () => {
   const { t } = useLocale();
   const router = useRouter();
@@ -862,6 +858,10 @@ const EventTypesPage = () => {
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  const filters = getTeamsFiltersFromQuery(router.query);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer as any, filters && { filters });
 
   return (
     <div>
@@ -879,47 +879,55 @@ const EventTypesPage = () => {
         CTA={<CTA />}>
         <WithQuery
           customLoader={<SkeletonLoader />}
-          success={({ data }) => (
-            <>
-              {data.eventTypeGroups.length > 1 ? (
-                <>
-                  {isMobile ? (
-                    <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
-                  ) : (
-                    data.eventTypeGroups.map((group: EventTypeGroup, index: number) => (
-                      <div className="flex flex-col" key={group.profile.slug}>
-                        <EventTypeListHeading
-                          profile={group.profile}
-                          membershipCount={group.metadata.membershipCount}
-                          teamId={group.teamId}
-                          orgSlug={orgBranding?.slug}
-                        />
+          success={({ data }) => {
+            const isFilteredByOnlyOneItem =
+              (filters?.teamIds?.length === 1 || filters?.userIds?.length === 1) &&
+              data.eventTypeGroups.length === 1;
 
-                        <EventTypeList
-                          types={group.eventTypes}
-                          group={group}
-                          groupIndex={index}
-                          readOnly={group.metadata.readOnly}
-                        />
-                      </div>
-                    ))
-                  )}
-                </>
-              ) : data.eventTypeGroups.length === 1 ? (
-                <EventTypeList
-                  types={data.eventTypeGroups[0].eventTypes}
-                  group={data.eventTypeGroups[0]}
-                  groupIndex={0}
-                  readOnly={data.eventTypeGroups[0].metadata.readOnly}
-                />
-              ) : (
-                <CreateFirstEventTypeView />
-              )}
+            return (
+              <>
+                {data.eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
+                  <>
+                    {isMobile ? (
+                      <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
+                    ) : (
+                      data.eventTypeGroups.map((group: EventTypeGroup, index: number) => (
+                        <div className="flex flex-col" key={group.profile.slug}>
+                          <EventTypeListHeading
+                            profile={group.profile}
+                            membershipCount={group.metadata.membershipCount}
+                            teamId={group.teamId}
+                            orgSlug={orgBranding?.slug}
+                          />
 
-              <EmbedDialog />
-              {router.query.dialog === "duplicate" && <DuplicateDialog />}
-            </>
-          )}
+                          <EventTypeList
+                            types={group.eventTypes}
+                            group={group}
+                            groupIndex={index}
+                            readOnly={group.metadata.readOnly}
+                          />
+                        </div>
+                      ))
+                    )}
+                  </>
+                ) : (
+                  data.eventTypeGroups.length === 1 && (
+                    <EventTypeList
+                      types={data.eventTypeGroups[0].eventTypes}
+                      group={data.eventTypeGroups[0]}
+                      groupIndex={0}
+                      readOnly={data.eventTypeGroups[0].metadata.readOnly}
+                    />
+                  )
+                )}
+
+                {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView />}
+
+                <EmbedDialog />
+                {router.query.dialog === "duplicate" && <DuplicateDialog />}
+              </>
+            );
+          }}
         />
       </Shell>
     </div>
