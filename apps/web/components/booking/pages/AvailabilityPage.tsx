@@ -202,7 +202,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                               min="1"
                               max={eventType.recurringEvent.count}
                               isFullWidth={false}
-                              className="me-2 mb-0 inline w-14"
+                              className="me-2 inline w-16"
                               onChange={(event) => {
                                 setRecurringEventCount(parseInt(event?.target.value));
                               }}

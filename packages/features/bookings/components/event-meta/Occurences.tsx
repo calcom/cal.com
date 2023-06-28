@@ -46,11 +46,11 @@ export const EventOccurences = ({ event }: { event: PublicEvent }) => {
         ))}
         {recurringStrings.length > 5 && (
           <Tooltip
-          content={recurringStrings.slice(5).map((timeFormatted, key) => (
-            <p key={key}>{timeFormatted}</p>
-          ))}>
-          <p className=" text-sm">+ {t("plus_more", { count: recurringStrings.length - 5 })}</p>
-        </Tooltip>
+            content={recurringStrings.slice(5).map((timeFormatted, key) => (
+              <p key={key}>{timeFormatted}</p>
+            ))}>
+            <p className=" text-sm">+ {t("plus_more", { count: recurringStrings.length - 5 })}</p>
+          </Tooltip>
         )}
       </>
     );
@@ -61,7 +61,7 @@ export const EventOccurences = ({ event }: { event: PublicEvent }) => {
       {getRecurringFreq({ t, recurringEvent: event.recurringEvent })}
       <br />
       <Input
-        className="my-1 mr-3 inline-flex h-[26px] w-[46px] px-1 py-0"
+        className="my-1 mr-3 inline-flex h-[26px] w-[46px] px-1 py-0 mb-0"
         type="number"
         defaultValue={event.recurringEvent.count}
         onChange={(event) => {
