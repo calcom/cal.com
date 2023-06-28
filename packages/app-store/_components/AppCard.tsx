@@ -51,18 +51,18 @@ export default function AppCard({
               alt={app?.name}
             />
           </Link>
-          <div className="pe-3 flex flex-col">
+          <div className="flex flex-col pe-3">
             <div className="text-emphasis">
               <span className={classNames(app?.isInstalled && "text-base", "font-semibold leading-4")}>
                 {app?.name}
               </span>
               {!app?.isInstalled && (
-                <span className="bg-emphasis ml-1 rounded py-0.5 px-1 text-xs font-medium leading-3 tracking-[0.01em]">
+                <span className="bg-emphasis ml-1 rounded px-1 py-0.5 text-xs font-medium leading-3 tracking-[0.01em]">
                   {app?.categories[0].charAt(0).toUpperCase() + app?.categories[0].slice(1)}
                 </span>
               )}
             </div>
-            <p title={app?.description} className="line-clamp-1 text-default pt-1 text-sm font-normal">
+            <p title={app?.description} className="text-default line-clamp-1 pt-1 text-sm font-normal">
               {description || app?.description}
             </p>
           </div>
