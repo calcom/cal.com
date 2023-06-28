@@ -1,3 +1,4 @@
+import type { PaginationState } from "@tanstack/react-table";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { create } from "zustand";
@@ -17,6 +18,8 @@ type Store = {
   setCurrentTeam: (team: RouterOutputs["viewer"]["organizations"]["listMembers"]) => void;
   permissions: Permissions;
   setPermissions: (permissions: Permissions) => void;
+  pagination: PaginationState;
+  setPagination: (pagination: PaginationState) => void;
 };
 
 export const useOrgMemberStore = create<Store>((set, get) => ({
@@ -39,6 +42,11 @@ export const useOrgMemberStore = create<Store>((set, get) => ({
     isAdminOrOwner: false,
   },
   setPermissions: (permissions) => set({ permissions }),
+  pagination: {
+    pageIndex: 0,
+    pageSize: 10,
+  },
+  setPagination: (pagination) => set({ pagination }),
 }));
 
 export const useInitializeOrgMemberStore = () => {
@@ -58,5 +66,5 @@ export const useInitializeOrgMemberStore = () => {
 
   useEffect(() => {
     setIsloading(isLoading);
-  }, [isLoading]);
+  }, [isLoading, setIsloading]);
 };

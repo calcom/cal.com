@@ -11,7 +11,6 @@ import {
   useOrgMemberStore,
 } from "@calcom/features/users/components/UserTable/store";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Meta, showToast } from "@calcom/ui";
@@ -68,6 +67,7 @@ const MembersView = () => {
   const { t, i18n } = useLocale();
   useInitializeOrgMemberStore();
   const [team, isLoading] = useOrgMemberStore((state) => [state.currentTeam, state.isLoading], shallow);
+  const membershipPermissions = useOrgMemberStore((state) => state.permissions);
 
   const router = useRouter();
   const utils = trpc.useContext();
@@ -103,16 +103,13 @@ const MembersView = () => {
 
   const isInviteOpen = !team?.membership.accepted;
 
-  const isAdminOrOwner =
-    team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
-
   return (
     <>
       <Meta
         title={t("organization_members")}
         description={t("organization_description")}
         CTA={
-          isAdminOrOwner ? (
+          membershipPermissions.isAdminOrOwner ? (
             <Button
               type="button"
               color="primary"
@@ -149,7 +146,6 @@ const MembersView = () => {
               </>
             )}
             <UserListTable
-              currentTeam={team}
               users={[
                 {
                   id: "1",

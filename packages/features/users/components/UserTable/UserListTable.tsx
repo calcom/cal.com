@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
 import { useMemo } from "react";
+import { shallow } from "zustand/shallow";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -8,6 +9,7 @@ import { trpc, type RouterOutputs } from "@calcom/trpc";
 import { Avatar, Badge, Checkbox, DataTable, showToast } from "@calcom/ui";
 
 import { useOrgBrandingValues } from "../../../ee/organizations/hooks";
+import { useOrgMemberStore } from "./store";
 
 interface User {
   id: string;
@@ -18,14 +20,12 @@ interface User {
     id: string;
     name: string;
     slug: string;
-    role: MembershipRole;
   }[];
   timezone?: string;
 }
 
 interface UserListTableProps {
   users: User[];
-  currentTeam: RouterOutputs["viewer"]["organizations"]["listMembers"] | undefined;
 }
 
 function TableActions({
@@ -40,10 +40,7 @@ function TableActions({
   const { t } = useLocale();
   const { data: session } = useSession();
   const utils = trpc.useContext();
-  const isAdminOrOwner =
-    currentTeam &&
-    (currentTeam.membership.role === MembershipRole.OWNER ||
-      currentTeam.membership.role === MembershipRole.ADMIN);
+  const membershipPermissions = useOrgMemberStore((state) => state.permissions);
 
   const ownersInTeam = () => {
     const owners = currentTeam?.members.filter(
@@ -178,9 +175,15 @@ function TableActions({
   // );
 }
 
-export function UserListTable({ users, currentTeam }: UserListTableProps) {
-  const { data, status } = useSession();
+export function UserListTable({ users }: UserListTableProps) {
+  const { data } = useSession();
+  const currentTeam = useOrgMemberStore((state) => state.currentTeam);
   const orgValues = useOrgBrandingValues();
+
+  const [pagination, setPagination] = useOrgMemberStore(
+    (state) => [state.pagination, state.setPagination],
+    shallow
+  );
 
   const orgSlug = orgValues?.slug || "error";
 
@@ -285,12 +288,14 @@ export function UserListTable({ users, currentTeam }: UserListTableProps) {
     ];
 
     return cols;
-  }, [currentTeam, status, orgSlug]);
+  }, [currentTeam, orgSlug]);
 
   if (!data?.user) return null;
 
   return (
     <DataTable
+      pagination={pagination}
+      setPagination={setPagination}
       columns={memorisedColumns}
       data={users}
       filterableItems={[

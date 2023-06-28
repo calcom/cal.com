@@ -141,7 +141,7 @@ export const viewerOrganizationsRouter = router({
       input,
     });
   }),
-  listMembers: authedProcedure.query(async ({ ctx }) => {
+  listMembers: authedProcedure.input(ZListMembersSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.listMembers) {
       UNSTABLE_HANDLER_CACHE.listMembers = await import("./listMembers.handler").then(
         (mod) => mod.listMembersHandler
@@ -155,6 +155,7 @@ export const viewerOrganizationsRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.listMembers({
       ctx,
+      input,
     });
   }),
   getBrand: authedProcedure.query(async ({ ctx }) => {

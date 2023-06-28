@@ -1,13 +1,18 @@
 "use client";
 
-import type { ColumnDef, ColumnFiltersState, SortingState, VisibilityState } from "@tanstack/react-table";
+import type {
+  ColumnDef,
+  ColumnFiltersState,
+  PaginationState,
+  SortingState,
+  VisibilityState,
+} from "@tanstack/react-table";
 import {
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
   getFacetedUniqueValues,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
@@ -32,7 +37,8 @@ export interface DataTableProps<TData, TValue> {
     icon?: SVGComponent;
   }[];
   tableCTA?: React.ReactNode;
-  // todo: get all accessoryKeys from columns
+  pagination: PaginationState;
+  setPagination: (pagination: PaginationState) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -41,6 +47,7 @@ export function DataTable<TData, TValue>({
   filterableItems,
   tableCTA,
   searchKey,
+  pagination,
   selectionOptions,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
@@ -56,15 +63,17 @@ export function DataTable<TData, TValue>({
       columnVisibility,
       rowSelection,
       columnFilters,
+      pagination,
     },
     enableRowSelection: true,
+    debugTable: true,
+    manualPagination: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
