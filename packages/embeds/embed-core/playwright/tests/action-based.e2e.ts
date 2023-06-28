@@ -126,7 +126,7 @@ testBothBookers.describe("Popup Tests", (bookerVariant) => {
       throw new Error("Embed iframe not found");
     }
 
-    const { uid: bookingId } = await bookFirstEvent("pro", embedIframe, page);
+    const { uid: bookingId } = await bookFirstEvent("pro", embedIframe, page, bookerVariant);
     const booking = await getBooking(bookingId);
 
     expect(booking.attendees.length).toBe(3);
