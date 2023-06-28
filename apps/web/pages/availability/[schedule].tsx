@@ -192,7 +192,7 @@ export default function Availability() {
             <Skeleton
               as={Label}
               htmlFor="hiddenSwitch"
-              className="pe-2 mt-2 cursor-pointer self-center"
+              className="mt-2 cursor-pointer self-center pe-2"
               loadingClassName="me-4">
               {t("set_to_default")}
             </Skeleton>
