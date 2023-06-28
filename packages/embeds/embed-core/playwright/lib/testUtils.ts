@@ -86,7 +86,7 @@ export const getEmbedIframe = async ({
   return null;
 };
 
-async function selectFirstAvailableTimeSlotNextMonth(frame: Frame, page: Page, n: number) {
+async function selectFirstAvailableTimeSlotNextMonth(frame: Frame, page: Page) {
   await frame.click('[data-testid="incrementMonth"]');
 
   // @TODO: Find a better way to make test wait for full month change render to end
@@ -97,11 +97,11 @@ async function selectFirstAvailableTimeSlotNextMonth(frame: Frame, page: Page, n
   await frame.waitForTimeout(1000);
   // expect(await page.screenshot()).toMatchSnapshot("availability-page-2.png");
   // TODO: Find out why the first day is always booked on tests
-  await frame.locator('[data-testid="day"][data-disabled="false"]').nth(n).click();
+  await frame.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
   await frame.click('[data-testid="time"]');
 }
 
-export async function bookNthEvent(username: string, frame: Frame, page: Page, n: number) {
+export async function bookFirstEvent(username: string, frame: Frame, page: Page) {
   // Click first event type on Profile Page
   await frame.click('[data-testid="event-type-link"]');
   await frame.waitForURL((url) => {
@@ -124,7 +124,7 @@ export async function bookNthEvent(username: string, frame: Frame, page: Page, n
   // expect(await page.screenshot()).toMatchSnapshot("availability-page-1.png");
   // Remove /embed from the end if present.
   const eventSlug = new URL(frame.url()).pathname.replace(/\/embed$/, "");
-  await selectFirstAvailableTimeSlotNextMonth(frame, page, n);
+  await selectFirstAvailableTimeSlotNextMonth(frame, page);
   await frame.waitForURL((url) => {
     return url.pathname.includes(`/${username}/book`);
   });
@@ -151,7 +151,7 @@ export async function bookNthEvent(username: string, frame: Frame, page: Page, n
 }
 
 export async function rescheduleEvent(username: string, frame: Frame, page: Page) {
-  await selectFirstAvailableTimeSlotNextMonth(frame, page, 1);
+  await selectFirstAvailableTimeSlotNextMonth(frame, page);
   await frame.waitForURL((url: { pathname: string | string[] }) => {
     return url.pathname.includes(`/${username}/book`);
   });

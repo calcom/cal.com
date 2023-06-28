@@ -8,7 +8,6 @@ const callback = function (e) {
 
 const searchParams = new URL(document.URL).searchParams;
 const only = searchParams.get("only");
-const theme = searchParams.get("theme");
 
 if (only === "all" || only === "ns:default") {
   Cal("init", {
@@ -341,7 +340,7 @@ if (only === "all" || only == "ns:floatingButton") {
       email: "johndoe@gmail.com",
       notes: "Test Meeting",
       guests: ["janedoe@example.com", "test@example.com"],
-      theme: (theme as "dark" | "light") || "dark",
+      theme: "dark",
     },
   });
 }

@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 
 import { test } from "@calcom/web/playwright/lib/fixtures";
 
-import { bookNthEvent, getEmbedIframe, todo } from "../lib/testUtils";
+import { bookFirstEvent, getEmbedIframe, todo } from "../lib/testUtils";
 
 test("Inline Iframe - Configured with Dark Theme", async ({
   page,
@@ -23,7 +23,7 @@ test("Inline Iframe - Configured with Dark Theme", async ({
   if (!embedIframe) {
     throw new Error("Embed iframe not found");
   }
-  await bookNthEvent("pro", embedIframe, page, 3);
+  await bookFirstEvent("pro", embedIframe, page);
 });
 
 todo(
