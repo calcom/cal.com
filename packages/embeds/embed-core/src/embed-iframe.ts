@@ -44,7 +44,6 @@ const embedStore = {
    * We maintain a list of all setUiConfig setters that are in use at the moment so that we can update all those components.
    */
   setUiConfig: [] as ((arg0: UiConfig) => void)[],
-  layout: BookerLayouts,
 };
 
 declare global {

@@ -21,7 +21,7 @@
     "embed-tests-update-snapshots:ci": "yarn embed-tests-quick --update-snapshots",
     "packaged:tests": "cd test/packaged && yarn tsc --noEmit && yarn run -T test -- --packaged-embed-tests-only",
     "withEmbedPublishEnv": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn",
-    "prepack": "yarn withEmbedPublishEnv build && yarn packaged:tests",
+    "prepack": "yarn ../../../ lint --filter='@calcom/embed-react' && yarn withEmbedPublishEnv build && yarn packaged:tests",
     "embed-web-start": "yarn workspace @calcom/web start",
     "embed-dev": "yarn workspace @calcom/embed-react dev",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"

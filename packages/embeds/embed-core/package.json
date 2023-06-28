@@ -30,7 +30,7 @@
     "embed-tests-quick": "QUICK=true yarn embed-tests",
     "embed-tests-update-snapshots:ci": "yarn embed-tests-quick --update-snapshots",
     "withEmbedPublishEnv": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn",
-    "prepack": "yarn withEmbedPublishEnv build",
+    "prepack": "yarn ../../../ lint --filter='@calcom/embed-core' && yarn withEmbedPublishEnv build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf ../../../apps/web/public/embed"
   },
   "files": [
