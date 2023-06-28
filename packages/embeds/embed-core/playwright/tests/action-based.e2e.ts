@@ -153,7 +153,7 @@ testBothBookers.describe("Popup Tests", (bookerVariant) => {
     }
 
     const html = embedIframe.locator("html");
-    await expect(html).toHaveAttribute("class", "light");
+    await expect(html).toHaveAttribute("class", "dark");
   });
 
   todo("Add snapshot test for embed iframe");
