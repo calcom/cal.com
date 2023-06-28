@@ -825,7 +825,6 @@
   "free_to_use_apps": "免费",
   "no_category_apps": "无{{category}}应用",
   "no_category_apps_description_calendar": "添加日历应用以检查冲突，防止重复预约",
-  "no_category_apps_description_conferencing": "尝试添加会议应用以整合与客户的视频通话",
   "no_category_apps_description_payment": "添加支付应用以简化您和客户之间的交易",
   "no_category_apps_description_analytics": "为您的预约页面添加分析应用",
   "no_category_apps_description_automation": "添加要使用的自动化应用",

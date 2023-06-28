@@ -812,7 +812,6 @@
   "free_to_use_apps": "無料",
   "no_category_apps": "{{category}} アプリはありません",
   "no_category_apps_description_calendar": "ダブルブッキングを防ぐために、スケジュールの重複をチェックするカレンダーアプリを追加しましょう",
-  "no_category_apps_description_conferencing": "会議アプリを追加して、顧客とのビデオ通話を統合しましょう",
   "no_category_apps_description_payment": "決済アプリを追加して、顧客との取引を容易にしましょう",
   "no_category_apps_description_analytics": "予約ページに分析アプリを追加する",
   "no_category_apps_description_automation": "使用する自動化アプリを追加する",

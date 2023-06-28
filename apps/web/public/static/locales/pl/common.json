@@ -812,7 +812,6 @@
   "free_to_use_apps": "Darmowe",
   "no_category_apps": "Brak aplikacji z kategorii {{category}}",
   "no_category_apps_description_calendar": "Dodaj aplikację kalendarza, aby wykrywać konflikty i unikać podwójnych rezerwacji",
-  "no_category_apps_description_conferencing": "Dodaj aplikację konferencyjną, aby uzyskać możliwość nawiązywania połączeń wideo z klientami.",
   "no_category_apps_description_payment": "Dodaj aplikację płatniczą, aby ułatwić transakcje z klientami.",
   "no_category_apps_description_analytics": "Dodaj aplikację analityczną do stron rezerwacji",
   "no_category_apps_description_automation": "Dodaj aplikację automatyzującą, która ma być używana",

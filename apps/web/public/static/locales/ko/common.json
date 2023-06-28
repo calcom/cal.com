@@ -813,7 +813,6 @@
   "free_to_use_apps": "무료",
   "no_category_apps": "{{category}} 앱 없음",
   "no_category_apps_description_calendar": "중복 예약을 방지하기 위해 충돌을 확인하려는 캘린더 앱을 추가합니다",
-  "no_category_apps_description_conferencing": "고객과 화상 통화를 통합하려면 회의 앱을 추가해 보세요",
   "no_category_apps_description_payment": "귀하와 귀하 고객 간의 거래를 용이하게 하는 결제 앱을 추가합니다",
   "no_category_apps_description_analytics": "예약 페이지에 대한 분석 앱 추가",
   "no_category_apps_description_automation": "사용할 자동화 앱 추가",

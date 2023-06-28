@@ -614,10 +614,12 @@ enum AppCategories {
   messaging
   other
   payment
-  video
-  web3
+  video // deprecated, please use 'conferencing' instead
+  web3 // deprecated, we should no longer have any web3 apps
   automation
   analytics
+  conferencing
+  crm
 }
 
 model App {
