@@ -24,7 +24,7 @@ export const SuccessToast = ({ message, toastVisible, onClose }: IToast) => (
 );
 
 export const ErrorToast = ({ message, toastVisible, onClose }: IToast) => (
-  <div
+  <button
     className={classNames(
       "animate-fade-in-up bg-error text-error mb-2 flex h-auto items-center space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
@@ -34,7 +34,7 @@ export const ErrorToast = ({ message, toastVisible, onClose }: IToast) => (
       <Info className="h-4 w-4" />
     </span>
     <p data-testid="toast-error">{message}</p>
-  </div>
+  </button>
 );
 
 export const WarningToast = ({ message, toastVisible, onClose }: IToast) => (
