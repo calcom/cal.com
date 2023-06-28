@@ -239,10 +239,17 @@ export default class ZohoCalendarService implements Calendar {
       if (!selectedCalendars[0]) return [];
 
       const userInfo = await this.getUserInfo();
+      let startDate = dayjs(dateFrom);
+      const endDate = dayjs(dateTo);
+      const diff = endDate.diff(startDate, "days");
 
+      if (diff > 30) {
+        this.log.error("Zoho only supports 31 days of freebusy data");
+        startDate = endDate.subtract(31, "days");
+      }
       const query = stringify({
-        sdate: dayjs(dateFrom).format("YYYYMMDD[T]HHmmss[Z]"),
-        edate: dayjs(dateTo).format("YYYYMMDD[T]HHmmss[Z]"),
+        sdate: startDate.format("YYYYMMDD[T]HHmmss[Z]"),
+        edate: endDate.format("YYYYMMDD[T]HHmmss[Z]"),
         ftype: "eventbased",
         uemail: userInfo.Email,
       });
@@ -329,8 +336,8 @@ export default class ZohoCalendarService implements Calendar {
       title: event.title,
       description: getRichDescription(event),
       dateandtime: {
-        start: dayjs.tz(event.startTime, event.organizer.timeZone).format("YYYYMMDDTHHmmssZZ"),
-        end: dayjs.tz(event.endTime, event.organizer.timeZone).format("YYYYMMDDTHHmmssZZ"),
+        start: dayjs(event.startTime).format("YYYYMMDDTHHmmssZZ"),
+        end: dayjs(event.endTime).format("YYYYMMDDTHHmmssZZ"),
         timezone: event.organizer.timeZone,
       },
       attendees: event.attendees.map((attendee) => ({ email: attendee.email })),

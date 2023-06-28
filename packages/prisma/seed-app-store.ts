@@ -303,6 +303,10 @@ export default async function main() {
       client_id: process.env.ZOHOCRM_CLIENT_ID,
       client_secret: process.env.ZOHOCRM_CLIENT_SECRET,
     });
+    await createApp("zohocalendar", "zohocalendar", ["calendar"], "zohocalendar_calendar", {
+      client_id: process.env.ZOHOCRM_CLIENT_ID,
+      client_secret: process.env.ZOHOCRM_CLIENT_SECRET,
+    });
   }
   await createApp("wipe-my-cal", "wipemycalother", ["other"], "wipemycal_other");
   if (process.env.GIPHY_API_KEY) {

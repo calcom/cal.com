@@ -207,6 +207,7 @@ export const getBusyCalendarTimes = async (
     // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
     const startDate = dayjs(dateFrom).subtract(11, "hours").format();
     // Add 14 hours from the start date to avoid problems in UTC+ time zones.
+    // NOTE: some APIs restrict to 31 days for fetch availability e.g. zoho calendar
     const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
     results = await getCalendarsEvents(withCredentials, startDate, endDate, selectedCalendars);
   } catch (e) {
