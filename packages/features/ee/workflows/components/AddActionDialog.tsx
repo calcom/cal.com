@@ -107,10 +107,6 @@ export const AddActionDialog = (props: IAddActionDialog) => {
         setIsSenderIdNeeded(false);
         setIsPhoneNumberNeeded(true);
         setIsEmailAddressNeeded(false);
-      } else if (newValue.value === WorkflowActions.WHATSAPP_ATTENDEE) {
-        setIsSenderIdNeeded(false);
-        setIsEmailAddressNeeded(false);
-        setIsPhoneNumberNeeded(false);
       } else {
         setIsSenderIdNeeded(false);
         setIsEmailAddressNeeded(false);

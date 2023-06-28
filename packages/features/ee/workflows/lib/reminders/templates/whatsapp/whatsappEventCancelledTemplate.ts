@@ -26,7 +26,7 @@ export const whatsappEventCancelledTemplate = (
 
   const templateOne = `Hi${
     name ? ` ${name}` : ``
-  }, your meeting (*${eventName}*) with ${attendee} on ${eventDate} at ${startTime} ${timeZone} has been cancelled.`
+  }, your meeting (*${eventName}*) with ${attendee} on ${eventDate} at ${startTime} ${timeZone} has been canceled.`
   
   //Twilio supports up to 1024 characters for whatsapp template messages
   if (templateOne.length <= 1024) return templateOne;
