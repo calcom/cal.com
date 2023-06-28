@@ -6,6 +6,11 @@
 -- the enum.
 
 
+ALTER TYPE "WorkflowActions" ADD VALUE 'WHATSAPP_ATTENDEE';
+ALTER TYPE "WorkflowActions" ADD VALUE 'WHATSAPP_NUMBER';
+
+ALTER TYPE "WorkflowMethods" ADD VALUE 'WHATSAPP';
+
 ALTER TYPE "WorkflowTemplates" ADD VALUE 'CANCELLED';
 ALTER TYPE "WorkflowTemplates" ADD VALUE 'RESCHEDULED';
 ALTER TYPE "WorkflowTemplates" ADD VALUE 'COMPLETED';
