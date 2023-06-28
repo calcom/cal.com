@@ -2,7 +2,13 @@
 import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
-import type { InterfaceWithParent, interfaceWithParent, UiConfig, EmbedThemeConfig } from "./embed-iframe";
+import type {
+  InterfaceWithParent,
+  interfaceWithParent,
+  UiConfig,
+  EmbedThemeConfig,
+  BookerLayouts,
+} from "./embed-iframe";
 import css from "./embed.css";
 import type { EventData, EventDataMap } from "./sdk-action-manager";
 import { SdkActionManager } from "./sdk-action-manager";
@@ -15,8 +21,6 @@ export type Message = {
   method: keyof InterfaceWithParent;
   arg: InterfaceWithParent[keyof InterfaceWithParent];
 };
-type BookerLayouts = "month_view" | "week_view" | "column_view";
-
 // HACK: Redefine and don't import WEBAPP_URL as it causes import statement to be present in built file.
 // This is happening because we are not able to generate an App and a lib using single Vite Config.
 const WEBAPP_URL =
