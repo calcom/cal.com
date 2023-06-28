@@ -1,16 +1,27 @@
 import logger from "@calcom/lib/logger";
-import type { Calendar } from "@calcom/types/Calendar";
+import type { Calendar, CalendarClass } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import appStore from "..";
 
 interface CalendarApp {
-  lib?: {
-    CalendarService: any;
+  lib: {
+    CalendarService: CalendarClass;
   };
 }
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
+
+/**
+ * @see [Using type predicates](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates)
+ */
+const isCalendarService = (x: unknown): x is CalendarApp =>
+  !!x &&
+  typeof x === "object" &&
+  "lib" in x &&
+  typeof x.lib === "object" &&
+  !!x.lib &&
+  "CalendarService" in x.lib;
 
 export const getCalendar = async (credential: CredentialPayload | null): Promise<Calendar | null> => {
   if (!credential || !credential.key) return null;
@@ -25,9 +36,9 @@ export const getCalendar = async (credential: CredentialPayload | null): Promise
     return null;
   }
 
-  const calendarApp = (await calendarAppImportFn()) as CalendarApp;
+  const calendarApp = await calendarAppImportFn();
 
-  if (!calendarApp.lib?.CalendarService) {
+  if (!isCalendarService(calendarApp)) {
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
