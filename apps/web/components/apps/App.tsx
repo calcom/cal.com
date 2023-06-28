@@ -85,7 +85,7 @@ const Component = ({
   return (
     <div className="relative flex-1 flex-col items-start justify-start px-4 md:flex md:px-8 lg:flex-row lg:px-0">
       {hasDescriptionItems && (
-        <div className="align-center bg-subtle mb-4 -ml-4 -mr-4 flex min-h-[450px] w-auto basis-3/5 snap-x snap-mandatory flex-row overflow-auto whitespace-nowrap p-4  md:mb-8 md:-ml-8 md:-mr-8 md:p-8 lg:mx-0 lg:mb-0 lg:max-w-2xl lg:flex-col lg:justify-center lg:rounded-md">
+        <div className="align-center bg-subtle -ml-4 -mr-4 mb-4 flex min-h-[450px] w-auto basis-3/5 snap-x snap-mandatory flex-row overflow-auto whitespace-nowrap p-4  md:-ml-8 md:-mr-8 md:mb-8 md:p-8 lg:mx-0 lg:mb-0 lg:max-w-2xl lg:flex-col lg:justify-center lg:rounded-md">
           {descriptionItems ? (
             descriptionItems.map((descriptionItem, index) =>
               typeof descriptionItem === "object" ? (
@@ -260,7 +260,7 @@ const Component = ({
           )}
         </span>
 
-        <h4 className="text-emphasis mt-8 mb-2 font-semibold ">{t("contact")}</h4>
+        <h4 className="text-emphasis mb-2 mt-8 font-semibold ">{t("contact")}</h4>
         <ul className="prose-sm -ml-1 -mr-1 leading-5">
           {docs && (
             <li>
@@ -269,7 +269,7 @@ const Component = ({
                 rel="noreferrer"
                 className="text-emphasis text-sm font-normal no-underline hover:underline"
                 href={docs}>
-                <BookOpen className="text-subtle mr-1 -mt-1 inline h-4 w-4" />
+                <BookOpen className="text-subtle -mt-1 mr-1 inline h-4 w-4" />
                 {t("documentation")}
               </a>
             </li>
@@ -281,7 +281,7 @@ const Component = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={website}>
-                <ExternalLink className="text-subtle mr-1 -mt-px inline h-4 w-4" />
+                <ExternalLink className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {website.replace("https://", "")}
               </a>
             </li>
@@ -293,7 +293,7 @@ const Component = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={"mailto:" + email}>
-                <Mail className="text-subtle mr-1 -mt-px inline h-4 w-4" />
+                <Mail className="text-subtle -mt-px mr-1 inline h-4 w-4" />
 
                 {email}
               </a>
@@ -306,7 +306,7 @@ const Component = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={tos}>
-                <File className="text-subtle mr-1 -mt-px inline h-4 w-4" />
+                <File className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {t("terms_of_service")}
               </a>
             </li>
@@ -318,7 +318,7 @@ const Component = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={privacy}>
-                <Shield className="text-subtle mr-1 -mt-px inline h-4 w-4" />
+                <Shield className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {t("privacy_policy")}
               </a>
             </li>

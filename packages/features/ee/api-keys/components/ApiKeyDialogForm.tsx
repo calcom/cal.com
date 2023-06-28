@@ -107,11 +107,11 @@ export default function ApiKeyDialogForm({
             }
           }}
           className="space-y-4">
-          <div className="mt-1 mb-10">
+          <div className="mb-10 mt-1">
             <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
               {defaultValues ? t("edit_api_key") : t("create_api_key")}
             </h2>
-            <p className="text-subtle mt-1 mb-5 text-sm">{t("api_key_modal_subtitle")}</p>
+            <p className="text-subtle mb-5 mt-1 text-sm">{t("api_key_modal_subtitle")}</p>
           </div>
           <div>
             <Controller
