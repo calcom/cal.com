@@ -1,6 +1,6 @@
 export const slugify = (str: string, toLowerCase?: boolean) => {
   if (toLowerCase !== false) {
-    str = str.toLocaleLowerCase(); // Convert to lowercase
+    str = str.toLowerCase(); // Convert to lowercase
   }
 
   return str
