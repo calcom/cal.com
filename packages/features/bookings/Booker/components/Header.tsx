@@ -52,7 +52,7 @@ export function Header({
   }
 
   return (
-    <div className="border-subtle relative z-10 flex border-b border-l px-5 py-4">
+    <div className="border-default relative z-10 flex border-b border-l px-5 py-4">
       <div className="flex items-center gap-3">
         <h3 className="min-w-[150px] text-base font-semibold leading-4">
           {selectedDate.format("MMM D")}-{selectedDate.add(extraDays, "days").format("D")},{" "}
