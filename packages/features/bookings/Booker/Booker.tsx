@@ -50,7 +50,7 @@ const BookerComponent = ({
   const isEmbed = useIsEmbed();
   const embedType = useEmbedType();
   // Floating Button and Element Click both are modal and thus have dark background
-  const hasDarkBackground = embedType !== "inline";
+  const hasDarkBackground = isEmbed && embedType !== "inline";
   const embedUiConfig = useEmbedUiConfig();
 
   // In Embed we give preference to embed configuration for the layout.If that's not set, we use the App configuration for the event layout
