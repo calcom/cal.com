@@ -812,7 +812,6 @@
   "free_to_use_apps": "Gratuit",
   "no_category_apps": "Nicio aplicație {{category}}",
   "no_category_apps_description_calendar": "Adăugați o aplicație calendar pentru a verifica dacă există conflicte și a evita rezervările suprapuse",
-  "no_category_apps_description_conferencing": "Încercați să adăugați o aplicație de conferință pentru a integra apelul video cu clienții dvs.",
   "no_category_apps_description_payment": "Adăugați o aplicație de plată pentru a facilita tranzacția între dvs. și clienții dvs.",
   "no_category_apps_description_analytics": "Adăugați o aplicație de analiză pentru paginile dvs. de rezervări",
   "no_category_apps_description_automation": "Adăugați o aplicație de automatizare de utilizat",
@@ -1755,7 +1754,7 @@
   "add_an_override": "Adaugați o suprascriere",
   "import_from_google_workspace": "Import utilizatori din Google Workspace",
   "connect_google_workspace": "Conectare la Google Workspace",
-  "google_workspace_admin_tooltip": "Trebuie să fiți administrator Google Workspace pentru a putea utiliza această funcție",
+  "google_workspace_admin_tooltip": "Trebuie să fiți administrator Workspace pentru a putea utiliza această funcție",
   "first_event_type_webhook_description": "Creați primul dvs. webhook pentru acest tip de eveniment",
   "create_for": "Creare pentru",
   "organization_url_taken": "Acest URL este folosit deja"

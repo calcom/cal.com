@@ -3,7 +3,7 @@ import type { UseMutationResult } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import type { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -23,8 +23,10 @@ import getBookingResponsesSchema, {
   getBookingResponsesPartialSchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { bookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
+import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import { trpc } from "@calcom/trpc";
 import { Form, Button, Alert, EmptyScreen } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
@@ -38,6 +40,12 @@ type BookEventFormProps = {
 };
 
 export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
+  const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
+    trpc: { context: { skipBatch: true } },
+  });
+  const releaseSlotMutation = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation({
+    trpc: { context: { skipBatch: true } },
+  });
   const router = useRouter();
   const { t, i18n } = useLocale();
   const { timezone } = useTimePreferences();
@@ -54,6 +62,30 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const isRescheduling = !!rescheduleUid && !!rescheduleBooking;
   const event = useEvent();
   const eventType = event.data;
+
+  const reserveSlot = () => {
+    if (eventType) {
+      reserveSlotMutation.mutate({
+        slotUtcStartDate: dayjs(timeslot).utc().format(),
+        eventTypeId: eventType.id,
+        slotUtcEndDate: dayjs(timeslot)
+          .utc()
+          .add(duration || eventType.length, "minutes")
+          .format(),
+      });
+    }
+  };
+  useEffect(() => {
+    reserveSlot();
+    const interval = setInterval(reserveSlot, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
+    return () => {
+      if (eventType) {
+        releaseSlotMutation.mutate();
+        clearInterval(interval);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventType]);
 
   const defaultValues = useMemo(() => {
     if (Object.keys(formValues).length) return formValues;

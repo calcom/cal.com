@@ -863,7 +863,6 @@
   "free_to_use_apps": "Gratuit",
   "no_category_apps": "Aucune application {{category}}",
   "no_category_apps_description_calendar": "Ajoutez une application de calendrier pour vérifier les conflits et éviter les doubles réservations.",
-  "no_category_apps_description_conferencing": "Essayez d'ajouter une application de visioconférence pour intégrer les appels vidéo avec vos clients.",
   "no_category_apps_description_payment": "Ajoutez une application de paiement pour faciliter les transactions entre vous et vos clients.",
   "no_category_apps_description_analytics": "Ajoutez une application d'analyse pour vos pages de réservation.",
   "no_category_apps_description_automation": "Ajoutez une application d'automatisation.",
