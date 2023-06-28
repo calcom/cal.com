@@ -1755,7 +1755,7 @@
   "add_an_override": "Adaugați o suprascriere",
   "import_from_google_workspace": "Import utilizatori din Google Workspace",
   "connect_google_workspace": "Conectare la Google Workspace",
-  "google_workspace_admin_tooltip": "Trebuie să fiți administrator Google Workspace pentru a putea utiliza această funcție",
+  "google_workspace_admin_tooltip": "Trebuie să fiți administrator Workspace pentru a putea utiliza această funcție",
   "first_event_type_webhook_description": "Creați primul dvs. webhook pentru acest tip de eveniment",
   "create_for": "Creare pentru",
   "organization_url_taken": "Acest URL este folosit deja"

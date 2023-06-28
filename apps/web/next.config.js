@@ -5,6 +5,7 @@ const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
 const { i18n } = require("./next-i18next.config");
 const { pages } = require("./pages");
+const { getSubdomainRegExp } = require("./getSubdomainRegExp");
 
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
@@ -70,14 +71,6 @@ const informAboutDuplicateTranslations = () => {
 };
 
 informAboutDuplicateTranslations();
-
-const getSubdomain = () => {
-  const _url = new URL(process.env.NEXT_PUBLIC_WEBAPP_URL);
-  const regex = new RegExp(/^([a-z]+\:\/{2})?((?<subdomain>[\w-]+)\.[\w-]+\.\w+)$/);
-  //console.log(_url.hostname, _url.hostname.match(regex));
-  return _url.hostname.match(regex)?.groups?.subdomain || null;
-};
-
 const plugins = [];
 if (process.env.ANALYZE === "true") {
   // only load dependency if env `ANALYZE` was set
@@ -102,6 +95,39 @@ const teamTypeRouteRegExp = "/team/:slug/:type((?!book$)[^/]+)";
 const privateLinkRouteRegExp = "/d/:link/:slug((?!book$)[^/]+)";
 const embedUserTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type/embed`;
 const embedTeamTypeRouteRegExp = "/team/:slug/:type/embed";
+const subdomainRegExp = getSubdomainRegExp(process.env.NEXT_PUBLIC_WEBAPP_URL);
+// Important Note: Do update the RegExp in apps/web/test/lib/next-config.test.ts when changing it.
+const orgHostRegExp = `^(?<orgSlug>${subdomainRegExp})\\..*`;
+
+const matcherConfigRootPath = {
+  has: [
+    {
+      type: "host",
+      value: orgHostRegExp,
+    },
+  ],
+  source: "/",
+};
+
+const matcherConfigOrgMemberPath = {
+  has: [
+    {
+      type: "host",
+      value: orgHostRegExp,
+    },
+  ],
+  source: `/:user((?!${pages.join("|")}|_next|public)[a-zA-Z0-9\-_]+)`,
+};
+
+const matcherConfigUserPath = {
+  has: [
+    {
+      type: "host",
+      value: `^(?<orgSlug>${subdomainRegExp}[^.]+)\\..*`,
+    },
+  ],
+  source: `/:user((?!${pages.join("|")}|_next|public))/:path*`,
+};
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
@@ -193,40 +219,23 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    const defaultSubdomain = getSubdomain();
-    const subdomain = defaultSubdomain ? `(?!${defaultSubdomain})[^.]+` : "[^.]+";
-
     const beforeFiles = [
-      {
-        has: [
-          {
-            type: "host",
-            value: `^(?<orgSlug>${subdomain})\\..*`,
-          },
-        ],
-        source: "/",
-        destination: "/team/:orgSlug",
-      },
-      {
-        has: [
-          {
-            type: "host",
-            value: `^(?<orgSlug>${subdomain})\\..*`,
-          },
-        ],
-        source: `/:user((?!${pages.join("|")}|_next|public)[a-zA-Z0-9\-_]+)`,
-        destination: "/org/:orgSlug/:user",
-      },
-      {
-        has: [
-          {
-            type: "host",
-            value: `^(?<orgSlug>${subdomain}[^.]+)\\..*`,
-          },
-        ],
-        source: `/:user((?!${pages.join("|")}|_next|public))/:path*`,
-        destination: "/:user/:path*",
-      },
+      ...(process.env.ORGANIZATIONS_ENABLED
+        ? [
+            {
+              ...matcherConfigRootPath,
+              destination: "/team/:orgSlug",
+            },
+            {
+              ...matcherConfigOrgMemberPath,
+              destination: "/org/:orgSlug/:user",
+            },
+            {
+              ...matcherConfigUserPath,
+              destination: "/:user/:path*",
+            },
+          ]
+        : []),
     ];
 
     let afterFiles = [
@@ -381,6 +390,35 @@ const nextConfig = {
           },
         ],
       },
+      ...[
+        {
+          ...matcherConfigRootPath,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/team/:orgSlug",
+            },
+          ],
+        },
+        {
+          ...matcherConfigOrgMemberPath,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/org/:orgSlug/:user",
+            },
+          ],
+        },
+        {
+          ...matcherConfigUserPath,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/:user/:path",
+            },
+          ],
+        },
+      ],
     ];
   },
   async redirects() {

@@ -255,7 +255,7 @@ function getNamespace() {
     return embedStore.namespace;
   }
   if (isBrowser) {
-    const namespace = window?.getEmbedNamespace?.() || null;
+    const namespace = window?.getEmbedNamespace?.() ?? null;
     embedStore.namespace = namespace;
     return namespace;
   }
