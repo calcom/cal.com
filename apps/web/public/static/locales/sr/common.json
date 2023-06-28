@@ -836,7 +836,6 @@
   "free_to_use_apps": "Besplatno",
   "no_category_apps": "Nema {{category}} aplikacija",
   "no_category_apps_description_calendar": "Dodajte kalendar aplikaciju da biste proverili da li postoje konflikti i time sprečili dvostruka zakazivanja",
-  "no_category_apps_description_conferencing": "Pokušajte da dodate aplikaciju za konferenciju da biste integrisali video poziv sa svojim klijentima",
   "no_category_apps_description_payment": "Dodajte aplikaciju za plaćanje da biste olakšali transakcije između vas i klijenata",
   "no_category_apps_description_analytics": "Dodajte analitičku aplikaciju za vaše stranice za rezervacije",
   "no_category_apps_description_automation": "Dodajte aplikaciju za automatizaciju za korišćenje",

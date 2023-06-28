@@ -812,7 +812,6 @@
   "free_to_use_apps": "免費",
   "no_category_apps": "沒有{{category}}應用程式",
   "no_category_apps_description_calendar": "新增行事曆應用程式來檢查衝突，以避免重複預約",
-  "no_category_apps_description_conferencing": "嘗試新增會議應用程式，以整合與客戶的視訊通話",
   "no_category_apps_description_payment": "新增付款應用程式，簡化您和您客戶之間的交易",
   "no_category_apps_description_analytics": "為您的預約頁面加入分析應用程式",
   "no_category_apps_description_automation": "加入自動化應用程式來使用",
