@@ -292,7 +292,7 @@ const AdminAppsListContainer = () => {
 
   if (isLoading) return <SkeletonLoader />;
 
-  if (!apps) {
+  if (!apps || apps.length === 0) {
     return (
       <EmptyScreen
         Icon={AlertCircle}

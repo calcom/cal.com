@@ -812,7 +812,6 @@
   "free_to_use_apps": "Бесплатные",
   "no_category_apps": "Нет приложений в категории «{{category}}»",
   "no_category_apps_description_calendar": "Добавьте приложение календаря, чтобы проверять наличие конфликтов для избежания двойного бронирования",
-  "no_category_apps_description_conferencing": "Попробуйте добавить приложение конференц-связи для интеграции видеозвонков с клиентами",
   "no_category_apps_description_payment": "Добавьте платежное приложение, чтобы упростить транзакции с клиентами",
   "no_category_apps_description_analytics": "Добавьте приложение аналитики для использования на страницах бронирования",
   "no_category_apps_description_automation": "Добавьте приложение для автоматизации",
