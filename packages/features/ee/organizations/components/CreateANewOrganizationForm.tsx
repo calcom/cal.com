@@ -141,13 +141,18 @@ export const CreateANewOrganizationForm = () => {
   const telemetry = useTelemetry();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const [showVerifyCode, setShowVerifyCode] = useState(false);
+  const { slug } = router.query;
 
   const newOrganizationFormMethods = useForm<{
     name: string;
     slug: string;
     adminEmail: string;
     adminUsername: string;
-  }>();
+  }>({
+    defaultValues: {
+      slug: `${slug}`,
+    },
+  });
   const watchAdminEmail = newOrganizationFormMethods.watch("adminEmail");
 
   const createOrganizationMutation = trpc.viewer.organizations.create.useMutation({
@@ -216,7 +221,9 @@ export const CreateANewOrganizationForm = () => {
                     const domain = extractDomainFromEmail(e?.target.value);
                     newOrganizationFormMethods.setValue("adminEmail", e?.target.value);
                     newOrganizationFormMethods.setValue("adminUsername", e?.target.value.split("@")[0]);
-                    newOrganizationFormMethods.setValue("slug", domain);
+                    if (newOrganizationFormMethods.getValues("slug") === "") {
+                      newOrganizationFormMethods.setValue("slug", domain);
+                    }
                     newOrganizationFormMethods.setValue(
                       "name",
                       domain.charAt(0).toUpperCase() + domain.slice(1)

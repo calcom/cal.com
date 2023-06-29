@@ -178,19 +178,19 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
             <WithStep step={SetupStep.ConfirmPassword} current={step}>
               <Button
                 type="submit"
-                className="ms-2 me-2"
+                className="me-2 ms-2"
                 onClick={handleSetup}
                 disabled={password.length === 0 || isSubmitting}>
                 {t("continue")}
               </Button>
             </WithStep>
             <WithStep step={SetupStep.DisplayQrCode} current={step}>
-              <Button type="submit" className="ms-2 me-2" onClick={() => setStep(SetupStep.EnterTotpCode)}>
+              <Button type="submit" className="me-2 ms-2" onClick={() => setStep(SetupStep.EnterTotpCode)}>
                 {t("continue")}
               </Button>
             </WithStep>
             <WithStep step={SetupStep.EnterTotpCode} current={step}>
-              <Button type="submit" className="ms-2 me-2" disabled={isSubmitting}>
+              <Button type="submit" className="me-2 ms-2" disabled={isSubmitting}>
                 {t("enable")}
               </Button>
             </WithStep>

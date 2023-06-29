@@ -127,12 +127,12 @@ export default function CreateEventTypeDialog({
       }
 
       if (err.data?.code === "BAD_REQUEST") {
-        const message = `${err.data.code}: URL already exists.`;
+        const message = `${err.data.code}: ${t("error_event_type_url_duplicate")}`;
         showToast(message, "error");
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: You are not able to create this event`;
+        const message = `${err.data.code}: ${t("error_event_type_unauthorized_create")}`;
         showToast(message, "error");
       }
     },
@@ -166,7 +166,7 @@ export default function CreateEventTypeDialog({
           handleSubmit={(values) => {
             createMutation.mutate(values);
           }}>
-          <div className="mt-3 space-y-6 pb-10">
+          <div className="mt-3 space-y-6 pb-11">
             {teamId && (
               <TextField
                 type="hidden"

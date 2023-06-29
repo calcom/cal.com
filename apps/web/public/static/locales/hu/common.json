@@ -82,7 +82,6 @@
   "try_again": "Próbáld újra",
   "login": "Bejelentkezés",
   "success": "Siker",
-  "cancelled": "Lemondva",
   "and": "és",
   "light": "Világos",
   "dark": "Sötét",
@@ -207,5 +206,6 @@
   "minute_timeUnit": "Perc",
   "remove_app": "Alkalmazás eltávolítása",
   "yes_remove_app": "Igen, távolítsd el az alkalmazást",
-  "web_conference": "Online konferencia"
+  "web_conference": "Online konferencia",
+  "insights_all_org_filter": "Minden alkalmazás"
 }
