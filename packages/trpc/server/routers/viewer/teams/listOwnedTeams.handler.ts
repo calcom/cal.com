@@ -31,14 +31,10 @@ export const listOwnedTeamsHandler = async ({ ctx }: ListOptions) => {
     },
   });
 
-  return user.teams
+  return user?.teams
     ?.filter((m) => {
       const metadata = teamMetadataSchema.parse(m.team.metadata);
-      return !metadata.isOrganization;
+      return !metadata?.isOrganization;
     })
-    ?.map(({ team, ...membership }) => ({
-      role: membership.role,
-      accepted: membership.accepted,
-      ...team,
-    }));
+    ?.map(({ team }) => team);
 };
