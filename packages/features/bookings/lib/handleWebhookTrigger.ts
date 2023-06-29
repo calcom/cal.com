@@ -12,7 +12,7 @@ export async function handleWebhookTrigger(args: {
   try {
     const subscribers = await getWebhooks(args.subscriberOptions);
 
-    const promises = subscribers.map((sub) =>
+    const promises = subscribers?.map((sub) =>
       sendPayload(sub.secret, args.eventTrigger, new Date().toISOString(), sub, args.webhookData).catch(
         (e) => {
           console.error(

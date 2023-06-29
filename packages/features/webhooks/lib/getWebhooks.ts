@@ -20,6 +20,7 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
       OR: [
         {
           userId,
+          teamId: null,
         },
         {
           eventTypeId,
