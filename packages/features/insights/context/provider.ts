@@ -22,7 +22,7 @@ interface IFilter {
 export type FilterContextType = {
   filter: IFilter;
   clearFilters: () => void;
-  setConfigFilters: (config: IFilter) => void;
+  setConfigFilters: (config: Partial<IFilter>) => void;
 };
 
 export const FilterContext = React.createContext<FilterContextType | null>(null);
