@@ -24,7 +24,6 @@ type AvailableTimeSlotsProps = {
  */
 export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }: AvailableTimeSlotsProps) => {
   const { updateQuery, duration, date, month } = useBookerNavigation();
-  console.log(date);
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const event = useEvent();
 
