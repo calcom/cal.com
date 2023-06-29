@@ -4,25 +4,25 @@ import type { Dayjs } from "@calcom/dayjs";
 
 interface IFilter {
   dateRange: [Dayjs, Dayjs, null | string];
-  selectedTimeView: "year" | "week" | "month";
-  selectedFilter: Array<"user" | "event-type"> | null;
-  selectedTeamId: number | null;
-  selectedTeamName: string | null;
-  selectedUserId: number | null;
-  selectedMemberUserId: number | null;
-  selectedEventTypeId: number | null;
-  isAll: boolean;
-  initialConfig: {
-    teamId: number | null;
-    userId: number | null;
-    isAll: boolean;
+  selectedTimeView?: "year" | "week" | "month";
+  selectedFilter?: Array<"user" | "event-type"> | null;
+  selectedTeamId?: number | null;
+  selectedTeamName?: string | null;
+  selectedUserId?: number | null;
+  selectedMemberUserId?: number | null;
+  selectedEventTypeId?: number | null;
+  isAll?: boolean;
+  initialConfig?: {
+    teamId?: number | null;
+    userId?: number | null;
+    isAll?: boolean;
   };
 }
 
 export type FilterContextType = {
-  filter: Partial<IFilter>;
+  filter: IFilter;
   clearFilters: () => void;
-  setConfigFilters: (config: Partial<IFilter>) => void;
+  setConfigFilters: (config: IFilter) => void;
 };
 
 export const FilterContext = React.createContext<FilterContextType | null>(null);

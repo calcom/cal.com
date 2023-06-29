@@ -51,7 +51,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     memberUserIdParsed = safe.data.memberUserId;
   }
 
-  const [configFilters, setConfigFilters] = useState<Partial<FilterContextType["filter"]>>({
+  const [configFilters, setConfigFilters] = useState<FilterContextType["filter"]>({
     dateRange: [
       startTimeParsed ? dayjs(startTimeParsed) : dayjs().subtract(1, "month"),
       endTimeParsed ? dayjs(endTimeParsed) : dayjs(),
