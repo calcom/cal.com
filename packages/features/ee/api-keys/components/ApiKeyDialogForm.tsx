@@ -6,7 +6,18 @@ import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, DatePicker, DialogFooter, Form, showToast, Switch, TextField, Tooltip } from "@calcom/ui";
+import {
+  Button,
+  DatePicker,
+  DialogFooter,
+  Form,
+  Select,
+  showToast,
+  Switch,
+  TextField,
+  Tooltip,
+  SelectField,
+} from "@calcom/ui";
 import { Clipboard } from "@calcom/ui/components/icon";
 
 export default function ApiKeyDialogForm({
@@ -29,8 +40,9 @@ export default function ApiKeyDialogForm({
       showToast(t("api_key_update_failed"), "error");
     },
   });
-
+  type Option = { value: Date | null | undefined; label: string };
   const [apiKey, setApiKey] = useState("");
+  const [expiryDate,setExpiryDate]=useState<Date|null|undefined>(()=>(defaultValues?.expiresAt || dayjs().add(30, "day").toDate()))
   const [successfulNewApiKeyModal, setSuccessfulNewApiKeyModal] = useState(false);
   const [apiKeyDetails, setApiKeyDetails] = useState({
     expiresAt: null as Date | null,
@@ -42,10 +54,29 @@ export default function ApiKeyDialogForm({
     defaultValues: {
       note: defaultValues?.note || "",
       neverExpires: defaultValues?.neverExpires || false,
-      expiresAt: defaultValues?.expiresAt || dayjs().add(1, "month").toDate(),
+      expiresAt: defaultValues?.expiresAt || dayjs().add(30, "day").toDate(),
     },
   });
   const watchNeverExpires = form.watch("neverExpires");
+
+  let expiresAtOptions: Option[] = [
+    {
+      label: t("seven_days"),
+      value: dayjs().add(7, "day").toDate(),
+    },
+    {
+      label: t("thirty_days"),
+      value: dayjs().add(30, "day").toDate(),
+    },
+    {
+      label: t("three_months"),
+      value: dayjs().add(3, "month").toDate(),
+    },
+    {
+      label: t("one_year"),
+      value: dayjs().add(1, "year").toDate(),
+    },
+  ];
 
   return (
     <LicenseRequired>
@@ -150,15 +181,36 @@ export default function ApiKeyDialogForm({
               </div>
               <Controller
                 name="expiresAt"
-                render={({ field: { onChange, value } }) => (
-                  <DatePicker
-                    disabled={watchNeverExpires || !!defaultValues}
-                    minDate={new Date()}
-                    date={value}
-                    onDatesChange={onChange}
+                render={({ field: { onChange, value } }) => {
+                  const defaultValue = expiresAtOptions[1]
+                  
+                  return(
+                  <SelectField
+                    styles={{
+                      singleValue: (baseStyles) => ({
+                        ...baseStyles,
+                        fontSize: "14px",
+                      }),
+                      option: (baseStyles) => ({
+                        ...baseStyles,
+                        fontSize: "14px",
+                      }),
+                    }}
+                    isDisabled={watchNeverExpires || !!defaultValues}
+                    containerClassName="data-testid-field-type"
+                    options={expiresAtOptions}
+                    onChange={(option) => {
+                      if (!option) {
+                        return;
+                      }
+                      onChange(option.value);
+                      setExpiryDate(option.value)
+                    }}
+                    defaultValue={defaultValue}
                   />
-                )}
+                )}}
               />
+              <span className="text-subtle text-xs mt-2">{t("api_key_expires_on") }<span className="font-bold"> {dayjs(expiryDate).format('DD-MM-YYYY')}</span></span>
             </div>
           )}
 
