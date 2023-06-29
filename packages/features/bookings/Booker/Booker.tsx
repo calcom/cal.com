@@ -69,7 +69,7 @@ const BookerComponent = ({
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
   const schedule = useScheduleForEvent({prefetchNextMonth: true});
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
-  const sliceFrom =  nonEmptyScheduleDays.indexOf(date)!= -1? nonEmptyScheduleDays.indexOf(date): 0;
+  const sliceFrom =  nonEmptyScheduleDays.indexOf(date)!== -1? nonEmptyScheduleDays.indexOf(date): 0;
   const sliceTo = sliceFrom + (isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop);
   const availableSlots = nonEmptyScheduleDays.slice(sliceFrom,  sliceTo + 1);
   const addonDays = nonEmptyScheduleDays.length <= sliceTo ? (sliceTo - nonEmptyScheduleDays.length + 1) * 7  : 0;

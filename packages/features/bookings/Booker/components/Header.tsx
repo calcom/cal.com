@@ -54,7 +54,7 @@ export function Header({
   }
 
 const endDate = selectedDate.add(extraDays, "days");
-const formattedEndDate = parseInt(selectedDate.format("MM")) !== parseInt(endDate.format("MM"))? endDate.format("D MMM") : endDate.format("D");
+const formattedEndDate = parseInt(selectedDate.format("MM")) !== parseInt(endDate.format("MM"))? endDate.format("MMM D") : endDate.format("D");
 
   return (
     <div className="border-default relative z-10 flex border-b border-l px-5 py-4">
