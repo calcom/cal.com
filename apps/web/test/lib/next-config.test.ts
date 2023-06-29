@@ -7,8 +7,8 @@ let teamTypeRouteRegExp:RegExp;
 let privateLinkRouteRegExp:RegExp
 let embedUserTypeRouteRegExp:RegExp
 let embedTeamTypeRouteRegExp:RegExp
-
-
+let orgUserTypeRouteRegExp:RegExp
+let orgUserRouteRegExp:RegExp
 const getRegExpFromNextJsRewriteRegExp = (nextJsRegExp:string) => {
   // const parts = nextJsRegExp.split(':');
   
@@ -28,34 +28,40 @@ const getRegExpFromNextJsRewriteRegExp = (nextJsRegExp:string) => {
   return new RegExp(`^${nextJsRegExp}$`)
 }
 
-describe('next.config.js - RegExp', ()=>{
-  beforeAll(async()=>{
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    // process.env.NEXTAUTH_SECRET =  process.env.NEXTAUTH_URL = process.env.CALENDSO_ENCRYPTION_KEY = 1
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const pages = require("../../pages").pages
+beforeAll(async()=>{
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  // process.env.NEXTAUTH_SECRET =  process.env.NEXTAUTH_URL = process.env.CALENDSO_ENCRYPTION_KEY = 1
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const pages = require("../../pages").pages
 
-    // How to convert a Next.js rewrite RegExp/wildcard to a valid JS named capturing Group RegExp?
-    // -  /:user/ -> (?<user>[^/]+)
-    // -  /:user(?!404)[^/]+/ -> (?<user>((?!404)[^/]+))
+  // How to convert a Next.js rewrite RegExp/wildcard to a valid JS named capturing Group RegExp?
+  // -  /:user/ -> (?<user>[^/]+)
+  // -  /:user(?!404)[^/]+/ -> (?<user>((?!404)[^/]+))
 
-    // userTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type((?!book$)[^/]+)`;
-    userTypeRouteRegExp = getRegExpFromNextJsRewriteRegExp(`/(?<user>((?!${pages.join("/|")})[^/]*))/(?<type>((?!book$)[^/]+))`);
-    
-    // teamTypeRouteRegExp = "/team/:slug/:type((?!book$)[^/]+)";
-    teamTypeRouteRegExp = getRegExpFromNextJsRewriteRegExp("/team/(?<slug>[^/]+)/(?<type>((?!book$)[^/]+))");
-
-    // privateLinkRouteRegExp = "/d/:link/:slug((?!book$)[^/]+)";
-    privateLinkRouteRegExp = getRegExpFromNextJsRewriteRegExp("/d/(?<link>[^/]+)/(?<slug>((?!book$)[^/]+))");
-    
-    // embedUserTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type/embed`;
-    embedUserTypeRouteRegExp = getRegExpFromNextJsRewriteRegExp(`/(?<user>((?!${pages.join("/|")})[^/]*))/(?<type>[^/]+)/embed`);
-    
-    // embedTeamTypeRouteRegExp = "/team/:slug/:type/embed";
-    embedTeamTypeRouteRegExp = getRegExpFromNextJsRewriteRegExp("/team/(?<slug>[^/]+)/(?<type>[^/]+)/embed");
-  });
+  // userTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type((?!book$)[^/]+)`;
+  userTypeRouteRegExp = getRegExpFromNextJsRewriteRegExp(`/(?<user>((?!${pages.join("/|")})[^/]*))/(?<type>((?!book$)[^/]+))`);
   
+  // teamTypeRouteRegExp = "/team/:slug/:type((?!book$)[^/]+)";
+  teamTypeRouteRegExp = getRegExpFromNextJsRewriteRegExp("/team/(?<slug>[^/]+)/(?<type>((?!book$)[^/]+))");
+
+  // privateLinkRouteRegExp = "/d/:link/:slug((?!book$)[^/]+)";
+  privateLinkRouteRegExp = getRegExpFromNextJsRewriteRegExp("/d/(?<link>[^/]+)/(?<slug>((?!book$)[^/]+))");
+  
+  // embedUserTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type/embed`;
+  embedUserTypeRouteRegExp = getRegExpFromNextJsRewriteRegExp(`/(?<user>((?!${pages.join("/|")})[^/]*))/(?<type>[^/]+)/embed`);
+  
+  // embedTeamTypeRouteRegExp = "/team/:slug/:type/embed";
+  embedTeamTypeRouteRegExp = getRegExpFromNextJsRewriteRegExp("/team/(?<slug>[^/]+)/(?<type>[^/]+)/embed");
+
+  // orgUserTypeRouteRegExp = "/:user((?!${pages.join("/|")}|_next|public)[^/]+)/:type"
+  orgUserTypeRouteRegExp = getRegExpFromNextJsRewriteRegExp(`/(?<user>((?!${pages.join("/|")}|_next|public)[^/]+))/(?<type>[^/]+)`)
+
+  // orgUserRouteRegExp = `/:user((?!${pages.join("/|")}|_next|public)[a-zA-Z0-9\-_]+)`;
+  orgUserRouteRegExp = getRegExpFromNextJsRewriteRegExp(`/(?<user>((?!${pages.join("/|")}|_next|public)[a-zA-Z0-9\-_]+))`)
+});
+
+describe('next.config.js - RegExp', ()=>{
   afterAll(()=>{
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -167,7 +173,7 @@ describe('next.config.js - RegExp', ()=>{
 describe('next.config.js - Org Rewrite', ()=> {
   // RegExp copied from next.config.js
   const orgHostRegExp = (subdomainRegExp:string)=> new RegExp(`^(?<orgSlug>${subdomainRegExp})\\..*`)
-  describe('SubDomain Retrieval from NEXT_PUBLIC_WEBAPP_URL', ()=>{
+  describe('Host matching based on NEXT_PUBLIC_WEBAPP_URL', ()=>{
     it('https://app.cal.com', ()=>{
       const subdomainRegExp = getSubdomainRegExp('https://app.cal.com');
       expect(orgHostRegExp(subdomainRegExp).exec('app.cal.com')).toEqual(null)
@@ -193,6 +199,37 @@ describe('next.config.js - Org Rewrite', ()=> {
       expect(orgHostRegExp(subdomainRegExp).exec('acme.calcom.example.com')?.groups?.orgSlug).toEqual('acme')
       // The following also matches which causes anything other than the domain in NEXT_PUBLIC_WEBAPP_URL to give 404
       expect(orgHostRegExp(subdomainRegExp).exec('some-other.company.com')?.groups?.orgSlug).toEqual('some-other')
+    })
+  })
+
+  describe('Rewrite', () =>{ 
+    it('booking pages', () => {
+      expect(orgUserTypeRouteRegExp.exec('/user/type')?.groups).toContain({
+        user: 'user',
+        type: 'type'
+      })
+      
+      // User slug starting with 404(which is a page route) will work
+      expect(orgUserTypeRouteRegExp.exec('/404a/def')?.groups).toEqual({
+        user: '404a',
+        type: 'def'
+      })
+
+      // Team Page won't match - There is no /team prefix required for Org team event pages
+      expect(orgUserTypeRouteRegExp.exec('/team/abc')).toEqual(null)
+
+      expect(orgUserTypeRouteRegExp.exec('/abc')).toEqual(null)
+
+      expect(orgUserRouteRegExp.exec('/abc')?.groups).toContain({
+        user: 'abc'
+      })
+    })
+
+    it('Non booking pages', () => {
+      expect(orgUserTypeRouteRegExp.exec('/_next/def')).toEqual(null)
+      expect(orgUserTypeRouteRegExp.exec('/public/def')).toEqual(null)
+      expect(orgUserRouteRegExp.exec('/_next')).toEqual(null)
+      expect(orgUserRouteRegExp.exec('/public')).toEqual(null)
     })
   })
 })

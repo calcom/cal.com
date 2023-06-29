@@ -96,8 +96,9 @@ const privateLinkRouteRegExp = "/d/:link/:slug((?!book$)[^/]+)";
 const embedUserTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type/embed`;
 const embedTeamTypeRouteRegExp = "/team/:slug/:type/embed";
 const subdomainRegExp = getSubdomainRegExp(process.env.NEXT_PUBLIC_WEBAPP_URL);
-// Important Note: Do update the RegExp in apps/web/test/lib/next-config.test.ts when changing it.
 const orgHostRegExp = `^(?<orgSlug>${subdomainRegExp})\\..*`;
+const orgUserRouteRegExp = `/:user((?!${pages.join("/|")}|_next|public)[a-zA-Z0-9\-_]+)`;
+const orgUserTypeRouteRegExp = `/:user((?!${pages.join("/|")}|_next|public)[^/]+)/:type`;
 
 const matcherConfigRootPath = {
   has: [
@@ -109,24 +110,24 @@ const matcherConfigRootPath = {
   source: "/",
 };
 
-const matcherConfigOrgMemberPath = {
+const matcherConfigUserRoute = {
   has: [
     {
       type: "host",
       value: orgHostRegExp,
     },
   ],
-  source: `/:user((?!${pages.join("|")}|_next|public)[a-zA-Z0-9\-_]+)`,
+  source: orgUserRouteRegExp,
 };
 
-const matcherConfigUserPath = {
+const matcherConfigUserTypeRoute = {
   has: [
     {
       type: "host",
-      value: `^(?<orgSlug>${subdomainRegExp}[^.]+)\\..*`,
+      value: orgHostRegExp,
     },
   ],
-  source: `/:user((?!${pages.join("|")}|_next|public))/:path*`,
+  source: orgUserTypeRouteRegExp,
 };
 
 /** @type {import("next").NextConfig} */
@@ -227,12 +228,12 @@ const nextConfig = {
               destination: "/team/:orgSlug",
             },
             {
-              ...matcherConfigOrgMemberPath,
+              ...matcherConfigUserRoute,
               destination: "/org/:orgSlug/:user",
             },
             {
-              ...matcherConfigUserPath,
-              destination: "/:user/:path*",
+              ...matcherConfigUserTypeRoute,
+              destination: "/org/:orgSlug/:user/:type",
             },
           ]
         : []),
@@ -401,7 +402,7 @@ const nextConfig = {
           ],
         },
         {
-          ...matcherConfigOrgMemberPath,
+          ...matcherConfigUserRoute,
           headers: [
             {
               key: "X-Cal-Org-path",
@@ -410,11 +411,11 @@ const nextConfig = {
           ],
         },
         {
-          ...matcherConfigUserPath,
+          ...matcherConfigUserTypeRoute,
           headers: [
             {
               key: "X-Cal-Org-path",
-              value: "/:user/:path",
+              value: "/org/:orgSlug/:user/:type",
             },
           ],
         },
