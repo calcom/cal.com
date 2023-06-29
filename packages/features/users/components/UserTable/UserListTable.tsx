@@ -1,8 +1,9 @@
-import type { ColumnDef, PaginationState } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
+import { usePagination } from "@calcom/lib/hook/usePagination";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
@@ -175,23 +176,12 @@ export function UserListTable() {
   const router = useRouter();
   const orgValues = useOrgBrandingValues();
 
-  const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
-    pageIndex: 1,
-    pageSize: 20,
-  });
-
-  const pagination = useMemo(
-    () => ({
-      pageIndex,
-      pageSize,
-    }),
-    [pageIndex, pageSize]
-  );
+  const { pagination, setPagination } = usePagination();
 
   const { data, isLoading } = trpc.viewer.organizations.listMembers.useQuery(
     {
-      limit: pageSize,
-      page: pageIndex,
+      limit: pagination.pageSize,
+      page: pagination.pageIndex,
     },
     {
       onError: () => {
@@ -304,9 +294,6 @@ export function UserListTable() {
 
     return cols;
   }, []);
-
-  if (!data || isLoading) return null;
-  data.rows = data.rows || [];
 
   return (
     <DataTable
