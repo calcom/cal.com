@@ -1392,5 +1392,6 @@
   "configure": "Konfigurer",
   "sso_configuration": "Enkel Pålogging",
   "booking_confirmation_failed": "Booking-bekreftelse feilet",
-  "organization_url_taken": "Denne URL'en er allerede tatt"
+  "organization_url_taken": "Denne URL'en er allerede tatt",
+  "insights_all_org_filter": "Alt"
 }
