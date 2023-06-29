@@ -736,10 +736,10 @@
   "new_event_type_to_book_description": "Crea un nuevo tipo de evento para que las personas reserven horarios.",
   "length": "Tamaño",
   "minimum_booking_notice": "Aviso de Reserva",
-  "offset_toggle": "Horas de inicio desplazadas",
-  "offset_toggle_description": "Intervalos de tiempo desplazados que se muestran a los que reservan por un número específico de minutos",
+  "offset_toggle": "Desplazar horas de inicio",
+  "offset_toggle_description": "Desplazar las franjas horarias que se muestran a los que reservan por un número específico de minutos",
   "offset_start": "Desplazar por",
-  "offset_start_description": "por ejemplo esto mostrará los intervalos de tiempo a quienes reservan a las {{ adjustedTime }} en lugar de {{ originalTime }}",
+  "offset_start_description": "por ejemplo esto mostrará las franjas horarias a quienes reservan a las {{ adjustedTime }} en lugar de {{ originalTime }}",
   "slot_interval": "Intervalos de tiempo",
   "slot_interval_default": "Usar duración del evento (por defecto)",
   "delete_event_type": "¿Eliminar tipo de evento?",
@@ -1699,7 +1699,6 @@
   "events_rescheduled": "Eventos reprogramados",
   "from_last_period": "desde el último período",
   "from_to_date_period": "Desde: {{startDate}} Hasta: {{endDate}}",
-  "subtitle_analytics": "Obtenga más información sobre la actividad de su equipo",
   "redirect_url_warning": "Agregar una redirección deshabilitará la página de éxito. Asegúrese de mencionar \"Reserva confirmada\" en su página de éxito personalizada.",
   "event_trends": "Tendencias del evento",
   "clear_filters": "Eliminar filtros",
@@ -1757,5 +1756,6 @@
   "google_workspace_admin_tooltip": "Debe ser administrador del espacio de trabajo para usar esta función",
   "first_event_type_webhook_description": "Cree su primer webhook para este tipo de evento",
   "create_for": "Crear para",
-  "organization_url_taken": "Esta URL ya está en uso"
+  "organization_url_taken": "Esta URL ya está en uso",
+  "insights_all_org_filter": "Todas las aplicaciones"
 }

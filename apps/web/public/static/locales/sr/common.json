@@ -1731,7 +1731,6 @@
   "events_rescheduled": "Pomereni događaji",
   "from_last_period": "iz prošlog perioda",
   "from_to_date_period": "Od: {{startDate}} Do: {{endDate}}",
-  "subtitle_analytics": "Saznajte više o aktivnosti vašeg tima",
   "redirect_url_warning": "Dodavanje preusmeravanja će onemogućiti stranicu uspeha. Obavezno navedite „Zakazivanje potvrđeno“ na vašoj prilagođenoj stranici uspeha.",
   "event_trends": "Trendovi događaja",
   "clear_filters": "Izbriši filtere",
@@ -1802,5 +1801,6 @@
   "create_for": "Napravi za",
   "organization_url_taken": "Ovaj URL je zauzet",
   "additional_url_parameters": "Dodatni URL parametri",
+  "insights_all_org_filter": "Sve aplikacije",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
