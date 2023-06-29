@@ -1699,7 +1699,6 @@
   "events_rescheduled": "Evenimente reprogramate",
   "from_last_period": "din ultima perioadă",
   "from_to_date_period": "De la: {{startDate}} La: {{endDate}}",
-  "subtitle_analytics": "Aflați mai multe despre activitatea echipei dvs.",
   "redirect_url_warning": "Adăugarea unei redirecționări va dezactiva pagina cu mesajul de succes. Nu uitați să menționați „Rezervare confirmată” pe pagina cu mesajul de succes personalizat.",
   "event_trends": "Tendințe eveniment",
   "clear_filters": "Ștergere filtre",
@@ -1757,5 +1756,6 @@
   "google_workspace_admin_tooltip": "Trebuie să fiți administrator Workspace pentru a putea utiliza această funcție",
   "first_event_type_webhook_description": "Creați primul dvs. webhook pentru acest tip de eveniment",
   "create_for": "Creare pentru",
-  "organization_url_taken": "Acest URL este folosit deja"
+  "organization_url_taken": "Acest URL este folosit deja",
+  "insights_all_org_filter": "Toate aplicațiile"
 }

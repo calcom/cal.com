@@ -1699,7 +1699,6 @@
   "events_rescheduled": "تمت إعادة جدولة الأحداث",
   "from_last_period": "من آخر فترة",
   "from_to_date_period": "من: {{startDate}} إلى: {{endDate}}",
-  "subtitle_analytics": "اعرف المزيد عن نشاط فريقك",
   "redirect_url_warning": "سيؤدي إضافة إعادة توجيه إلى تعطيل صفحة النجاح. تأكد من ذكر \"تأكيد الحجز\" في صفحة النجاح المخصصة.",
   "event_trends": "الرائج في الأحداث",
   "clear_filters": "مسح عوامل التصفية",
@@ -1757,5 +1756,6 @@
   "google_workspace_admin_tooltip": "يجب أن تكون مشرفًا على مساحة العمل لاستخدام هذه الميزة",
   "first_event_type_webhook_description": "قم بإنشاء أول شبكة ويب هوك لهذا النوع من الأحداث",
   "create_for": "إنشاء من أجل",
-  "organization_url_taken": "عنوان URL هذا مأخوذ بالفعل"
+  "organization_url_taken": "عنوان URL هذا مأخوذ بالفعل",
+  "insights_all_org_filter": "الكل"
 }

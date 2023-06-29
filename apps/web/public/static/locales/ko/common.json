@@ -1700,7 +1700,6 @@
   "events_rescheduled": "일정이 변경된 이벤트",
   "from_last_period": "마지막 기간부터",
   "from_to_date_period": "시작일: {{startDate}} 종료일: {{endDate}}",
-  "subtitle_analytics": "팀 활동에 대해 자세히 알아보기",
   "redirect_url_warning": "리디렉션을 추가하면 성공 페이지가 비활성화됩니다. 사용자 지정 성공 페이지에 \"예약 확정\"을 언급해야 합니다.",
   "event_trends": "이벤트 트렌드",
   "clear_filters": "필터 지우기",
@@ -1758,5 +1757,6 @@
   "google_workspace_admin_tooltip": "이 기능을 사용하려면 Workspace 관리자여야 합니다",
   "first_event_type_webhook_description": "이 이벤트 유형에 대한 첫 번째 웹훅 만들기",
   "create_for": "작성 대상",
-  "organization_url_taken": "이미 사용 중인 URL입니다"
+  "organization_url_taken": "이미 사용 중인 URL입니다",
+  "insights_all_org_filter": "모두"
 }

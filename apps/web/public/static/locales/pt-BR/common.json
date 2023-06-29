@@ -1699,7 +1699,6 @@
   "events_rescheduled": "Eventos reagendados",
   "from_last_period": "do último período",
   "from_to_date_period": "De: {{startDate}} Para: {{endDate}}",
-  "subtitle_analytics": "Saiba mais sobre as atividades da sua equipe",
   "redirect_url_warning": "A página de sucesso será desabilitada ao adicionar um redirecionamento. Não se esqueça de mencionar \"Reserva confirmada\" na sua página de sucesso personalizada.",
   "event_trends": "Tendências de evento",
   "clear_filters": "Limpar filtros",
@@ -1757,5 +1756,6 @@
   "google_workspace_admin_tooltip": "Você deve ser administrador do Google Workspace para usar este recurso",
   "first_event_type_webhook_description": "Crie seu primeiro webhook para este tipo de evento",
   "create_for": "Criar para",
-  "organization_url_taken": "Este URL já está em uso"
+  "organization_url_taken": "Este URL já está em uso",
+  "insights_all_org_filter": "Todos os apps"
 }

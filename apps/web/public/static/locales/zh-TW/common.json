@@ -1699,7 +1699,6 @@
   "events_rescheduled": "已重新預定的活動",
   "from_last_period": "從上一個時段",
   "from_to_date_period": "開始：{{startDate}} 結束：{{endDate}}",
-  "subtitle_analytics": "進一步瞭解您的團隊活動",
   "redirect_url_warning": "加入重新導向功能會停用成功頁面。請務必在自訂的成功頁面中註明「預約已確認」。",
   "event_trends": "活動趨勢",
   "clear_filters": "清除篩選條件",
@@ -1757,5 +1756,6 @@
   "google_workspace_admin_tooltip": "您必須是 Workspace 管理員才能使用此功能",
   "first_event_type_webhook_description": "為此活動類型建立第一個 Webhook",
   "create_for": "建立",
-  "organization_url_taken": "已有人使用此網址"
+  "organization_url_taken": "已有人使用此網址",
+  "insights_all_org_filter": "所有應用程式"
 }

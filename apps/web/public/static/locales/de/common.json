@@ -1699,7 +1699,6 @@
   "events_rescheduled": "Ereignisse neu geplant",
   "from_last_period": "seit dem letzten Zeitraum",
   "from_to_date_period": "Von: {{startDate}} Bis: {{endDate}}",
-  "subtitle_analytics": "Erfahren Sie mehr über die Aktivität Ihres Teams",
   "redirect_url_warning": "Das Hinzufügen einer Umleitung wird die Erfolgsseite deaktivieren. Erwähnen Sie \"Buchung bestätigt\" auf Ihrer benutzerdefinierten Erfolgsseite.",
   "event_trends": "Ereignistrends",
   "clear_filters": "Filter löschen",
@@ -1757,5 +1756,6 @@
   "google_workspace_admin_tooltip": "Sie müssen ein Workspace-Admin sein, um diese Funktion nutzen zu können",
   "first_event_type_webhook_description": "Erstellen Sie Ihren ersten Webhook für diesen Termintypen",
   "create_for": "Erstellen für",
-  "organization_url_taken": "Diese URL ist bereits vergeben"
+  "organization_url_taken": "Diese URL ist bereits vergeben",
+  "insights_all_org_filter": "Alle Apps"
 }

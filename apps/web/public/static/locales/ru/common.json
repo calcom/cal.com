@@ -1699,7 +1699,6 @@
   "events_rescheduled": "Перенесенные события",
   "from_last_period": "с последнего периода",
   "from_to_date_period": "С: {{startDate}} По: {{endDate}}",
-  "subtitle_analytics": "Узнайте больше о работе команды",
   "redirect_url_warning": "При использовании перенаправления страница успешного бронирования будет отключена. Не забудьте упомянуть «Бронирование подтверждено» на собственной странице оповещения об успешном бронировании.",
   "event_trends": "Тренды событий",
   "clear_filters": "Сбросить фильтры",
@@ -1757,5 +1756,6 @@
   "google_workspace_admin_tooltip": "Эту функцию может использовать только администратор Workspace",
   "first_event_type_webhook_description": "Создайте первый вебхук для этого типа событий",
   "create_for": "Создать для",
-  "organization_url_taken": "Этот URL-адрес уже занят"
+  "organization_url_taken": "Этот URL-адрес уже занят",
+  "insights_all_org_filter": "Все приложения"
 }
