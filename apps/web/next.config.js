@@ -1,10 +1,10 @@
 require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-const cache = require('memory-cache');
+const cache = require("memory-cache");
 const os = require("os");
 const fetchEnglishTranslation = () => {
  
-  return require('./public/static/locales/en/common.json');
+  return require("./public/static/locales/en/common.json");
 };
 const { withAxiom } = require("next-axiom");
 const { i18n } = require("./next-i18next.config");
@@ -63,12 +63,12 @@ if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CRED
 }
 
 const getCachedEnglishTranslation = () => {
-  const cachedTranslation = cache.get('englishTranslation');
+  const cachedTranslation = cache.get("englishTranslation");
   if (cachedTranslation) {
     return cachedTranslation;
   } else {
     const englishTranslation = fetchEnglishTranslation();
-    cache.put('englishTranslation', englishTranslation);
+    cache.put("englishTranslation", englishTranslation);
     return englishTranslation;
   }
 };
