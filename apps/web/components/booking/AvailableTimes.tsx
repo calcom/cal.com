@@ -157,7 +157,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                         href={bookingUrl}
                         prefetch={false}
                         className={classNames(
-                          " bg-default dark:bg-muted border-default hover:bg-subtle hover:border-brand-default text-emphasis mb-2 block rounded-md border py-2 text-sm font-medium",
+                          "bg-default dark:bg-muted dark:hover:bg-emphasis border-default hover:bg-subtle text-emphasis mb-2 block rounded-md border py-2 text-sm font-medium",
                           brand === "#fff" || brand === "#ffffff" ? "" : ""
                         )}
                         onClick={() => reserveSlot(slot)}
