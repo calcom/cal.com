@@ -16,7 +16,8 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import * as React from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 
@@ -38,7 +39,8 @@ export interface DataTableProps<TData, TValue> {
   }[];
   tableCTA?: React.ReactNode;
   pagination: PaginationState;
-  setPagination: (pagination: PaginationState) => void;
+  setPagination: Dispatch<SetStateAction<PaginationState>>;
+  pageCount?: number;
 }
 
 export function DataTable<TData, TValue>({
@@ -49,11 +51,13 @@ export function DataTable<TData, TValue>({
   searchKey,
   pagination,
   selectionOptions,
+  setPagination,
+  pageCount,
 }: DataTableProps<TData, TValue>) {
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [rowSelection, setRowSelection] = useState({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   const table = useReactTable({
     data,
@@ -65,6 +69,7 @@ export function DataTable<TData, TValue>({
       columnFilters,
       pagination,
     },
+    pageCount,
     enableRowSelection: true,
     debugTable: true,
     manualPagination: true,
@@ -77,6 +82,7 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    onPaginationChange: (updateFn) => setPagination(() => updateFn(pagination)),
   });
 
   return (
@@ -115,12 +121,6 @@ export function DataTable<TData, TValue>({
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => {
-                    // if (
-                    //   cell.column.columnDef.meta?.hasPermissions &&
-                    //   !cell.column.columnDef.meta?.hasPermissions()
-                    // ) {
-                    //   return null;
-                    // }
                     return (
                       <TableCell key={cell.id}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}

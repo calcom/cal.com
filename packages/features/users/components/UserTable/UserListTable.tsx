@@ -311,6 +311,7 @@ export function UserListTable() {
   return (
     <DataTable
       pagination={pagination}
+      pageCount={data.pageCount}
       setPagination={setPagination}
       columns={memorisedColumns}
       data={data.rows as User[]}
