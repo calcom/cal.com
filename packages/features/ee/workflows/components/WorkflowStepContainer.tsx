@@ -20,6 +20,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogFooter,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -880,17 +881,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           </ConfirmationDialogContent>
         </Dialog> */}
         <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
-          <DialogContent type="creation" className="sm:max-w-[610px] md:h-[570px]">
+          <DialogContent type="creation" className="sm:max-w-[610px]">
             <div className="-m-3 h-[430px] overflow-x-hidden overflow-y-scroll sm:m-0">
               <h1 className="w-full text-xl font-semibold ">{t("how_booking_questions_as_variables")}</h1>
-              <div className="bg-muted-3 mb-7 mt-7 rounded-md sm:p-4">
+              <div className="bg-muted-3 mb-6 rounded-md sm:p-4">
                 <p className="test-sm font-medium">{t("format")}</p>
                 <ul className="text-emphasis ml-5 mt-2 list-disc">
                   <li>{t("uppercase_for_letters")}</li>
                   <li>{t("replace_whitespaces_underscores")}</li>
                   <li>{t("ignore_special_characters_booking_questions")}</li>
                 </ul>
-                <div className="mt-6">
+                <div className="mt-4">
                   <p className="test-sm w-full font-medium">{t("example_1")}</p>
                   <div className="mt-2 grid grid-cols-12">
                     <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
@@ -909,7 +910,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     </div>
                   </div>
                 </div>
-                <div className="mt-6">
+                <div className="mt-4">
                   <p className="test-sm w-full font-medium">{t("example_2")}</p>
                   <div className="mt-2 grid grid-cols-12">
                     <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
@@ -929,9 +930,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
               </div>
             </div>
-            <div className="flex flex-row-reverse">
+            <DialogFooter showDivider className="flex flex-row-reverse">
               <DialogClose color="primary" />
-            </div>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </>

@@ -51,7 +51,7 @@ export default function ApiKeyDialogForm({
     <LicenseRequired>
       {successfulNewApiKeyModal ? (
         <>
-          <div className="mb-10">
+          <div className="mb-6">
             <h2 className="font-semi-bold font-cal text-emphasis mb-2 text-xl tracking-wide">
               {t("success_api_key_created")}
             </h2>
@@ -62,7 +62,7 @@ export default function ApiKeyDialogForm({
           </div>
           <div>
             <div className="flex">
-              <code className="bg-subtle text-default mb-2 w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
+              <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
                 {" "}
                 {apiKey}
               </code>
@@ -85,7 +85,7 @@ export default function ApiKeyDialogForm({
                 : `${t("expires")} ${apiKeyDetails?.expiresAt?.toLocaleDateString()}`}
             </span>
           </div>
-          <DialogFooter>
+          <DialogFooter showDivider className="!mt-12">
             <Button type="button" color="secondary" onClick={handleClose} tabIndex={-1}>
               {t("done")}
             </Button>
@@ -107,7 +107,7 @@ export default function ApiKeyDialogForm({
             }
           }}
           className="space-y-4">
-          <div className="mb-10 mt-1">
+          <div className="mt-1 mb-4">
             <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
               {defaultValues ? t("edit_api_key") : t("create_api_key")}
             </h2>
@@ -162,7 +162,7 @@ export default function ApiKeyDialogForm({
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter showDivider className="!mt-12">
             <Button type="button" color="secondary" onClick={handleClose} tabIndex={-1}>
               {t("cancel")}
             </Button>

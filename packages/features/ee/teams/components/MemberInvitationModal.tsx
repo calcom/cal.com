@@ -165,7 +165,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         </div>
 
         <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values, resetFields)}>
-          <div className="mb-10 mt-6 space-y-6">
+          <div className="mb-12 mt-6 space-y-6">
             {/* Indivdual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
               <Controller
@@ -282,8 +282,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 />
               )}
             />
+            {props.token && (
             <div className="flex">
-              {props.token && (
                 <Button
                   type="button"
                   color="minimal"
@@ -295,8 +295,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   data-testid="edit-invite-link-button">
                   {t("edit_invite_link")}
                 </Button>
-              )}
-            </div>
+                </div>
+              )}        
           </div>
           <DialogFooter showDivider>
             <div className="flex w-full flex-col items-end gap-2 md:flex-row md:items-center md:justify-between">
