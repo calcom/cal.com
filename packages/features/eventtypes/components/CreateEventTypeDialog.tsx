@@ -166,7 +166,7 @@ export default function CreateEventTypeDialog({
           handleSubmit={(values) => {
             createMutation.mutate(values);
           }}>
-          <div className="mt-3 space-y-6 pb-10">
+          <div className="mt-3 space-y-6 pb-11">
             {teamId && (
               <TextField
                 type="hidden"

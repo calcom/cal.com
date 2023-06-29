@@ -46,7 +46,7 @@ export function BulkEditDefaultConferencingModal(props: { open: boolean; setOpen
           }}>
           <div className="flex flex-col space-y-2">
             {data.eventTypes.length > 0 && (
-              <div className="flex items-center space-x-2 rounded-md px-3 py-2.5">
+              <div className="flex items-center space-x-2 rounded-md px-3 pb-2.5 pt-1">
                 <Checkbox
                   description={t("select_all")}
                   descriptionAsLabel
@@ -75,7 +75,7 @@ export function BulkEditDefaultConferencingModal(props: { open: boolean; setOpen
               </div>
             ))}
           </div>
-          <DialogFooter>
+          <DialogFooter showDivider className="mt-10">
             <DialogClose
               onClick={() => {
                 utils.viewer.getUsersDefaultConferencingApp.invalidate();

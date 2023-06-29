@@ -243,36 +243,38 @@ const ProfileView = () => {
           type="creation"
           Icon={AlertTriangle}>
           <>
-            <p className="text-default mb-7">
-              {t("delete_account_confirmation_message", { appName: APP_NAME })}
-            </p>
-            {isCALIdentityProviver && (
-              <PasswordField
-                data-testid="password"
-                name="password"
-                id="password"
-                autoComplete="current-password"
-                required
-                label="Password"
-                ref={passwordRef}
-              />
-            )}
+            <div className="mb-10">
+              <p className="text-default mb-4">
+                {t("delete_account_confirmation_message", { appName: APP_NAME })}
+              </p>
+              {isCALIdentityProviver && (
+                <PasswordField
+                  data-testid="password"
+                  name="password"
+                  id="password"
+                  autoComplete="current-password"
+                  required
+                  label="Password"
+                  ref={passwordRef}
+                />
+              )}
 
-            {user?.twoFactorEnabled && isCALIdentityProviver && (
-              <Form handleSubmit={onConfirm} className="pb-4" form={form}>
-                <TwoFactor center={false} />
-              </Form>
-            )}
+              {user?.twoFactorEnabled && isCALIdentityProviver && (
+                <Form handleSubmit={onConfirm} className="pb-4" form={form}>
+                  <TwoFactor center={false} />
+                </Form>
+              )}
 
-            {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
-            <DialogFooter>
+              {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
+            </div>
+            <DialogFooter showDivider>
+              <DialogClose />
               <Button
                 color="primary"
                 data-testid="delete-account-confirm"
                 onClick={(e) => onConfirmButton(e)}>
                 {t("delete_my_account")}
               </Button>
-              <DialogClose />
             </DialogFooter>
           </>
         </DialogContent>
@@ -285,7 +287,7 @@ const ProfileView = () => {
           description={t("confirm_password_change_email")}
           type="creation"
           Icon={AlertTriangle}>
-          <>
+          <div className="mb-10">
             <PasswordField
               data-testid="password"
               name="password"
@@ -297,13 +299,13 @@ const ProfileView = () => {
             />
 
             {confirmPasswordErrorMessage && <Alert severity="error" title={confirmPasswordErrorMessage} />}
-            <DialogFooter>
-              <Button color="primary" onClick={(e) => onConfirmPassword(e)}>
-                {t("confirm")}
-              </Button>
-              <DialogClose />
-            </DialogFooter>
-          </>
+          </div>
+          <DialogFooter showDivider>
+            <Button color="primary" onClick={(e) => onConfirmPassword(e)}>
+              {t("confirm")}
+            </Button>
+            <DialogClose />
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
