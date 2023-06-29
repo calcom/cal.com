@@ -3,7 +3,6 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const cache = require("memory-cache");
 const os = require("os");
 const fetchEnglishTranslation = () => {
- 
   return require("./public/static/locales/en/common.json");
 };
 const { withAxiom } = require("next-axiom");
@@ -75,7 +74,6 @@ const getCachedEnglishTranslation = () => {
 
 const informAboutDuplicateTranslations = () => {
   const englishTranslation = getCachedEnglishTranslation();
-
   const valueSet = new Set();
 
   for (const key in englishTranslation) {
