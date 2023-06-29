@@ -64,7 +64,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     if (typeof handler === "function") {
       await handler(req, res);
     } else {
-      await defaultIntegrationAddHandler({ user: req.session?.user, ...handler });
+      await defaultIntegrationAddHandler({ user: req.session?.user, teamId: Number(teamId), ...handler });
       redirectUrl = handler.redirect?.url || getInstalledAppPath(handler);
       res.json({ url: redirectUrl, newTab: handler.redirect?.newTab });
     }
