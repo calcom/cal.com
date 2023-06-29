@@ -3,7 +3,7 @@ import type { PrismaClient } from "@prisma/client";
 import { getLocalAppMetadata } from "@calcom/app-store/utils";
 import { sendDisabledAppEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server";
-import type { AppCategories } from "@calcom/prisma/enums";
+import { AppCategories } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -53,7 +53,13 @@ export const toggleHandler = async ({ input, ctx }: ToggleOptions) => {
   // If disabling an app then we need to alert users basesd on the app type
   if (!enabled) {
     const translations = new Map();
-    if (app.categories.some((category) => ["calendar", "video"].includes(category))) {
+    if (
+      app.categories.some((category) =>
+        (
+          [AppCategories.calendar, AppCategories.video, AppCategories.conferencing] as AppCategories[]
+        ).includes(category)
+      )
+    ) {
       // Find all users with the app credentials
       const appCredentials = await prisma.credential.findMany({
         where: {

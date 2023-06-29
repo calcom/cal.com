@@ -112,6 +112,10 @@ const GoodSelect = props => <Select {...props} components={{ Control }} />
 ## Select Story
 <Canvas>
   <Story name="Default">
-      <SelectField options={options} label={"Default Select"}/>
+    <VariantsTable titles={['Default']} columnMinWidth={450} >
+      <VariantRow>
+        <SelectField options={options} label={"Default Select"}/>
+      </VariantRow>
+    </VariantsTable>
   </Story>
 </Canvas>
