@@ -18,7 +18,7 @@ export const BookingStatusLineChart = () => {
     selectedTimeView = "week",
     dateRange,
     selectedEventTypeId,
-    isOrg,
+    isAll,
   } = filter;
   const [startDate, endDate] = dateRange;
 
@@ -36,7 +36,7 @@ export const BookingStatusLineChart = () => {
       teamId: selectedTeamId ?? undefined,
       eventTypeId: selectedEventTypeId ?? undefined,
       userId: selectedUserId ?? undefined,
-      isOrg,
+      isAll,
     },
     {
       staleTime: 30000,

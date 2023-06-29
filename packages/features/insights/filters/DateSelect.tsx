@@ -10,9 +10,9 @@ type RangeType = "tdy" | "w" | "t" | "m" | "y" | undefined | null;
 
 export const DateSelect = () => {
   const { t } = useLocale();
-  const { filter, setDateRange } = useFilterContext();
+  const { filter, setConfigFilters } = useFilterContext();
   const currentDate = dayjs();
-  const [startDate, endDate, range] = filter.dateRange;
+  const [startDate, endDate, range] = filter?.dateRange || [null, null, null];
   const startValue = startDate?.toDate() || null;
   const endValue = endDate?.toDate() || null;
   return (
@@ -29,21 +29,27 @@ export const DateSelect = () => {
             range &&
             (range === "tdy" || range === "w" || range === "t" || range === "m" || range === "y")
           ) {
-            setDateRange([dayjs(start).startOf("d"), dayjs(end).endOf("d"), range]);
+            setConfigFilters({
+              dateRange: [dayjs(start).startOf("d"), dayjs(end).endOf("d"), range],
+            });
+
             return;
           } else if (start && !end) {
             // If only start time has value that means selected date should push to dateRange with last value null
             const currentDates = filter.dateRange;
-            // remove last position of array
-            currentDates.pop();
-            // push new value to array
-            currentDates.push(dayjs(selected));
-            // if lenght > 2 then remove first value
-            if (currentDates.length > 2) {
-              currentDates.shift();
+            if (currentDates && currentDates.length > 0) {
+              // remove last position of array
+              currentDates.pop();
+              // push new value to array
+              currentDates.push(dayjs(selected));
+              // if lenght > 2 then remove first value
+              if (currentDates.length > 2) {
+                currentDates.shift();
+              }
+              setConfigFilters({
+                dateRange: [currentDates[0], currentDates[1], null],
+              });
             }
-
-            setDateRange([currentDates[0], currentDates[1], null]);
 
             return;
           }
