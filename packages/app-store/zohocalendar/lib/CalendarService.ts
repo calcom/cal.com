@@ -276,7 +276,7 @@ export default class ZohoCalendarService implements Calendar {
     }
   }
 
-  listCalendars = async (): Promise<IntegrationCalendar[]> => {
+  async listCalendars(): Promise<IntegrationCalendar[]> {
     try {
       const resp = await this.fetcher(`/calendars`);
       const data = (await this.handleData(resp, this.log)) as ZohoCalendarListResp;
@@ -319,9 +319,9 @@ export default class ZohoCalendarService implements Calendar {
       this.log.error("There was an error contacting zoho calendar service: ", err);
       throw err;
     }
-  };
+  }
 
-  handleData = async (response: Response, log: typeof logger) => {
+  async handleData(response: Response, log: typeof logger) {
     const data = await response.json();
     if (!response.ok) {
       log.debug("zoho request with data", data);
@@ -329,7 +329,7 @@ export default class ZohoCalendarService implements Calendar {
     }
     log.debug("zoho request with data", data);
     return data;
-  };
+  }
 
   private translateEvent = (event: CalendarEvent) => {
     const zohoEvent = {
