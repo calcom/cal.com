@@ -1,20 +1,20 @@
-import { useRouter } from "next/router";
 import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
-import useRouterQuery from "@calcom/web/lib/hooks/useRouterQuery";
 
 import { useTimePreferences } from "../../lib/timePreferences";
-import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
+import { useBookerNavigation } from "../utils/navigation";
 
 export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
-  const router = useRouter();
-  const { date: selectedDate = dayjs().format("YYYY-MM-DD") } = useRouterQuery("date");
-  // const date = selectedDate;
-  const selectedEventDuration = useBookerStore((state) => state.selectedDuration);
+  const {
+    date: selectedDate = dayjs().format("YYYY-MM-DD"),
+    month,
+    duration: selectedEventDuration,
+    updateQuery,
+  } = useBookerNavigation();
   const schedule = useScheduleForEvent({
     prefetchNextMonth:
       !!extraDays && dayjs(selectedDate).month() !== dayjs(selectedDate).add(extraDays, "day").month(),
@@ -52,12 +52,11 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         startDate={selectedDate ? new Date(selectedDate) : new Date()}
         endDate={dayjs(selectedDate).add(extraDays, "day").toDate()}
         onEmptyCellClick={(date) => {
-          if (typeof window === undefined) return;
-          const url = new URL(window.location.href);
-          url.searchParams.set("month", dayjs(date).format("YYYY-MM"));
-          url.searchParams.set("date", dayjs(selectedDate).format("YYYY-MM-DD"));
-          url.searchParams.set("slot", dayjs(date).format());
-          router.push(url, url, { shallow: true });
+          updateQuery({
+            month: month || dayjs(date).format("YYYY-MM"),
+            date: selectedDate || dayjs(date).format("YYYY-MM-DD"),
+            slot: dayjs(date).format(),
+          });
         }}
         gridCellsPerHour={60 / eventDuration}
         hoverEventDuration={eventDuration}

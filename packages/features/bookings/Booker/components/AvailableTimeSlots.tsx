@@ -1,4 +1,3 @@
-import { useRouter } from "next/router";
 import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -6,9 +5,9 @@ import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/booking
 import { useSlotsForMultipleDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
 import { trpc } from "@calcom/trpc";
-import useRouterQuery from "@calcom/web/lib/hooks/useRouterQuery";
 
 import { useEvent, useScheduleForEvent } from "../utils/event";
+import { useBookerNavigation } from "../utils/navigation";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
@@ -24,30 +23,24 @@ type AvailableTimeSlotsProps = {
  * in columns next to each other.
  */
 export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }: AvailableTimeSlotsProps) => {
-  const router = useRouter();
+  const { updateQuery, duration, date, month } = useBookerNavigation();
+  console.log(date);
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
-  /*const selectedDate = useBookerStore((state) => state.selectedDate);
-  const duration = useBookerStore((state) => state.selectedDuration);*/
-  const { duration } = useRouterQuery("duration");
-  const { date = dayjs().format("YYYY-MM-DD") } = useRouterQuery("date");
-  // const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const event = useEvent();
 
   const onTimeSelect = (time: string) => {
-    if (typeof window === undefined) return;
-    const url = new URL(window.location.href);
-    url.searchParams.set("month", dayjs(time).format("YYYY-MM"));
-    url.searchParams.set("date", dayjs(time).format("YYYY-MM-DD"));
-    url.searchParams.set("slot", time);
-    router.push(url, url, { shallow: true });
-
+    updateQuery({
+      month: month || dayjs(time).format("YYYY-MM"),
+      date: date || dayjs(time).format("YYYY-MM-DD"),
+      slot: time,
+    });
     if (!event.data) return;
     reserveSlotMutation.mutate({
       slotUtcStartDate: time,
       eventTypeId: event.data.id,
       slotUtcEndDate: dayjs(time)
         .utc()
-        .add(parseInt(duration || `${event.data.length}`), "minutes")
+        .add(duration || event.data.length, "minutes")
         .format(),
     });
   };
@@ -58,25 +51,24 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }:
 
   // Creates an array of dates to fetch slots for.
   // If `extraDays` is passed in, we will extend the array with the next `extraDays` days.
-  const dates = useMemo(
-    () =>
-      !extraDays
-        ? [date]
-        : [
-            // If NO date is selected yet, we show by default the upcomming `nextDays` days.
-            date,
-            ...Array.from({ length: extraDays }).map((_, index) =>
-              dayjs(date)
-                .add(index + 1, "day")
-                .format("YYYY-MM-DD")
-            ),
-          ],
-    [date, extraDays]
-  );
+  const dates = useMemo(() => {
+    if (!date) return [];
+    return !extraDays
+      ? [`${date}`]
+      : [
+          // If NO date is selected yet, we show by default the upcomming `nextDays` days.
+          `${date}`,
+          ...Array.from({ length: extraDays }).map((_, index) =>
+            dayjs(date)
+              .add(index + 1, "day")
+              .format("YYYY-MM-DD")
+          ),
+        ];
+  }, [date, extraDays]);
 
   const isMultipleDates = dates.length > 1;
   const slotsPerDay = useSlotsForMultipleDates(dates, schedule?.data?.slots);
-
+  if (!dates.length) return null;
   return (
     <div
       className={classNames(

@@ -1,12 +1,10 @@
-import { useRouter } from "next/router";
-import { shallow } from "zustand/shallow";
-
 import dayjs from "@calcom/dayjs";
 import { useSchedule } from "@calcom/features/schedules";
 import { trpc } from "@calcom/trpc/react";
 
 import { useTimePreferences } from "../../lib/timePreferences";
 import { useBookerStore } from "../store";
+import { useBookerNavigation } from "./navigation";
 
 /**
  * Wrapper hook around the trpc query that fetches
@@ -17,9 +15,9 @@ import { useBookerStore } from "../store";
  * of combining multiple conditional hooks.
  */
 export const useEvent = () => {
-  const [username, eventSlug] = useBookerStore((state) => [state.username, state.eventSlug], shallow);
-  const isTeamEvent = useBookerStore((state) => state.isTeamEvent);
+  const { username, eventSlug } = useBookerNavigation();
 
+  const isTeamEvent = useBookerStore((state) => state.isTeamEvent);
   return trpc.viewer.public.event.useQuery(
     { username: username ?? "", eventSlug: eventSlug ?? "", isTeamEvent },
     { refetchOnWindowFocus: false, enabled: Boolean(username) && Boolean(eventSlug) }
@@ -40,17 +38,14 @@ export const useEvent = () => {
 export const useScheduleForEvent = ({ prefetchNextMonth }: { prefetchNextMonth?: boolean } = {}) => {
   const { timezone } = useTimePreferences();
   const event = useEvent();
-  const { query } = useRouter();
-
-  const { user, type, duration, month, date } = query;
-
+  const { username, eventSlug, month, duration, date } = useBookerNavigation();
   return useSchedule({
-    username: `${user}`,
-    eventSlug: `${type}`,
+    username,
+    eventSlug,
     eventId: event.data?.id,
-    month: `${date || month || dayjs().format("YYYY-MM")}`,
+    month: date || month || dayjs().format("YYYY-MM"),
     timezone,
     prefetchNextMonth,
-    duration: parseInt(`${duration}`),
+    duration: duration || event.data?.length,
   });
 };

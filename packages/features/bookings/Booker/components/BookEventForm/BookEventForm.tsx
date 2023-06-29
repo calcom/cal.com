@@ -30,6 +30,7 @@ import { Calendar } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";
 import { useEvent } from "../../utils/event";
+import { useBookerNavigation } from "../../utils/navigation";
 import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
 
@@ -42,7 +43,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const { t, i18n } = useLocale();
   const { timezone } = useTimePreferences();
   const errorRef = useRef<HTMLDivElement>(null);
-  const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
+  const { rescheduleUid } = useBookerNavigation();
   const rescheduleBooking = useBookerStore((state) => state.rescheduleBooking);
   const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
   const formValues = useBookerStore((state) => state.formValues);

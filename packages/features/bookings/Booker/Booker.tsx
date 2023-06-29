@@ -1,6 +1,5 @@
 import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
@@ -10,7 +9,6 @@ import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
-import useRouterQuery from "@calcom/web/lib/hooks/useRouterQuery";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
@@ -25,6 +23,7 @@ import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps, BookerState } from "./types";
 import { useEvent } from "./utils/event";
 import { validateLayout } from "./utils/layout";
+import { useBookerNavigation } from "./utils/navigation";
 import { useBrandColors } from "./utils/use-brand-colors";
 
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
@@ -32,21 +31,12 @@ const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) =>
   ssr: false,
 });
 
-const BookerComponent = ({
-  username,
-  eventSlug,
-  month,
-  rescheduleBooking,
-  hideBranding = false,
-  isTeamEvent,
-}: BookerProps) => {
-  const { back } = useRouter();
+const BookerComponent = ({ rescheduleBooking, hideBranding = false, isTeamEvent }: BookerProps) => {
+  const { back, date: selectedDate, slot: selectedTimeslot } = useBookerNavigation();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const timeslotsRef = useRef<HTMLDivElement>(null);
   const StickyOnDesktop = isMobile ? "div" : StickyBox;
-  const rescheduleUid =
-    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
   const event = useEvent();
   const [_layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
 
@@ -57,9 +47,6 @@ const BookerComponent = ({
   const layout = isEmbed ? validateLayout(embedUiConfig.layout) || _layout : _layout;
 
   const [bookerState, setBookerState] = useState<BookerState>("loading");
-  //const selectedDate = useBookerStore((state) => state.selectedDate);
-  const { date: selectedDate } = useRouterQuery("date");
-  const { slot: selectedTimeslot } = useRouterQuery("slot");
 
   const extraDays = isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop;
   const bookerLayouts = event.data?.profile?.bookerLayouts || defaultBookerLayoutSettings;
@@ -77,11 +64,7 @@ const BookerComponent = ({
   });
 
   useInitializeBookerStore({
-    username,
-    eventSlug,
-    month,
     eventId: event?.data?.id,
-    rescheduleUid,
     rescheduleBooking,
     layout: defaultLayout,
     isTeamEvent,
