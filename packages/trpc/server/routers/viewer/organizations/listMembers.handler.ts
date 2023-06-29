@@ -12,38 +12,42 @@ type GetOptions = {
 
 export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const organizationId = ctx.user.organizationId;
+
   if (!organizationId) {
     throw new TRPCError({ code: "NOT_FOUND", message: "User is not part of any organization." });
   }
 
   const { page, limit } = input;
 
-  // I couldnt get this query to work direct on membership table
-  const teamMembers = await prisma?.team.findFirst({
+  const getTotalMembers = await prisma?.membership.count({
     where: {
-      id: organizationId,
+      teamId: organizationId,
     },
+  });
+
+  // I couldnt get this query to work direct on membership table
+  const teamMembers = await prisma?.membership.findMany({
+    where: {
+      teamId: organizationId,
+    },
+    take: limit,
+    skip: (page - 1) * limit,
     select: {
-      members: {
-        take: limit,
-        skip: (page - 1) * limit,
+      role: true,
+      accepted: true,
+      user: {
         select: {
-          role: true,
-          user: {
+          id: true,
+          username: true,
+          email: true,
+          timeZone: true,
+          teams: {
             select: {
-              id: true,
-              username: true,
-              email: true,
-              timeZone: true,
-              teams: {
+              team: {
                 select: {
-                  team: {
-                    select: {
-                      id: true,
-                      name: true,
-                      slug: true,
-                    },
-                  },
+                  id: true,
+                  name: true,
+                  slug: true,
                 },
               },
             },
@@ -53,13 +57,14 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     },
   });
 
-  const members = teamMembers?.members?.map((member) => {
+  const members = teamMembers?.map((member) => {
     return {
       id: member.user.id,
       username: member.user.username,
       email: member.user.email,
       timeZone: member.user.timeZone,
       role: member.role,
+      accepted: member.accepted,
       teams: member.user.teams.map((team) => {
         return {
           id: team.team.id,
@@ -70,5 +75,9 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     };
   });
 
-  return members ?? [];
+  return {
+    rows: members || [],
+    pageCount: Math.ceil((getTotalMembers || 0) / limit),
+    totalCount: getTotalMembers || 0,
+  };
 };

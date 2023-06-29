@@ -1,7 +1,7 @@
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
-import { useMemo } from "react";
-import { shallow } from "zustand/shallow";
+import { useRouter } from "next/router";
+import { useMemo, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -9,23 +9,19 @@ import { trpc, type RouterOutputs } from "@calcom/trpc";
 import { Avatar, Badge, Checkbox, DataTable, showToast } from "@calcom/ui";
 
 import { useOrgBrandingValues } from "../../../ee/organizations/hooks";
-import { useOrgMemberStore } from "./store";
 
 interface User {
-  id: string;
-  username?: string;
+  id: number;
+  username: string | null;
   email: string;
-  role?: MembershipRole;
+  timeZone: string;
+  role: MembershipRole;
+  accepted: boolean;
   teams: {
-    id: string;
+    id: number;
     name: string;
-    slug: string;
+    slug: string | null;
   }[];
-  timezone?: string;
-}
-
-interface UserListTableProps {
-  users: User[];
 }
 
 function TableActions({
@@ -175,20 +171,39 @@ function TableActions({
   // );
 }
 
-export function UserListTable({ users }: UserListTableProps) {
-  const { data } = useSession();
-  const currentTeam = useOrgMemberStore((state) => state.currentTeam);
+export function UserListTable() {
+  const router = useRouter();
   const orgValues = useOrgBrandingValues();
 
-  const [pagination, setPagination] = useOrgMemberStore(
-    (state) => [state.pagination, state.setPagination],
-    shallow
+  const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
+    pageIndex: 1,
+    pageSize: 20,
+  });
+
+  const pagination = useMemo(
+    () => ({
+      pageIndex,
+      pageSize,
+    }),
+    [pageIndex, pageSize]
+  );
+
+  const { data, isLoading } = trpc.viewer.organizations.listMembers.useQuery(
+    {
+      limit: pageSize,
+      page: pageIndex,
+    },
+    {
+      onError: () => {
+        router.push("/settings");
+      },
+    }
   );
 
   const orgSlug = orgValues?.slug || "error";
 
   const memorisedColumns = useMemo(() => {
-    const cols: ColumnDef<UserListTableProps["users"][number]>[] = [
+    const cols: ColumnDef<User>[] = [
       {
         id: "select",
         header: ({ table }) => (
@@ -278,26 +293,27 @@ export function UserListTable({ users }: UserListTableProps) {
           );
         },
       },
-      {
-        id: "actions",
-        cell: ({ row }) => {
-          const user = row.original;
-          return <TableActions user={user} orgSlug={orgSlug} currentTeam={currentTeam} />;
-        },
-      },
+      // {
+      //   id: "actions",
+      //   cell: ({ row }) => {
+      //     const user = row.original;
+      //     return <TableActions user={user} orgSlug={orgSlug} currentTeam={rows} />;
+      //   },
+      // },
     ];
 
     return cols;
-  }, [currentTeam, orgSlug]);
+  }, []);
 
-  if (!data?.user) return null;
+  if (!data || isLoading) return null;
+  data.rows = data.rows || [];
 
   return (
     <DataTable
       pagination={pagination}
       setPagination={setPagination}
       columns={memorisedColumns}
-      data={users}
+      data={data.rows as User[]}
       filterableItems={[
         {
           tableAccessor: "role",

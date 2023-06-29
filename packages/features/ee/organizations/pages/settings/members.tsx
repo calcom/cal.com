@@ -1,15 +1,8 @@
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { shallow } from "zustand/shallow";
 
-import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
-import TeamInviteList from "@calcom/features/ee/teams/components/TeamInviteList";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { UserListTable } from "@calcom/features/users/components/UserTable/UserListTable";
-import {
-  useInitializeOrgMemberStore,
-  useOrgMemberStore,
-} from "@calcom/features/users/components/UserTable/store";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -65,9 +58,6 @@ const checkIfExist = (comp: string, query: string) =>
 
 const MembersView = () => {
   const { t, i18n } = useLocale();
-  useInitializeOrgMemberStore();
-  const [team, isLoading] = useOrgMemberStore((state) => [state.currentTeam, state.isLoading], shallow);
-  const membershipPermissions = useOrgMemberStore((state) => state.permissions);
 
   const router = useRouter();
   const utils = trpc.useContext();
@@ -101,7 +91,12 @@ const MembersView = () => {
     },
   });
 
-  const isInviteOpen = !team?.membership.accepted;
+  // Move to a new query to just get the team membership.
+  // const isInviteOpen = !team?.membership.accepted;
+  const isAdminOrOwner = false;
+  const isInviteOpen = false;
+  const isLoading = false;
+  const team = undefined;
 
   return (
     <>
@@ -109,7 +104,7 @@ const MembersView = () => {
         title={t("organization_members")}
         description={t("organization_description")}
         CTA={
-          membershipPermissions.isAdminOrOwner ? (
+          isAdminOrOwner ? (
             <Button
               type="button"
               color="primary"
@@ -127,7 +122,7 @@ const MembersView = () => {
       {!isLoading && (
         <>
           <div>
-            {team && (
+            {/* {team && (
               <>
                 {isInviteOpen && (
                   <TeamInviteList
@@ -144,28 +139,10 @@ const MembersView = () => {
                   />
                 )}
               </>
-            )}
-            <UserListTable
-              users={[
-                {
-                  id: "1",
-                  email: "test@test.com",
-                  username: "test",
-                  role: "ADMIN",
-                  timezone: "America/Los_Angeles",
-                  teams: [
-                    {
-                      id: "1",
-                      name: "test",
-                      role: "ADMIN",
-                      slug: "test",
-                    },
-                  ],
-                },
-              ]}
-            />
+            )} */}
+            <UserListTable />
           </div>
-          {showMemberInvitationModal && team && (
+          {/* {showMemberInvitationModal && team && (
             <MemberInvitationModal
               teamId={team.id}
               isOpen={showMemberInvitationModal}
@@ -182,7 +159,7 @@ const MembersView = () => {
                 });
               }}
             />
-          )}
+          )} */}
         </>
       )}
     </>
