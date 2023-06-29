@@ -253,7 +253,7 @@ export function UserListTable() {
           const { role } = row.original;
           return (
             <Badge
-              color={role === "MEMBER" ? "gray" : "blue"}
+              variant={role === "MEMBER" ? "gray" : "blue"}
               onClick={() => {
                 table.getColumn("role")?.setFilterValue(role);
               }}>
@@ -282,7 +282,7 @@ export function UserListTable() {
               {teams.map((team) => (
                 <Badge
                   key={team.id}
-                  color="gray"
+                  variant="gray"
                   onClick={() => {
                     table.getColumn("teams")?.setFilterValue(team.name);
                   }}>
@@ -319,8 +319,9 @@ export function UserListTable() {
           tableAccessor: "role",
           title: "Role",
           options: [
-            { label: "Member", value: "MEMBER" },
+            { label: "Owner", value: "OWNER" },
             { label: "Admin", value: "ADMIN" },
+            { label: "Member", value: "MEMBER" },
           ],
         },
       ]}
