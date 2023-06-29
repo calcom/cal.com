@@ -178,7 +178,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   );
 }
 
-const CopyApiKey = ({ apiKey }: { apiKey }) => {
+const CopyApiKey = ({ apiKey }: { apiKey: string }) => {
   const { t } = useLocale();
   return (
     <div>
