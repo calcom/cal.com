@@ -10,11 +10,12 @@ export const _WebhookModel = z.object({
   eventTypeId: z.number().int().nullish(),
   subscriberUrl: z.string().url(),
   payloadTemplate: z.string().nullish(),
-  createdAt: z.date(),
   active: z.boolean(),
   eventTriggers: z.nativeEnum(WebhookTriggerEvents).array(),
   appId: z.string().nullish(),
   secret: z.string().nullish(),
+  createdAt: z.date(),
+  updatedAt: z.date().nullish(),
 })
 
 export interface CompleteWebhook extends z.infer<typeof _WebhookModel> {

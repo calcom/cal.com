@@ -1,0 +1,124 @@
+-- AlterTable
+ALTER TABLE "Account" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "ApiKey" ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "App" ALTER COLUMN "updatedAt" DROP NOT NULL;
+
+-- AlterTable
+ALTER TABLE "App_RoutingForms_Form" ALTER COLUMN "updatedAt" DROP NOT NULL;
+
+-- AlterTable
+ALTER TABLE "App_RoutingForms_FormResponse" ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "Attendee" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "Availability" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "BookingReference" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "BookingSeat" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "Credential" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "Deployment" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "DestinationCalendar" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "EventTypeCustomInput" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "Feedback" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "HashedLink" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "Host" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "Impersonations" ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "Membership" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "Payment" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "ReminderMail" ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "ResetPasswordRequest" ALTER COLUMN "updatedAt" DROP NOT NULL;
+
+-- AlterTable
+ALTER TABLE "Schedule" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "SelectedCalendar" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "SelectedSlots" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "Session" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "Team" ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "VerificationToken" ALTER COLUMN "updatedAt" DROP NOT NULL;
+
+-- AlterTable
+ALTER TABLE "VerifiedNumber" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "Webhook" ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "Workflow" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "WorkflowReminder" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "WorkflowStep" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "WorkflowsOnEventTypes" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "users" ADD COLUMN     "updatedAt" TIMESTAMP(3);
