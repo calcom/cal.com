@@ -812,7 +812,6 @@
   "free_to_use_apps": "Gratis",
   "no_category_apps": "Geen apps voor {{category}}",
   "no_category_apps_description_calendar": "Voeg een agenda-app toe om te controleren op conflicten om dubbele boekingen te voorkomen",
-  "no_category_apps_description_conferencing": "Probeer een conferentieapp toe te voegen om videogesprekken met uw klanten te integreren",
   "no_category_apps_description_payment": "Voeg een betaalapp toe om transacties tussen u en uw klanten te vergemakkelijken",
   "no_category_apps_description_analytics": "Voeg een analyse-app toe aan uw boekingspagina's",
   "no_category_apps_description_automation": "Voeg een automatiseringsapp toe om te gebruiken",
@@ -1700,7 +1699,6 @@
   "events_rescheduled": "Verplaatste gebeurtenissen",
   "from_last_period": "van afgelopen periode",
   "from_to_date_period": "Van: {{startDate}} Tot: {{endDate}}",
-  "subtitle_analytics": "Meer informatie over de activiteit van uw team",
   "redirect_url_warning": "Als u een omleiding toevoegt, wordt de succespagina uitgeschakeld. Zorg ervoor dat u op uw aangepaste succespagina \"Boeking bevestigd\" vermeldt.",
   "event_trends": "Gebeurtenistrends",
   "clear_filters": "Filters wissen",
@@ -1758,5 +1756,6 @@
   "google_workspace_admin_tooltip": "U moet een Google Workspace-beheerder zijn om deze functie te gebruiken",
   "first_event_type_webhook_description": "Maak uw eerste webhook voor dit gebeurtenistype",
   "create_for": "Maak voor",
-  "organization_url_taken": "Deze URL is al in gebruik"
+  "organization_url_taken": "Deze URL is al in gebruik",
+  "insights_all_org_filter": "Alle apps"
 }

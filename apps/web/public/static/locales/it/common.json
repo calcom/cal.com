@@ -837,7 +837,6 @@
   "free_to_use_apps": "Gratuito",
   "no_category_apps": "Nessuna app {{category}}",
   "no_category_apps_description_calendar": "Aggiungi un'app di calendario per controllare i conflitti ed evitare doppie prenotazioni",
-  "no_category_apps_description_conferencing": "Prova ad aggiungere un'app di conferenza per integrare le videochiamate con i clienti",
   "no_category_apps_description_payment": "Aggiungi un'app di pagamento per facilitare le transazioni con i clienti",
   "no_category_apps_description_analytics": "Aggiungi un'app di analisi per le tue pagine di prenotazione",
   "no_category_apps_description_automation": "Aggiungi un'app di automazione da usare",
@@ -1736,7 +1735,6 @@
   "events_rescheduled": "Eventi riprogrammati",
   "from_last_period": "dal periodo precedente",
   "from_to_date_period": "Da: {{startDate}} A: {{endDate}}",
-  "subtitle_analytics": "Scopri di più sull'attività del tuo team",
   "redirect_url_warning": "Aggiungendo un reindirizzamento, viene disabilitata la pagina di conferma dell'esito. Assicurati che nella pagina di conferma dell'esito personalizzata compaia la dicitura \"Prenotazione confermata\".",
   "event_trends": "Tendenze eventi",
   "clear_filters": "Cancella filtri",
@@ -1808,5 +1806,6 @@
   "organization_url_taken": "URL già occupato",
   "additional_url_parameters": "Parametri URL aggiuntivi",
   "sender_id_info": "Nome o numero mostrato come mittente di un SMS (alcuni paesi non consentono ID alfanumerici dei mittenti)",
+  "insights_all_org_filter": "Tutte le app",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi qui le tue nuove stringhe al di sopra di questa riga ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ ↑"
 }

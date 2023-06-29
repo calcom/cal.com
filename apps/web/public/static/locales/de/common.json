@@ -812,7 +812,6 @@
   "free_to_use_apps": "Kostenlos",
   "no_category_apps": "Keine {{category}} Apps",
   "no_category_apps_description_calendar": "Fügen Sie eine Kalender-App hinzu, in der nach Konflikten gesucht werden soll, um Doppelbuchungen zu vermeiden",
-  "no_category_apps_description_conferencing": "Versuchen Sie, eine Konferenz-App hinzuzufügen, um Videoanrufe mit Ihren Kunden zu integrieren",
   "no_category_apps_description_payment": "Fügen Sie eine Zahlungs-App hinzu, um die Transaktion zwischen Ihnen und Ihren Kunden zu erleichtern",
   "no_category_apps_description_analytics": "Fügen Sie eine Analyse-App für Ihre Buchungsseiten hinzu",
   "no_category_apps_description_automation": "Fügen Sie eine Automatisierungs-App hinzu, die verwendet werden soll",
@@ -1700,7 +1699,6 @@
   "events_rescheduled": "Ereignisse neu geplant",
   "from_last_period": "seit dem letzten Zeitraum",
   "from_to_date_period": "Von: {{startDate}} Bis: {{endDate}}",
-  "subtitle_analytics": "Erfahren Sie mehr über die Aktivität Ihres Teams",
   "redirect_url_warning": "Das Hinzufügen einer Umleitung wird die Erfolgsseite deaktivieren. Erwähnen Sie \"Buchung bestätigt\" auf Ihrer benutzerdefinierten Erfolgsseite.",
   "event_trends": "Ereignistrends",
   "clear_filters": "Filter löschen",
@@ -1758,5 +1756,6 @@
   "google_workspace_admin_tooltip": "Sie müssen ein Workspace-Admin sein, um diese Funktion nutzen zu können",
   "first_event_type_webhook_description": "Erstellen Sie Ihren ersten Webhook für diesen Termintypen",
   "create_for": "Erstellen für",
-  "organization_url_taken": "Diese URL ist bereits vergeben"
+  "organization_url_taken": "Diese URL ist bereits vergeben",
+  "insights_all_org_filter": "Alle Apps"
 }

@@ -244,7 +244,7 @@ const EditKeysModal: FC<{
             ))}
           </Form>
         )}
-        <DialogFooter>
+        <DialogFooter showDivider className="mt-8">
           <DialogClose onClick={handleModelClose} />
           <Button form="edit-keys" type="submit">
             {t("save")}
@@ -292,7 +292,7 @@ const AdminAppsListContainer = () => {
 
   if (isLoading) return <SkeletonLoader />;
 
-  if (!apps) {
+  if (!apps || apps.length === 0) {
     return (
       <EmptyScreen
         Icon={AlertCircle}

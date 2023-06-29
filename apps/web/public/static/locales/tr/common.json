@@ -812,7 +812,6 @@
   "free_to_use_apps": "Ücretsiz",
   "no_category_apps": "{{category}} uygulaması yok",
   "no_category_apps_description_calendar": "Çifte rezervasyonları önlemek amacıyla çakışmaları kontrol etmek için bir takvim uygulaması ekleyin",
-  "no_category_apps_description_conferencing": "Müşterilerinizle görüntülü arama yapmak için bir konferans uygulaması eklemeyi deneyin",
   "no_category_apps_description_payment": "Müşterilerinizle aranızdaki işlemleri kolaylaştırmak için bir ödeme uygulaması ekleyin",
   "no_category_apps_description_analytics": "Rezervasyon sayfalarınız için bir analiz uygulaması ekleyin",
   "no_category_apps_description_automation": "Kullanılacak otomasyon uygulamasını ekleyin",
@@ -1700,7 +1699,6 @@
   "events_rescheduled": "Yeniden Planlanan Etkinlikler",
   "from_last_period": "son dönemden itibaren",
   "from_to_date_period": "Başlangıç: {{startDate}} Bitiş: {{endDate}}",
-  "subtitle_analytics": "Ekibinizin aktivitesi hakkında daha fazla bilgi edinin",
   "redirect_url_warning": "Yönlendirme eklemek başarı sayfasını devre dışı bırakır. Özel başarı sayfanızda \"Rezervasyon Onaylandı\" ifadesinden bahsetmeyi unutmayın.",
   "event_trends": "Etkinlik Trendleri",
   "clear_filters": "Filtreleri Temizle",
@@ -1758,5 +1756,6 @@
   "google_workspace_admin_tooltip": "Bu özelliği kullanmak için Çalışma Alanı Yöneticisi olmalısınız",
   "first_event_type_webhook_description": "Bu etkinlik türü için ilk web kancanızı oluşturun",
   "create_for": "Oluşturun",
-  "organization_url_taken": "Bu URL zaten kullanılıyor"
+  "organization_url_taken": "Bu URL zaten kullanılıyor",
+  "insights_all_org_filter": "Tümü"
 }

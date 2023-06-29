@@ -812,7 +812,6 @@
   "free_to_use_apps": "Zdarma",
   "no_category_apps": "Žádné aplikace v kategorii {{category}}",
   "no_category_apps_description_calendar": "Přidejte aplikaci kalendáře, ať máte přehled v zájmu prevence dvojích rezervací",
-  "no_category_apps_description_conferencing": "Zkuste přidat aplikaci pro konference, která umožní propojit videohovory s vašimi klienty",
   "no_category_apps_description_payment": "Přidejte platební aplikaci, která usnadní provádění transakcí mezi vámi a vašimi klienty",
   "no_category_apps_description_analytics": "Přidejte analytickou aplikaci pro vaše rezervační stránky",
   "no_category_apps_description_automation": "Přidejte aplikaci pro automatizaci",
@@ -1700,7 +1699,6 @@
   "events_rescheduled": "Události přesunuty",
   "from_last_period": "z posledního období",
   "from_to_date_period": "Od: {{startDate}} do: {{endDate}}",
-  "subtitle_analytics": "Zjistěte více o činnosti vašeho týmu",
   "redirect_url_warning": "Přidáním přesměrování se stránka úspěchu vypne. Nezapomeňte na vlastní stránce úspěchu uvést „Rezervace potvrzena“.",
   "event_trends": "Trendy událostí",
   "clear_filters": "Vymazat filtry",
@@ -1758,5 +1756,6 @@
   "google_workspace_admin_tooltip": "Používání této funkce vyžaduje, abyste byli administrátory pracovního prostoru",
   "first_event_type_webhook_description": "Vytvořte svůj první webhook pro tento typ události",
   "create_for": "Vytvořit pro",
-  "organization_url_taken": "Tato adresa URL je už obsazená"
+  "organization_url_taken": "Tato adresa URL je už obsazená",
+  "insights_all_org_filter": "Všechny aplikace"
 }

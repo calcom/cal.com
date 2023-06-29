@@ -836,7 +836,6 @@
   "free_to_use_apps": "Besplatno",
   "no_category_apps": "Nema {{category}} aplikacija",
   "no_category_apps_description_calendar": "Dodajte kalendar aplikaciju da biste proverili da li postoje konflikti i time sprečili dvostruka zakazivanja",
-  "no_category_apps_description_conferencing": "Pokušajte da dodate aplikaciju za konferenciju da biste integrisali video poziv sa svojim klijentima",
   "no_category_apps_description_payment": "Dodajte aplikaciju za plaćanje da biste olakšali transakcije između vas i klijenata",
   "no_category_apps_description_analytics": "Dodajte analitičku aplikaciju za vaše stranice za rezervacije",
   "no_category_apps_description_automation": "Dodajte aplikaciju za automatizaciju za korišćenje",
@@ -1732,7 +1731,6 @@
   "events_rescheduled": "Pomereni događaji",
   "from_last_period": "iz prošlog perioda",
   "from_to_date_period": "Od: {{startDate}} Do: {{endDate}}",
-  "subtitle_analytics": "Saznajte više o aktivnosti vašeg tima",
   "redirect_url_warning": "Dodavanje preusmeravanja će onemogućiti stranicu uspeha. Obavezno navedite „Zakazivanje potvrđeno“ na vašoj prilagođenoj stranici uspeha.",
   "event_trends": "Trendovi događaja",
   "clear_filters": "Izbriši filtere",
@@ -1803,5 +1801,6 @@
   "create_for": "Napravi za",
   "organization_url_taken": "Ovaj URL je zauzet",
   "additional_url_parameters": "Dodatni URL parametri",
+  "insights_all_org_filter": "Sve aplikacije",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
