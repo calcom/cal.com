@@ -58,7 +58,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   async function createApiKey(teamId?: number) {
     const event = { note: "Zapier", expiresAt: null, appId: ZAPIER, teamId };
     const apiKey = await utils.client.viewer.apiKeys.create.mutate(event);
-    console.log("apiKey", apiKey);
+
     if (oldApiKey.data) {
       const oldKey = teamId
         ? oldApiKey.data.find((key) => key.teamId === teamId)

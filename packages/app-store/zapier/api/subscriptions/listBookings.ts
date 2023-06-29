@@ -19,21 +19,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(401).json({ message: "API key not valid" });
   }
 
-  const OR = [{ userId: validKey.userId }];
-
-  if (validKey.teamId) {
-    OR.push({
-      eventType: {
-        teamId: validKey.teamId,
-      },
-    });
-  }
-
   try {
     const bookings = await prisma.booking.findMany({
       take: 3,
       where: {
-        OR,
+        AND: [
+          { userId: validKey.userId },
+          {
+            eventType: {
+              teamId: validKey.teamId,
+            },
+          },
+        ],
       },
       orderBy: {
         id: "desc",
