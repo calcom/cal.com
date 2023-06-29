@@ -183,7 +183,6 @@ export default function ApiKeyDialogForm({
                 name="expiresAt"
                 render={({ field: { onChange, value } }) => {
                   const defaultValue = expiresAtOptions[1]
-                  console.log(defaultValue,value,expiresAtOptions);
                   
                   return(
                   <SelectField
