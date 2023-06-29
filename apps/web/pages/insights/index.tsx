@@ -78,7 +78,7 @@ export default function InsightsPage() {
             <></>
           ) : (
             <FiltersProvider>
-              <div className="mt-0 ml-auto">
+              <div className="ml-auto mt-0">
                 <Heading />
               </div>
 
