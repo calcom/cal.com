@@ -6,9 +6,6 @@ ADD COLUMN     "updatedAt" TIMESTAMP(3);
 ALTER TABLE "ApiKey" ADD COLUMN     "updatedAt" TIMESTAMP(3);
 
 -- AlterTable
-ALTER TABLE "App" ALTER COLUMN "updatedAt" DROP NOT NULL;
-
--- AlterTable
 ALTER TABLE "App_RoutingForms_Form" ALTER COLUMN "updatedAt" DROP NOT NULL;
 
 -- AlterTable

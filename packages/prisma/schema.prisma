@@ -686,8 +686,8 @@ model App {
   ApiKey      ApiKey[]
   enabled     Boolean         @default(false)
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([enabled])
 }
