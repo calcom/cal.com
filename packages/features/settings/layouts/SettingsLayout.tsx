@@ -509,12 +509,12 @@ function ShellHeader() {
               {t(meta.title)}
             </h1>
           ) : (
-            <div className="bg-emphasis mb-1 h-6 w-24 animate-pulse rounded-md" />
+            <div className="bg-emphasis mb-1 h-5 w-24 animate-pulse rounded-md" />
           )}
           {meta.description && isLocaleReady ? (
             <p className="text-default text-sm ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
           ) : (
-            <div className="bg-emphasis mb-1 h-6 w-32 animate-pulse rounded-md" />
+            <div className="bg-emphasis h-5 w-32 animate-pulse rounded-md" />
           )}
         </div>
         <div className="ms-auto flex-shrink-0">{meta.CTA}</div>
