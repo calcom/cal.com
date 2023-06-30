@@ -289,7 +289,7 @@ export default function MemberListItem(props: Props) {
                 });
                 setShowImpersonateModal(false);
               }}>
-              <DialogFooter>
+              <DialogFooter showDivider className="mt-8">
                 <DialogClose color="secondary">{t("cancel")}</DialogClose>
                 <Button color="primary" type="submit">
                   {t("impersonate")}
