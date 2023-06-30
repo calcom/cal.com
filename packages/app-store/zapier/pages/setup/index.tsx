@@ -29,8 +29,6 @@ export default function ZapierSetup(props: IZapierSetupProps) {
     }>
   >();
 
-  console.log("teams", teams);
-
   const teamsList = trpc.viewer.teams.listOwnedTeams.useQuery(undefined, {
     refetchOnWindowFocus: false,
     onSuccess: (data) => {
@@ -47,7 +45,11 @@ export default function ZapierSetup(props: IZapierSetupProps) {
     },
   });
 
-  const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation();
+  const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation({
+    onSuccess: () => {
+      utils.client.viewer.apiKeys.findKeyOfType.invalidate();
+    },
+  });
   const zapierCredentials: { credentialIds: number[] } | undefined = integrations.data?.items.find(
     (item: { type: string }) => item.type === "zapier_automation"
   );
@@ -63,12 +65,14 @@ export default function ZapierSetup(props: IZapierSetupProps) {
       const oldKey = teamId
         ? oldApiKey.data.find((key) => key.teamId === teamId)
         : oldApiKey.data.find((key) => !key.teamId);
+
       if (oldKey) {
         deleteApiKey.mutate({
           id: oldKey.id,
         });
       }
     }
+
     return apiKey;
   }
 
@@ -81,7 +85,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
         }
         return team;
       });
-      console.log(updatedTeamsList);
+
       setTeams(updatedTeamsList);
     } else {
       setNewApiKey(apiKey);

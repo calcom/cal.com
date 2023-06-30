@@ -14,8 +14,6 @@ type FindKeyOfTypeOptions = {
 };
 
 export const findKeyOfTypeHandler = async ({ ctx, input }: FindKeyOfTypeOptions) => {
-  const OR = [{ userId: ctx.user.id }];
-
   if (input.teamId) {
     const user = await prisma.user.findFirst({
       where: {
@@ -39,16 +37,15 @@ export const findKeyOfTypeHandler = async ({ ctx, input }: FindKeyOfTypeOptions)
         code: "UNAUTHORIZED",
       });
     }
-
-    OR.push({ teamId: input.teamId });
   }
 
   return await prisma.apiKey.findMany({
     where: {
       AND: [
         {
-          OR,
+          teamId: input.teamId,
         },
+        { userId: ctx.user.id },
         {
           appId: input.appId,
         },
