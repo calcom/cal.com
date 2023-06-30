@@ -1,12 +1,6 @@
 "use client";
 
-import type {
-  ColumnDef,
-  ColumnFiltersState,
-  PaginationState,
-  SortingState,
-  VisibilityState,
-} from "@tanstack/react-table";
+import type { ColumnDef, ColumnFiltersState, SortingState, VisibilityState } from "@tanstack/react-table";
 import {
   flexRender,
   getCoreRowModel,
@@ -16,18 +10,18 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
+import { useVirtual } from "react-virtual";
 
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table/TableNew";
-import { DataTablePagination } from "./DataTablePagination";
 import { DataTableSelectionBar } from "./DataTableSelectionBar";
 import type { FilterableItems } from "./DataTableToolbar";
 import { DataTableToolbar } from "./DataTableToolbar";
 
 export interface DataTableProps<TData, TValue> {
+  tableContainerRef: React.RefObject<HTMLDivElement>;
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   searchKey?: string;
@@ -38,9 +32,7 @@ export interface DataTableProps<TData, TValue> {
     icon?: SVGComponent;
   }[];
   tableCTA?: React.ReactNode;
-  pagination: PaginationState;
-  setPagination: Dispatch<SetStateAction<PaginationState>>;
-  pageCount?: number;
+  isLoading?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -49,10 +41,9 @@ export function DataTable<TData, TValue>({
   filterableItems,
   tableCTA,
   searchKey,
-  pagination,
   selectionOptions,
-  setPagination,
-  pageCount,
+  tableContainerRef,
+  isLoading,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -67,9 +58,7 @@ export function DataTable<TData, TValue>({
       columnVisibility,
       rowSelection,
       columnFilters,
-      pagination,
     },
-    pageCount,
     enableRowSelection: true,
     debugTable: true,
     manualPagination: true,
@@ -82,8 +71,19 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
-    onPaginationChange: (updateFn) => setPagination(() => updateFn(pagination)),
   });
+
+  const { rows } = table.getRowModel();
+
+  const rowVirtualizer = useVirtual({
+    parentRef: tableContainerRef,
+    size: rows.length,
+    overscan: 10,
+  });
+  const { virtualItems: virtualRows, totalSize } = rowVirtualizer;
+  const paddingTop = virtualRows.length > 0 ? virtualRows?.[0]?.start || 0 : 0;
+  const paddingBottom =
+    virtualRows.length > 0 ? totalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0) : 0;
 
   return (
     <div className="relative space-y-4">
@@ -93,18 +93,12 @@ export function DataTable<TData, TValue>({
         searchKey={searchKey}
         tableCTA={tableCTA}
       />
-      <div className="rounded-md border">
+      <div className="rounded-md border" ref={tableContainerRef}>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  // if (
-                  //   header.column.columnDef.meta?.hasPermissions &&
-                  //   !header.column.columnDef.meta?.hasPermissions()
-                  // )
-                  //   return null;
-
                   return (
                     <TableHead key={header.id}>
                       {header.isPlaceholder
@@ -117,7 +111,12 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {paddingTop > 0 && (
+              <tr>
+                <td style={{ height: `${paddingTop}px` }} />
+              </tr>
+            )}
+            {table.getRowModel().rows?.length && !isLoading ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => {
@@ -136,10 +135,15 @@ export function DataTable<TData, TValue>({
                 </TableCell>
               </TableRow>
             )}
+            {paddingBottom > 0 && (
+              <tr>
+                <td style={{ height: `${paddingBottom}px` }} />
+              </tr>
+            )}
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      {/* <DataTablePagination table={table} /> */}
       <DataTableSelectionBar table={table} actions={selectionOptions} />
     </div>
   );

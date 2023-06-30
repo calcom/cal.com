@@ -1,9 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
-import { useMemo } from "react";
+import { useMemo, useRef, useCallback, useEffect } from "react";
 
-import { usePagination } from "@calcom/lib/hook/usePagination";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
@@ -173,22 +171,21 @@ function TableActions({
 }
 
 export function UserListTable() {
-  const router = useRouter();
   const orgValues = useOrgBrandingValues();
 
-  const { pagination, setPagination } = usePagination();
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
-  const { data, isLoading } = trpc.viewer.organizations.listMembers.useQuery(
-    {
-      limit: pagination.pageSize,
-      page: pagination.pageIndex,
-    },
-    {
-      onError: () => {
-        router.push("/settings");
+  const { data, isLoading, fetchNextPage, isFetching } =
+    trpc.viewer.organizations.listMembers.useInfiniteQuery(
+      {
+        limit: 50,
       },
-    }
-  );
+      {
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        keepPreviousData: true,
+        refetchOnWindowFocus: false,
+      }
+    );
 
   const orgSlug = orgValues?.slug || "error";
 
@@ -295,13 +292,35 @@ export function UserListTable() {
     return cols;
   }, []);
 
+  //we must flatten the array of arrays from the useInfiniteQuery hook
+  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]);
+  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalFetched = flatData.length;
+
+  //called on scroll and possibly on mount to fetch more data as the user scrolls and reaches bottom of table
+  const fetchMoreOnBottomReached = useCallback(
+    (containerRefElement?: HTMLDivElement | null) => {
+      if (containerRefElement) {
+        const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
+        //once the user has scrolled within 300px of the bottom of the table, fetch more data if there is any
+        if (scrollHeight - scrollTop - clientHeight < 300 && !isFetching && totalFetched < totalDBRowCount) {
+          fetchNextPage();
+        }
+      }
+    },
+    [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
+  );
+
+  useEffect(() => {
+    fetchMoreOnBottomReached(tableContainerRef.current);
+  }, [fetchMoreOnBottomReached]);
+
   return (
     <DataTable
-      pagination={pagination}
-      pageCount={data.pageCount}
-      setPagination={setPagination}
+      tableContainerRef={tableContainerRef}
       columns={memorisedColumns}
-      data={data.rows as User[]}
+      data={flatData}
+      isLoading={isLoading}
       filterableItems={[
         {
           tableAccessor: "role",
