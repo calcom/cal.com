@@ -735,7 +735,7 @@
   "minimum_booking_notice": "최소 고지",
   "offset_toggle": "시작 시간 오프셋",
   "offset_toggle_description": "지정된 시간(분)만큼 예약자에게 표시되는 시간 슬롯 오프셋",
-  "offset_start": "오프셋 기준",
+  "offset_start": "오프셋할 시간",
   "offset_start_description": "예: 이렇게 하면 예약자에게 {{ adjustedTime }}에 {{ originalTime }} 대신 시간 슬롯이 표시됨",
   "slot_interval": "시간 슬롯 간격",
   "slot_interval_default": "이벤트 길이 사용(기본값)",
