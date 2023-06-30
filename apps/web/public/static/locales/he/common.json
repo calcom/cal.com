@@ -1112,6 +1112,7 @@
   "event_date_variable": "תאריך האירוע",
   "event_time_variable": "מועד האירוע",
   "timezone_variable": "אזור זמן",
+  "location_variable": "מיקום",
   "organizer_name_variable": "שם המארגן/ת",
   "app_upgrade_description": "כדי להשתמש בתכונה זו, עליך לשדרג לחשבון Pro.",
   "invalid_number": "מספר טלפון לא תקין",

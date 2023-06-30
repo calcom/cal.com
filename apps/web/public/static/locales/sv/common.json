@@ -1100,6 +1100,7 @@
   "event_date_variable": "Händelsedatum",
   "event_time_variable": "Händelsetid",
   "timezone_variable": "Tidszon",
+  "location_variable": "Plats",
   "organizer_name_variable": "Arrangörens namn",
   "app_upgrade_description": "För att kunna använda den här funktionen måste du uppgradera till ett Pro-konto.",
   "invalid_number": "Ogiltigt telefonnummer",

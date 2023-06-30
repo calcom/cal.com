@@ -1112,6 +1112,7 @@
   "event_date_variable": "活动日期",
   "event_time_variable": "活动时间",
   "timezone_variable": "时区",
+  "location_variable": "位置",
   "organizer_name_variable": "组织者姓名",
   "app_upgrade_description": "要使用此功能，您需要升级到专业版帐户。",
   "invalid_number": "电话号码无效",

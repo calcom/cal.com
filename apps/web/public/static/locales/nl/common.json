@@ -1099,6 +1099,8 @@
   "attendee_name_variable": "Deelnemer",
   "event_date_variable": "Datum gebeurtenis",
   "event_time_variable": "Tijd gebeurtenis",
+  "timezone_variable": "Tijdzone",
+  "location_variable": "Locatie",
   "organizer_name_variable": "Naam organisator",
   "app_upgrade_description": "Om deze functie te gebruiken, moet u upgraden naar een Pro-account.",
   "invalid_number": "Ongeldig telefoonnummer",

@@ -1038,6 +1038,7 @@
   "event_date_variable": "Hendelsesdato",
   "event_time_variable": "Tidspunkt for hendelse",
   "timezone_variable": "Tidssone",
+  "location_variable": "Sted",
   "app_upgrade_description": "For å bruke denne funksjonen må du oppgradere til en Pro-konto.",
   "invalid_number": "Ugyldig telefonnummer",
   "navigate": "Naviger",

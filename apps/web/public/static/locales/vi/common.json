@@ -1100,6 +1100,7 @@
   "event_date_variable": "Ngày sự kiện",
   "event_time_variable": "Thời gian sự kiện",
   "timezone_variable": "Múi giờ",
+  "location_variable": "Vị trí",
   "organizer_name_variable": "Tên nhà tổ chức",
   "app_upgrade_description": "Để sử dụng tính năng này, bạn cần nâng cấp lên tài khoản Pro.",
   "invalid_number": "Số điện thoại không hợp lệ",
