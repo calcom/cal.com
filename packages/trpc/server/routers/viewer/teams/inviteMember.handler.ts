@@ -129,7 +129,7 @@ async function createNewUserConnectToOrgIfExists({
     data: {
       email: usernameOrEmail,
       invitedTo: input.teamId,
-      organizationId: orgId && orgId, // If the user is invited to a child team, they are automatically added to the parent org
+      organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
       teams: {
         create: {
           teamId: input.teamId,
