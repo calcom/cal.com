@@ -58,7 +58,7 @@ export function Dialog(props: DialogProps) {
   return <DialogPrimitive.Root {...dialogProps}>{children}</DialogPrimitive.Root>;
 }
 type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content"]> & {
-  size?: "xl" | "lg" | "md" | "sm";
+  size?: "xl" | "lg" | "md";
   type?: "creation" | "confirmation";
   title?: string;
   description?: string | JSX.Element | null;
@@ -84,8 +84,6 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               ? "p-8 sm:max-w-[70rem]"
               : props.size == "md"
               ? "p-8 sm:max-w-[48rem]"
-              : props.size == "sm"
-              ? "p-8 sm:max-w-[25rem]"
               : "p-8 sm:max-w-[35rem]",
             "max-h-[95vh]",
             enableOverflow ? "overflow-auto" : "overflow-visible",
