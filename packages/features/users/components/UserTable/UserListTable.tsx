@@ -1,4 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import { StopCircle, Users } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useMemo, useRef, useCallback, useEffect } from "react";
 
@@ -317,10 +318,27 @@ export function UserListTable() {
 
   return (
     <DataTable
+      selectionOptions={[
+        {
+          label: "Add To Team",
+          onClick: () => {
+            console.log("Add To Team");
+          },
+          icon: Users,
+        },
+        {
+          label: "Delete",
+          onClick: () => {
+            console.log("Delete");
+          },
+          icon: StopCircle,
+        },
+      ]}
       tableContainerRef={tableContainerRef}
       columns={memorisedColumns}
       data={flatData}
       isLoading={isLoading}
+      onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
       filterableItems={[
         {
           tableAccessor: "role",

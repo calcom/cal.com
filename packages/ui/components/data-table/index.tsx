@@ -1,6 +1,12 @@
 "use client";
 
-import type { ColumnDef, ColumnFiltersState, SortingState, VisibilityState } from "@tanstack/react-table";
+import type {
+  ColumnDef,
+  ColumnFiltersState,
+  Row,
+  SortingState,
+  VisibilityState,
+} from "@tanstack/react-table";
 import {
   flexRender,
   getCoreRowModel,
@@ -33,6 +39,7 @@ export interface DataTableProps<TData, TValue> {
   }[];
   tableCTA?: React.ReactNode;
   isLoading?: boolean;
+  onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -44,6 +51,7 @@ export function DataTable<TData, TValue>({
   selectionOptions,
   tableContainerRef,
   isLoading,
+  onScroll,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -93,9 +101,21 @@ export function DataTable<TData, TValue>({
         searchKey={searchKey}
         tableCTA={tableCTA}
       />
-      <div className="rounded-md border" ref={tableContainerRef}>
+      <div
+        className="rounded-md border"
+        ref={tableContainerRef}
+        onScroll={onScroll}
+        style={{
+          height: "calc(100vh - 30vh)",
+          overflow: "auto",
+        }}>
         <Table>
-          <TableHeader>
+          <TableHeader
+            style={{
+              position: "sticky",
+              top: 0,
+              zIndex: 1,
+            }}>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -116,18 +136,22 @@ export function DataTable<TData, TValue>({
                 <td style={{ height: `${paddingTop}px` }} />
               </tr>
             )}
-            {table.getRowModel().rows?.length && !isLoading ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                  {row.getVisibleCells().map((cell) => {
-                    return (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))
+            {virtualRows && !isLoading ? (
+              virtualRows.map((virtualRow) => {
+                const row = rows[virtualRow.index] as Row<TData>;
+
+                return (
+                  <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                    {row.getVisibleCells().map((cell) => {
+                      return (
+                        <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
