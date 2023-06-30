@@ -1,5 +1,7 @@
 import { Fragment, useState } from "react";
+import { shallow } from "zustand/shallow";
 
+import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import {
   TeamsFilter,
@@ -104,37 +106,39 @@ const LocationFilter = () => {
         {locations?.data?.map((location) => {
           return (
             <Fragment key={location.label}>
-              <div className="text-subtle py-2 px-4 text-xs font-medium uppercase leading-none">
+              <div className="text-subtle px-4 py-2 text-xs font-medium uppercase leading-none">
                 {location.label}
               </div>
-              {location.options?.map((option) => {
-                return (
-                  <FilterCheckboxField
-                    key={option.value}
-                    id={option.value}
-                    label={option.label}
-                    checked={!!query.locationValues?.includes(option.value)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        pushItemToKey("locationValues", option.value);
-                      } else if (!e.target.checked) {
-                        removeItemByKeyAndValue("locationValues", option.value);
+              {location.options
+                ?.filter((options) => options.value !== OrganizerDefaultConferencingAppType)
+                ?.map((option) => {
+                  return (
+                    <FilterCheckboxField
+                      key={option.value}
+                      id={option.value}
+                      label={option.label}
+                      checked={!!query.locationValues?.includes(option.value)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          pushItemToKey("locationValues", option.value);
+                        } else if (!e.target.checked) {
+                          removeItemByKeyAndValue("locationValues", option.value);
+                        }
+                      }}
+                      icon={
+                        <img
+                          src={option.icon}
+                          alt="cover"
+                          // invert all the icons except app icons
+                          className={cx(
+                            "h-3.5 w-3.5",
+                            option.icon && !option.icon.startsWith("/app-store") && "dark:invert"
+                          )}
+                        />
                       }
-                    }}
-                    icon={
-                      <img
-                        src={option.icon}
-                        alt="cover"
-                        // invert all the icons except app icons
-                        className={cx(
-                          "h-3.5 w-3.5",
-                          option.icon && !option.icon.startsWith("/app-store") && "dark:invert"
-                        )}
-                      />
-                    }
-                  />
-                );
-              })}
+                    />
+                  );
+                })}
             </Fragment>
           );
         })}
@@ -150,6 +154,7 @@ export function FiltersContainer() {
     state.addFilterOptions,
     state.toggleOption,
     state.isFilterActive,
+    shallow,
   ]);
 
   const isPeopleFilterActive = isFilterActive("people");
