@@ -34,9 +34,17 @@ export const useSlotsForMultipleDates = (dates: (string | null)[], slots?: Slots
   return slotsForDates;
 };
 
-export const useSlotsForAvailableDates = (slots: slot[]) => {
+export const useSlotsForAvailableDates = (dates: (string | null)[], slots: slot[]) => {
   const slotsForDates = useMemo(() => {
     if (typeof slots === "undefined") return [];
+    if (slots.length === 0){
+      return dates
+      .filter((date) => date !== null)
+      .map((date) => ({
+        slots: [],
+        date,
+      }));
+    }
     return slots.map((slot) => ({
       date: dayjs(slot[0].time).format("YYYY-MM-DD"),
       slots: slot

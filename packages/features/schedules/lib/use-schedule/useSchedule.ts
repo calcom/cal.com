@@ -23,7 +23,6 @@ export const useSchedule = ({
   duration,
   monthCount
 }: UseScheduleWithCacheArgs) => {
-  console.log(monthCount);
   const monthDayjs = month ? dayjs(month) : dayjs();
   const nextMonthDayjs = monthDayjs.add(monthCount? monthCount : 1, "month");
   // Why the non-null assertions? All of these arguments are checked in the enabled condition,

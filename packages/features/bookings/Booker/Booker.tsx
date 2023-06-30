@@ -58,6 +58,7 @@ const BookerComponent = ({
   // In Embed we give preference to embed configuration for the layout.If that's not set, we use the App configuration for the event layout
   // But if it's mobile view, there is only one layout supported which is 'mobile'
   const layout = isEmbed ? (isMobile ? "mobile" : validateLayout(embedUiConfig.layout) || _layout) : _layout;
+  const newExtraDays = useRef<number>(isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop);
 
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -69,14 +70,17 @@ const BookerComponent = ({
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
   const schedule = useScheduleForEvent({prefetchNextMonth: true});
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
-  const sliceFrom =  nonEmptyScheduleDays.indexOf(date)!== -1? nonEmptyScheduleDays.indexOf(date): 0;
-  const sliceTo = sliceFrom + (isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop);
+  const sliceFrom =  nonEmptyScheduleDays.length !== 0 && nonEmptyScheduleDays.indexOf(date)!== -1 ? nonEmptyScheduleDays.indexOf(date): 0;
+  const sliceTo = nonEmptyScheduleDays.length !== 0 ? sliceFrom + (isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop) : 0;
   const availableSlots = nonEmptyScheduleDays.slice(sliceFrom,  sliceTo + 1);
   const addonDays = nonEmptyScheduleDays.length <= sliceTo ? (sliceTo - nonEmptyScheduleDays.length + 1) * 7  : 0;
-  const newExtraDays = Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2],'day')) + addonDays;
+  if(nonEmptyScheduleDays.length !==0 )
+    newExtraDays.current =  Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2],'day')) + addonDays;
   const nextslots = Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 1],'day')) + addonDays;
-
-  const extraDays = layout === BookerLayouts.COLUMN_VIEW ? newExtraDays : isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop;
+  const prefetchNextMonth = dayjs(date).month() !== dayjs(date).add(newExtraDays.current, "day").month();
+  const monthCount = dayjs(date).add(1,"month").month() !== dayjs(date).add(newExtraDays.current, "day").month() ? 2 : undefined
+  
+  const extraDays = isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop;
   const bookerLayouts = event.data?.profile?.bookerLayouts || defaultBookerLayoutSettings;
   const animationScope = useBookerResizeAnimation(layout, bookerState);
 
@@ -177,7 +181,7 @@ const BookerComponent = ({
               )}>
               <Header
                 enabledLayouts={bookerLayouts.enabledLayouts}
-                extraDays={extraDays}
+                extraDays={layout === BookerLayouts.COLUMN_VIEW ? newExtraDays.current : extraDays}
                 isMobile={isMobile}
                 nextslots={nextslots}
               />
@@ -251,6 +255,8 @@ const BookerComponent = ({
                 seatsPerTimeslot={event.data?.seatsPerTimeSlot}
                 sliceFrom={sliceFrom}
                 sliceTo={sliceTo}
+                prefetchNextMonth={prefetchNextMonth}
+                monthCount={monthCount}
               />
             </BookerSection>
           </AnimatePresence>
