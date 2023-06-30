@@ -199,8 +199,8 @@ const Layout = (props: LayoutProps) => {
 
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
-      <div style={{ paddingTop: `${bannersHeight}px` }} className="flex min-h-screen flex-col">
-        <div ref={bannerRef} className="fixed top-0 z-10 w-full divide-y divide-black">
+      <div className="flex min-h-screen flex-col">
+        <div ref={bannerRef} className="sticky top-0 z-10 w-full divide-y divide-black">
           <TeamsUpgradeBanner />
           <OrgUpgradeBanner />
           <ImpersonatingBanner />
@@ -797,32 +797,26 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
   const orgBranding = useOrgBrandingValues();
   const publicPageUrl = orgBranding?.slug ? getOrganizationUrl(orgBranding?.slug) : "";
   const bottomNavItems: NavigationItemType[] = [
-    ...(user?.username
-      ? [
-          {
-            name: "view_public_page",
-            href: !!user?.organizationId
-              ? publicPageUrl
-              : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`,
-            icon: ExternalLink,
-            target: "__blank",
-          },
-          {
-            name: "copy_public_page_link",
-            href: "",
-            onClick: (e: { preventDefault: () => void }) => {
-              e.preventDefault();
-              navigator.clipboard.writeText(
-                !!user?.organizationId
-                  ? publicPageUrl
-                  : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`
-              );
-              showToast(t("link_copied"), "success");
-            },
-            icon: Copy,
-          },
-        ]
-      : []),
+    {
+      name: "view_public_page",
+      href: !!user?.organizationId
+        ? publicPageUrl
+        : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`,
+      icon: ExternalLink,
+      target: "__blank",
+    },
+    {
+      name: "copy_public_page_link",
+      href: "",
+      onClick: (e: { preventDefault: () => void }) => {
+        e.preventDefault();
+        navigator.clipboard.writeText(
+          !!user?.organizationId ? publicPageUrl : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`
+        );
+        showToast(t("link_copied"), "success");
+      },
+      icon: Copy,
+    },
     {
       name: "settings",
       href: user?.organizationId
@@ -922,7 +916,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                   <Icon
                     className={classNames(
                       "h-4 w-4 flex-shrink-0 [&[aria-current='page']]:text-inherit",
-                      "mx-auto md:ltr:mr-2 md:rtl:ml-2"
+                      "md:ltr:mr-2 md:rtl:ml-2"
                     )}
                     aria-hidden="true"
                     aria-current={

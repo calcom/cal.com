@@ -50,6 +50,11 @@ export const DailyLocationType = "integrations:daily";
 
 export const MeetLocationType = "integrations:google:meet";
 
+/**
+ * This isn't an actual location app type. It is a special value that informs to use the Organizer's default conferencing app during booking
+ */
+export const OrganizerDefaultConferencingAppType = "conferencing";
+
 export enum DefaultEventLocationTypeEnum {
   /**
    * Booker Address
@@ -68,6 +73,7 @@ export enum DefaultEventLocationTypeEnum {
    */
   UserPhone = "userPhone",
   Link = "link",
+  // Same as `OrganizerDefaultConferencingAppType`
   Conferencing = "conferencing",
 }
 
@@ -324,10 +330,11 @@ export const getEventLocationWithType = (
   return location;
 };
 
-// FIXME: It assumes that type would be sent mostly now. If just in case a value and not type is sent(when old frontend sends requests to new backend), below forEach won't be able to find a match and thus bookingLocation would still be correct equal to reqBody.location
-// We must handle the situation where frontend doesn't send us the value because it doesn't have it(displayLocationPublicly not set)
-// But we want to store the actual location(except dynamic URL based location type) so that Emails, Calendars pick the value only.
-// TODO: We must store both type as well as value so that we know the type of data that we are having. Is it an address or a phone number? This is to be done post v2.0
+/**
+ * It converts a static link based video location type(e.g. integrations:campfire_video) to it's value (e.g. https://campfire.to/my_link) set in the eventType.
+ * If the type provided is already a value(when displayLocationPublicly is on), it would just return that.
+ * For, dynamic link based video location apps, it doesn't do anything.
+ */
 export const getLocationValueForDB = (
   bookingLocationTypeOrValue: EventLocationType["type"],
   eventLocations: LocationObject[]

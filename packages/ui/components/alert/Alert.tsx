@@ -16,9 +16,10 @@ export interface AlertProps {
   // @TODO: Success and info shouldn't exist as per design?
   severity: "success" | "warning" | "error" | "info" | "neutral";
   CustomIcon?: IconType;
+  customIconColor?: string;
 }
 export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
-  const { severity, iconClassName, CustomIcon } = props;
+  const { severity, iconClassName, CustomIcon, customIconColor } = props;
 
   return (
     <div
@@ -35,7 +36,10 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
       <div className="relative flex md:flex-row">
         {CustomIcon ? (
           <div className="flex-shrink-0">
-            <CustomIcon aria-hidden="true" className={classNames("text-default h-5 w-5", iconClassName)} />
+            <CustomIcon
+              aria-hidden="true"
+              className={classNames(`h-5 w-5`, iconClassName, customIconColor ?? "text-default")}
+            />
           </div>
         ) : (
           <div className="flex-shrink-0">
