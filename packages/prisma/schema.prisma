@@ -284,6 +284,7 @@ enum MembershipRole {
 }
 
 model Membership {
+  id                   Int            @id @default(autoincrement())
   teamId               Int
   userId               Int
   accepted             Boolean        @default(false)
@@ -292,7 +293,7 @@ model Membership {
   user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   disableImpersonation Boolean        @default(false)
 
-  @@id([userId, teamId])
+  @@unique([userId, teamId])
   @@index([teamId])
   @@index([userId])
 }

@@ -768,6 +768,7 @@
   "cal_provide_huddle01_meeting_url": "{{appName}} will provide a Huddle01 web3 video meeting URL.",
   "cal_provide_teams_meeting_url": "{{appName}} will provide a MS Teams meeting URL. NOTE: MUST HAVE A WORK OR SCHOOL ACCOUNT",
   "require_payment": "Require Payment",
+  "you_need_to_add_a_name": "You need to add a name",
   "commission_per_transaction": "commission per transaction",
   "event_type_updated_successfully_description": "Your event type has been updated successfully.",
   "hide_event_type": "Hide event type",

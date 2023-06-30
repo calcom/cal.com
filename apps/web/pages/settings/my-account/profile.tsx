@@ -331,7 +331,8 @@ const ProfileForm = ({
     avatar: z.string(),
     name: z
       .string()
-      .min(1)
+      .trim()
+      .min(1, t("you_need_to_add_a_name"))
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),

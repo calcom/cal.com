@@ -768,6 +768,7 @@
   "cal_provide_huddle01_meeting_url": "{{appName}} fournira un lien de rendez-vous vidéo Huddle01 web3.",
   "cal_provide_teams_meeting_url": "{{appName}} fournira un lien de rendez-vous MS Teams. NOTE : IL FAUT AVOIR UN COMPTE PROFESSIONNEL OU SCOLAIRE",
   "require_payment": "Exiger un paiement",
+  "you_need_to_add_a_name": "Vous devez ajouter un nom",
   "commission_per_transaction": "commission par transaction",
   "event_type_updated_successfully_description": "Votre type d'événement a été mis à jour avec succès.",
   "hide_event_type": "Masquer le type d'événement",
