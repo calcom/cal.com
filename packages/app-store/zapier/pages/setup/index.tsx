@@ -47,7 +47,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
 
   const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation({
     onSuccess: () => {
-      utils.client.viewer.apiKeys.findKeyOfType.invalidate();
+      utils.viewer.apiKeys.findKeyOfType.invalidate();
     },
   });
   const zapierCredentials: { credentialIds: number[] } | undefined = integrations.data?.items.find(
