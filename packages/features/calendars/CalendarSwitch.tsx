@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,9 +15,21 @@ interface ICalendarSwitchProps {
   name: string;
   isLastItemInList?: boolean;
   destination?: boolean;
+  disabled?: boolean;
+  onLoading?: (loading: boolean) => void;
 }
+
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
-  const { title, externalId, type, isChecked, name, isLastItemInList = false } = props;
+  const {
+    title,
+    externalId,
+    type,
+    isChecked,
+    name,
+    isLastItemInList = false,
+    disabled = false,
+    onLoading,
+  } = props;
   const [checkedInternal, setCheckedInternal] = useState(isChecked);
   const utils = trpc.useContext();
   const { t } = useLocale();
@@ -70,11 +82,17 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       },
     }
   );
+
+  useEffect(() => {
+    onLoading?.(mutation.isLoading);
+  }, [mutation.isLoading]);
+
   return (
     <div className={classNames("my-2 flex flex-row items-center")}>
       <div className="flex pl-2">
         <Switch
           id={externalId}
+          disabled={disabled}
           checked={checkedInternal}
           onCheckedChange={(isOn: boolean) => {
             setCheckedInternal(isOn);

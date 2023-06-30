@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
@@ -68,6 +68,7 @@ function CalendarList(props: Props) {
 // todo: @hariom extract this into packages/apps-store as "GeneralAppSettings"
 function ConnectedCalendarsList(props: Props) {
   const { t } = useLocale();
+  const [loading, setLoading] = useState(false);
   const query = trpc.viewer.connectedCalendars.useQuery(undefined, {
     suspense: true,
   });
@@ -83,71 +84,77 @@ function ConnectedCalendarsList(props: Props) {
 
         return (
           <List>
-            {data.connectedCalendars.map((item) => (
-              <Fragment key={item.credentialId}>
-                {item.calendars ? (
-                  <AppListCard
-                    shouldHighlight
-                    slug={item.integration.slug}
-                    title={item.integration.name}
-                    logo={item.integration.logo}
-                    description={item.primary?.email ?? item.integration.description}
-                    actions={
-                      <div className="flex w-32 justify-end">
-                        <DisconnectIntegration
-                          credentialId={item.credentialId}
-                          trashIcon
-                          onSuccess={props.onChanged}
-                          buttonProps={{ className: "border border-default" }}
-                        />
+            {data.connectedCalendars.map((item) => {
+              const isOnlyOneSelected = item.calendars?.filter((cal) => cal.isSelected)?.length === 1;
+
+              return (
+                <Fragment key={item.credentialId}>
+                  {item.calendars ? (
+                    <AppListCard
+                      shouldHighlight
+                      slug={item.integration.slug}
+                      title={item.integration.name}
+                      logo={item.integration.logo}
+                      description={item.primary?.email ?? item.integration.description}
+                      actions={
+                        <div className="flex w-32 justify-end">
+                          <DisconnectIntegration
+                            credentialId={item.credentialId}
+                            trashIcon
+                            onSuccess={props.onChanged}
+                            buttonProps={{ className: "border border-default" }}
+                          />
+                        </div>
+                      }>
+                      <div className="border-subtle border-t">
+                        {!fromOnboarding && (
+                          <>
+                            <p className="text-subtle px-5 pt-4 text-sm">{t("toggle_calendars_conflict")}</p>
+                            <ul className="space-y-4 px-5 py-4">
+                              {item.calendars.map((cal) => (
+                                <CalendarSwitch
+                                  key={cal.externalId}
+                                  externalId={cal.externalId}
+                                  title={cal.name || "Nameless calendar"}
+                                  name={cal.name || "Nameless calendar"}
+                                  type={item.integration.type}
+                                  isChecked={cal.isSelected}
+                                  disabled={loading || (cal.isSelected && isOnlyOneSelected)}
+                                  destination={cal.externalId === props.destinationCalendarId}
+                                  onLoading={setLoading}
+                                />
+                              ))}
+                            </ul>
+                          </>
+                        )}
                       </div>
-                    }>
-                    <div className="border-subtle border-t">
-                      {!fromOnboarding && (
-                        <>
-                          <p className="text-subtle px-5 pt-4 text-sm">{t("toggle_calendars_conflict")}</p>
-                          <ul className="space-y-4 px-5 py-4">
-                            {item.calendars.map((cal) => (
-                              <CalendarSwitch
-                                key={cal.externalId}
-                                externalId={cal.externalId}
-                                title={cal.name || "Nameless calendar"}
-                                name={cal.name || "Nameless calendar"}
-                                type={item.integration.type}
-                                isChecked={cal.isSelected}
-                                destination={cal.externalId === props.destinationCalendarId}
-                              />
-                            ))}
-                          </ul>
-                        </>
-                      )}
-                    </div>
-                  </AppListCard>
-                ) : (
-                  <Alert
-                    severity="warning"
-                    title={t("something_went_wrong")}
-                    message={
-                      <span>
-                        <Link href={"/apps/" + item.integration.slug}>{item.integration.name}</Link>:{" "}
-                        {t("calendar_error")}
-                      </span>
-                    }
-                    iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
-                    actions={
-                      <div className="flex w-32 justify-end md:pr-1">
-                        <DisconnectIntegration
-                          credentialId={item.credentialId}
-                          trashIcon
-                          onSuccess={props.onChanged}
-                          buttonProps={{ className: "border border-default" }}
-                        />
-                      </div>
-                    }
-                  />
-                )}
-              </Fragment>
-            ))}
+                    </AppListCard>
+                  ) : (
+                    <Alert
+                      severity="warning"
+                      title={t("something_went_wrong")}
+                      message={
+                        <span>
+                          <Link href={"/apps/" + item.integration.slug}>{item.integration.name}</Link>:{" "}
+                          {t("calendar_error")}
+                        </span>
+                      }
+                      iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
+                      actions={
+                        <div className="flex w-32 justify-end md:pr-1">
+                          <DisconnectIntegration
+                            credentialId={item.credentialId}
+                            trashIcon
+                            onSuccess={props.onChanged}
+                            buttonProps={{ className: "border border-default" }}
+                          />
+                        </div>
+                      }
+                    />
+                  )}
+                </Fragment>
+              );
+            })}
           </List>
         );
       }}
