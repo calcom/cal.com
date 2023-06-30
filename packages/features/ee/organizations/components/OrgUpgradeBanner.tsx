@@ -31,7 +31,7 @@ export function OrgUpgradeBanner() {
           onClick={() => {
             publishTeamMutation.mutate();
           }}>
-          {t("org_upgrade_banner_action")}
+          {t("upgrade_banner_action")}
         </button>
       }
     />

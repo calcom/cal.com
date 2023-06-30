@@ -88,12 +88,10 @@ const CreateConnectionDialog = ({
               wellKnownUrl,
             });
           }}>
-          <div className="mb-10 mt-1">
-            <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
-              {t("sso_oidc_configuration_title")}
-            </h2>
-            <p className="text-subtle mb-5 mt-1 text-sm">{t("sso_oidc_configuration_description")}</p>
-          </div>
+          <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
+            {t("sso_oidc_configuration_title")}
+          </h2>
+          <p className="text-subtle mt-1 mb-4 text-sm">{t("sso_oidc_configuration_description")}</p>
           <div className="space-y-5">
             <Controller
               control={form.control}
@@ -144,7 +142,7 @@ const CreateConnectionDialog = ({
               )}
             />
           </div>
-          <DialogFooter>
+          <DialogFooter showDivider className="mt-10">
             <Button
               type="button"
               color="secondary"
