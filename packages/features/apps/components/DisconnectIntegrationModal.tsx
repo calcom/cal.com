@@ -34,6 +34,7 @@ export default function DisconnectIntegrationModal({
     <Dialog open={isOpen} onOpenChange={handleModelClose}>
       <DialogContent
         title={t("remove_app")}
+        size="sm"
         description={t("are_you_sure_you_want_to_remove_this_app")}
         type="confirmation"
         Icon={AlertCircle}>
