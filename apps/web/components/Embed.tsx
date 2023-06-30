@@ -10,13 +10,14 @@ import { components } from "react-select";
 
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
-import { APP_NAME, EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, EMBED_LIB_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import {
   Button,
   Dialog,
   DialogClose,
+  DialogFooter,
   DialogContent,
   HorizontalTabs,
   Label,
@@ -38,13 +39,21 @@ const enum Theme {
   dark = "dark",
 }
 
+const EMBED_CAL_ORIGIN = WEBAPP_URL;
+const EMBED_CAL_JS_URL = `${WEBAPP_URL}/embed/embed.js`;
+
 type PreviewState = {
   inline: {
     width: string;
     height: string;
   };
   theme: Theme;
-  floatingPopup: Record<string, string | boolean | undefined>;
+  floatingPopup: {
+    config?: {
+      layout: BookerLayouts;
+    };
+    [key: string]: string | boolean | undefined | Record<string, string>;
+  };
   elementClick: Record<string, string>;
   palette: {
     brandColor: string;
@@ -175,14 +184,24 @@ const Codes: Record<string, Record<string, (...args: any[]) => string>> = {
       return code`
 import Cal, { getCalApi } from "@calcom/embed-react";
 import { useEffect } from "react";
-function MyComponent() {
+export default function MyApp() {
   useEffect(()=>{
     (async function () {
       const cal = await getCalApi();
       ${uiInstructionCode}
     })();
   }, [])
-  return <Cal calLink="${calLink}" style={{width:"${width}",height:"${height}",overflow:"scroll"}} />;
+  return <Cal 
+    calLink="${calLink}" 
+    style={{width:"${width}",height:"${height}",overflow:"scroll"}}
+    ${previewState.layout ? "config={{layout: '" + previewState.layout + "'}}" : ""}${
+        IS_SELF_HOSTED
+          ? `
+    calOrigin="${EMBED_CAL_ORIGIN}"
+    calJsUrl="${EMBED_CAL_JS_URL}"`
+          : ""
+      }
+  />;
 };`;
     },
     "floating-popup": ({
@@ -193,38 +212,60 @@ function MyComponent() {
       uiInstructionCode: string;
     }) => {
       return code`
-import Cal, { getCalApi } from "@calcom/embed-react";
+import { getCalApi } from "@calcom/embed-react";
 import { useEffect } from "react";
-function MyComponent() {
+export default function App() {
   useEffect(()=>{
     (async function () {
-      const cal = await getCalApi();
+      const cal = await getCalApi(${IS_SELF_HOSTED ? `"${EMBED_CAL_JS_URL}"` : ""});
       cal("floatingButton", ${floatingButtonArg});
       ${uiInstructionCode}
     })();
   }, [])
 };`;
     },
-    "element-click": ({ calLink, uiInstructionCode }: { calLink: string; uiInstructionCode: string }) => {
+    "element-click": ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: PreviewState;
+    }) => {
       return code`
-import Cal, { getCalApi } from "@calcom/embed-react";
+import { getCalApi } from "@calcom/embed-react";
 import { useEffect } from "react";
-function MyComponent() {
+export default function App() {
   useEffect(()=>{
     (async function () {
-      const cal = await getCalApi();
+      const cal = await getCalApi(${IS_SELF_HOSTED ? `"${EMBED_CAL_JS_URL}"` : ""});
       ${uiInstructionCode}
     })();
   }, [])
-  return <button data-cal-link="${calLink}" />;
+  return <button 
+    data-cal-link="${calLink}"${IS_SELF_HOSTED ? `\ndata-cal-origin="${EMBED_CAL_ORIGIN}"` : ""}
+    ${`data-cal-config='${JSON.stringify({
+      layout: previewState.layout,
+    })}'`}  
+    >Click me</button>;
 };`;
     },
   },
   HTML: {
-    inline: ({ calLink, uiInstructionCode }: { calLink: string; uiInstructionCode: string }) => {
+    inline: ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: PreviewState;
+    }) => {
       return code`Cal("inline", {
   elementOrSelector:"#my-cal-inline",
-  calLink: "${calLink}"
+  calLink: "${calLink}",
+  layout: "${previewState.layout}"
 });
 
 ${uiInstructionCode}`;
@@ -240,8 +281,22 @@ ${uiInstructionCode}`;
       return code`Cal("floatingButton", ${floatingButtonArg});
 ${uiInstructionCode}`;
     },
-    "element-click": ({ calLink, uiInstructionCode }: { calLink: string; uiInstructionCode: string }) => {
-      return code`// Important: Make sure to add \`data-cal-link="${calLink}"\` attribute to the element you want to open Cal on click
+    "element-click": ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: PreviewState;
+    }) => {
+      return code`
+// Important: Please add following attributes to the element you want to open Cal on click
+// \`data-cal-link="${calLink}"\` 
+// \`data-cal-config='${JSON.stringify({
+        layout: previewState.layout,
+      })}'\` 
+
 ${uiInstructionCode}`;
     },
   },
@@ -298,6 +353,7 @@ const getEmbedTypeSpecificString = ({
   } else if (embedType === "floating-popup") {
     const floatingButtonArg = {
       calLink,
+      ...(IS_SELF_HOSTED ? { calOrigin: EMBED_CAL_ORIGIN } : null),
       ...previewState.floatingPopup,
     };
     return frameworkCodes[embedType]({
@@ -710,13 +766,13 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       height: "100%",
     },
     theme: Theme.auto,
+    layout: BookerLayouts.MONTH_VIEW,
     floatingPopup: {},
     elementClick: {},
     hideEventTypeDetails: false,
     palette: {
       brandColor: "#000000",
     },
-    layout: BookerLayouts.MONTH_VIEW,
   });
 
   const close = () => {
@@ -778,8 +834,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     name: "ui",
     arg: {
       theme: previewState.theme,
-      hideEventTypeDetails: previewState.hideEventTypeDetails,
       layout: previewState.layout,
+      hideEventTypeDetails: previewState.hideEventTypeDetails,
       styles: {
         branding: {
           ...previewState.palette,
@@ -1000,7 +1056,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     </div>
                     <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
                       <div className="whitespace-nowrap">Text color</div>
-                      <div className="mt-2 mb-6 w-40 xl:mt-0 xl:w-full">
+                      <div className="mb-6 mt-2 w-40 xl:mt-0 xl:w-full">
                         <ColorPicker
                           className="w-[130px]"
                           popoverAlign="start"
@@ -1102,8 +1158,15 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                               return;
                             }
                             setPreviewState((previewState) => {
+                              const config = {
+                                ...(previewState.floatingPopup.config ?? {}),
+                                layout: option.value,
+                              };
                               return {
                                 ...previewState,
+                                floatingPopup: {
+                                  config,
+                                },
                                 layout: option.value,
                               };
                             });
@@ -1144,8 +1207,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     />
                   )}
                 </div>
-                <div className={router.query.embedTabName == "embed-preview" ? "block" : "hidden"} />
-                <div className="mt-8 flex flex-row-reverse gap-x-2">
+                <div className={router.query.embedTabName == "embed-preview" ? "mt-2 block" : "hidden"} />
+                <DialogFooter
+                  className="mt-10 flex flex-row-reverse gap-x-2"
+                  showDivider
+                  customDividerClassNames="w-2/3">
+                  <DialogClose />
                   {tab.type === "code" ? (
                     <Button
                       type="submit"
@@ -1160,8 +1227,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       {t("copy_code")}
                     </Button>
                   ) : null}
-                  <DialogClose />
-                </div>
+                </DialogFooter>
               </div>
             );
           })}

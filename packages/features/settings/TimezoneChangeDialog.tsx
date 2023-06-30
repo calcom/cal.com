@@ -70,7 +70,8 @@ export default function TimezoneChangeDialog() {
         {/* todo: save this in db and auto-update when timezone changes (be able to disable??? if yes, /settings)
         <Checkbox description="Always update timezone" />
         */}
-        <DialogFooter>
+        <div className="mb-8" />
+        <DialogFooter showDivider>
           <DialogClose onClick={() => onCancel(THREE_MONTHS, true)} color="secondary">
             {t("dont_update")}
           </DialogClose>
