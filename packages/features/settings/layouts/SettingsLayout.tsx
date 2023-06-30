@@ -254,7 +254,9 @@ const SettingsSidebarContainer = ({
                     isExternalLink={child.isExternalLink}
                     href={child.href || "/"}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
-                    className={`my-0.5 h-7 ${tab.children && index === tab.children?.length - 1 && "!mb-3"}`}
+                    className={`my-0.5 me-5 h-7 ${
+                      tab.children && index === tab.children?.length - 1 && "!mb-3"
+                    }`}
                     disableChevron
                   />
                 ))}

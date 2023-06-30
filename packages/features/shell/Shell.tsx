@@ -654,13 +654,13 @@ const NavigationItem: React.FC<{
           href={item.href}
           aria-label={t(item.name)}
           className={classNames(
-            "text-default group flex items-center rounded-md px-3 py-2 text-sm font-medium",
+            "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md px-3 py-2 text-sm font-medium",
             isChild
               ? `[&[aria-current='page']]:text-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
                   props.index === 0 ? "mt-0" : "mt-px"
                 }`
-              : "mt-0.5 text-sm",
-            isLocaleReady ? "hover:bg-emphasis hover:text-emphasis [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis" : ""
+              : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
+            isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : ""
           )}
           aria-current={current ? "page" : undefined}>
           {item.icon && (
