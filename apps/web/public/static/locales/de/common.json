@@ -1400,6 +1400,7 @@
   "team_name_taken": "Dieser Name ist bereits vergeben",
   "must_enter_team_name": "Team-Name muss eingegeben werden",
   "team_url_required": "Team-URL muss eingegeben werden",
+  "url_taken": "Diese URL ist bereits vergeben",
   "team_publish": "Team veröffentlichen",
   "attendee_email_variable": "Teilnehmer E-Mail",
   "attendee_email_info": "Die E-Mail-Adresse der buchenden Person",

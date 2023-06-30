@@ -1429,6 +1429,7 @@
   "team_name_taken": "Nome già utilizzato",
   "must_enter_team_name": "Necessario immettere un nome per il team",
   "team_url_required": "Immettere un URL per il team",
+  "url_taken": "URL già occupato",
   "team_publish": "Pubblica team",
   "attendee_email_variable": "E-mail partecipante",
   "attendee_email_info": "E-mail della persona che prenota",
