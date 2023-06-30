@@ -99,6 +99,7 @@ const subdomainRegExp = getSubdomainRegExp(process.env.NEXT_PUBLIC_WEBAPP_URL);
 const orgHostRegExp = `^(?<orgSlug>${subdomainRegExp})\\..*`;
 const orgUserRouteRegExp = `/:user((?!${pages.join("/|")}|_next|public)[a-zA-Z0-9\-_]+)`;
 const orgUserTypeRouteRegExp = `/:user((?!${pages.join("/|")}|_next|public)[^/]+)/:type`;
+const orgUserTypeEmbedRouteRegExp = `/:user((?!${pages.join("/|")}|_next|public)[^/]+)/:type/embed`;
 
 const matcherConfigRootPath = {
   has: [
@@ -128,6 +129,16 @@ const matcherConfigUserTypeRoute = {
     },
   ],
   source: orgUserTypeRouteRegExp,
+};
+
+const matcherConfigUserTypeEmbedRoute = {
+  has: [
+    {
+      type: "host",
+      value: orgHostRegExp,
+    },
+  ],
+  source: orgUserTypeEmbedRouteRegExp,
 };
 
 /** @type {import("next").NextConfig} */
@@ -234,6 +245,10 @@ const nextConfig = {
             {
               ...matcherConfigUserTypeRoute,
               destination: "/org/:orgSlug/:user/:type",
+            },
+            {
+              ...matcherConfigUserTypeEmbedRoute,
+              destination: "/org/:orgSlug/:user/:type/embed",
             },
           ]
         : []),
@@ -416,6 +431,15 @@ const nextConfig = {
             {
               key: "X-Cal-Org-path",
               value: "/org/:orgSlug/:user/:type",
+            },
+          ],
+        },
+        {
+          ...matcherConfigUserTypeEmbedRoute,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/org/:orgSlug/:user/:type/embed",
             },
           ],
         },
