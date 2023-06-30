@@ -178,7 +178,7 @@ export function UserListTable() {
   const { data, isLoading, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
       {
-        limit: 50,
+        limit: 10,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
