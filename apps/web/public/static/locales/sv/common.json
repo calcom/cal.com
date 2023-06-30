@@ -1699,7 +1699,6 @@
   "events_rescheduled": "Ombokade händelser",
   "from_last_period": "från senaste perioden",
   "from_to_date_period": "Från: {{startDate}} till: {{endDate}}",
-  "subtitle_analytics": "Läs mer om ditt teams aktivitet",
   "redirect_url_warning": "Framgångssidan inaktiveras om du lägger till en omdirigering. Nämn \"Bokning bekräftad\" på din anpassade framgångssida.",
   "event_trends": "Händelsetrender",
   "clear_filters": "Rensa filter",
@@ -1757,5 +1756,6 @@
   "google_workspace_admin_tooltip": "Du måste vara Workspace-administratör för att kunna använda denna funktion",
   "first_event_type_webhook_description": "Skapa din första webhook för denna evenemangstyp",
   "create_for": "Skapa för",
-  "organization_url_taken": "Denna URL används redan"
+  "organization_url_taken": "Denna URL används redan",
+  "insights_all_org_filter": "Alla"
 }

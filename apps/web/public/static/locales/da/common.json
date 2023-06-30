@@ -1543,5 +1543,6 @@
   "this_will_be_the_placeholder": "Dette vil være pladsholderen",
   "verification_code": "Bekræftelseskode",
   "verify": "Bekræft",
-  "organization_url_taken": "Denne URL er allerede i brug"
+  "organization_url_taken": "Denne URL er allerede i brug",
+  "insights_all_org_filter": "Alle"
 }

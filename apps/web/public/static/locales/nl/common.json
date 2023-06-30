@@ -1699,7 +1699,6 @@
   "events_rescheduled": "Verplaatste gebeurtenissen",
   "from_last_period": "van afgelopen periode",
   "from_to_date_period": "Van: {{startDate}} Tot: {{endDate}}",
-  "subtitle_analytics": "Meer informatie over de activiteit van uw team",
   "redirect_url_warning": "Als u een omleiding toevoegt, wordt de succespagina uitgeschakeld. Zorg ervoor dat u op uw aangepaste succespagina \"Boeking bevestigd\" vermeldt.",
   "event_trends": "Gebeurtenistrends",
   "clear_filters": "Filters wissen",
@@ -1757,5 +1756,6 @@
   "google_workspace_admin_tooltip": "U moet een Google Workspace-beheerder zijn om deze functie te gebruiken",
   "first_event_type_webhook_description": "Maak uw eerste webhook voor dit gebeurtenistype",
   "create_for": "Maak voor",
-  "organization_url_taken": "Deze URL is al in gebruik"
+  "organization_url_taken": "Deze URL is al in gebruik",
+  "insights_all_org_filter": "Alle apps"
 }

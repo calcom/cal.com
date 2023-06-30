@@ -1699,7 +1699,6 @@
   "events_rescheduled": "Yeniden Planlanan Etkinlikler",
   "from_last_period": "son dönemden itibaren",
   "from_to_date_period": "Başlangıç: {{startDate}} Bitiş: {{endDate}}",
-  "subtitle_analytics": "Ekibinizin aktivitesi hakkında daha fazla bilgi edinin",
   "redirect_url_warning": "Yönlendirme eklemek başarı sayfasını devre dışı bırakır. Özel başarı sayfanızda \"Rezervasyon Onaylandı\" ifadesinden bahsetmeyi unutmayın.",
   "event_trends": "Etkinlik Trendleri",
   "clear_filters": "Filtreleri Temizle",
@@ -1757,5 +1756,6 @@
   "google_workspace_admin_tooltip": "Bu özelliği kullanmak için Çalışma Alanı Yöneticisi olmalısınız",
   "first_event_type_webhook_description": "Bu etkinlik türü için ilk web kancanızı oluşturun",
   "create_for": "Oluşturun",
-  "organization_url_taken": "Bu URL zaten kullanılıyor"
+  "organization_url_taken": "Bu URL zaten kullanılıyor",
+  "insights_all_org_filter": "Tümü"
 }

@@ -1699,7 +1699,6 @@
   "events_rescheduled": "Eventos reagendados",
   "from_last_period": "do último período",
   "from_to_date_period": "De: {{startDate}} A: {{endDate}}",
-  "subtitle_analytics": "Saiba mais sobre as atividades da sua equipa",
   "redirect_url_warning": "Ao adicionar um redirecionamento irá desativar a página de sucesso. Certifique-se que indica que \"A reserva foi confirmada\" na sua página de sucesso personalizada.",
   "event_trends": "Tendências de evento",
   "clear_filters": "Limpar filtros",
@@ -1754,8 +1753,9 @@
   "add_an_override": "Adicionar uma sobreposição",
   "import_from_google_workspace": "Importar utilizadores do Google Workspace",
   "connect_google_workspace": "Associar o Google Workspace",
-  "google_workspace_admin_tooltip": "Deve ser um Administrador do Workspace para utilizar esta funcionalidade",
+  "google_workspace_admin_tooltip": "Tem de ser um Administrador do Workspace para utilizar esta funcionalidade",
   "first_event_type_webhook_description": "Crie o seu primeiro webhook para este tipo de evento",
   "create_for": "Criar para",
-  "organization_url_taken": "Este endereço já está a ser utilizado"
+  "organization_url_taken": "Este endereço já está a ser utilizado",
+  "insights_all_org_filter": "Todos as aplicações"
 }

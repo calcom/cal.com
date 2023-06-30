@@ -1699,7 +1699,6 @@
   "events_rescheduled": "Przełożone wydarzenia",
   "from_last_period": "od ostatniego okresu",
   "from_to_date_period": "Od: {{startDate}} Do: {{endDate}}",
-  "subtitle_analytics": "Dowiedz się więcej o aktywności Twojego zespołu",
   "redirect_url_warning": "Dodanie przekierowania wyłączy stronę powodzenia. Upewnij się, że na Twojej niestandardowej stronie powodzenia znajduje się wzmianka o potwierdzeniu rezerwacji.",
   "event_trends": "Trendy wydarzeń",
   "clear_filters": "Wyczyść filtry",
@@ -1757,5 +1756,6 @@
   "google_workspace_admin_tooltip": "Aby skorzystać z tej funkcji, musisz być administratorem usługi Workspace.",
   "first_event_type_webhook_description": "Utwórz swój pierwszy element webhook dla tego typu wydarzenia",
   "create_for": "Utwórz dla",
-  "organization_url_taken": "Ten adres URL jest już zajęty"
+  "organization_url_taken": "Ten adres URL jest już zajęty",
+  "insights_all_org_filter": "Wszystkie"
 }

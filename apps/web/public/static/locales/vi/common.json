@@ -1699,7 +1699,6 @@
   "events_rescheduled": "Những sự kiện đã đặt lịch lại",
   "from_last_period": "từ thời gian gần nhất",
   "from_to_date_period": "Từ: {{startDate}} Đến: {{endDate}}",
-  "subtitle_analytics": "Tìm hiểu thêm về hoạt động của nhóm bạn",
   "redirect_url_warning": "Thêm mục chuyển hướng sẽ tắt đi trang thành công. Hãy bảo đảm có đề cập \"Lịch hẹn đã xác nhận\" trên trang thành công tuỳ chỉnh riêng của bạn.",
   "event_trends": "Xu hướng sự kiện",
   "clear_filters": "Xóa bộ lọc",
@@ -1757,5 +1756,6 @@
   "google_workspace_admin_tooltip": "Bạn phải là một Quản trị viên của Workspace mới dùng được tính năng này",
   "first_event_type_webhook_description": "Tạo webhook đầu tiên của bạn cho loại sự kiện này",
   "create_for": "Tạo cho",
-  "organization_url_taken": "URL này đã có người lấy rồi"
+  "organization_url_taken": "URL này đã có người lấy rồi",
+  "insights_all_org_filter": "Tất cả"
 }

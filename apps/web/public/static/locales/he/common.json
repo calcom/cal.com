@@ -1712,7 +1712,6 @@
   "events_rescheduled": "ארועים שתוזמנו מחדש",
   "from_last_period": "מפרק הזמן האחרון",
   "from_to_date_period": "מ: {{startDate}} עד: {{endDate}}",
-  "subtitle_analytics": "קבל/י מידע נוסף על הפעילות של הצוות שלך",
   "redirect_url_warning": "הוספת כתובת URL להפניה אוטומטית תגרום להשבתת דף 'הפעולה הצליחה'. חשוב להוסיף את ההודעה 'ההזמנה אושרה בהצלחה' בדף המותאם אישית לציון שהפעולה הצליחה.",
   "event_trends": "מגמות ארוע",
   "clear_filters": "ניקוי המסננים",
@@ -1770,5 +1769,6 @@
   "google_workspace_admin_tooltip": "עליך להיות אדמין/ית ב-Workspace כדי להשתמש בתכונה הזו",
   "first_event_type_webhook_description": "צור/צרי את ה-Webhook הראשון שלך עבור סוג זה של אירוע",
   "create_for": "צור/צרי עבור",
-  "organization_url_taken": "כתובת ה-URL הזו כבר תפוסה"
+  "organization_url_taken": "כתובת ה-URL הזו כבר תפוסה",
+  "insights_all_org_filter": "כל האפליקציות"
 }

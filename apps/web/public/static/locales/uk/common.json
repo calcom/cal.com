@@ -1699,7 +1699,6 @@
   "events_rescheduled": "Перенесені заходи",
   "from_last_period": "після останнього періоду",
   "from_to_date_period": "З: {{startDate}} До: {{endDate}}",
-  "subtitle_analytics": "Дізнайтеся більше про активність своєї команди",
   "redirect_url_warning": "Якщо додати переспрямування, сторінка з результатом бронювання не з’являтиметься. Переконайтеся, що ви додали текст «Бронювання підтверджено» на свою сторінку з результатом бронювання.",
   "event_trends": "Тенденції заходів",
   "clear_filters": "Очистити фільтри",
@@ -1757,5 +1756,6 @@
   "google_workspace_admin_tooltip": "Ви повинні бути адміністратором Workspace, щоб використовувати цю функцію",
   "first_event_type_webhook_description": "Створіть свій перший вебгук для цього типу заходів",
   "create_for": "Створити для",
-  "organization_url_taken": "Цю URL-адресу вже зайнято"
+  "organization_url_taken": "Цю URL-адресу вже зайнято",
+  "insights_all_org_filter": "Усі"
 }
