@@ -26,7 +26,8 @@ export async function onFormSubmission(
   const subscriberOptions = {
     userId: form.user.id,
     triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
-    teamId: form.teamId,
+    // When team routing forms are implemented, we need to make sure to add the teamId here
+    teamId: null,
   };
 
   const webhooks = await getWebhooks(subscriberOptions);
