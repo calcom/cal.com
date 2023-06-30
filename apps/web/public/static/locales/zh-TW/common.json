@@ -1099,6 +1099,8 @@
   "attendee_name_variable": "與會者姓名",
   "event_date_variable": "活動日期",
   "event_time_variable": "活動時間",
+  "timezone_variable": "時區",
+  "organizer_name_variable": "主辦者姓名",
   "app_upgrade_description": "您必須升級至專業版帳號才能使用此功能。",
   "invalid_number": "電話號碼無效",
   "navigate": "導覽",

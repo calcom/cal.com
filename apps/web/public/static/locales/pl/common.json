@@ -1099,6 +1099,8 @@
   "attendee_name_variable": "Uczestnik",
   "event_date_variable": "Data wydarzenia",
   "event_time_variable": "Godzina wydarzenia",
+  "timezone_variable": "Strefa Czasowa",
+  "organizer_name_variable": "Nazwa organizatora",
   "app_upgrade_description": "Aby korzystać z tej funkcji, musisz uaktualnić do konta Pro.",
   "invalid_number": "Nieprawidłowy numer telefonu",
   "navigate": "Nawigacja",

@@ -1099,6 +1099,7 @@
   "attendee_name_variable": "Participant",
   "event_date_variable": "Dată eveniment",
   "event_time_variable": "Oră eveniment",
+  "organizer_name_variable": "Nume organizator",
   "app_upgrade_description": "Pentru a utiliza această caracteristică, trebuie să faceți upgrade la un cont Pro.",
   "invalid_number": "Număr de telefon nevalid",
   "navigate": "Navigare",

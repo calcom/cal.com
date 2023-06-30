@@ -1099,6 +1099,8 @@
   "attendee_name_variable": "الحاضر",
   "event_date_variable": "تاريخ الحدث",
   "event_time_variable": "وقت الحدث",
+  "timezone_variable": "المنطقة الزمنية",
+  "organizer_name_variable": "اسم المنظم",
   "app_upgrade_description": "لاستخدام هذه الميزة، تحتاج إلى الترقية إلى حساب Pro.",
   "invalid_number": "رقم الهاتف غير صالح",
   "navigate": "تنقّل",

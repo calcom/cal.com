@@ -1099,6 +1099,7 @@
   "attendee_name_variable": "Участник",
   "event_date_variable": "Дата события",
   "event_time_variable": "Время события",
+  "organizer_name_variable": "Имя организатора",
   "app_upgrade_description": "Чтобы использовать эту функцию, необходимо перейти на аккаунт Pro.",
   "invalid_number": "Неверный номер телефона",
   "navigate": "Перейти",

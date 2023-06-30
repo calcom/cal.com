@@ -1099,6 +1099,8 @@
   "attendee_name_variable": "Jméno účastníka",
   "event_date_variable": "Datum události",
   "event_time_variable": "Čas události",
+  "timezone_variable": "Časová zóna",
+  "organizer_name_variable": "Jméno organizátora",
   "app_upgrade_description": "Pokud chcete použít tuto funkci, musíte provést aktualizaci na účet Pro.",
   "invalid_number": "Neplatné telefonní číslo",
   "navigate": "Navigace",

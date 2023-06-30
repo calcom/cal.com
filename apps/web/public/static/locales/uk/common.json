@@ -1099,6 +1099,8 @@
   "attendee_name_variable": "Учасник",
   "event_date_variable": "Дата заходу",
   "event_time_variable": "Час заходу",
+  "timezone_variable": "Часовий пояс",
+  "organizer_name_variable": "Ім’я організатора",
   "app_upgrade_description": "Щоб користуватися цією функцією, потрібен обліковий запис Pro.",
   "invalid_number": "Недійсний номер телефону",
   "navigate": "Перейти",

@@ -1099,6 +1099,7 @@
   "attendee_name_variable": "Nome do participante",
   "event_date_variable": "Data do evento",
   "event_time_variable": "Horário do evento",
+  "organizer_name_variable": "Nome do organizador",
   "app_upgrade_description": "Para usar este recurso, atualize para uma conta Pro.",
   "invalid_number": "Número de telefone inválido",
   "navigate": "Navegar",

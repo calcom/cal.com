@@ -1099,6 +1099,8 @@
   "attendee_name_variable": "出席者の名前",
   "event_date_variable": "イベントの日付",
   "event_time_variable": "イベントの時間",
+  "timezone_variable": "タイムゾーン",
+  "organizer_name_variable": "主催者名",
   "app_upgrade_description": "この機能を利用するには、Pro アカウントへのアップグレードが必要です。",
   "invalid_number": "電話番号が無効です",
   "navigate": "ナビゲート",
