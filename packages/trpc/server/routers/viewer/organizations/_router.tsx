@@ -3,6 +3,7 @@ import { router } from "../../../trpc";
 import { ZAdminVerifyInput } from "./adminVerify.schema";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateTeamsSchema } from "./createTeams.schema";
+import { ZGetMembersInput } from "./getMembers.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZVerifyCodeInputSchema } from "./verifyCode.schema";
@@ -206,7 +207,7 @@ export const viewerOrganizationsRouter = router({
       ctx,
     });
   }),
-  getMembers: authedProcedure.query(async ({ ctx }) => {
+  getMembers: authedProcedure.input(ZGetMembersInput).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.getMembers) {
       UNSTABLE_HANDLER_CACHE.getMembers = await import("./getMembers.handler").then(
         (mod) => mod.getMembersHandler
@@ -220,6 +221,7 @@ export const viewerOrganizationsRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.getMembers({
       ctx,
+      input,
     });
   }),
 });
