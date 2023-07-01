@@ -186,6 +186,7 @@
     "CI",
     "CLOSECOM_API_KEY",
     "CRON_API_KEY",
+    "CRON_ENABLE_APP_SYNC",
     "DAILY_API_KEY",
     "DAILY_SCALE_PLAN",
     "DEBUG",

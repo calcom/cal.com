@@ -493,6 +493,16 @@ const nextConfig = {
         destination: "/event-types?openIntercom=true",
         permanent: true,
       },
+      {
+        source: "/apps/categories/video",
+        destination: "/apps/categories/conferencing",
+        permanent: true,
+      },
+      {
+        source: "/apps/installed/video",
+        destination: "/apps/installed/conferencing",
+        permanent: true,
+      },
     ];
 
     if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {
