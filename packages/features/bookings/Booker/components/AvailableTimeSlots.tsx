@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
-import { useSlotsForMultipleDates, useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
+import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
 import { trpc } from "@calcom/trpc";
 
@@ -61,12 +61,11 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot, s
     [date, extraDays]
   );
   
+  const monthViewSlots = schedule?.data?.slots  && nonEmptyScheduleDays.includes(date) ? Object.values(schedule.data.slots).slice(nonEmptyScheduleDays.indexOf(date), nonEmptyScheduleDays.indexOf(date) + 1) : [];
   const slotsPerDay = schedule?.data?.slots 
     ? useSlotsForAvailableDates(dates, isColumnView 
       ? Object.values(schedule.data.slots).slice(sliceFrom, sliceTo) 
-      : nonEmptyScheduleDays.includes(date) 
-        ? Object.values(schedule.data.slots).slice(nonEmptyScheduleDays.indexOf(date)) 
-        : [] ) 
+      : monthViewSlots ) 
     : useSlotsForAvailableDates(dates, []);
   
   return (

@@ -20,20 +20,6 @@ export const useSlotsForDate = (date: string | null, slots?: Slots) => {
   return slotsForDate;
 };
 
-export const useSlotsForMultipleDates = (dates: (string | null)[], slots?: Slots) => {
-  const slotsForDates = useMemo(() => {
-    if (typeof slots === "undefined") return [];
-    return dates
-      .filter((date) => date !== null)
-      .map((date) => ({
-        slots: slots[`${date}`] || [],
-        date,
-      }));
-  }, [dates, slots]);
-
-  return slotsForDates;
-};
-
 export const useSlotsForAvailableDates = (dates: (string | null)[], slots: slot[]) => {
   const slotsForDates = useMemo(() => {
     if (typeof slots === "undefined") return [];
