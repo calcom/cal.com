@@ -74,7 +74,7 @@ export default function RoutingForms({
   const queryRes = trpc.viewer.appRoutingForms.forms.useQuery({
     filters,
   });
-  const isFormNameEmpty = (name: string): boolean => {
+ const isFormNameEmpty = (name: string): boolean => {
     return !name || /^\s*$/.test(name);
   };
   const { data: typeformApp } = useApp("typeform");
