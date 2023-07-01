@@ -12,6 +12,7 @@ import { Plus } from "@calcom/ui/components/icon";
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import InviteLinkSettingsModal from "../components/InviteLinkSettingsModal";
+import MakeTeamPrivateSwitch from "../components/MakeTeamPrivateSwitch";
 import MemberInvitationModal from "../components/MemberInvitationModal";
 import MemberListItem from "../components/MemberListItem";
 import TeamInviteList from "../components/TeamInviteList";
@@ -67,6 +68,7 @@ const MembersView = () => {
 
   const router = useRouter();
   const session = useSession();
+  console.log("sesion", session?.data);
   const utils = trpc.useContext();
   const teamId = Number(router.query.id);
 
@@ -143,6 +145,9 @@ const MembersView = () => {
               />
             )}
             <hr className="border-subtle my-8" />
+            {team && session.data && (
+              <MakeTeamPrivateSwitch teamId={team.id} isPrivate={team.isPrivate} disabled={isInviteOpen} />
+            )}
           </div>
           {showMemberInvitationModal && team && (
             <MemberInvitationModal
