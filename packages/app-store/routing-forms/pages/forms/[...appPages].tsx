@@ -74,7 +74,7 @@ export default function RoutingForms({
   const queryRes = trpc.viewer.appRoutingForms.forms.useQuery({
     filters,
   });
-  const isFormNameEmpty = (name) => {
+  const isFormNameEmpty = (name: string): boolean => {
     return !name || /^\s*$/.test(name);
   };
   const { data: typeformApp } = useApp("typeform");
@@ -111,7 +111,7 @@ export default function RoutingForms({
       description: t("download_responses_description"),
     },
   ];
-  const validateFormName = (name) => {
+ const validateFormName = (name: string): void => {
     if (isFormNameEmpty(name)) {
       throw new Error("Form name is required");
     }
