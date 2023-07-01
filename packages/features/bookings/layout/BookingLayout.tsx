@@ -39,7 +39,7 @@ export default function BookingLayout({
       <div className="flex max-w-6xl flex-col">
         <div className="flex flex-col flex-wrap lg:flex-row">
           <HorizontalTabs tabs={tabs} />
-          <div className="xl:ml-auto">
+          <div className="max-w-full overflow-x-auto xl:ml-auto">
             <FiltersContainer />
           </div>
         </div>

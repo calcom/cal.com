@@ -58,7 +58,7 @@ const PeopleFilter = () => {
           <FilterCheckboxField
             key={member.id}
             id={member.id.toString()}
-            label={member?.name ?? member.username ?? "No Name"}
+            label={member?.name ?? member.username ?? t("no_name")}
             checked={!!query.userIds?.includes(member.id)}
             onChange={(e) => {
               if (e.target.checked) {

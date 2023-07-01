@@ -505,6 +505,7 @@
   "additional_guests": "Add guests",
   "your_name": "Your name",
   "your_full_name": "Your full name",
+  "no_name":"No name",
   "email_address": "Email address",
   "enter_valid_email": "Please enter a valid email",
   "location": "Location",
