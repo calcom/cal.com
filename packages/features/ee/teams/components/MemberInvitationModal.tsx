@@ -283,7 +283,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               )}
             />
             {props.token && (
-            <div className="flex">
+              <div className="flex">
                 <Button
                   type="button"
                   color="minimal"
@@ -295,8 +295,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   data-testid="edit-invite-link-button">
                   {t("edit_invite_link")}
                 </Button>
-                </div>
-              )}        
+              </div>
+            )}
           </div>
           <DialogFooter showDivider>
             <div className="flex w-full flex-col items-end gap-2 md:flex-row md:items-center md:justify-between">

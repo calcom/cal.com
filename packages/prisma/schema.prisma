@@ -294,6 +294,7 @@ enum MembershipRole {
 }
 
 model Membership {
+  id                   Int            @id @default(autoincrement())
   teamId               Int
   userId               Int
   accepted             Boolean        @default(false)
@@ -304,7 +305,7 @@ model Membership {
   createdAt            DateTime       @default(now())
   updatedAt            DateTime?      @updatedAt
 
-  @@id([userId, teamId])
+  @@unique([userId, teamId])
   @@index([teamId])
   @@index([userId])
 }

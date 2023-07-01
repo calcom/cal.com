@@ -6,18 +6,7 @@ import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  DatePicker,
-  DialogFooter,
-  Form,
-  Select,
-  showToast,
-  Switch,
-  TextField,
-  Tooltip,
-  SelectField,
-} from "@calcom/ui";
+import { Button, DialogFooter, Form, showToast, Switch, TextField, Tooltip, SelectField } from "@calcom/ui";
 import { Clipboard } from "@calcom/ui/components/icon";
 
 export default function ApiKeyDialogForm({
@@ -42,7 +31,9 @@ export default function ApiKeyDialogForm({
   });
   type Option = { value: Date | null | undefined; label: string };
   const [apiKey, setApiKey] = useState("");
-  const [expiryDate,setExpiryDate]=useState<Date|null|undefined>(()=>(defaultValues?.expiresAt || dayjs().add(30, "day").toDate()))
+  const [expiryDate, setExpiryDate] = useState<Date | null | undefined>(
+    () => defaultValues?.expiresAt || dayjs().add(30, "day").toDate()
+  );
   const [successfulNewApiKeyModal, setSuccessfulNewApiKeyModal] = useState(false);
   const [apiKeyDetails, setApiKeyDetails] = useState({
     expiresAt: null as Date | null,
@@ -59,7 +50,7 @@ export default function ApiKeyDialogForm({
   });
   const watchNeverExpires = form.watch("neverExpires");
 
-  let expiresAtOptions: Option[] = [
+  const expiresAtOptions: Option[] = [
     {
       label: t("seven_days"),
       value: dayjs().add(7, "day").toDate(),
@@ -182,35 +173,39 @@ export default function ApiKeyDialogForm({
               <Controller
                 name="expiresAt"
                 render={({ field: { onChange, value } }) => {
-                  const defaultValue = expiresAtOptions[1]
-                  
-                  return(
-                  <SelectField
-                    styles={{
-                      singleValue: (baseStyles) => ({
-                        ...baseStyles,
-                        fontSize: "14px",
-                      }),
-                      option: (baseStyles) => ({
-                        ...baseStyles,
-                        fontSize: "14px",
-                      }),
-                    }}
-                    isDisabled={watchNeverExpires || !!defaultValues}
-                    containerClassName="data-testid-field-type"
-                    options={expiresAtOptions}
-                    onChange={(option) => {
-                      if (!option) {
-                        return;
-                      }
-                      onChange(option.value);
-                      setExpiryDate(option.value)
-                    }}
-                    defaultValue={defaultValue}
-                  />
-                )}}
+                  const defaultValue = expiresAtOptions[1];
+
+                  return (
+                    <SelectField
+                      styles={{
+                        singleValue: (baseStyles) => ({
+                          ...baseStyles,
+                          fontSize: "14px",
+                        }),
+                        option: (baseStyles) => ({
+                          ...baseStyles,
+                          fontSize: "14px",
+                        }),
+                      }}
+                      isDisabled={watchNeverExpires || !!defaultValues}
+                      containerClassName="data-testid-field-type"
+                      options={expiresAtOptions}
+                      onChange={(option) => {
+                        if (!option) {
+                          return;
+                        }
+                        onChange(option.value);
+                        setExpiryDate(option.value);
+                      }}
+                      defaultValue={defaultValue}
+                    />
+                  );
+                }}
               />
-              <span className="text-subtle text-xs mt-2">{t("api_key_expires_on") }<span className="font-bold"> {dayjs(expiryDate).format('DD-MM-YYYY')}</span></span>
+              <span className="text-subtle mt-2 text-xs">
+                {t("api_key_expires_on")}
+                <span className="font-bold"> {dayjs(expiryDate).format("DD-MM-YYYY")}</span>
+              </span>
             </div>
           )}
 
