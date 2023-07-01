@@ -11,6 +11,7 @@ type TeamInvite = {
   teamName: string;
   joinLink: string;
   isCalcomMember: boolean;
+  isOrg: boolean;
 };
 
 export const TeamInviteEmail = (
@@ -22,9 +23,15 @@ export const TeamInviteEmail = (
         user: props.from,
         team: props.teamName,
         appName: APP_NAME,
+        entity: props.language(props.isOrg ? "organization" : "team").toLowerCase(),
       })}>
       <p style={{ fontSize: "24px", marginBottom: "16px", textAlign: "center" }}>
-        <>{props.language("email_no_user_invite_heading", { appName: APP_NAME })}</>
+        <>
+          {props.language("email_no_user_invite_heading", {
+            appName: APP_NAME,
+            entity: props.language(props.isOrg ? "organization" : "team").toLowerCase(),
+          })}
+        </>
       </p>
       <img
         style={{
@@ -54,6 +61,7 @@ export const TeamInviteEmail = (
             invitedBy: props.from,
             appName: APP_NAME,
             teamName: props.teamName,
+            entity: props.language(props.isOrg ? "organization" : "team").toLowerCase(),
           })}
         </>
       </p>
@@ -72,7 +80,11 @@ export const TeamInviteEmail = (
           marginTop: "48px",
           lineHeightStep: "24px",
         }}>
-        <>{props.language("email_no_user_invite_steps_intro")}</>
+        <>
+          {props.language("email_no_user_invite_steps_intro", {
+            entity: props.language(props.isOrg ? "organization" : "team").toLowerCase(),
+          })}
+        </>
       </p>
 
       {!props.isCalcomMember && (
@@ -121,7 +133,11 @@ export const TeamInviteEmail = (
             marginTop: "32px",
             lineHeightStep: "24px",
           }}>
-          <>{props.language("email_no_user_signoff", { appName: APP_NAME })}</>
+          <>
+            {props.language("email_no_user_signoff", {
+              appName: APP_NAME,
+            })}
+          </>
         </p>
       </div>
 

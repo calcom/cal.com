@@ -90,6 +90,13 @@ That's where Cal.com comes in. Self-hosted or hosted by us. White-label by desig
 - [Prisma.io](https://prisma.io/?ref=cal.com)
 - [Daily.co](https://go.cal.com/daily)
 
+
+## Contact us
+
+Meet our sales team for any commercial inquiries.
+
+<a href="https://cal.com/sales"><img src="https://cal.com/book-with-cal-dark.svg" alt="Book us with Cal.com"></a>
+
 ## Stay Up-to-Date
 
 Cal.com officially launched as v.1.0 on 15th of September, however a lot of new features are coming. Watch **releases** of this repository to be notified for future updates:
@@ -121,9 +128,9 @@ Here is what you need to be able to run Cal.com.
    ```sh
    git clone https://github.com/calcom/cal.com.git
    ```
-   > If you are on windows, run the following command on `gitbash` with admin privileges: <br>
-   ```git clone -c core.symlinks=true https://github.com/calcom/cal.com.git``` <br>
-   See [docs](https://cal.com/docs/how-to-guides/how-to-troubleshoot-symbolic-link-issues-on-windows#enable-symbolic-links) for more details.
+
+   > If you are on windows, run the following command on `gitbash` with admin privileges: <br> > `git clone -c core.symlinks=true https://github.com/calcom/cal.com.git` <br>
+   > See [docs](https://cal.com/docs/how-to-guides/how-to-troubleshoot-symbolic-link-issues-on-windows#enable-symbolic-links) for more details.
 
 1. Go to the project folder
 
@@ -158,6 +165,7 @@ yarn dx
 ```sh
 echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 ```
+
 #### Gitpod Setup
 
 1. Click the button below to open this project in Gitpod.
@@ -166,8 +174,6 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/calcom/cal.com)
 
-
-
 #### Manual setup
 
 1. Configure environment variables in the `.env` file. Replace `<user>`, `<pass>`, `<db-host>`, and `<db-port>` with their applicable values
@@ -175,24 +181,26 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    ```
    DATABASE_URL='postgresql://<user>:<pass>@<db-host>:<db-port>'
    ```
+
    <details>
    <summary>If you don't know how to configure the DATABASE_URL, then follow the steps here to create a quick local DB</summary>
 
    1. [Download](https://www.postgresql.org/download/) and install postgres in your local (if you don't have it already).
 
-   2. Create your own local db by executing `createDB <DB name>` 
+   2. Create your own local db by executing `createDB <DB name>`
 
    3. Now open your psql shell with the DB you created: `psql -h localhost -U postgres -d <DB name>`
 
-   4. Inside the psql shell execute `\conninfo`. And you will get the following info.   
+   4. Inside the psql shell execute `\conninfo`. And you will get the following info.  
       ![image](https://user-images.githubusercontent.com/39329182/236612291-51d87f69-6dc1-4a23-bf4d-1ca1754e0a35.png)
 
-   5. Now extract all the info and add it to your DATABASE_URL. The url would look something like this 
-   `postgresql://postgres:postgres@localhost:5432/Your-DB-Name`.
+   5. Now extract all the info and add it to your DATABASE_URL. The url would look something like this
+      `postgresql://postgres:postgres@localhost:5432/Your-DB-Name`.
 
    </details>
 
    If you don't want to create a local DB. Then you can also consider using services like railway.app or render.
+
    - [Setup postgres DB with railway.app](https://arctype.com/postgres/setup/railway-postgres)
    - [Setup postgres DB with render](https://render.com/docs/databases)
 
@@ -201,9 +209,18 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 1. Set a 32 character random string in your `.env` file for the `CALENDSO_ENCRYPTION_KEY` (You can use a command like `openssl rand -base64 24` to generate one).
 1. Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
 
+   In a development environment, run:
+
+   ```sh
+   yarn workspace @calcom/prisma db-migrate
+   ```
+
+   In a production environment, run:
+
    ```sh
    yarn workspace @calcom/prisma db-deploy
    ```
+
 1. Run [mailhog](https://github.com/mailhog/MailHog) to view emails sent during development
 
    ```sh
@@ -311,7 +328,7 @@ Cal.com, Inc. does not provide official support for Docker, but we will accept f
 ### Heroku
 
 <a href="https://heroku.com/deploy?template=https://github.com/calcom/cal.com">
-  <img width="185px" height="auto" src="https://herokucdn.com/deploy/button.svg" alt="Deploy">
+  <img width="185px" height="auto" src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy">
 </a>
 
 ### Railway
@@ -482,7 +499,9 @@ following
 10. You're good to go. Now you can easily add your ZohoCRM integration in the Cal.com settings.
 
 ### Obtaining Zoho Bigin Client ID and Secret
+
 [Follow these steps](./packages/app-store/zoho-bigin/)
+
 ## Workflows
 
 ### Setting up SendGrid for Email reminders

@@ -12,7 +12,7 @@ import EnableTwoFactorModal from "@components/settings/EnableTwoFactorModal";
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="mt-6 mb-8 space-y-6">
+      <div className="mb-8 mt-6 space-y-6">
         <div className="flex items-center">
           <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
           <SkeletonText className="h-8 w-full" />
