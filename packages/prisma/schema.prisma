@@ -284,6 +284,7 @@ enum MembershipRole {
 }
 
 model Membership {
+  id                   Int            @id @default(autoincrement())
   teamId               Int
   userId               Int
   accepted             Boolean        @default(false)
@@ -292,7 +293,7 @@ model Membership {
   user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   disableImpersonation Boolean        @default(false)
 
-  @@id([userId, teamId])
+  @@unique([userId, teamId])
   @@index([teamId])
   @@index([userId])
 }
@@ -614,10 +615,12 @@ enum AppCategories {
   messaging
   other
   payment
-  video
-  web3
+  video // deprecated, please use 'conferencing' instead
+  web3 // deprecated, we should no longer have any web3 apps
   automation
   analytics
+  conferencing
+  crm
 }
 
 model App {

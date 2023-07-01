@@ -44,7 +44,7 @@ export const CreateANewTeamForm = () => {
     },
     onError: (err) => {
       if (err.message === "team_url_taken") {
-        newTeamFormMethods.setError("slug", { type: "custom", message: t("team_url_taken") });
+        newTeamFormMethods.setError("slug", { type: "custom", message: t("url_taken") });
       } else {
         setServerErrorMessage(err.message);
       }
