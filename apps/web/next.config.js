@@ -4,8 +4,17 @@ const os = require("os");
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
 const { i18n } = require("./next-i18next.config");
-const { pages } = require("./pages");
-const { getSubdomainRegExp } = require("./getSubdomainRegExp");
+const {
+  userTypeRoutePath,
+  teamTypeRoutePath,
+  privateLinkRoutePath,
+  embedUserTypeRoutePath,
+  embedTeamTypeRoutePath,
+  orgHostPath,
+  orgUserRoutePath,
+  orgUserTypeRoutePath,
+  orgUserTypeEmbedRoutePath,
+} = require("./pagesAndRewritePaths");
 
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
@@ -81,52 +90,44 @@ if (process.env.ANALYZE === "true") {
 }
 
 plugins.push(withAxiom);
-
-// .* matches / as well(Note: *(i.e wildcard) doesn't match / but .*(i.e. RegExp) does)
-// It would match /free/30min but not /bookings/upcoming because 'bookings' is an item in pages
-// It would also not match /free/30min/embed because we are ensuring just two slashes
-// ?!book ensures it doesn't match /free/book page which doesn't have a corresponding new-booker page.
-// [^/]+ makes the RegExp match the full path, it seems like a partial match doesn't work.
-// book$ ensures that only /book is excluded from rewrite(which is at the end always) and not /booked
-
-// Important Note: When modifying these RegExps update apps/web/test/lib/next-config.test.ts as well
-const userTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type((?!book$)[^/]+)`;
-const teamTypeRouteRegExp = "/team/:slug/:type((?!book$)[^/]+)";
-const privateLinkRouteRegExp = "/d/:link/:slug((?!book$)[^/]+)";
-const embedUserTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type/embed`;
-const embedTeamTypeRouteRegExp = "/team/:slug/:type/embed";
-const subdomainRegExp = getSubdomainRegExp(process.env.NEXT_PUBLIC_WEBAPP_URL);
-// Important Note: Do update the RegExp in apps/web/test/lib/next-config.test.ts when changing it.
-const orgHostRegExp = `^(?<orgSlug>${subdomainRegExp})\\..*`;
-
 const matcherConfigRootPath = {
   has: [
     {
       type: "host",
-      value: orgHostRegExp,
+      value: orgHostPath,
     },
   ],
   source: "/",
 };
 
-const matcherConfigOrgMemberPath = {
+const matcherConfigUserRoute = {
   has: [
     {
       type: "host",
-      value: orgHostRegExp,
+      value: orgHostPath,
     },
   ],
-  source: `/:user((?!${pages.join("|")}|_next|public)[a-zA-Z0-9\-_]+)`,
+  source: orgUserRoutePath,
 };
 
-const matcherConfigUserPath = {
+const matcherConfigUserTypeRoute = {
   has: [
     {
       type: "host",
-      value: `^(?<orgSlug>${subdomainRegExp}[^.]+)\\..*`,
+      value: orgHostPath,
     },
   ],
-  source: `/:user((?!${pages.join("|")}|_next|public))/:path*`,
+  source: orgUserTypeRoutePath,
+};
+
+const matcherConfigUserTypeEmbedRoute = {
+  has: [
+    {
+      type: "host",
+      value: orgHostPath,
+    },
+  ],
+  source: orgUserTypeEmbedRoutePath,
 };
 
 /** @type {import("next").NextConfig} */
@@ -220,6 +221,7 @@ const nextConfig = {
   },
   async rewrites() {
     const beforeFiles = [
+      // These rewrites are other than booking pages rewrites and so that they aren't redirected to org pages ensure that they happen in beforeFiles
       ...(process.env.ORGANIZATIONS_ENABLED
         ? [
             {
@@ -227,12 +229,16 @@ const nextConfig = {
               destination: "/team/:orgSlug",
             },
             {
-              ...matcherConfigOrgMemberPath,
+              ...matcherConfigUserRoute,
               destination: "/org/:orgSlug/:user",
             },
             {
-              ...matcherConfigUserPath,
-              destination: "/:user/:path*",
+              ...matcherConfigUserTypeRoute,
+              destination: "/org/:orgSlug/:user/:type",
+            },
+            {
+              ...matcherConfigUserTypeEmbedRoute,
+              destination: "/org/:orgSlug/:user/:type/embed",
             },
           ]
         : []),
@@ -244,63 +250,69 @@ const nextConfig = {
         destination: "/team/:slug",
       },
       {
-        source: "/:user/avatar.png",
-        destination: "/api/user/avatar?username=:user",
-      },
-      {
         source: "/team/:teamname/avatar.png",
         destination: "/api/user/avatar?teamname=:teamname",
       },
-      {
-        source: "/forms/:formQuery*",
-        destination: "/apps/routing-forms/routing-link/:formQuery*",
-      },
-      {
-        source: "/router",
-        destination: "/apps/routing-forms/router",
-      },
-      {
-        source: "/success/:path*",
-        has: [
-          {
-            type: "query",
-            key: "uid",
-            value: "(?<uid>.*)",
-          },
-        ],
-        destination: "/booking/:uid/:path*",
-      },
-      {
-        source: "/cancel/:path*",
-        destination: "/booking/:path*",
-      },
+
+      // When updating this also update pagesAndRewritePaths.js
+      ...[
+        {
+          source: "/:user/avatar.png",
+          destination: "/api/user/avatar?username=:user",
+        },
+        {
+          source: "/forms/:formQuery*",
+          destination: "/apps/routing-forms/routing-link/:formQuery*",
+        },
+        {
+          source: "/router",
+          destination: "/apps/routing-forms/router",
+        },
+        {
+          source: "/success/:path*",
+          has: [
+            {
+              type: "query",
+              key: "uid",
+              value: "(?<uid>.*)",
+            },
+          ],
+          destination: "/booking/:uid/:path*",
+        },
+        {
+          source: "/cancel/:path*",
+          destination: "/booking/:path*",
+        },
+      ],
+
       // Keep cookie based booker enabled just in case we disable new-booker globally
       ...[
         {
-          source: userTypeRouteRegExp,
+          source: userTypeRoutePath,
           destination: "/new-booker/:user/:type",
           has: [{ type: "cookie", key: "new-booker-enabled" }],
         },
         {
-          source: teamTypeRouteRegExp,
+          source: teamTypeRoutePath,
           destination: "/new-booker/team/:slug/:type",
           has: [{ type: "cookie", key: "new-booker-enabled" }],
         },
         {
-          source: privateLinkRouteRegExp,
+          source: privateLinkRoutePath,
           destination: "/new-booker/d/:link/:slug",
           has: [{ type: "cookie", key: "new-booker-enabled" }],
         },
       ],
+
       // Keep cookie based booker enabled to test new-booker embed in production
       ...[
         {
-          source: embedUserTypeRouteRegExp,
+          source: embedUserTypeRoutePath,
           destination: "/new-booker/:user/:type/embed",
           has: [{ type: "cookie", key: "new-booker-enabled" }],
         },
         {
-          source: embedTeamTypeRouteRegExp,
+          source: embedTeamTypeRoutePath,
           destination: "/new-booker/team/:slug/:type/embed",
           has: [{ type: "cookie", key: "new-booker-enabled" }],
         },
@@ -321,11 +333,11 @@ const nextConfig = {
       afterFiles.push(
         ...[
           {
-            source: embedUserTypeRouteRegExp,
+            source: embedUserTypeRoutePath,
             destination: "/new-booker/:user/:type/embed",
           },
           {
-            source: embedTeamTypeRouteRegExp,
+            source: embedTeamTypeRoutePath,
             destination: "/new-booker/team/:slug/:type/embed",
           },
         ]
@@ -338,15 +350,15 @@ const nextConfig = {
       afterFiles.push(
         ...[
           {
-            source: userTypeRouteRegExp,
+            source: userTypeRoutePath,
             destination: "/new-booker/:user/:type",
           },
           {
-            source: teamTypeRouteRegExp,
+            source: teamTypeRoutePath,
             destination: "/new-booker/team/:slug/:type",
           },
           {
-            source: privateLinkRouteRegExp,
+            source: privateLinkRoutePath,
             destination: "/new-booker/d/:link/:slug",
           },
         ]
@@ -401,7 +413,7 @@ const nextConfig = {
           ],
         },
         {
-          ...matcherConfigOrgMemberPath,
+          ...matcherConfigUserRoute,
           headers: [
             {
               key: "X-Cal-Org-path",
@@ -410,11 +422,20 @@ const nextConfig = {
           ],
         },
         {
-          ...matcherConfigUserPath,
+          ...matcherConfigUserTypeRoute,
           headers: [
             {
               key: "X-Cal-Org-path",
-              value: "/:user/:path",
+              value: "/org/:orgSlug/:user/:type",
+            },
+          ],
+        },
+        {
+          ...matcherConfigUserTypeEmbedRoute,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/org/:orgSlug/:user/:type/embed",
             },
           ],
         },
