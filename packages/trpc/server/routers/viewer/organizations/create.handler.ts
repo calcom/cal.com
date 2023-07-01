@@ -21,7 +21,7 @@ type CreateOptions = {
   input: TCreateInputSchema;
 };
 
-const vercelCreateDomain = async (domain: string) => {
+const vercelCreateDomain = async (domain: string): Promise<boolean> => {
   const response = await fetch(
     `https://api.vercel.com/v8/projects/${process.env.PROJECT_ID_VERCEL}/domains?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
