@@ -51,6 +51,7 @@ testBothBookers.describe("Popup Tests", (bookerVariant) => {
   test.afterEach(async () => {
     await deleteAllBookingsByEmail("embed-user@example.com");
   });
+
   test("should open embed iframe on click - Configured with light theme", async ({
     page,
     addEmbedListeners,
@@ -105,9 +106,55 @@ testBothBookers.describe("Popup Tests", (bookerVariant) => {
     });
   });
 
-  todo("Floating Button Test with Dark Theme");
+  test("should open embed iframe on floating button clicked", async ({
+    page,
+    addEmbedListeners,
+    getActionFiredDetails,
+  }) => {
+    const calNamespace = "floatingButton";
+    await addEmbedListeners(calNamespace);
+    await page.goto("/?only=ns:floatingButton");
 
-  todo("Floating Button Test with Light Theme");
+    await page.click('[data-cal-namespace="floatingButton"] > button');
+
+    const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
+    await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
+      pathname: "/pro",
+    });
+
+    if (!embedIframe) {
+      throw new Error("Embed iframe not found");
+    }
+
+    const { uid: bookingId } = await bookFirstEvent("pro", embedIframe, page, bookerVariant);
+    const booking = await getBooking(bookingId);
+
+    expect(booking.attendees.length).toBe(3);
+  });
+
+  test("should open embed iframe with dark theme on floating button clicked", async ({
+    page,
+    addEmbedListeners,
+    getActionFiredDetails,
+  }) => {
+    const calNamespace = "floatingButton";
+    await addEmbedListeners(calNamespace);
+    await page.goto("/?only=ns:floatingButton");
+
+    await page.click('[data-cal-namespace="floatingButton"] > button');
+
+    const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
+    await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
+      pathname: "/pro",
+    });
+
+    if (!embedIframe) {
+      throw new Error("Embed iframe not found");
+    }
+
+    const html = embedIframe.locator("html");
+    await expect(html).toHaveAttribute("class", "dark");
+  });
 
   todo("Add snapshot test for embed iframe");
 

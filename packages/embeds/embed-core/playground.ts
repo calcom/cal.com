@@ -331,7 +331,7 @@ Cal("init", "routingFormDark", {
 
 if (only === "all" || only == "ns:floatingButton") {
   Cal.ns.floatingButton("floatingButton", {
-    calLink: "pro/30min",
+    calLink: "pro",
     config: {
       iframeAttrs: {
         id: "floatingtest",
