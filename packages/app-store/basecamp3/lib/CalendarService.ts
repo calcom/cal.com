@@ -105,15 +105,30 @@ export default class BasecampCalendarService implements Calendar {
   private async getBasecampDescription(event: CalendarEvent): Promise<string> {
     const timeZone = await this.getUserTimezoneFromDB(event.organizer?.id as number);
     const date = new Date(event.startTime).toDateString();
-    const startTime = new Date(event.startTime).toISOString();
-    const endTime = new Date(event.endTime).toISOString();
-    const baseString = `<div>Event title: ${event.title}<br/>Date and time ${date}, ${startTime} - ${endTime} ${timeZone}<br/>View on Cal.com<br/><a target="_blank" rel="noreferrer" class="autolinked" data-behavior="truncate" href="https://app.cal.com/booking/${event.uid}">https://app.cal.com/booking/${event.uid}</a> `;
+    const startTime = new Date(event.startTime).toLocaleTimeString("en-US", {
+      hour: "numeric",
+      hour12: true,
+      minute: "numeric",
+    });
+    const endTime = new Date(event.endTime).toLocaleTimeString("en-US", {
+      hour: "numeric",
+      hour12: true,
+      minute: "numeric",
+    });
+    const baseString = `<div>Event title: ${
+      event.title
+    }<br/>Date and time: ${date}, ${startTime} - ${endTime.toLocaleString("en-US", {
+      hour: "numeric",
+      hour12: true,
+    })} ${timeZone}<br/>View on Cal.com: <a target="_blank" rel="noreferrer" class="autolinked" data-behavior="truncate" href="https://app.cal.com/booking/${
+      event.uid
+    }">https://app.cal.com/booking/${event.uid}</a> `;
     const guestString =
       "<br/>Guests: " +
       event.attendees.reduce((acc, attendee) => {
         return (
           acc +
-          `<br/>${attendee.name}:<a target=\"_blank\" rel=\"noreferrer\" class=\"autolinked\" data-behavior=\"truncate\" href=\"mailto:${attendee.email}\">${attendee.email}</a>`
+          `<br/><a target=\"_blank\" rel=\"noreferrer\" class=\"autolinked\" data-behavior=\"truncate\" href=\"mailto:${attendee.email}\">${attendee.email}</a>`
         );
       }, "");
 
