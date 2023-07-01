@@ -24,7 +24,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="mt-6 mb-8 space-y-6">
+      <div className="mb-8 mt-6 space-y-6">
         <div className="flex items-center">
           <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
           <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
@@ -120,14 +120,14 @@ const ProfileView = () => {
             <ThemeLabel
               variant="light"
               value="light"
-              label={t("theme_light")}
+              label={t("light")}
               defaultChecked={team.theme === "light"}
               register={form.register}
             />
             <ThemeLabel
               variant="dark"
               value="dark"
-              label={t("theme_dark")}
+              label={t("dark")}
               defaultChecked={team.theme === "dark"}
               register={form.register}
             />

@@ -82,7 +82,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   }, [customPageMessage]);
 
   const responseMutation = trpc.viewer.appRoutingForms.public.response.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       const decidedActionWithFormResponse = decidedActionWithFormResponseRef.current;
       if (!decidedActionWithFormResponse) {
         return;
@@ -98,7 +98,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       if (decidedAction.type === "customPageMessage") {
         setCustomPageMessage(decidedAction.value);
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
-        router.push(`/${decidedAction.value}?${allURLSearchParams}`);
+        await router.push(`/${decidedAction.value}?${allURLSearchParams}`);
       } else if (decidedAction.type === "externalRedirectUrl") {
         window.parent.location.href = `${decidedAction.value}?${allURLSearchParams}`;
       }
@@ -187,8 +187,10 @@ function getUrlSearchParamsToForward(response: Response, fields: NonNullable<Pro
       // If for some reason, the field isn't there, let's just
       return;
     }
+    const valueAsStringOrStringArray =
+      typeof fieldResponse.value === "number" ? String(fieldResponse.value) : fieldResponse.value;
     paramsFromResponse[getFieldIdentifier(foundField) as keyof typeof paramsFromResponse] =
-      fieldResponse.value;
+      valueAsStringOrStringArray;
   });
 
   // Build query params from current URL. It excludes route params
@@ -277,7 +279,7 @@ export const getServerSideProps = async function getServerSideProps(
         brandColor: form.user.brandColor,
         darkBrandColor: form.user.darkBrandColor,
       },
-      form: await getSerializableForm(form),
+      form: await getSerializableForm({ form }),
     },
   };
 };

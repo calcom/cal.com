@@ -52,7 +52,7 @@ const Skeleton = <T extends keyof JSX.IntrinsicElements | React.FC>({
     <Component
       className={classNames(
         loading
-          ? classNames("font-size-0 bg-subtle animate-pulse rounded-md text-transparent", loadingClassName)
+          ? classNames("font-size-0 bg-emphasis animate-pulse rounded-md text-transparent", loadingClassName)
           : "",
         className
       )}
@@ -62,14 +62,16 @@ const Skeleton = <T extends keyof JSX.IntrinsicElements | React.FC>({
   );
 };
 
-const SkeletonText: React.FC<SkeletonBaseProps & { invisible?: boolean }> = ({
+const SkeletonText: React.FC<SkeletonBaseProps & { invisible?: boolean; style?: React.CSSProperties }> = ({
   className = "",
   invisible = false,
+  style,
 }) => {
   return (
     <span
+      style={style}
       className={classNames(
-        `font-size-0 bg-subtle inline-block animate-pulse rounded-md empty:before:inline-block empty:before:content-['']`,
+        `font-size-0 bg-emphasis inline-block animate-pulse rounded-md empty:before:inline-block empty:before:content-['']`,
         className,
         invisible ? "invisible" : ""
       )}

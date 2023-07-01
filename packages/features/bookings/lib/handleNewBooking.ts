@@ -11,11 +11,11 @@ import z from "zod";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { LocationObject } from "@calcom/app-store/locations";
+import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
-import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import { getAppFromSlug, getEventTypeAppData } from "@calcom/app-store/utils";
+import { getAppFromSlug } from "@calcom/app-store/utils";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
@@ -45,8 +45,10 @@ import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebh
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import getIP from "@calcom/lib/getIP";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
@@ -69,7 +71,13 @@ import {
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
-import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
+import type {
+  AdditionalInformation,
+  AppsStatus,
+  CalendarEvent,
+  IntervalLimit,
+  Person,
+} from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
 
@@ -288,6 +296,11 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
             select: {
               credentials: true,
               ...userSelect.select,
+              organization: {
+                select: {
+                  slug: true,
+                },
+              },
             },
           },
         },
@@ -313,7 +326,11 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
   };
 };
 
-type IsFixedAwareUser = User & { isFixed: boolean; credentials: Credential[] };
+type IsFixedAwareUser = User & {
+  isFixed: boolean;
+  credentials: Credential[];
+  organization: { slug: string };
+};
 
 async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
@@ -468,6 +485,13 @@ function getBookingData({
           if (val.responses) {
             const unwantedProps: string[] = [];
             legacyProps.forEach((legacyProp) => {
+              if (typeof val[legacyProp as keyof typeof val] !== "undefined") {
+                console.error(
+                  `Deprecated: Unexpected falsy value for: ${unwantedProps.join(
+                    ","
+                  )}. They can't be used with \`responses\`. This will become a 400 error in the future.`
+                );
+              }
               if (val[legacyProp as keyof typeof val]) {
                 unwantedProps.push(legacyProp);
               }
@@ -489,8 +513,24 @@ function getBookingData({
             }
           }
         });
-  debugger;
+
   const reqBody = bookingDataSchema.parse(req.body);
+
+  // Work with Typescript to require reqBody.end
+  type ReqBodyWithoutEnd = z.infer<typeof bookingDataSchema>;
+  type ReqBodyWithEnd = ReqBodyWithoutEnd & { end: string };
+
+  const reqBodyWithEnd = (reqBody: ReqBodyWithoutEnd): reqBody is ReqBodyWithEnd => {
+    // Use the event length to auto-set the event end time.
+    if (!Object.prototype.hasOwnProperty.call(reqBody, "end")) {
+      reqBody.end = dayjs.utc(reqBody.start).add(eventType.length, "minutes").format();
+    }
+    return true;
+  };
+  if (!reqBodyWithEnd(reqBody)) {
+    throw new Error("Internal Error.");
+  }
+  // reqBody.end is no longer an optional property.
   if ("customInputs" in reqBody) {
     if (reqBody.customInputs) {
       // Check if required custom inputs exist
@@ -534,7 +574,7 @@ function getBookingData({
 
 function getCustomInputsResponses(
   reqBody: {
-    responses?: Record<string, any>;
+    responses?: Record<string, object>;
     customInputs?: z.infer<typeof bookingCreateSchemaLegacyPropsForApi>["customInputs"];
   },
   eventTypeCustomInputs: Awaited<ReturnType<typeof getEventTypesFromDB>>["customInputs"]
@@ -575,6 +615,13 @@ async function handler(
 ) {
   const { userId } = req;
 
+  const userIp = getIP(req);
+
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: userIp,
+  });
+
   // handle dynamic user
   let eventType =
     !req.body.eventTypeId && !!req.body.eventTypeSlug
@@ -585,7 +632,6 @@ async function handler(
     ...eventType,
     bookingFields: getBookingFieldsWithSystemFields(eventType),
   };
-  debugger;
   const {
     recurringCount,
     allRecurringDates,
@@ -667,9 +713,14 @@ async function handler(
             ...userSelect.select,
             credentials: true, // Don't leak to client
             metadata: true,
+            organization: {
+              select: {
+                slug: true,
+              },
+            },
           },
         })
-      : !!eventType.hosts?.length
+      : eventType.hosts?.length
       ? eventType.hosts.map(({ user, isFixed }) => ({
           ...user,
           isFixed,
@@ -720,7 +771,9 @@ async function handler(
   }));
 
   let locationBodyString = location;
-  let defaultLocationUrl = undefined;
+
+  // TODO: It's definition should be moved to getLocationValueForDb
+  let organizerOrFirstDynamicGroupMemberDefaultLocationUrl = undefined;
 
   if (dynamicUserList.length > 1) {
     users = users.sort((a, b) => {
@@ -730,17 +783,21 @@ async function handler(
     });
     const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata);
     locationBodyString = firstUsersMetadata?.defaultConferencingApp?.appLink || locationBodyString;
-    defaultLocationUrl = firstUsersMetadata?.defaultConferencingApp?.appLink;
+    organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
+      firstUsersMetadata?.defaultConferencingApp?.appLink;
   }
 
-  if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
+  if (
+    Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
+    Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
+  ) {
     const startAsDate = dayjs(reqBody.start).toDate();
-    await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
-  }
-
-  if (eventType && eventType.hasOwnProperty("durationLimits") && eventType?.durationLimits) {
-    const startAsDate = dayjs(reqBody.start).toDate();
-    await checkDurationLimits(eventType.durationLimits, startAsDate, eventType.id);
+    if (eventType.bookingLimits) {
+      await checkBookingLimits(eventType.bookingLimits as IntervalLimit, startAsDate, eventType.id);
+    }
+    if (eventType.durationLimits) {
+      await checkDurationLimits(eventType.durationLimits as IntervalLimit, startAsDate, eventType.id);
+    }
   }
 
   if (!eventType.seatsPerTimeSlot) {
@@ -792,22 +849,18 @@ async function handler(
     users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
   }
 
-  const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
-
-  // @TODO: use the returned address somewhere in booking creation?
-  // const address: string | undefined = await ...
-  await handleEthSignature(rainbowAppData, reqBody.ethSignature);
-
   const [organizerUser] = users;
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
+
   // use host default
-  if (isTeamEventType && locationBodyString === "conferencing") {
+  if (isTeamEventType && locationBodyString === OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
     if (organizerMetadata) {
       const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
       locationBodyString = app?.appData?.location?.type || locationBodyString;
-      defaultLocationUrl = organizerMetadata?.defaultConferencingApp?.appLink;
+      organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
+        organizerMetadata?.defaultConferencingApp?.appLink;
     } else {
       locationBodyString = "";
     }
@@ -839,7 +892,11 @@ async function handler(
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
-  const bookingLocation = getLocationValueForDB(locationBodyString, eventType.locations);
+  // For static link based video apps, it would have the static URL value instead of it's type(e.g. integrations:campfire_video)
+  // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
+  const bookingLocation = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
+    ? organizerOrFirstDynamicGroupMemberDefaultLocationUrl
+    : getLocationValueForDB(locationBodyString, eventType.locations);
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const teamMemberPromises =
@@ -913,7 +970,7 @@ async function handler(
     requiresConfirmation: requiresConfirmation ?? false,
     eventTypeId: eventType.id,
     // if seats are not enabled we should default true
-    seatsShowAttendees: !!eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
+    seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
   };
 
@@ -934,7 +991,6 @@ async function handler(
       },
     });
     if (bookingSeat) {
-      bookingSeat = bookingSeat;
       rescheduleUid = bookingSeat.booking.uid;
     }
     originalRescheduledBooking = await getOriginalRescheduledBooking(
@@ -1600,7 +1656,7 @@ async function handler(
   async function createBooking() {
     if (originalRescheduledBooking) {
       evt.title = originalRescheduledBooking?.title || evt.title;
-      evt.description = originalRescheduledBooking?.description || evt.additionalNotes;
+      evt.description = originalRescheduledBooking?.description || evt.description;
       evt.location = originalRescheduledBooking?.location || evt.location;
     }
 
@@ -1760,7 +1816,7 @@ async function handler(
     if (booking && booking.id && eventType.seatsPerTimeSlot) {
       const currentAttendee = booking.attendees.find(
         (attendee) => attendee.email === req.body.responses.email
-      )!;
+      );
 
       // Save description to bookingSeat
       const uniqueAttendeeId = uuid();
@@ -1989,7 +2045,8 @@ async function handler(
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
         handleAppsStatus(results, booking);
-        videoCallUrl = metadata.hangoutLink || defaultLocationUrl || videoCallUrl;
+        videoCallUrl =
+          metadata.hangoutLink || organizerOrFirstDynamicGroupMemberDefaultLocationUrl || videoCallUrl;
       }
       if (noEmail !== true) {
         let isHostConfirmationEmailsDisabled = false;

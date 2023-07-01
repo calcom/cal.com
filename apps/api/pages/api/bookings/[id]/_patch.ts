@@ -35,6 +35,9 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *               status:
  *                 type: string
  *                 description: 'Acceptable values one of ["ACCEPTED", "PENDING", "CANCELLED", "REJECTED"]'
+ *               description:
+ *                 type: string
+ *                 description: 'Description of the meeting'
  *           examples:
  *             editBooking:
  *               value:
@@ -79,7 +82,15 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *                       "startTime": "2023-05-24T13:00:00.000Z",
  *                       "endTime": "2023-05-24T13:30:00.000Z",
  *                       "metadata": {},
- *                       "status": "CANCELLED"
+ *                       "status": "CANCELLED",
+ *                       "responses": {
+ *                         "email": "john.doe@example.com",
+ *                         "name": "John Doe",
+ *                         "location": {
+ *                           "optionValue": "",
+ *                           "value": "inPerson"
+ *                         }
+ *                       }
  *                     }
  *                   }
  *       400:
