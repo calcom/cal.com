@@ -1481,7 +1481,7 @@
   "team_url_required": "Must enter a team URL",
   "team_url_taken": "This URL is already taken",
   "team_publish": "Publish team",
-  "number_sms_notifications": "Phone number (SMS or Whatsapp notifications)",
+  "number_text_notifications": "Phone number (Text notifications)",
   "attendee_email_variable": "Attendee email",
   "attendee_email_info": "The person booking's email",
   "kbar_search_placeholder": "Type a command or search...",
