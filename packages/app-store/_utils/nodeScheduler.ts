@@ -29,7 +29,7 @@ export async function addSubscription({
       appId: appId,
     },
   });
-  console.log("createSubscription", createSubscription);
+
   if (triggerEvent === WebhookTriggerEvents.MEETING_ENDED) {
     //schedule job for already existing bookings
     const bookings = await prisma.booking.findMany({
@@ -43,7 +43,6 @@ export async function addSubscription({
     });
 
     for (const booking of bookings) {
-      console.log("booking", booking);
       scheduleTrigger(booking, createSubscription.subscriberUrl, {
         id: createSubscription.id,
         appId: createSubscription.appId,
@@ -56,6 +55,47 @@ export async function addSubscription({
   return createSubscription;
 }
 
+export async function deleteSubscription({ appApiKey, webhookId }: { appApiKey: ApiKey; webhookId: string }) {
+  const webhook = await prisma.webhook.findFirst({
+    where: {
+      id: webhookId,
+    },
+  });
+
+  if (webhook?.eventTriggers.includes(WebhookTriggerEvents.MEETING_ENDED)) {
+    const bookingsWithScheduledJobs = await prisma.booking.findMany({
+      where: {
+        userId: appApiKey.userId,
+        scheduledJobs: {
+          isEmpty: false,
+        },
+      },
+    });
+    for (const booking of bookingsWithScheduledJobs) {
+      const updatedScheduledJobs = booking.scheduledJobs.filter(
+        (scheduledJob) => scheduledJob !== `make_${webhook.id}`
+      );
+      await prisma.booking.update({
+        where: {
+          id: booking.id,
+        },
+        data: {
+          scheduledJobs: updatedScheduledJobs,
+        },
+      });
+    }
+  }
+
+  const deleteWebhook = await prisma.webhook.delete({
+    where: {
+      id: webhookId,
+    },
+  });
+  if (!deleteWebhook) {
+    throw new Error(`Unable to delete webhook ${webhookId}`);
+  }
+  return deleteWebhook;
+}
 export async function listBookings(appApiKey: ApiKey) {
   const bookings = await prisma.booking.findMany({
     take: 3,
