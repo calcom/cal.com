@@ -65,6 +65,8 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
   const router = useRouter();
   const utils = trpc.useContext();
 
+  const [isNameErrorVisible, setIsNameErrorVisible] = useState(false);
+  
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess: (_data, variables) => {
       router.push(`${appUrl}/form-edit/${variables.id}`);
@@ -106,17 +108,24 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
           form={hookForm}
           handleSubmit={(values) => {
             const formId = uuidv4();
+            const formName = values.name.trim();
 
-            mutation.mutate({
-              id: formId,
-              ...values,
-              addFallback: true,
-              teamId,
-              duplicateFrom: formToDuplicate,
-            });
+            if (formName === "") {
+              setIsNameErrorVisible(true);
+            } else {
+              setIsNameErrorVisible(true);
+              mutation.mutate({
+                id: formId,
+                ...values,
+                addFallback: true,
+                teamId,
+                duplicateFrom: formToDuplicate,
+              });
+            }
           }}>
           <div className="mt-3 space-y-5">
             <TextField label={t("title")} required placeholder={t("a_routing_form")} {...register("name")} />
+            {isNameErrorVisible && <div className="text-sm text-red-600 dark:text-red-500">Please Enter Form Title</div>}
             <div className="mb-5">
               <TextAreaField
                 id="description"
