@@ -34,7 +34,7 @@ const BookerComponent = ({
   username,
   eventSlug,
   month,
-  rescheduleBooking,
+  bookingData,
   hideBranding = false,
   isTeamEvent,
 }: BookerProps) => {
@@ -44,6 +44,8 @@ const BookerComponent = ({
   const StickyOnDesktop = isMobile ? "div" : StickyBox;
   const rescheduleUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
+  const bookingUid =
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
   const event = useEvent();
   const [_layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
 
@@ -86,7 +88,8 @@ const BookerComponent = ({
     month,
     eventId: event?.data?.id,
     rescheduleUid,
-    rescheduleBooking,
+    bookingUid,
+    bookingData,
     layout: defaultLayout,
     isTeamEvent,
   });

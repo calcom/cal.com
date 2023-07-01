@@ -43,7 +43,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const { timezone } = useTimePreferences();
   const errorRef = useRef<HTMLDivElement>(null);
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
-  const rescheduleBooking = useBookerStore((state) => state.rescheduleBooking);
+  const bookingData = useBookerStore((state) => state.bookingData);
   const eventSlug = useBookerStore((state) => state.eventSlug);
   const duration = useBookerStore((state) => state.selectedDuration);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
@@ -52,7 +52,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const formValues = useBookerStore((state) => state.formValues);
   const setFormValues = useBookerStore((state) => state.setFormValues);
   const seatedEventData = useBookerStore((state) => state.seatedEventData);
-  const isRescheduling = !!rescheduleUid && !!rescheduleBooking;
+  const isRescheduling = !!rescheduleUid && !!bookingData;
   const event = useEvent();
   const eventType = event.data;
 
@@ -77,8 +77,8 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     });
 
     const defaultUserValues = {
-      email: rescheduleUid ? rescheduleBooking?.attendees[0].email : parsedQuery["email"] || "",
-      name: rescheduleUid ? rescheduleBooking?.attendees[0].name : parsedQuery["name"] || "",
+      email: rescheduleUid ? bookingData?.attendees[0].email : parsedQuery["email"] || "",
+      name: rescheduleUid ? bookingData?.attendees[0].name : parsedQuery["name"] || "",
     };
 
     if (!isRescheduling) {
@@ -102,10 +102,10 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       return defaults;
     }
 
-    if (!rescheduleBooking || !rescheduleBooking.attendees.length) {
+    if ((!rescheduleUid && !bookingData) || !bookingData.attendees.length) {
       return {};
     }
-    const primaryAttendee = rescheduleBooking.attendees[0];
+    const primaryAttendee = bookingData.attendees[0];
     if (!primaryAttendee) {
       return {};
     }
@@ -117,7 +117,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     const responses = eventType.bookingFields.reduce((responses, field) => {
       return {
         ...responses,
-        [field.name]: rescheduleBooking.responses[field.name],
+        [field.name]: bookingData.responses[field.name],
       };
     }, {});
     defaults.responses = {
@@ -126,7 +126,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       email: defaultUserValues.email,
     };
     return defaults;
-  }, [eventType?.bookingFields, formValues, isRescheduling, rescheduleBooking, rescheduleUid]);
+  }, [eventType?.bookingFields, formValues, isRescheduling, bookingData, rescheduleUid]);
 
   const bookingFormSchema = z
     .object({
@@ -178,7 +178,8 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
         email: bookingForm.getValues("responses.email"),
         eventTypeSlug: eventSlug,
         seatReferenceUid: "seatReferenceUid" in responseData ? responseData.seatReferenceUid : null,
-        formerTime: rescheduleBooking?.startTime ? dayjs(rescheduleBooking.startTime).toString() : undefined,
+        formerTime:
+          isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
       };
 
       return bookingSuccessRedirect({
@@ -207,7 +208,8 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
         allRemainingBookings: true,
         email: bookingForm.getValues("responses.email"),
         eventTypeSlug: eventSlug,
-        formerTime: rescheduleBooking?.startTime ? dayjs(rescheduleBooking.startTime).toString() : undefined,
+        formerTime:
+          isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
       };
 
       return bookingSuccessRedirect({

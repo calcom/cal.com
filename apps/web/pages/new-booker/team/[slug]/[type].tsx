@@ -27,7 +27,7 @@ export default function Type({ slug, user, booking, away, isBrandingHidden }: Pa
       <Booker
         username={user}
         eventSlug={slug}
-        rescheduleBooking={booking}
+        bookingData={booking}
         isAway={away}
         hideBranding={isBrandingHidden}
         isTeamEvent

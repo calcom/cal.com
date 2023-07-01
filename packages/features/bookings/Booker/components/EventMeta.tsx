@@ -24,7 +24,8 @@ export const EventMeta = () => {
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
-  const rescheduleBooking = useBookerStore((state) => state.rescheduleBooking);
+  const bookingData = useBookerStore((state) => state.bookingData);
+  const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const [seatedEventData, setSeatedEventData] = useBookerStore(
     (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
@@ -38,6 +39,10 @@ export const EventMeta = () => {
   if (hideEventTypeDetails) {
     return null;
   }
+  // If we didn't pick a time slot yet, we load bookingData via SSR so bookingData should be set
+  // Otherwise we load seatedEventData from useBookerStore
+  const bookingSeatAttendeesQty = seatedEventData?.attendees || bookingData?.attendees.length;
+  const eventTotalSeats = seatedEventData?.seatsPerTimeSlot || event?.seatsPerTimeSlot;
 
   return (
     <div className="relative z-10 p-6">
@@ -56,13 +61,13 @@ export const EventMeta = () => {
             </EventMetaBlock>
           )}
           <div className="space-y-4 font-medium">
-            {rescheduleBooking && (
+            {rescheduleUid && bookingData && (
               <EventMetaBlock icon={Calendar}>
                 {t("former_time")}
                 <br />
                 <span className="line-through" data-testid="former_time_p">
                   <FromToTime
-                    date={rescheduleBooking.startTime.toString()}
+                    date={bookingData.startTime.toString()}
                     duration={null}
                     timeFormat={timeFormat}
                     timeZone={timezone}
@@ -106,26 +111,24 @@ export const EventMeta = () => {
                 </span>
               )}
             </EventMetaBlock>
-            {bookerState === "booking" && seatedEventData.seatsPerTimeSlot ? (
+            {bookerState === "booking" && eventTotalSeats && bookingSeatAttendeesQty ? (
               <EventMetaBlock
                 icon={User}
                 className={`${
-                  seatedEventData?.attendees || 0 / seatedEventData.seatsPerTimeSlot >= 0.5
-                    ? "text-rose-600"
-                    : seatedEventData?.attendees || 0 / seatedEventData.seatsPerTimeSlot >= 0.33
+                  bookingSeatAttendeesQty || 0 / eventTotalSeats >= 0.5
                     ? "text-yellow-500"
+                    : bookingSeatAttendeesQty || 0 / eventTotalSeats >= 0.33
+                    ? "text-rose-600"
                     : "text-bookinghighlight"
                 }`}>
                 <div className="text-bookinghighlight flex items-start text-sm">
                   <p>
-                    {seatedEventData.attendees
-                      ? seatedEventData.seatsPerTimeSlot - seatedEventData.attendees
-                      : seatedEventData.seatsPerTimeSlot}{" "}
-                    / {seatedEventData.seatsPerTimeSlot}{" "}
+                    {bookingSeatAttendeesQty ? eventTotalSeats - bookingSeatAttendeesQty : eventTotalSeats} /{" "}
+                    {eventTotalSeats}{" "}
                     {t("seats_available", {
-                      count: seatedEventData.attendees
-                        ? seatedEventData.seatsPerTimeSlot - seatedEventData.attendees
-                        : seatedEventData.seatsPerTimeSlot,
+                      count: bookingSeatAttendeesQty
+                        ? eventTotalSeats - bookingSeatAttendeesQty
+                        : eventTotalSeats,
                     })}
                   </p>
                 </div>
