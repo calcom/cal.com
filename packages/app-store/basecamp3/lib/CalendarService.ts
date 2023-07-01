@@ -1,19 +1,9 @@
-/* eslint-disable @typescript-eslint/triple-slash-reference */
-/// <reference path="../../../types/ical.d.ts"/>
-import type { Prisma } from "@prisma/client";
-import ICAL from "ical.js";
-import type { Attendee, DateArray, DurationObject, Person } from "ics";
-import type { DAVAccount } from "tsdav";
-import { createAccount, fetchCalendarObjects } from "tsdav";
-
-import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
+import prisma from "@calcom/prisma";
 import type {
   Calendar,
   CalendarEvent,
-  CalendarEventType,
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
@@ -24,9 +14,6 @@ import { userAgent } from "./constants";
 import { getBasecampKeys } from "./getBasecampKeys";
 
 const TIMEZONE_FORMAT = "YYYY-MM-DDTHH:mm:ss[Z]";
-const DEFAULT_CALENDAR_TYPE = "caldav";
-
-const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
 function hasFileExtension(url: string): boolean {
   // Get the last portion of the URL (after the last '/')
@@ -44,50 +31,51 @@ function getFileExtension(url: string): string {
   return fileName.substring(fileName.lastIndexOf(".") + 1);
 }
 
-const convertDate = (date: string): DateArray =>
-  dayjs(date)
-    .utc()
-    .toArray()
-    .slice(0, 6)
-    .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray;
-
-const getDuration = (start: string, end: string): DurationObject => ({
-  minutes: dayjs(end).diff(dayjs(start), "minute"),
-});
-
-const getAttendees = (attendees: Person[]): Attendee[] =>
-  attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
+export type BasecampToken = {
+  projectId: number;
+  expires_at: number;
+  expires_in: number;
+  scheduleId: number;
+  access_token: string;
+  refresh_token: string;
+  account: {
+    id: number;
+    href: string;
+    name: string;
+    hidden: boolean;
+    product: string;
+    app_href: string;
+  };
+};
 
 export default class BasecampCalendarService implements Calendar {
-  private url = "";
   private credentials: Record<string, string> = {};
   private auth: Promise<{ configureToken: () => Promise<void> }>;
   private headers: Record<string, string> = {};
   protected integrationName = "";
   private accessToken = "";
-  private scheduleId = "";
-  private userId = "";
-  private projectId = "";
+  private scheduleId = 0;
+  private userId = 0;
+  private projectId = 0;
   private log: typeof logger;
 
   constructor(credential: CredentialPayload) {
     this.integrationName = "basecamp3";
     this.auth = this.basecampAuth(credential).then((c) => c);
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-    console.log("HEEEK DONE INITIALIZING");
   }
 
   private basecampAuth = async (credential: CredentialPayload) => {
-    const credentialKey = credential.key;
+    const credentialKey = credential.key as BasecampToken;
     this.scheduleId = credentialKey.scheduleId;
     this.userId = credentialKey.account.id;
     this.projectId = credentialKey.projectId;
-    const isTokenValid = (credentialToken) => {
+    const isTokenValid = (credentialToken: BasecampToken) => {
       const isValid = credentialToken.access_token && credentialToken.expires_at > Date.now();
       if (isValid) this.accessToken = credentialToken.access_token;
       return isValid;
     };
-    const refreshAccessToken = async (credentialToken) => {
+    const refreshAccessToken = async (credentialToken: BasecampToken) => {
       try {
         const { client_id: clientId, client_secret: clientSecret } = await getBasecampKeys();
         const tokenInfo = await fetch(
@@ -97,14 +85,14 @@ export default class BasecampCalendarService implements Calendar {
         const tokenInfoJson = await tokenInfo.json();
         tokenInfoJson["expires_at"] = Date.now() + 1000 * 3600 * 24 * 14;
         this.accessToken = tokenInfoJson.access_token;
-        await prisma?.credential.update({
-          where: { userId: credential.userId },
+        await prisma.credential.update({
+          where: { id: credential.id },
           data: {
             key: { ...credentialKey, ...tokenInfoJson },
           },
         });
       } catch (err) {
-        console.error(err);
+        this.log.error(err);
       }
     };
 
@@ -115,21 +103,23 @@ export default class BasecampCalendarService implements Calendar {
   };
 
   private async getBasecampDescription(event: CalendarEvent): Promise<string> {
-    const timeZone = await this.getUserTimezoneFromDB(event.organizer.id);
+    const timeZone = await this.getUserTimezoneFromDB(event.organizer?.id as number);
     const date = new Date(event.startTime).toDateString();
     const startTime = new Date(event.startTime).toISOString();
     const endTime = new Date(event.endTime).toISOString();
-    const baseString = `Event title: ${event.title}\nDate and time ${date}, ${startTime} - ${endTime} ${timeZone}\n View on Cal.com\n<a target=\"_blank\" rel=\"noreferrer\" class=\"autolinked\" data-behavior=\"truncate\" href=\"https://app.cal.com/booking/${event.uid}\">https://app.cal.com/booking/${event.uid}</a>`;
+    const baseString = `<div>Event title: ${event.title}<br/>Date and time ${date}, ${startTime} - ${endTime} ${timeZone}<br/>View on Cal.com<br/><a target="_blank" rel="noreferrer" class="autolinked" data-behavior="truncate" href="https://app.cal.com/booking/${event.uid}">https://app.cal.com/booking/${event.uid}</a> `;
     const guestString =
-      "\nGuests: " +
+      "<br/>Guests: " +
       event.attendees.reduce((acc, attendee) => {
         return (
           acc +
-          `\n${attendee.name}:<a target=\"_blank\" rel=\"noreferrer\" class=\"autolinked\" data-behavior=\"truncate\" href=\"mailto:${attendee.email}\">${attendee.email}</a>\n`
+          `<br/>${attendee.name}:<a target=\"_blank\" rel=\"noreferrer\" class=\"autolinked\" data-behavior=\"truncate\" href=\"mailto:${attendee.email}\">${attendee.email}</a>`
         );
       }, "");
 
-    const videoString = event.videoCallData ? `\nJoin on video: ${event.videoCallData.url}` : "";
+    const videoString = event.videoCallData
+      ? `<br/>Join on video: ${event.videoCallData.url}</div>`
+      : "</div>";
     return baseString + guestString + videoString;
   }
 
@@ -158,7 +148,6 @@ export default class BasecampCalendarService implements Calendar {
       const meetingJson = await basecampEvent.json();
       const id = meetingJson.id;
       this.log.debug("event:creation:ok", { json: meetingJson });
-      console.log("EVENT_IDD", id);
       return Promise.resolve({
         id,
         uid: id,
@@ -169,7 +158,7 @@ export default class BasecampCalendarService implements Calendar {
       });
     } catch (err) {
       this.log.debug("event:creation:notOk", err);
-      Promise.reject({ error: "Unable to book basecamp meeting" });
+      return Promise.reject({ error: "Unable to book basecamp meeting" });
     }
   }
 
@@ -247,7 +236,6 @@ export default class BasecampCalendarService implements Calendar {
    * @returns {Promise<string | undefined>} - A Promise that resolves to the user's timezone or "Europe/London" as a default value if the timezone is not found.
    */
   getUserTimezoneFromDB = async (id: number): Promise<string | undefined> => {
-    const prisma = await import("@calcom/prisma").then((mod) => mod.default);
     const user = await prisma.user.findUnique({
       where: {
         id,
@@ -292,120 +280,5 @@ export default class BasecampCalendarService implements Calendar {
 
   async listCalendars(_event?: CalendarEvent): Promise<IntegrationCalendar[]> {
     return Promise.resolve([]);
-  }
-
-  /**
-   * The fetchObjectsWithOptionalExpand function is responsible for fetching calendar objects
-   * from an array of selectedCalendars. It attempts to fetch objects with the expand option
-   * alone such that it works if a calendar supports it. If any calendar object has an undefined 'data' property
-   * and etag isn't undefined, the function makes a new request without the expand option to retrieve the data.
-   * The result is a flattened array of calendar objects with the structure { url: ..., etag: ..., data: ...}.
-   *
-   * @param {Object} options - The options object containing the following properties:
-   *   @param {IntegrationCalendar[]} options.selectedCalendars - An array of IntegrationCalendar objects to fetch data from.
-   *   @param {string} options.startISOString - The start date of the date range to fetch events from, in ISO 8601 format.
-   *   @param {string} options.dateTo - The end date of the date range to fetch events from.
-   *   @param {Object} options.headers - Headers to be included in the API requests.
-   * @returns {Promise<Array>} - A promise that resolves to a flattened array of calendar objects with the structure { url: ..., etag: ..., data: ...}.
-   */
-
-  private async getEvents(
-    calId: string,
-    dateFrom: string | null,
-    dateTo: string | null,
-    objectUrls?: string[] | null
-  ) {
-    try {
-      const objects = await fetchCalendarObjects({
-        calendar: {
-          url: calId,
-        },
-        objectUrls: objectUrls ? objectUrls : undefined,
-        timeRange:
-          dateFrom && dateTo
-            ? {
-                start: dayjs(dateFrom).utc().format(TIMEZONE_FORMAT),
-                end: dayjs(dateTo).utc().format(TIMEZONE_FORMAT),
-              }
-            : undefined,
-        headers: this.headers,
-      });
-
-      const events = objects
-        .filter((e) => !!e.data)
-        .map((object) => {
-          const jcalData = ICAL.parse(sanitizeCalendarObject(object));
-
-          const vcalendar = new ICAL.Component(jcalData);
-
-          const vevent = vcalendar.getFirstSubcomponent("vevent");
-          const event = new ICAL.Event(vevent);
-
-          const calendarTimezone =
-            vcalendar.getFirstSubcomponent("vtimezone")?.getFirstPropertyValue<string>("tzid") || "";
-
-          const startDate = calendarTimezone
-            ? dayjs.tz(event.startDate.toString(), calendarTimezone)
-            : new Date(event.startDate.toUnixTime() * 1000);
-
-          const endDate = calendarTimezone
-            ? dayjs.tz(event.endDate.toString(), calendarTimezone)
-            : new Date(event.endDate.toUnixTime() * 1000);
-
-          return {
-            uid: event.uid,
-            etag: object.etag,
-            url: object.url,
-            summary: event.summary,
-            description: event.description,
-            location: event.location,
-            sequence: event.sequence,
-            startDate,
-            endDate,
-            duration: {
-              weeks: event.duration.weeks,
-              days: event.duration.days,
-              hours: event.duration.hours,
-              minutes: event.duration.minutes,
-              seconds: event.duration.seconds,
-              isNegative: event.duration.isNegative,
-            },
-            organizer: event.organizer,
-            attendees: event.attendees.map((a) => a.getValues()),
-            recurrenceId: event.recurrenceId,
-            timezone: calendarTimezone,
-          };
-        });
-      return events;
-    } catch (reason) {
-      console.error(reason);
-      throw reason;
-    }
-  }
-
-  private async getEventsByUID(uid: string): Promise<CalendarEventType[]> {
-    const events: Prisma.PromiseReturnType<typeof this.getEvents> = [];
-    const calendars = await this.listCalendars();
-
-    for (const cal of calendars) {
-      const calEvents = await this.getEvents(cal.externalId, null, null, [`${cal.externalId}${uid}.ics`]);
-
-      for (const ev of calEvents) {
-        events.push(ev);
-      }
-    }
-
-    return events;
-  }
-
-  private async getAccount(): Promise<DAVAccount> {
-    return createAccount({
-      account: {
-        serverUrl: this.url,
-        accountType: DEFAULT_CALENDAR_TYPE,
-        credentials: this.credentials,
-      },
-      headers: this.headers,
-    });
   }
 }
