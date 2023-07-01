@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 import type { SVGComponent } from "@calcom/types/SVGComponent";
-import { User, Link, MapPin } from "@calcom/ui/components/icon";
+import { User, Link } from "@calcom/ui/components/icon";
 
 interface addFilterOption {
   StartIcon?: SVGComponent;
@@ -28,10 +28,10 @@ export const useBookingMultiFilterStore = create<BookingMultiFilterStore>((set, 
     //   label: "date_range",
     //   StartIcon: Calendar,
     // },
-    {
-      label: "location",
-      StartIcon: MapPin,
-    },
+    // {
+    //   label: "location",
+    //   StartIcon: MapPin,
+    // },
   ],
   isFilterActive: (label: addFilterOption["label"]) => {
     return !get().addFilterOptions.some((option) => option.label === label);
