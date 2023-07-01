@@ -100,10 +100,10 @@ export const AvailableTimes = ({
                 <p className="flex items-center text-sm lowercase">
                   <span
                     className={classNames(
-                      slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.8
-                        ? "bg-rose-600"
-                        : slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.33
+                      slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.5
                         ? "bg-yellow-500"
+                        : slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.33
+                        ? "bg-rose-600"
                         : "bg-emerald-400",
                       "mr-1 inline-block h-2 w-2 rounded-full"
                     )}

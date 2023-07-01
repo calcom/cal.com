@@ -167,10 +167,10 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                         {!!seatsPerTimeSlot && (
                           <p
                             className={`${
-                              slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.8
-                                ? "text-rose-600"
-                                : slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.33
+                              slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.5
                                 ? "text-yellow-500"
+                                : slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.33
+                                ? "text-rose-600"
                                 : "text-emerald-400"
                             } text-sm`}>
                             {slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot} /{" "}

@@ -590,6 +590,7 @@ const BookingPage = ({
                       </p>
                     </div>
                   )}
+
                   {!!eventType.seatsPerTimeSlot && (
                     <div className="text-bookinghighlight flex items-start text-sm">
                       <User
@@ -607,10 +608,10 @@ const BookingPage = ({
                         className={`${
                           currentSlotBooking &&
                           currentSlotBooking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
-                            ? "text-rose-600"
+                            ? "text-yellow-500"
                             : currentSlotBooking &&
                               currentSlotBooking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
-                            ? "text-yellow-500"
+                            ? "text-rose-600"
                             : "text-bookinghighlight"
                         } mb-2 font-medium`}>
                         {currentSlotBooking
