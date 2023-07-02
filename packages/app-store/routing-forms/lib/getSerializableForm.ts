@@ -129,7 +129,15 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
               id: parsedRouter.id,
               name: router.name,
               description: router.description || "",
-            };
+            }
+            if (currentFormField.id === "title") {
+            const titleValue = currentFormField.value.trim();
+
+              if (titleValue === "") {
+              console.error("Title cannot be blank!");
+              return;
+             }
+            }
           }
         });
       } else {
