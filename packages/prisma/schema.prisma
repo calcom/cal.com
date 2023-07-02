@@ -231,6 +231,7 @@ model User {
   //linkedByUserId       Int?
   //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
   //linkedUsers          User[]                  @relation("linked_account")*/
+  TeamAuditLog         TeamAuditLog[]
 
   @@unique([email])
   @@unique([email, username])
@@ -273,6 +274,7 @@ model Team {
   timeZone            String                  @default("Europe/London")
   weekStart           String                  @default("Sunday")
   routingForms        App_RoutingForms_Form[]
+  TeamAuditLog        TeamAuditLog[]
 
   @@unique([slug, parentId])
 }
@@ -879,4 +881,28 @@ view BookingTimeStatus {
   teamId      Int?
   eventLength Int?
   timeStatus  String?
+}
+
+// Audit Log stuff - we should move this to another schema - prisma has WIP/feature flags for this
+
+enum AuditOperation {
+  INSERT
+  UPDATE
+  DELETE
+}
+
+model TeamAuditLog {
+  // Version metadata fields
+  versionId        Int            @id @default(autoincrement())
+  versionOperation AuditOperation
+  versionTeamId    Int?
+  versionUserId    Int?
+  versionTimestamp DateTime
+
+  // Mirrored fields from the Product table
+  id   Int
+  name String
+
+  team Team? @relation(fields: [versionTeamId], references: [id])
+  user User? @relation(fields: [versionUserId], references: [id])
 }

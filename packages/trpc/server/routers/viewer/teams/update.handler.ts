@@ -4,6 +4,7 @@ import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
+import { userContext } from "@calcom/prisma/audit-user-extention";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -37,6 +38,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   });
 
   if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
+
+  const auditedPrisma = prisma.$extends(userContext(ctx.user?.id));
 
   const data: Prisma.TeamUpdateArgs["data"] = {
     name: input.name,
@@ -72,7 +75,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  const updatedTeam = await prisma.team.update({
+  const updatedTeam = await auditedPrisma.team.update({
     where: { id: input.id },
     data,
   });
