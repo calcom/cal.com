@@ -6,6 +6,7 @@ import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 import type { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 
 import Shell from "@calcom/features/shell/Shell";
+import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -65,6 +66,7 @@ type Route =
   | GlobalRoute;
 
 const Route = ({
+  form,
   route,
   routes,
   setRoute,
@@ -75,6 +77,7 @@ const Route = ({
   appUrl,
   disabled = false,
 }: {
+  form: inferSSRProps<typeof getServerSideProps>["form"];
   route: Route;
   routes: Route[];
   setRoute: (id: string, route: Partial<Route>) => void;
@@ -91,8 +94,27 @@ const Route = ({
 
   const eventOptions: { label: string; value: string }[] = [];
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {
+    const eventTypeValidInContext = areTheySiblingEntitites({
+      entity1: {
+        teamId: group.teamId ?? null,
+        // group doesn't have userId. The query ensures that it belongs to the user only, if teamId isn't set. So, I am manually setting it to the form userId
+        userId: form.userId,
+      },
+      entity2: {
+        teamId: form.teamId ?? null,
+        userId: form.userId,
+      },
+    });
+
     group.eventTypes.forEach((eventType) => {
       const uniqueSlug = `${group.profile.slug}/${eventType.slug}`;
+      const isRouteAlreadyInUse = isRouter(route) ? false : uniqueSlug === route.action.value;
+
+      // If Event is already in use, we let it be so as to not break the existing setup
+      if (!isRouteAlreadyInUse && !eventTypeValidInContext) {
+        return;
+      }
+
       eventOptions.push({
         label: uniqueSlug,
         value: uniqueSlug,
@@ -245,7 +267,7 @@ const Route = ({
 
             {((route.isFallback && hasRules(route)) || !route.isFallback) && (
               <>
-                <Divider className="mt-3 mb-6" />
+                <Divider className="mb-6 mt-3" />
                 <Query
                   {...config}
                   value={route.state.tree}
@@ -308,14 +330,26 @@ const Routes = ({
       return deserializeRoute(route, config);
     });
   });
+
   const { data: allForms } = trpc.viewer.appRoutingForms.forms.useQuery();
 
   const availableRouters =
-    allForms
-      ?.filter((router) => {
-        return router.id !== form.id;
+    allForms?.filtered
+      .filter(({ form: router }) => {
+        const routerValidInContext = areTheySiblingEntitites({
+          entity1: {
+            teamId: router.teamId ?? null,
+            // group doesn't have userId. The query ensures that it belongs to the user only, if teamId isn't set. So, I am manually setting it to the form userId
+            userId: router.userId,
+          },
+          entity2: {
+            teamId: form.teamId ?? null,
+            userId: form.userId,
+          },
+        });
+        return router.id !== form.id && routerValidInContext;
       })
-      .map((router) => {
+      .map(({ form: router }) => {
         return {
           value: router.id,
           label: router.name,
@@ -425,6 +459,7 @@ const Routes = ({
         {mainRoutes.map((route, key) => {
           return (
             <Route
+              form={form}
               appUrl={appUrl}
               key={route.id}
               config={config}
@@ -494,6 +529,7 @@ const Routes = ({
 
         <div>
           <Route
+            form={form}
             config={config}
             route={fallbackRoute}
             routes={routes}
