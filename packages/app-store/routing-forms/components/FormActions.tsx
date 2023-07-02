@@ -1,3 +1,4 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { App_RoutingForms_Form } from "@prisma/client";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
@@ -77,11 +78,17 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
     },
   });
 
+  const formDataSchema = z.object({
+    name: z.string().trim().min(1, t(".")),
+    description: z.string().optional(),
+    shouldConnect: z.boolean().optional(),
+  })
+
   const hookForm = useForm<{
     name: string;
     description: string;
     shouldConnect: boolean;
-  }>();
+  }>({resolver: zodResolver(formDataSchema)});
 
   const { action, target } = router.query as z.infer<typeof newFormModalQuerySchema>;
 
