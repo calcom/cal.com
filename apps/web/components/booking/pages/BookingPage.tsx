@@ -129,10 +129,7 @@ const BookingFields = ({
         }
 
         // We don't show `notes` field during reschedule
-        if (
-          (field.name === SystemField.Enum.notes) &&
-          !!rescheduleUid
-        ) {
+        if (field.name === SystemField.Enum.notes && !!rescheduleUid) {
           return null;
         }
 
