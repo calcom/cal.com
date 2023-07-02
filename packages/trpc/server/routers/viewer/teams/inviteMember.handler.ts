@@ -153,7 +153,7 @@ async function createNewUserConnectToOrgIfExists({
   }
 }
 
-async function createProvitionalMembership({
+async function createProvisionalMembership({
   input,
   invitee,
   parentId,
@@ -374,7 +374,11 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       checkIfUserIsInDifOrg(invitee, team);
 
       // create provisional membership
-      await createProvitionalMembership({ input, invitee, parentId: team.id });
+      await createProvisionalMembership({
+        input,
+        invitee,
+        ...(team.parentId ? { parentId: team.parentId } : {}),
+      });
 
       let sendTo = usernameOrEmail;
       if (!isEmail(usernameOrEmail)) {
