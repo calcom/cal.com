@@ -123,6 +123,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
                 label={t("description")}
                 {...register("description")}
                 data-testid="description"
+                required
                 placeholder={t("form_description_placeholder")}
               />
             </div>
