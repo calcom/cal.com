@@ -1894,6 +1894,8 @@
   "verify_email_organization": "Verify your email to create an organization",
   "code_provided_invalid": "The code provided is not valid, try again",
   "email_already_used": "Email already being used",
+  "organization_admin_invited_heading":"You've been invited to join {{orgName}}",
+  "organization_admin_invited_body":"Join your team at {{orgName}} and start focusing on meeting, not making meetings!",
   "duplicated_slugs_warning": "The following teams couldn't be created due to duplicated slugs: {{slugs}}",
   "team_names_empty": "Team names can't be empty",
   "team_names_repeated": "Team names can't be repeated",
