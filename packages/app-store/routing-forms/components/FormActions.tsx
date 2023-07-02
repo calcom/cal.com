@@ -77,6 +77,10 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
     },
   });
 
+  const isNotEmpty = (value: string) => {
+    return /\S/.test(value); // Check if value contains a non-whitespace character
+  };
+
   const hookForm = useForm<{
     name: string;
     description: string;
@@ -116,11 +120,16 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
             });
           }}>
           <div className="mt-3 space-y-5">
-            <TextField label={t("title")} required placeholder={t("a_routing_form")} {...register("name")} />
+            <TextField
+              label={t("title")}
+              required
+              placeholder={t("a_routing_form")}
+              {...register("name", { required: true, validate: isNotEmpty })}
+            />
             <div className="mb-5">
               <TextAreaField
                 id="description"
-                label={t("description")}
+                label={t("description", { required: true, validate: isNotEmpty })}
                 {...register("description")}
                 data-testid="description"
                 placeholder={t("form_description_placeholder")}
