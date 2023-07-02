@@ -1,3 +1,4 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { App_RoutingForms_Form } from "@prisma/client";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
@@ -81,7 +82,15 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
     name: string;
     description: string;
     shouldConnect: boolean;
-  }>();
+  }>({
+    resolver: zodResolver(
+      z.object({
+        name: z.string().trim().min(1, { message: "Title must contain at least 1 character(s)" }),
+        description: z.string().optional(),
+        shouldConnect: z.boolean().optional(),
+      })
+    ),
+  });
 
   const { action, target } = router.query as z.infer<typeof newFormModalQuerySchema>;
 
