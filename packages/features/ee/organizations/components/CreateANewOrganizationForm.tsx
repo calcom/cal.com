@@ -84,7 +84,10 @@ export const VerifyCodeDialog = ({
       <DialogContent className="sm:max-w-md">
         <div className="flex flex-row">
           <div className="w-full">
-            <DialogHeader title={t("verify_your_email")} subtitle={t("enter_digit_code", { email })} />
+            <DialogHeader
+              title={t("verify_your_email")}
+              subtitle={t("enter_digit_code", { email })}
+            />
             <Label htmlFor="code">{t("code")}</Label>
             <div className="flex flex-row justify-between">
               <Input
@@ -143,6 +146,8 @@ export const CreateANewOrganizationForm = () => {
   const [showVerifyCode, setShowVerifyCode] = useState(false);
   const { slug } = router.query;
 
+  console.log(slug)
+
   const newOrganizationFormMethods = useForm<{
     name: string;
     slug: string;
@@ -150,7 +155,7 @@ export const CreateANewOrganizationForm = () => {
     adminUsername: string;
   }>({
     defaultValues: {
-      slug: `${slug}`,
+      slug: `${(slug === undefined || slug === null) ? "" : slug}`,
     },
   });
   const watchAdminEmail = newOrganizationFormMethods.watch("adminEmail");
