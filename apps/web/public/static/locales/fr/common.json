@@ -1306,6 +1306,7 @@
   "location_info": "Lieu de l'événement",
   "additional_notes_info": "Notes supplémentaires de la réservation",
   "attendee_name_info": "Nom du participant",
+  "organizer_name_info": "Nom de l'organisateur",
   "to": "À",
   "workflow_turned_on_successfully": "Le workflow {{workflowName}} a été {{offOn}} avec succès",
   "download_responses": "Télécharger les réponses",
