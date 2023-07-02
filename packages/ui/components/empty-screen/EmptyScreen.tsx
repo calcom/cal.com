@@ -34,7 +34,7 @@ export function EmptyScreen({
       <div
         data-testid="empty-screen"
         className={classNames(
-          "select-none min-h-80 flex w-full flex-col items-center justify-center rounded-lg p-7 lg:p-20",
+          "min-h-80 flex w-full flex-col items-center justify-center rounded-lg p-7 lg:p-20 select-none",
           border && "border-subtle border",
           dashedBorder && "border-dashed",
           className
