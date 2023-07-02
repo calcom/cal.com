@@ -35,23 +35,37 @@ Each alert has a state to represent neutral, positive or negative responses.
 
 <Canvas>
   <Story
-    name="Alert">
-    <VariantsTable titles={['Default']} columnMinWidth={150}>
-      <VariantRow variant="Success">
-        <Alert severity="success" title="Summarise what happened" message="Describe what can be done about it here." />
-      </VariantRow>
-      <VariantRow variant="Warning">
-        <Alert severity="warning" title="Summarise what happened" message="Describe what can be done about it here." />
-      </VariantRow>
-      <VariantRow variant="Error">
-        <Alert severity="error" title="Summarise what happened" message="Describe what can be done about it here." />
-      </VariantRow>
-      <VariantRow variant="Neutral">
-        <Alert severity="neutral" title="Summarise what happened" message="Describe what can be done about it here." />
-      </VariantRow>
-      <VariantRow variant="Info">
-        <Alert severity="info" title="Summarise what happened" message="Describe what can be done about it here." />
-      </VariantRow>
-    </VariantsTable>
+    name="Alert"
+    args={{
+      severity: 'success',
+      title: 'Summarise what happened',
+      message: 'Describe what can be done about it here.',
+    }}
+    argTypes={{
+      severity: {
+        control: {
+          type: 'inline-radio',
+          options: ['success', 'warning', 'error', 'neutral', 'info'],
+        },
+      },
+      title: {
+        control: {
+          type: 'text'
+        }
+      },
+      message: {
+        control: {
+          type: 'text'
+        }
+      },
+    }}
+  >
+    {({ severity, title, message }) => (
+      <VariantsTable titles={['Default']} columnMinWidth={150}>
+        <VariantRow variant={severity}>
+          <Alert severity={severity} title={title} message={message} />
+        </VariantRow>
+      </VariantsTable>
+    )}
   </Story>
 </Canvas>

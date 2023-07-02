@@ -40,18 +40,19 @@ export function Header({
 
   // Only reason we create this component, is because it is used 3 times in this component,
   // and this way we can't forget to update one of the props in all places :)
-  const LayoutToggleWithData = () => (
-    <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
-  );
+  const LayoutToggleWithData = () => {
+    return enabledLayouts.length <= 1 ? null : (
+      <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
+    );
+  };
 
   // In month view we only show the layout toggle.
   if (isMonthView) {
-    if (enabledLayouts.length <= 1) return null;
     return <LayoutToggleWithData />;
   }
 
   return (
-    <div className="border-subtle relative z-10 flex border-l border-b px-5 py-4">
+    <div className="border-default relative z-10 flex border-b border-l px-5 py-4">
       <div className="flex items-center gap-3">
         <h3 className="min-w-[150px] text-base font-semibold leading-4">
           {selectedDate.format("MMM D")}-{selectedDate.add(extraDays, "days").format("D")},{" "}
@@ -76,7 +77,7 @@ export function Header({
       </div>
       <div className="ml-auto flex gap-2">
         <TimeFormatToggle />
-        <div className="fixed top-4 right-4">
+        <div className="fixed right-4 top-4">
           <LayoutToggleWithData />
         </div>
         {/*

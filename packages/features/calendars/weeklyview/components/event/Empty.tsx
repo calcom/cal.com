@@ -101,7 +101,7 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
       {!isDisabled && hoverEventDuration !== 0 && (
         <div
           className={classNames(
-            "opacity-4 bg-subtle hover:bg-emphasis text-emphasis dark:border-emphasis absolute hidden rounded-[4px] border-[1px] border-gray-900 py-1 px-[6px] text-xs font-semibold leading-5 group-hover:flex group-hover:cursor-pointer",
+            "opacity-4 bg-subtle hover:bg-emphasis text-emphasis dark:border-emphasis absolute hidden rounded-[4px] border-[1px] border-gray-900 px-[6px] py-1 text-xs font-semibold leading-5 group-hover:flex group-hover:cursor-pointer",
             hoverEventDuration && hoverEventDuration > 15 && "items-start pt-3",
             hoverEventDuration && hoverEventDuration < 15 && "items-center"
           )}
