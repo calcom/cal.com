@@ -5,6 +5,7 @@ import { useState } from "react";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -26,7 +27,7 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
-import { ExternalLink, MoreHorizontal, Edit2, Lock, Trash } from "@calcom/ui/components/icon";
+import { ExternalLink, MoreHorizontal, Edit2, Lock, UserX } from "@calcom/ui/components/icon";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
@@ -44,6 +45,12 @@ const useCurrentUserId = () => {
   return user?.id;
 };
 
+const checkIsOrg = (team: Props["team"]) => {
+  const metadata = teamMetadataSchema.safeParse(team.metadata);
+  if (metadata.success && metadata.data?.isOrganization) return true;
+  return false;
+};
+
 export default function MemberListItem(props: Props) {
   const { t } = useLocale();
 
@@ -57,6 +64,7 @@ export default function MemberListItem(props: Props) {
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.eventTypes.invalidate();
+      await utils.viewer.organizations.listMembers.invalidate();
       showToast(t("success"), "success");
     },
     async onError(err) {
@@ -80,7 +88,11 @@ export default function MemberListItem(props: Props) {
     })();
 
   const removeMember = () =>
-    removeMemberMutation.mutate({ teamId: props.team?.id, memberId: props.member.id });
+    removeMemberMutation.mutate({
+      teamId: props.team?.id,
+      memberId: props.member.id,
+      isOrg: checkIsOrg(props.team),
+    });
 
   const editMode =
     (props.team.membership.role === MembershipRole.OWNER &&
@@ -161,6 +173,7 @@ export default function MemberListItem(props: Props) {
                   className={classNames(!editMode ? "rounded-r-md" : "")}
                   variant="icon"
                   StartIcon={ExternalLink}
+                  disabled={!props.member.accepted}
                 />
               </Tooltip>
               {editMode && (
@@ -200,8 +213,8 @@ export default function MemberListItem(props: Props) {
                         type="button"
                         onClick={() => setShowDeleteModal(true)}
                         color="destructive"
-                        StartIcon={Trash}>
-                        {t("delete")}
+                        StartIcon={UserX}>
+                        {t("remove")}
                       </DropdownItem>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -215,7 +228,12 @@ export default function MemberListItem(props: Props) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem className="outline-none">
-                    <DropdownItem type="button" StartIcon={ExternalLink}>
+                    <DropdownItem
+                      disabled={!props.member.accepted}
+                      href={!props.member.accepted ? undefined : "/" + props.member.username}
+                      target="_blank"
+                      type="button"
+                      StartIcon={ExternalLink}>
                       {t("view_public_page")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -234,8 +252,8 @@ export default function MemberListItem(props: Props) {
                           type="button"
                           color="destructive"
                           onClick={() => setShowDeleteModal(true)}
-                          StartIcon={Trash}>
-                          {t("delete")}
+                          StartIcon={UserX}>
+                          {t("remove")}
                         </DropdownItem>
                       </DropdownMenuItem>
                     </>
@@ -271,7 +289,7 @@ export default function MemberListItem(props: Props) {
                 });
                 setShowImpersonateModal(false);
               }}>
-              <DialogFooter>
+              <DialogFooter showDivider className="mt-8">
                 <DialogClose color="secondary">{t("cancel")}</DialogClose>
                 <Button color="primary" type="submit">
                   {t("impersonate")}

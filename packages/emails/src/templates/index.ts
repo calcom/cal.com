@@ -26,3 +26,5 @@ export { NoShowFeeChargedEmail } from "./NoShowFeeChargedEmail";
 export { VerifyAccountEmail } from "./VerifyAccountEmail";
 export * from "@calcom/app-store/routing-forms/emails/components";
 export { AttendeeDailyVideoDownloadRecordingEmail } from "./AttendeeDailyVideoDownloadRecordingEmail";
+export { OrganisationAccountVerifyEmail } from "./OrganizationAccountVerifyEmail";
+export { OrgAutoInviteEmail } from "./OrgAutoInviteEmail";

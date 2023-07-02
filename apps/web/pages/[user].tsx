@@ -10,6 +10,7 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -36,7 +37,8 @@ import PageWrapper from "@components/PageWrapper";
 
 import { ssrInit } from "@server/lib/ssr";
 
-export default function User(props: inferSSRProps<typeof getServerSideProps> & EmbedProps) {
+export type UserPageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
+export function UserPage(props: UserPageProps) {
   const {
     users,
     profile,
@@ -101,6 +103,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const query = { ...router.query };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
+  delete query.orgSlug;
   const nameOrUsername = user.name || user.username || "";
 
   /*
@@ -131,7 +134,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
             isEmbed ? "border-booker border-booker-width  bg-default rounded-md border" : "",
-            "max-w-3xl py-24 px-4"
+            "max-w-3xl px-4 py-24"
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
@@ -206,8 +209,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   );
 }
 
-User.isBookingPage = true;
-User.PageWrapper = PageWrapper;
+UserPage.isBookingPage = true;
+UserPage.PageWrapper = PageWrapper;
 
 const getEventTypesWithHiddenFromDB = async (userId: number) => {
   return (
@@ -255,6 +258,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const crypto = await import("crypto");
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
 
   const usernameList = getUsernameList(context.query.user as string);
   const dataFetchStart = Date.now();
@@ -263,6 +267,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       username: {
         in: usernameList,
       },
+      organization: isValidOrgDomain
+        ? {
+            slug: currentOrgDomain,
+          }
+        : null,
     },
     select: {
       id: true,
@@ -272,6 +281,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       bio: true,
       brandColor: true,
       darkBrandColor: true,
+      organizationId: true,
       theme: true,
       away: true,
       verified: true,
@@ -284,7 +294,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     avatar: `${WEBAPP_URL}/${user.username}/avatar.png`,
   }));
 
-  if (!users.length) {
+  if (!users.length || (!isValidOrgDomain && !users.some((user) => user.organizationId === null))) {
     return {
       notFound: true,
     } as {
@@ -352,6 +362,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
   const markdownStrippedBio = stripMarkdown(user?.bio || "");
+
   return {
     props: {
       users,
@@ -377,3 +388,5 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   };
 };
+
+export default UserPage;

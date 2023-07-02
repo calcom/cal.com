@@ -25,6 +25,10 @@ import FeedbackEmail from "./templates/feedback-email";
 import type { PasswordReset } from "./templates/forgot-password-email";
 import ForgotPasswordEmail from "./templates/forgot-password-email";
 import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
+import type { OrgAutoInvite } from "./templates/org-auto-join-invite";
+import OrgAutoJoinEmail from "./templates/org-auto-join-invite";
+import type { OrganizationEmailVerify } from "./templates/organization-email-verification";
+import OrganizationEmailVerification from "./templates/organization-email-verification";
 import OrganizerAttendeeCancelledSeatEmail from "./templates/organizer-attendee-cancelled-seat-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
@@ -262,6 +266,10 @@ export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
   await sendEmail(() => new TeamInviteEmail(teamInviteEvent));
 };
 
+export const sendOrganizationAutoJoinEmail = async (orgInviteEvent: OrgAutoInvite) => {
+  await sendEmail(() => new OrgAutoJoinEmail(orgInviteEvent));
+};
+
 export const sendEmailVerificationLink = async (verificationInput: EmailVerifyLink) => {
   await sendEmail(() => new AccountVerifyEmail(verificationInput));
 };
@@ -353,4 +361,8 @@ export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, dow
     );
   }
   await Promise.all(emailsToSend);
+};
+
+export const sendOrganizationEmailVerification = async (sendOrgInput: OrganizationEmailVerify) => {
+  await sendEmail(() => new OrganizationEmailVerification(sendOrgInput));
 };

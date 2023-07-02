@@ -4,6 +4,8 @@ import { useState } from "react";
 
 import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSettingsModal";
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -62,32 +64,7 @@ export default function TeamListItem(props: Props) {
   const [openInviteLinkSettingsModal, setOpenInviteLinkSettingsModal] = useState(false);
 
   const teamQuery = trpc.viewer.teams.get.useQuery({ teamId: team?.id });
-  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
-    async onSuccess(data) {
-      await utils.viewer.teams.get.invalidate();
-      setOpenMemberInvitationModal(false);
-      if (data.sendEmailInvitation) {
-        if (Array.isArray(data.usernameOrEmail)) {
-          showToast(
-            t("email_invite_team_bulk", {
-              userCount: data.usernameOrEmail.length,
-            }),
-            "success"
-          );
-        } else {
-          showToast(
-            t("email_invite_team", {
-              email: data.usernameOrEmail,
-            }),
-            "success"
-          );
-        }
-      }
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
+  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 
   const acceptOrLeaveMutation = trpc.viewer.teams.acceptOrLeave.useMutation({
     onSuccess: () => {
@@ -105,6 +82,7 @@ export default function TeamListItem(props: Props) {
 
   const acceptInvite = () => acceptOrLeave(true);
   const declineInvite = () => acceptOrLeave(false);
+  const orgBranding = useOrgBrandingValues();
 
   const isOwner = props.team.role === MembershipRole.OWNER;
   const isInvitee = !props.team.accepted;
@@ -124,7 +102,11 @@ export default function TeamListItem(props: Props) {
       <div className="ms-3 inline-block truncate">
         <span className="text-default text-sm font-bold">{team.name}</span>
         <span className="text-muted block text-xs">
-          {team.slug ? `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}` : "Unpublished team"}
+          {team.slug
+            ? orgBranding
+              ? `${orgBranding.slug}.${subdomainSuffix()}/${team.slug}`
+              : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`
+            : "Unpublished team"}
         </span>
       </div>
     </div>
@@ -139,14 +121,43 @@ export default function TeamListItem(props: Props) {
         onExit={() => {
           setOpenMemberInvitationModal(false);
         }}
-        onSubmit={(values) => {
-          inviteMemberMutation.mutate({
-            teamId: team.id,
-            language: i18n.language,
-            role: values.role,
-            usernameOrEmail: values.emailOrUsername,
-            sendEmailInvitation: values.sendInviteEmail,
-          });
+        onSubmit={(values, resetFields) => {
+          inviteMemberMutation.mutate(
+            {
+              teamId: team.id,
+              language: i18n.language,
+              role: values.role,
+              usernameOrEmail: values.emailOrUsername,
+              sendEmailInvitation: values.sendInviteEmail,
+            },
+            {
+              onSuccess: async (data) => {
+                await utils.viewer.teams.get.invalidate();
+                setOpenMemberInvitationModal(false);
+                if (data.sendEmailInvitation) {
+                  if (Array.isArray(data.usernameOrEmail)) {
+                    showToast(
+                      t("email_invite_team_bulk", {
+                        userCount: data.usernameOrEmail.length,
+                      }),
+                      "success"
+                    );
+                    resetFields();
+                  } else {
+                    showToast(
+                      t("email_invite_team", {
+                        email: data.usernameOrEmail,
+                      }),
+                      "success"
+                    );
+                  }
+                }
+              },
+              onError: (error) => {
+                showToast(error.message, "error");
+              },
+            }
+          );
         }}
         onSettingsOpen={() => {
           setOpenMemberInvitationModal(false);
@@ -189,7 +200,7 @@ export default function TeamListItem(props: Props) {
                   color="secondary"
                   data-testid={`accept-invitation-${team.id}`}
                   StartIcon={Check}
-                  className="ms-2 me-2"
+                  className="me-2 ms-2"
                   onClick={acceptInvite}>
                   {t("accept")}
                 </Button>

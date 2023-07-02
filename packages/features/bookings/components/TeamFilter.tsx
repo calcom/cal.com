@@ -11,7 +11,13 @@ import { useFilterQuery } from "../lib/useFilterQuery";
 export const TeamsMemberFilter = () => {
   const { t } = useLocale();
   const session = useSession();
-  const { data: query, pushItemToKey, removeItemByKeyAndValue, removeByKey, removeAllQueryParams } = useFilterQuery();
+  const {
+    data: query,
+    pushItemToKey,
+    removeItemByKeyAndValue,
+    removeByKey,
+    removeAllQueryParams,
+  } = useFilterQuery();
   const { data } = trpc.viewer.teams.list.useQuery();
   const [dropdownTitle, setDropdownTitle] = useState<string>(t("all_bookings_filter_label"));
 
