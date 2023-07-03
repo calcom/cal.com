@@ -349,7 +349,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                                   "locationAddress",
                                 ]);
                                 setSelectedLocation?.(val);
-                                locationFormMethods.setValue("credentialId", val.credentialId);
                               }
                             }}
                           />

@@ -404,6 +404,11 @@ const InstallAppButtonChild = ({
   const { t } = useLocale();
   const router = useRouter();
 
+  const isInstalled = credentials &&
+  credentials.some((credential) =>
+    credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
+  )
+
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       if (data?.setupPending) return;
@@ -449,10 +454,7 @@ const InstallAppButtonChild = ({
               data-testid={team.isUser ? "install-app-button-personal" : "anything else"}
               key={team.id}
               disabled={
-                credentials &&
-                credentials.some((credential) =>
-                  credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
-                )
+                isInstalled
               }
               StartIcon={(props) => (
                 <Avatar
@@ -468,10 +470,7 @@ const InstallAppButtonChild = ({
                 );
               }}>
               <p>{team.name}{" "}
-                {credentials &&
-                  credentials.some((credential) =>
-                    credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
-                  ) &&
+                {isInstalled &&
                   `(${t("installed")})`}</p>
             </DropdownItem>
           ))}

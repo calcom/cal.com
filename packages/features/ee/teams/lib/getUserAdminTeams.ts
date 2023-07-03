@@ -8,6 +8,14 @@ export type UserAdminTeams = (Prisma.TeamGetPayload<{
     id: true;
     name: true;
     logo: true;
+    parent?: {
+      select: {
+        id: true;
+        name: true;
+        logo: true;
+        credentials: true;
+      };
+    };
   };
 }> & { isUser?: boolean })[];
 
@@ -15,15 +23,18 @@ export type UserAdminTeams = (Prisma.TeamGetPayload<{
 const getUserAdminTeams = async ({
   userId,
   getUserInfo,
+  getParentInfo,
 }: {
   userId: number;
   getUserInfo?: boolean;
+  getParentInfo?: boolean;
 }): Promise<UserAdminTeams> => {
   const teams = await prisma.team.findMany({
     where: {
       members: {
         some: {
           userId: userId,
+          accepted: true,
           role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
         },
       },
@@ -32,6 +43,16 @@ const getUserAdminTeams = async ({
       id: true,
       name: true,
       logo: true,
+      ...(getParentInfo && {
+        parent: {
+          select: {
+            id: true,
+            credentials: true,
+            name: true,
+            logo: true,
+          },
+        },
+      }),
     },
   });
 
@@ -57,7 +78,3 @@ const getUserAdminTeams = async ({
 };
 
 export default getUserAdminTeams;
-
-// export type UserAdminTeams =
-//   | (Awaited<Promise<ReturnType<typeof getUserAdminTeams>>>[number] & { isUser?: boolean })[]
-//   | [];

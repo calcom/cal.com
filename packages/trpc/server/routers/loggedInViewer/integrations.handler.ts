@@ -1,6 +1,5 @@
+import getUserAdminTeams from "@calcom/ee/teams/lib/getUserAdminTeams";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
-import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TIntegrationsInputSchema } from "./integrations.schema";
@@ -30,35 +29,36 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
   const { user } = ctx;
   const { variant, exclude, onlyInstalled, includeTeamInstalledApps, extendsFeature, teamId } = input;
   let { credentials } = user;
-  let userAdminTeams: TeamQueryWithParent[] = [];
+  let userAdminTeams = await getUserAdminTeams({ userId: user.id, getParentInfo: true });
 
   if (includeTeamInstalledApps || teamId) {
     // Get app credentials that the user is an admin or owner to
-    userAdminTeams = await prisma.team.findMany({
-      where: {
-        ...(teamId && { id: teamId }),
-        members: {
-          some: {
-            userId: user.id,
-            role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-          },
-        },
-      },
-      select: {
-        id: true,
-        credentials: true,
-        name: true,
-        logo: true,
-        parent: {
-          select: {
-            id: true,
-            credentials: true,
-            name: true,
-            logo: true,
-          },
-        },
-      },
-    });
+    // userAdminTeams = await prisma.team.findMany({
+    //   where: {
+    //     ...(teamId && { id: teamId }),
+    //     members: {
+    //       some: {
+    //         userId: user.id,
+    //         accepted: true,
+    //         role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+    //       },
+    //     },
+    //   },
+    //   select: {
+    //     id: true,
+    //     credentials: true,
+    //     name: true,
+    //     logo: true,
+    //     parent: {
+    //       select: {
+    //         id: true,
+    //         credentials: true,
+    //         name: true,
+    //         logo: true,
+    //       },
+    //     },
+    //   },
+    // });
 
     // If a team is a part of an org then include those apps
     // Don't want to iterate over these parent teams

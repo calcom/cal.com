@@ -183,6 +183,12 @@ const InstallAppButtonChild = ({
   const { t } = useLocale();
   const router = useRouter();
 
+  const isInstalledTeamOrUser =
+    credentials &&
+    credentials.some((credential) =>
+      credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
+    );
+
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       // Refresh SSR page content without actual reload
@@ -229,12 +235,7 @@ const InstallAppButtonChild = ({
           {userAdminTeams.map((team) => (
             <DropdownItem
               type="button"
-              disabled={
-                credentials &&
-                credentials.some((credential) =>
-                  credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
-                )
-              }
+              disabled={isInstalledTeamOrUser}
               key={team.id}
               StartIcon={(props) => (
                 <Avatar
@@ -250,12 +251,7 @@ const InstallAppButtonChild = ({
                 );
               }}>
               <p>
-                {team.name}{" "}
-                {credentials &&
-                  credentials.some((credential) =>
-                    credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
-                  ) &&
-                  `(${t("installed")})`}
+                {team.name} {isInstalledTeamOrUser && `(${t("installed")})`}
               </p>
             </DropdownItem>
           ))}
