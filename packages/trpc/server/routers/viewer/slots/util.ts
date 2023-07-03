@@ -331,20 +331,6 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
 
   availableTimeSlots = timeSlots;
 
-  const isSlot = (
-    item:
-      | {
-          time: dayjs.Dayjs;
-          userIds?: number[] | undefined;
-        }
-      | undefined
-  ): item is {
-    time: dayjs.Dayjs;
-    userIds?: number[] | undefined;
-  } => {
-    return !!item;
-  };
-
   if (selectedSlots?.length > 0) {
     let occupiedSeats: typeof selectedSlots = selectedSlots.filter(
       (item) => item.isSeat && item.eventTypeId === eventType.id
