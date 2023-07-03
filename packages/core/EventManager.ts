@@ -148,7 +148,7 @@ export default class EventManager {
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
         meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
         externalCalendarId: isCalendarType ? evt.destinationCalendar?.externalId : undefined,
-        credentialId: result.credentialId ?? evt.destinationCalendar?.credentialId,
+        credentialId: isCalendarType ? evt.destinationCalendar?.credentialId : result.credentialId,
       };
     });
 
