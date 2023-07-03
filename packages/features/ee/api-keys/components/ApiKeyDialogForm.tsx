@@ -129,7 +129,7 @@ export default function ApiKeyDialogForm({
             }
           }}
           className="space-y-4">
-          <div className="mt-1 mb-4">
+          <div className="mb-4 mt-1">
             <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
               {defaultValues ? t("edit_api_key") : t("create_api_key")}
             </h2>

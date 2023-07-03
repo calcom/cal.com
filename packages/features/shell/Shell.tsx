@@ -340,24 +340,24 @@ function UserDropdown({ small }: UserDropdownProps) {
         <button
           className={classNames(
             "hover:bg-emphasis group mx-0 flex cursor-pointer appearance-none items-center rounded-full text-left outline-none focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
-            small ? "p-2" : "px-2 py-1"
+            small ? "p-2" : "px-2 py-1.5"
           )}>
           <span
             className={classNames(
-              small ? "h-4 w-4" : "h-6 w-6 ltr:mr-2 rtl:ml-2",
+              small ? "h-4 w-4" : "h-5 w-5 ltr:mr-2 rtl:ml-2",
               "relative flex-shrink-0 rounded-full bg-gray-300"
             )}>
             <Avatar
-              size={small ? "xs" : "sm"}
+              size={small ? "xs" : "xsm"}
               imageSrc={avatar?.avatar || WEBAPP_URL + "/" + user.username + "/avatar.png"}
               alt={user.username || "Nameless User"}
               className="overflow-hidden"
             />
             <span
               className={classNames(
-                "border-muted absolute -bottom-1 -right-1 rounded-full border-2 bg-green-500",
+                "border-muted absolute -bottom-1 -right-1 rounded-full border bg-green-500",
                 user.away ? "bg-yellow-500" : "bg-green-500",
-                small ? "-bottom-0.5 -right-0.5 h-2.5 w-2.5" : "bottom-0 right-0 h-3 w-3"
+                small ? "-bottom-0.5 -right-0.5 h-2.5 w-2.5" : "-bottom-0.5 -right-0 h-2 w-2"
               )}
             />
           </span>
@@ -604,7 +604,7 @@ const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMor
 
 const Navigation = () => {
   return (
-    <nav className="mt-2 flex-1 md:px-2 lg:mt-6 lg:px-0">
+    <nav className="mt-2 flex-1 md:px-2 lg:mt-4 lg:px-0">
       {desktopNavigationItems.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
@@ -654,7 +654,7 @@ const NavigationItem: React.FC<{
           href={item.href}
           aria-label={t(item.name)}
           className={classNames(
-            "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md px-3 py-2 text-sm font-medium",
+            "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md py-1.5 px-2 text-sm font-medium",
             isChild
               ? `[&[aria-current='page']]:text-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
                   props.index === 0 ? "mt-0" : "mt-px"
@@ -901,7 +901,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 target={item.target}
                 className={classNames(
                   "text-left",
-                  "[&[aria-current='page']]:bg-emphasis  text-default justify-right group flex items-center rounded-md px-3 py-2 text-sm font-medium",
+                  "[&[aria-current='page']]:bg-emphasis  text-default justify-right group flex items-center rounded-md py-1.5 px-2 text-sm font-medium",
                   "[&[aria-current='page']]:text-emphasis mt-0.5 w-full text-sm",
                   isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
                   index === 0 && "mt-3"
