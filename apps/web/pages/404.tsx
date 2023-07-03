@@ -208,7 +208,7 @@ export default function Custom404() {
                         <h3 className="text-emphasis text-base font-medium">
                           <span className="focus-within:ring-empthasis rounded-sm focus-within:ring-2 focus-within:ring-offset-2">
                             <span className="absolute inset-0" aria-hidden="true" />
-                            Slack
+                            Discord
                           </span>
                         </h3>
                         <p className="text-subtle text-base">{t("join_our_community")}</p>
@@ -346,7 +346,7 @@ export default function Custom404() {
                         <h3 className="text-emphasis text-base font-medium">
                           <span className="focus-within:ring-empthasis rounded-sm focus-within:ring-2 focus-within:ring-offset-2">
                             <span className="absolute inset-0" aria-hidden="true" />
-                            Slack
+                            Discord
                           </span>
                         </h3>
                         <p className="text-subtle text-base">{t("join_our_community")}</p>
