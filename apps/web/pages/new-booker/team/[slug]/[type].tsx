@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
-import { getBookingByUidOrRescheduleUid } from "@calcom/features/bookings/lib/get-booking";
+import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { classNames } from "@calcom/lib";
 import prisma from "@calcom/prisma";
@@ -68,7 +68,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBookingByUidOrRescheduleUid(`${rescheduleUid}`);
+    booking = await getBookingForReschedule(`${rescheduleUid}`);
   }
 
   // We use this to both prefetch the query on the server,
