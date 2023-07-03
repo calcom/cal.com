@@ -578,8 +578,8 @@ export const unlockedManagedEventTypeProps = {
 };
 
 // The PR at https://github.com/colinhacks/zod/pull/2157 addresses this issue and improves email validation
-// that PR was merged after our current zod version 3.20.2 - and is therefore not included
-// I introduced this refinement(to be used with z.email()) as a short term solution until we upgrade zod 
+// I introduced this refinement(to be used with z.email()) as a short term solution until we upgrade to a zod
+// version that will include updates in the above PR.
 export const emailSchemaRefinement = (value: string) => {
   const emailRegex = /^([A-Z0-9_+-]+\.?)*[A-Z0-9_+-]@([A-Z0-9][A-Z0-9-]*\.)+[A-Z]{2,}$/i
   return emailRegex.test(value)
