@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { LinkIcon, Trash2 } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState, useLayoutEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -34,8 +33,6 @@ import {
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
 
-const regex = new RegExp("^[a-zA-Z0-9-]*$");
-
 const orgProfileFormSchema = z.object({
   name: z.string(),
   logo: z.string(),
@@ -46,13 +43,16 @@ const OrgProfileView = () => {
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
-  const session = useSession();
   const [firstRender, setFirstRender] = useState(true);
   const orgBranding = useOrgBrandingValues();
 
   useLayoutEffect(() => {
     document.body.focus();
   }, []);
+
+  const form = useForm({
+    resolver: zodResolver(orgProfileFormSchema),
+  });
 
   const mutation = trpc.viewer.organizations.update.useMutation({
     onError: (err) => {
@@ -62,10 +62,6 @@ const OrgProfileView = () => {
       await utils.viewer.teams.get.invalidate();
       showToast(t("your_organisation_updated_sucessfully"), "success");
     },
-  });
-
-  const form = useForm({
-    resolver: zodResolver(orgProfileFormSchema),
   });
 
   const { data: currentOrganisation, isLoading } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
@@ -90,10 +86,6 @@ const OrgProfileView = () => {
     (currentOrganisation.user.role === MembershipRole.OWNER ||
       currentOrganisation.user.role === MembershipRole.ADMIN);
 
-  const permalink = `${new URL(process.env.NEXT_PUBLIC_WEBSITE_URL || "").protocol}//${
-    orgBranding?.slug
-  }.${subdomainSuffix()}`;
-
   const isBioEmpty =
     !currentOrganisation ||
     !currentOrganisation.bio ||
@@ -106,6 +98,8 @@ const OrgProfileView = () => {
       router.push(`${WEBAPP_URL}/teams`);
     },
   });
+
+  if (!orgBranding) return null;
 
   function deleteTeam() {
     if (currentOrganisation?.id) deleteTeamMutation.mutate({ teamId: currentOrganisation.id });
@@ -222,7 +216,7 @@ const OrgProfileView = () => {
                 <LinkIconButton
                   Icon={LinkIcon}
                   onClick={() => {
-                    navigator.clipboard.writeText(permalink);
+                    navigator.clipboard.writeText(orgBranding.fullDomain);
                     showToast("Copied to clipboard", "success");
                   }}>
                   {t("copy_link_org")}
