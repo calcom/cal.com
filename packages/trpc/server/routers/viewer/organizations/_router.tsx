@@ -19,7 +19,6 @@ type OrganizationsRouterHandlerCache = {
   setPassword?: typeof import("./setPassword.handler").setPasswordHandler;
   adminGetUnverified?: typeof import("./adminGetUnverified.handler").adminGetUnverifiedHandler;
   adminVerify?: typeof import("./adminVerify.handler").adminVerifyHandler;
-  getMembers?: typeof import("./getMembers.handler").getMembersHandler;
   listMembers?: typeof import("./listMembers.handler").listMembersHandler;
   getBrand?: typeof import("./getBrand.handler").getBrandHandler;
   getMembers?: typeof import("./getMembers.handler").getMembersHandler;
@@ -223,23 +222,6 @@ export const viewerOrganizationsRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.getBrand({
       ctx,
-    });
-  }),
-  getMembers: authedProcedure.input(ZGetMembersInput).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getMembers) {
-      UNSTABLE_HANDLER_CACHE.getMembers = await import("./getMembers.handler").then(
-        (mod) => mod.getMembersHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getMembers) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.getMembers({
-      ctx,
-      input,
     });
   }),
 });
