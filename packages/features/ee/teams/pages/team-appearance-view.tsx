@@ -122,14 +122,15 @@ const ProfileView = () => {
               variant="light"
               page="booking"
               value="light"
-              label={t("light")}
+              label={t("theme_light")}
               defaultChecked={team.theme === "light"}
               register={form.register}
             />
             <ThemeLabel
               variant="dark"
               value="dark"
-              label={t("dark")}
+              page="booking"
+              label={t("theme_dark")}
               defaultChecked={team.theme === "dark"}
               register={form.register}
             />

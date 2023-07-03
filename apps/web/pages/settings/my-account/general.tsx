@@ -30,12 +30,20 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
+      <div className="mb-3 flex flex-col justify-between">
+        <SkeletonText className="h-5 w-1/4" />
+        <SkeletonText className="mt-1 h-5 w-1/3" />
+      </div>
+      <div className="flex items-center">
+        <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
+        <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
+        <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
+      </div>
       <div className="mb-8 mt-6 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
-
         <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
       </div>
     </SkeletonContainer>
@@ -151,7 +159,8 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
       <Meta title={t("general")} description={t("general_description")} />
       <div className="mb-6 flex items-center text-sm">
         <div>
-          <p className="text-default font-semibold">{t("app_theme")}</p>
+          <p className="text-default font-semibold">App Theme</p>
+          <p className="text-default">This only applies to your app.</p>
         </div>
       </div>
       <div className="flex flex-col justify-between sm:flex-row">
@@ -159,21 +168,21 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           page="complete"
           defaultChecked={user?.appTheme === null}
           value={null}
-          themeType={t("theme_system")}
+          themeType="System Default"
           register={formMethods.register}
         />
         <AppThemeLabel
           page="complete"
           defaultChecked={user?.appTheme === "light"}
           value="light"
-          themeType={t("theme_light")}
+          themeType="Light"
           register={formMethods.register}
         />
         <AppThemeLabel
           page="complete"
           defaultChecked={user?.appTheme === "dark"}
           value="dark"
-          themeType={t("theme_dark")}
+          themeType="Dark"
           register={formMethods.register}
         />
       </div>

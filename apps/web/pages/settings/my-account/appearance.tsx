@@ -122,7 +122,7 @@ const AppearanceView = () => {
 
       <div className="mb-6 flex items-center text-sm">
         <div>
-          <p className="text-default font-semibold">{t("theme")}</p>
+        <p className="text-default font-semibold">{t("theme")}</p>
           <p className="text-default">{t("theme_applies_note")}</p>
         </div>
       </div>
@@ -139,15 +139,17 @@ const AppearanceView = () => {
         <ThemeLabel
           variant="light"
           value="light"
-          label={t("light")}
-          defaultChecked={user.theme === "light"}
+          label={t("theme_light")}
+          page="booking"
+          defaultChecked={user?.theme === "light"}
           register={formMethods.register}
         />
         <ThemeLabel
           variant="dark"
           value="dark"
-          label={t("dark")}
-          defaultChecked={user.theme === "dark"}
+          label={t("theme_dark")}
+          page="booking"
+          defaultChecked={user?.theme === "dark"}
           register={formMethods.register}
         />
       </div>

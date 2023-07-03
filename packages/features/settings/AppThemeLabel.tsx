@@ -9,10 +9,10 @@ interface AppThemeLabelProps {
 export default function AppThemeLabel(props: AppThemeLabelProps) {
   return (
     <label
-      className="relative mb-4 flex-1 cursor-pointer text-center last:mb-0 last:mr-0 sm:mr-4 sm:mb-0"
+      className="relative mb-4 flex-1 cursor-pointer text-center last:mb-0 last:mr-0 sm:mb-0 sm:mr-4"
       htmlFor={`theme-${props.themeType}`}>
       <input
-        className="peer absolute top-8 left-8"
+        className="peer absolute left-8 top-8"
         defaultChecked={props.defaultChecked}
         id={`theme-${props.themeType}`}
         name="appTheme"
