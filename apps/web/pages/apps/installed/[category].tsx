@@ -6,11 +6,11 @@ import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { InstallAppButton } from "@calcom/app-store/components";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
-import { InstalledAppVariants } from "@calcom/app-store/utils";
 import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { BulkEditDefaultConferencingModal } from "@calcom/features/eventtypes/components/BulkEditDefaultConferencingModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { AppCategories } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
@@ -29,11 +29,14 @@ import {
   DropdownItem,
   showToast,
 } from "@calcom/ui";
+import type { LucideIcon } from "@calcom/ui/components/icon";
 import {
   BarChart,
   Calendar,
+  Contact,
   CreditCard,
   Grid,
+  Mail,
   MoreHorizontal,
   Plus,
   Share2,
@@ -101,8 +104,8 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
 }
 
 interface IntegrationsContainerProps {
-  variant?: (typeof InstalledAppVariants)[number];
-  exclude?: (typeof InstalledAppVariants)[number][];
+  variant?: AppCategories;
+  exclude?: AppCategories[];
   handleDisconnect: (credentialId: number) => void;
 }
 
@@ -225,14 +228,19 @@ const IntegrationsContainer = ({
 }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const query = trpc.viewer.integrations.useQuery({ variant, exclude, onlyInstalled: true });
-  const emptyIcon = {
+
+  // TODO: Refactor and reuse getAppCategories?
+  const emptyIcon: Record<AppCategories, LucideIcon> = {
     calendar: Calendar,
     conferencing: Video,
     automation: Share2,
     analytics: BarChart,
     payment: CreditCard,
-    web3: BarChart,
+    web3: BarChart, // deprecated
     other: Grid,
+    video: Video, // deprecated
+    messaging: Mail,
+    crm: Contact,
   };
 
   return (
@@ -267,9 +275,7 @@ const IntegrationsContainer = ({
               className="mb-6"
               actions={
                 <Button
-                  href={
-                    variant ? `/apps/categories/${variant === "conferencing" ? "video" : variant}` : "/apps"
-                  }
+                  href={variant ? `/apps/categories/${variant}` : "/apps"}
                   color="secondary"
                   StartIcon={Plus}>
                   {t("add")}
@@ -285,7 +291,7 @@ const IntegrationsContainer = ({
 };
 
 const querySchema = z.object({
-  category: z.enum(InstalledAppVariants),
+  category: z.nativeEnum(AppCategories),
 });
 
 type querySchemaType = z.infer<typeof querySchema>;
@@ -299,13 +305,11 @@ export default function InstalledApps() {
   const { t } = useLocale();
   const router = useRouter();
   const category = router.query.category as querySchemaType["category"];
-  const categoryList: querySchemaType["category"][] = [
-    "payment",
-    "conferencing",
-    "automation",
-    "analytics",
-    "web3",
-  ];
+
+  const categoryList: AppCategories[] = Object.values(AppCategories).filter((category) => {
+    // Exclude calendar and other from categoryList, we handle those slightly differently below
+    return !(category in { other: null, calendar: null });
+  });
 
   const [data, updateData] = useReducer(
     (data: ModalState, partialData: Partial<ModalState>) => ({ ...data, ...partialData }),

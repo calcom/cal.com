@@ -183,7 +183,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         </div>
 
         <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values, resetFields)}>
-          <div className="mt-6 mb-10 space-y-6">
+          <div className="mb-10 mt-6 space-y-6">
             {/* Indivdual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
               <Controller
@@ -323,12 +323,12 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 />
               )}
             />
-            <div className="flex">
-              {props.token && (
+            {props.token && (
+              <div className="flex">
                 <Button
                   type="button"
                   color="minimal"
-                  className="ms-2 me-2"
+                  className="me-2 ms-2"
                   onClick={() => {
                     props.onSettingsOpen && props.onSettingsOpen();
                     newMemberFormMethods.reset();
@@ -336,8 +336,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   data-testid="edit-invite-link-button">
                   {t("edit_invite_link")}
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
           <DialogFooter showDivider>
             <div className="relative right-40">
@@ -369,7 +369,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             <Button
               type="submit"
               color="primary"
-              className="ms-2 me-2"
+              className="me-2 ms-2"
               data-testid="invite-new-member-button">
               {t("send_invite")}
             </Button>

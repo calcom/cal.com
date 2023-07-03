@@ -1,10 +1,11 @@
 require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const os = require("os");
-const glob = require("glob");
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
 const { i18n } = require("./next-i18next.config");
+const { pages } = require("./pages");
+const { getSubdomainRegExp } = require("./getSubdomainRegExp");
 
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
@@ -70,7 +71,6 @@ const informAboutDuplicateTranslations = () => {
 };
 
 informAboutDuplicateTranslations();
-
 const plugins = [];
 if (process.env.ANALYZE === "true") {
   // only load dependency if env `ANALYZE` was set
@@ -82,16 +82,52 @@ if (process.env.ANALYZE === "true") {
 
 plugins.push(withAxiom);
 
-/** Needed to rewrite public booking page, gets all static pages but [user] */
-const pages = glob
-  .sync("pages/**/[^_]*.{tsx,js,ts}", { cwd: __dirname })
-  .map((filename) =>
-    filename
-      .substr(6)
-      .replace(/(\.tsx|\.js|\.ts)/, "")
-      .replace(/\/.*/, "")
-  )
-  .filter((v, i, self) => self.indexOf(v) === i && !v.startsWith("[user]"));
+// .* matches / as well(Note: *(i.e wildcard) doesn't match / but .*(i.e. RegExp) does)
+// It would match /free/30min but not /bookings/upcoming because 'bookings' is an item in pages
+// It would also not match /free/30min/embed because we are ensuring just two slashes
+// ?!book ensures it doesn't match /free/book page which doesn't have a corresponding new-booker page.
+// [^/]+ makes the RegExp match the full path, it seems like a partial match doesn't work.
+// book$ ensures that only /book is excluded from rewrite(which is at the end always) and not /booked
+
+// Important Note: When modifying these RegExps update apps/web/test/lib/next-config.test.ts as well
+const userTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type((?!book$)[^/]+)`;
+const teamTypeRouteRegExp = "/team/:slug/:type((?!book$)[^/]+)";
+const privateLinkRouteRegExp = "/d/:link/:slug((?!book$)[^/]+)";
+const embedUserTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type/embed`;
+const embedTeamTypeRouteRegExp = "/team/:slug/:type/embed";
+const subdomainRegExp = getSubdomainRegExp(process.env.NEXT_PUBLIC_WEBAPP_URL);
+// Important Note: Do update the RegExp in apps/web/test/lib/next-config.test.ts when changing it.
+const orgHostRegExp = `^(?<orgSlug>${subdomainRegExp})\\..*`;
+
+const matcherConfigRootPath = {
+  has: [
+    {
+      type: "host",
+      value: orgHostRegExp,
+    },
+  ],
+  source: "/",
+};
+
+const matcherConfigOrgMemberPath = {
+  has: [
+    {
+      type: "host",
+      value: orgHostRegExp,
+    },
+  ],
+  source: `/:user((?!${pages.join("|")}|_next|public)[a-zA-Z0-9\-_]+)`,
+};
+
+const matcherConfigUserPath = {
+  has: [
+    {
+      type: "host",
+      value: `^(?<orgSlug>${subdomainRegExp}[^.]+)\\..*`,
+    },
+  ],
+  source: `/:user((?!${pages.join("|")}|_next|public))/:path*`,
+};
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
@@ -183,13 +219,26 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    // .* matches / as well(Note: *(i.e wildcard) doesn't match / but .*(i.e. RegExp) does)
-    // It would match /free/30min but not /bookings/upcoming because 'bookings' is an item in pages
-    // It would also not match /free/30min/embed because we are ensuring just two slashes
-    // ?!book ensures it doesn't match /free/book page which doesn't have a corresponding new-booker page.
-    // [^/]+ makes the RegExp match the full path, it seems like a partial match doesn't work.
-    const userTypeRouteRegExp = `/:user((?!${pages.join("|")})[^/]*)/:type((?!book)[^/]+)`;
-    let rewrites = [
+    const beforeFiles = [
+      ...(process.env.ORGANIZATIONS_ENABLED
+        ? [
+            {
+              ...matcherConfigRootPath,
+              destination: "/team/:orgSlug",
+            },
+            {
+              ...matcherConfigOrgMemberPath,
+              destination: "/org/:orgSlug/:user",
+            },
+            {
+              ...matcherConfigUserPath,
+              destination: "/:user/:path*",
+            },
+          ]
+        : []),
+    ];
+
+    let afterFiles = [
       {
         source: "/org/:slug",
         destination: "/team/:slug",
@@ -233,12 +282,12 @@ const nextConfig = {
           has: [{ type: "cookie", key: "new-booker-enabled" }],
         },
         {
-          source: "/team/:slug/:type",
+          source: teamTypeRouteRegExp,
           destination: "/new-booker/team/:slug/:type",
           has: [{ type: "cookie", key: "new-booker-enabled" }],
         },
         {
-          source: "/d/:link/:slug",
+          source: privateLinkRouteRegExp,
           destination: "/new-booker/d/:link/:slug",
           has: [{ type: "cookie", key: "new-booker-enabled" }],
         },
@@ -246,12 +295,12 @@ const nextConfig = {
       // Keep cookie based booker enabled to test new-booker embed in production
       ...[
         {
-          source: `/:user((?!${pages.join("|")}).*)/:type/embed`,
+          source: embedUserTypeRouteRegExp,
           destination: "/new-booker/:user/:type/embed",
           has: [{ type: "cookie", key: "new-booker-enabled" }],
         },
         {
-          source: "/team/:slug/:type/embed",
+          source: embedTeamTypeRouteRegExp,
           destination: "/new-booker/team/:slug/:type/embed",
           has: [{ type: "cookie", key: "new-booker-enabled" }],
         },
@@ -269,14 +318,14 @@ const nextConfig = {
     // Enable New Booker for all Embed Requests
     if (process.env.NEW_BOOKER_ENABLED_FOR_EMBED === "1") {
       console.log("Enabling New Booker for Embed");
-      rewrites.push(
+      afterFiles.push(
         ...[
           {
-            source: `/:user((?!${pages.join("|")}).*)/:type/embed`,
+            source: embedUserTypeRouteRegExp,
             destination: "/new-booker/:user/:type/embed",
           },
           {
-            source: "/team/:slug/:type/embed",
+            source: embedTeamTypeRouteRegExp,
             destination: "/new-booker/team/:slug/:type/embed",
           },
         ]
@@ -286,24 +335,27 @@ const nextConfig = {
     // Enable New Booker for All but embed Requests
     if (process.env.NEW_BOOKER_ENABLED_FOR_NON_EMBED === "1") {
       console.log("Enabling New Booker for Non-Embed");
-      rewrites.push(
+      afterFiles.push(
         ...[
           {
             source: userTypeRouteRegExp,
             destination: "/new-booker/:user/:type",
           },
           {
-            source: "/team/:slug/:type",
+            source: teamTypeRouteRegExp,
             destination: "/new-booker/team/:slug/:type",
           },
           {
-            source: "/d/:link/:slug",
+            source: privateLinkRouteRegExp,
             destination: "/new-booker/d/:link/:slug",
           },
         ]
       );
     }
-    return rewrites;
+    return {
+      beforeFiles,
+      afterFiles,
+    };
   },
   async headers() {
     return [
@@ -338,6 +390,35 @@ const nextConfig = {
           },
         ],
       },
+      ...[
+        {
+          ...matcherConfigRootPath,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/team/:orgSlug",
+            },
+          ],
+        },
+        {
+          ...matcherConfigOrgMemberPath,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/org/:orgSlug/:user",
+            },
+          ],
+        },
+        {
+          ...matcherConfigUserPath,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/:user/:path",
+            },
+          ],
+        },
+      ],
     ];
   },
   async redirects() {
@@ -410,6 +491,16 @@ const nextConfig = {
       {
         source: "/support",
         destination: "/event-types?openIntercom=true",
+        permanent: true,
+      },
+      {
+        source: "/apps/categories/video",
+        destination: "/apps/categories/conferencing",
+        permanent: true,
+      },
+      {
+        source: "/apps/installed/video",
+        destination: "/apps/installed/conferencing",
         permanent: true,
       },
     ];
