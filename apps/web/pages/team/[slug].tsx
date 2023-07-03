@@ -197,13 +197,14 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
           <SubTeams />
         ) : (
           <>
-            {(showMembers.isOn || !team.eventTypes.length) && team.isPrivate ? (
-              <div className="w-full text-center">
-                <h2 className="text-emphasis font-semibold">{t("you_cannot_see_team_members")}</h2>
-              </div>
-            ) : (
-              <Team team={team} />
-            )}
+            {(showMembers.isOn || !team.eventTypes.length) &&
+              (team.isPrivate ? (
+                <div className="w-full text-center">
+                  <h2 className="text-emphasis font-semibold">{t("you_cannot_see_team_members")}</h2>
+                </div>
+              ) : (
+                <Team team={team} />
+              ))}
             {!showMembers.isOn && team.eventTypes.length > 0 && (
               <div className="mx-auto max-w-3xl ">
                 <EventTypes />
