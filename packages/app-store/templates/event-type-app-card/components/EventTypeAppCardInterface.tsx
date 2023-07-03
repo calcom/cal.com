@@ -14,7 +14,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
 }) {
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
   const isSunrise = getAppData("isSunrise");
-  const { enabled, updateEnabled } = useIsAppEnabled(app, getAppData, setAppData);
+  const { enabled, updateEnabled } = useIsAppEnabled(app);
 
   return (
     <AppCard

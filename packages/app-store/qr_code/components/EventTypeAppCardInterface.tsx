@@ -18,7 +18,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const { t } = useLocale();
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
   const [additionalParameters, setAdditionalParameters] = useState("");
-  const { enabled, updateEnabled } = useIsAppEnabled(app, getAppData, setAppData);
+  const { enabled, updateEnabled } = useIsAppEnabled(app);
 
   const query = additionalParameters !== "" ? `?${additionalParameters}` : "";
   const eventTypeURL = eventType.URL + query;

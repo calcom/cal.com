@@ -25,11 +25,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const currency = getAppData("currency");
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions.find((option) => paymentOption === option.value);
-  const { enabled: requirePayment, updateEnabled: setRequirePayment } = useIsAppEnabled(
-    app,
-    getAppData,
-    setAppData
-  );
+  const { enabled: requirePayment, updateEnabled: setRequirePayment } = useIsAppEnabled(app);
 
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;

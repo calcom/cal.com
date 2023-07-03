@@ -15,11 +15,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
 }) {
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
   const thankYouPage = getAppData("thankYouPage");
-  const { enabled: showGifSelection, updateEnabled: setShowGifSelection } = useIsAppEnabled(
-    app,
-    getAppData,
-    setAppData
-  );
+  const { enabled: showGifSelection, updateEnabled: setShowGifSelection } = useIsAppEnabled(app);
 
   const { t } = useLocale();
 
