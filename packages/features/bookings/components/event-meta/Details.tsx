@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import React from "react";
 
 import classNames from "@calcom/lib/classNames";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Clock, CheckSquare, RefreshCcw, CreditCard } from "@calcom/ui/components/icon";
 
@@ -44,7 +45,6 @@ interface EventMetaProps {
  * Default order in which the event details will be rendered.
  */
 const defaultEventDetailsBlocks = [
-  EventDetailBlocks.DESCRIPTION,
   EventDetailBlocks.REQUIRES_CONFIRMATION,
   EventDetailBlocks.DURATION,
   EventDetailBlocks.OCCURENCES,
@@ -82,7 +82,7 @@ export const EventMetaBlock = ({
       ) : (
         <>{!!Icon && <Icon className="relative z-20 mr-2 mt-[2px] h-4 w-4 flex-shrink-0" />}</>
       )}
-      <div className={classNames("relative z-10", contentClassName)}>{children}</div>
+      <div className={classNames("relative z-10 max-w-full break-words", contentClassName)}>{children}</div>
     </div>
   );
 };
@@ -112,16 +112,6 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
         }
 
         switch (block) {
-          case EventDetailBlocks.DESCRIPTION:
-            if (!event.description) return null;
-            return (
-              <EventMetaBlock
-                key={block}
-                contentClassName="break-words max-w-full max-h-[180px] scroll-bar pr-4">
-                <div dangerouslySetInnerHTML={{ __html: event.description }} />
-              </EventMetaBlock>
-            );
-
           case EventDetailBlocks.DURATION:
             return (
               <EventMetaBlock key={block} icon={Clock}>
@@ -147,7 +137,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             );
 
           case EventDetailBlocks.OCCURENCES:
-            if (!event.requiresConfirmation || !event.recurringEvent) return null;
+            if (!event.recurringEvent) return null;
 
             return (
               <EventMetaBlock key={block} icon={RefreshCcw}>
@@ -156,7 +146,8 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             );
 
           case EventDetailBlocks.PRICE:
-            if (event.price === 0) return null;
+            const paymentAppData = getPaymentAppData(event);
+            if (event.price <= 0 || paymentAppData.price <= 0) return null;
 
             return (
               <EventMetaBlock key={block} icon={CreditCard}>

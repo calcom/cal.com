@@ -13,6 +13,7 @@ export const ZInviteMemberInputSchema = z.object({
   role: z.nativeEnum(MembershipRole),
   language: z.string(),
   sendEmailInvitation: z.boolean(),
+  isOrg: z.boolean().default(false),
 });
 
 export type TInviteMemberInputSchema = z.infer<typeof ZInviteMemberInputSchema>;

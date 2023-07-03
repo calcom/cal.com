@@ -30,16 +30,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="mb-3 flex flex-col justify-between">
-        <SkeletonText className="h-5 w-1/4" />
-        <SkeletonText className="mt-1 h-5 w-1/3" />
-      </div>
-      <div className="flex items-center">
-        <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
-        <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
-        <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
-      </div>
-      <div className="mt-6 mb-8 space-y-6">
+      <div className="mb-8 mt-6 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -56,7 +47,10 @@ interface GeneralViewProps {
   user: RouterOutputs["viewer"]["me"];
 }
 
-const WithQuery = withQuery(trpc.viewer.public.i18n, undefined, { trpc: { context: { skipBatch: true } } });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const WithQuery = withQuery(trpc.viewer.public.i18n as any, undefined, {
+  trpc: { context: { skipBatch: true } },
+});
 
 const GeneralQueryView = () => {
   const { t } = useLocale();
