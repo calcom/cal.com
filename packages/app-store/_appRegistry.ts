@@ -1,7 +1,6 @@
-import { z } from "zod";
-
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import getMostPopularApps from "@calcom/lib/apps/getMostPopularApps";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
@@ -120,26 +119,4 @@ export async function getAppRegistryWithCredentials(userId: number) {
   }
 
   return apps;
-}
-
-async function getMostPopularApps() {
-  const mostPopularApps = z.array(z.object({ appId: z.string(), installCount: z.number() })).parse(
-    await prisma.$queryRaw`
-    SELECT
-      c."appId",
-      COUNT(*)::integer AS "installCount"
-    FROM
-      "Credential" c
-    WHERE
-      c."appId" IS NOT NULL
-    GROUP BY
-      c."appId"
-    ORDER BY
-      "installCount" DESC
-    `
-  );
-  return mostPopularApps.reduce((acc, { appId, installCount }) => {
-    acc[appId] = installCount;
-    return acc;
-  }, {} as Record<string, number>);
 }
