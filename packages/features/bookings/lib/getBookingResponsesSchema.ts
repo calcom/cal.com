@@ -2,8 +2,8 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import z from "zod";
 
 import type { ALL_VIEWS } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
-import type { eventTypeBookingFields, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
-import { bookingResponses } from "@calcom/prisma/zod-utils";
+import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
 type EventType = Parameters<typeof preprocess>[0]["eventType"];
 // eslint-disable-next-line @typescript-eslint/ban-types
@@ -114,7 +114,7 @@ function preprocess<T extends z.ZodType>({
       eventType.bookingFields.forEach((bookingField) => {
         const value = responses[bookingField.name];
         const stringSchema = z.string();
-        const emailSchema = isPartialSchema ? z.string() : z.string().email().refine(emailSchemaRefinement);
+        const emailSchema = isPartialSchema ? z.string() : z.string().refine(emailSchemaRefinement);
         const phoneSchema = isPartialSchema
           ? z.string()
           : z.string().refine((val) => isValidPhoneNumber(val));
