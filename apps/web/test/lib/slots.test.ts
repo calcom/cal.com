@@ -1,11 +1,13 @@
-import MockDate from "mockdate";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeAll, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { MINUTES_DAY_END, MINUTES_DAY_START } from "@calcom/lib/availability";
 import getSlots from "@calcom/lib/slots";
 
-MockDate.set("2021-06-20T11:59:59Z");
+
+beforeAll(() => {
+  vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
+})
 
 describe("Tests the slot logic", () => {
   it("can fit 24 hourly slots for an empty day", async () => {

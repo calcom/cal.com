@@ -38,6 +38,7 @@ const generateHashedLink = (id: number) => {
 
 export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, "eventType" | "team">) => {
   const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
+  const { data: user } = trpc.viewer.me.useQuery();
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
 
@@ -49,6 +50,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const bookingFields: Prisma.JsonObject = {};
 
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
+  const selectedThemeIsDark =
+    user?.theme === "dark" ||
+    (!user?.theme && typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
 
   eventType.bookingFields.forEach(({ name }) => {
     bookingFields[name] = name + " input";
@@ -153,7 +157,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               color="minimal"
               size="sm"
               aria-label="edit custom name"
-              className="hover:stroke-3 hover:text-emphasis min-w-fit px-0 !py-0 hover:bg-transparent"
+              className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
               onClick={() => setShowEventNameTip((old) => !old)}>
               <Edit className="h-4 w-4" />
             </Button>
@@ -162,7 +166,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       </div>
       <hr className="border-subtle [&:has(+div:empty)]:hidden" />
       <div>
-        <BookerLayoutSelector fallbackToUserSettings />
+        <BookerLayoutSelector fallbackToUserSettings isDark={selectedThemeIsDark} />
       </div>
       <hr className="border-subtle" />
       <FormBuilder
@@ -216,7 +220,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 onChange(e ? value : "");
               }}>
               {/* Textfield has some margin by default we remove that so we can keep consistent alignment */}
-              <div className="lg:-ml-2 lg:-mb-2">
+              <div className="lg:-mb-2 lg:-ml-2">
                 <TextField
                   className="w-full"
                   label={t("redirect_success_booking")}
@@ -268,7 +272,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   color="minimal"
                   size="sm"
                   type="button"
-                  className="hover:stroke-3 hover:text-emphasis min-w-fit px-0 !py-0 hover:bg-transparent"
+                  className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
                   aria-label="copy link"
                   onClick={() => {
                     navigator.clipboard.writeText(placeholderHashedLink);

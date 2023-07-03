@@ -4,7 +4,7 @@ import { totp } from "otplib";
 import { sendOrganizationEmailVerification } from "@calcom/emails";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { IS_PRODUCTION, IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { IS_PRODUCTION, IS_TEAM_BILLING_ENABLED, RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -66,13 +66,16 @@ export const createHandler = async ({ input }: CreateOptions) => {
     },
   });
 
-  if (slugCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
+  if (slugCollisions || RESERVED_SUBDOMAINS.includes(slug))
+    throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
   if (userCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "admin_email_taken" });
 
   const password = createHash("md5")
     .update(`${adminEmail}${process.env.CALENDSO_ENCRYPTION_KEY}`)
     .digest("hex");
   const hashedPassword = await hashPassword(password);
+
+  const emailDomain = adminEmail.split("@")[1];
 
   if (check === false) {
     const createOwnerOrg = await prisma.user.create({
@@ -86,8 +89,10 @@ export const createHandler = async ({ input }: CreateOptions) => {
             name,
             ...(!IS_TEAM_BILLING_ENABLED && { slug }),
             metadata: {
-              requestedSlug: slug,
+              ...(IS_TEAM_BILLING_ENABLED && { requestedSlug: slug }),
               isOrganization: true,
+              isOrganizationVerified: false,
+              orgAutoAcceptEmail: emailDomain,
             },
           },
         },
@@ -113,7 +118,7 @@ export const createHandler = async ({ input }: CreateOptions) => {
       .update(adminEmail + process.env.CALENDSO_ENCRYPTION_KEY)
       .digest("hex");
 
-    totp.options = { step: 90 };
+    totp.options = { step: 900 };
     const code = totp.generate(secret);
 
     await sendOrganizationEmailVerification({

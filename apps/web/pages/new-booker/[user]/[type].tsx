@@ -101,7 +101,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const user = await prisma.user.findFirst({
     where: {
-      username,
+      /** TODO: We should standarize this */
+      username: username.toLowerCase().replace(/( |%20)/g, "+"),
       organization: isValidOrgDomain
         ? {
             slug: currentOrgDomain,
@@ -154,7 +155,7 @@ const paramsSchema = z.object({ type: z.string(), user: z.string() });
 // whether the page should show an away state or dynamic booking not allowed.
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { user } = paramsSchema.parse(context.params);
-  const isDynamicGroup = user.includes("+");
+  const isDynamicGroup = getUsernameList(user).length > 1;
 
   return isDynamicGroup ? await getDynamicGroupPageProps(context) : await getUserPageProps(context);
 };

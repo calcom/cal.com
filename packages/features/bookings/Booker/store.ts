@@ -22,6 +22,7 @@ type StoreInitializeType = {
   rescheduleUid: string | null;
   rescheduleBooking: GetBookingType | null | undefined;
   layout: BookerLayout;
+  isTeamEvent?: boolean;
 };
 
 export type BookerStore = {
@@ -89,6 +90,12 @@ export type BookerStore = {
    */
   formValues: Record<string, any>;
   setFormValues: (values: Record<string, any>) => void;
+  /**
+   * Force event being a team event, so we only query for team events instead
+   * of also include 'user' events and return the first event that matches with
+   * both the slug and the event slug.
+   */
+  isTeamEvent: boolean;
 };
 
 /**
@@ -137,6 +144,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     updateQueryParam("month", month ?? "");
     get().setSelectedDate(null);
   },
+  isTeamEvent: false,
   initialize: ({
     username,
     eventSlug,
@@ -145,6 +153,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     rescheduleUid = null,
     rescheduleBooking = null,
     layout,
+    isTeamEvent,
   }: StoreInitializeType) => {
     const selectedDateInStore = get().selectedDate;
 
@@ -165,11 +174,11 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       rescheduleUid,
       rescheduleBooking,
       layout: layout || BookerLayouts.MONTH_VIEW,
+      isTeamEvent: isTeamEvent || false,
       // Preselect today's date in week / column view, since they use this to show the week title.
       selectedDate:
-        selectedDateInStore || ["week_view", "column_view"].includes(layout)
-          ? dayjs().format("YYYY-MM-DD")
-          : null,
+        selectedDateInStore ||
+        (["week_view", "column_view"].includes(layout) ? dayjs().format("YYYY-MM-DD") : null),
     });
 
     // Unset selected timeslot if user is rescheduling. This could happen
@@ -208,9 +217,29 @@ export const useInitializeBookerStore = ({
   rescheduleUid = null,
   rescheduleBooking = null,
   layout,
+  isTeamEvent,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
-    initializeStore({ username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking, layout });
-  }, [initializeStore, username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking, layout]);
+    initializeStore({
+      username,
+      eventSlug,
+      month,
+      eventId,
+      rescheduleUid,
+      rescheduleBooking,
+      layout,
+      isTeamEvent,
+    });
+  }, [
+    initializeStore,
+    username,
+    eventSlug,
+    month,
+    eventId,
+    rescheduleUid,
+    rescheduleBooking,
+    layout,
+    isTeamEvent,
+  ]);
 };

@@ -105,11 +105,16 @@ const Route = ({
         userId: form.userId,
       },
     });
-    if (!eventTypeValidInContext) {
-      return;
-    }
+
     group.eventTypes.forEach((eventType) => {
       const uniqueSlug = `${group.profile.slug}/${eventType.slug}`;
+      const isRouteAlreadyInUse = isRouter(route) ? false : uniqueSlug === route.action.value;
+
+      // If Event is already in use, we let it be so as to not break the existing setup
+      if (!isRouteAlreadyInUse && !eventTypeValidInContext) {
+        return;
+      }
+
       eventOptions.push({
         label: uniqueSlug,
         value: uniqueSlug,
@@ -262,7 +267,7 @@ const Route = ({
 
             {((route.isFallback && hasRules(route)) || !route.isFallback) && (
               <>
-                <Divider className="mt-3 mb-6" />
+                <Divider className="mb-6 mt-3" />
                 <Query
                   {...config}
                   value={route.state.tree}

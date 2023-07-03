@@ -101,7 +101,7 @@ async function selectFirstAvailableTimeSlotNextMonth(frame: Frame, page: Page) {
   await frame.click('[data-testid="time"]');
 }
 
-export async function bookFirstEvent(username: string, frame: Frame, page: Page) {
+export async function bookFirstEvent(username: string, frame: Frame, page: Page, bookerVariant: string) {
   // Click first event type on Profile Page
   await frame.click('[data-testid="event-type-link"]');
   await frame.waitForURL((url) => {
@@ -125,9 +125,11 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   // Remove /embed from the end if present.
   const eventSlug = new URL(frame.url()).pathname.replace(/\/embed$/, "");
   await selectFirstAvailableTimeSlotNextMonth(frame, page);
-  await frame.waitForURL((url) => {
-    return url.pathname.includes(`/${username}/book`);
-  });
+  if (bookerVariant !== "new-booker") {
+    await frame.waitForURL((url) => {
+      return url.pathname.includes(`/${username}/book`);
+    });
+  }
   // expect(await page.screenshot()).toMatchSnapshot("booking-page.png");
   // --- fill form
   await frame.fill('[name="name"]', "Embed User");
@@ -150,11 +152,13 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   return booking;
 }
 
-export async function rescheduleEvent(username: string, frame: Frame, page: Page) {
+export async function rescheduleEvent(username: string, frame: Frame, page: Page, bookerVariant: string) {
   await selectFirstAvailableTimeSlotNextMonth(frame, page);
-  await frame.waitForURL((url: { pathname: string | string[] }) => {
-    return url.pathname.includes(`/${username}/book`);
-  });
+  if (bookerVariant !== "new-booker") {
+    await frame.waitForURL((url: { pathname: string | string[] }) => {
+      return url.pathname.includes(`/${username}/book`);
+    });
+  }
   // --- fill form
   await frame.press('[name="email"]', "Enter");
   await frame.click("[data-testid=confirm-reschedule-button]");

@@ -29,6 +29,7 @@ import {
   ChevronRight,
   Plus,
   Menu,
+  Building,
 } from "@calcom/ui/components/icon";
 
 const tabs: VerticalTabItemProps[] = [
@@ -75,6 +76,33 @@ const tabs: VerticalTabItemProps[] = [
     ],
   },
   {
+    name: "organization",
+    href: "/settings/organizations",
+    icon: Building,
+    children: [
+      {
+        name: "profile",
+        href: "/settings/organizations/profile",
+      },
+      {
+        name: "general",
+        href: "/settings/organizations/general",
+      },
+      {
+        name: "members",
+        href: "/settings/organizations/members",
+      },
+      {
+        name: "appearance",
+        href: "/settings/organizations/appearance",
+      },
+      {
+        name: "billing",
+        href: "/settings/organizations/billing",
+      },
+    ],
+  },
+  {
     name: "teams",
     href: "/settings/teams",
     icon: Users,
@@ -91,6 +119,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "impersonation", href: "/settings/admin/impersonation" },
       { name: "apps", href: "/settings/admin/apps/calendar" },
       { name: "users", href: "/settings/admin/users" },
+      { name: "organizations", href: "/settings/admin/organizations" },
     ],
   },
 ];
@@ -104,6 +133,7 @@ tabs.find((tab) => {
 
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
+const organizationRequiredKeys = ["organization"];
 
 const useTabs = () => {
   const session = useSession();
@@ -127,6 +157,8 @@ const useTabs = () => {
 
   // check if name is in adminRequiredKeys
   return tabs.filter((tab) => {
+    if (organizationRequiredKeys.includes(tab.name)) return !!session.data?.user?.organizationId;
+
     if (isAdmin) return true;
     return !adminRequiredKeys.includes(tab.name);
   });
@@ -136,10 +168,10 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
       href="/"
-      className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md py-2 px-3 text-sm font-medium leading-4"
+      className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4"
       data-testid={`vertical-tab-${name}`}>
       <ArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0" />
-      <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate">
+      <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate" loadingClassName="ms-3">
         {name}
       </Skeleton>
     </Link>
@@ -162,6 +194,7 @@ const SettingsSidebarContainer = ({
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
 
   const { data: teams } = trpc.viewer.teams.list.useQuery();
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
 
   useEffect(() => {
     if (teams) {
@@ -206,7 +239,13 @@ const SettingsSidebarContainer = ({
                       alt="User Avatar"
                     />
                   )}
-                  <p className="truncate text-sm font-medium leading-5">{t(tab.name)}</p>
+                  <Skeleton
+                    title={tab.name}
+                    as="p"
+                    className="truncate text-sm font-medium leading-5"
+                    loadingClassName="ms-3">
+                    {t(tab.name)}
+                  </Skeleton>
                 </div>
               </div>
               <div className="my-3 space-y-0.5">
@@ -231,7 +270,13 @@ const SettingsSidebarContainer = ({
                     {tab && tab.icon && (
                       <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
                     )}
-                    <p className="truncate text-sm font-medium leading-5">{t(tab.name)}</p>
+                    <Skeleton
+                      title={tab.name}
+                      as="p"
+                      className="truncate text-sm font-medium leading-5"
+                      loadingClassName="ms-3">
+                      {t(tab.name)}
+                    </Skeleton>
                   </div>
                 </Link>
                 {teams &&
@@ -251,7 +296,7 @@ const SettingsSidebarContainer = ({
                               }),
                             ])
                           }>
-                          <CollapsibleTrigger>
+                          <CollapsibleTrigger asChild>
                             <div
                               className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-3 py-[10px]  text-left text-sm font-medium leading-none"
                               onClick={() =>
@@ -298,7 +343,11 @@ const SettingsSidebarContainer = ({
                               textClassNames="px-3 text-emphasis font-medium text-sm"
                               disableChevron
                             />
-                            {(team.role === MembershipRole.OWNER || team.role === MembershipRole.ADMIN) && (
+                            {(team.role === MembershipRole.OWNER ||
+                              team.role === MembershipRole.ADMIN ||
+                              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                              // @ts-ignore this exists wtf?
+                              (team.isOrgAdmin && team.isOrgAdmin)) && (
                               <>
                                 {/* TODO */}
                                 {/* <VerticalTabItem
@@ -313,33 +362,40 @@ const SettingsSidebarContainer = ({
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
                                   disableChevron
                                 />
-                                <VerticalTabItem
-                                  name={t("billing")}
-                                  href={`/settings/teams/${team.id}/billing`}
-                                  textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  disableChevron
-                                />
-                                {HOSTED_CAL_FEATURES && (
-                                  <VerticalTabItem
-                                    name={t("sso_configuration")}
-                                    href={`/settings/teams/${team.id}/sso`}
-                                    textClassNames="px-3 text-emphasis font-medium text-sm"
-                                    disableChevron
-                                  />
-                                )}
+                                {/* Hide if there is a parent ID */}
+                                {!team.parentId ? (
+                                  <>
+                                    <VerticalTabItem
+                                      name={t("billing")}
+                                      href={`/settings/teams/${team.id}/billing`}
+                                      textClassNames="px-3 text-emphasis font-medium text-sm"
+                                      disableChevron
+                                    />
+                                    {HOSTED_CAL_FEATURES && (
+                                      <VerticalTabItem
+                                        name={t("saml_config")}
+                                        href={`/settings/teams/${team.id}/sso`}
+                                        textClassNames="px-3 text-emphasis font-medium text-sm"
+                                        disableChevron
+                                      />
+                                    )}
+                                  </>
+                                ) : null}
                               </>
                             )}
                           </CollapsibleContent>
                         </Collapsible>
                       );
                   })}
-                <VerticalTabItem
-                  name={t("add_a_team")}
-                  href={`${WEBAPP_URL}/settings/teams/new`}
-                  textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
-                  icon={Plus}
-                  disableChevron
-                />
+                {(!currentOrg || (currentOrg && currentOrg?.user?.role !== "MEMBER")) && (
+                  <VerticalTabItem
+                    name={t("add_a_team")}
+                    href={`${WEBAPP_URL}/settings/teams/new`}
+                    textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
+                    icon={Plus}
+                    disableChevron
+                  />
+                )}
               </div>
             </React.Fragment>
           );
@@ -413,7 +469,7 @@ export default function SettingsLayout({
           {sideContainerOpen && (
             <button
               onClick={() => setSideContainerOpen(false)}
-              className="fixed top-0 left-0 z-10 h-full w-full bg-black/50">
+              className="fixed left-0 top-0 z-10 h-full w-full bg-black/50">
               <span className="sr-only">{t("hide_navigation")}</span>
             </button>
           )}

@@ -82,7 +82,7 @@ export const EventMetaBlock = ({
       ) : (
         <>{!!Icon && <Icon className="relative z-20 mr-2 mt-[2px] h-4 w-4 flex-shrink-0" />}</>
       )}
-      <div className={classNames("relative z-10", contentClassName)}>{children}</div>
+      <div className={classNames("relative z-10 max-w-full break-words", contentClassName)}>{children}</div>
     </div>
   );
 };
