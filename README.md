@@ -90,6 +90,13 @@ That's where Cal.com comes in. Self-hosted or hosted by us. White-label by desig
 - [Prisma.io](https://prisma.io/?ref=cal.com)
 - [Daily.co](https://go.cal.com/daily)
 
+
+## Contact us
+
+Meet our sales team for any commercial inquiries.
+
+<a href="https://cal.com/sales"><img src="https://cal.com/book-with-cal-dark.svg" alt="Book us with Cal.com"></a>
+
 ## Stay Up-to-Date
 
 Cal.com officially launched as v.1.0 on 15th of September, however a lot of new features are coming. Watch **releases** of this repository to be notified for future updates:
@@ -317,12 +324,6 @@ The Docker configuration can be found [in our docker repository](https://github.
 Issues with Docker? Find your answer or open a new discussion [here](https://github.com/calcom/docker/discussions) to ask the community.
 
 Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
-
-### Heroku
-
-<a href="https://heroku.com/deploy?template=https://github.com/calcom/cal.com">
-  <img width="185px" height="auto" src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy">
-</a>
 
 ### Railway
 
