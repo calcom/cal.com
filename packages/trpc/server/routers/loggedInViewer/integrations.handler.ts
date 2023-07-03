@@ -13,7 +13,7 @@ type IntegrationsOptions = {
 
 export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) => {
   const { user } = ctx;
-  const { variant, exclude, onlyInstalled } = input;
+  const { variant, exclude, onlyInstalled, sortByMostPopular } = input;
   const { credentials } = user;
 
   const enabledApps = await getEnabledApps(credentials);
@@ -48,14 +48,16 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     apps = apps.flatMap((item) => (item.credentialIds.length > 0 || item.isGlobal ? [item] : []));
   }
 
-  const mostPopularApps = await getMostPopularApps();
+  if (sortByMostPopular) {
+    const mostPopularApps = await getMostPopularApps();
 
-  // sort the apps array by the most popular apps
-  apps.sort((a, b) => {
-    const aCount = mostPopularApps[a.slug] || 0;
-    const bCount = mostPopularApps[b.slug] || 0;
-    return bCount - aCount;
-  });
+    // sort the apps array by the most popular apps
+    apps.sort((a, b) => {
+      const aCount = mostPopularApps[a.slug] || 0;
+      const bCount = mostPopularApps[b.slug] || 0;
+      return bCount - aCount;
+    });
+  }
 
   return {
     items: apps,
