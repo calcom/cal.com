@@ -8,6 +8,7 @@ export type UserAdminTeams = (Prisma.TeamGetPayload<{
     id: true;
     name: true;
     logo: true;
+    credentials: true;
     parent?: {
       select: {
         id: true;
@@ -24,10 +25,12 @@ const getUserAdminTeams = async ({
   userId,
   getUserInfo,
   getParentInfo,
+  includeCredentials = false,
 }: {
   userId: number;
   getUserInfo?: boolean;
   getParentInfo?: boolean;
+  includeCredentials?: boolean;
 }): Promise<UserAdminTeams> => {
   const teams = await prisma.team.findMany({
     where: {
@@ -43,11 +46,12 @@ const getUserAdminTeams = async ({
       id: true,
       name: true,
       logo: true,
+      credentials: includeCredentials,
       ...(getParentInfo && {
         parent: {
           select: {
             id: true,
-            credentials: true,
+            credentials: includeCredentials,
             name: true,
             logo: true,
           },
@@ -65,6 +69,7 @@ const getUserAdminTeams = async ({
         id: true,
         name: true,
         avatar: true,
+        credentials: includeCredentials,
       },
     });
 
