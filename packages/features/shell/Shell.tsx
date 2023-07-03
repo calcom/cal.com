@@ -362,7 +362,7 @@ function UserDropdown({ small }: UserDropdownProps) {
             />
           </span>
           {!small && (
-            <span className="flex flex-grow items-center">
+            <span className="flex flex-grow items-center gap-2">
               <span className="line-clamp-1 flex-grow text-sm leading-none">
                 <span className="text-emphasis block font-medium">{user.name || "Nameless User"}</span>
               </span>
@@ -778,13 +778,11 @@ type SideBarProps = {
 
 function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
   const { status, data } = useSession();
-  const router = useRouter();
 
   // Make sure that Sidebar is rendered optimistically so that a refresh of pages when logged in have SideBar from the beginning.
   // This improves the experience of refresh on app store pages(when logged in) which are SSG.
   // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
   if (status !== "loading" && status !== "authenticated") return null;
-  if (router.route.startsWith("/v2/settings/")) return null;
   return <SideBar bannersHeight={bannersHeight} user={data?.user} />;
 }
 
@@ -819,9 +817,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
     },
     {
       name: "settings",
-      href: user?.organizationId
-        ? `/settings/teams/${user.organizationId}/profile`
-        : "/settings/my-account/profile",
+      href: user?.organizationId ? `/settings/organizations/profile` : "/settings/my-account/profile",
       icon: Settings,
     },
   ];
@@ -834,20 +830,16 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
           <header className="items-center justify-between md:hidden lg:flex">
             {orgBranding ? (
               <Link href="/event-types" className="px-1.5">
-                {orgBranding ? (
-                  <div className="flex items-center gap-2 font-medium">
-                    <Avatar
-                      alt={`${orgBranding.name} logo`}
-                      imageSrc={getPlaceholderAvatar(orgBranding.logo, orgBranding.name)}
-                      size="xsm"
-                    />
-                    <p className="text line-clamp-1 text-sm">
-                      <span>{orgBranding.name}</span>
-                    </p>
-                  </div>
-                ) : (
-                  <Logo small />
-                )}
+                <div className="flex items-center gap-2 font-medium">
+                  <Avatar
+                    alt={`${orgBranding.name} logo`}
+                    imageSrc={getPlaceholderAvatar(orgBranding.logo, orgBranding.name)}
+                    size="xsm"
+                  />
+                  <p className="text line-clamp-1 text-sm">
+                    <span>{orgBranding.name}</span>
+                  </p>
+                </div>
               </Link>
             ) : (
               <div data-testid="user-dropdown-trigger">
