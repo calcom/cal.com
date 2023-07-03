@@ -260,7 +260,7 @@ export async function getUserAvailability(
   return {
     busy: bufferedBusyTimes,
     timeZone,
-    dateRanges: subtract(dateRanges, formattedBusyTimes), //do we want to do that here?
+    dateRanges: subtract(dateRanges, formattedBusyTimes),
     workingHours,
     dateOverrides,
     currentSeats,
