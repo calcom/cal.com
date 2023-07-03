@@ -16,7 +16,7 @@ type AvailableTimeSlotsProps = {
   limitHeight?: boolean;
   seatsPerTimeslot?: number | null;
   sliceFrom:number;
-  sliceTo?:number;
+  sliceTo:number;
   prefetchNextMonth: boolean;
   monthCount: number | undefined;
 };
@@ -58,15 +58,10 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot, s
         : nonEmptyScheduleDays.length > 0 
           ? nonEmptyScheduleDays.slice(sliceFrom, sliceTo)
           :[],
-    [date, extraDays]
+    [date, extraDays, schedule?.data?.slots]
   );
   
-  const monthViewSlots = schedule?.data?.slots  && nonEmptyScheduleDays.includes(date) ? Object.values(schedule.data.slots).slice(nonEmptyScheduleDays.indexOf(date), nonEmptyScheduleDays.indexOf(date) + 1) : [];
-  const slotsPerDay = schedule?.data?.slots 
-    ? useSlotsForAvailableDates(dates, isColumnView 
-      ? Object.values(schedule.data.slots).slice(sliceFrom, sliceTo) 
-      : monthViewSlots ) 
-    : useSlotsForAvailableDates(dates, []);
+  const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.data?.slots);
   
   return (
     <div

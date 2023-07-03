@@ -20,22 +20,16 @@ export const useSlotsForDate = (date: string | null, slots?: Slots) => {
   return slotsForDate;
 };
 
-export const useSlotsForAvailableDates = (dates: (string | null)[], slots: slot[]) => {
+export const useSlotsForAvailableDates = ( dates: (string | null)[], slots?: Slots) => {
+
   const slotsForDates = useMemo(() => {
-    if (typeof slots === "undefined") return [];
-    if (slots.length === 0){
-      return dates
+    if (slots === undefined) return [];
+    return dates
       .filter((date) => date !== null)
       .map((date) => ({
-        slots: [],
+        slots: slots[`${date}`] || [],
         date,
       }));
-    }
-    return slots.map((slot) => ({
-      date: dayjs(slot[0].time).format("YYYY-MM-DD"),
-      slots: slot
-    }));
-  }, [slots]);
-
+  }, [dates, slots]);
   return slotsForDates;
 };
