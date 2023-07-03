@@ -1756,5 +1756,6 @@
   "google_workspace_admin_tooltip": "您必須是 Workspace 管理員才能使用此功能",
   "first_event_type_webhook_description": "為此活動類型建立第一個 Webhook",
   "create_for": "建立",
-  "insights_all_org_filter": "所有應用程式"
+  "insights_all_org_filter": "所有應用程式",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
