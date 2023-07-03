@@ -6,6 +6,7 @@ import type { TFunction } from "next-i18next";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { defaultLocations } from "@calcom/app-store/locations";
+import { AppCategories } from "@calcom/prisma/enums";
 import type { App, AppMeta } from "@calcom/types/App";
 
 export * from "./_utils/getEventTypeAppData";
@@ -37,16 +38,6 @@ const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
 
 export type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
 
-export const InstalledAppVariants = [
-  "conferencing",
-  "calendar",
-  "payment",
-  "analytics",
-  "automation",
-  "other",
-  "web3",
-] as const;
-
 export const ALL_APPS = Object.values(ALL_APPS_MAP);
 
 export function getLocationGroupedOptions(integrations: ReturnType<typeof getApps>, t: TFunction) {
@@ -58,8 +49,13 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
     if (app.locationOption) {
       // All apps that are labeled as a locationOption are video apps. Extract the secondary category if available
       let category =
-        app.categories.length >= 2 ? app.categories.find((category) => category !== "video") : app.category;
-      if (!category) category = "video";
+        app.categories.length >= 2
+          ? app.categories.find(
+              (category) =>
+                !([AppCategories.video, AppCategories.conferencing] as string[]).includes(category)
+            )
+          : app.category;
+      if (!category) category = AppCategories.conferencing;
       const option = { ...app.locationOption, icon: app.logo, slug: app.slug };
       if (apps[category]) {
         apps[category] = [...apps[category], option];
