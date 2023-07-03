@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Dialog, DialogContent, Form, TextField } from "@calcom/ui";
+import { Button, Dialog, DialogContent, DialogFooter, Form, TextField } from "@calcom/ui";
 
 import TwoFactor from "@components/auth/TwoFactor";
 
@@ -150,20 +150,20 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
         </WithStep>
         <WithStep step={SetupStep.DisplayQrCode} current={step}>
           <>
-            <div className="flex justify-center">
+            <div className="-mt-3 flex justify-center">
               {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={dataUri} alt="" />
               }
             </div>
-            <p data-testid="two-factor-secret" className="text-center font-mono text-xs">
+            <p data-testid="two-factor-secret" className="mb-4 text-center font-mono text-xs">
               {secret}
             </p>
           </>
         </WithStep>
         <Form handleSubmit={handleEnable} form={form}>
           <WithStep step={SetupStep.EnterTotpCode} current={step}>
-            <div className="mb-4">
+            <div className="-mt-4 pb-2">
               <TwoFactor center />
 
               {errorMessage && (
@@ -173,7 +173,10 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
               )}
             </div>
           </WithStep>
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+          <DialogFooter className="mt-8 sm:flex sm:flex-row-reverse" showDivider>
+            <Button color="secondary" onClick={onCancel}>
+              {t("cancel")}
+            </Button>
             <WithStep step={SetupStep.ConfirmPassword} current={step}>
               <Button
                 type="submit"
@@ -197,10 +200,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
                 {t("enable")}
               </Button>
             </WithStep>
-            <Button color="secondary" onClick={onCancel}>
-              {t("cancel")}
-            </Button>
-          </div>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>

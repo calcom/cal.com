@@ -189,7 +189,11 @@ export default function Availability() {
       CTA={
         <div className="flex items-center justify-end">
           <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 sm:flex">
-            <Skeleton as={Label} htmlFor="hiddenSwitch" className="mt-2 cursor-pointer self-center pr-2 ">
+            <Skeleton
+              as={Label}
+              htmlFor="hiddenSwitch"
+              className="mt-2 cursor-pointer self-center pe-2"
+              loadingClassName="me-4">
               {t("set_to_default")}
             </Skeleton>
             <Switch
@@ -315,9 +319,9 @@ export default function Availability() {
           <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
             <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
               <div>
-                <label htmlFor="timeZone" className="text-default block text-sm font-medium">
+                <Skeleton as={Label} htmlFor="timeZone" className="mb-0 inline-block leading-none">
                   {t("timezone")}
-                </label>
+                </Skeleton>
                 <Controller
                   name="timeZone"
                   render={({ field: { onChange, value } }) =>
@@ -328,18 +332,20 @@ export default function Availability() {
                         onChange={(timezone) => onChange(timezone.value)}
                       />
                     ) : (
-                      <SelectSkeletonLoader className="w-72" />
+                      <SelectSkeletonLoader className="mt-1 w-72" />
                     )
                   }
                 />
               </div>
               <hr className="border-subtle my-6 mr-8" />
               <div className="hidden rounded-md md:block">
-                <h3 className="text-emphasis text-sm font-medium">{t("something_doesnt_look_right")}</h3>
+                <Skeleton as="h3" className="mb-0 inline-block text-sm font-medium">
+                  {t("something_doesnt_look_right")}
+                </Skeleton>
                 <div className="mt-3 flex">
-                  <Button href="/availability/troubleshoot" color="secondary">
+                  <Skeleton as={Button} href="/availability/troubleshoot" color="secondary">
                     {t("launch_troubleshooter")}
-                  </Button>
+                  </Skeleton>
                 </div>
               </div>
             </div>
