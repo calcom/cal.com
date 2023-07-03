@@ -29,6 +29,7 @@ type FormValues = {
   email: string;
   password: string;
   apiError: string;
+  token?: string;
 };
 
 type SignupProps = inferSSRProps<typeof getServerSideProps>;
@@ -58,6 +59,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
       body: JSON.stringify({
         ...data,
         language: i18n.language,
+        token,
       }),
       headers: {
         "Content-Type": "application/json",

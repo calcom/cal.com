@@ -91,7 +91,7 @@ const CreateConnectionDialog = ({
           <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
             {t("sso_oidc_configuration_title")}
           </h2>
-          <p className="text-subtle mt-1 mb-4 text-sm">{t("sso_oidc_configuration_description")}</p>
+          <p className="text-subtle mb-4 mt-1 text-sm">{t("sso_oidc_configuration_description")}</p>
           <div className="space-y-5">
             <Controller
               control={form.control}
