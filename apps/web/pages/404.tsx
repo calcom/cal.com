@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import { orgDomainConfig, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
+import { DOCS_URL, JOIN_DISCORD, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HeadSeo } from "@calcom/ui";
 import { BookOpen, Check, ChevronRight, FileText, Slack, Shield } from "@calcom/ui/components/icon";
@@ -197,7 +197,7 @@ export default function Custom404() {
                   </li>
                   <li className="px-4 py-2">
                     <a
-                      href={JOIN_SLACK}
+                      href={JOIN_DISCORD}
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
@@ -335,7 +335,7 @@ export default function Custom404() {
                     ))}
                   <li className="px-4 py-2">
                     <a
-                      href={JOIN_SLACK}
+                      href={JOIN_DISCORD}
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
