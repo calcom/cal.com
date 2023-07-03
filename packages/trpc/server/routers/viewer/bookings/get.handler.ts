@@ -176,6 +176,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
             recurringEvent: true,
             currency: true,
             metadata: true,
+            seatsShowAttendees: true,
             team: {
               select: {
                 name: true,
@@ -284,6 +285,9 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   );
 
   const bookings = bookingsQuery.map((booking) => {
+    if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
+      booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
+    }
     return {
       ...booking,
       eventType: {
