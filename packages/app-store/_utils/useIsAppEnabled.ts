@@ -1,14 +1,11 @@
 import { useState } from "react";
-import type { ZodType } from "zod";
 
-import type { SetAppDataGeneric, GetAppDataGeneric } from "../EventTypeAppContext";
+import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
+
 import type { EventTypeAppCardApp } from "../types";
 
-function useIsAppEnabled<TAppData extends ZodType>(
-  app: EventTypeAppCardApp,
-  getAppData: GetAppDataGeneric<TAppData>,
-  setAppData: SetAppDataGeneric<TAppData>
-) {
+function useIsAppEnabled(app: EventTypeAppCardApp) {
+  const [getAppData, setAppData] = useAppContextWithSchema();
   const [enabled, setEnabled] = useState(() => {
     if (!app.credentialOwner) {
       return getAppData("enabled");
