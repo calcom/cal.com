@@ -328,40 +328,40 @@ const ProfileView = () => {
             </Dialog>
           )}
         </>
-      ):(
+      ) : (
         <>
           <SkeletonContainer as="form">
             <div className="flex items-center">
               <div className="ms-4">
                 <SkeletonContainer>
-                  <div className="bg-emphasis rounded-full w-16 h-16" />
+                  <div className="bg-emphasis h-16 w-16 rounded-full" />
                 </SkeletonContainer>
               </div>
             </div>
             <hr className="border-subtle my-8" />
             <SkeletonContainer>
               <div className="mt-8">
-                <SkeletonText className="w-48 h-6" />
+                <SkeletonText className="h-6 w-48" />
               </div>
             </SkeletonContainer>
             <SkeletonContainer>
               <div className="mt-8">
-                <SkeletonText className="w-48 h-6" />
+                <SkeletonText className="h-6 w-48" />
               </div>
             </SkeletonContainer>
             <div className="mt-8">
               <SkeletonContainer>
-                <div className="h-24 bg-emphasis rounded-md" />
+                <div className="bg-emphasis h-24 rounded-md" />
               </SkeletonContainer>
-              <SkeletonText className="w-32 h-12 mt-4" />
+              <SkeletonText className="mt-4 h-12 w-32" />
             </div>
             <SkeletonContainer>
               <div className="mt-8">
-                <SkeletonText className="w-24 h-9" />
+                <SkeletonText className="h-9 w-24" />
               </div>
             </SkeletonContainer>
-        </SkeletonContainer>
-      </>
+          </SkeletonContainer>
+        </>
       )}
     </>
   );

@@ -1,9 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
-import rateLimiter from "@calcom/lib/rateLimit";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 
@@ -38,15 +37,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   // 10 requests per minute
 
-  const limiter = await rateLimiter();
-  const limit = await limiter({
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
     identifier: ip,
   });
 
-  if (!limit.success) {
-    throw new Error(ErrorCode.RateLimitExceeded);
-  }
-  // ensure no errors thrown by passwordResetRequest get leaked to the frontend.
   try {
     await passwordResetRequest(email.data, req.body.language ?? "en");
     // By adding a random delay any attacker is unable to bruteforce existing email addresses.

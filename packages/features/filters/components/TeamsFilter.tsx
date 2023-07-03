@@ -5,6 +5,7 @@ import { forwardRef } from "react";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { AnimatedPopover, Avatar, Divider, VerticalDivider } from "@calcom/ui";
@@ -84,28 +85,30 @@ export const TeamsFilter = ({
             label={t("yours")}
           />
           <Divider />
-          {teams?.map((team) => (
-            <FilterCheckboxField
-              key={team.id}
-              id={team.name}
-              label={team.name}
-              checked={!!query.teamIds?.includes(team.id)}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  pushItemToKey("teamIds", team.id);
-                } else if (!e.target.checked) {
-                  removeItemByKeyAndValue("teamIds", team.id);
+          {teams
+            ?.filter((team) => !teamMetadataSchema.parse(team.metadata)?.isOrganization)
+            .map((team) => (
+              <FilterCheckboxField
+                key={team.id}
+                id={team.name}
+                label={team.name}
+                checked={!!query.teamIds?.includes(team.id)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    pushItemToKey("teamIds", team.id);
+                  } else if (!e.target.checked) {
+                    removeItemByKeyAndValue("teamIds", team.id);
+                  }
+                }}
+                icon={
+                  <Avatar
+                    alt={team?.name}
+                    imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)}
+                    size="xs"
+                  />
                 }
-              }}
-              icon={
-                <Avatar
-                  alt={team?.name}
-                  imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)}
-                  size="xs"
-                />
-              }
-            />
-          ))}
+              />
+            ))}
         </FilterCheckboxFieldsContainer>
       </AnimatedPopover>
       {showVerticalDivider && <VerticalDivider />}
@@ -124,13 +127,13 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
 
 export const FilterCheckboxField = forwardRef<HTMLInputElement, Props>(({ label, icon, ...rest }, ref) => {
   return (
-    <div className="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 hover:cursor-pointer">
+    <div className="hover:bg-subtle flex items-center py-2 pl-3 pr-2.5 hover:cursor-pointer">
       <label className="flex w-full items-center justify-between hover:cursor-pointer">
         <div className="flex items-center">
           <div className="text-default flex h-4 w-4 items-center justify-center ltr:mr-2 rtl:ml-2">
             {icon}
           </div>
-          <label htmlFor={rest.id} className="text-default cursor-pointer truncate text-sm">
+          <label htmlFor={rest.id} className="text-default cursor-pointer truncate text-sm font-medium">
             {label}
           </label>
         </div>
