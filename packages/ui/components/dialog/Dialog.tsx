@@ -134,10 +134,17 @@ export function DialogHeader(props: DialogHeaderProps) {
   );
 }
 
-export function DialogFooter(props: { children: ReactNode; className?: string; showDivider?: boolean }) {
+export function DialogFooter(props: {
+  children: ReactNode;
+  className?: string;
+  showDivider?: boolean;
+  customDividerClassNames?: string;
+}) {
   return (
     <div className={classNames("bg-default", props.className)}>
-      {props.showDivider && <hr className="border-subtle absolute right-0 w-full" />}
+      {props.showDivider && (
+        <hr className={classNames("border-subtle absolute right-0 w-full", props.customDividerClassNames)} />
+      )}
       <div
         className={classNames(
           "flex justify-end space-x-2 pt-4 rtl:space-x-reverse",

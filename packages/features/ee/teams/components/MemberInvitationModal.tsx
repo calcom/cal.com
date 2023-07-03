@@ -1,4 +1,4 @@
-import { PaperclipIcon, UserIcon, Users } from "lucide-react";
+import { BuildingIcon, PaperclipIcon, UserIcon, Users } from "lucide-react";
 import { Trans } from "next-i18next";
 import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
@@ -8,6 +8,7 @@ import { classNames } from "@calcom/lib";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import {
   Button,
@@ -31,6 +32,7 @@ import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
 type MemberInvitationModalProps = {
   isOpen: boolean;
   onExit: () => void;
+  orgMembers?: RouterOutputs["viewer"]["organizations"]["getMembers"];
   onSubmit: (values: NewMemberForm, resetFields: () => void) => void;
   onSettingsOpen?: () => void;
   teamId: number;
@@ -85,6 +87,25 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       { value: MembershipRole.OWNER, label: t("owner") },
     ];
   }, [t]);
+
+  const toggleGroupOptions = useMemo(() => {
+    const array = [
+      {
+        value: "INDIVIDUAL",
+        label: t("invite_team_individual_segment"),
+        iconLeft: <UserIcon />,
+      },
+      { value: "BULK", label: t("invite_team_bulk_segment"), iconLeft: <Users /> },
+    ];
+    if (props.orgMembers) {
+      array.unshift({
+        value: "ORGANIZATION",
+        label: t("organization"),
+        iconLeft: <BuildingIcon />,
+      });
+    }
+    return array;
+  }, [t, props.orgMembers]);
 
   const newMemberFormMethods = useForm<NewMemberForm>();
 
@@ -149,19 +170,12 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             isFullWidth={true}
             onValueChange={(val) => setModalInputMode(val as ModalMode)}
             defaultValue="INDIVIDUAL"
-            options={[
-              {
-                value: "INDIVIDUAL",
-                label: t("invite_team_individual_segment"),
-                iconLeft: <UserIcon />,
-              },
-              { value: "BULK", label: t("invite_team_bulk_segment"), iconLeft: <Users /> },
-            ]}
+            options={toggleGroupOptions}
           />
         </div>
 
         <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values, resetFields)}>
-          <div className="mt-6 mb-10 space-y-6">
+          <div className="mb-10 mt-6 space-y-6">
             {/* Indivdual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
               <Controller
@@ -278,7 +292,24 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 />
               )}
             />
-            <div className="flex">
+            {props.token && (
+              <div className="flex">
+                <Button
+                  type="button"
+                  color="minimal"
+                  className="me-2 ms-2"
+                  onClick={() => {
+                    props.onSettingsOpen && props.onSettingsOpen();
+                    newMemberFormMethods.reset();
+                  }}
+                  data-testid="edit-invite-link-button">
+                  {t("edit_invite_link")}
+                </Button>
+              </div>
+            )}
+          </div>
+          <DialogFooter showDivider>
+            <div className="relative right-40">
               <Button
                 type="button"
                 color="minimal"
@@ -293,22 +324,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 <Link className="text-default h-4 w-4" aria-hidden="true" />
                 {t("copy_invite_link")}
               </Button>
-              {props.token && (
-                <Button
-                  type="button"
-                  color="minimal"
-                  className="ms-2 me-2"
-                  onClick={() => {
-                    props.onSettingsOpen && props.onSettingsOpen();
-                    newMemberFormMethods.reset();
-                  }}
-                  data-testid="edit-invite-link-button">
-                  {t("edit_invite_link")}
-                </Button>
-              )}
             </div>
-          </div>
-          <DialogFooter showDivider>
+
             <Button
               type="button"
               color="minimal"
@@ -321,7 +338,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             <Button
               type="submit"
               color="primary"
-              className="ms-2 me-2"
+              className="me-2 ms-2"
               data-testid="invite-new-member-button">
               {t("send_invite")}
             </Button>

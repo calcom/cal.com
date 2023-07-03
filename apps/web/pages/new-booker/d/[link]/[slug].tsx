@@ -14,7 +14,7 @@ import PageWrapper from "@components/PageWrapper";
 
 type PageProps = inferSSRProps<typeof getServerSideProps>;
 
-export default function Type({ slug, user, booking, away, isBrandingHidden }: PageProps) {
+export default function Type({ slug, user, booking, away, isBrandingHidden, isTeamEvent }: PageProps) {
   return (
     <main className="flex h-full min-h-[100dvh] items-center justify-center">
       <BookerSeo
@@ -29,6 +29,7 @@ export default function Type({ slug, user, booking, away, isBrandingHidden }: Pa
         rescheduleBooking={booking}
         isAway={away}
         hideBranding={isBrandingHidden}
+        isTeamEvent={isTeamEvent}
       />
     </main>
   );
@@ -55,6 +56,11 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
           users: {
             select: {
               username: true,
+            },
+          },
+          team: {
+            select: {
+              id: true,
             },
           },
         },
@@ -96,9 +102,11 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     booking = await getBookingByUidOrRescheduleUid(`${rescheduleUid}`);
   }
 
+  const isTeamEvent = !!hashedLink.eventType?.team?.id;
+
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({ username, eventSlug: slug });
+  const eventData = await ssr.viewer.public.event.fetch({ username, eventSlug: slug, isTeamEvent });
 
   if (!eventData) {
     return {
@@ -114,6 +122,9 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       slug,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: user?.hideBranding,
+      // Sending the team event from the server, because this template file
+      // is reused for both team and user events.
+      isTeamEvent,
     },
   };
 }

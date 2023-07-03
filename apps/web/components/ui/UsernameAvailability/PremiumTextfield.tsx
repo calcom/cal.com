@@ -224,7 +224,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             }}
             data-testid="username-input"
           />
-          <div className="absolute top-0 right-2 flex flex-row">
+          <div className="absolute right-2 top-0 flex flex-row">
             <span
               className={classNames(
                 "mx-2 py-2",

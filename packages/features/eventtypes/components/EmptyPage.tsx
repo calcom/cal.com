@@ -31,7 +31,7 @@ function EmptyPage({ name }: { name: string }) {
         <SkeletonEventType />
         <SkeletonEventType />
       </div>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform">
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
         <h3 className="text-emphasis text-lg font-semibold">{t("no_event_types")} </h3>
         <h4 className="text-default text-sm leading-normal">{t("no_event_types_description", { name })}</h4>
       </div>

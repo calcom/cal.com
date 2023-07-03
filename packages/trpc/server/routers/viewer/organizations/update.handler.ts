@@ -66,26 +66,27 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     timeFormat: input.timeFormat,
   };
 
-  if (
-    input.slug &&
-    IS_TEAM_BILLING_ENABLED &&
-    /** If the team doesn't have a slug we can assume that it hasn't been published yet. */
-    !prevOrganisation.slug
-  ) {
-    // Save it on the metadata so we can use it later
-    data.metadata = {
-      requestedSlug: input.slug,
-    };
-  } else {
-    data.slug = input.slug;
-
-    // If we save slug, we don't need the requestedSlug anymore
-    const metadataParse = teamMetadataSchema.safeParse(prevOrganisation.metadata);
-    if (metadataParse.success) {
-      const { requestedSlug: _, ...cleanMetadata } = metadataParse.data || {};
+  if (input.slug) {
+    if (
+      IS_TEAM_BILLING_ENABLED &&
+      /** If the team doesn't have a slug we can assume that it hasn't been published yet. */
+      !prevOrganisation.slug
+    ) {
+      // Save it on the metadata so we can use it later
       data.metadata = {
-        ...cleanMetadata,
+        requestedSlug: input.slug,
       };
+    } else {
+      data.slug = input.slug;
+
+      // If we save slug, we don't need the requestedSlug anymore
+      const metadataParse = teamMetadataSchema.safeParse(prevOrganisation.metadata);
+      if (metadataParse.success) {
+        const { requestedSlug: _, ...cleanMetadata } = metadataParse.data || {};
+        data.metadata = {
+          ...cleanMetadata,
+        };
+      }
     }
   }
 
