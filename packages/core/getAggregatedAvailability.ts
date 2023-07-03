@@ -15,16 +15,10 @@ export const getAggregatedAvailability = (
 
   const dateRangesToIntersect = fixedHosts.map((s) => s.dateRanges);
 
-  const aggregatedAvailability: DateRange[] = intersect(dateRangesToIntersect);
-
-  // fixed hosts, everyone will be added
-  if (schedulingType !== SchedulingType.ROUND_ROBIN) {
-    return mergeOverlappingDateRanges(aggregatedAvailability);
+  const unfixedHosts = userAvailability.filter(({ user }) => user?.isFixed !== true);
+  if (unfixedHosts.length) {
+    dateRangesToIntersect.push(unfixedHosts.flatMap((s) => s.dateRanges));
   }
-
-  dateRangesToIntersect.push(
-    userAvailability.filter(({ user }) => user?.isFixed !== true).flatMap((s) => s.dateRanges)
-  );
 
   const availability = intersect(dateRangesToIntersect);
 
