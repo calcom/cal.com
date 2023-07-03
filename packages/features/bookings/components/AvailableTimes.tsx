@@ -84,6 +84,11 @@ export const AvailableTimes = ({
 
         {slots.map((slot) => {
           const bookingFull = !!(hasTimeSlots && slot.attendees && slot.attendees >= seatsPerTimeSlot);
+          const isHalfFull = slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.5;
+          const isNearlyFull =
+            slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.83;
+
+          const colorClass = isNearlyFull ? "bg-rose-600" : isHalfFull ? "bg-yellow-500" : "bg-emerald-400";
           return (
             <Button
               key={slot.time}
@@ -99,14 +104,7 @@ export const AvailableTimes = ({
               {hasTimeSlots && !bookingFull && (
                 <p className="flex items-center text-sm lowercase">
                   <span
-                    className={classNames(
-                      slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.5
-                        ? "bg-yellow-500"
-                        : slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.33
-                        ? "bg-rose-600"
-                        : "bg-emerald-400",
-                      "mr-1 inline-block h-2 w-2 rounded-full"
-                    )}
+                    className={classNames(colorClass, "mr-1 inline-block h-2 w-2 rounded-full")}
                     aria-hidden
                   />
                   {slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot}{" "}

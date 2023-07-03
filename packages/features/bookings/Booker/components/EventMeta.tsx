@@ -44,6 +44,17 @@ export const EventMeta = () => {
   const bookingSeatAttendeesQty = seatedEventData?.attendees || bookingData?.attendees.length;
   const eventTotalSeats = seatedEventData?.seatsPerTimeSlot || event?.seatsPerTimeSlot;
 
+  const isHalfFull =
+    bookingSeatAttendeesQty && eventTotalSeats && bookingSeatAttendeesQty / eventTotalSeats >= 0.5;
+  const isNearlyFull =
+    bookingSeatAttendeesQty && eventTotalSeats && bookingSeatAttendeesQty / eventTotalSeats >= 0.83;
+
+  const colorClass = isNearlyFull
+    ? "text-rose-600"
+    : isHalfFull
+    ? "text-yellow-500"
+    : "text-bookinghighlight";
+
   return (
     <div className="relative z-10 p-6">
       {isLoading && (
@@ -112,15 +123,7 @@ export const EventMeta = () => {
               )}
             </EventMetaBlock>
             {bookerState === "booking" && eventTotalSeats && bookingSeatAttendeesQty ? (
-              <EventMetaBlock
-                icon={User}
-                className={`${
-                  bookingSeatAttendeesQty || 0 / eventTotalSeats >= 0.5
-                    ? "text-yellow-500"
-                    : bookingSeatAttendeesQty || 0 / eventTotalSeats >= 0.33
-                    ? "text-rose-600"
-                    : "text-bookinghighlight"
-                }`}>
+              <EventMetaBlock icon={User} className={`${colorClass}`}>
                 <div className="text-bookinghighlight flex items-start text-sm">
                   <p>
                     {bookingSeatAttendeesQty ? eventTotalSeats - bookingSeatAttendeesQty : eventTotalSeats} /{" "}

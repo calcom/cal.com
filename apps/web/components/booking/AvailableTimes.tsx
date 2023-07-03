@@ -135,6 +135,17 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 if (slot.attendees && bookingAttendees && seatsPerTimeSlot)
                   notEnoughSeats = slot.attendees + bookingAttendees > seatsPerTimeSlot;
 
+                const isHalfFull =
+                  slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.5;
+                const isNearlyFull =
+                  slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.83;
+
+                const colorClass = isNearlyFull
+                  ? "text-rose-600"
+                  : isHalfFull
+                  ? "text-yellow-500"
+                  : "text-emerald-400";
+
                 return (
                   <div data-slot-owner={(slot.userIds || []).join(",")} key={`${dayjs(slot.time).format()}`}>
                     {/* ^ data-slot-owner is helpful in debugging and used to identify the owners of the slot. Owners are the users which have the timeslot in their schedule. It doesn't consider if a user has that timeslot booked */}
@@ -165,14 +176,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                         data-disabled="false">
                         {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
                         {!!seatsPerTimeSlot && (
-                          <p
-                            className={`${
-                              slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.5
-                                ? "text-yellow-500"
-                                : slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.33
-                                ? "text-rose-600"
-                                : "text-emerald-400"
-                            } text-sm`}>
+                          <p className={`${colorClass} text-sm`}>
                             {slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot} /{" "}
                             {seatsPerTimeSlot}{" "}
                             {t("seats_available", {

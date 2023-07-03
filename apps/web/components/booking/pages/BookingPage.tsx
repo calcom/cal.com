@@ -502,6 +502,21 @@ const BookingPage = ({
 
   const showEventTypeDetails = (isEmbed && !embedUiConfig.hideEventTypeDetails) || !isEmbed;
 
+  const isHalfFull =
+    currentSlotBooking &&
+    eventType.seatsPerTimeSlot &&
+    currentSlotBooking.attendees.length / eventType.seatsPerTimeSlot >= 0.5;
+  const isNearlyFull =
+    currentSlotBooking &&
+    eventType.seatsPerTimeSlot &&
+    currentSlotBooking.attendees.length / eventType.seatsPerTimeSlot >= 0.83;
+
+  const colorClass = isNearlyFull
+    ? "text-rose-600"
+    : isHalfFull
+    ? "text-yellow-500"
+    : "text-bookinghighlight";
+
   return (
     <>
       <Head>
@@ -594,26 +609,9 @@ const BookingPage = ({
                   {!!eventType.seatsPerTimeSlot && (
                     <div className="text-bookinghighlight flex items-start text-sm">
                       <User
-                        className={`ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] ${
-                          currentSlotBooking &&
-                          currentSlotBooking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
-                            ? "text-rose-600"
-                            : currentSlotBooking &&
-                              currentSlotBooking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
-                            ? "text-yellow-500"
-                            : "text-bookinghighlight"
-                        }`}
+                        className={`ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] ${colorClass}`}
                       />
-                      <p
-                        className={`${
-                          currentSlotBooking &&
-                          currentSlotBooking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
-                            ? "text-yellow-500"
-                            : currentSlotBooking &&
-                              currentSlotBooking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
-                            ? "text-rose-600"
-                            : "text-bookinghighlight"
-                        } mb-2 font-medium`}>
+                      <p className={`${colorClass} mb-2 font-medium`}>
                         {currentSlotBooking
                           ? eventType.seatsPerTimeSlot - currentSlotBooking.attendees.length
                           : eventType.seatsPerTimeSlot}{" "}
