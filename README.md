@@ -325,12 +325,6 @@ Issues with Docker? Find your answer or open a new discussion [here](https://git
 
 Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
 
-### Heroku
-
-<a href="https://heroku.com/deploy?template=https://github.com/calcom/cal.com">
-  <img width="185px" height="auto" src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy">
-</a>
-
 ### Railway
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/cal)
