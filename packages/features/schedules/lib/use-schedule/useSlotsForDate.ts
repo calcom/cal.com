@@ -9,8 +9,6 @@ import dayjs from "@calcom/dayjs";
  * @param scheduleCache Instance of useScheduleWithCache
  */
 
-type slot = { time: string; users: string[]; attendees?: number | undefined; bookingUid?: string | undefined; }[];
-
 export const useSlotsForDate = (date: string | null, slots?: Slots) => {
   const slotsForDate = useMemo(() => {
     if (!date || typeof slots === "undefined") return [];
