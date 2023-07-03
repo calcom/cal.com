@@ -54,8 +54,6 @@ const OrgProfileView = () => {
     resolver: zodResolver(orgProfileFormSchema),
   });
 
-  if (!orgBranding) return null;
-
   const mutation = trpc.viewer.organizations.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
@@ -100,6 +98,8 @@ const OrgProfileView = () => {
       router.push(`${WEBAPP_URL}/teams`);
     },
   });
+
+  if (!orgBranding) return null;
 
   function deleteTeam() {
     if (currentOrganisation?.id) deleteTeamMutation.mutate({ teamId: currentOrganisation.id });
