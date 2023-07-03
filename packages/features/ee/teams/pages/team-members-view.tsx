@@ -68,7 +68,7 @@ const MembersView = () => {
 
   const router = useRouter();
   const session = useSession();
-  console.log("sesion", session?.data);
+
   const utils = trpc.useContext();
   const teamId = Number(router.query.id);
 
@@ -134,8 +134,13 @@ const MembersView = () => {
                 )}
               </>
             )}
-            <MembersList team={team} />
-            <hr className="border-subtle my-8" />
+
+            {((team?.isPrivate && isAdmin) || !team?.isPrivate) && (
+              <>
+                <MembersList team={team} />
+                <hr className="border-subtle my-8" />
+              </>
+            )}
 
             {team && session.data && (
               <DisableTeamImpersonation
@@ -144,9 +149,12 @@ const MembersView = () => {
                 disabled={isInviteOpen}
               />
             )}
-            <hr className="border-subtle my-8" />
-            {team && session.data && (
-              <MakeTeamPrivateSwitch teamId={team.id} isPrivate={team.isPrivate} disabled={isInviteOpen} />
+
+            {team && isAdmin && (
+              <>
+                <hr className="border-subtle my-8" />
+                <MakeTeamPrivateSwitch teamId={team.id} isPrivate={team.isPrivate} disabled={isInviteOpen} />
+              </>
             )}
           </div>
           {showMemberInvitationModal && team && (
