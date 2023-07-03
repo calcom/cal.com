@@ -23,6 +23,7 @@ export type ButtonBaseProps = {
   shallow?: boolean;
   /**Tool tip used when icon size is set to small */
   tooltip?: string;
+  disabled?: boolean;
   flex?: boolean;
 } & Omit<InferredVariantProps, "color"> & {
     color?: ButtonColor;
@@ -140,10 +141,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       disabled,
       type: !isLink ? type : undefined,
       ref: forwardedRef,
-      className: classNames(
-        buttonClasses({ color, size, loading, disabled: props.disabled, variant }),
-        props.className
-      ),
+      className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
       // if we click a disabled button, we prevent going through the click handler
       onClick: disabled
         ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
