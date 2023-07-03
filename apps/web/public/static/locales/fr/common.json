@@ -1894,6 +1894,8 @@
   "verify_email_organization": "Vérifiez votre adresse e-mail pour créer une organisation",
   "code_provided_invalid": "Le code fourni n'est pas valide, veuillez réessayer",
   "email_already_used": "L'adresse e-mail est déjà utilisée",
+  "organization_admin_invited_heading": "Vous avez été invité à rejoindre {{orgName}}",
+  "organization_admin_invited_body": "Rejoignez votre équipe à {{orgName}} et commencez à vous concentrer sur les rendez-vous, pas sur leur préparation !",
   "duplicated_slugs_warning": "Les équipes suivantes n'ont pas pu être créées en raison de slugs identiques : {{slugs}}",
   "team_names_empty": "Les noms d'équipe ne peuvent pas être vides",
   "team_names_repeated": "Les noms d'équipe ne peuvent pas être répétés",
