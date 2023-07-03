@@ -1,4 +1,5 @@
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
+import getMostPopularApps from "@calcom/lib/apps/getMostPopularApps";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TIntegrationsInputSchema } from "./integrations.schema";
@@ -46,6 +47,16 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
   if (onlyInstalled) {
     apps = apps.flatMap((item) => (item.credentialIds.length > 0 || item.isGlobal ? [item] : []));
   }
+
+  const mostPopularApps = await getMostPopularApps();
+
+  // sort the apps array by the most popular apps
+  apps.sort((a, b) => {
+    const aCount = mostPopularApps[a.slug] || 0;
+    const bCount = mostPopularApps[b.slug] || 0;
+    return bCount - aCount;
+  });
+
   return {
     items: apps,
   };
