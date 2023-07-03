@@ -204,7 +204,13 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                               isFullWidth={false}
                               className="me-2 inline w-16"
                               onChange={(event) => {
-                                setRecurringEventCount(parseInt(event?.target.value));
+                                const count =
+                                  eventType?.recurringEvent?.count &&
+                                  parseInt(event?.target.value) > eventType?.recurringEvent?.count
+                                    ? eventType.recurringEvent.count
+                                    : parseInt(event?.target.value);
+
+                                setRecurringEventCount(count);
                               }}
                             />
 
