@@ -576,3 +576,11 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
 export const unlockedManagedEventTypeProps = {
   ...pick(allManagedEventTypeProps, ["locations", "scheduleId", "destinationCalendar"]),
 };
+
+// The PR at https://github.com/colinhacks/zod/pull/2157 addresses this issue and improves email validation
+// that PR was merged after our current zod version 3.20.2 - and is therefore not included
+// I introduced this refinement(to be used with z.email()) as a short term solution until we upgrade zod 
+export const emailSchemaRefinement = (value: string) => {
+  const emailRegex = /^([A-Z0-9_+-]+\.?)*[A-Z0-9_+-]@([A-Z0-9][A-Z0-9-]*\.)+[A-Z]{2,}$/i
+  return emailRegex.test(value)
+}
