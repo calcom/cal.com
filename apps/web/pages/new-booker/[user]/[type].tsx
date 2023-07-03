@@ -93,16 +93,18 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 }
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
-  const { user: username, type: slug } = paramsSchema.parse(context.params);
+  const { user: uname, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+
+  /** TODO: We should standarize this */
+  const username = uname.toLowerCase().replace(/( |%20)/g, "+");
 
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
   const user = await prisma.user.findFirst({
     where: {
-      /** TODO: We should standarize this */
-      username: username.toLowerCase().replace(/( |%20)/g, "+"),
+      username,
       organization: isValidOrgDomain
         ? {
             slug: currentOrgDomain,
