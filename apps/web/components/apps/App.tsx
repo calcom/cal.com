@@ -404,11 +404,6 @@ const InstallAppButtonChild = ({
   const { t } = useLocale();
   const router = useRouter();
 
-  const isInstalled = credentials &&
-  credentials.some((credential) =>
-    credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
-  )
-
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       if (data?.setupPending) return;
@@ -448,7 +443,14 @@ const InstallAppButtonChild = ({
       <DropdownMenuPortal>
         <DropdownMenuContent>
           <DropdownMenuLabel>{t("install_app_on")}</DropdownMenuLabel>
-          {userAdminTeams.map((team) => (
+          {userAdminTeams.map((team) => {
+            
+            const isInstalled = credentials &&
+            credentials.some((credential) =>
+              credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
+            )
+
+            return (
             <DropdownItem
               type="button"
               data-testid={team.isUser ? "install-app-button-personal" : "anything else"}
@@ -473,7 +475,7 @@ const InstallAppButtonChild = ({
                 {isInstalled &&
                   `(${t("installed")})`}</p>
             </DropdownItem>
-          ))}
+)})}
         </DropdownMenuContent>
       </DropdownMenuPortal>
     </Dropdown>
