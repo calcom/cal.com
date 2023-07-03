@@ -231,7 +231,7 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
 
     await expect(page).toHaveURL(/.*booking/);
 
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(300);
     // Should expect new booking to be created for John Third
     const newBooking = await prisma.booking.findFirst({
       where: {
