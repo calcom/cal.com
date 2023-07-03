@@ -79,7 +79,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
   });
 
   const formDataSchema = z.object({
-    name: z.string().trim().min(1, t("title_must_contain_at_least_1_character")),
+    name: z.string().trim().min(1, t("required")),
     description: z.string().optional(),
     shouldConnect: z.boolean().optional(),
   })
