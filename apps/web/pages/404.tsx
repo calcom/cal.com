@@ -80,7 +80,11 @@ export default function Custom404() {
   const isSuccessPage = router.asPath.startsWith("/booking");
   const isSubpage = router.asPath.includes("/", 2) || isSuccessPage;
   const isSignup = router.asPath.startsWith("/signup");
-  const isCalcom = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com";
+  const isCalcom =
+    WEBAPP_URL &&
+    (new URL(WEBAPP_URL).hostname.endsWith("cal.com") ||
+      new URL(WEBAPP_URL).hostname.endsWith("cal.dev") ||
+      new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com"));
   /**
    * If we're on 404 and the route is insights it means it is disabled
    * TODO: Abstract this for all disabled features
