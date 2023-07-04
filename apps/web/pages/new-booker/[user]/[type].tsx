@@ -8,6 +8,7 @@ import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { classNames } from "@calcom/lib";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -93,12 +94,10 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 }
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
-  const { user: uname, type: slug } = paramsSchema.parse(context.params);
+  const { user: usernames, type: slug } = paramsSchema.parse(context.params);
+  const username = usernames[0];
   const { rescheduleUid } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
-
-  /** TODO: We should standarize this */
-  const username = uname.toLowerCase().replace(/( |%20)/g, "+");
 
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
@@ -151,13 +150,16 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   };
 }
 
-const paramsSchema = z.object({ type: z.string(), user: z.string() });
+const paramsSchema = z.object({
+  type: z.string().transform((s) => slugify(s)),
+  user: z.string().transform((s) => getUsernameList(s)),
+});
 
 // Booker page fetches a tiny bit of data server side, to determine early
 // whether the page should show an away state or dynamic booking not allowed.
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { user } = paramsSchema.parse(context.params);
-  const isDynamicGroup = getUsernameList(user).length > 1;
+  const isDynamicGroup = user.length > 1;
 
   return isDynamicGroup ? await getDynamicGroupPageProps(context) : await getUserPageProps(context);
 };
