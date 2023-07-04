@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { useState } from "react";
 
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import MemberListItem from "@calcom/features/ee/teams/components/MemberListItem";
 import TeamInviteList from "@calcom/features/ee/teams/components/TeamInviteList";
@@ -103,7 +104,7 @@ const MembersView = () => {
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
   return (
-    <>
+    <LicenseRequired>
       <Meta
         title={t("organization_members")}
         description={t("organization_description")}
@@ -166,7 +167,7 @@ const MembersView = () => {
           )}
         </>
       )}
-    </>
+    </LicenseRequired>
   );
 };
 MembersView.getLayout = getLayout;
