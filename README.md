@@ -90,6 +90,7 @@ That's where Cal.com comes in. Self-hosted or hosted by us. White-label by desig
 - [Prisma.io](https://prisma.io/?ref=cal.com)
 - [Daily.co](https://go.cal.com/daily)
 
+
 ## Contact us
 
 Meet our sales team for any commercial inquiries.
