@@ -62,3 +62,41 @@ Each toast has a state to represent neutral, positive or negative responses.
         />
          </Example>
 </Examples>
+
+<Canvas>
+  <Story name="TopBanner"
+         args={{
+           text: 'Something big is happening we want you to know about.',
+           variant: 'default'
+  }}
+         argTypes={{
+            variant: {
+              control: {
+                type: 'select',
+                options: ['default', 'warning', 'error'],
+              },
+            },
+           text: {
+              control: {
+                type: 'text',
+              },
+            },
+  }}>
+    {({ text, variant, ...args }) => (
+      <TopBanner
+        {...args}
+        actions={
+          <button
+            className="border-b border-black text-sm"
+            onClick={() => {
+              alert("test");
+            }}>
+            Action
+          </button>
+        }
+        variant={variant}
+        text={text}
+      />
+    )}
+  </Story>
+</Canvas>

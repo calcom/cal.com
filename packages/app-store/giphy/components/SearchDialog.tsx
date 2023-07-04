@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { SVGComponent } from "@calcom/types/SVGComponent";
 import { Alert, Button, Dialog, DialogClose, DialogContent, DialogFooter, Input } from "@calcom/ui";
 import { Link, Search } from "@calcom/ui/components/icon";
 
@@ -84,7 +85,7 @@ export const SearchDialog = (props: ISearchDialog) => {
     return null;
   };
 
-  const renderTab = (Icon: any, text: string, mode: Mode) => (
+  const renderTab = (Icon: SVGComponent, text: string, mode: Mode) => (
     <div
       className={classNames(
         "flex cursor-pointer items-center border-b-2 p-2 text-sm ",
@@ -146,7 +147,7 @@ export const SearchDialog = (props: ISearchDialog) => {
           <div className="flex flex-col items-center space-x-2 space-y-2 pt-3 rtl:space-x-reverse">
             <div className="bg-subtle flex w-full items-center justify-center">
               {isLoading ? (
-                <div className="flex h-[200px] w-full items-center justify-center bg-gray-400 pt-3 pb-3">
+                <div className="flex h-[200px] w-full items-center justify-center bg-gray-400 pb-3 pt-3">
                   <svg
                     className={classNames("mx-4 h-5 w-5 animate-spin", "text-inverted dark:text-emphasis")}
                     xmlns="http://www.w3.org/2000/svg"
@@ -168,7 +169,7 @@ export const SearchDialog = (props: ISearchDialog) => {
                   </svg>
                 </div>
               ) : (
-                <img className="h-[200px] pt-3 pb-3" src={gifImage} alt={`Gif from Giphy for ${keyword}`} />
+                <img className="h-[200px] pb-3 pt-3" src={gifImage} alt={`Gif from Giphy for ${keyword}`} />
               )}
             </div>
           </div>

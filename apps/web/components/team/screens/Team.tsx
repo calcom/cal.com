@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { Avatar } from "@calcom/ui";
 
@@ -23,20 +24,20 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
 
   return (
     <Link key={member.id} href={{ pathname: `/${member.username}`, query: queryParamsToForward }}>
-      <div className="sm:min-w-80 sm:max-w-80  bg-default hover:bg-muted border-subtle group flex min-h-full flex-col space-y-2 rounded-md border p-4 hover:cursor-pointer">
+      <div className="sm:min-w-80 sm:max-w-80 bg-default hover:bg-muted border-subtle group flex min-h-full flex-col space-y-2 rounded-md border p-4 hover:cursor-pointer">
         <Avatar
           size="md"
           alt={member.name || ""}
           imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
         />
-        <section className="line-clamp-4 mt-2 w-full space-y-1">
+        <section className="mt-2 line-clamp-4 w-full space-y-1">
           <p className="text-default font-medium">{member.name}</p>
-          <div className="line-clamp-3 text-subtle overflow-ellipsis text-sm font-normal">
+          <div className="text-subtle line-clamp-3 overflow-ellipsis text-sm font-normal">
             {!isBioEmpty ? (
               <>
                 <div
                   className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  dangerouslySetInnerHTML={{ __html: md.render(member.bio || "") }}
+                  dangerouslySetInnerHTML={{ __html: md.render(markdownToSafeHTML(member.bio)) }}
                 />
               </>
             ) : (

@@ -12,7 +12,7 @@ import EnableTwoFactorModal from "@components/settings/EnableTwoFactorModal";
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="mt-6 mb-8 space-y-6">
+      <div className="mb-8 mt-6 space-y-6">
         <div className="flex items-center">
           <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
           <SkeletonText className="h-8 w-full" />
@@ -36,7 +36,7 @@ const TwoFactorAuthView = () => {
   const isCalProvider = user?.identityProvider === "CAL";
   return (
     <>
-      <Meta title={t("2fa")} description={t("2fa_description")} />
+      <Meta title={t("2fa")} description={t("set_up_two_factor_authentication")} />
       {!isCalProvider && <Alert severity="neutral" message={t("2fa_disabled")} />}
       <div className="mt-6 flex items-start space-x-4">
         <Switch

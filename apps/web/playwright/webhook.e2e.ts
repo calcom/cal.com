@@ -6,6 +6,7 @@ import {
   createHttpServer,
   selectFirstAvailableTimeSlotNextMonth,
   waitFor,
+  gotoRoutingLink,
 } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
@@ -14,11 +15,11 @@ test.describe("BOOKING_CREATED", async () => {
   test("add webhook & test that creating an event triggers a webhook call", async ({
     page,
     users,
-  }, testInfo) => {
+  }, _testInfo) => {
     const webhookReceiver = createHttpServer();
     const user = await users.create();
     const [eventType] = user.eventTypes;
-    await user.login();
+    await user.apiLogin();
     await page.goto(`/settings/developer/webhooks`);
 
     // --- add webhook
@@ -51,7 +52,8 @@ test.describe("BOOKING_CREATED", async () => {
     });
 
     const [request] = webhookReceiver.requestList;
-    const body = request.body as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body: any = request.body;
 
     // remove dynamic properties that differs depending on where you run the tests
     const dynamic = "[redacted/dynamic]";
@@ -153,7 +155,7 @@ test.describe("BOOKING_REJECTED", async () => {
     await bookOptinEvent(page);
 
     // --- login as that user
-    await user.login();
+    await user.apiLogin();
 
     await page.goto(`/settings/developer/webhooks`);
 
@@ -274,7 +276,7 @@ test.describe("BOOKING_REQUESTED", async () => {
     const user = await users.create();
 
     // --- login as that user
-    await user.login();
+    await user.apiLogin();
 
     await page.goto(`/settings/developer/webhooks`);
 
@@ -305,6 +307,7 @@ test.describe("BOOKING_REQUESTED", async () => {
       expect(webhookReceiver.requestList.length).toBe(1);
     });
     const [request] = webhookReceiver.requestList;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const body = request.body as any;
 
     // remove dynamic properties that differs depending on where you run the tests
@@ -382,6 +385,65 @@ test.describe("BOOKING_REQUESTED", async () => {
       },
     });
 
+    webhookReceiver.close();
+  });
+});
+
+test.describe("FORM_SUBMITTED", async () => {
+  test("can submit a form and get a submission event", async ({ page, users }) => {
+    const webhookReceiver = createHttpServer();
+    const user = await users.create();
+
+    await user.apiLogin();
+
+    await page.goto("/settings/teams/new");
+    await page.waitForLoadState("networkidle");
+    const teamName = `${user.username}'s Team`;
+    // Create a new team
+    await page.locator('input[name="name"]').fill(teamName);
+    await page.locator('input[name="slug"]').fill(teamName);
+    await page.locator('button[type="submit"]').click();
+
+    await page.locator("text=Publish team").click();
+    await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
+
+    await page.waitForLoadState("networkidle");
+
+    // Install Routing Forms App
+    await page.goto(`/apps/routing-forms`);
+    // eslint-disable-next-line playwright/no-conditional-in-test
+
+    await page.click('[data-testid="install-app-button"]');
+
+    await page.waitForLoadState("networkidle");
+    await page.goto(`/settings/developer/webhooks/new`);
+
+    // Add webhook
+    await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
+    await page.fill('[name="secret"]', "secret");
+    await Promise.all([page.click("[type=submit]"), page.goForward()]);
+
+    // Page contains the url
+    expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
+
+    await page.waitForLoadState("networkidle");
+    await page.goto("/apps/routing-forms/forms");
+    await page.click('[data-testid="new-routing-form"]');
+    // Choose to create the Form for the user(which is the first option) and not the team
+    await page.click('[data-testid="option-0"]');
+    await page.fill("input[name]", "TEST FORM");
+    await page.click('[data-testid="add-form"]');
+    await page.waitForSelector('[data-testid="add-field"]');
+
+    const url = page.url();
+    const formId = new URL(url).pathname.split("/").at(-1);
+
+    await gotoRoutingLink({ page, formId: formId });
+    page.click('button[type="submit"]');
+
+    await waitFor(() => {
+      expect(webhookReceiver.requestList.length).toBe(1);
+    });
     webhookReceiver.close();
   });
 });

@@ -2,11 +2,12 @@ import { Prisma } from "@prisma/client";
 
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { WEBAPP_URL } from "../../../constants";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
+
 export async function getTeamWithMembers(id?: number, slug?: string, userId?: number) {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     username: true,
@@ -24,6 +25,31 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
     hideBranding: true,
     hideBookATeamMember: true,
     metadata: true,
+    parent: {
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        logo: true,
+      },
+    },
+    children: {
+      select: {
+        name: true,
+        logo: true,
+        slug: true,
+        members: {
+          select: {
+            user: {
+              select: {
+                name: true,
+                username: true,
+              },
+            },
+          },
+        },
+      },
+    },
     members: {
       select: {
         accepted: true,
@@ -50,6 +76,13 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
         },
         metadata: true,
         ...baseEventTypeSelect,
+      },
+    },
+    inviteToken: {
+      select: {
+        token: true,
+        expires: true,
+        expiresInDays: true,
       },
     },
   });
@@ -80,8 +113,9 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
   }));
-  return { ...team, eventTypes, members };
+  return { ...team, metadata: teamMetadataSchema.parse(team.metadata), eventTypes, members };
 }
+
 // also returns team
 export async function isTeamAdmin(userId: number, teamId: number) {
   return (
@@ -89,16 +123,19 @@ export async function isTeamAdmin(userId: number, teamId: number) {
       where: {
         userId,
         teamId,
+        accepted: true,
         OR: [{ role: "ADMIN" }, { role: "OWNER" }],
       },
     })) || false
   );
 }
+
 export async function isTeamOwner(userId: number, teamId: number) {
   return !!(await prisma.membership.findFirst({
     where: {
       userId,
       teamId,
+      accepted: true,
       role: "OWNER",
     },
   }));
@@ -109,6 +146,7 @@ export async function isTeamMember(userId: number, teamId: number) {
     where: {
       userId,
       teamId,
+      accepted: true,
     },
   }));
 }
