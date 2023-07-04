@@ -654,7 +654,7 @@ const NavigationItem: React.FC<{
           href={item.href}
           aria-label={t(item.name)}
           className={classNames(
-            "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md py-1.5 px-2 text-sm font-medium",
+            "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium",
             isChild
               ? `[&[aria-current='page']]:text-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
                   props.index === 0 ? "mt-0" : "mt-px"
@@ -893,7 +893,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 target={item.target}
                 className={classNames(
                   "text-left",
-                  "[&[aria-current='page']]:bg-emphasis  text-default justify-right group flex items-center rounded-md py-1.5 px-2 text-sm font-medium",
+                  "[&[aria-current='page']]:bg-emphasis  text-default justify-right group flex items-center rounded-md px-2 py-1.5 text-sm font-medium",
                   "[&[aria-current='page']]:text-emphasis mt-0.5 w-full text-sm",
                   isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
                   index === 0 && "mt-3"
@@ -941,62 +941,65 @@ export function ShellMain(props: LayoutProps) {
 
   return (
     <>
-      <div
-        className={classNames(
-          "flex items-center md:mb-6 md:mt-0",
-          props.smallHeading ? "lg:mb-7" : "lg:mb-8",
-          props.hideHeadingOnMobile ? "mb-0" : "mb-6"
-        )}>
-        {!!props.backPath && (
-          <Button
-            variant="icon"
-            size="sm"
-            color="minimal"
-            onClick={() =>
-              typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
-            }
-            StartIcon={ArrowLeft}
-            aria-label="Go Back"
-            className="rounded-md ltr:mr-2 rtl:ml-2"
-          />
-        )}
-        {props.heading && (
-          <header
-            className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
-            {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className={classNames("w-full truncate ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
-              {props.heading && (
-                <h3
-                  className={classNames(
-                    "font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
-                    props.smallHeading ? "text-base" : "text-xl",
-                    props.hideHeadingOnMobile && "hidden"
-                  )}>
-                  {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
-                </h3>
-              )}
-              {props.subtitle && (
-                <p className="text-default hidden text-sm md:block">
-                  {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
-                </p>
-              )}
-            </div>
-            {props.beforeCTAactions}
-            {props.CTA && (
+      {(props.heading || !!props.backPath) && (
+        <div
+          className={classNames(
+            "flex items-center md:mb-6 md:mt-0",
+            props.smallHeading ? "lg:mb-7" : "lg:mb-8",
+            props.hideHeadingOnMobile ? "mb-0" : "mb-6"
+          )}>
+          {!!props.backPath && (
+            <Button
+              variant="icon"
+              size="sm"
+              color="minimal"
+              onClick={() =>
+                typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
+              }
+              StartIcon={ArrowLeft}
+              aria-label="Go Back"
+              className="rounded-md ltr:mr-2 rtl:ml-2"
+            />
+          )}
+          {props.heading && (
+            <header
+              className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
+              {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
               <div
-                className={classNames(
-                  props.backPath
-                    ? "relative"
-                    : "pwa:bottom-24 fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
-                  "flex-shrink-0 md:relative md:bottom-auto md:right-auto"
-                )}>
-                {props.CTA}
+                className={classNames("w-full truncate ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
+                {props.heading && (
+                  <h3
+                    className={classNames(
+                      "font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
+                      props.smallHeading ? "text-base" : "text-xl",
+                      props.hideHeadingOnMobile && "hidden"
+                    )}>
+                    {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
+                  </h3>
+                )}
+                {props.subtitle && (
+                  <p className="text-default hidden text-sm md:block">
+                    {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
+                  </p>
+                )}
               </div>
-            )}
-            {props.actions && props.actions}
-          </header>
-        )}
-      </div>
+              {props.beforeCTAactions}
+              {props.CTA && (
+                <div
+                  className={classNames(
+                    props.backPath
+                      ? "relative"
+                      : "pwa:bottom-24 fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
+                    "flex-shrink-0 md:relative md:bottom-auto md:right-auto"
+                  )}>
+                  {props.CTA}
+                </div>
+              )}
+              {props.actions && props.actions}
+            </header>
+          )}
+        </div>
+      )}
       {props.afterHeading && <>{props.afterHeading}</>}
       <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
         {props.children}
