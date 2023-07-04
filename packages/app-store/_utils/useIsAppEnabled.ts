@@ -21,8 +21,8 @@ function useIsAppEnabled(app: EventTypeAppCardApp) {
       setAppData("credentialId", undefined);
     }
 
-    if (newValue && app.credentialIds) {
-      setAppData("credentialId", app.credentialIds[0]);
+    if (newValue && (app.userCredentialIds?.length || app.credentialOwner?.credentialId)) {
+      setAppData("credentialId", app.credentialOwner?.credentialId || app.credentialIds[0]);
     }
     setEnabled(newValue);
   };

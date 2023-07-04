@@ -87,7 +87,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = enabledApps.map(
     ({ credentials: _, credential: _1, key: _2 /* don't leak to frontend */, ...app }) => {
-      const credentialIds = credentials.filter((c) => c.type === app.type && !c.teamId).map((c) => c.id);
+      const userCredentialIds = credentials.filter((c) => c.type === app.type && !c.teamId).map((c) => c.id);
       const invalidCredentialIds = credentials
         .filter((c) => c.type === app.type && c.invalid)
         .map((c) => c.id);
@@ -103,10 +103,10 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       return {
         ...app,
         ...(teams.length && { credentialOwner: { name: user.name, avatar: user.avatar } }),
-        credentialIds,
+        userCredentialIds,
         invalidCredentialIds,
         teams,
-        isInstalled: !!credentialIds.length || !!teams.length || app.isGlobal,
+        isInstalled: !!userCredentialIds.length || !!teams.length || app.isGlobal,
       };
     }
   );
@@ -125,7 +125,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
 
   if (onlyInstalled) {
     apps = apps.flatMap((item) =>
-      item.credentialIds.length > 0 || item.teams.length || item.isGlobal ? [item] : []
+      item.userCredentialIds.length > 0 || item.teams.length || item.isGlobal ? [item] : []
     );
   }
 
@@ -134,7 +134,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       .filter((app) => app.extendsFeature?.includes(extendsFeature))
       .map((app) => ({
         ...app,
-        isInstalled: !!app.credentialIds?.length || !!app.teams?.length || app.isGlobal,
+        isInstalled: !!app.userCredentialIds?.length || !!app.teams?.length || app.isGlobal,
       }));
   }
 

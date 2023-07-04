@@ -53,7 +53,7 @@ import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
 
 function ConnectOrDisconnectIntegrationMenuItem(props: {
-  credentialIds: number[];
+  credentialId: number;
   type: App["type"];
   isGlobal?: boolean;
   installed?: boolean;
@@ -61,9 +61,8 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
   teamId?: number;
   handleDisconnect: (credentialId: number, teamId?: number) => void;
 }) {
-  const { type, credentialIds, isGlobal, installed, handleDisconnect, teamId } = props;
+  const { type, credentialId, isGlobal, installed, handleDisconnect, teamId } = props;
   const { t } = useLocale();
-  const [credentialId] = credentialIds;
 
   const utils = trpc.useContext();
   const handleOpenChange = () => {
@@ -191,7 +190,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
                   </DropdownMenuItem>
                 )}
                 <ConnectOrDisconnectIntegrationMenuItem
-                  credentialIds={item.credentialIds}
+                  credentialId={item.credentialOwner?.credentialId || item.userCredentialIds[0]}
                   type={item.type}
                   isGlobal={item.isGlobal}
                   installed
@@ -212,7 +211,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
   const cardsForAppsWithTeams = appsWithTeamCredentials.map((app) => {
     const appCards = [];
 
-    if (app.credentialIds.length) {
+    if (app.userCredentialIds.length) {
       appCards.push(<ChildAppCard item={app} />);
     }
     for (const team of app.teams) {
@@ -221,8 +220,12 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
           <ChildAppCard
             item={{
               ...app,
-              credentialIds: [team.credentialId],
-              credentialOwner: { name: team.name, avatar: team.logo, teamId: team.teamId },
+              credentialOwner: {
+                name: team.name,
+                avatar: team.logo,
+                teamId: team.teamId,
+                credentialId: team.credentialId,
+              },
             }}
           />
         );
