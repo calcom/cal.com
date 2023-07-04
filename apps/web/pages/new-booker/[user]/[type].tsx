@@ -41,17 +41,16 @@ export default function Type({ slug, user, booking, away, isBrandingHidden }: Pa
 Type.PageWrapper = PageWrapper;
 
 async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
-  const { user, type: slug } = paramsSchema.parse(context.params);
+  const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid } = context.query;
 
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
-  const usernameList = getUsernameList(user);
 
   const users = await prisma.user.findMany({
     where: {
       username: {
-        in: usernameList,
+        in: usernames,
       },
     },
     select: {
@@ -72,7 +71,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({ username: user, eventSlug: slug });
+  const eventData = await ssr.viewer.public.event.fetch({ username: usernames.join("+"), eventSlug: slug });
 
   if (!eventData) {
     return {
@@ -83,7 +82,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   return {
     props: {
       booking,
-      user,
+      user: usernames.join("+"),
       slug,
       away: false,
       trpcState: ssr.dehydrate(),
