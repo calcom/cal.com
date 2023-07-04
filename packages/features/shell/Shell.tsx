@@ -22,7 +22,7 @@ import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import VerifyEmailBanner from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
@@ -428,8 +428,8 @@ function UserDropdown({ small }: UserDropdownProps) {
                     StartIcon={(props) => <Slack strokeWidth={1.5} {...props} />}
                     target="_blank"
                     rel="noreferrer"
-                    href={JOIN_SLACK}>
-                    {t("join_our_slack")}
+                    href={JOIN_DISCORD}>
+                    {t("join_our_discord")}
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
