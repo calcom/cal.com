@@ -123,10 +123,10 @@ describe('next.config.js - RegExp', ()=>{
       type:'30'
     })
 
-		expect(privateLinkRouteMatch('/d/3v4s321CXRJZx5TFxkpPvd/30min')?.params).toContain({
-			link: '3v4s321CXRJZx5TFxkpPvd',
-			slug: '30min'
-		})
+    expect(privateLinkRouteMatch('/d/3v4s321CXRJZx5TFxkpPvd/30min')?.params).toContain({
+      link: '3v4s321CXRJZx5TFxkpPvd',
+      slug: '30min'
+    })
 
     expect(privateLinkRouteMatch('/d/3v4s321CXRJZx5TFxkpPvd/30min')?.params).toContain({
 			link: '3v4s321CXRJZx5TFxkpPvd',
