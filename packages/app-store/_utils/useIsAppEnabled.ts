@@ -12,7 +12,8 @@ function useIsAppEnabled(app: EventTypeAppCardApp) {
     }
     const credentialId = getAppData("credentialId");
     const isAppEnabledForCredential =
-      app?.credentialIds && app.credentialIds.some((id) => id === credentialId);
+      app.userCredentialIds.some((id) => id === credentialId) ||
+      app.credentialOwner.credentialId === credentialId;
     return isAppEnabledForCredential;
   });
 
@@ -22,7 +23,7 @@ function useIsAppEnabled(app: EventTypeAppCardApp) {
     }
 
     if (newValue && (app.userCredentialIds?.length || app.credentialOwner?.credentialId)) {
-      setAppData("credentialId", app.credentialOwner?.credentialId || app.credentialIds[0]);
+      setAppData("credentialId", app.credentialOwner?.credentialId || app.userCredentialIds[0]);
     }
     setEnabled(newValue);
   };

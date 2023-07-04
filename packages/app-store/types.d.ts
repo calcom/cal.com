@@ -17,7 +17,7 @@ export type CredentialOwner = {
   credentialId?: number;
 };
 
-export type EventTypeAppCardApp = RouterOutputs["viewer"]["integrations"][number] & {
+export type EventTypeAppCardApp = RouterOutputs["viewer"]["integrations"]["items"][number] & {
   credentialOwner?: CredentialOwner;
   credentialIds?: number[];
 };
