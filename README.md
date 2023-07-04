@@ -46,7 +46,7 @@
 
 ## About the Project
 
-<img width="100%" alt="booking-screen" src="https://user-images.githubusercontent.com/8019099/176390354-f1bc7069-0341-437a-9bb8-eb41092b4016.gif">
+<img width="100%" alt="booking-screen" src="https://github.com/calcom/cal.com/assets/8019099/407e727e-ff19-4ca4-bcae-049dca05cf02">
 
 # Scheduling infrastructure for absolutely everyone
 
@@ -99,7 +99,7 @@ Meet our sales team for any commercial inquiries.
 
 ## Stay Up-to-Date
 
-Cal.com officially launched as v.1.0 on 15th of September, however a lot of new features are coming. Watch **releases** of this repository to be notified for future updates:
+Cal.com officially launched as v.1.0 on 15th of September 2021 and we've come a long way so far. Watch **releases** of this repository to be notified of future updates:
 
 ![cal-star-github](https://user-images.githubusercontent.com/8019099/154853944-a9e3c999-3da3-4048-b149-b4f73893c6fb.gif)
 
@@ -324,12 +324,6 @@ The Docker configuration can be found [in our docker repository](https://github.
 Issues with Docker? Find your answer or open a new discussion [here](https://github.com/calcom/docker/discussions) to ask the community.
 
 Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
-
-### Heroku
-
-<a href="https://heroku.com/deploy?template=https://github.com/calcom/cal.com">
-  <img width="185px" height="auto" src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy">
-</a>
 
 ### Railway
 

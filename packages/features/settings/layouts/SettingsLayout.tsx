@@ -119,6 +119,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "impersonation", href: "/settings/admin/impersonation" },
       { name: "apps", href: "/settings/admin/apps/calendar" },
       { name: "users", href: "/settings/admin/users" },
+      { name: "organizations", href: "/settings/admin/organizations" },
     ],
   },
 ];
@@ -193,6 +194,7 @@ const SettingsSidebarContainer = ({
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
 
   const { data: teams } = trpc.viewer.teams.list.useQuery();
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
 
   useEffect(() => {
     if (teams) {
@@ -385,14 +387,15 @@ const SettingsSidebarContainer = ({
                         </Collapsible>
                       );
                   })}
-                <VerticalTabItem
-                  name={t("add_a_team")}
-                  href={`${WEBAPP_URL}/settings/teams/new`}
-                  textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
-                  icon={Plus}
-                  iconClassName="me-3"
-                  disableChevron
-                />
+                {(!currentOrg || (currentOrg && currentOrg?.user?.role !== "MEMBER")) && (
+                  <VerticalTabItem
+                    name={t("add_a_team")}
+                    href={`${WEBAPP_URL}/settings/teams/new`}
+                    textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
+                    icon={Plus}
+                    disableChevron
+                  />
+                )}
               </div>
             </React.Fragment>
           );
