@@ -11,7 +11,7 @@ let dateRangesNextDay: DateRange[];
 let dateRangesMockDay: DateRange[];
 
 beforeAll(() => {
-  vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
+  vi.setSystemTime(dayjs.utc("2021-06-20T11:59:59Z").toDate());
 
   dateRangesMockDay = [{ start: dayjs.utc().startOf("day"), end: dayjs.utc().endOf("day") }];
 
@@ -81,16 +81,17 @@ describe("Tests the date-range slot logic", () => {
 
   it("shows correct time slots for 20 minutes long events with working hours that do not end at a full hour ", async () => {
     // 72 20-minutes events in a 24h day
+    const result = getSlots({
+      inviteeDate: dayjs().add(1, "day"),
+      frequency: 20,
+      minimumBookingNotice: 0,
+      dateRanges: dateRangesNextDay,
+      eventLength: 20,
+      offsetStart: 0,
+      organizerTimeZone: "America/Toronto",
+    });
     expect(
-      getSlots({
-        inviteeDate: dayjs.utc().add(1, "day"),
-        frequency: 20,
-        minimumBookingNotice: 0,
-        dateRanges: dateRangesNextDay,
-        eventLength: 20,
-        offsetStart: 0,
-        organizerTimeZone: "America/Toronto",
-      })
+      result
     ).toHaveLength(72);
   });
 });
@@ -206,25 +207,31 @@ describe("Tests the slot logic", () => {
     ).toHaveLength(11);
   });
 
-  it("shows correct time slots for 20 minutes long events with working hours that do not end at a full hour ", async () => {
-    // 72 20-minutes events in a 24h day
+  it("shows correct time slots for 20 minutes long events with working hours that do not end at a full hour", async () => {
+    
+    const result = getSlots({
+      inviteeDate: dayjs().add(1, "day"),
+      frequency: 20,
+      minimumBookingNotice: 0,
+      dateRanges: [
+        { start: dayjs("2021-06-21T00:00:00.000Z"), end: dayjs("2021-06-21T23:45:00.000Z") },
+      ],
+      /*workingHours: [
+        {
+          userId: 1,
+          days: Array.from(Array(7).keys()),
+          startTime: MINUTES_DAY_START,
+          endTime: MINUTES_DAY_END - 14, // 23:45
+        },
+      ],*/
+      eventLength: 20,
+      offsetStart: 0,
+      organizerTimeZone: "America/Toronto",
+    });
+
+    // 71 20-minutes events in a 24h - 15m day
     expect(
-      getSlots({
-        inviteeDate: dayjs.utc().add(1, "day"),
-        frequency: 20,
-        minimumBookingNotice: 0,
-        workingHours: [
-          {
-            userId: 1,
-            days: Array.from(Array(7).keys()),
-            startTime: MINUTES_DAY_START,
-            endTime: MINUTES_DAY_END - 14, // 23:45
-          },
-        ],
-        eventLength: 20,
-        offsetStart: 0,
-        organizerTimeZone: "America/Toronto",
-      })
+      result
     ).toHaveLength(71);
   });
 
