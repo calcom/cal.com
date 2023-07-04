@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const ZGetMembersInput = z.object({
   teamIdToExclude: z.number().optional(),
-  accepted: z.boolean().optional().default(true),
+  accepted: z.boolean().optional(),
   distinctUser: z.boolean().optional().default(false),
 });
 
