@@ -15,54 +15,30 @@ type IntegrationsOptions = {
 type TeamQuery = Prisma.TeamGetPayload<{
   select: {
     id: true;
-    credentials: true;
+    credentials?: true;
     name: true;
     logo: true;
   };
 }>;
 
-type TeamQueryWithParent = TeamQuery & {
-  parent?: TeamQuery | null;
-};
+// type TeamQueryWithParent = TeamQuery & {
+//   parent?: TeamQuery | null;
+// };
 
 export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) => {
   const { user } = ctx;
   const { variant, exclude, onlyInstalled, includeTeamInstalledApps, extendsFeature, teamId } = input;
   let { credentials } = user;
-  let userAdminTeams = await getUserAdminTeams({ userId: user.id, getParentInfo: true });
+  let userAdminTeams = await getUserAdminTeams({
+    userId: user.id,
+    getParentInfo: true,
+    includeCredentials: true,
+  });
 
   if (includeTeamInstalledApps || teamId) {
-    // Get app credentials that the user is an admin or owner to
-    // userAdminTeams = await prisma.team.findMany({
-    //   where: {
-    //     ...(teamId && { id: teamId }),
-    //     members: {
-    //       some: {
-    //         userId: user.id,
-    //         accepted: true,
-    //         role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-    //       },
-    //     },
-    //   },
-    //   select: {
-    //     id: true,
-    //     credentials: true,
-    //     name: true,
-    //     logo: true,
-    //     parent: {
-    //       select: {
-    //         id: true,
-    //         credentials: true,
-    //         name: true,
-    //         logo: true,
-    //       },
-    //     },
-    //   },
-    // });
-
     // If a team is a part of an org then include those apps
     // Don't want to iterate over these parent teams
-    const parentTeams: TeamQueryWithParent[] = [];
+    const parentTeams: TeamQuery[] = [];
     // Only loop and grab parent teams if a teamId was given. If not then all teams will be queried
     if (teamId) {
       userAdminTeams.forEach((team) => {
@@ -75,7 +51,9 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
 
     userAdminTeams = [...userAdminTeams, ...parentTeams];
 
-    const teamAppCredentials: Credential[] = userAdminTeams.flatMap((teamApp) => teamApp.credentials.flat());
+    const teamAppCredentials: Credential[] = userAdminTeams.flatMap((teamApp) => {
+      return teamApp.credentials ? teamApp.credentials.flat() : [];
+    });
     if (!includeTeamInstalledApps || teamId) {
       credentials = teamAppCredentials;
     } else {

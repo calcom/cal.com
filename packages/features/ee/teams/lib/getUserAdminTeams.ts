@@ -8,7 +8,7 @@ export type UserAdminTeams = (Prisma.TeamGetPayload<{
     id: true;
     name: true;
     logo: true;
-    credentials: true;
+    credentials?: true;
     parent?: {
       select: {
         id: true;
@@ -51,9 +51,9 @@ const getUserAdminTeams = async ({
         parent: {
           select: {
             id: true,
-            credentials: includeCredentials,
             name: true,
             logo: true,
+            credentials: true,
           },
         },
       }),
@@ -74,7 +74,13 @@ const getUserAdminTeams = async ({
     });
 
     if (user) {
-      const userObject = { id: user.id, name: user.name || "Nameless", logo: user?.avatar, isUser: true };
+      const userObject = {
+        id: user.id,
+        name: user.name || "Nameless",
+        logo: user?.avatar,
+        isUser: true,
+        credentials: user.credentials,
+      };
       teams.unshift(userObject);
     }
   }
