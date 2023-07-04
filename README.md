@@ -46,7 +46,7 @@
 
 ## About the Project
 
-<img width="100%" alt="booking-screen" src="https://user-images.githubusercontent.com/8019099/176390354-f1bc7069-0341-437a-9bb8-eb41092b4016.gif">
+<img width="100%" alt="booking-screen" src="https://github.com/calcom/cal.com/assets/8019099/407e727e-ff19-4ca4-bcae-049dca05cf02">
 
 # Scheduling infrastructure for absolutely everyone
 
@@ -90,9 +90,16 @@ That's where Cal.com comes in. Self-hosted or hosted by us. White-label by desig
 - [Prisma.io](https://prisma.io/?ref=cal.com)
 - [Daily.co](https://go.cal.com/daily)
 
+
+## Contact us
+
+Meet our sales team for any commercial inquiries.
+
+<a href="https://cal.com/sales"><img src="https://cal.com/book-with-cal-dark.svg" alt="Book us with Cal.com"></a>
+
 ## Stay Up-to-Date
 
-Cal.com officially launched as v.1.0 on 15th of September, however a lot of new features are coming. Watch **releases** of this repository to be notified for future updates:
+Cal.com officially launched as v.1.0 on 15th of September 2021 and we've come a long way so far. Watch **releases** of this repository to be notified of future updates:
 
 ![cal-star-github](https://user-images.githubusercontent.com/8019099/154853944-a9e3c999-3da3-4048-b149-b4f73893c6fb.gif)
 
@@ -106,7 +113,7 @@ To get a local copy up and running, please follow these simple steps.
 
 Here is what you need to be able to run Cal.com.
 
-- Node.js (Version: >=15.x <17)
+- Node.js (Version: >=18.x)
 - PostgreSQL
 - Yarn _(recommended)_
 
@@ -122,8 +129,7 @@ Here is what you need to be able to run Cal.com.
    git clone https://github.com/calcom/cal.com.git
    ```
 
-   > If you are on windows, run the following command on `gitbash` with admin privileges: <br>
-   > `git clone -c core.symlinks=true https://github.com/calcom/cal.com.git` <br>
+   > If you are on windows, run the following command on `gitbash` with admin privileges: <br> > `git clone -c core.symlinks=true https://github.com/calcom/cal.com.git` <br>
    > See [docs](https://cal.com/docs/how-to-guides/how-to-troubleshoot-symbolic-link-issues-on-windows#enable-symbolic-links) for more details.
 
 1. Go to the project folder
@@ -202,6 +208,14 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 1. Set a 32 character random string in your `.env` file for the `CALENDSO_ENCRYPTION_KEY` (You can use a command like `openssl rand -base64 24` to generate one).
 1. Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
+
+   In a development environment, run:
+
+   ```sh
+   yarn workspace @calcom/prisma db-migrate
+   ```
+
+   In a production environment, run:
 
    ```sh
    yarn workspace @calcom/prisma db-deploy
@@ -311,12 +325,6 @@ Issues with Docker? Find your answer or open a new discussion [here](https://git
 
 Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
 
-### Heroku
-
-<a href="https://heroku.com/deploy?template=https://github.com/calcom/cal.com">
-  <img width="185px" height="auto" src="https://herokucdn.com/deploy/button.svg" alt="Deploy">
-</a>
-
 ### Railway
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/cal)
@@ -419,7 +427,7 @@ Make sure to complete section "Obtaining the Google API Credentials". After the 
 following
 
 1. Add extra redirect URL `<Cal.com URL>/api/auth/callback/google`
-1. Under 'OAuth concent screen', click "PUBLISH APP"
+1. Under 'OAuth consent screen', click "PUBLISH APP"
 
 ### Obtaining Microsoft Graph Client ID and Secret
 

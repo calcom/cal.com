@@ -6,7 +6,7 @@ import { HttpError } from "../http-error";
 import { parseBookingLimit } from "../isBookingLimits";
 
 export async function checkBookingLimits(
-  bookingLimits: any,
+  bookingLimits: IntervalLimit,
   eventStartDate: Date,
   eventId: number,
   returnBusyTimes?: boolean

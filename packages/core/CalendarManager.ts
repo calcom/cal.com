@@ -1,12 +1,10 @@
 import type { SelectedCalendar } from "@prisma/client";
 import { sortBy } from "lodash";
-import * as process from "process";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type {
@@ -18,8 +16,9 @@ import type {
 import type { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
 
+import getCalendarsEvents from "./getCalendarsEvents";
+
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
-let coldStart = true;
 
 export const getCalendarCredentials = (credentials: Array<CredentialPayload>) => {
   const calendarCredentials = getApps(credentials)
@@ -57,7 +56,7 @@ export const getConnectedCalendars = async (
         }
         const cals = await calendar.listCalendars();
         const calendars = sortBy(
-          cals.map((cal) => {
+          cals.map((cal: IntegrationCalendar) => {
             if (cal.externalId === destinationCalendarExternalId) destinationCalendar = cal;
             return {
               ...cal,
@@ -151,6 +150,7 @@ export const getCachedResults = async (
      * TODO: Migrate credential type or appId
      */
     const passedSelectedCalendars = selectedCalendars.filter((sc) => sc.integration === type);
+    if (!passedSelectedCalendars.length) return [];
     /** We extract external Ids so we don't cache too much */
     const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
     /** If we don't then we actually fetch external calendars (which can be very slow) */
@@ -163,7 +163,7 @@ export const getCachedResults = async (
       "eventBusyDatesEnd"
     );
 
-    return eventBusyDates.map((a) => ({ ...a, source: `${appId}` }));
+    return eventBusyDates.map((a: object) => ({ ...a, source: `${appId}` }));
   });
   const awaitedResults = await Promise.all(results);
   performance.mark("getBusyCalendarTimesEnd");
@@ -172,31 +172,10 @@ export const getCachedResults = async (
     "getBusyCalendarTimesStart",
     "getBusyCalendarTimesEnd"
   );
-  return awaitedResults;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return awaitedResults as any;
 };
 
-/**
- * This function fetch the json file that NextJS generates and uses to hydrate the static page on browser.
- * If for some reason NextJS still doesn't generate this file, it will wait until it finishes generating it.
- * On development environment it takes a long time because Next must compiles the whole page.
- * @param username
- * @param month A string representing year and month using YYYY-MM format
- */
-const getNextCache = async (username: string, month: string): Promise<EventBusyDate[][]> => {
-  let localCache: EventBusyDate[][] = [];
-  const { NODE_ENV } = process.env;
-  const cacheDir = `${NODE_ENV === "development" ? NODE_ENV : process.env.BUILD_ID}`;
-  const baseUrl = `${WEBAPP_URL}/_next/data/${cacheDir}/en`;
-  const url = `${baseUrl}/${username}/calendar-cache/${month}.json?user=${username}&month=${month}`;
-  try {
-    localCache = await fetch(url)
-      .then((r) => r.json())
-      .then((json) => json?.pageProps?.results);
-  } catch (e) {
-    log.warn(url, e);
-  }
-  return localCache;
-};
 /**
  * Get months between given dates
  * @returns ["2023-04", "2024-05"]
@@ -214,41 +193,25 @@ const getMonths = (dateFrom: string, dateTo: string): string[] => {
   return months;
 };
 
-const createCalendarCachePage = (username: string, month: string): void => {
-  // No need to wait for this, the purpose is to force re-validation every second as indicated
-  // in page getStaticProps.
-  fetch(`${WEBAPP_URL}/${username}/calendar-cache/${month}`).catch(console.log);
-};
 export const getBusyCalendarTimes = async (
   username: string,
   withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
-  selectedCalendars: SelectedCalendar[]
+  selectedCalendars: SelectedCalendar[],
+  organizationSlug?: string | null
 ) => {
   let results: EventBusyDate[][] = [];
   const months = getMonths(dateFrom, dateTo);
   try {
-    if (coldStart) {
-      results = await getCachedResults(withCredentials, dateFrom, dateTo, selectedCalendars);
-      logger.info("Generating calendar cache in background");
-      // on cold start the calendar cache page generated in the background
-      Promise.all(months.map((month) => createCalendarCachePage(username, month)));
-    } else {
-      if (months.length === 1) {
-        results = await getNextCache(username, dayjs(dateFrom).format("YYYY-MM"));
-      } else {
-        // if dateFrom and dateTo is from different months get cache by each month
-        const data: EventBusyDate[][][] = await Promise.all(
-          months.map((month) => getNextCache(username, month))
-        );
-        results = data.flat(1);
-      }
-    }
+    // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
+    const startDate = dayjs(dateFrom).subtract(11, "hours").format();
+    // Add 14 hours from the start date to avoid problems in UTC+ time zones.
+    const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
+    results = await getCalendarsEvents(withCredentials, startDate, endDate, selectedCalendars);
   } catch (e) {
     logger.warn(e);
   }
-  coldStart = false;
   return results.reduce((acc, availability) => acc.concat(availability), []);
 };
 
@@ -268,7 +231,7 @@ export const createEvent = async (
 
   // TODO: Surface success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
-    ? await calendar.createEvent(calEvent).catch(async (error) => {
+    ? await calendar.createEvent(calEvent).catch(async (error: { code: number; calError: string }) => {
         success = false;
         /**
          * There is a time when selectedCalendar externalId doesn't match witch certain credential
@@ -316,15 +279,15 @@ export const updateEvent = async (
   if (bookingRefUid === "") {
     log.error("updateEvent failed", "bookingRefUid is empty", calEvent, credential);
   }
-  const updatedResult =
+  const updatedResult: NewCalendarEventType | NewCalendarEventType[] | undefined =
     calendar && bookingRefUid
       ? await calendar
           .updateEvent(bookingRefUid, calEvent, externalCalendarId)
-          .then((event) => {
+          .then((event: NewCalendarEventType | NewCalendarEventType[]) => {
             success = true;
             return event;
           })
-          .catch(async (e) => {
+          .catch(async (e: { calError: string }) => {
             // @TODO: This code will be off till we can investigate an error with it
             // @see https://github.com/calcom/cal.com/issues/3949
             // await sendBrokenIntegrationEmail(calEvent, "calendar");

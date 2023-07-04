@@ -29,7 +29,6 @@ type AvailableTimesProps = {
   bookingAttendees?: number | null;
   slots?: Slot[];
   isLoading: boolean;
-  ethSignature?: string;
   duration: number;
 };
 
@@ -44,7 +43,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   onTimeFormatChange,
   seatsPerTimeSlot,
   bookingAttendees,
-  ethSignature,
   duration,
 }) => {
   const searchParams = useSearchParams();
@@ -121,7 +119,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                     timeFormat,
                     /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
                     count: recurringCount && !rescheduleUid ? recurringCount : undefined,
-                    ...(ethSignature ? { ethSignature } : {}),
                   },
                 };
 
@@ -166,7 +163,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                           brand === "#fff" || brand === "#ffffff" ? "" : ""
                         )}
                         onClick={() => reserveSlot(slot)}
-                        data-testid="time">
+                        data-testid="time"
+                        data-disabled="false">
                         {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
                         {!!seatsPerTimeSlot && (
                           <p

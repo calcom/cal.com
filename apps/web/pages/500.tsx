@@ -21,7 +21,7 @@ export default function Error500() {
       <div className="rtl: bg-default m-auto rounded-md p-10 text-right ltr:text-left">
         <h1 className="font-cal text-emphasis text-6xl">500</h1>
         <h2 className="text-emphasis mt-6 text-2xl font-medium">It&apos;s not you, it&apos;s us.</h2>
-        <p className="text-default mt-4 mb-6 max-w-2xl text-sm">
+        <p className="text-default mb-6 mt-4 max-w-2xl text-sm">
           Something went wrong on our end. Get in touch with our support team, and we’ll get it fixed right
           away for you.
         </p>

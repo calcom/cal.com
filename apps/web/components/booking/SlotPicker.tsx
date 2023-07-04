@@ -79,7 +79,6 @@ export const SlotPicker = ({
   seatsPerTimeSlot,
   bookingAttendees,
   weekStart = 0,
-  ethSignature,
 }: {
   eventType: Pick<
     EventType & {
@@ -95,7 +94,6 @@ export const SlotPicker = ({
   recurringEventCount?: number;
   users: string[];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
-  ethSignature?: string;
 }) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
@@ -193,7 +191,6 @@ export const SlotPicker = ({
         seatsPerTimeSlot={seatsPerTimeSlot}
         bookingAttendees={bookingAttendees}
         recurringCount={recurringEventCount}
-        ethSignature={ethSignature}
         duration={parseInt(duration)}
       />
     </>
