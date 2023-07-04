@@ -15,6 +15,7 @@ export type CredentialOwner = {
   avatar?: string | null;
   teamId?: number;
   credentialId?: number;
+  readOnly?: boolean;
 };
 
 export type EventTypeAppCardApp = RouterOutputs["viewer"]["integrations"]["items"][number] & {

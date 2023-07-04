@@ -1,5 +1,6 @@
-import getUserAdminTeams from "@calcom/ee/teams/lib/getUserAdminTeams";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
+import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TIntegrationsInputSchema } from "./integrations.schema";
@@ -18,6 +19,11 @@ type TeamQuery = Prisma.TeamGetPayload<{
     credentials?: true;
     name: true;
     logo: true;
+    members: {
+      select: {
+        role: true;
+      };
+    };
   };
 }>;
 
@@ -29,29 +35,67 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
   const { user } = ctx;
   const { variant, exclude, onlyInstalled, includeTeamInstalledApps, extendsFeature, teamId } = input;
   let { credentials } = user;
-  let userAdminTeams = await getUserAdminTeams({
-    userId: user.id,
-    getParentInfo: true,
-    includeCredentials: true,
-  });
+  let userTeams: TeamQuery[] = [];
 
   if (includeTeamInstalledApps || teamId) {
+    const teamsQuery = await prisma.team.findMany({
+      where: {
+        members: {
+          some: {
+            userId: user.id,
+            accepted: true,
+          },
+        },
+      },
+      select: {
+        id: true,
+        credentials: true,
+        name: true,
+        logo: true,
+        members: {
+          where: {
+            userId: user.id,
+          },
+          select: {
+            role: true,
+          },
+        },
+        parent: {
+          select: {
+            id: true,
+            credentials: true,
+            name: true,
+            logo: true,
+            members: {
+              where: {
+                userId: user.id,
+              },
+              select: {
+                role: true,
+              },
+            },
+          },
+        },
+      },
+    });
     // If a team is a part of an org then include those apps
     // Don't want to iterate over these parent teams
+    const filteredTeams: TeamQuery[] = [];
     const parentTeams: TeamQuery[] = [];
     // Only loop and grab parent teams if a teamId was given. If not then all teams will be queried
     if (teamId) {
-      userAdminTeams.forEach((team) => {
+      teamsQuery.forEach((team) => {
         if (team?.parent) {
-          parentTeams.push(team.parent);
-          delete team.parent;
+          const { parent, ...filteredTeam } = team;
+          filteredTeams.push(filteredTeam);
+          parentTeams.push(parent);
         }
       });
     }
 
-    userAdminTeams = [...userAdminTeams, ...parentTeams];
+    userTeams = [...teamsQuery, ...parentTeams];
 
-    const teamAppCredentials: Credential[] = userAdminTeams.flatMap((teamApp) => {
+    const teamAppCredentials: Credential[] = userTeams.flatMap((teamApp) => {
       return teamApp.credentials ? teamApp.credentials.flat() : [];
     });
     if (!includeTeamInstalledApps || teamId) {
@@ -72,11 +116,18 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       const teams = credentials
         .filter((c) => c.type === app.type && c.teamId)
         .map((c) => {
-          const team = userAdminTeams.find((team) => team.id === c.teamId);
+          const team = userTeams.find((team) => team.id === c.teamId);
           if (!team) {
             return null;
           }
-          return { teamId: team.id, name: team.name, logo: team.logo, credentialId: c.id };
+          return {
+            teamId: team.id,
+            name: team.name,
+            logo: team.logo,
+            credentialId: c.id,
+            isAdmin:
+              team.members[0].role === MembershipRole.ADMIN || team.members[0].role === MembershipRole.OWNER,
+          };
         });
       return {
         ...app,

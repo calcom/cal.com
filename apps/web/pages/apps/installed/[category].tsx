@@ -162,45 +162,47 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
         invalidCredential={item?.invalidCredentialIds ? item.invalidCredentialIds.length > 0 : false}
         credentialOwner={item?.credentialOwner}
         actions={
-          <div className="flex justify-end">
-            <Dropdown modal={false}>
-              <DropdownMenuTrigger asChild>
-                <Button StartIcon={MoreHorizontal} variant="icon" color="secondary" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {!appIsDefault && variant === "conferencing" && (
-                  <DropdownMenuItem>
-                    <DropdownItem
-                      type="button"
-                      color="secondary"
-                      StartIcon={Video}
-                      onClick={() => {
-                        const locationType = getEventLocationTypeFromApp(item?.locationOption?.value ?? "");
-                        if (locationType?.linkType === "static") {
-                          setLocationType({ ...locationType, slug: appSlug });
-                        } else {
-                          updateDefaultAppMutation.mutate({
-                            appSlug,
-                          });
-                          setBulkUpdateModal(true);
-                        }
-                      }}>
-                      {t("set_as_default")}
-                    </DropdownItem>
-                  </DropdownMenuItem>
-                )}
-                <ConnectOrDisconnectIntegrationMenuItem
-                  credentialId={item.credentialOwner?.credentialId || item.userCredentialIds[0]}
-                  type={item.type}
-                  isGlobal={item.isGlobal}
-                  installed
-                  invalidCredentialIds={item.invalidCredentialIds}
-                  handleDisconnect={handleDisconnect}
-                  teamId={item.credentialOwner ? item.credentialOwner?.teamId : undefined}
-                />
-              </DropdownMenuContent>
-            </Dropdown>
-          </div>
+          !item.credentialOwner?.readOnly ? (
+            <div className="flex justify-end">
+              <Dropdown modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <Button StartIcon={MoreHorizontal} variant="icon" color="secondary" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {!appIsDefault && variant === "conferencing" && (
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        color="secondary"
+                        StartIcon={Video}
+                        onClick={() => {
+                          const locationType = getEventLocationTypeFromApp(item?.locationOption?.value ?? "");
+                          if (locationType?.linkType === "static") {
+                            setLocationType({ ...locationType, slug: appSlug });
+                          } else {
+                            updateDefaultAppMutation.mutate({
+                              appSlug,
+                            });
+                            setBulkUpdateModal(true);
+                          }
+                        }}>
+                        {t("set_as_default")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                  )}
+                  <ConnectOrDisconnectIntegrationMenuItem
+                    credentialId={item.credentialOwner?.credentialId || item.userCredentialIds[0]}
+                    type={item.type}
+                    isGlobal={item.isGlobal}
+                    installed
+                    invalidCredentialIds={item.invalidCredentialIds}
+                    handleDisconnect={handleDisconnect}
+                    teamId={item.credentialOwner ? item.credentialOwner?.teamId : undefined}
+                  />
+                </DropdownMenuContent>
+              </Dropdown>
+            </div>
+          ) : null
         }>
         <AppSettings slug={item.slug} />
       </AppListCard>
@@ -225,6 +227,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
                 avatar: team.logo,
                 teamId: team.teamId,
                 credentialId: team.credentialId,
+                readOnly: !team.isAdmin,
               },
             }}
           />
