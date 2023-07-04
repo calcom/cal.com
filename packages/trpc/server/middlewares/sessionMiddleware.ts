@@ -109,7 +109,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
   const isOrgAdmin = !!user.organization?.members.length;
   // Want to reduce the amount of data being sent
   if (isOrgAdmin && user.organization?.members) {
-    user.organization.members = [];
+    delete user.organization.members;
   }
   return {
     ...user,
