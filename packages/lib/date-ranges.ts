@@ -173,6 +173,8 @@ export function subtract(sourceRanges: DateRange[], excludedRanges: DateRange[])
       ({ start, end }) => start.isBefore(sourceEnd) && end.isAfter(sourceStart)
     );
 
+    overlappingRanges.sort((a, b) => (a.start.isAfter(b.start) ? 1 : -1));
+
     for (const { start: excludedStart, end: excludedEnd } of overlappingRanges) {
       if (excludedStart.isAfter(currentStart)) {
         result.push({ start: currentStart, end: excludedStart });
