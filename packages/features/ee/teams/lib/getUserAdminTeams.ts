@@ -46,7 +46,7 @@ const getUserAdminTeams = async ({
       id: true,
       name: true,
       logo: true,
-      credentials: includeCredentials,
+      ...(includeCredentials && { credentials: true }),
       ...(getParentInfo && {
         parent: {
           select: {
@@ -69,7 +69,7 @@ const getUserAdminTeams = async ({
         id: true,
         name: true,
         avatar: true,
-        credentials: includeCredentials,
+        ...(includeCredentials && { credentials: true }),
       },
     });
 
@@ -79,7 +79,7 @@ const getUserAdminTeams = async ({
         name: user.name || "Nameless",
         logo: user?.avatar,
         isUser: true,
-        credentials: user.credentials,
+        ...(includeCredentials && { credentials: true }),
       };
       teams.unshift(userObject);
     }
