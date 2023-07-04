@@ -149,7 +149,7 @@ export const EventSetupTab = (
     } else {
       setSelectedLocation(option);
     }
-//     setShowLocationModal(true);
+    //     setShowLocationModal(true);
   };
 
   const removeLocation = (selectedLocation: (typeof eventType.locations)[number]) => {
