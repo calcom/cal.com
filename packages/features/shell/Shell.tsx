@@ -49,6 +49,7 @@ import {
   HeadSeo,
   Logo,
   SkeletonText,
+  SkeletonAvatar,
   Tooltip,
   showToast,
   useCalcomTheme,
@@ -654,7 +655,7 @@ const NavigationItem: React.FC<{
           href={item.href}
           aria-label={t(item.name)}
           className={classNames(
-            "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md py-1.5 px-2 text-sm font-medium",
+            "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium",
             isChild
               ? `[&[aria-current='page']]:text-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
                   props.index === 0 ? "mt-0" : "mt-px"
@@ -851,6 +852,12 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 </span>
               </div>
             )}
+            {!isLocaleReady && (
+              <div className="flex w-full gap-1">
+                <SkeletonAvatar className="min-w-5 min-h-5 mt-0 h-5 w-5" />
+                <SkeletonText className="h-[20px] w-full" />
+              </div>
+            )}
             <div className="flex space-x-0.5 rtl:space-x-reverse">
               <button
                 color="minimal"
@@ -893,7 +900,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 target={item.target}
                 className={classNames(
                   "text-left",
-                  "[&[aria-current='page']]:bg-emphasis  text-default justify-right group flex items-center rounded-md py-1.5 px-2 text-sm font-medium",
+                  "[&[aria-current='page']]:bg-emphasis  text-default justify-right group flex items-center rounded-md px-2 py-1.5 text-sm font-medium",
                   "[&[aria-current='page']]:text-emphasis mt-0.5 w-full text-sm",
                   isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
                   index === 0 && "mt-3"
