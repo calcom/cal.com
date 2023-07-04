@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
@@ -26,6 +26,7 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }:
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const event = useEvent();
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const onTimeSelect = (time: string) => {
     setSelectedTimeslot(time);
@@ -58,8 +59,15 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }:
   const isMultipleDates = dates.length > 1;
   const slotsPerDay = useSlotsForMultipleDates(dates, schedule?.data?.slots);
 
+  useEffect(() => {
+    if (containerRef.current && !schedule.isLoading) {
+      containerRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [containerRef, schedule.isLoading]);
+
   return (
     <div
+      ref={containerRef}
       className={classNames(
         limitHeight && "flex-grow md:h-[400px]",
         !limitHeight && "flex h-full w-full flex-row gap-4"
