@@ -41,7 +41,7 @@ export default function Type({ slug, user, booking, away, isBrandingHidden, resc
 Type.PageWrapper = PageWrapper;
 
 async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
-  const { user, type: slug } = paramsSchema.parse(context.params);
+  const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, bookingUid } = context.query;
 
   const { ssrInit } = await import("@server/lib/ssr");
