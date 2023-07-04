@@ -31,7 +31,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
 
   const data = {
     type: "exchange2013_calendar",
-    key: symmetricEncrypt(JSON.stringify(body), process.env.CALENDSO_ENCRYPTION_KEY!),
+    key: symmetricEncrypt(JSON.stringify(body), process.env.CALENDSO_ENCRYPTION_KEY || ""),
     userId: user.id,
     appId: "exchange2013-calendar",
     invalid: false,
