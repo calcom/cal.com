@@ -108,6 +108,7 @@ const OrgAppearanceView = () => {
             <ThemeLabel
               variant="system"
               value={null}
+              page="Organization"
               label={t("theme_system")}
               defaultChecked={currentOrg.theme === null}
               register={form.register}
@@ -115,6 +116,7 @@ const OrgAppearanceView = () => {
             <ThemeLabel
               variant="light"
               value="light"
+              page="Organization"
               label={t("theme_light")}
               defaultChecked={currentOrg.theme === "light"}
               register={form.register}
@@ -122,6 +124,7 @@ const OrgAppearanceView = () => {
             <ThemeLabel
               variant="dark"
               value="dark"
+              page="Organization"
               label={t("theme_dark")}
               defaultChecked={currentOrg.theme === "dark"}
               register={form.register}

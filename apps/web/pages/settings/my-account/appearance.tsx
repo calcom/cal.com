@@ -122,7 +122,7 @@ const AppearanceView = () => {
 
       <div className="mb-6 flex items-center text-sm">
         <div>
-        <p className="text-default font-semibold">{t("theme")}</p>
+          <p className="text-default font-semibold">{t("theme")}</p>
           <p className="text-default">{t("theme_applies_note")}</p>
         </div>
       </div>
