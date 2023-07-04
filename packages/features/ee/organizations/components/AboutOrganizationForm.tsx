@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import z from "zod";
@@ -9,115 +9,72 @@ import { Avatar, Button, Form, ImageUploader, Alert, Label, TextAreaField } from
 import { ArrowRight, Plus } from "@calcom/ui/components/icon";
 
 const querySchema = z.object({
-  id: z.string(),
+    id: z.string(),
 });
 
 export const AboutOrganizationForm = () => {
-  const { t } = useLocale();
-  const router = useRouter();
-  const { id: orgId } = querySchema.parse(router.query);
-  const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
-  const [image, setImage] = useState("");
-
-  const aboutOrganizationFormMethods = useForm<{
-    logo: string;
-    bio: string;
-  }>();
-
-  const updateOrganizationMutation = trpc.viewer.organizations.update.useMutation({
-    onSuccess: (data) => {
-      if (data.update) {
-        router.push(`/settings/organizations/${orgId}/onboard-admins`);
-      }
-    },
-    onError: (err) => {
-      setServerErrorMessage(err.message);
-    },
-  });
-
-  return (
-    <>
-      <Form
-        form={aboutOrganizationFormMethods}
-        className="space-y-5"
-        handleSubmit={(v) => {
-          if (!updateOrganizationMutation.isLoading) {
-            setServerErrorMessage(null);
-            updateOrganizationMutation.mutate({ ...v, orgId });
-          }
+    const { t } = useLocale();
+    const router = useRouter();
+    const { id: orgId } = querySchema.parse(...Object.fromEntries(searchParams ?? new URLSearchParams()));
+    const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
+    const [image, setImage] = useState("");
+    
+    const aboutOrganizationFormMethods = useForm<{
+        logo: string;
+        bio: string;
+    }>();
+    
+    const updateOrganizationMutation = trpc.viewer.organizations.update.useMutation({
+        onSuccess: (data) => {
+            if (data.update) {
+                router.push(`/settings/organizations/${orgId}/onboard-admins`);
+            }
+        },
+        onError: (err) => {
+            setServerErrorMessage(err.message);
+        },
+    });
+    
+    return (<>
+      <Form form={aboutOrganizationFormMethods} className="space-y-5" handleSubmit={(v) => {
+            if (!updateOrganizationMutation.isLoading) {
+                setServerErrorMessage(null);
+                updateOrganizationMutation.mutate({ ...v, orgId });
+            }
         }}>
-        {serverErrorMessage && (
-          <div>
-            <Alert severity="error" message={serverErrorMessage} />
-          </div>
-        )}
+        {serverErrorMessage && (<div>
+            <Alert severity="error" message={serverErrorMessage}/>
+          </div>)}
 
         <div>
-          <Controller
-            control={aboutOrganizationFormMethods.control}
-            name="logo"
-            render={() => (
-              <>
+          <Controller control={aboutOrganizationFormMethods.control} name="logo" render={() => (<>
                 <Label>{t("organization_logo")}</Label>
                 <div className="flex items-center">
-                  <Avatar
-                    alt=""
-                    fallback={<Plus className="text-subtle h-6 w-6" />}
-                    asChild
-                    className="items-center"
-                    imageSrc={image}
-                    size="lg"
-                  />
+                  <Avatar alt="" fallback={<Plus className="text-subtle h-6 w-6"/>} asChild className="items-center" imageSrc={image} size="lg"/>
                   <div className="ms-4">
-                    <ImageUploader
-                      target="avatar"
-                      id="avatar-upload"
-                      buttonMsg={t("upload")}
-                      handleAvatarChange={(newAvatar: string) => {
-                        setImage(newAvatar);
-                        aboutOrganizationFormMethods.setValue("logo", newAvatar);
-                      }}
-                      imageSrc={image}
-                    />
+                    <ImageUploader target="avatar" id="avatar-upload" buttonMsg={t("upload")} handleAvatarChange={(newAvatar: string) => {
+                setImage(newAvatar);
+                aboutOrganizationFormMethods.setValue("logo", newAvatar);
+            }} imageSrc={image}/>
                   </div>
                 </div>
-              </>
-            )}
-          />
+              </>)}/>
         </div>
 
         <div>
-          <Controller
-            control={aboutOrganizationFormMethods.control}
-            name="bio"
-            render={({ field: { value } }) => (
-              <>
-                <TextAreaField
-                  name="about"
-                  defaultValue={value}
-                  onChange={(e) => {
-                    aboutOrganizationFormMethods.setValue("bio", e?.target.value);
-                  }}
-                />
+          <Controller control={aboutOrganizationFormMethods.control} name="bio" render={({ field: { value } }) => (<>
+                <TextAreaField name="about" defaultValue={value} onChange={(e) => {
+                aboutOrganizationFormMethods.setValue("bio", e?.target.value);
+            }}/>
                 <p className="text-subtle text-sm">{t("organization_about_description")}</p>
-              </>
-            )}
-          />
+              </>)}/>
         </div>
 
         <div className="flex">
-          <Button
-            disabled={
-              aboutOrganizationFormMethods.formState.isSubmitting || updateOrganizationMutation.isLoading
-            }
-            color="primary"
-            EndIcon={ArrowRight}
-            type="submit"
-            className="w-full justify-center">
+          <Button disabled={aboutOrganizationFormMethods.formState.isSubmitting || updateOrganizationMutation.isLoading} color="primary" EndIcon={ArrowRight} type="submit" className="w-full justify-center">
             {t("continue")}
           </Button>
         </div>
       </Form>
-    </>
-  );
+    </>);
 };
