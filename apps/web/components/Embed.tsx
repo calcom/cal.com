@@ -1254,7 +1254,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     />
                   )}
                 </div>
-                <div className={searchParams?.get("embedTabName") == "embed-preview" ? "mt-2 block" : "hidden"} />
+                <div
+                  className={searchParams?.get("embedTabName") == "embed-preview" ? "mt-2 block" : "hidden"}
+                />
                 <DialogFooter
                   className="mt-10 flex flex-row-reverse gap-x-2"
                   showDivider
