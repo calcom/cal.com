@@ -7,13 +7,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import type { appDataSchema } from "../zod";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
-  app,
-  eventType,
-  disabled,
-  LockedIcon,
-}) {
-  const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
+  const [getAppData, setAppData, LockedIcon, disabled] = useAppContextWithSchema<typeof appDataSchema>();
   const thankYouPage = getAppData("thankYouPage");
   const { enabled: showGifSelection, updateEnabled: setShowGifSelection } = useIsAppEnabled(app);
 

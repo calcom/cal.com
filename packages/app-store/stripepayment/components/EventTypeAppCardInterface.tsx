@@ -13,14 +13,9 @@ import type { appDataSchema } from "../zod";
 
 type Option = { value: string; label: string };
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
-  app,
-  eventType,
-  disabled,
-  LockedIcon,
-}) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const { asPath } = useRouter();
-  const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
+  const [getAppData, setAppData, LockedIcon, disabled] = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
   const currency = getAppData("currency");
   const paymentOption = getAppData("paymentOption");

@@ -9,14 +9,9 @@ import { Tooltip, TextField } from "@calcom/ui";
 
 import type { appDataSchema } from "../zod";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
-  eventType,
-  app,
-  disabled,
-  LockedIcon,
-}) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ eventType, app }) {
   const { t } = useLocale();
-  const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
+  const [getAppData, setAppData, LockedIcon, disabled] = useAppContextWithSchema<typeof appDataSchema>();
   const [additionalParameters, setAdditionalParameters] = useState("");
   const { enabled, updateEnabled } = useIsAppEnabled(app);
 
