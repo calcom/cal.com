@@ -13,6 +13,7 @@ import {
   getHumanReadableLocationValue,
   getMessageForOrganizer,
   LocationType,
+  OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -311,8 +312,15 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 query={locationsQuery}
                 success={({ data }) => {
                   if (!data.length) return null;
-                  const locationOptions = [...data].filter((option) => {
-                    return !isTeamEvent ? option.label !== "Conferencing" : true;
+                  const locationOptions = [...data].map((option) => {
+                    if (isTeamEvent) {
+                      // Let host's Default conferencing App option show for Team Event
+                      return option;
+                    }
+                    return {
+                      ...option,
+                      options: option.options.filter((o) => o.value !== OrganizerDefaultConferencingAppType),
+                    };
                   });
                   if (booking) {
                     locationOptions.map((location) =>
