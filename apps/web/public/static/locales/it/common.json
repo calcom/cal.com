@@ -526,6 +526,7 @@
   "team_description": "Alcune frasi sul tuo team. Appariranno nella pagina URL del team.",
   "members": "Membri",
   "member": "Membri",
+  "number_member_one": "{{count}} membro",
   "owner": "Proprietario",
   "admin": "Amministratore",
   "administrator_user": "Utente amministratore",

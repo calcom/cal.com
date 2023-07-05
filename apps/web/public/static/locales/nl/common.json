@@ -502,6 +502,7 @@
   "team_description": "Een paar zinnen over uw team. Dit is zichtbaar op uw teampagina.",
   "members": "Leden",
   "member": "Lid",
+  "number_member_one": "{{count}} lid",
   "owner": "Eigenaar",
   "admin": "Beheerder",
   "administrator_user": "Beheerdersgebruiker",

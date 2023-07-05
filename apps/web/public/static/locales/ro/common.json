@@ -502,6 +502,7 @@
   "team_description": "Câteva propoziții despre echipa dvs. Aceste informații vor apărea pe pagina de URL a echipei dvs.",
   "members": "Membri",
   "member": "Membru",
+  "number_member_one": "{{count}} membru",
   "owner": "Proprietar",
   "admin": "Admin",
   "administrator_user": "Utilizator administrator",

@@ -502,6 +502,7 @@
   "team_description": "Algumas frases sobre a sua equipa. Isso aparecerá na página url da sua equipa.",
   "members": "Membros",
   "member": "Membro",
+  "number_member_one": "{{count}} membro",
   "owner": "Proprietário",
   "admin": "Administrador",
   "administrator_user": "Administrador",

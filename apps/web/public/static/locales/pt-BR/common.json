@@ -502,6 +502,7 @@
   "team_description": "Fale um pouco sobre seu time. Isso aparecerá na página pública do seu time.",
   "members": "Membros",
   "member": "Membro",
+  "number_member_one": "{{count}} membro",
   "owner": "Proprietário",
   "admin": "Admin",
   "administrator_user": "Usuário administrador",

@@ -503,6 +503,8 @@
   "team_description": "팀 URL 페이지에 나타날 팀 소개를 해주세요.",
   "members": "회원",
   "member": "회원",
+  "number_member_one": "회원 {{count}}명",
+  "number_member_other": "회원 {{count}}명",
   "owner": "소유자",
   "admin": "관리",
   "administrator_user": "관리자 사용자",

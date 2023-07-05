@@ -502,6 +502,8 @@
   "team_description": "Birkaç cümleyle ekibinizden bahsedin. Bu, ekibinizin URL sayfasında görünecektir.",
   "members": "Üyeler",
   "member": "Üye",
+  "number_member_one": "{{count}} üye",
+  "number_member_other": "{{count}} üye",
   "owner": "Sahibi",
   "admin": "Yönetici",
   "administrator_user": "Yönetici kullanıcı",

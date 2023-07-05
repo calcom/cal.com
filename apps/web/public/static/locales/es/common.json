@@ -502,6 +502,7 @@
   "team_description": "Comentarios sobre tu equipo. Esta información aparecerá en la página de la URL de tu equipo.",
   "members": "Miembros",
   "member": "Miembro",
+  "number_member_one": "{{count}} miembro",
   "owner": "Propietario",
   "admin": "Administrador",
   "administrator_user": "Usuario administrador",

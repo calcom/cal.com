@@ -502,6 +502,7 @@
   "team_description": "Ein paar Sätze über Ihr Team auf der öffentlichen Teamseite.",
   "members": "Mitglieder",
   "member": "Mitglied",
+  "number_member_one": "{{count}} Mitglied",
   "owner": "Inhaber",
   "admin": "Administrator",
   "administrator_user": "Administrator Benutzer",
