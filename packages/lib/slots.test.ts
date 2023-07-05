@@ -90,9 +90,7 @@ describe("Tests the date-range slot logic", () => {
       offsetStart: 0,
       organizerTimeZone: "America/Toronto",
     });
-    expect(
-      result
-    ).toHaveLength(72);
+    expect(result).toHaveLength(72);
   });
 });
 
@@ -208,14 +206,11 @@ describe("Tests the slot logic", () => {
   });
 
   it("shows correct time slots for 20 minutes long events with working hours that do not end at a full hour", async () => {
-    
     const result = getSlots({
       inviteeDate: dayjs().add(1, "day"),
       frequency: 20,
       minimumBookingNotice: 0,
-      dateRanges: [
-        { start: dayjs("2021-06-21T00:00:00.000Z"), end: dayjs("2021-06-21T23:45:00.000Z") },
-      ],
+      dateRanges: [{ start: dayjs("2021-06-21T00:00:00.000Z"), end: dayjs("2021-06-21T23:45:00.000Z") }],
       /*workingHours: [
         {
           userId: 1,
@@ -230,9 +225,7 @@ describe("Tests the slot logic", () => {
     });
 
     // 71 20-minutes events in a 24h - 15m day
-    expect(
-      result
-    ).toHaveLength(71);
+    expect(result).toHaveLength(71);
   });
 
   it("can fit 48 25 minute slots with a 5 minute offset for an empty day", async () => {

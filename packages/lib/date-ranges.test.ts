@@ -144,15 +144,17 @@ describe("subtract", () => {
       ],
     };
 
-    const result = subtract(data["sourceRanges"], data["excludedRanges"]).map( (range) => ({
+    const result = subtract(data["sourceRanges"], data["excludedRanges"]).map((range) => ({
       start: range.start.format(),
-      end: range.end.format()
+      end: range.end.format(),
     }));
 
-    expect(result).toEqual(expect.arrayContaining([
-      { start: '2023-07-05T04:15:00Z', end: '2023-07-05T04:45:00Z' },
-      { start: '2023-07-05T05:00:00Z', end: '2023-07-05T12:00:00Z' },
-    ]));
+    expect(result).toEqual(
+      expect.arrayContaining([
+        { start: "2023-07-05T04:15:00Z", end: "2023-07-05T04:45:00Z" },
+        { start: "2023-07-05T05:00:00Z", end: "2023-07-05T12:00:00Z" },
+      ])
+    );
   });
 
   it("subtracts appropriately when excluded ranges are not given in order", () => {
@@ -184,14 +186,16 @@ describe("subtract", () => {
       ],
     };
 
-    const result = subtract(data["sourceRanges"], data["excludedRanges"]).map( (range) => ({
+    const result = subtract(data["sourceRanges"], data["excludedRanges"]).map((range) => ({
       start: range.start.format(),
-      end: range.end.format()
+      end: range.end.format(),
     }));
 
-    expect(result).toEqual(expect.arrayContaining([
-      { start: '2023-07-05T04:15:00Z', end: '2023-07-05T04:45:00Z' },
-      { start: '2023-07-05T05:00:00Z', end: '2023-07-05T12:00:00Z' },
-    ]));
+    expect(result).toEqual(
+      expect.arrayContaining([
+        { start: "2023-07-05T04:15:00Z", end: "2023-07-05T04:45:00Z" },
+        { start: "2023-07-05T05:00:00Z", end: "2023-07-05T12:00:00Z" },
+      ])
+    );
   });
 });
