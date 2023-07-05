@@ -503,6 +503,7 @@
   "members": "Участники",
   "member": "Участник",
   "number_member_one": "Участники: {{count}}",
+  "number_member_other": "Участники: {{count}}",
   "owner": "Владелец",
   "admin": "Админ",
   "administrator_user": "Администратор",

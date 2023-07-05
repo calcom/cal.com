@@ -503,6 +503,7 @@
   "members": "Miembros",
   "member": "Miembro",
   "number_member_one": "{{count}} miembro",
+  "number_member_other": "{{count}} miembros",
   "owner": "Propietario",
   "admin": "Administrador",
   "administrator_user": "Usuario administrador",
