@@ -4,20 +4,18 @@ import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { TextField } from "@calcom/ui";
 
-import type { appDataSchema } from "../zod";
+import { appDataSchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
-  const [getAppData, setAppData, LockedIcon, disabled] = useAppContextWithSchema<typeof appDataSchema>();
+  const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const plausibleUrl = getAppData("PLAUSIBLE_URL");
   const trackingId = getAppData("trackingId");
   const { enabled, updateEnabled } = useIsAppEnabled(app);
 
   return (
     <AppCard
-      setAppData={setAppData}
       app={app}
-      disableSwitch={disabled}
-      LockedIcon={LockedIcon}
+      appDataSchema={appDataSchema}
       switchOnClick={(e) => {
         updateEnabled(e);
       }}

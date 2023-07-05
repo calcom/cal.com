@@ -1,12 +1,12 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
+import type { z } from "zod";
 
+import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { classNames } from "@calcom/lib";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Switch, Badge, Avatar } from "@calcom/ui";
 
-import type { SetAppDataGeneric } from "../EventTypeAppContext";
-import type { eventTypeAppCardZod } from "../eventTypeAppCardZod";
 import type { CredentialOwner } from "../types";
 import OmniInstallAppButton from "./OmniInstallAppButton";
 
@@ -16,24 +16,22 @@ export default function AppCard({
   switchOnClick,
   switchChecked,
   children,
-  setAppData,
   returnTo,
   teamId,
-  disableSwitch,
-  LockedIcon,
+  appDataSchema,
 }: {
   app: RouterOutputs["viewer"]["integrations"]["items"][number] & { credentialOwner?: CredentialOwner };
   description?: React.ReactNode;
   switchChecked?: boolean;
   switchOnClick?: (e: boolean) => void;
   children?: React.ReactNode;
-  setAppData: SetAppDataGeneric<typeof eventTypeAppCardZod>;
   returnTo?: string;
   teamId?: number;
-  disableSwitch?: boolean;
   LockedIcon?: React.ReactNode;
+  appDataSchema: z.ZodObject<any>;
 }) {
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
+  const { setAppData, LockedIcon, disabled } = useAppContextWithSchema<typeof appDataSchema>();
 
   return (
     <div
@@ -81,7 +79,7 @@ export default function AppCard({
             {app?.isInstalled || app.credentialOwner ? (
               <div className="ml-auto flex items-center">
                 <Switch
-                  disabled={!app.enabled || disableSwitch}
+                  disabled={!app.enabled || disabled}
                   onCheckedChange={(enabled) => {
                     if (switchOnClick) {
                       switchOnClick(enabled);
