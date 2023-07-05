@@ -23,9 +23,9 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
 
   const methods = useFormContext<FormValues>();
   const installedApps =
-    eventTypeApps?.items.filter((app) => app.credentialIds.length || app.teams.length) || [];
+    eventTypeApps?.items.filter((app) => app.userCredentialIds.length || app.teams.length) || [];
   const notInstalledApps =
-    eventTypeApps?.items.filter((app) => !app.credentialIds.length && !app.teams.length) || [];
+    eventTypeApps?.items.filter((app) => !app.userCredentialIds.length && !app.teams.length) || [];
   const allAppsData = methods.watch("metadata")?.apps || {};
 
   const setAllAppsData = (_allAppsData: typeof allAppsData) => {
@@ -70,7 +70,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   const cardsForAppsWithTeams = appsWithTeamCredentials.map((app) => {
     const appCards = [];
 
-    if (app.credentialIds.length) {
+    if (app.userCredentialIds.length) {
       appCards.push(
         <EventTypeAppCard
           getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
@@ -92,8 +92,13 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
             key={app.slug + team?.credentialId}
             app={{
               ...app,
-              credentialIds: team?.credentialId ? [team.credentialId] : [],
-              credentialOwner: { name: team.name, avatar: team.logo, teamId: team.teamId },
+              // credentialIds: team?.credentialId ? [team.credentialId] : [],
+              credentialOwner: {
+                name: team.name,
+                avatar: team.logo,
+                teamId: team.teamId,
+                credentialId: team.credentialId,
+              },
             }}
             eventType={eventType}
             {...shouldLockDisableProps("apps")}

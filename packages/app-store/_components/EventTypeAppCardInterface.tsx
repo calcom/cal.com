@@ -16,10 +16,10 @@ export const EventTypeAppCard = (props: {
   LockedIcon?: JSX.Element | false;
   disabled?: boolean;
 }) => {
-  const { app, getAppData, setAppData } = props;
+  const { app, getAppData, setAppData, LockedIcon, disabled } = props;
   return (
     <ErrorBoundary message={`There is some problem with ${app.name} App`}>
-      <EventTypeAppContext.Provider value={[getAppData, setAppData]}>
+      <EventTypeAppContext.Provider value={[getAppData, setAppData, LockedIcon, disabled]}>
         <DynamicComponent
           slug={app.slug === "stripe" ? "stripepayment" : app.slug}
           componentMap={EventTypeAddonMap}

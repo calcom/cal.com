@@ -8,7 +8,7 @@ export const WEBAPP_URL =
   RAILWAY_STATIC_URL ||
   HEROKU_URL ||
   RENDER_URL ||
-  "http:/localhost:3000";
+  "http://localhost:3000";
 /** @deprecated use `WEBAPP_URL` */
 export const BASE_URL = WEBAPP_URL;
 export const WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.com";

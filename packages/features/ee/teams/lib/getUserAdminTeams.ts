@@ -8,6 +8,15 @@ export type UserAdminTeams = (Prisma.TeamGetPayload<{
     id: true;
     name: true;
     logo: true;
+    credentials?: true;
+    parent?: {
+      select: {
+        id: true;
+        name: true;
+        logo: true;
+        credentials: true;
+      };
+    };
   };
 }> & { isUser?: boolean })[];
 
@@ -15,15 +24,20 @@ export type UserAdminTeams = (Prisma.TeamGetPayload<{
 const getUserAdminTeams = async ({
   userId,
   getUserInfo,
+  getParentInfo,
+  includeCredentials = false,
 }: {
   userId: number;
   getUserInfo?: boolean;
+  getParentInfo?: boolean;
+  includeCredentials?: boolean;
 }): Promise<UserAdminTeams> => {
   const teams = await prisma.team.findMany({
     where: {
       members: {
         some: {
           userId: userId,
+          accepted: true,
           role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
         },
       },
@@ -32,6 +46,17 @@ const getUserAdminTeams = async ({
       id: true,
       name: true,
       logo: true,
+      ...(includeCredentials && { credentials: true }),
+      ...(getParentInfo && {
+        parent: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
+            credentials: true,
+          },
+        },
+      }),
     },
   });
 
@@ -44,11 +69,18 @@ const getUserAdminTeams = async ({
         id: true,
         name: true,
         avatar: true,
+        ...(includeCredentials && { credentials: true }),
       },
     });
 
     if (user) {
-      const userObject = { id: user.id, name: user.name || "Nameless", logo: user?.avatar, isUser: true };
+      const userObject = {
+        id: user.id,
+        name: user.name || "Nameless",
+        logo: user?.avatar,
+        isUser: true,
+        ...(includeCredentials && { credentials: true }),
+      };
       teams.unshift(userObject);
     }
   }
@@ -57,7 +89,3 @@ const getUserAdminTeams = async ({
 };
 
 export default getUserAdminTeams;
-
-// export type UserAdminTeams =
-//   | (Awaited<Promise<ReturnType<typeof getUserAdminTeams>>>[number] & { isUser?: boolean })[]
-//   | [];

@@ -29,6 +29,7 @@ const createOAuthAppCredential = async (
         members: {
           some: {
             userId: req.session?.user.id,
+            accepted: true,
           },
         },
       },

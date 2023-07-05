@@ -226,39 +226,36 @@ const InstallAppButtonChild = ({
       <DropdownMenuPortal>
         <DropdownMenuContent>
           <DropdownMenuLabel>{t("install_app_on")}</DropdownMenuLabel>
-          {userAdminTeams.map((team) => (
-            <DropdownItem
-              type="button"
-              disabled={
-                credentials &&
-                credentials.some((credential) =>
-                  credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
-                )
-              }
-              key={team.id}
-              StartIcon={(props) => (
-                <Avatar
-                  alt={team.logo || ""}
-                  imageSrc={team.logo || `${CAL_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
-                  size="sm"
-                  {...props}
-                />
-              )}
-              onClick={() => {
-                mutation.mutate(
-                  team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }
-                );
-              }}>
-              <p>
-                {team.name}{" "}
-                {credentials &&
-                  credentials.some((credential) =>
-                    credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
-                  ) &&
-                  `(${t("installed")})`}
-              </p>
-            </DropdownItem>
-          ))}
+          {userAdminTeams.map((team) => {
+            const isInstalledTeamOrUser =
+              credentials &&
+              credentials.some((credential) =>
+                credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
+              );
+            return (
+              <DropdownItem
+                type="button"
+                disabled={isInstalledTeamOrUser}
+                key={team.id}
+                StartIcon={(props) => (
+                  <Avatar
+                    alt={team.logo || ""}
+                    imageSrc={team.logo || `${CAL_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
+                    size="sm"
+                    {...props}
+                  />
+                )}
+                onClick={() => {
+                  mutation.mutate(
+                    team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }
+                  );
+                }}>
+                <p>
+                  {team.name} {isInstalledTeamOrUser && `(${t("installed")})`}
+                </p>
+              </DropdownItem>
+            );
+          })}
         </DropdownMenuContent>
       </DropdownMenuPortal>
     </Dropdown>

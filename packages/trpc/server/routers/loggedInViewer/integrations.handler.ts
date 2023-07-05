@@ -16,31 +16,34 @@ type IntegrationsOptions = {
 type TeamQuery = Prisma.TeamGetPayload<{
   select: {
     id: true;
-    credentials: true;
+    credentials?: true;
     name: true;
     logo: true;
+    members: {
+      select: {
+        role: true;
+      };
+    };
   };
 }>;
 
-type TeamQueryWithParent = TeamQuery & {
-  parent?: TeamQuery | null;
-};
+// type TeamQueryWithParent = TeamQuery & {
+//   parent?: TeamQuery | null;
+// };
 
 export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) => {
   const { user } = ctx;
   const { variant, exclude, onlyInstalled, includeTeamInstalledApps, extendsFeature, teamId } = input;
   let { credentials } = user;
-  let userAdminTeams: TeamQueryWithParent[] = [];
+  let userTeams: TeamQuery[] = [];
 
   if (includeTeamInstalledApps || teamId) {
-    // Get app credentials that the user is an admin or owner to
-    userAdminTeams = await prisma.team.findMany({
+    const teamsQuery = await prisma.team.findMany({
       where: {
-        ...(teamId && { id: teamId }),
         members: {
           some: {
             userId: user.id,
-            role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+            accepted: true,
           },
         },
       },
@@ -49,33 +52,52 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         credentials: true,
         name: true,
         logo: true,
+        members: {
+          where: {
+            userId: user.id,
+          },
+          select: {
+            role: true,
+          },
+        },
         parent: {
           select: {
             id: true,
             credentials: true,
             name: true,
             logo: true,
+            members: {
+              where: {
+                userId: user.id,
+              },
+              select: {
+                role: true,
+              },
+            },
           },
         },
       },
     });
-
     // If a team is a part of an org then include those apps
     // Don't want to iterate over these parent teams
-    const parentTeams: TeamQueryWithParent[] = [];
+    const filteredTeams: TeamQuery[] = [];
+    const parentTeams: TeamQuery[] = [];
     // Only loop and grab parent teams if a teamId was given. If not then all teams will be queried
     if (teamId) {
-      userAdminTeams.forEach((team) => {
+      teamsQuery.forEach((team) => {
         if (team?.parent) {
-          parentTeams.push(team.parent);
-          delete team.parent;
+          const { parent, ...filteredTeam } = team;
+          filteredTeams.push(filteredTeam);
+          parentTeams.push(parent);
         }
       });
     }
 
-    userAdminTeams = [...userAdminTeams, ...parentTeams];
+    userTeams = [...teamsQuery, ...parentTeams];
 
-    const teamAppCredentials: Credential[] = userAdminTeams.flatMap((teamApp) => teamApp.credentials.flat());
+    const teamAppCredentials: Credential[] = userTeams.flatMap((teamApp) => {
+      return teamApp.credentials ? teamApp.credentials.flat() : [];
+    });
     if (!includeTeamInstalledApps || teamId) {
       credentials = teamAppCredentials;
     } else {
@@ -87,26 +109,33 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = enabledApps.map(
     ({ credentials: _, credential: _1, key: _2 /* don't leak to frontend */, ...app }) => {
-      const credentialIds = credentials.filter((c) => c.type === app.type && !c.teamId).map((c) => c.id);
+      const userCredentialIds = credentials.filter((c) => c.type === app.type && !c.teamId).map((c) => c.id);
       const invalidCredentialIds = credentials
         .filter((c) => c.type === app.type && c.invalid)
         .map((c) => c.id);
       const teams = credentials
         .filter((c) => c.type === app.type && c.teamId)
         .map((c) => {
-          const team = userAdminTeams.find((team) => team.id === c.teamId);
+          const team = userTeams.find((team) => team.id === c.teamId);
           if (!team) {
             return null;
           }
-          return { teamId: team.id, name: team.name, logo: team.logo, credentialId: c.id };
+          return {
+            teamId: team.id,
+            name: team.name,
+            logo: team.logo,
+            credentialId: c.id,
+            isAdmin:
+              team.members[0].role === MembershipRole.ADMIN || team.members[0].role === MembershipRole.OWNER,
+          };
         });
       return {
         ...app,
         ...(teams.length && { credentialOwner: { name: user.name, avatar: user.avatar } }),
-        credentialIds,
+        userCredentialIds,
         invalidCredentialIds,
         teams,
-        isInstalled: !!credentialIds.length || !!teams.length || app.isGlobal,
+        isInstalled: !!userCredentialIds.length || !!teams.length || app.isGlobal,
       };
     }
   );
@@ -125,7 +154,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
 
   if (onlyInstalled) {
     apps = apps.flatMap((item) =>
-      item.credentialIds.length > 0 || item.teams.length || item.isGlobal ? [item] : []
+      item.userCredentialIds.length > 0 || item.teams.length || item.isGlobal ? [item] : []
     );
   }
 
@@ -134,7 +163,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       .filter((app) => app.extendsFeature?.includes(extendsFeature))
       .map((app) => ({
         ...app,
-        isInstalled: !!app.credentialIds?.length || !!app.teams?.length || app.isGlobal,
+        isInstalled: !!app.userCredentialIds?.length || !!app.teams?.length || app.isGlobal,
       }));
   }
 

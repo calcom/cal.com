@@ -11,8 +11,6 @@ export type LocationOption = {
   value: EventLocationType["type"];
   icon?: string;
   disabled?: boolean;
-  teamCredential?: boolean;
-  credentialId?: number;
   address?: string;
 };
 

@@ -2,7 +2,6 @@ import authedProcedure from "../../procedures/authedProcedure";
 import { router } from "../../trpc";
 import { ZAppByIdInputSchema } from "./appById.schema";
 import { ZAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
-import { ZAppsInputSchema } from "./apps.schema";
 import { ZAwayInputSchema } from "./away.schema";
 import { ZConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
 import { ZDeleteCredentialInputSchema } from "./deleteCredential.schema";
@@ -28,7 +27,6 @@ type AppsRouterHandlerCache = {
   setDestinationCalendar?: typeof import("./setDestinationCalendar.handler").setDestinationCalendarHandler;
   integrations?: typeof import("./integrations.handler").integrationsHandler;
   appById?: typeof import("./appById.handler").appByIdHandler;
-  apps?: typeof import("./apps.handler").appsHandler;
   appCredentialsByType?: typeof import("./appCredentialsByType.handler").appCredentialsByTypeHandler;
   stripeCustomer?: typeof import("./stripeCustomer.handler").stripeCustomerHandler;
   updateProfile?: typeof import("./updateProfile.handler").updateProfileHandler;
@@ -170,19 +168,6 @@ export const loggedInViewerRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.appById({ ctx, input });
-  }),
-
-  apps: authedProcedure.input(ZAppsInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.apps) {
-      UNSTABLE_HANDLER_CACHE.apps = (await import("./apps.handler")).appsHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.apps) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.apps({ ctx, input });
   }),
 
   appCredentialsByType: authedProcedure

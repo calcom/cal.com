@@ -371,7 +371,7 @@ export default class EventManager {
    * @private
    */
 
-  private async getVideoCredential(event: CalendarEvent): Promise<CredentialWithAppName | undefined> {
+  private getVideoCredential(event: CalendarEvent): CredentialWithAppName | undefined {
     if (!event.location) {
       return undefined;
     }
@@ -405,7 +405,7 @@ export default class EventManager {
    * @private
    */
   private async createVideoEvent(event: CalendarEvent) {
-    const credential = await this.getVideoCredential(event);
+    const credential = this.getVideoCredential(event);
 
     if (credential) {
       return createMeeting(credential, event);
@@ -539,7 +539,7 @@ export default class EventManager {
    * @private
    */
   private async updateVideoEvent(event: CalendarEvent, booking: PartialBooking) {
-    const credential = await this.getVideoCredential(event);
+    const credential = this.getVideoCredential(event);
 
     if (credential) {
       const bookingRef = booking ? booking.references.filter((ref) => ref.type === credential.type)[0] : null;

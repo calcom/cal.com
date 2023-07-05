@@ -22,7 +22,7 @@ export default function AppCard({
   disableSwitch,
   LockedIcon,
 }: {
-  app: RouterOutputs["viewer"]["apps"][number] & { credentialOwner?: CredentialOwner };
+  app: RouterOutputs["viewer"]["integrations"]["items"][number] & { credentialOwner?: CredentialOwner };
   description?: React.ReactNode;
   switchChecked?: boolean;
   switchOnClick?: (e: boolean) => void;

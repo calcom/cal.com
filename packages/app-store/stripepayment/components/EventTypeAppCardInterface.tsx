@@ -13,23 +13,14 @@ import type { appDataSchema } from "../zod";
 
 type Option = { value: string; label: string };
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
-  app,
-  eventType,
-  disabled,
-  LockedIcon,
-}) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const { asPath } = useRouter();
-  const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
+  const [getAppData, setAppData, LockedIcon, disabled] = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
   const currency = getAppData("currency");
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions.find((option) => paymentOption === option.value);
-  const { enabled: requirePayment, updateEnabled: setRequirePayment } = useIsAppEnabled(
-    app,
-    getAppData,
-    setAppData
-  );
+  const { enabled: requirePayment, updateEnabled: setRequirePayment } = useIsAppEnabled(app);
 
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;

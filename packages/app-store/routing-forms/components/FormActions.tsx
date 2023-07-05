@@ -18,6 +18,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogFooter,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -91,8 +92,10 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
   return (
     <Dialog name="new-form" clearQueryParamsOnClose={["target", "action"]}>
       <DialogContent className="overflow-y-auto">
-        <div className="mb-4">
-          <h3 className="text-emphasis text-lg font-bold leading-6" id="modal-title">
+        <div className="mb-1">
+          <h3
+            className="text-emphasis !font-cal text-semibold leading-20 text-xl font-medium"
+            id="modal-title">
             {teamId ? t("add_new_team_form") : t("add_new_form")}
           </h3>
           <div>
@@ -112,7 +115,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
               duplicateFrom: formToDuplicate,
             });
           }}>
-          <div className="mt-3 space-y-4">
+          <div className="mt-3 space-y-5">
             <TextField label={t("title")} required placeholder={t("a_routing_form")} {...register("name")} />
             <div className="mb-5">
               <TextAreaField
@@ -141,12 +144,12 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
               />
             )}
           </div>
-          <div className="mt-8 flex flex-row-reverse gap-x-2">
+          <DialogFooter showDivider className="mt-12 flex flex-row-reverse gap-x-2">
+            <DialogClose />
             <Button loading={mutation.isLoading} data-testid="add-form" type="submit">
               {t("continue")}
             </Button>
-            <DialogClose />
-          </div>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>
