@@ -61,16 +61,6 @@ describe("Invite Member Utils", () => {
       await expect(checkPermissions({ userId: 1, teamId: 1 })).resolves.not.toThrow();
     })
   })
-  // describe("getTeamOrThrow", () => {
-  //   it("It should throw an error if the team is not found", async () => {
-  //     prismaMock.team.findFirst.mockResolvedValue(null);
-  //     await expect(getTeamOrThrow(1)).rejects.toThrow();
-  //   })
-  //   it("It should NOT throw an error if the team is found", async () => {
-  //     prismaMock.team.findFirst.mockResolvedValue(mockedReturnTeam)
-  //     await expect(getTeamOrThrow(1)).resolves.toEqual(mockedReturnTeam);
-  //   })
-  // })
   describe('getEmailsToInvite', () => {
     it('should throw a TRPCError with code BAD_REQUEST if no emails are provided', async () => {
       await expect(getEmailsToInvite([])).rejects.toThrow(TRPCError);
