@@ -502,6 +502,8 @@
   "team_description": "Pár vět o vašem týmu. Objeví se na URL stránce vašeho týmu.",
   "members": "Členové",
   "member": "Člen",
+  "number_member_one": "Počet členů: {{count}}",
+  "number_member_other": "Počet členů: {{count}}",
   "owner": "Vlastník",
   "admin": "Administrátor",
   "administrator_user": "Uživatel administrátor",

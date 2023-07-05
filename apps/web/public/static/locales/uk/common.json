@@ -502,6 +502,8 @@
   "team_description": "Кілька речень про вашу команду. Ця інформація з’явиться на сторінці за URL-адресою вашої команди.",
   "members": "Учасники",
   "member": "Учасник",
+  "number_member_one": "{{count}} учасник",
+  "number_member_other": "Учасників: {{count}}",
   "owner": "Власник",
   "admin": "Адмін",
   "administrator_user": "Адміністратор",
