@@ -5,7 +5,7 @@ import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import type { EventTypeAppCardApp } from "../types";
 
 function useIsAppEnabled(app: EventTypeAppCardApp) {
-  const [getAppData, setAppData] = useAppContextWithSchema();
+  const { getAppData, setAppData } = useAppContextWithSchema();
   const [enabled, setEnabled] = useState(() => {
     if (!app.credentialOwner) {
       return getAppData("enabled");
