@@ -4,15 +4,17 @@ import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/sche
 
 import { getWorkingHours } from "./availability";
 import { getTimeZone } from "./date-fns";
+import type { DateRange } from "./date-ranges";
 
 export type GetSlots = {
   inviteeDate: Dayjs;
   frequency: number;
-  workingHours: WorkingHours[];
+  workingHours?: WorkingHours[];
   dateOverrides?: DateOverride[];
+  dateRanges?: DateRange[];
   minimumBookingNotice: number;
   eventLength: number;
-  offsetStart: number;
+  offsetStart?: number;
   organizerTimeZone: string;
 };
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
@@ -25,7 +27,7 @@ function buildSlots({
   computedLocalAvailability,
   frequency,
   eventLength,
-  offsetStart,
+  offsetStart = 0,
   startDate,
   organizerTimeZone,
   inviteeTimeZone,
@@ -35,7 +37,7 @@ function buildSlots({
   startDate: Dayjs;
   frequency: number;
   eventLength: number;
-  offsetStart: number;
+  offsetStart?: number;
   organizerTimeZone: string;
   inviteeTimeZone: string;
 }) {
@@ -133,6 +135,61 @@ function buildSlots({
       time: getTime(item.startTime),
     });
   }
+
+  return slots;
+}
+
+function buildSlotsWithDateRanges({
+  dateRanges,
+  frequency,
+  eventLength,
+  timeZone,
+  minimumBookingNotice,
+  organizerTimeZone,
+  offsetStart,
+}: {
+  dateRanges: DateRange[];
+  frequency: number;
+  eventLength: number;
+  timeZone: string;
+  minimumBookingNotice: number;
+  organizerTimeZone: string;
+  offsetStart?: number;
+}) {
+  // keep the old safeguards in; may be needed.
+  frequency = minimumOfOne(frequency);
+  eventLength = minimumOfOne(eventLength);
+  offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
+
+  const slots: { time: Dayjs; userIds?: number[] }[] = [];
+  dateRanges.forEach((range) => {
+    const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
+
+    let slotStartTime = range.start.isAfter(startTimeWithMinNotice) ? range.start : startTimeWithMinNotice;
+
+    slotStartTime =
+      slotStartTime.utc().minute() % 15 !== 0
+        ? slotStartTime
+            .startOf("day")
+            .add(slotStartTime.hour() * 60 + Math.ceil(slotStartTime.minute() / 15) * 15, "minute")
+        : slotStartTime;
+
+    // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
+    const rangeEnd = range.end
+      .add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes")
+      .isSame(range.end.endOf("day").add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes"), "minute")
+      ? range.end.add(1, "minute")
+      : range.end;
+
+    slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes");
+    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").isAfter(rangeEnd)) {
+      slots.push({
+        time: slotStartTime.tz(timeZone),
+      });
+      slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
+    }
+  });
+
   return slots;
 }
 
@@ -146,14 +203,29 @@ const getSlots = ({
   inviteeDate,
   frequency,
   minimumBookingNotice,
-  workingHours,
+  workingHours = [],
   dateOverrides = [],
+  dateRanges,
   eventLength,
-  offsetStart,
+  offsetStart = 0,
   organizerTimeZone,
 }: GetSlots) => {
+  if (dateRanges) {
+    const slots = buildSlotsWithDateRanges({
+      dateRanges,
+      frequency,
+      eventLength,
+      timeZone: getTimeZone(inviteeDate),
+      minimumBookingNotice,
+      organizerTimeZone,
+      offsetStart,
+    });
+    return slots;
+  }
+
   // current date in invitee tz
   const startDate = dayjs().utcOffset(inviteeDate.utcOffset()).add(minimumBookingNotice, "minute");
+
   // This code is ran client side, startOf() does some conversions based on the
   // local tz of the client. Sometimes this shifts the day incorrectly.
   const startOfDayUTC = dayjs.utc().set("hour", 0).set("minute", 0).set("second", 0);
@@ -218,7 +290,7 @@ const getSlots = ({
     return dayjs.utc(override.start).isBetween(startOfInviteeDay, startOfInviteeDay.endOf("day"), null, "[)");
   });
 
-  if (!!activeOverrides.length) {
+  if (activeOverrides.length) {
     const overrides = activeOverrides.flatMap((override) => ({
       userIds: override.userId ? [override.userId] : [],
       startTime: override.start.getUTCHours() * 60 + override.start.getUTCMinutes(),
