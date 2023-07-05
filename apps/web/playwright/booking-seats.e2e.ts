@@ -83,33 +83,54 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
       ],
     });
     await page.goto(`/${user.username}/${slug}`);
-    await selectFirstAvailableTimeSlotNextMonth(page);
 
-    // Kept in if statement here, since it's only temporary
-    // until the old booker isn't used anymore, and I wanted
-    // to change the test as little as possible.
-    // eslint-disable-next-line playwright/no-conditional-in-test
-    if (bookerVariant === "old-booker") {
-      await page.waitForURL((url) => {
-        return url.pathname.endsWith("/book");
-      });
-    }
-
-    const bookingUrl = page.url();
+    let bookingUrl = "";
     await test.step("Attendee #1 can book a seated event time slot", async () => {
-      await page.goto(bookingUrl);
+      await selectFirstAvailableTimeSlotNextMonth(page);
       await bookTimeSlot(page);
       await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     });
     await test.step("Attendee #2 can book the same seated event time slot", async () => {
-      await page.goto(bookingUrl);
+      await page.goto(`/${user.username}/${slug}`);
+      await selectFirstAvailableTimeSlotNextMonth(page);
+
+      await page.waitForURL(/bookingUid/);
+      bookingUrl = page.url();
       await bookTimeSlot(page, { email: "jane.doe@example.com", name: "Jane Doe" });
       await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     });
-    await test.step("Attendee #3 cannot book the same seated event time slot", async () => {
+    await test.step("Attende #3 cannot click on the same seated event time slot", async () => {
+      await page.goto(`/${user.username}/${slug}`);
+
+      await page.click('[data-testid="incrementMonth"]');
+
+      // TODO: Find out why the first day is always booked on tests
+      await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
+      await expect(page.locator('[data-testid="time"][data-disabled="true"]')).toBeVisible();
+    });
+    await test.step("Attendee #3 cannot book the same seated event time slot accessing via url", async () => {
       await page.goto(bookingUrl);
+
       await bookTimeSlot(page, { email: "rick@example.com", name: "Rick" });
       await expect(page.locator("[data-testid=success-page]")).toBeHidden();
+    });
+
+    await test.step("User owner should have only 1 booking with 3 attendees", async () => {
+      // Make sure user owner has only 1 booking with 3 attendees
+      const bookings = await prisma.booking.findMany({
+        where: { eventTypeId: user.eventTypes.find((e) => e.slug === slug)?.id },
+        select: {
+          id: true,
+          attendees: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+      expect(bookings).toHaveLength(1);
+      expect(bookings[0].attendees).toHaveLength(2);
     });
   });
 

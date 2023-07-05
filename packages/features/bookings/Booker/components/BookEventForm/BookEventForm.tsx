@@ -3,7 +3,7 @@ import type { UseMutationResult } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import type { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -40,7 +40,14 @@ type BookEventFormProps = {
 };
 
 export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
+  const [isBlockedReserveSlot, setIsBlockedReserveSlot] = useState(false);
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
+    onSuccess: () => {
+      setIsBlockedReserveSlot(false);
+    },
+    onError: () => {
+      setIsBlockedReserveSlot(false);
+    },
     trpc: { context: { skipBatch: true } },
   });
   const releaseSlotMutation = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation({
@@ -65,6 +72,10 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const eventType = event.data;
 
   const reserveSlot = () => {
+    if (isBlockedReserveSlot) {
+      return;
+    }
+    setIsBlockedReserveSlot(true);
     if (eventType) {
       reserveSlotMutation.mutate({
         slotUtcStartDate: dayjs(timeslot).utc().format(),
@@ -74,6 +85,8 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
           .add(duration || eventType.length, "minutes")
           .format(),
       });
+    } else {
+      setIsBlockedReserveSlot(false);
     }
   };
   useEffect(() => {
@@ -295,7 +308,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       timeZone: timezone,
       language: i18n.language,
       rescheduleUid: rescheduleUid || undefined,
-      bookingUid: seatedEventData?.bookingUid || undefined,
+      bookingUid: (bookingData && bookingData.uid) || seatedEventData?.bookingUid || undefined,
       username: username || "",
       metadata: Object.keys(router.query)
         .filter((key) => key.startsWith("metadata"))

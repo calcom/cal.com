@@ -44,7 +44,15 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   bookingAttendees,
   duration,
 }) => {
-  const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
+  const [isBlockedReserveSlot, setIsBlockedReserveSlot] = useState(false);
+  const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
+    onSuccess: () => {
+      setIsBlockedReserveSlot(false);
+    },
+    onError: () => {
+      setIsBlockedReserveSlot(false);
+    },
+  });
   const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
   const { t, i18n } = useLocale();
   const router = useRouter();
@@ -66,6 +74,10 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   );
 
   const reserveSlot = (slot: Slot) => {
+    if (isBlockedReserveSlot) {
+      return;
+    }
+    setIsBlockedReserveSlot(true);
     reserveSlotMutation.mutate({
       slotUtcStartDate: slot.time,
       eventTypeId,
@@ -132,8 +144,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 let slotFull, notEnoughSeats;
 
                 if (slot.attendees && seatsPerTimeSlot) slotFull = slot.attendees >= seatsPerTimeSlot;
-                if (slot.attendees && bookingAttendees && seatsPerTimeSlot)
+                if (slot.attendees && bookingAttendees && seatsPerTimeSlot) {
                   notEnoughSeats = slot.attendees + bookingAttendees > seatsPerTimeSlot;
+                }
 
                 const isHalfFull =
                   slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.5;
@@ -155,7 +168,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                         className={classNames(
                           "text-default bg-default border-subtle mb-2 block rounded-sm border py-2 font-medium opacity-25",
                           brand === "#fff" || brand === "#ffffff" ? "" : ""
-                        )}>
+                        )}
+                        data-testid="time"
+                        data-disabled="true">
                         {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
                         {notEnoughSeats ? (
                           <p className="text-sm">{t("not_enough_seats")}</p>

@@ -94,7 +94,7 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
   // Changed to dblclick because of some flakiness when click a button animated
   // It is said playwright should wait for animations to end, but it doesn't seem to be the case on this one
-  await page.locator('[data-testid="time"][data-disabled="false"]').nth(0).dblclick();
+  await page.locator('[data-testid="time"]').nth(0).dblclick();
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {

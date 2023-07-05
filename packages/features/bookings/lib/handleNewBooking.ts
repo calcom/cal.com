@@ -1631,6 +1631,7 @@ async function handler(
     return resultBooking;
   };
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
+  // This also means if booker doesn't sends bookingUid it will create a separate booking
   if (eventType.seatsPerTimeSlot && (reqBody.bookingUid || rescheduleUid)) {
     const newBooking = await handleSeats();
     if (newBooking) {
