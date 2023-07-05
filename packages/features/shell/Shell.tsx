@@ -22,7 +22,7 @@ import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import VerifyEmailBanner from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
@@ -427,8 +427,8 @@ function UserDropdown({ small }: UserDropdownProps) {
                     StartIcon={(props) => <Slack strokeWidth={1.5} {...props} />}
                     target="_blank"
                     rel="noreferrer"
-                    href={JOIN_SLACK}>
-                    {t("join_our_slack")}
+                    href={JOIN_DISCORD}>
+                    {t("join_our_discord")}
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
@@ -908,7 +908,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                   <Icon
                     className={classNames(
                       "h-4 w-4 flex-shrink-0 [&[aria-current='page']]:text-inherit",
-                      "md:ltr:mr-2 md:rtl:ml-2"
+                      "me-3 md:ltr:mr-2 md:rtl:ml-2"
                     )}
                     aria-hidden="true"
                     aria-current={
@@ -941,62 +941,65 @@ export function ShellMain(props: LayoutProps) {
 
   return (
     <>
-      <div
-        className={classNames(
-          "flex items-center md:mb-6 md:mt-0",
-          props.smallHeading ? "lg:mb-7" : "lg:mb-8",
-          props.hideHeadingOnMobile ? "mb-0" : "mb-6"
-        )}>
-        {!!props.backPath && (
-          <Button
-            variant="icon"
-            size="sm"
-            color="minimal"
-            onClick={() =>
-              typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
-            }
-            StartIcon={ArrowLeft}
-            aria-label="Go Back"
-            className="rounded-md ltr:mr-2 rtl:ml-2"
-          />
-        )}
-        {props.heading && (
-          <header
-            className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
-            {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className={classNames("w-full truncate ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
-              {props.heading && (
-                <h3
-                  className={classNames(
-                    "font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
-                    props.smallHeading ? "text-base" : "text-xl",
-                    props.hideHeadingOnMobile && "hidden"
-                  )}>
-                  {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
-                </h3>
-              )}
-              {props.subtitle && (
-                <p className="text-default hidden text-sm md:block">
-                  {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
-                </p>
-              )}
-            </div>
-            {props.beforeCTAactions}
-            {props.CTA && (
+      {(props.heading || !!props.backPath) && (
+        <div
+          className={classNames(
+            "flex items-center md:mb-6 md:mt-0",
+            props.smallHeading ? "lg:mb-7" : "lg:mb-8",
+            props.hideHeadingOnMobile ? "mb-0" : "mb-6"
+          )}>
+          {!!props.backPath && (
+            <Button
+              variant="icon"
+              size="sm"
+              color="minimal"
+              onClick={() =>
+                typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
+              }
+              StartIcon={ArrowLeft}
+              aria-label="Go Back"
+              className="rounded-md ltr:mr-2 rtl:ml-2"
+            />
+          )}
+          {props.heading && (
+            <header
+              className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
+              {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
               <div
-                className={classNames(
-                  props.backPath
-                    ? "relative"
-                    : "pwa:bottom-24 fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
-                  "flex-shrink-0 md:relative md:bottom-auto md:right-auto"
-                )}>
-                {props.CTA}
+                className={classNames("w-full truncate ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
+                {props.heading && (
+                  <h3
+                    className={classNames(
+                      "font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
+                      props.smallHeading ? "text-base" : "text-xl",
+                      props.hideHeadingOnMobile && "hidden"
+                    )}>
+                    {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
+                  </h3>
+                )}
+                {props.subtitle && (
+                  <p className="text-default hidden text-sm md:block">
+                    {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
+                  </p>
+                )}
               </div>
-            )}
-            {props.actions && props.actions}
-          </header>
-        )}
-      </div>
+              {props.beforeCTAactions}
+              {props.CTA && (
+                <div
+                  className={classNames(
+                    props.backPath
+                      ? "relative"
+                      : "pwa:bottom-24 fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
+                    "flex-shrink-0 md:relative md:bottom-auto md:right-auto"
+                  )}>
+                  {props.CTA}
+                </div>
+              )}
+              {props.actions && props.actions}
+            </header>
+          )}
+        </div>
+      )}
       {props.afterHeading && <>{props.afterHeading}</>}
       <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
         {props.children}
