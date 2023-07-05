@@ -7,22 +7,5 @@
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "spellright.language": ["en"],
   "spellright.documentTypes": ["markdown", "typescript", "typescriptreact"],
-  "tailwindCSS.experimental.classRegex": [["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]],
-  "apps-sdk.login": true,
-  "apps-sdk.environments": [
-    {
-      "uuid": "3409f038-ddc7-45dc-8b67-0419987169c5",
-      "url": "us1.make.com/api",
-      "name": "NewPath Sandbox",
-      "apikey": "75fa5a40-beff-494d-8904-88bf09c34cc9",
-      "version": 2
-    }
-  ],
-  "apps-sdk.environment": "3409f038-ddc7-45dc-8b67-0419987169c5",
-  "json.schemas": [],
-  "githubPullRequests.pullBranch": "never",
-  "git.enableSmartCommit": true,
-  "workbench.startupEditor": "none",
-  "apps-sdk.apikey": "75fa5a40-beff-494d-8904-88bf09c34cc9",
-  "http.systemCertificates": false
+  "tailwindCSS.experimental.classRegex": [["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]]
 }
