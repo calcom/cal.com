@@ -5,7 +5,7 @@ services:
   postgres:
     image: postgres:13
     ports:
-      - "5450:5432" # expose pg on port 5450 to not collide with pg from elswhere
+      - "${FORWARD_POSTGRES_PORT:-5450}:5432" # expose pg on port 5450 to not collide with pg from elswhere
     restart: always
     volumes:
       - db_data:/var/lib/postgresql/data
