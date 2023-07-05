@@ -51,15 +51,10 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot, s
 
   // Creates an array of dates to fetch slots for.
   // If `extraDays` is passed in, we will extend the array with the next `extraDays` days.
-  const dates = useMemo(
-    () =>
-      !extraDays
+  const dates = !extraDays
         ? [date]
         : nonEmptyScheduleDays.length > 0 
-          ? nonEmptyScheduleDays.slice(sliceFrom, sliceTo)
-          :[],
-    [date, extraDays, schedule?.data?.slots]
-  );
+          ? nonEmptyScheduleDays.slice(sliceFrom, sliceTo):[];
   
   const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.data?.slots);
   
