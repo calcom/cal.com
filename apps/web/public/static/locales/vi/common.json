@@ -502,6 +502,8 @@
   "team_description": "Một vài câu về nhóm của bạn. Thông tin này sẽ xuất hiện trên trang URL của nhóm của bạn.",
   "members": "Các thành viên",
   "member": "Thành viên",
+  "number_member_one": "{{count}} thành viên",
+  "number_member_other": "{{count}} thành viên",
   "owner": "Chủ nhóm",
   "admin": "Quản trị viên",
   "administrator_user": "Người dùng quản trị viên",

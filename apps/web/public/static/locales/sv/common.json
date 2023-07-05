@@ -502,6 +502,8 @@
   "team_description": "Några meningar om ditt team. Detta visas på ditt teams URL-sida.",
   "members": "Medlemmar",
   "member": "Medlem",
+  "number_member_one": "{{count}} medlem",
+  "number_member_other": "{{count}} medlemmar",
   "owner": "Ägare",
   "admin": "Administratör",
   "administrator_user": "Administratörsanvändare",
