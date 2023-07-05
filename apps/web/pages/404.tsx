@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import { orgDomainConfig, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { DOCS_URL, JOIN_DISCORD, WEBSITE_URL } from "@calcom/lib/constants";
+import { DOCS_URL, JOIN_DISCORD, WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HeadSeo } from "@calcom/ui";
 import { BookOpen, Check, ChevronRight, FileText, Shield } from "@calcom/ui/components/icon";
