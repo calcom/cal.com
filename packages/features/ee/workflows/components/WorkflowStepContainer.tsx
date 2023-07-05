@@ -310,6 +310,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   }
 
   if (step && step.action) {
+    const templateValue = form.watch(`steps.${step.stepNumber - 1}.template`);
     const actionString = t(`${step.action.toLowerCase()}_action`);
 
     const selectedAction = {
@@ -482,6 +483,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                   );
                                 }
                               }
+                            } else {
+                              const template = isWhatsappAction(val.value) ? "REMINDER" : "CUSTOM";
+                              template && form.setValue(`steps.${step.stepNumber - 1}.template`, template);
                             }
                             form.unregister(`steps.${step.stepNumber - 1}.sendTo`);
                             form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
@@ -662,7 +666,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <Controller
                   name={`steps.${step.stepNumber - 1}.template`}
                   control={form.control}
-                  render={() => {
+                  render={({ field }) => {
                     return (
                       <Select
                         isSearchable={false}
@@ -703,11 +707,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                 form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, "");
                               }
                             }
+                            field.onChange(val.value)
                             form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
                             setUpdateTemplate(!updateTemplate);
                           }
                         }}
                         defaultValue={selectedTemplate}
+                        value={selectedTemplate}
                         options={templateOptions}
                       />
                     );
