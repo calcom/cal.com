@@ -278,11 +278,17 @@ export async function sendVerificationEmail({
   }
 }
 
-export function checkIfUserIsInDifOrg(invitee: User, team: TeamWithParent) {
+export function throwIfInviteIsToOrgAndUserExists(invitee: User, team: TeamWithParent, isOrg: boolean) {
   if (invitee.organizationId && invitee.organizationId !== team.parentId) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: `User ${invitee.username} is already a member of another organization.`,
+    });
+  }
+  if (invitee && isOrg) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: `You cannot a user that already exists in Cal.com to an organization. If they wish to join via this email address, they must update their email address in their profile.`,
     });
   }
 }

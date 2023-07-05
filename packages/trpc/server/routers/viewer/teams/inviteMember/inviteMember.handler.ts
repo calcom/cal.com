@@ -17,7 +17,7 @@ import {
   checkInputEmailIsValid,
   getOrgConnectionInfo,
   createNewUserConnectToOrgIfExists,
-  checkIfUserIsInDifOrg,
+  throwIfInviteIsToOrgAndUserExists,
   createProvisionalMembership,
   getIsOrgVerified,
   sendVerificationEmail,
@@ -67,13 +67,12 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
 
       await sendVerificationEmail({ usernameOrEmail, team, translation, ctx, input, connectionInfo });
     } else {
-      checkIfUserIsInDifOrg(invitee, team);
+      throwIfInviteIsToOrgAndUserExists(invitee, team, input.isOrg);
 
       // create provisional membership
       await createProvisionalMembership({
         input,
         invitee,
-        ...(team.parentId ? { parentId: team.parentId } : {}),
       });
 
       let sendTo = usernameOrEmail;
