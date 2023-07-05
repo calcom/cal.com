@@ -345,11 +345,7 @@ async function ensureAvailableUsers(
   const availableUsers: IsFixedAwareUser[] = [];
   /** Let's start checking for availability */
   for (const user of eventType.users) {
-    const {
-      busy: bufferedBusyTimes,
-      workingHours,
-      dateOverrides,
-    } = await getUserAvailability(
+    const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
       {
         userId: user.id,
         eventTypeId: eventType.id,
@@ -358,18 +354,7 @@ async function ensureAvailableUsers(
       { user, eventType }
     );
 
-    // check if time slot is outside of schedule.
-    if (
-      !isWithinAvailableHours(
-        { start: input.dateFrom, end: input.dateTo },
-        {
-          workingHours,
-          dateOverrides,
-          organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || user.timeZone,
-          inviteeTimeZone: input.timeZone,
-        }
-      )
-    ) {
+    if (!dateRanges.length) {
       // user does not have availability at this time, skip user.
       continue;
     }
@@ -1631,7 +1616,6 @@ async function handler(
     return resultBooking;
   };
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
-  // This also means if booker doesn't sends bookingUid it will create a separate booking
   if (eventType.seatsPerTimeSlot && (reqBody.bookingUid || rescheduleUid)) {
     const newBooking = await handleSeats();
     if (newBooking) {

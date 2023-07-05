@@ -502,6 +502,8 @@
   "team_description": "Kilka zdań na temat Twojego zespołu. Będą wyświetlane na stronie adresu URL Twojego zespołu.",
   "members": "Członkowie",
   "member": "Członek",
+  "number_member_one": "{{count}} członek",
+  "number_member_other": "{{count}} członków",
   "owner": "Właściciel",
   "admin": "Administrator",
   "administrator_user": "Użytkownik-administrator",

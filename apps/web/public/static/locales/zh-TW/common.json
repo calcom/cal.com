@@ -502,6 +502,8 @@
   "team_description": "請提供關於團隊的簡介，這會顯示在團隊網址的頁面上。",
   "members": "成員",
   "member": "成員",
+  "number_member_one": "{{count}} 名成員",
+  "number_member_other": "{{count}} 名成員",
   "owner": "主持人",
   "admin": "管理者",
   "administrator_user": "管理員使用者",

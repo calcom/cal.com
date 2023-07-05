@@ -514,6 +514,8 @@
   "team_description": "מספר משפטים אודות הצוות. המידע הזה יופיע בדף ה-URL של הצוות.",
   "members": "חברים",
   "member": "חבר/ת",
+  "number_member_one": "חבר {{count}}",
+  "number_member_other": "{{count}} חברים",
   "owner": "בעלים",
   "admin": "מנהל/ת מערכת",
   "administrator_user": "משתמש המוגדר כמנהל מערכת",

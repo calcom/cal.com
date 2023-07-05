@@ -502,6 +502,8 @@
   "team_description": "あなたのチームについての簡単な説明文です。あなたのチームの URL ページに表示されます。",
   "members": "メンバー",
   "member": "メンバー",
+  "number_member_one": "{{count}} 人のメンバー",
+  "number_member_other": "{{count}} 人のメンバー",
   "owner": "所有者",
   "admin": "管理者",
   "administrator_user": "管理者ユーザー",

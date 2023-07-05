@@ -514,6 +514,8 @@
   "team_description": "请写一段简单的团队介绍，该介绍将会显示在您的团队链接页面上。",
   "members": "成员",
   "member": "成员",
+  "number_member_one": "{{count}} 个成员",
+  "number_member_other": "{{count}} 个成员",
   "owner": "所有者",
   "admin": "管理员",
   "administrator_user": "管理员用户",
