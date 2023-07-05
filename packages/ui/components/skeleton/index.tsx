@@ -14,7 +14,7 @@ interface SkeletonContainer {
 }
 
 const SkeletonAvatar: React.FC<SkeletonBaseProps> = ({ className }) => {
-  return <div className={classNames(`bg-emphasis mt-1 rounded-full ltr:mr-2 rtl:ml-2`, className)} />;
+  return <div className={classNames(`bg-emphasis me-3 mt-1 rounded-full`, className)} />;
 };
 
 type SkeletonProps<T> = {
