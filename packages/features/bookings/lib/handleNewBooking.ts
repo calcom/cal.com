@@ -345,11 +345,7 @@ async function ensureAvailableUsers(
   const availableUsers: IsFixedAwareUser[] = [];
   /** Let's start checking for availability */
   for (const user of eventType.users) {
-    const {
-      busy: bufferedBusyTimes,
-      workingHours,
-      dateOverrides,
-    } = await getUserAvailability(
+    const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
       {
         userId: user.id,
         eventTypeId: eventType.id,
@@ -358,18 +354,7 @@ async function ensureAvailableUsers(
       { user, eventType }
     );
 
-    // check if time slot is outside of schedule.
-    if (
-      !isWithinAvailableHours(
-        { start: input.dateFrom, end: input.dateTo },
-        {
-          workingHours,
-          dateOverrides,
-          organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || user.timeZone,
-          inviteeTimeZone: input.timeZone,
-        }
-      )
-    ) {
+    if (!dateRanges.length) {
       // user does not have availability at this time, skip user.
       continue;
     }
