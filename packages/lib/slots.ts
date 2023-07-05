@@ -168,10 +168,13 @@ function buildSlotsWithDateRanges({
     let slotStartTime = range.start.isAfter(startTimeWithMinNotice) ? range.start : startTimeWithMinNotice;
 
     slotStartTime =
-      slotStartTime.utc().minute() % 15 !== 0
+      slotStartTime.utc().minute() % frequency !== 0
         ? slotStartTime
             .startOf("day")
-            .add(slotStartTime.hour() * 60 + Math.ceil(slotStartTime.minute() / 15) * 15, "minute")
+            .add(
+              Math.ceil((slotStartTime.hour() * 60 + slotStartTime.minute()) / frequency) * frequency,
+              "minute"
+            )
         : slotStartTime;
 
     // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
