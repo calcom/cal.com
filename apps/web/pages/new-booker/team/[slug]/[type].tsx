@@ -6,6 +6,7 @@ import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingByUidOrRescheduleUid } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { classNames } from "@calcom/lib";
+import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -39,7 +40,10 @@ export default function Type({ slug, user, booking, away, isBrandingHidden }: Pa
 
 Type.PageWrapper = PageWrapper;
 
-const paramsSchema = z.object({ type: z.string(), slug: z.string() });
+const paramsSchema = z.object({
+  type: z.string().transform((s) => slugify(s)),
+  slug: z.string().transform((s) => slugify(s)),
+});
 
 // Booker page fetches a tiny bit of data server side:
 // 1. Check if team exists, to show 404
