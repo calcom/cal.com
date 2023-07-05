@@ -502,6 +502,8 @@
   "team_description": "بضع جمل عن فريقك. ستظهر على صفحة رابط فريقك.",
   "members": "الأعضاء",
   "member": "العضو",
+  "number_member_one": "{{count}} عضو",
+  "number_member_other": "{{count}} من الأعضاء",
   "owner": "المالك",
   "admin": "المشرف",
   "administrator_user": "المستخدم المسؤول",
