@@ -5,7 +5,7 @@ import { Toaster } from "react-hot-toast";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { StepCard, Steps, Button, SkeletonText } from "@calcom/ui";
+import { Button, SkeletonText, StepCard, Steps } from "@calcom/ui";
 
 export function WizardLayout({
   children,
@@ -16,8 +16,8 @@ export function WizardLayout({
   children: React.ReactNode;
 } & { maxSteps?: number; currentStep?: number; isOptionalCallback?: () => void }) {
   const { t, isLocaleReady } = useLocale();
-  const pathname = usePathname();
   const [meta, setMeta] = useState({ title: "", subtitle: " " });
+  const pathname = usePathname();
   const { title, subtitle } = meta;
 
   useEffect(() => {

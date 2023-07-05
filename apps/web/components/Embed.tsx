@@ -3,9 +3,7 @@ import classNames from "classnames";
 import type { TFunction } from "next-i18next";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context";
 import type { ReadonlyURLSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
-import { usePathname } from "next/navigation";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { MutableRefObject, RefObject } from "react";
 import { createRef, forwardRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
@@ -18,20 +16,20 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import {
   Button,
+  ColorPicker,
   Dialog,
   DialogClose,
-  DialogFooter,
   DialogContent,
+  DialogFooter,
   HorizontalTabs,
   Label,
+  Select,
   showToast,
   Switch,
   TextArea,
   TextField,
-  ColorPicker,
-  Select,
 } from "@calcom/ui";
-import { Code, Trello, Sun, ArrowLeft } from "@calcom/ui/components/icon";
+import { ArrowLeft, Code, Sun, Trello } from "@calcom/ui/components/icon";
 
 type EmbedType = "inline" | "floating-popup" | "element-click";
 type EmbedFramework = "react" | "HTML";
