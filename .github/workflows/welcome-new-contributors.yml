@@ -23,6 +23,6 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           pr-message: |-
             Thank you for making your first Pull Request and taking the time to improve Cal.com ! ❤️🎉
-            Feel free to join the conversation at [slack](https://calendso.slack.com/)
+            Feel free to join the conversation at [discord](https://go.cal.com/discord)
           issue-message: | 
             Thank you for opening your first issue, one of our team members will review it as soon as it possible. ❤️🎉

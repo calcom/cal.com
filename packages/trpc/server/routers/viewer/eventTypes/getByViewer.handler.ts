@@ -285,7 +285,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       ...group.metadata,
       teamId: group.teamId,
       membershipRole: group.membershipRole,
-      image: `${CAL_URL}/${group.profile.slug}/avatar.png`,
+      image: `${CAL_URL}${group.teamId ? "/team" : ""}/${group.profile.slug}/avatar.png`,
     })),
   };
 };
