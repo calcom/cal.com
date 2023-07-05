@@ -3,6 +3,7 @@ import { z } from "zod";
 import { _EventTypeModel as EventType, _HostModel } from "@calcom/prisma/zod";
 import { customInputSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
+import slugify from "~/../../packages/lib/slugify";
 import { Frequency } from "~/lib/types";
 
 import { jsonSchema } from "./shared/jsonSchema";
@@ -58,7 +59,7 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
 const schemaEventTypeCreateParams = z
   .object({
     title: z.string(),
-    slug: z.string(),
+    slug: z.string().transform((s) => slugify(s)),
     description: z.string().optional().nullable(),
     length: z.number().int(),
     metadata: z.any().optional(),
@@ -76,7 +77,10 @@ export const schemaEventTypeCreateBodyParams = schemaEventTypeBaseBodyParams
 const schemaEventTypeEditParams = z
   .object({
     title: z.string().optional(),
-    slug: z.string().optional(),
+    slug: z
+      .string()
+      .transform((s) => slugify(s))
+      .optional(),
     length: z.number().int().optional(),
     seatsPerTimeSlot: z.number().optional(),
     seatsShowAttendees: z.boolean().optional(),
