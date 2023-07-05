@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
@@ -12,7 +12,6 @@ import { z } from "zod";
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
-import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import {
@@ -51,8 +50,6 @@ import { AlertTriangle, Calendar, RefreshCw, User } from "@calcom/ui/components/
 import { timeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
-import type { Gate, GateState } from "@components/Gates";
-import Gates from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
 import LegalNotice from "@components/ui/LegalNotice";
 
@@ -225,13 +222,6 @@ const BookingPage = ({
   const { data: session } = useSession();
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const telemetry = useTelemetry();
-  const [gateState, gateDispatcher] = useReducer(
-    (state: GateState, newState: Partial<GateState>) => ({
-      ...state,
-      ...newState,
-    }),
-    {}
-  );
 
   const { timezone } = useTimePreferences();
 
@@ -489,7 +479,6 @@ const BookingPage = ({
         metadata,
         hasHashedBookingLink,
         hashedLink,
-        ethSignature: gateState.rainbowToken,
       }));
       recurringMutation.mutate(recurringBookings);
     } else {
@@ -507,25 +496,15 @@ const BookingPage = ({
         metadata,
         hasHashedBookingLink,
         hashedLink,
-        ethSignature: gateState.rainbowToken,
         seatReferenceUid: router.query.seatReferenceUid as string,
       });
     }
   };
 
   const showEventTypeDetails = (isEmbed && !embedUiConfig.hideEventTypeDetails) || !isEmbed;
-  const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
-
-  // Define conditional gates here
-  const gates = [
-    // Rainbow gate is only added if the event has both a `blockchainId` and a `smartContractAddress`
-    rainbowAppData && rainbowAppData.blockchainId && rainbowAppData.smartContractAddress
-      ? ("rainbow" as Gate)
-      : undefined,
-  ];
 
   return (
-    <Gates gates={gates} appData={rainbowAppData} dispatch={gateDispatcher}>
+    <>
       <Head>
         <title>
           {rescheduleUid
@@ -556,7 +535,7 @@ const BookingPage = ({
           )}>
           <div className="sm:flex">
             {showEventTypeDetails && (
-              <div className="sm:border-subtle text-default flex flex-col px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6">
+              <div className="sm:border-subtle text-default flex flex-col px-6 pb-0 pt-6 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
                   <BookingDescriptionPayment eventType={eventType} t={t} i18n={i18n} />
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
@@ -583,7 +562,7 @@ const BookingPage = ({
                         recurringStrings.slice(0, 5).map((timeFormatted, key) => {
                           return <p key={key}>{timeFormatted}</p>;
                         })}
-                      {!rescheduleUid && eventType.recurringEvent?.freq && recurringStrings.length > 5 && (
+                      {!rescheduleUid && eventType?.recurringEvent?.freq && recurringStrings.length > 5 && (
                         <div className="flex">
                           <Tooltip
                             content={recurringStrings.slice(5).map((timeFormatted, key) => (
@@ -599,11 +578,11 @@ const BookingPage = ({
                   </div>
                   {booking?.startTime && rescheduleUid && (
                     <div>
-                      <p className="mt-8 mb-2 text-sm " data-testid="former_time_p">
+                      <p className="mb-2 mt-8 text-sm " data-testid="former_time_p">
                         {t("former_time")}
                       </p>
                       <p className="line-through ">
-                        <Calendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                        <Calendar className="-mt-1 ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                         {isClientTimezoneAvailable &&
                           typeof booking.startTime === "string" &&
                           parseDateTimeWithTimeZone(booking.startTime, i18n.language, timezone, {
@@ -638,7 +617,12 @@ const BookingPage = ({
                         {currentSlotBooking
                           ? eventType.seatsPerTimeSlot - currentSlotBooking.attendees.length
                           : eventType.seatsPerTimeSlot}{" "}
-                        / {eventType.seatsPerTimeSlot} {t("seats_available")}
+                        / {eventType.seatsPerTimeSlot}{" "}
+                        {t("seats_available", {
+                          count: currentSlotBooking
+                            ? eventType.seatsPerTimeSlot - currentSlotBooking.attendees.length
+                            : eventType.seatsPerTimeSlot,
+                        })}
                       </p>
                     </div>
                   )}
@@ -683,7 +667,7 @@ const BookingPage = ({
         <LegalNotice />
       </main>
       <Toaster position="bottom-right" />
-    </Gates>
+    </>
   );
 };
 

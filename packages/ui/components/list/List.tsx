@@ -2,6 +2,9 @@ import Link from "next/link";
 import { createElement } from "react";
 
 import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
+import { Badge } from "../badge";
 
 export type ListProps = {
   roundContainer?: boolean;
@@ -70,6 +73,7 @@ export type ListLinkItemProps = {
 
 export function ListLinkItem(props: ListLinkItemProps) {
   const { href, heading = "", children, disabled = false, actions = <div />, className = "" } = props;
+  const { t } = useLocale();
   let subHeading = props.subHeading;
   if (!subHeading) {
     subHeading = "";
@@ -77,7 +81,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
   return (
     <li
       className={classNames(
-        "group flex w-full items-center justify-between p-5",
+        "group flex w-full items-center justify-between p-5 pb-4",
         className,
         disabled ? "hover:bg-muted" : ""
       )}>
@@ -88,8 +92,15 @@ export function ListLinkItem(props: ListLinkItemProps) {
           "text-default flex-grow truncate text-sm",
           disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
         )}>
-        <h1 className="text-sm font-semibold leading-none">{heading}</h1>
-        <h2 className="min-h-4 mt-2 text-sm font-normal leading-none">
+        <div className="flex items-center">
+          <h1 className="text-sm font-semibold leading-none">{heading}</h1>
+          {disabled && (
+            <Badge variant="gray" className="ml-2">
+              {t("readonly")}
+            </Badge>
+          )}
+        </div>
+        <h2 className="min-h-4 mt-2 text-sm font-normal leading-none text-neutral-600">
           {subHeading.substring(0, 100)}
           {subHeading.length > 100 && "..."}
         </h2>

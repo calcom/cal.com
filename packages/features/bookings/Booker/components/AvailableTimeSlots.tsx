@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
@@ -6,7 +6,7 @@ import { useSlotsForMultipleDates } from "@calcom/features/schedules/lib/use-sch
 import { classNames } from "@calcom/lib";
 
 import { useBookerStore } from "../store";
-import { useScheduleForEvent } from "../utils/event";
+import { useEvent, useScheduleForEvent } from "../utils/event";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
@@ -24,7 +24,15 @@ type AvailableTimeSlotsProps = {
 export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
+  const event = useEvent();
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const onTimeSelect = (time: string) => {
+    setSelectedTimeslot(time);
+
+    if (!event.data) return;
+  };
 
   const schedule = useScheduleForEvent({
     prefetchNextMonth: !!extraDays && dayjs(date).month() !== dayjs(date).add(extraDays, "day").month(),
@@ -51,11 +59,18 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }:
   const isMultipleDates = dates.length > 1;
   const slotsPerDay = useSlotsForMultipleDates(dates, schedule?.data?.slots);
 
+  useEffect(() => {
+    if (containerRef.current && !schedule.isLoading) {
+      containerRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [containerRef, schedule.isLoading]);
+
   return (
     <div
+      ref={containerRef}
       className={classNames(
         limitHeight && "flex-grow md:h-[400px]",
-        !limitHeight && "flex w-full flex-row gap-4"
+        !limitHeight && "flex h-full w-full flex-row gap-4"
       )}>
       {schedule.isLoading
         ? // Shows exact amount of days as skeleton.
@@ -66,7 +81,7 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }:
               className="w-full"
               key={slots.date}
               showTimeformatToggle={!isMultipleDates}
-              onTimeSelect={setSelectedTimeslot}
+              onTimeSelect={onTimeSelect}
               date={dayjs(slots.date)}
               slots={slots.slots}
               seatsPerTimeslot={seatsPerTimeslot}

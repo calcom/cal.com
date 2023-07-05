@@ -1,10 +1,9 @@
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import { getEventTypeAppData } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -27,8 +26,6 @@ import { CreditCard, User, RefreshCcw } from "@calcom/ui/components/icon";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 
-import type { Gate, GateState } from "@components/Gates";
-import Gates from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
 import { SlotPicker } from "@components/booking/SlotPicker";
 import LegalNotice from "@components/ui/LegalNotice";
@@ -90,14 +87,6 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
     setIs24hClockInLocalStorage(is24Hours);
   };
 
-  const [gateState, gateDispatcher] = useReducer(
-    (state: GateState, newState: Partial<GateState>) => ({
-      ...state,
-      ...newState,
-    }),
-    {}
-  );
-
   useEffect(() => {
     setTimeZone(localStorageTimeZone() || dayjs.tz.guess());
   }, []);
@@ -125,19 +114,10 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   );
   const paymentAppData = getPaymentAppData(eventType);
 
-  const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
 
   const showEventTypeDetails = (isEmbed && !embedUiConfig.hideEventTypeDetails) || !isEmbed;
-
-  // Define conditional gates here
-  const gates = [
-    // Rainbow gate is only added if the event has both a `blockchainId` and a `smartContractAddress`
-    rainbowAppData && rainbowAppData.blockchainId && rainbowAppData.smartContractAddress
-      ? ("rainbow" as Gate)
-      : undefined,
-  ];
 
   const { data: bookingAttendees } = trpc.viewer.bookings.getBookingAttendees.useQuery(
     {
@@ -149,7 +129,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   );
 
   return (
-    <Gates gates={gates} appData={rainbowAppData} dispatch={gateDispatcher}>
+    <>
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
@@ -212,9 +192,9 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                       )}
                       {!rescheduleUid && eventType.recurringEvent && (
                         <div className="flex items-start text-sm font-medium">
-                          <RefreshCcw className="float-left mt-[7px] ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
+                          <RefreshCcw className="float-left ml-[2px] mt-[7px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
                           <div>
-                            <p className="mb-1 -ml-2 inline px-2 py-1">
+                            <p className="-ml-2 mb-1 inline px-2 py-1">
                               {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
                             </p>
 
@@ -225,7 +205,13 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                               isFullWidth={false}
                               className="me-2 inline w-16"
                               onChange={(event) => {
-                                setRecurringEventCount(parseInt(event?.target.value));
+                                const count =
+                                  eventType?.recurringEvent?.count &&
+                                  parseInt(event?.target.value) > eventType?.recurringEvent?.count
+                                    ? eventType.recurringEvent.count
+                                    : parseInt(event?.target.value);
+
+                                setRecurringEventCount(count);
                               }}
                             />
 
@@ -239,7 +225,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                       )}
                       {paymentAppData.price > 0 && (
                         <p className="-ml-2 px-2 text-sm font-medium">
-                          <CreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                          <CreditCard className="-mt-1 ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                           {paymentAppData.paymentOption === "HOLD" ? (
                             <>
                               {t("no_show_fee_amount", {
@@ -297,7 +283,6 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                   seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
                   bookingAttendees={bookingAttendees || undefined}
                   recurringEventCount={recurringEventCount}
-                  ethSignature={gateState.rainbowToken}
                 />
               </div>
             </div>
@@ -310,7 +295,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
         </main>
       </div>
       <Toaster position="bottom-right" />
-    </Gates>
+    </>
   );
 };
 

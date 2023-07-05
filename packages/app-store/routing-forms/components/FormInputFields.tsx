@@ -4,6 +4,7 @@ import type { Dispatch, SetStateAction } from "react";
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 import { getQueryBuilderConfig } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
+import transformResponse from "../lib/transformResponse";
 import type { SerializableForm, Response } from "../types/types";
 
 type Props = {
@@ -54,14 +55,14 @@ export default function FormInputFields(props: Props) {
               required={!!field.required}
               listValues={options}
               data-testid={`form-field-${getFieldIdentifier(field)}`}
-              setValue={(value) => {
+              setValue={(value: number | string | string[]) => {
                 setResponse((response) => {
                   response = response || {};
                   return {
                     ...response,
                     [field.id]: {
                       label: field.label,
-                      value,
+                      value: transformResponse({ field, value }),
                     },
                   };
                 });

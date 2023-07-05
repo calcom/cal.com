@@ -14,13 +14,12 @@ export type Option = {
   label: string;
 };
 
-const InputOption: React.FC<OptionProps<any, boolean, GroupBase<any>>> = ({
+const InputOption: React.FC<OptionProps<unknown, boolean, GroupBase<unknown>>> = ({
   isDisabled,
   isFocused,
   isSelected,
   children,
   innerProps,
-  className,
   ...rest
 }) => {
   const props = {
@@ -52,7 +51,7 @@ type MultiSelectionCheckboxesProps = {
   setValue: (s: Option[]) => unknown;
 };
 
-const MultiValue = ({ index, getValue }: { index: number; getValue: any }) => {
+const MultiValue = ({ index, getValue }: { index: number; getValue: () => { length: number } }) => {
   const { t } = useLocale();
 
   return <>{!index && <div>{t("nr_event_type", { count: getValue().length })}</div>}</>;
@@ -72,6 +71,7 @@ export default function MultiSelectCheckboxes({
   return (
     <Select
       value={selected}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       onChange={(s: any) => {
         setSelected(s);
         setValue(s);

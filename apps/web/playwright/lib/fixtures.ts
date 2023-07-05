@@ -40,7 +40,7 @@ declare global {
  *  @see https://playwright.dev/docs/test-fixtures
  */
 export const test = base.extend<Fixtures>({
-  users: async ({ page }, use, workerInfo) => {
+  users: async ({ page, context }, use, workerInfo) => {
     const usersFixture = createUsersFixture(page, workerInfo);
     await use(usersFixture);
   },

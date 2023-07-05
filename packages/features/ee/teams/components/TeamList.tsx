@@ -43,7 +43,7 @@ export default function TeamList(props: Props) {
   }
 
   return (
-    <ul className="bg-default divide-subtle border-subtle mb-2 divide-y rounded border">
+    <ul className="bg-default divide-subtle border-subtle mb-2 divide-y overflow-hidden rounded-md border">
       {props.teams.map((team) => (
         <TeamListItem
           key={team?.id as number}
@@ -105,7 +105,7 @@ export default function TeamList(props: Props) {
                       icon={<Edit className="h-5 w-5 text-purple-700" />}
                       variant="basic"
                       title={t("appearance")}
-                      description={t("appearance_subtitle")}
+                      description={t("appearance_description")}
                       actionButton={{
                         href: "/settings/teams/" + team.id + "/appearance",
                         child: t("edit"),
