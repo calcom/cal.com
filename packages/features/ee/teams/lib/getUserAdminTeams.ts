@@ -79,7 +79,7 @@ const getUserAdminTeams = async ({
         name: user.name || "Nameless",
         logo: user?.avatar,
         isUser: true,
-        ...(includeCredentials && { credentials: true }),
+        ...(includeCredentials && { credentials: user.credentials }),
       };
       teams.unshift(userObject);
     }
