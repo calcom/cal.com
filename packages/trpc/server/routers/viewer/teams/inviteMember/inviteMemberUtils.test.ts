@@ -105,27 +105,6 @@ describe("Invite Member Utils", () => {
     const orgAutoAcceptDomain = "example.com";
     const usersEmail = "user@example.com";
 
-    const team: TeamWithParent = {
-      id: 1,
-      name: "Team A",
-      slug: null,
-      logo: null,
-      appLogo: null,
-      appIconLogo: null,
-      bio: null,
-      hideBranding: false,
-      hideBookATeamMember: false,
-      createdAt: new Date(),
-      brandColor: "#292929",
-      darkBrandColor: "#fafafa",
-      timeZone: "Europe/London",
-      weekStart: "Sunday",
-      theme: null,
-      timeFormat: null,
-      metadata: null,
-      parentId: null,
-      parent: null
-    };
 
     it("should return orgId and autoAccept as true if team has parent and usersEmail domain matches orgAutoAcceptDomain and orgVerified is true", () => {
       const result = getOrgConnectionInfo({
