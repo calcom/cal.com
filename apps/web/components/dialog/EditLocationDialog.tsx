@@ -173,8 +173,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     }
   );
 
-  console.log(defaultLocation);
-
   const LocationOptions = (() => {
     if (eventLocationType && eventLocationType.organizerInputType && LocationInput) {
       if (!eventLocationType.variable) {
