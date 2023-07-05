@@ -1,12 +1,25 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { StopCircle, Users } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { ExternalLink, MoreHorizontal, StopCircle, Users } from "lucide-react";
 import { useMemo, useRef, useCallback, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/enums";
-import { trpc, type RouterOutputs } from "@calcom/trpc";
-import { Avatar, Badge, Checkbox, DataTable, showToast } from "@calcom/ui";
+import type { MembershipRole } from "@calcom/prisma/enums";
+import { trpc } from "@calcom/trpc";
+import {
+  Avatar,
+  Badge,
+  Button,
+  ButtonGroup,
+  Checkbox,
+  DataTable,
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  Tooltip,
+  showToast,
+} from "@calcom/ui";
 
 import { useOrgBrandingValues } from "../../../ee/organizations/hooks";
 
@@ -24,26 +37,9 @@ interface User {
   }[];
 }
 
-function TableActions({
-  user,
-  orgSlug,
-  currentTeam,
-}: {
-  user: User;
-  orgSlug: string;
-  currentTeam: RouterOutputs["viewer"]["organizations"]["listMembers"] | undefined;
-}) {
+function TableActions({ user }: { user: User }) {
   const { t } = useLocale();
-  const { data: session } = useSession();
   const utils = trpc.useContext();
-  const membershipPermissions = useOrgMemberStore((state) => state.permissions);
-
-  const ownersInTeam = () => {
-    const owners = currentTeam?.members.filter(
-      (member) => member["role"] === MembershipRole.OWNER && member["accepted"]
-    );
-    return owners ? owners.length : 0;
-  };
 
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
@@ -57,118 +53,116 @@ function TableActions({
     },
   });
 
-  return null;
-
-  // return (
-  //   <>
-  //     <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
-  //       {/* TODO: bring availability back. right now its ugly and broken
-  //              <Tooltip
-  //               content={
-  //                 props.member.accepted
-  //                   ? t("team_view_user_availability")
-  //                   : t("team_view_user_availability_disabled")
-  //               }>
-  //               <Button
-  //                 disabled={!props.member.accepted}
-  //                 onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
-  //                 color="secondary"
-  //                 variant="icon"
-  //                 StartIcon={Clock}
-  //               />
-  //             </Tooltip> */}
-  //       <Tooltip content={t("view_public_page")}>
-  //         <Button
-  //           target="_blank"
-  //           href={"/" + props.member.username}
-  //           color="secondary"
-  //           className={classNames(!editMode ? "rounded-r-md" : "")}
-  //           variant="icon"
-  //           StartIcon={ExternalLink}
-  //         />
-  //       </Tooltip>
-  //       {editMode && (
-  //         <Dropdown>
-  //           <DropdownMenuTrigger asChild>
-  //             <Button
-  //               className="radix-state-open:rounded-r-md"
-  //               color="secondary"
-  //               variant="icon"
-  //               StartIcon={MoreHorizontal}
-  //             />
-  //           </DropdownMenuTrigger>
-  //           <DropdownMenuContent>
-  //             <DropdownMenuItem>
-  //               <DropdownItem
-  //                 type="button"
-  //                 // onClick={() => setShowChangeMemberRoleModal(true)}
-  //                 StartIcon={Edit2}>
-  //                 {t("edit")}
-  //               </DropdownItem>
-  //             </DropdownMenuItem>
-  //             {impersonationMode && (
-  //               <>
-  //                 <DropdownMenuItem>
-  //                   <DropdownItem
-  //                     type="button"
-  //                     // onClick={() => setShowImpersonateModal(true)}
-  //                     StartIcon={Lock}>
-  //                     {t("impersonate")}
-  //                   </DropdownItem>
-  //                 </DropdownMenuItem>
-  //                 <DropdownMenuSeparator />
-  //               </>
-  //             )}
-  //             <DropdownMenuItem>
-  //               <DropdownItem
-  //                 type="button"
-  //                 // onClick={() => setShowDeleteModal(true)}
-  //                 color="destructive"
-  //                 StartIcon={UserX}>
-  //                 {t("remove")}
-  //               </DropdownItem>
-  //             </DropdownMenuItem>
-  //           </DropdownMenuContent>
-  //         </Dropdown>
-  //       )}
-  //     </ButtonGroup>
-  //     <div className="flex md:hidden">
-  //       <Dropdown>
-  //         <DropdownMenuTrigger asChild>
-  //           <Button type="button" variant="icon" color="minimal" StartIcon={MoreHorizontal} />
-  //         </DropdownMenuTrigger>
-  //         <DropdownMenuContent>
-  //           <DropdownMenuItem className="outline-none">
-  //             <DropdownItem type="button" StartIcon={ExternalLink}>
-  //               {t("view_public_page")}
-  //             </DropdownItem>
-  //           </DropdownMenuItem>
-  //           {editMode && (
-  //             <>
-  //               <DropdownMenuItem>
-  //                 <DropdownItem
-  //                   type="button"
-  //                   // onClick={() => setShowChangeMemberRoleModal(true)}
-  //                   StartIcon={Edit2}>
-  //                   {t("edit")}
-  //                 </DropdownItem>
-  //               </DropdownMenuItem>
-  //               <DropdownMenuItem>
-  //                 <DropdownItem
-  //                   type="button"
-  //                   color="destructive"
-  //                   // onClick={() => setShowDeleteModal(true)}
-  //                   StartIcon={UserX}>
-  //                   {t("remove")}
-  //                 </DropdownItem>
-  //               </DropdownMenuItem>
-  //             </>
-  //           )}
-  //         </DropdownMenuContent>
-  //       </Dropdown>
-  //     </div>
-  //   </>
-  // );
+  return (
+    <>
+      <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
+        {/* TODO: bring availability back. right now its ugly and broken
+               <Tooltip
+                content={
+                  props.member.accepted
+                    ? t("team_view_user_availability")
+                    : t("team_view_user_availability_disabled")
+                }>
+                <Button
+                  disabled={!props.member.accepted}
+                  onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
+                  color="secondary"
+                  variant="icon"
+                  StartIcon={Clock}
+                />
+              </Tooltip> */}
+        <Tooltip content={t("view_public_page")}>
+          <Button
+            target="_blank"
+            href={"/" + user.username}
+            color="secondary"
+            // className={classNames(!editMode ? "rounded-r-md" : "")}
+            variant="icon"
+            StartIcon={ExternalLink}
+          />
+        </Tooltip>
+        {/* {editMode && (
+          <Dropdown>
+            <DropdownMenuTrigger asChild>
+              <Button
+                className="radix-state-open:rounded-r-md"
+                color="secondary"
+                variant="icon"
+                StartIcon={MoreHorizontal}
+              />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>
+                <DropdownItem
+                  type="button"
+                  // onClick={() => setShowChangeMemberRoleModal(true)}
+                  StartIcon={Edit2}>
+                  {t("edit")}
+                </DropdownItem>
+              </DropdownMenuItem>
+              {impersonationMode && (
+                <>
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      // onClick={() => setShowImpersonateModal(true)}
+                      StartIcon={Lock}>
+                      {t("impersonate")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+              <DropdownMenuItem>
+                <DropdownItem
+                  type="button"
+                  // onClick={() => setShowDeleteModal(true)}
+                  color="destructive"
+                  StartIcon={UserX}>
+                  {t("remove")}
+                </DropdownItem>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </Dropdown>
+        )} */}
+      </ButtonGroup>
+      <div className="flex md:hidden">
+        <Dropdown>
+          <DropdownMenuTrigger asChild>
+            <Button type="button" variant="icon" color="minimal" StartIcon={MoreHorizontal} />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem className="outline-none">
+              <DropdownItem type="button" StartIcon={ExternalLink}>
+                {t("view_public_page")}
+              </DropdownItem>
+            </DropdownMenuItem>
+            {/* {editMode && (
+              <>
+                <DropdownMenuItem>
+                  <DropdownItem
+                    type="button"
+                    // onClick={() => setShowChangeMemberRoleModal(true)}
+                    StartIcon={Edit2}>
+                    {t("edit")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <DropdownItem
+                    type="button"
+                    color="destructive"
+                    // onClick={() => setShowDeleteModal(true)}
+                    StartIcon={UserX}>
+                    {t("remove")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+              </>
+            )} */}
+          </DropdownMenuContent>
+        </Dropdown>
+      </div>
+    </>
+  );
 }
 
 export function UserListTable() {
@@ -281,13 +275,13 @@ export function UserListTable() {
           );
         },
       },
-      // {
-      //   id: "actions",
-      //   cell: ({ row }) => {
-      //     const user = row.original;
-      //     return <TableActions user={user} orgSlug={orgSlug} currentTeam={rows} />;
-      //   },
-      // },
+      {
+        id: "actions",
+        cell: ({ row }) => {
+          const user = row.original;
+          return <TableActions user={user} />;
+        },
+      },
     ];
 
     return cols;
