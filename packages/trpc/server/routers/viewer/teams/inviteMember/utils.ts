@@ -48,8 +48,6 @@ export async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
   if (!team)
     throw new TRPCError({ code: "NOT_FOUND", message: `${isOrg ? "Organization" : "Team"} not found` });
 
-  console.log(team);
-
   return team;
 }
 
