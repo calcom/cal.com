@@ -159,7 +159,7 @@ describe("Invite Member Utils", () => {
       const result = getOrgConnectionInfo({
         orgAutoAcceptDomain,
         usersEmail: "user@other.com",
-        team: { ...team, parentId: null },
+        team: { ...mockedTeam, parentId: null },
         isOrg: true,
       });
       expect(result).toEqual({ orgId: undefined, autoAccept: false });
@@ -173,7 +173,7 @@ describe("Invite Member Utils", () => {
         team: { ...mockedTeam, parentId: null },
         isOrg: true,
       });
-      expect(result).toEqual({ orgId: team.id, autoAccept: false });
+      expect(result).toEqual({ orgId: mockedTeam.id, autoAccept: false });
     });
   });
   describe("getIsOrgVerified", () => {
