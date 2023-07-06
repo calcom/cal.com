@@ -267,6 +267,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       seatsShowAttendees: true,
       bookingLimits: true,
       durationLimits: true,
+      parentId: true,
       owner: {
         select: {
           hideBranding: true,
@@ -653,16 +654,6 @@ async function handler(
     eventType.schedulingType === SchedulingType.COLLECTIVE ||
     eventType.schedulingType === SchedulingType.ROUND_ROBIN;
 
-  const teamCredentials: Credential[] = [];
-
-  if (isTeamEventType && eventType.team?.id) {
-    await prisma.credential.findMany({
-      where: {
-        teamId: eventType.team.id,
-      },
-    });
-  }
-
   const paymentAppData = getPaymentAppData(eventType);
 
   let timeOutOfBounds = false;
@@ -846,6 +837,53 @@ async function handler(
 
   const [organizerUser] = users;
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
+
+  const teamCredentials: Credential[] = [];
+
+  // If it's a team event type query for team credentials
+  if (isTeamEventType && eventType.team?.id) {
+    const teamCredentialsQuery = await prisma.credential.findMany({
+      where: {
+        teamId: eventType.team.id,
+      },
+    });
+    teamCredentials.push(...teamCredentialsQuery);
+  }
+
+  // If it's a managed event type, query for the parent team's credentials
+  if (eventType.parentId) {
+    const teamCredentialsQuery = await prisma.team.findFirst({
+      where: {
+        eventTypes: {
+          some: {
+            id: eventType.parentId,
+          },
+        },
+      },
+      select: {
+        credentials: true,
+      },
+    });
+    if (teamCredentialsQuery?.credentials) {
+      teamCredentials.push(...teamCredentialsQuery?.credentials);
+    }
+  }
+
+  // If the user is a part of an organization, query for the organization's credentials
+  if (organizerUser?.organizationId) {
+    const org = await prisma.team.findUnique({
+      where: {
+        id: organizerUser.organizationId,
+      },
+      select: {
+        credentials: true,
+      },
+    });
+
+    if (org?.credentials) {
+      teamCredentials.push(...org.credentials);
+    }
+  }
 
   // use host default
   if (isTeamEventType && locationBodyString === OrganizerDefaultConferencingAppType) {
@@ -1125,7 +1163,7 @@ async function handler(
         },
       });
 
-      const credentials = await refreshCredentials([...organizerUser.credentials, teamCredentials]);
+      const credentials = await refreshCredentials([...organizerUser.credentials, ...teamCredentials]);
       const eventManager = new EventManager({ ...organizerUser, credentials });
 
       if (!originalRescheduledBooking) {
