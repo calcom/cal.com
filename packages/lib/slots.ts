@@ -160,7 +160,6 @@ function buildSlotsWithDateRanges({
   frequency = minimumOfOne(frequency);
   eventLength = minimumOfOne(eventLength);
   offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
-
   const slots: { time: Dayjs; userIds?: number[] }[] = [];
   dateRanges.forEach((range) => {
     const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
@@ -168,21 +167,40 @@ function buildSlotsWithDateRanges({
     let slotStartTime = range.start.isAfter(startTimeWithMinNotice) ? range.start : startTimeWithMinNotice;
 
     let previousStartTime;
-    // we need to check if it is same day in organizer timezone (we maybe use utc here)
-    if (slots.length && range.start.isSame(slots[slots.length - 1].time, "day")) {
+    // not sure here (we want to check if it is the same day in the organizer's timezone)
+    if (
+      slots.length &&
+      dayjs
+        .utc(range.start)
+        .add(range.start.utcOffset())
+        .isSame(dayjs(slots[slots.length - 1].time).add(slots[slots.length - 1].time.utcOffset()), "day")
+    ) {
       previousStartTime = slots[slots.length - 1].time;
     }
 
     if (!previousStartTime) {
-      slotStartTime =
-        slotStartTime.utc().minute() % frequency !== 0
-          ? slotStartTime
-              .startOf("day")
-              .add(
-                Math.ceil((slotStartTime.hour() * 60 + slotStartTime.minute()) / frequency) * frequency,
-                "minute"
-              )
-          : slotStartTime;
+      if (frequency % 60 === 0) {
+        slotStartTime =
+          slotStartTime.utc().minute() % 60 !== 0
+            ? slotStartTime
+                .startOf("day")
+                .add(Math.ceil((slotStartTime.hour() * 60 + slotStartTime.minute()) / 60) * 60, "minute")
+            : slotStartTime;
+      } else if (frequency % 30 === 0) {
+        slotStartTime =
+          slotStartTime.utc().minute() % 30 !== 0
+            ? slotStartTime
+                .startOf("day")
+                .add(slotStartTime.hour() * 60 + Math.ceil(slotStartTime.minute() / 30) * 30, "minute")
+            : slotStartTime;
+      } else {
+        slotStartTime =
+          slotStartTime.utc().minute() % 15 !== 0
+            ? slotStartTime
+                .startOf("day")
+                .add(Math.ceil((slotStartTime.hour() * 60 + slotStartTime.minute()) / 15) * 15, "minute")
+            : slotStartTime;
+      }
     } else {
       const minuteOffset =
         Math.ceil(slotStartTime.diff(previousStartTime, "minutes") / frequency) * frequency;
