@@ -2,6 +2,7 @@ import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
 
 import { getAggregateWorkingHours } from "@calcom/core/getAggregateWorkingHours";
+import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
@@ -10,7 +11,7 @@ import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
-import getTimeSlots from "@calcom/lib/slots";
+import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -210,10 +211,14 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     throw new TRPCError({ code: "NOT_FOUND" });
   }
 
-  const startTime =
-    input.timeZone === "Etc/GMT"
-      ? dayjs.utc(input.startTime)
-      : dayjs(input.startTime).utc().tz(input.timeZone);
+  const getStartTime = (startTimeInput: string, timeZone?: string) => {
+    const startTimeMin = dayjs.utc().add(eventType.minimumBookingNotice, "minutes");
+    const startTime = timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone);
+
+    return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
+  };
+
+  const startTime = getStartTime(input.startTime, input.timeZone);
   const endTime =
     input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
 
@@ -237,6 +242,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
         busy,
         workingHours,
         dateOverrides,
+        dateRanges,
         currentSeats: _currentSeats,
         timeZone,
       } = await getUserAvailability(
@@ -258,11 +264,13 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
         timeZone,
         workingHours,
         dateOverrides,
+        dateRanges,
         busy,
         user: currentUser,
       };
     })
   );
+
   // flattens availability of multiple users
   const dateOverrides = userAvailability.flatMap((availability) =>
     availability.dateOverrides.map((override) => ({ userId: availability.user.id, ...override }))
@@ -283,32 +291,21 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     });
 
   const getSlotsTime = 0;
-  let checkForAvailabilityTime = 0;
+  const checkForAvailabilityTime = 0;
   const getSlotsCount = 0;
-  let checkForAvailabilityCount = 0;
+  const checkForAvailabilityCount = 0;
 
-  const timeSlots: ReturnType<typeof getTimeSlots> = [];
-
-  for (
-    let currentCheckedTime = startTime;
-    currentCheckedTime.isBefore(endTime);
-    currentCheckedTime = currentCheckedTime.add(1, "day")
-  ) {
-    // get slots retrieves the available times for a given day
-    timeSlots.push(
-      ...getTimeSlots({
-        inviteeDate: currentCheckedTime,
-        eventLength: input.duration || eventType.length,
-        workingHours,
-        dateOverrides,
-        minimumBookingNotice: eventType.minimumBookingNotice,
-        offsetStart: eventType.offsetStart,
-        frequency: eventType.slotInterval || input.duration || eventType.length,
-        organizerTimeZone:
-          eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
-      })
-    );
-  }
+  const timeSlots = getSlots({
+    inviteeDate: startTime,
+    eventLength: input.duration || eventType.length,
+    workingHours,
+    dateOverrides,
+    offsetStart: eventType.offsetStart,
+    dateRanges: getAggregatedAvailability(userAvailability, eventType.schedulingType),
+    minimumBookingNotice: eventType.minimumBookingNotice,
+    frequency: eventType.slotInterval || input.duration || eventType.length,
+    organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
+  });
 
   let availableTimeSlots: typeof timeSlots = [];
   // Load cached busy slots
@@ -332,44 +329,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
     where: { eventTypeId: { equals: eventType.id }, id: { notIn: selectedSlots.map((item) => item.id) } },
   });
 
-  availableTimeSlots = timeSlots.filter((slot) => {
-    const fixedHosts = userAvailability.filter((availability) => availability.user.isFixed);
-    return fixedHosts.every((schedule) => {
-      const startCheckForAvailability = performance.now();
-
-      const isAvailable = checkIfIsAvailable({
-        time: slot.time,
-        ...schedule,
-        ...availabilityCheckProps,
-      });
-      const endCheckForAvailability = performance.now();
-      checkForAvailabilityCount++;
-      checkForAvailabilityTime += endCheckForAvailability - startCheckForAvailability;
-      return isAvailable;
-    });
-  });
-  // what else are you going to call it?
-  const looseHostAvailability = userAvailability.filter(({ user: { isFixed } }) => !isFixed);
-  if (looseHostAvailability.length > 0) {
-    availableTimeSlots = availableTimeSlots
-      .map((slot) => {
-        slot.userIds = slot.userIds?.filter((slotUserId) => {
-          const userSchedule = looseHostAvailability.find(
-            ({ user: { id: userId } }) => userId === slotUserId
-          );
-          if (!userSchedule) {
-            return false;
-          }
-          return checkIfIsAvailable({
-            time: slot.time,
-            ...userSchedule,
-            ...availabilityCheckProps,
-          });
-        });
-        return slot;
-      })
-      .filter((slot) => !!slot.userIds?.length);
-  }
+  availableTimeSlots = timeSlots;
 
   if (selectedSlots?.length > 0) {
     let occupiedSeats: typeof selectedSlots = selectedSlots.filter(
@@ -410,30 +370,41 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
       });
       currentSeats = availabilityCheckProps.currentSeats;
     }
-
     availableTimeSlots = availableTimeSlots
       .map((slot) => {
-        slot.userIds = slot.userIds?.filter((slotUserId) => {
-          const busy = selectedSlots.reduce<EventBusyDate[]>((r, c) => {
-            if (c.userId === slotUserId && !c.isSeat) {
-              r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
-            }
-            return r;
-          }, []);
-
-          if (!busy?.length && eventType.seatsPerTimeSlot === null) {
-            return false;
+        const busy = selectedSlots.reduce<EventBusyDate[]>((r, c) => {
+          if (!c.isSeat) {
+            r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
           }
+          return r;
+        }, []);
 
-          return checkIfIsAvailable({
+        if (
+          checkIfIsAvailable({
             time: slot.time,
             busy,
             ...availabilityCheckProps,
-          });
-        });
-        return slot;
+          })
+        ) {
+          return slot;
+        }
+        return undefined;
       })
-      .filter((slot) => !!slot.userIds?.length);
+      .filter(
+        (
+          item:
+            | {
+                time: dayjs.Dayjs;
+                userIds?: number[] | undefined;
+              }
+            | undefined
+        ): item is {
+          time: dayjs.Dayjs;
+          userIds?: number[] | undefined;
+        } => {
+          return !!item;
+        }
+      );
   }
 
   availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
