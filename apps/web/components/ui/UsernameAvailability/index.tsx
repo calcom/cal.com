@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -24,9 +24,9 @@ interface UsernameAvailabilityFieldProps {
 function useUserNamePrefix(organization: RouterOutputs["viewer"]["me"]["organization"]): string {
   return organization
     ? organization.slug
-      ? `${organization.slug}.${subdomainSuffix()}/`
+      ? getOrgFullDomain(organization.slug, { protocol: false })
       : organization.metadata && organization.metadata.requestedSlug
-      ? `${organization.metadata.requestedSlug}.${subdomainSuffix()}/`
+      ? getOrgFullDomain(organization.metadata.requestedSlug, { protocol: false })
       : process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")
     : process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "");
 }
