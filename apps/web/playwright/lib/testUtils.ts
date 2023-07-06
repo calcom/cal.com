@@ -79,40 +79,28 @@ export async function waitFor(fn: () => Promise<unknown> | unknown, opts: { time
 
 export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
   // Let current month dates fully render.
-  // There is a bug where if we don't let current month fully render and quickly click go to next month, current month get's rendered
-  // This doesn't seem to be replicable with the speed of a person, only during automation.
-  // It would also allow correct snapshot to be taken for current month.
-  // eslint-disable-next-line playwright/no-wait-for-timeout
-  await page.waitForTimeout(1000);
+  await page.waitForLoadState("networkidle");
+  await page.locator('[data-testid="incrementMonth"]').waitFor();
   await page.click('[data-testid="incrementMonth"]');
-  // @TODO: Find a better way to make test wait for full month change render to end
-  // so it can click up on the right day, also when resolve remove other todos
+
   // Waiting for full month increment
-  // eslint-disable-next-line playwright/no-wait-for-timeout
-  await page.waitForTimeout(1000);
-  // TODO: Find out why the first day is always booked on tests
-  await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-  // Changed to dblclick because of some flakiness when click a button animated
-  // It is said playwright should wait for animations to end, but it doesn't seem to be the case on this one
-  await page.locator('[data-testid="time"]').nth(0).dblclick();
+  await page.waitForLoadState("networkidle");
+  await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
+  await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+
+  await page.locator('[data-testid="time"]').nth(0).waitFor();
+  await page.locator('[data-testid="time"]').nth(0).click();
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   // Let current month dates fully render.
-  // There is a bug where if we don't let current month fully render and quickly click go to next month, current month get's rendered
-  // This doesn't seem to be replicable with the speed of a person, only during automation.
-  // It would also allow correct snapshot to be taken for current month.
-  // eslint-disable-next-line playwright/no-wait-for-timeout
-  await page.waitForTimeout(1000);
+  await page.waitForLoadState("networkidle");
+  await page.locator('[data-testid="incrementMonth"]').waitFor();
   await page.click('[data-testid="incrementMonth"]');
-  // @TODO: Find a better way to make test wait for full month change render to end
-  // so it can click up on the right day, also when resolve remove other todos
-  // Waiting for full month increment
-  // eslint-disable-next-line playwright/no-wait-for-timeout
-  await page.waitForTimeout(1000);
-  // TODO: Find out why the first day is always booked on tests
+
+  await page.waitForLoadState("networkidle");
+  await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).waitFor();
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-  await page.locator('[data-testid="time"][data-disabled="false"]').nth(1).click();
 }
 
 async function bookEventOnThisPage(page: Page) {
