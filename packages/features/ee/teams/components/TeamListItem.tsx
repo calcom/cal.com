@@ -120,6 +120,7 @@ export default function TeamListItem(props: Props) {
         onExit={() => {
           setOpenMemberInvitationModal(false);
         }}
+        isLoading={inviteMemberMutation.isLoading}
         onSubmit={(values, resetFields) => {
           inviteMemberMutation.mutate(
             {

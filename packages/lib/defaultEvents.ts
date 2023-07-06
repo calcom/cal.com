@@ -178,7 +178,7 @@ export const getUsernameList = (users: string | string[] | undefined): string[] 
   // So, even though this code handles even if individual user is dynamic link, that isn't a possibility right now.
   users = arrayCast(users);
 
-  const allUsers = users.map((user) => user.split("+")).flat();
+  const allUsers = users.map((user) => user.replace(/( |%20|%2b)/g, "+").split("+")).flat();
   return Array.prototype.concat(...allUsers.map((userSlug) => slugify(userSlug)));
 };
 
