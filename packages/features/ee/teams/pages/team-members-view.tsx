@@ -146,6 +146,7 @@ const MembersView = () => {
           </div>
           {showMemberInvitationModal && team && (
             <MemberInvitationModal
+              isLoading={inviteMemberMutation.isLoading}
               isOpen={showMemberInvitationModal}
               members={team.members}
               teamId={team.id}
