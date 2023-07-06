@@ -1,4 +1,5 @@
 import { CalendarX2 } from "lucide-react";
+import { useState } from "react";
 import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -24,7 +25,7 @@ type AvailableTimesProps = {
     bookingUid?: string
   ) => void;
   seatsPerTimeSlot?: number | null;
-  showTimeformatToggle?: boolean;
+  showTimeFormatToggle?: boolean;
   className?: string;
 };
 
@@ -33,7 +34,7 @@ export const AvailableTimes = ({
   slots,
   onTimeSelect,
   seatsPerTimeSlot,
-  showTimeformatToggle = true,
+  showTimeFormatToggle = true,
   className,
 }: AvailableTimesProps) => {
   const { t, i18n } = useLocale();
@@ -44,7 +45,7 @@ export const AvailableTimes = ({
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
   const isToday = dayjs().isSame(date, "day");
-
+  const [isBlockedReserveSlot, setIsBlockedReserveSlot] = useState(false);
   return (
     <div className={classNames("text-default flex flex-col", className)}>
       <header className="bg-default before:bg-default dark:bg-muted dark:before:bg-muted mb-3 flex w-full flex-row items-center font-medium">
@@ -66,7 +67,7 @@ export const AvailableTimes = ({
           </span>
         </span>
 
-        {showTimeformatToggle && (
+        {showTimeFormatToggle && (
           <div className="ml-auto">
             <TimeFormatToggle />
           </div>
@@ -76,7 +77,7 @@ export const AvailableTimes = ({
         {!slots.length && (
           <div className="bg-subtle border-subtle flex h-full flex-col items-center rounded-md border p-6 dark:bg-transparent">
             <CalendarX2 className="text-muted mb-2 h-4 w-4" />
-            <p className={classNames("text-muted", showTimeformatToggle ? "-mt-1 text-lg" : "text-sm")}>
+            <p className={classNames("text-muted", showTimeFormatToggle ? "-mt-1 text-lg" : "text-sm")}>
               {t("all_booked_today")}
             </p>
           </div>
@@ -96,7 +97,14 @@ export const AvailableTimes = ({
               data-testid="time"
               data-disabled={bookingFull}
               data-time={slot.time}
-              onClick={() => onTimeSelect(slot.time, slot.attendees || 0, seatsPerTimeSlot, slot?.bookingUid)}
+              onClick={() => {
+                if (isBlockedReserveSlot) return;
+                setIsBlockedReserveSlot(true);
+                onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid);
+                // As it's not a consecutive useState call, it should wait a little bit to set the state to false
+                // still preventing double click on button
+                setIsBlockedReserveSlot(false);
+              }}
               className="min-h-9 hover:border-brand-default mb-2 flex h-auto w-full flex-col justify-center py-2"
               color="secondary">
               {dayjs.utc(slot.time).tz(timezone).format(timeFormat)}

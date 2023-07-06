@@ -645,7 +645,7 @@ const BookingPage = ({
                       ? "-mt-4"
                       : ""
                   )}>
-                  <Button color="minimal" type="button" onClick={() => router.back()}>
+                  <Button color="minimal" type="button" onClick={() => router.back()} data-testid="back">
                     {t("cancel")}
                   </Button>
                   <Button

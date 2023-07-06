@@ -96,11 +96,11 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }:
             <AvailableTimes
               className="w-full"
               key={slots.date}
-              showTimeformatToggle={!isMultipleDates}
-              onTimeSelect={onTimeSelect}
               date={dayjs(slots.date)}
               slots={slots.slots}
+              onTimeSelect={onTimeSelect}
               seatsPerTimeSlot={seatsPerTimeSlot}
+              showTimeFormatToggle={!isMultipleDates}
             />
           ))}
     </div>

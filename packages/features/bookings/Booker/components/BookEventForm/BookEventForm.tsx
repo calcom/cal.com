@@ -3,7 +3,7 @@ import type { UseMutationResult } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import type { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -40,17 +40,10 @@ type BookEventFormProps = {
 };
 
 export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
-  const [isBlockedReserveSlot, setIsBlockedReserveSlot] = useState(false);
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
-    onSuccess: () => {
-      setIsBlockedReserveSlot(false);
-    },
-    onError: () => {
-      setIsBlockedReserveSlot(false);
-    },
     trpc: { context: { skipBatch: true } },
   });
-  const releaseSlotMutation = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation({
+  const removeSelectedSlot = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation({
     trpc: { context: { skipBatch: true } },
   });
   const router = useRouter();
@@ -72,34 +65,33 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const eventType = event.data;
 
   const reserveSlot = () => {
-    if (isBlockedReserveSlot) {
-      return;
-    }
-    setIsBlockedReserveSlot(true);
-    if (eventType) {
+    if ((eventType?.id && timeslot && duration) || eventType?.length) {
       reserveSlotMutation.mutate({
         slotUtcStartDate: dayjs(timeslot).utc().format(),
-        eventTypeId: eventType.id,
+        eventTypeId: eventType?.id,
         slotUtcEndDate: dayjs(timeslot)
           .utc()
-          .add(duration || eventType.length, "minutes")
+          .add(duration || eventType?.length, "minutes")
           .format(),
       });
-    } else {
-      setIsBlockedReserveSlot(false);
     }
   };
+
   useEffect(() => {
     reserveSlot();
-    const interval = setInterval(reserveSlot, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
+
+    const interval = setInterval(() => {
+      reserveSlot();
+    }, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
+
     return () => {
       if (eventType) {
-        releaseSlotMutation.mutate();
-        clearInterval(interval);
+        removeSelectedSlot.mutate();
       }
+      clearInterval(interval);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventType]);
+  }, [eventType?.id, timeslot]);
 
   const defaultValues = useMemo(() => {
     if (Object.keys(formValues).length) return formValues;
@@ -375,7 +367,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
         )}
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {!!onCancel && (
-            <Button color="minimal" type="button" onClick={onCancel}>
+            <Button color="minimal" type="button" onClick={onCancel} data-testid="back">
               {t("back")}
             </Button>
           )}
