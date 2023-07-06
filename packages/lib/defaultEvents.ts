@@ -50,6 +50,7 @@ const user: User & { credentials: Credential[] } = {
   darkBrandColor: "#efefef",
   allowDynamicBooking: true,
   timeFormat: 12,
+  organizationId: null,
 };
 
 const customInputs: CustomInputSchema[] = [];
