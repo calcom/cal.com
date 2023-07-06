@@ -74,42 +74,57 @@ export async function getBusyTimes(params: {
     },
   };
   // Find bookings that block this user from hosting further bookings.
-  const busyTimes: EventBusyDetails[] = await prisma.booking
-    .findMany({
-      where: {
-        OR: [
-          // User is primary host (individual events, or primary organizer)
-          {
-            ...sharedQuery,
-            userId,
-          },
-          // The current user has a different booking at this time he/she attends
-          {
-            ...sharedQuery,
-            attendees: {
-              some: {
-                email: user.email,
-              },
+  const bookings = await prisma.booking.findMany({
+    where: {
+      OR: [
+        // User is primary host (individual events, or primary organizer)
+        {
+          ...sharedQuery,
+          userId,
+        },
+        // The current user has a different booking at this time he/she attends
+        {
+          ...sharedQuery,
+          attendees: {
+            some: {
+              email: user.email,
             },
           },
-        ],
-      },
-      select: {
-        id: true,
-        startTime: true,
-        endTime: true,
-        title: true,
-        eventType: {
-          select: {
-            id: true,
-            afterEventBuffer: true,
-            beforeEventBuffer: true,
-          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+      startTime: true,
+      endTime: true,
+      title: true,
+      eventType: {
+        select: {
+          id: true,
+          afterEventBuffer: true,
+          beforeEventBuffer: true,
+          seatsPerTimeSlot: true,
         },
       },
-    })
-    .then((bookings) =>
-      bookings.map(({ startTime, endTime, title, id, eventType }) => ({
+      seatsReferences: true,
+    },
+  });
+
+  const busyTimes = bookings.reduce(
+    (aggregate: EventBusyDetails[], { id, startTime, endTime, eventType, title, seatsReferences }) => {
+      // Seat references on the current event are non-blocking until the event is fully booked.
+      if (
+        // when this is a seated event and there are booked seats.
+        seatsReferences &&
+        // and there are still seats available.
+        seatsReferences.length < (eventType?.seatsPerTimeSlot || 1) &&
+        // and this is the seated event, other event types should be blocked.
+        eventTypeId === eventType?.id
+      ) {
+        // then we do not add the booking to the busyTimes.
+        return aggregate;
+      }
+      aggregate.push({
         start: dayjs(startTime)
           .subtract((eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0), "minute")
           .toDate(),
@@ -118,8 +133,12 @@ export async function getBusyTimes(params: {
           .toDate(),
         title,
         source: `eventType-${eventType?.id}-booking-${id}`,
-      }))
-    );
+      });
+
+      return aggregate;
+    },
+    []
+  );
   logger.silly(`Busy Time from Cal Bookings ${JSON.stringify(busyTimes)}`);
   performance.mark("prismaBookingGetEnd");
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
