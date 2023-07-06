@@ -62,6 +62,7 @@ export const FAKE_DAILY_CREDENTIAL: CredentialPayload & { invalid: boolean } = {
   userId: +new Date().getTime(),
   appId: "daily-video",
   invalid: false,
+  teamId: undefined,
 };
 
 export const fetcher = async (endpoint: string, init?: RequestInit | undefined) => {

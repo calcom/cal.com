@@ -5,7 +5,6 @@ import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -27,12 +26,12 @@ type DeleteCredentialOptions = {
 };
 
 export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOptions) => {
-  const { id, externalId } = input;
+  const { id, externalId, teamId } = input;
 
   const credential = await prisma.credential.findFirst({
     where: {
       id: id,
-      userId: ctx.user.id,
+      ...(teamId ? { teamId } : { userId: ctx.user.id }),
     },
     select: {
       key: true,
@@ -344,8 +343,4 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       id: id,
     },
   });
-  // Revalidate user calendar cache.
-  if (credential.app?.slug.includes("calendar")) {
-    await fetch(`${WEBAPP_URL}/api/revalidate-calendar-cache/${ctx?.user?.username}`);
-  }
 };

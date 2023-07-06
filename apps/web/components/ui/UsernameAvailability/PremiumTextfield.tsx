@@ -5,6 +5,7 @@ import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -116,7 +117,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
   const paymentLink = `/api/integrations/stripepayment/subscription?intentUsername=${
     inputUsernameValue || usernameFromStripe
-  }&action=${usernameChangeCondition}&callbackUrl=${router.asPath}`;
+  }&action=${usernameChangeCondition}&callbackUrl=${WEBAPP_URL}${router.asPath}`;
 
   const ActionButtons = () => {
     if (paymentRequired) {
