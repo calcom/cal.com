@@ -40,7 +40,8 @@ const mockedTeam: TeamWithParent = {
   timeFormat: null,
   metadata: null,
   parentId: null,
-  parent: null
+  parent: null,
+  isPrivate:false
 };
 
 const mockUser: User = {
@@ -263,6 +264,20 @@ describe("Invite Member Utils", () => {
     };
     const isOrg = false;
 
+
+    it("should not throw when inviting an existing user to the same organization", () => {
+      const inviteeWithOrg: User = {
+        ...invitee,
+        organizationId: 2,
+      };
+      const teamWithOrg = {
+        ...mockedTeam,
+        parentId: 3,
+      }
+      expect(() =>
+        throwIfInviteIsToOrgAndUserExists(inviteeWithOrg, teamWithOrg, isOrg)
+      ).resolves.not.toThrow();
+    });
     it("should throw a TRPCError with code FORBIDDEN if the invitee is already a member of another organization", () => {
       const inviteeWithOrg: User = {
         ...invitee,
@@ -270,7 +285,7 @@ describe("Invite Member Utils", () => {
       };
       const teamWithOrg = {
         ...mockedTeam,
-        parentId: 2,
+        parentId: 3,
       }
       expect(() =>
         throwIfInviteIsToOrgAndUserExists(inviteeWithOrg, teamWithOrg, isOrg)
