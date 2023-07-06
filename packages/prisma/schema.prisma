@@ -252,6 +252,7 @@ model Team {
   appIconLogo         String?
   bio                 String?
   hideBranding        Boolean                 @default(false)
+  isPrivate           Boolean                 @default(false)
   hideBookATeamMember Boolean                 @default(false)
   members             Membership[]
   eventTypes          EventType[]
