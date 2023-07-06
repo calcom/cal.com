@@ -109,10 +109,13 @@ export default async function getEventTypeById({
           teamId: true,
         },
       },
+      teamId: true,
       team: {
         select: {
           id: true,
+          name: true,
           slug: true,
+          parentId: true,
           members: {
             where: {
               accepted: true,

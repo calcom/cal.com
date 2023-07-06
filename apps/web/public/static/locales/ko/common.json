@@ -105,7 +105,6 @@
   "team_info": "팀 정보",
   "request_another_invitation_email": "{{toEmail}} 을 {{appName}} 계정에 사용하고 싶지 않거나 이미 {{appName}} 계정이 있는 경우, 그 메일로 초대를 요청하세요.",
   "you_have_been_invited": "{{teamName}} 팀에 초대되셨습니다.",
-  "user_invited_you": "{{user}} 님께서 {{appName}}의 {{team}} 으로 초대하셨습니다.",
   "hidden_team_member_title": "귀하는 이 팀에서 숨겨졌습니다",
   "hidden_team_member_message": "귀하의 시트 비용은 Pro로 업그레이드하거나 팀 소유자에게 그들이 귀하의 시트 비용을 지불할 수 있다고 알리는 어떤 경우에도 지불되지 않습니다.",
   "hidden_team_owner_message": "팀을 사용하려면 Pro 계정이 필요합니다. 귀하의 계정은 업그레이드할 때까지 숨겨졌습니다.",
