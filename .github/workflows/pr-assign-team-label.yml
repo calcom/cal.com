@@ -1,0 +1,16 @@
+name: Assign PR team labels
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  team-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: equitybee/team-label-action@main
+        with:
+          repo-token: ${{ secrets.GH_ACCESS_TOKEN }}
+          organization-name: calcom
+          ignore-labels: "app-store, authentication, automated-testing, billing, bookings, caldav, calendar-apps, ci-dx, console, crm-apps, docs, documentation, emails, embeds, event-types, i18n, impersonation, manual-testing, ui, performance, ops-stack, organizations, public-api, routing-forms, seats, teams, webhooks, workflows, zapier"
