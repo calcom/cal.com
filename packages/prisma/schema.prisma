@@ -252,6 +252,7 @@ model Team {
   appIconLogo         String?
   bio                 String?
   hideBranding        Boolean                 @default(false)
+  isPrivate           Boolean                 @default(false)
   hideBookATeamMember Boolean                 @default(false)
   members             Membership[]
   eventTypes          EventType[]
@@ -284,6 +285,7 @@ enum MembershipRole {
 }
 
 model Membership {
+  id                   Int            @id @default(autoincrement())
   teamId               Int
   userId               Int
   accepted             Boolean        @default(false)
@@ -292,7 +294,7 @@ model Membership {
   user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   disableImpersonation Boolean        @default(false)
 
-  @@id([userId, teamId])
+  @@unique([userId, teamId])
   @@index([teamId])
   @@index([userId])
 }
