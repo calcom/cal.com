@@ -11,5 +11,5 @@ jobs:
       - uses: actions/checkout@v2
       - uses: equitybee/team-label-action@main
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.GH_ACCESS_TOKEN }}
           organization-name: calcom
