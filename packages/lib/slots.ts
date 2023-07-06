@@ -173,7 +173,7 @@ function buildSlotsWithDateRanges({
       dayjs
         .utc(range.start)
         .add(range.start.utcOffset())
-        .isSame(dayjs(slots[slots.length - 1].time).add(slots[slots.length - 1].time.utcOffset()), "day")
+        .isSame(dayjs.utc(slots[slots.length - 1].time).add(slots[slots.length - 1].time.utcOffset()), "day")
     ) {
       previousStartTime = slots[slots.length - 1].time;
     }
