@@ -10,7 +10,7 @@ import { ZGetInputSchema } from "./get.schema";
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
 import { ZGetUserAdminTeamsInputSchema } from "./getUserAdminTeams.schema";
-import { ZInviteMemberInputSchema } from "./inviteMember.schema";
+import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
 import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { ZPublishInputSchema } from "./publish.schema";
@@ -26,7 +26,7 @@ type TeamsRouterHandlerCache = {
   update?: typeof import("./update.handler").updateHandler;
   delete?: typeof import("./delete.handler").deleteHandler;
   removeMember?: typeof import("./removeMember.handler").removeMemberHandler;
-  inviteMember?: typeof import("./inviteMember.handler").inviteMemberHandler;
+  inviteMember?: typeof import("./inviteMember/inviteMember.handler").inviteMemberHandler;
   acceptOrLeave?: typeof import("./acceptOrLeave.handler").acceptOrLeaveHandler;
   changeMemberRole?: typeof import("./changeMemberRole.handler").changeMemberRoleHandler;
   getMemberAvailability?: typeof import("./getMemberAvailability.handler").getMemberAvailabilityHandler;
@@ -149,7 +149,7 @@ export const viewerTeamsRouter = router({
 
   inviteMember: authedProcedure.input(ZInviteMemberInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.inviteMember) {
-      UNSTABLE_HANDLER_CACHE.inviteMember = await import("./inviteMember.handler").then(
+      UNSTABLE_HANDLER_CACHE.inviteMember = await import("./inviteMember/inviteMember.handler").then(
         (mod) => mod.inviteMemberHandler
       );
     }
