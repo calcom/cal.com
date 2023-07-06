@@ -23,7 +23,6 @@ export const TIME_UNIT = [TimeUnit.DAY, TimeUnit.HOUR, TimeUnit.MINUTE] as const
 export const WORKFLOW_TEMPLATES = [
   WorkflowTemplates.CUSTOM,
   WorkflowTemplates.REMINDER,
-  WorkflowTemplates.REMINDER,
   WorkflowTemplates.CANCELLED,
   WorkflowTemplates.COMPLETED,
   WorkflowTemplates.RESCHEDULED
