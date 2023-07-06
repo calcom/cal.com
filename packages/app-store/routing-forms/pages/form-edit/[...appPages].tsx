@@ -4,7 +4,6 @@ import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import Shell from "@calcom/features/shell/Shell";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -406,13 +405,11 @@ export default function FormEditPage({
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
-    <LicenseRequired>
-      <SingleForm
-        form={form}
-        appUrl={appUrl}
-        Page={({ hookForm, form }) => <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} />}
-      />
-    </LicenseRequired>
+    <SingleForm
+      form={form}
+      appUrl={appUrl}
+      Page={({ hookForm, form }) => <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} />}
+    />
   );
 }
 

@@ -8,7 +8,6 @@ import type {
 } from "react-awesome-query-builder";
 import { Builder, Query, Utils as QbUtils } from "react-awesome-query-builder";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -186,17 +185,15 @@ export default function ReporterWrapper({
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
-    <LicenseRequired>
-      <SingleForm
-        form={form}
-        appUrl={appUrl}
-        Page={({ form }) => (
-          <div className="route-config">
-            <Reporter form={form} />
-          </div>
-        )}
-      />
-    </LicenseRequired>
+    <SingleForm
+      form={form}
+      appUrl={appUrl}
+      Page={({ form }) => (
+        <div className="route-config">
+          <Reporter form={form} />
+        </div>
+      )}
+    />
   );
 }
 

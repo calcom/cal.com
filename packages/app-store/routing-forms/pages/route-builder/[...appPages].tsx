@@ -5,7 +5,6 @@ import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
 import type { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import Shell from "@calcom/features/shell/Shell";
 import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -544,17 +543,15 @@ export default function RouteBuilder({
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
-    <LicenseRequired>
-      <SingleForm
-        form={form}
-        appUrl={appUrl}
-        Page={({ hookForm, form }) => (
-          <div className="route-config">
-            <Routes hookForm={hookForm} appUrl={appUrl} form={form} />
-          </div>
-        )}
-      />
-    </LicenseRequired>
+    <SingleForm
+      form={form}
+      appUrl={appUrl}
+      Page={({ hookForm, form }) => (
+        <div className="route-config">
+          <Routes hookForm={hookForm} appUrl={appUrl} form={form} />
+        </div>
+      )}
+    />
   );
 }
 

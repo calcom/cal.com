@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useForm } from "react-hook-form";
 
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -520,7 +521,11 @@ export default function SingleFormWrapper({ form: _form, ...props }: SingleFormC
   if (!form) {
     throw new Error(t("something_went_wrong"));
   }
-  return <SingleForm form={form} {...props} />;
+  return (
+    <LicenseRequired>
+      <SingleForm form={form} {...props} />
+    </LicenseRequired>
+  );
 }
 
 export const getServerSidePropsForSingleFormView = async function getServerSidePropsForSingleFormView(
