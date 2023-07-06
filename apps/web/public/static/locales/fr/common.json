@@ -1870,6 +1870,7 @@
   "connect_google_workspace": "Connecter Google Workspace",
   "google_workspace_admin_tooltip": "Vous devez être un administrateur d'espace de travail pour utiliser cette fonctionnalité",
   "first_event_type_webhook_description": "Créez votre premier webhook pour ce type d'événement",
+  "install_app_on": "Installer l’application sur",
   "create_for": "Créer pour",
   "setup_organization": "Configurer une organisation",
   "organization_banner_description": "Créez un environnement où vos équipes peuvent créer des applications partagées, des workflows et des types d'événements avec une planification round-robin et collective.",
