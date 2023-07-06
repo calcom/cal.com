@@ -8,12 +8,14 @@ import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
+import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert, Button, EmailField, HeadSeo, PasswordField, TextField } from "@calcom/ui";
 
@@ -30,7 +32,9 @@ type FormValues = {
   token?: string;
 };
 
-export default function Signup({ prepopulateFormValues, token }: inferSSRProps<typeof getServerSideProps>) {
+type SignupProps = inferSSRProps<typeof getServerSideProps>;
+
+export default function Signup({ prepopulateFormValues, token, orgSlug }: SignupProps) {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const flags = useFlagMap();
@@ -116,7 +120,11 @@ export default function Signup({ prepopulateFormValues, token }: inferSSRProps<t
                 {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
                 <div className="space-y-4">
                   <TextField
-                    addOnLeading={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/`}
+                    addOnLeading={
+                      orgSlug
+                        ? getOrgFullDomain(orgSlug, { protocol: false })
+                        : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
+                    }
                     {...register("username")}
                     required
                   />
@@ -233,6 +241,22 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   let username = guessUsernameFromEmail(verificationToken.identifier);
 
+  const orgInfo = await prisma.user.findFirst({
+    where: {
+      email: verificationToken?.identifier,
+    },
+    select: {
+      organization: {
+        select: {
+          slug: true,
+          metadata: true,
+        },
+      },
+    },
+  });
+
+  const userOrgMetadata = teamMetadataSchema.parse(orgInfo?.organization?.metadata ?? {});
+
   if (!IS_SELF_HOSTED) {
     // Im not sure we actually hit this because of next redirects signup to website repo - but just in case this is pretty cool :)
     const { available, suggestion } = await checkPremiumUsername(username);
@@ -248,6 +272,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         email: verificationToken.identifier,
         username,
       },
+      orgSlug: (orgInfo?.organization?.slug || userOrgMetadata?.requestedSlug) ?? null,
     },
   };
 };

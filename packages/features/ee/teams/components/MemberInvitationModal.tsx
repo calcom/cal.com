@@ -38,6 +38,7 @@ type MemberInvitationModalProps = {
   teamId: number;
   members: PendingMember[];
   token?: string;
+  isLoading?: boolean;
 };
 
 type MembershipRoleOption = {
@@ -336,6 +337,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               {t("cancel")}
             </Button>
             <Button
+              loading={props.isLoading || createInviteMutation.isLoading}
               type="submit"
               color="primary"
               className="me-2 ms-2"
