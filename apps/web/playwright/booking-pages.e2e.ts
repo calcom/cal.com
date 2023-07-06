@@ -15,7 +15,7 @@ import {
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => users.deleteAll());
 
-testBothBookers.describe("free user", (bookerVariant) => {
+test.describe("free user", () => {
   test.beforeEach(async ({ page, users }) => {
     const free = await users.create();
     await page.goto(`/${free.username}`);
@@ -26,17 +26,6 @@ testBothBookers.describe("free user", (bookerVariant) => {
     await page.click('[data-testid="event-type-link"]');
 
     await selectFirstAvailableTimeSlotNextMonth(page);
-
-    // Kept in if statement here, since it's only temporary
-    // until the old booker isn't used anymore, and I wanted
-    // to change the test as little as possible.
-    // eslint-disable-next-line playwright/no-conditional-in-test
-    if (bookerVariant !== "new-booker") {
-      // Navigate to book page
-      await page.waitForURL((url) => {
-        return url.pathname.endsWith("/book");
-      });
-    }
 
     // save booking url
     const bookingUrl: string = page.url();
