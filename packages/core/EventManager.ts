@@ -404,7 +404,7 @@ export default class EventManager {
    * @param event
    * @private
    */
-  private createVideoEvent(event: CalendarEvent) {
+  private async createVideoEvent(event: CalendarEvent) {
     const credential = this.getVideoCredential(event);
 
     if (credential) {
@@ -538,7 +538,7 @@ export default class EventManager {
    * @param booking
    * @private
    */
-  private updateVideoEvent(event: CalendarEvent, booking: PartialBooking) {
+  private async updateVideoEvent(event: CalendarEvent, booking: PartialBooking) {
     const credential = this.getVideoCredential(event);
 
     if (credential) {

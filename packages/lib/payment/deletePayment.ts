@@ -2,7 +2,7 @@ import type { Payment, Prisma } from "@prisma/client";
 
 import appStore from "@calcom/app-store";
 import type { AppCategories } from "@calcom/prisma/enums";
-import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
+import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
 const deletePayment = async (
   paymentId: Payment["id"],
@@ -15,8 +15,10 @@ const deletePayment = async (
     } | null;
   }
 ): Promise<boolean> => {
-  const paymentApp = await appStore[paymentAppCredentials?.app?.dirName as keyof typeof appStore]();
-  if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
+  const paymentApp = (await appStore[
+    paymentAppCredentials?.app?.dirName as keyof typeof appStore
+  ]()) as PaymentApp;
+  if (!paymentApp?.lib?.PaymentService) {
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return false;
   }
