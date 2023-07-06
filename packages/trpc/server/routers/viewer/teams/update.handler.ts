@@ -43,6 +43,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     logo: input.logo,
     bio: input.bio,
     hideBranding: input.hideBranding,
+    isPrivate: input.isPrivate,
     hideBookATeamMember: input.hideBookATeamMember,
     brandColor: input.brandColor,
     darkBrandColor: input.darkBrandColor,
