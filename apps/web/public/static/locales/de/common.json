@@ -104,7 +104,6 @@
   "team_info": "Informationen zum Team",
   "request_another_invitation_email": "Falls Sie {{toEmail}} lieber nicht als Ihre {{appName}}-E-Mail verwenden möchten oder bereits über ein {{appName}}-Konto verfügen, fordern Sie bitte eine weitere Einladung zu dieser E-Mail an.",
   "you_have_been_invited": "Sie wurden eingeladen, dem Team {{teamName}} beizutreten",
-  "user_invited_you": "{{user}} hat Sie eingeladen, dem Team {{team}} auf {{appName}} beizutreten",
   "hidden_team_member_title": "Sie sind in diesem Team ausgeblendet",
   "hidden_team_member_message": "Ihre Teammitgliedschaft ist nicht bezahlt, entweder upgraden Sie Ihren Account auf Pro oder lassen den Team-Organisator wissen, dass er für Ihren Platz im Team bezahlen kann.",
   "hidden_team_owner_message": "Sie benötigen einen Pro-Account um die Teamfunktionen zu verweden. Sie werden dem Team nicht angezeigt, bis der Account upgegradet wurde.",
