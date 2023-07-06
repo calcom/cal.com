@@ -15,31 +15,40 @@ export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
 
   if (!ctx.user.organizationId) return [];
 
-  const users = await prisma.membership.findMany({
+  const teamQuery = await prisma.team.findUnique({
     where: {
-      user: {
-        organizationId: ctx.user.organizationId,
-      },
-      teamId: {
-        not: teamIdToExclude,
-      },
-      accepted,
+      id: ctx.user.organizationId,
     },
-    include: {
-      user: {
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          completedOnboarding: true,
-          name: true,
+    select: {
+      members: {
+        where: {
+          teamId: {
+            not: teamIdToExclude,
+          },
+          accepted,
         },
+        select: {
+          accepted: true,
+          disableImpersonation: true,
+          id: true,
+          teamId: true,
+          role: true,
+          userId: true,
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+              completedOnboarding: true,
+              name: true,
+            },
+          },
+        },
+        ...(distinctUser && {
+          distinct: ["userId"],
+        }),
       },
     },
-    ...(distinctUser && {
-      distinct: ["userId"],
-    }),
   });
-
-  return users;
+  return teamQuery?.members || [];
 };
