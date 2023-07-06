@@ -104,7 +104,6 @@
   "team_info": "Informace o týmu",
   "request_another_invitation_email": "Pokud si nepřejete použít e-mail {{toEmail}} pro {{appName}} nebo už účet na {{appName}} máte, požádejte prosím o další pozvánku na jiný e-mail.",
   "you_have_been_invited": "Byli jste pozváni do týmu {{teamName}}",
-  "user_invited_you": "{{user}} vás pozval, abyste se připojili k týmu {{team}} na {{appName}}",
   "hidden_team_member_title": "V tomto týmu nejste viditelní",
   "hidden_team_member_message": "Vaše místo není zaplacené. Buď přejděte na tarif Pro, nebo informujte vlastníka týmu, že za vaše místo může zaplatit.",
   "hidden_team_owner_message": "Pro využívání týmů potřebujete tarif Pro, budete skrytí, než přejdete na vyšší verzi.",

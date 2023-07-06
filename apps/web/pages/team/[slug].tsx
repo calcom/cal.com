@@ -65,7 +65,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
   }
 
   // slug is a route parameter, we don't want to forward it to the next route
-  const { slug: _slug, ...queryParamsToForward } = router.query;
+  const { slug: _slug, orgSlug: _orgSlug, user: _user, ...queryParamsToForward } = router.query;
 
   const EventTypes = () => (
     <ul className="border-subtle rounded-md border">

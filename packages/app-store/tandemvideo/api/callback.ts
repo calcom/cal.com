@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 
+import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 
@@ -59,21 +60,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
     delete responseBody.expires_in;
 
-    await prisma.user.update({
-      where: {
-        id: req.session?.user.id,
-      },
-      data: {
-        credentials: {
-          create: {
-            type: "tandem_video",
-            key: responseBody,
-            appId: "tandem",
-          },
-        },
-      },
-    });
-  }
+    createOAuthAppCredential({ appId: "tandem", type: "tandem_video" }, responseBody, req);
 
-  res.redirect(getInstalledAppPath({ variant: "conferencing", slug: "tandem" }));
+    res.redirect(getInstalledAppPath({ variant: "conferencing", slug: "tandem" }));
+  }
 }
