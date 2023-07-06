@@ -130,13 +130,14 @@ export default class EventManager {
       return result.type.includes("_calendar");
     };
 
+    // References can be any type: calendar/video
     const referencesToCreate = results.map((result) => {
       let createdEventObj: createdEventSchema | null = null;
       if (typeof result?.createdEvent === "string") {
         createdEventObj = createdEventSchema.parse(JSON.parse(result.createdEvent));
       }
-
-      if (isCalendarResult(result)) {
+      const isCalendarType = isCalendarResult(result);
+      if (isCalendarType) {
         evt.iCalUID = result.iCalUID || undefined;
       }
 
@@ -146,8 +147,8 @@ export default class EventManager {
         meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
         meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
-        externalCalendarId: evt.destinationCalendar?.externalId,
-        credentialId: evt.destinationCalendar?.credentialId,
+        externalCalendarId: isCalendarType ? evt.destinationCalendar?.externalId : undefined,
+        credentialId: isCalendarType ? evt.destinationCalendar?.credentialId : result.credentialId,
       };
     });
 
@@ -186,7 +187,7 @@ export default class EventManager {
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
         externalCalendarId: evt.destinationCalendar?.externalId,
-        credentialId: evt.destinationCalendar?.credentialId,
+        credentialId: result.credentialId ?? evt.destinationCalendar?.credentialId,
       };
     });
 
@@ -504,6 +505,7 @@ export default class EventManager {
                   success: false,
                   uid: "",
                   originalEvent: event,
+                  credentialId: cred.id,
                 };
               }
             const { externalCalendarId: bookingExternalCalendarId, meetingId: bookingRefUid } =
@@ -526,6 +528,7 @@ export default class EventManager {
           success: false,
           uid: "",
           originalEvent: event,
+          credentialId: 0,
         },
       ]);
     }
