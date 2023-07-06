@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: equitybee/team-label-action@main
+      - uses: calcom/team-label-action@main
         with:
           repo-token: ${{ secrets.GH_ACCESS_TOKEN }}
           organization-name: calcom
