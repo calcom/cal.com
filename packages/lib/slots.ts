@@ -167,7 +167,7 @@ function buildSlotsWithDateRanges({
     let slotStartTime = range.start.isAfter(startTimeWithMinNotice) ? range.start : startTimeWithMinNotice;
 
     let previousStartTime;
-    // not sure here (we want to check if it is the same day in the organizer's timezone)
+    // check if we we already have slots on that day (in organizer's timezone)
     if (
       slots.length &&
       dayjs
@@ -179,28 +179,17 @@ function buildSlotsWithDateRanges({
     }
 
     if (!previousStartTime) {
-      if (frequency % 60 === 0) {
-        slotStartTime =
-          slotStartTime.utc().minute() % 60 !== 0
-            ? slotStartTime
-                .startOf("day")
-                .add(Math.ceil((slotStartTime.hour() * 60 + slotStartTime.minute()) / 60) * 60, "minute")
-            : slotStartTime;
-      } else if (frequency % 30 === 0) {
-        slotStartTime =
-          slotStartTime.utc().minute() % 30 !== 0
-            ? slotStartTime
-                .startOf("day")
-                .add(slotStartTime.hour() * 60 + Math.ceil(slotStartTime.minute() / 30) * 30, "minute")
-            : slotStartTime;
-      } else {
-        slotStartTime =
-          slotStartTime.utc().minute() % 15 !== 0
-            ? slotStartTime
-                .startOf("day")
-                .add(Math.ceil((slotStartTime.hour() * 60 + slotStartTime.minute()) / 15) * 15, "minute")
-            : slotStartTime;
-      }
+      const interval = frequency % 60 === 0 ? 60 : frequency % 30 === 0 ? 30 : 15;
+
+      slotStartTime =
+        slotStartTime.utc().minute() % interval !== 0
+          ? slotStartTime
+              .startOf("day")
+              .add(
+                Math.ceil((slotStartTime.hour() * interval + slotStartTime.minute()) / interval) * interval,
+                "minute"
+              )
+          : slotStartTime;
     } else {
       const minuteOffset =
         Math.ceil(slotStartTime.diff(previousStartTime, "minutes") / frequency) * frequency;
