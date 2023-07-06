@@ -653,6 +653,16 @@ async function handler(
     eventType.schedulingType === SchedulingType.COLLECTIVE ||
     eventType.schedulingType === SchedulingType.ROUND_ROBIN;
 
+  const teamCredentials: Credential[] = [];
+
+  if (isTeamEventType && eventType.team?.id) {
+    await prisma.credential.findMany({
+      where: {
+        teamId: eventType.team.id,
+      },
+    });
+  }
+
   const paymentAppData = getPaymentAppData(eventType);
 
   let timeOutOfBounds = false;
@@ -1115,7 +1125,7 @@ async function handler(
         },
       });
 
-      const credentials = await refreshCredentials(organizerUser.credentials);
+      const credentials = await refreshCredentials([...organizerUser.credentials, teamCredentials]);
       const eventManager = new EventManager({ ...organizerUser, credentials });
 
       if (!originalRescheduledBooking) {
@@ -1535,7 +1545,7 @@ async function handler(
       copyEvent.uid = booking.uid;
       await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
-      const credentials = await refreshCredentials(organizerUser.credentials);
+      const credentials = await refreshCredentials([...organizerUser.credentials, ...teamCredentials]);
       const eventManager = new EventManager({ ...organizerUser, credentials });
       await eventManager.updateCalendarAttendees(evt, booking);
 
@@ -1839,7 +1849,7 @@ async function handler(
   }
 
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
-  const credentials = await refreshCredentials(organizerUser.credentials);
+  const credentials = await refreshCredentials([...organizerUser.credentials, ...teamCredentials]);
   const eventManager = new EventManager({ ...organizerUser, credentials });
 
   function handleAppsStatus(
