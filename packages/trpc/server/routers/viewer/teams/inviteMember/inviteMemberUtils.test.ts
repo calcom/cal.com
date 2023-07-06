@@ -272,11 +272,11 @@ describe("Invite Member Utils", () => {
       };
       const teamWithOrg = {
         ...mockedTeam,
-        parentId: 3,
+        parentId: 2,
       }
       expect(() =>
         throwIfInviteIsToOrgAndUserExists(inviteeWithOrg, teamWithOrg, isOrg)
-      ).resolves.not.toThrow();
+      ).not.toThrow();
     });
     it("should throw a TRPCError with code FORBIDDEN if the invitee is already a member of another organization", () => {
       const inviteeWithOrg: User = {
