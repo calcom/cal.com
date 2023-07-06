@@ -114,6 +114,8 @@ export async function getBusyTimes(params: {
     (aggregate: EventBusyDetails[], { id, startTime, endTime, eventType, title, seatsReferences }) => {
       // Seat references on the current event are non-blocking until the event is fully booked.
       if (
+        // this is purely for jest; prisma responses are []
+        seatsReferences &&
         // if this is a seated event and there are still seats available.
         seatsReferences.length < (eventType?.seatsPerTimeSlot || 0) &&
         // and this is the seated event, other event types should be blocked.
