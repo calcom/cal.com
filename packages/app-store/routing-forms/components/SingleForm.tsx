@@ -296,7 +296,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
               <div className="flex">
                 <div>{form.name}</div>
                 {form.team && (
-                  <Badge className="mt-1 ml-4" variant="gray">
+                  <Badge className="ml-4 mt-1" variant="gray">
                     {form.team.name}
                   </Badge>
                 )}

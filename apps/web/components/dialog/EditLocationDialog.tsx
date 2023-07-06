@@ -13,6 +13,7 @@ import {
   getHumanReadableLocationValue,
   getMessageForOrganizer,
   LocationType,
+  OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -172,8 +173,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     }
   );
 
-  console.log(defaultLocation);
-
   const LocationOptions = (() => {
     if (eventLocationType && eventLocationType.organizerInputType && LocationInput) {
       if (!eventLocationType.variable) {
@@ -259,7 +258,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
             {booking && (
               <>
-                <p className="text-emphasis mt-6 mb-2 ml-1 text-sm font-bold">{t("current_location")}:</p>
+                <p className="text-emphasis mb-2 ml-1 mt-6 text-sm font-bold">{t("current_location")}:</p>
                 <p className="text-emphasis mb-2 ml-1 text-sm">
                   {getHumanReadableLocationValue(booking.location, t)}
                 </p>
@@ -311,8 +310,15 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 query={locationsQuery}
                 success={({ data }) => {
                   if (!data.length) return null;
-                  const locationOptions = [...data].filter((option) => {
-                    return !isTeamEvent ? option.label !== "Conferencing" : true;
+                  const locationOptions = [...data].map((option) => {
+                    if (isTeamEvent) {
+                      // Let host's Default conferencing App option show for Team Event
+                      return option;
+                    }
+                    return {
+                      ...option,
+                      options: option.options.filter((o) => o.value !== OrganizerDefaultConferencingAppType),
+                    };
                   });
                   if (booking) {
                     locationOptions.map((location) =>

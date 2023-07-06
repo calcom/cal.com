@@ -3,7 +3,6 @@ import { collectEvents } from "next-collect/server";
 import type { NextMiddleware } from "next/server";
 import { NextResponse, userAgent } from "next/server";
 
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { CONSOLE_URL, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { isIpInBanlist } from "@calcom/lib/getIP";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
@@ -11,19 +10,10 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req.headers.get("host") ?? "");
   /**
    * We are using env variable to toggle new-booker because using flags would be an unnecessary delay for booking pages
    * Also, we can't easily identify the booker page requests here(to just fetch the flags for those requests)
    */
-
-  // Make sure we are in the presence of an organization
-  if (isValidOrgDomain && url.pathname === "/") {
-    // In the presence of an organization, cover its profile page at "/"
-    // rewrites for org profile page using team profile page
-    url.pathname = `/org/${currentOrgDomain}`;
-    return NextResponse.rewrite(url);
-  }
 
   if (isIpInBanlist(req) && url.pathname !== "/api/nope") {
     // DDOS Prevention: Immediately end request with no response - Avoids a redirect as well initiated by NextAuth on invalid callback
@@ -81,26 +71,6 @@ const middleware: NextMiddleware = async (req) => {
   if (url.pathname.startsWith("/auth/login")) {
     // Use this header to actually enforce CSP, otherwise it is running in Report Only mode on all pages.
     requestHeaders.set("x-csp-enforce", "true");
-  }
-
-  if (isValidOrgDomain) {
-    // Match /:slug to determine if it corresponds to org subteam slug or org user slug
-    const slugs = /^\/([^/]+)(\/[^/]+)?$/.exec(url.pathname);
-    // In the presence of an organization, if not team profile, a user or team is being accessed
-    if (slugs) {
-      const [_, teamName, eventType] = slugs;
-      // Fetch the corresponding subteams for the entered organization
-      const getSubteams = await fetch(`${WEBAPP_URL}/api/organizations/${currentOrgDomain}/subteams`);
-      if (getSubteams.ok) {
-        const data = await getSubteams.json();
-        // Treat entered slug as a team if found in the subteams fetched
-        if (data.slugs.includes(teamName)) {
-          // Rewriting towards /team/:slug to bring up the team profile within the org
-          url.pathname = `/team/${teamName}${eventType ?? ""}`;
-          return NextResponse.rewrite(url);
-        }
-      }
-    }
   }
 
   return NextResponse.next({

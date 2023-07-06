@@ -8,8 +8,8 @@ export const getTranslation = async (locale: string, ns: string) => {
     const _i18n = i18next.createInstance();
     _i18n.init({
       lng: locale,
-      resources: _nextI18Next.initialI18nStore,
-      fallbackLng: _nextI18Next.userConfig?.i18n.defaultLocale,
+      resources: _nextI18Next?.initialI18nStore,
+      fallbackLng: _nextI18Next?.userConfig?.i18n.defaultLocale,
     });
     return _i18n;
   };
