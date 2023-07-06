@@ -13,3 +13,4 @@ jobs:
         with:
           repo-token: ${{ secrets.GH_ACCESS_TOKEN }}
           organization-name: calcom
+          ignore-labels: "insights, i18n, organizations, workflows, embed, webhooks, event types, routing forms, billing, CI, docs, UI, booking page, API, automated tests, seats, bookings, caldav, teams, performance, emails, app store, authentication"
