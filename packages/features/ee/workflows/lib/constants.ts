@@ -37,9 +37,8 @@ export const BASIC_WORKFLOW_TEMPLATES = [
 export const WHATSAPP_WORKFLOW_TEMPLATES = [
   WorkflowTemplates.REMINDER,
   WorkflowTemplates.COMPLETED,
-  // Disabled until templates are approved by whatsapp
-  // WorkflowTemplates.CANCELLED,
-  // WorkflowTemplates.RESCHEDULED
+  WorkflowTemplates.CANCELLED,
+  WorkflowTemplates.RESCHEDULED
 ] as const;
 
 export const DYNAMIC_TEXT_VARIABLES = [
