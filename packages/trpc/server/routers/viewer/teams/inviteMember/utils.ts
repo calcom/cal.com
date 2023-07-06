@@ -285,7 +285,7 @@ export function throwIfInviteIsToOrgAndUserExists(invitee: User, team: TeamWithP
       message: `User ${invitee.username} is already a member of another organization.`,
     });
   }
-  if (invitee && isOrg) {
+  if ((invitee && isOrg) || (team.parentId && invitee)) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: `You cannot a user that already exists in Cal.com to an organization. If they wish to join via this email address, they must update their email address in their profile.`,

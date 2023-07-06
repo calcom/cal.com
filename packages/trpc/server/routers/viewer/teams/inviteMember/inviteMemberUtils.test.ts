@@ -1,10 +1,11 @@
 import { describe, it, vi, expect } from "vitest";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { checkInputEmailIsValid, checkPermissions, getEmailsToInvite, getIsOrgVerified, getOrgConnectionInfo } from "./utils";
+import { checkInputEmailIsValid, checkPermissions, getEmailsToInvite, getIsOrgVerified, getOrgConnectionInfo, throwIfInviteIsToOrgAndUserExists } from "./utils";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { TRPCError } from "@trpc/server";
 import type { TeamWithParent } from "./types";
+import type { User } from "@calcom/prisma/client";
 
 vi.mock("@calcom/lib/server/queries", () => {
   return {
@@ -41,6 +42,44 @@ const mockedTeam: TeamWithParent = {
   parentId: null,
   parent: null
 };
+
+const mockUser: User = {
+  id: 4,
+  username: 'pro',
+  name: 'Pro Example',
+  email: 'pro@example.com',
+  emailVerified: new Date(),
+  password: '',
+  bio: null,
+  avatar: null,
+  timeZone: 'Europe/London',
+  weekStart: 'Sunday',
+  startTime: 0,
+  endTime: 1440,
+  bufferTime: 0,
+  hideBranding: false,
+  theme: null,
+  createdDate: new Date(),
+  trialEndsAt: null,
+  defaultScheduleId: null,
+  completedOnboarding: true,
+  locale: 'en',
+  timeFormat: 12,
+  twoFactorSecret: null,
+  twoFactorEnabled: false,
+  identityProvider: 'CAL',
+  identityProviderId: null,
+  invitedTo: null,
+  brandColor: '#292929',
+  darkBrandColor: '#fafafa',
+  away: false,
+  allowDynamicBooking: true,
+  metadata: null,
+  verified: false,
+  role: 'USER',
+  disableImpersonation: false,
+  organizationId: null
+}
 
 describe("Invite Member Utils", () => {
   describe("checkPermissions", () => {
@@ -128,7 +167,7 @@ describe("Invite Member Utils", () => {
         orgAutoAcceptDomain,
         orgVerified: false,
         usersEmail,
-        team: {...mockedTeam},
+        team: { ...mockedTeam },
         isOrg: false,
       });
       expect(result).toEqual({ orgId: undefined, autoAccept: false });
@@ -175,7 +214,7 @@ describe("Invite Member Utils", () => {
         },
         parent: null,
       };
-      const result = getIsOrgVerified(true, {...mockedTeam, ...team});
+      const result = getIsOrgVerified(true, { ...mockedTeam, ...team });
       expect(result).toEqual({
         isInOrgScope: true,
         orgVerified: true,
@@ -194,7 +233,7 @@ describe("Invite Member Utils", () => {
           },
         },
       };
-      const result = getIsOrgVerified(false, {...mockedTeam, ...team});
+      const result = getIsOrgVerified(false, { ...mockedTeam, ...team });
       expect(result).toEqual({
         isInOrgScope: true,
         orgVerified: false,
@@ -207,10 +246,48 @@ describe("Invite Member Utils", () => {
         metadata: {},
         parent: null,
       };
-      const result = getIsOrgVerified(false, {...mockedTeam, ...team});
+      const result = getIsOrgVerified(false, { ...mockedTeam, ...team });
       expect(result).toEqual({
         isInOrgScope: false,
       });
+    });
+  });
+
+  describe("throwIfInviteIsToOrgAndUserExists", () => {
+    const invitee: User = {
+      ...mockUser,
+      id: 1,
+      username: "testuser",
+      email: "testuser@example.com",
+      organizationId: null,
+    };
+    const isOrg = false;
+
+    it("should throw a TRPCError with code FORBIDDEN if the invitee is already a member of another organization", () => {
+      const inviteeWithOrg: User = {
+        ...invitee,
+        organizationId: 2,
+      };
+      const teamWithOrg = {
+        ...mockedTeam,
+        parentId: 2,
+      }
+      expect(() =>
+        throwIfInviteIsToOrgAndUserExists(inviteeWithOrg, teamWithOrg, isOrg)
+      ).toThrow(TRPCError);
+    });
+
+    it("should throw a TRPCError with code FORBIDDEN if the invitee already exists in Cal.com and is being invited to an organization", () => {
+      const isOrg = true;
+      expect(() =>
+        throwIfInviteIsToOrgAndUserExists(invitee, mockedTeam, isOrg)
+      ).toThrow(TRPCError);
+    });
+
+    it("should not throw an error if the invitee does not already belong to another organization and is not being invited to an organization", () => {
+      expect(() =>
+        throwIfInviteIsToOrgAndUserExists(invitee, mockedTeam, isOrg)
+      ).not.toThrow();
     });
   });
 })
