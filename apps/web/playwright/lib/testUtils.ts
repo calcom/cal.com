@@ -79,31 +79,20 @@ export async function waitFor(fn: () => Promise<unknown> | unknown, opts: { time
 
 export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
   // Let current month dates fully render.
-  await page.waitForLoadState("networkidle");
-  await page.locator('[data-testid="incrementMonth"]').waitFor();
   await page.click('[data-testid="incrementMonth"]');
 
   // Waiting for full month increment
-  await page.waitForLoadState("networkidle");
-  await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
 
-  await page.locator('[data-testid="time"]').nth(0).waitFor();
   await page.locator('[data-testid="time"]').nth(0).click();
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   // Let current month dates fully render.
-  await page.waitForLoadState("networkidle");
-  await page.locator('[data-testid="incrementMonth"]').waitFor();
   await page.click('[data-testid="incrementMonth"]');
 
-  await page.waitForLoadState("networkidle");
-  await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).waitFor();
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
 
-  await page.waitForLoadState("networkidle");
-  await page.locator('[data-testid="time"]').nth(0).waitFor();
   await page.locator('[data-testid="time"]').nth(0).click();
 }
 

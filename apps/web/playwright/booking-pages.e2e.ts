@@ -88,9 +88,6 @@ testBothBookers.describe("pro user", () => {
     });
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.waitForLoadState("networkidle");
-
-    await page.locator('[data-testid="confirm-reschedule-button"]').waitFor();
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking");

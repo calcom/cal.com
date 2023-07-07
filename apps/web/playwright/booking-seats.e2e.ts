@@ -166,7 +166,7 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
       await page.locator('[data-testid="confirm_cancel"]').click();
       await page.waitForLoadState("networkidle");
 
-      await expect(page).toHaveURL(/.*booking/);
+      await expect(page).toHaveURL(/\/booking\/.*/);
 
       const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
       await expect(cancelledHeadline).toBeVisible();
@@ -190,9 +190,8 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
         await page.locator('[data-testid="cancel"]').click();
         await page.fill('[data-testid="cancel_reason"]', "Double booked!");
         await page.locator('[data-testid="confirm_cancel"]').click();
-        await page.waitForLoadState("networkidle");
 
-        await expect(page).toHaveURL(/.*booking/);
+        await expect(page).toHaveURL(/\/booking\/.*/);
 
         const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
         await expect(cancelledHeadline).toBeVisible();
@@ -246,16 +245,12 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
     const attendeeName = await thirdAttendeeElement.inputValue();
     expect(attendeeName).toBe("John Third");
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').waitFor();
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-    await page.waitForLoadState("networkidle");
     // should wait for URL but that path starts with booking/
     await page.waitForURL(/\/booking\/.*/);
 
     await expect(page).toHaveURL(/\/booking\/.*/);
-
-    await page.waitForLoadState("networkidle");
 
     // Should expect new booking to be created for John Third
     const newBooking = await prisma.booking.findFirst({
@@ -318,7 +313,7 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-    await page.waitForURL(/.*booking/);
+    await page.waitForURL(/\/booking\/.*/);
 
     await page.goto(`/reschedule/${references[1].referenceUid}`);
 
@@ -327,7 +322,7 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
     // Using waitForUrl here fails the assertion `expect(oldBooking?.status).toBe(BookingStatus.CANCELLED);` probably because waitForUrl is considered complete before waitForNavigation and till that time the booking is not cancelled
-    await page.waitForNavigation({ url: /.*booking/ });
+    await page.waitForNavigation({ url: /\/booking\/.*/ });
 
     // Should expect old booking to be cancelled
     const oldBooking = await prisma.booking.findFirst({
@@ -377,9 +372,7 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
 
     await page.locator('[data-testid="confirm_cancel"]').click();
 
-    await page.waitForLoadState("networkidle");
-
-    await expect(page).toHaveURL(/.*booking/);
+    await expect(page).toHaveURL(/\/booking\/.*/);
 
     // Should expect old booking to be cancelled
     const updatedBooking = await prisma.booking.findFirst({
@@ -483,7 +476,7 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
 
     await page.waitForLoadState("networkidle");
 
-    await expect(page).toHaveURL(/.*booking/);
+    await expect(page).toHaveURL(/\/booking\/.*/);
 
     await page.goto(
       `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[1].referenceUid}`
@@ -494,7 +487,7 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
 
     await page.waitForLoadState("networkidle");
 
-    await expect(page).toHaveURL(/.*booking/);
+    await expect(page).toHaveURL(/\/booking\/.*/);
   });
 
   test("Should book with seats and hide attendees info from showAttendees true", async ({
