@@ -39,3 +39,12 @@ assignees: ""
 -->
 
 (Write your answer here.)
+
+### Requirement/Document
+
+<!--
+  Is there any type of document that could support that feature?
+-->
+
+
+(Share it here.)
