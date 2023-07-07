@@ -310,7 +310,7 @@ export default function Success(props: SuccessProps) {
           status={status}
         />
       )}
-      {userIsOwner && !isEmbed && (
+      {!isEmbed && (
         <div className="-mb-4 ml-4 mt-2">
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
