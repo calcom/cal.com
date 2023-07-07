@@ -93,6 +93,7 @@
       "cache": false
     },
     "dx": {
+      "dependsOn": ["//#init-env"],
       "cache": false
     },
     "lint": {
@@ -158,6 +159,10 @@
         "^embed-tests-update-snapshots:ci"
       ],
       "outputs": ["dist/**", "build/**"]
+    },
+    "//#init-env": {
+      "cache": false,
+      "outputs": ["./.env", "./.env.appStore"]
     },
     "//#env-check:common": {
       "cache": false,
