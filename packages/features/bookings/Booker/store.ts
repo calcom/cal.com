@@ -163,7 +163,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   setSeatedEventData: (seatedEventData: SeatedEventData) => {
     set({ seatedEventData });
-    updateQueryParam("bookingUid", seatedEventData.bookingUid ?? "");
+    updateQueryParam("bookingUid", seatedEventData.bookingUid ?? "null");
   },
   initialize: ({
     username,

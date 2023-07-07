@@ -36,6 +36,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
               slug: true,
             },
           },
+          seatsPerTimeSlot: true,
         },
       },
       dynamicEventSlugRef: true,
@@ -76,7 +77,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     redirect: {
-      destination: `/${eventPage}?${destinationUrl.toString()}`,
+      destination: `/${eventPage}?${destinationUrl.toString()}${
+        eventType.seatsPerTimeSlot ? "&bookingUid=null" : ""
+      }`,
       permanent: false,
     },
   };
