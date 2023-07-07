@@ -15,7 +15,7 @@ const LegalNotice = () => {
   }
 
   return (
-    <div className="p-2 text-center text-xs sm:text-right">
+    <div className="p-2 text-center text-xs">
       {IMPRINT_URL ? (
         <a
           target="_blank"
