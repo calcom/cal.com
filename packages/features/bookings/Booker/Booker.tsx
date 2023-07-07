@@ -9,6 +9,7 @@ import { useEmbedType, useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/e
 import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
+import LegalNotice from "@calcom/web/components/ui/LegalNotice";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
@@ -172,11 +173,11 @@ const BookerComponent = ({
             <StickyOnDesktop
               key="meta"
               className={classNames(
-                "relative z-10 flex [grid-area:meta]",
+                "relative z-10 flex flex-col [grid-area:meta]",
                 // Important: In Embed if we make min-height:100vh, it will cause the height to continuously keep on increasing
                 layout !== BookerLayouts.MONTH_VIEW && !isEmbed && "sm:min-h-screen"
               )}>
-              <BookerSection className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
+              <BookerSection className="max-w-screen flex w-full grow flex-col md:w-[var(--booker-meta-width)]">
                 <EventMeta />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
@@ -184,6 +185,10 @@ const BookerComponent = ({
                       <DatePicker />
                     </div>
                   )}
+              </BookerSection>
+
+              <BookerSection visible={layout !== BookerLayouts.MONTH_VIEW} className="">
+                <LegalNotice />
               </BookerSection>
             </StickyOnDesktop>
 
@@ -249,6 +254,12 @@ const BookerComponent = ({
           {!hideBranding ? <PoweredBy logoOnly /> : null}
         </m.span>
       </div>
+
+      {layout === BookerLayouts.MONTH_VIEW || layout === "mobile" ? (
+        <div className="bg-default dark:bg-muted w-screen md:fixed md:bottom-0">
+          <LegalNotice />
+        </div>
+      ) : null}
 
       <BookFormAsModal
         visible={bookerState === "booking" && shouldShowFormInDialog}

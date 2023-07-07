@@ -34,6 +34,7 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import PageWrapper from "@components/PageWrapper";
+import LegalNotice from "@components/ui/LegalNotice";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -202,6 +203,9 @@ export function UserPage(props: UserPageProps) {
           </div>
 
           {isEventListEmpty && <EmptyPage name={user.name ?? "User"} />}
+          <div className="bg-default dark:bg-muted fixed bottom-0 left-0 w-screen">
+            <LegalNotice />
+          </div>
         </main>
         <Toaster position="bottom-right" />
       </div>
