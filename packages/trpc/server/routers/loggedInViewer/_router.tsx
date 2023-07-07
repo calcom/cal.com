@@ -2,7 +2,6 @@ import authedProcedure from "../../procedures/authedProcedure";
 import { router } from "../../trpc";
 import { ZAppByIdInputSchema } from "./appById.schema";
 import { ZAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
-import { ZAppsInputSchema } from "./apps.schema";
 import { ZAwayInputSchema } from "./away.schema";
 import { ZConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
 import { ZDeleteCredentialInputSchema } from "./deleteCredential.schema";
@@ -11,6 +10,7 @@ import { ZEventTypeOrderInputSchema } from "./eventTypeOrder.schema";
 import { ZGetCalVideoRecordingsInputSchema } from "./getCalVideoRecordings.schema";
 import { ZGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLinkOfCalVideoRecordings.schema";
 import { ZIntegrationsInputSchema } from "./integrations.schema";
+import { ZLocationOptionsInputSchema } from "./locationOptions.schema";
 import { ZSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
 import { ZSubmitFeedbackInputSchema } from "./submitFeedback.schema";
 import { ZUpdateProfileInputSchema } from "./updateProfile.schema";
@@ -27,7 +27,6 @@ type AppsRouterHandlerCache = {
   setDestinationCalendar?: typeof import("./setDestinationCalendar.handler").setDestinationCalendarHandler;
   integrations?: typeof import("./integrations.handler").integrationsHandler;
   appById?: typeof import("./appById.handler").appByIdHandler;
-  apps?: typeof import("./apps.handler").appsHandler;
   appCredentialsByType?: typeof import("./appCredentialsByType.handler").appCredentialsByTypeHandler;
   stripeCustomer?: typeof import("./stripeCustomer.handler").stripeCustomerHandler;
   updateProfile?: typeof import("./updateProfile.handler").updateProfileHandler;
@@ -171,19 +170,6 @@ export const loggedInViewerRouter = router({
     return UNSTABLE_HANDLER_CACHE.appById({ ctx, input });
   }),
 
-  apps: authedProcedure.input(ZAppsInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.apps) {
-      UNSTABLE_HANDLER_CACHE.apps = (await import("./apps.handler")).appsHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.apps) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.apps({ ctx, input });
-  }),
-
   appCredentialsByType: authedProcedure
     .input(ZAppCredentialsByTypeInputSchema)
     .query(async ({ ctx, input }) => {
@@ -260,7 +246,7 @@ export const loggedInViewerRouter = router({
     return UNSTABLE_HANDLER_CACHE.submitFeedback({ ctx, input });
   }),
 
-  locationOptions: authedProcedure.query(async ({ ctx }) => {
+  locationOptions: authedProcedure.input(ZLocationOptionsInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.locationOptions) {
       UNSTABLE_HANDLER_CACHE.locationOptions = (
         await import("./locationOptions.handler")
@@ -272,7 +258,7 @@ export const loggedInViewerRouter = router({
       throw new Error("Failed to load handler");
     }
 
-    return UNSTABLE_HANDLER_CACHE.locationOptions({ ctx });
+    return UNSTABLE_HANDLER_CACHE.locationOptions({ ctx, input });
   }),
 
   deleteCredential: authedProcedure.input(ZDeleteCredentialInputSchema).mutation(async ({ ctx, input }) => {
