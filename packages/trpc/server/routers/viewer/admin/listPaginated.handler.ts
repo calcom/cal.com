@@ -10,7 +10,7 @@ type GetOptions = {
   input: TListMembersSchema;
 };
 
-export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
+export const listPaginatedHandler = async ({ ctx, input }: GetOptions) => {
   const { cursor, limit } = input;
 
   const getTotalUsers = await prisma.user.count();
