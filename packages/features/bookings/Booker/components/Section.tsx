@@ -22,7 +22,7 @@ type GridArea = BookerAreas | ({ [key in BookerLayout]?: BookerAreas } & { defau
 
 type BookerSectionProps = {
   children: React.ReactNode;
-  area: GridArea;
+  area?: GridArea;
   visible?: boolean;
   className?: string;
 } & MotionProps;
@@ -47,7 +47,9 @@ export const BookerSection = forwardRef<HTMLDivElement, BookerSectionProps>(func
   const layout = useBookerStore((state) => state.layout);
   let gridClassName: string;
 
-  if (typeof area === "string") {
+  if (typeof area === "undefined") {
+    gridClassName = "";
+  } else if (typeof area === "string") {
     gridClassName = gridAreaClassNameMap[area];
   } else {
     gridClassName = gridAreaClassNameMap[area[layout] || area.default];
