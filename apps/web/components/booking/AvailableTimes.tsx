@@ -44,7 +44,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   bookingAttendees,
   duration,
 }) => {
-  const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({});
+  const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
   const { t, i18n } = useLocale();
   const router = useRouter();
@@ -66,10 +66,10 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   );
 
   const reserveSlot = (slot: Slot) => {
+    // Prevent double clicking
     if (reserveSlotMutation.isLoading || reserveSlotMutation.isSuccess) {
       return;
     }
-
     reserveSlotMutation.mutate({
       slotUtcStartDate: slot.time,
       eventTypeId,
