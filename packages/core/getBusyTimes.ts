@@ -2,6 +2,7 @@ import type { Credential } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
+import { subtract } from "@calcom/lib/date-ranges";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
@@ -106,23 +107,37 @@ export async function getBusyTimes(params: {
           seatsPerTimeSlot: true,
         },
       },
-      seatsReferences: true,
+      _count: {
+        select: {
+          seatsReferences: true,
+        },
+      },
     },
   });
 
+  const bookingSeatCountMap: { [x: string]: number } = {};
   const busyTimes = bookings.reduce(
-    (aggregate: EventBusyDetails[], { id, startTime, endTime, eventType, title, seatsReferences }) => {
-      // Seat references on the current event are non-blocking until the event is fully booked.
-      if (
-        // when this is a seated event and there are booked seats.
-        seatsReferences &&
-        // and there are still seats available.
-        seatsReferences.length < (eventType?.seatsPerTimeSlot || 1) &&
-        // and this is the seated event, other event types should be blocked.
-        eventTypeId === eventType?.id
-      ) {
-        // then we do not add the booking to the busyTimes.
-        return aggregate;
+    (
+      aggregate: EventBusyDetails[],
+      { id, startTime, endTime, eventType, title, _count: { seatsReferences: seatsReferenceCount } }
+    ) => {
+      if (seatsReferenceCount) {
+        const bookedAt = dayjs(startTime).utc().format() + "<>" + dayjs(endTime).utc().format();
+        bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
+        bookingSeatCountMap[bookedAt]++;
+        // Seat references on the current event are non-blocking until the event is fully booked.
+        if (
+          // there are still seats available.
+          bookingSeatCountMap[bookedAt] < (eventType?.seatsPerTimeSlot || 1) &&
+          // and this is the seated event, other event types should be blocked.
+          eventTypeId === eventType?.id
+        ) {
+          // then we do not add the booking to the busyTimes.
+          return aggregate;
+        }
+        // if it does get blocked at this point; we remove the bookingSeatCountMap entry
+        // doing this allows using the map later to remove the ranges from calendar busy times.
+        delete bookingSeatCountMap[bookedAt];
       }
       aggregate.push({
         start: dayjs(startTime)
@@ -134,11 +149,11 @@ export async function getBusyTimes(params: {
         title,
         source: `eventType-${eventType?.id}-booking-${id}`,
       });
-
       return aggregate;
     },
     []
   );
+
   logger.silly(`Busy Time from Cal Bookings ${JSON.stringify(busyTimes)}`);
   performance.mark("prismaBookingGetEnd");
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
@@ -158,15 +173,29 @@ export async function getBusyTimes(params: {
         endConnectedCalendarsGet - startConnectedCalendarsGet
       } ms for user ${username}`
     );
-    busyTimes.push(
-      ...calendarBusyTimes.map((value) => ({
+
+    const openSeatsDateRanges = Object.keys(bookingSeatCountMap).map((key) => {
+      const [start, end] = key.split("<>");
+      return {
+        start: dayjs(start),
+        end: dayjs(end),
+      };
+    });
+
+    const result = subtract(
+      calendarBusyTimes.map((value) => ({
         ...value,
-        end: dayjs(value.end)
-          .add(beforeEventBuffer || 0, "minute")
-          .toDate(),
-        start: dayjs(value.start)
-          .subtract(afterEventBuffer || 0, "minute")
-          .toDate(),
+        end: dayjs(value.end),
+        start: dayjs(value.start),
+      })),
+      openSeatsDateRanges
+    );
+
+    busyTimes.push(
+      ...result.map((busyTime) => ({
+        ...busyTime,
+        start: busyTime.start.toDate(),
+        end: busyTime.end.toDate(),
       }))
     );
 
