@@ -41,8 +41,8 @@ export const EventLocations = ({ event }: { event: PublicEvent }) => {
                 <p className="mb-2">{t("select_on_next_step")}</p>
                 <ul className="pl-1">
                   {locations.map((location, index) => (
-                    <li key={location.type} className="mt-1">
-                      <div key={`${location.type}-${index}`} className="flex flex-row items-center">
+                    <li key={`${location.type}-${index}`} className="mt-1">
+                      <div className="flex flex-row items-center">
                         <img
                             src={getEventLocationType(location.type)?.iconUrl}
                             className={classNames(
