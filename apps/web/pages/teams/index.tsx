@@ -1,5 +1,4 @@
 import type { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { TeamsListing } from "@calcom/features/ee/teams/components";
 import Shell from "@calcom/features/shell/Shell";
@@ -42,7 +41,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
   await ssr.viewer.me.prefetch();
 
-  return { props: { trpcState: ssr.dehydrate(), ...(await serverSideTranslations("en", ["common"])) } };
+  return { props: { trpcState: ssr.dehydrate() } };
 };
 
 Teams.requiresLicense = false;
