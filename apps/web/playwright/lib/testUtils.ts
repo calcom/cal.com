@@ -90,10 +90,6 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
 
   await page.locator('[data-testid="time"]').nth(0).waitFor();
   await page.locator('[data-testid="time"]').nth(0).click();
-  if (await page.locator('[data-testid="time"]').count()) {
-    // Due to some reason, sometimes the timeslots get re-rendered after clicking the timeslot from Playwright and we have to click again
-    await page.locator('[data-testid="time"]').nth(0).click();
-  }
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
