@@ -99,6 +99,15 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
       await bookTimeSlot(page, { email: "jane.doe@example.com", name: "Jane Doe" });
       await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     });
+    await test.step("Attendee #3 cannot click on the same seated event time slot", async () => {
+      await page.goto(`/${user.username}/${slug}`);
+
+      await page.click('[data-testid="incrementMonth"]');
+
+      // TODO: Find out why the first day is always booked on tests
+      await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+      await expect(page.locator('[data-testid="time"][data-disabled="true"]')).toBeVisible();
+    });
     await test.step("Attendee #3 cannot book the same seated event time slot accessing via url", async () => {
       await page.goto(bookingUrl);
 
