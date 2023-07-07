@@ -194,8 +194,8 @@ export async function getBusyTimes(params: {
     busyTimes.push(
       ...result.map((busyTime) => ({
         ...busyTime,
-        start: busyTime.start.toDate(),
-        end: busyTime.end.toDate(),
+        start: busyTime.start.subtract(afterEventBuffer || 0, "minute").toDate(),
+        end: busyTime.end.add(beforeEventBuffer || 0, "minute").toDate(),
       }))
     );
 
