@@ -4,7 +4,7 @@ import { TeamsListing } from "@calcom/features/ee/teams/components";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Plus } from "@calcom/ui/components/icon";
 
@@ -22,7 +22,7 @@ function Teams() {
       hideHeadingOnMobile
       subtitle={t("create_manage_teams_collaborative")}
       CTA={
-        !user.organizationId || user.organization.isOrgAdmin ? (
+        (!user.organizationId || user.organization.isOrgAdmin) && (
           <Button
             variant="fab"
             StartIcon={Plus}
@@ -30,7 +30,7 @@ function Teams() {
             href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
             {t("new")}
           </Button>
-        ) : undefined
+        )
       }>
       <TeamsListing />
     </Shell>
