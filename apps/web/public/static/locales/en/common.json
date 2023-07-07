@@ -1937,5 +1937,6 @@
   "insights_team_filter": "Team: {{teamName}}",
   "insights_user_filter": "User: {{userName}}",
   "insights_subtitle": "View booking insights across your events",
+  "location_options": "{{locationCount}} location options",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
