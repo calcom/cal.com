@@ -246,13 +246,17 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
     const attendeeName = await thirdAttendeeElement.inputValue();
     expect(attendeeName).toBe("John Third");
 
+    await page.locator('[data-testid="confirm-reschedule-button"]').waitFor();
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
     await page.waitForLoadState("networkidle");
+    // should wait for URL but that path starts with booking/
+    await page.waitForURL(/\/booking\/.*/);
 
-    await expect(page).toHaveURL(/.*booking/);
+    await expect(page).toHaveURL(/\/booking\/.*/);
 
-    await page.waitForURL(/.*booking/);
+    await page.waitForLoadState("networkidle");
+
     // Should expect new booking to be created for John Third
     const newBooking = await prisma.booking.findFirst({
       where: {

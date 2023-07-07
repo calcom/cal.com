@@ -7,7 +7,6 @@ import {
   bookOptinEvent,
   bookTimeSlot,
   selectFirstAvailableTimeSlotNextMonth,
-  selectSecondAvailableTimeSlotNextMonth,
   testEmail,
   testName,
 } from "./lib/testUtils";
@@ -38,13 +37,13 @@ testBothBookers.describe("free user", (bookerVariant) => {
       });
     }
 
+    await bookTimeSlot(page);
+
     // save booking url
     const bookingUrl: string = page.url();
 
-    // book same time spot twice
-    await bookTimeSlot(page);
-
     // Make sure we're navigated to the success page
+    await page.locator("[data-testid=success-page]").waitFor();
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     // return to same time spot booking page
@@ -53,8 +52,8 @@ testBothBookers.describe("free user", (bookerVariant) => {
     // book same time spot again
     await bookTimeSlot(page);
 
-    // check for error message
-    await expect(page.locator("[data-testid=booking-fail]")).toBeVisible();
+    await page.locator("[data-testid=booking-fail]").waitFor();
+    await expect(page.locator("[data-testid=booking-fail]")).toBeVisible({ timeout: 1000 });
   });
 });
 
@@ -87,8 +86,11 @@ testBothBookers.describe("pro user", () => {
       const bookingId = url.searchParams.get("rescheduleUid");
       return !!bookingId;
     });
-    await selectSecondAvailableTimeSlotNextMonth(page);
-    // --- fill form
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await page.waitForLoadState("networkidle");
+
+    await page.locator('[data-testid="confirm-reschedule-button"]').waitFor();
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking");
