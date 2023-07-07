@@ -6,17 +6,17 @@ import { Check, Info } from "../icon";
 type IToast = {
   message: string;
   toastVisible: boolean;
-  toastID: string;
-  onClose: (toastID: string) => void;
+  toastId: string;
+  onClose: (toastId: string) => void;
 };
 
-export const SuccessToast = ({ message, toastVisible, onClose, toastID }: IToast) => (
+export const SuccessToast = ({ message, toastVisible, onClose, toastId }: IToast) => (
   <button
     className={classNames(
       "data-testid-toast-success bg-brand-default text-inverted mb-2 flex h-auto items-center space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
-    onClick={() => onClose(toastID)}>
+    onClick={() => onClose(toastId)}>
     <span>
       <Check className="h-4 w-4" />
     </span>
@@ -24,13 +24,13 @@ export const SuccessToast = ({ message, toastVisible, onClose, toastID }: IToast
   </button>
 );
 
-export const ErrorToast = ({ message, toastVisible, onClose, toastID }: IToast) => (
+export const ErrorToast = ({ message, toastVisible, onClose, toastId }: IToast) => (
   <button
     className={classNames(
       "animate-fade-in-up bg-error text-error mb-2 flex h-auto items-center space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
-    onClick={() => onClose(toastID)}>
+    onClick={() => onClose(toastId)}>
     <span>
       <Info className="h-4 w-4" />
     </span>
@@ -38,13 +38,13 @@ export const ErrorToast = ({ message, toastVisible, onClose, toastID }: IToast) 
   </button>
 );
 
-export const WarningToast = ({ message, toastVisible, onClose, toastID }: IToast) => (
+export const WarningToast = ({ message, toastVisible, onClose, toastId }: IToast) => (
   <button
     className={classNames(
       "animate-fade-in-up bg-brand-default text-brand mb-2 flex h-auto items-center space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
-    onClick={() => onClose(toastID)}>
+    onClick={() => onClose(toastId)}>
     <span>
       <Info className="h-4 w-4" />
     </span>
@@ -52,13 +52,13 @@ export const WarningToast = ({ message, toastVisible, onClose, toastID }: IToast
   </button>
 );
 
-export const DefaultToast = ({ message, toastVisible, onClose, toastID }: IToast) => (
+export const DefaultToast = ({ message, toastVisible, onClose, toastId }: IToast) => (
   <button
     className={classNames(
       "animate-fade-in-up bg-brand-default text-inverted mb-2 flex h-auto items-center space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
-    onClick={() => onClose(toastID)}>
+    onClick={() => onClose(toastId)}>
     <span>
       <Check className="h-4 w-4" />
     </span>
@@ -73,28 +73,28 @@ export function showToast(
   variant: "success" | "warning" | "error",
   duration = TOAST_VISIBLE_DURATION
 ) {
-  const onClose = (toastID: string) => {
-    toast.remove(toastID);
+  const onClose = (toastId: string) => {
+    toast.remove(toastId);
   };
   switch (variant) {
     case "success":
       return toast.custom(
-        (t) => <SuccessToast message={message} toastVisible={t.visible} onClose={onClose} toastID={t.id} />,
+        (t) => <SuccessToast message={message} toastVisible={t.visible} onClose={onClose} toastId={t.id} />,
         { duration }
       );
     case "error":
       return toast.custom(
-        (t) => <ErrorToast message={message} toastVisible={t.visible} onClose={onClose} toastID={t.id} />,
+        (t) => <ErrorToast message={message} toastVisible={t.visible} onClose={onClose} toastId={t.id} />,
         { duration }
       );
     case "warning":
       return toast.custom(
-        (t) => <WarningToast message={message} toastVisible={t.visible} onClose={onClose} toastID={t.id} />,
+        (t) => <WarningToast message={message} toastVisible={t.visible} onClose={onClose} toastId={t.id} />,
         { duration }
       );
     default:
       return toast.custom(
-        (t) => <DefaultToast message={message} toastVisible={t.visible} onClose={onClose} toastID={t.id} />,
+        (t) => <DefaultToast message={message} toastVisible={t.visible} onClose={onClose} toastId={t.id} />,
         { duration }
       );
   }
