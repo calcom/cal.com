@@ -1923,6 +1923,7 @@
   "crm": "CRM",
   "messaging": "Messaging",
   "sender_id_info": "Name or number shown as the sender of an SMS (some countries do not allow alphanumeric sender IDs)",
+  "org_admins_can_create_new_teams": "Only the admin of your organization can create new teams",
   "google_new_spam_policy": "Google’s new spam policy could prevent you from receiving any email and calendar notifications about this booking.",
   "resolve": "Resolve",
   "no_organization_slug": "There was an error creating teams for this organization. Missing URL slug.",
