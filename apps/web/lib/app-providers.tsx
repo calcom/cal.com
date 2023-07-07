@@ -21,6 +21,11 @@ import type { WithNonceProps } from "@lib/withNonce";
 
 import { useViewerI18n } from "@components/I18nLanguageHandler";
 
+/**
+ * This will throw the following warning in the browser console. Ignore it for now, else it'll cause a world of
+ * rehydration pain:
+ * > react-i18next:: You will need to pass in an i18next instance by using initReactI18next
+ */
 const I18nextAdapter = appWithTranslation<NextJsAppProps<SSRConfig> & { children: React.ReactNode }>(
   ({ children }) => <>{children}</>
 );
@@ -51,7 +56,7 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
    * We intend to not cache i18n query
    **/
-  const { i18n, locale } = useViewerI18n().data ?? {
+  const { i18n, locale } = useViewerI18n() ?? {
     locale: "en",
   };
 
