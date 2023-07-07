@@ -196,7 +196,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     };
   }
 
-  await prisma.verificationToken.deleteMany({
+  await prisma.verificationToken.delete({
     where: {
       token,
     },
