@@ -5,17 +5,17 @@ import { trpc } from "@calcom/trpc";
 const LegalNotice = () => {
   const { t } = useLocale();
   const isEmbed = useIsEmbed();
-  const { data } = trpc.viewer.deploymentSetup.get.useQuery();
+  const { data: deployment } = trpc.viewer.deploymentSetup.get.useQuery();
 
   if (isEmbed) {
     return null;
   }
 
-  if (data === undefined) {
+  if (deployment === undefined) {
     return null;
   }
 
-  const { imprintLink, privacyLink } = data;
+  const { imprintLink, privacyLink } = deployment;
 
   if (!(imprintLink || privacyLink)) {
     return null;
