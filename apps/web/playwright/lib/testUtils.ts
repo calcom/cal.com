@@ -101,6 +101,7 @@ export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   await page.waitForLoadState("networkidle");
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).waitFor();
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
+  await page.locator('[data-testid="time"][data-disabled="false"]').nth(1).click();
 }
 
 async function bookEventOnThisPage(page: Page) {
