@@ -104,7 +104,6 @@
   "team_info": "Ekip Bilgileri",
   "request_another_invitation_email": "{{appName}} e-posta adresiniz olarak {{toEmail}} adresini kullanmak istemiyorsanız veya zaten bir {{appName}} hesabınız varsa lütfen bu e-posta için başka bir davet talebinde bulunun.",
   "you_have_been_invited": "{{teamName}} ekibine katılmaya davet edildiniz",
-  "user_invited_you": "{{user}}, sizi {{appName}}'da {{team}} ekibine katılmaya davet etti",
   "hidden_team_member_title": "Bu ekipte gizlisiniz",
   "hidden_team_member_message": "Yeriniz ücretli değil. Hesabınızı Pro'ya yükseltin veya ekip yöneticisinden yeriniz için ödeme yapmasını isteyin.",
   "hidden_team_owner_message": "Ekipler özelliğini kullanmak için bir Pro hesabına ihtiyacınız var. Hesabınızı yükseltene kadar gizli olarak kalacaksınız.",
