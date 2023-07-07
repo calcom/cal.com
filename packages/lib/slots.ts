@@ -179,16 +179,22 @@ function buildSlotsWithDateRanges({
     }
 
     if (!previousStartTime) {
-      const interval = frequency % 60 === 0 ? 60 : frequency % 30 === 0 ? 30 : 15;
+      let interval = 15;
+
+      const intervalsWithDefinedStartTimes = [60, 30, 20, 10];
+
+      for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
+        if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
+          interval = intervalsWithDefinedStartTimes[i];
+          break;
+        }
+      }
 
       slotStartTime =
         slotStartTime.utc().minute() % interval !== 0
           ? slotStartTime
-              .startOf("day")
-              .add(
-                Math.ceil((slotStartTime.hour() * interval + slotStartTime.minute()) / interval) * interval,
-                "minute"
-              )
+              .startOf("hour")
+              .add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
           : slotStartTime;
     } else {
       const minuteOffset =
