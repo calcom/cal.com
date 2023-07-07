@@ -285,16 +285,18 @@ export default function TeamListItem(props: Props) {
                         </DropdownItem>
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        onClick={() => {
-                          setOpenMemberInvitationModal(true);
-                        }}
-                        StartIcon={Send}>
-                        {t("invite_team_member") as string}
-                      </DropdownItem>
-                    </DropdownMenuItem>
+                    {isAdmin && (
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          type="button"
+                          onClick={() => {
+                            setOpenMemberInvitationModal(true);
+                          }}
+                          StartIcon={Send}>
+                          {t("invite_team_member") as string}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     {isOwner && (
                       <DropdownMenuItem>
