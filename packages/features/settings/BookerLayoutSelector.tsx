@@ -51,7 +51,7 @@ export const BookerLayoutSelector = ({
 
   return (
     <>
-      <Label className="mb-0">{title ? title : t("bookerlayout_title")}</Label>
+      <Label className="mb-0">{title ? title : t("layout")}</Label>
       <p className="text-subtle max-w-full break-words py-1 text-sm">
         {description ? description : t("bookerlayout_description")}
       </p>

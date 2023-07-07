@@ -30,7 +30,9 @@ exports.teamTypeRoutePath = "/team/:slug/:type((?!book$)[^/]+)";
 exports.privateLinkRoutePath = "/d/:link/:slug((?!book$)[^/]+)";
 exports.embedUserTypeRoutePath = `/:user((?!${afterFilesRewriteExcludePages.join("/|")})[^/]*)/:type/embed`;
 exports.embedTeamTypeRoutePath = "/team/:slug/:type/embed";
-let subdomainRegExp = (exports.subdomainRegExp = getSubdomainRegExp(process.env.NEXT_PUBLIC_WEBAPP_URL));
+let subdomainRegExp = (exports.subdomainRegExp = getSubdomainRegExp(
+  process.env.NEXT_PUBLIC_WEBAPP_URL || "https://" + process.env.VERCEL_URL
+));
 exports.orgHostPath = `^(?<orgSlug>${subdomainRegExp})\\..*`;
 
 let beforeRewriteExcludePages = pages.concat(otherNonExistingRoutePrefixes);

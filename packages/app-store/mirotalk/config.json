@@ -6,7 +6,7 @@
   "logo": "icon.svg",
   "url": "https://cal.com/",
   "variant": "conferencing",
-  "categories": ["video"],
+  "categories": ["conferencing"],
   "publisher": "Cal.com, Inc.",
   "email": "support@cal.com",
   "appData": {

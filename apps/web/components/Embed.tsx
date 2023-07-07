@@ -17,6 +17,7 @@ import {
   Button,
   Dialog,
   DialogClose,
+  DialogFooter,
   DialogContent,
   HorizontalTabs,
   Label,
@@ -1206,8 +1207,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     />
                   )}
                 </div>
-                <div className={router.query.embedTabName == "embed-preview" ? "block" : "hidden"} />
-                <div className="mt-8 flex flex-row-reverse gap-x-2">
+                <div className={router.query.embedTabName == "embed-preview" ? "mt-2 block" : "hidden"} />
+                <DialogFooter
+                  className="mt-10 flex flex-row-reverse gap-x-2"
+                  showDivider
+                  customDividerClassNames="w-2/3">
+                  <DialogClose />
                   {tab.type === "code" ? (
                     <Button
                       type="submit"
@@ -1222,8 +1227,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       {t("copy_code")}
                     </Button>
                   ) : null}
-                  <DialogClose />
-                </div>
+                </DialogFooter>
               </div>
             );
           })}

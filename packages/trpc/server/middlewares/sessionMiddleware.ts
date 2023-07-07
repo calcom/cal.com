@@ -51,6 +51,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
           userId: true,
           appId: true,
           invalid: true,
+          teamId: true,
         },
         orderBy: {
           id: "asc",

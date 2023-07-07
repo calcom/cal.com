@@ -6,6 +6,7 @@ import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingByUidOrRescheduleUid } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -129,7 +130,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   };
 }
 
-const paramsSchema = z.object({ link: z.string(), slug: z.string() });
+const paramsSchema = z.object({ link: z.string(), slug: z.string().transform((s) => slugify(s)) });
 
 // Booker page fetches a tiny bit of data server side, to determine early
 // whether the page should show an away state or dynamic booking not allowed.

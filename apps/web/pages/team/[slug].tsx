@@ -187,7 +187,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
           {!isBioEmpty && (
             <>
               <div
-                className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                className="text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                 dangerouslySetInnerHTML={{ __html: team.safeBio }}
               />
             </>
@@ -197,21 +197,26 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
           <SubTeams />
         ) : (
           <>
-            {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
+            {(showMembers.isOn || !team.eventTypes.length) &&
+              (team.isPrivate ? (
+                <div className="w-full text-center">
+                  <h2 className="text-emphasis font-semibold">{t("you_cannot_see_team_members")}</h2>
+                </div>
+              ) : (
+                <Team team={team} />
+              ))}
             {!showMembers.isOn && team.eventTypes.length > 0 && (
               <div className="mx-auto max-w-3xl ">
                 <EventTypes />
 
-                {!team.hideBookATeamMember && (
+                {!(team.hideBookATeamMember || team.isPrivate) && (
                   <div>
                     <div className="relative mt-12">
                       <div className="absolute inset-0 flex items-center" aria-hidden="true">
                         <div className="border-subtle w-full border-t" />
                       </div>
                       <div className="relative flex justify-center">
-                        <span className="dark:bg-darkgray-50 bg-subtle text-subtle dark:text-inverted px-2 text-sm">
-                          {t("or")}
-                        </span>
+                        <span className="bg-subtle text-subtle px-2 text-sm">{t("or")}</span>
                       </div>
                     </div>
 
