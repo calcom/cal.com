@@ -21,6 +21,7 @@ export async function getBusyTimes(params: {
   afterEventBuffer?: number;
   endTime: string;
   selectedCalendars: SelectedCalendar[];
+  seatedEvent?: boolean;
 }) {
   const {
     credentials,
@@ -33,6 +34,7 @@ export async function getBusyTimes(params: {
     beforeEventBuffer,
     afterEventBuffer,
     selectedCalendars,
+    seatedEvent,
   } = params;
   logger.silly(
     `Checking Busy time from Cal Bookings in range ${startTime} to ${endTime} for input ${JSON.stringify({
@@ -107,21 +109,20 @@ export async function getBusyTimes(params: {
           seatsPerTimeSlot: true,
         },
       },
-      _count: {
-        select: {
-          seatsReferences: true,
+      ...(seatedEvent && {
+        _count: {
+          select: {
+            seatsReferences: true,
+          },
         },
-      },
+      }),
     },
   });
 
   const bookingSeatCountMap: { [x: string]: number } = {};
   const busyTimes = bookings.reduce(
-    (
-      aggregate: EventBusyDetails[],
-      { id, startTime, endTime, eventType, title, _count: { seatsReferences: seatsReferenceCount } }
-    ) => {
-      if (seatsReferenceCount) {
+    (aggregate: EventBusyDetails[], { id, startTime, endTime, eventType, title, ...rest }) => {
+      if (rest._count?.seatsReferences) {
         const bookedAt = dayjs(startTime).utc().format() + "<>" + dayjs(endTime).utc().format();
         bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
         bookingSeatCountMap[bookedAt]++;
