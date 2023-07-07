@@ -17,6 +17,7 @@ import type { AppRouter } from "../server/routers/_app";
  * TODO: Make this dynamic based on folders in trpc server?
  */
 const ENDPOINTS = [
+  "admin",
   "apiKeys",
   "appRoutingForms",
   "apps",

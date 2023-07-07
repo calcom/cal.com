@@ -43,10 +43,10 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }:
         attendees,
         bookingUid,
       });
-    }
 
-    if (seatsPerTimeSlot && seatsPerTimeSlot - attendees > 1) {
-      return;
+      if (seatsPerTimeSlot && seatsPerTimeSlot - attendees > 1) {
+        return;
+      }
     }
 
     if (!event.data) return;
