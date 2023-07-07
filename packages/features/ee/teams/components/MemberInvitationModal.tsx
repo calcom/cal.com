@@ -59,8 +59,8 @@ interface FileEvent<T = Element> extends FormEvent<T> {
   target: EventTarget & T;
 }
 
-function toggleElementInArray(value: string[] | string, element: string): string[] {
-  const array = Array.isArray(value) ? value : [value];
+function toggleElementInArray(value: string[] | string | undefined, element: string): string[] {
+  const array = value ? (Array.isArray(value) ? value : [value]) : [];
   return array.includes(element) ? array.filter((item) => item !== element) : [...array, element];
 }
 
