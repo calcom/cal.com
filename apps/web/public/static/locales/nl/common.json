@@ -104,7 +104,6 @@
   "team_info": "Teaminformatie",
   "request_another_invitation_email": "Als u {{toEmail}} liever niet als uw {{appName}} e-mail wilt gebruiken of al een {{appName}} account heeft, vraag dan een andere uitnodiging aan voor die e-mail.",
   "you_have_been_invited": "U bent uitgenodigd om lid te worden van het team {{teamName}}",
-  "user_invited_you": "{{user}} heeft u uitgenodigd om lid te worden van het team {{team}} op {{appName}}",
   "hidden_team_member_title": "U bent verborgen in dit team",
   "hidden_team_member_message": "Uw plaats is niet betaald. Upgrade naar Pro of laat de teameigenaar weten dat deze uw plaats kan betalen.",
   "hidden_team_owner_message": "U heeft een Pro-account nodig om teams te gebruiken, u bent verborgen tot u upgradet.",

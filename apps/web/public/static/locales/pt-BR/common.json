@@ -104,7 +104,6 @@
   "team_info": "Informações da equipe",
   "request_another_invitation_email": "Se não quiser utilizar {{toEmail}} como email do {{appName}}, ou já tem uma conta em {{appName}}, por favor peça outro convite para esse email.",
   "you_have_been_invited": "Você recebeu um convite para se juntar ao time {{teamName}}",
-  "user_invited_you": "{{user}} convidou você para se juntar ao time {{team}} em {{appName}}",
   "hidden_team_member_title": "Você está oculto nesta equipe",
   "hidden_team_member_message": "Seu assento não é pago, atualize para a versão Pro ou avise o proprietário da equipe de que é possível pagar pelo seu assento.",
   "hidden_team_owner_message": "É preciso ter uma conta Pro para usar equipes, você permanecerá oculto até a atualização.",

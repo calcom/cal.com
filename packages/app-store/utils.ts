@@ -116,11 +116,11 @@ function getApps(userCredentials: CredentialData[]) {
     /** If the app is a globally installed one, let's inject it's key */
     if (appMeta.isGlobal) {
       credentials.push({
-        id: +new Date().getTime(),
+        id: 0,
         type: appMeta.type,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         key: appMeta.key!,
-        userId: +new Date().getTime(),
+        userId: 0,
         appId: appMeta.slug,
         invalid: false,
       });
