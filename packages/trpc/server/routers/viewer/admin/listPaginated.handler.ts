@@ -1,4 +1,5 @@
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TListMembersSchema } from "./listPaginated.schema";
@@ -11,15 +12,43 @@ type GetOptions = {
 };
 
 export const listPaginatedHandler = async ({ ctx, input }: GetOptions) => {
-  const { cursor, limit } = input;
+  const { cursor, limit, searchTerm } = input;
 
   const getTotalUsers = await prisma.user.count();
+
+  let searchFilters: Prisma.UserWhereInput = {};
+
+  if (searchTerm) {
+    searchFilters = {
+      OR: [
+        {
+          email: {
+            contains: searchTerm.toLowerCase(),
+          },
+        },
+        {
+          username: {
+            contains: searchTerm.toLocaleLowerCase(),
+          },
+        },
+      ],
+    };
+  }
 
   const users = await prisma.user.findMany({
     cursor: cursor ? { id: cursor } : undefined,
     take: limit + 1, // We take +1 as itll be used for the next cursor
+    where: searchFilters,
     orderBy: {
       id: "asc",
+    },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      name: true,
+      timeZone: true,
+      role: true,
     },
   });
 
@@ -28,11 +57,6 @@ export const listPaginatedHandler = async ({ ctx, input }: GetOptions) => {
     const nextItem = users.pop();
     nextCursor = nextItem!.id;
   }
-
-  console.log({
-    users,
-    nextCursor,
-  });
 
   return {
     rows: users || [],
