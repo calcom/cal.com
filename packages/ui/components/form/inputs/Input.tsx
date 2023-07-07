@@ -8,7 +8,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Alert, showToast, Skeleton, Tooltip, UnstyledSelect } from "../../..";
-import { Eye, EyeOff, X } from "../../icon";
+import { Eye, EyeOff, X, Search } from "../../icon";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
@@ -409,5 +409,25 @@ export const NumberInput = forwardRef<HTMLInputElement, InputFieldProps>(functio
       inputMode="numeric"
       {...props}
     />
+  );
+});
+
+export const FilterSearchField = forwardRef<HTMLInputElement, InputFieldProps>(function TextField(
+  props,
+  ref
+) {
+  return (
+    <div
+      dir="ltr"
+      className="focus-within:ring-brand-default group relative mx-3 mb-1 mt-2.5 flex items-center rounded-md focus-within:outline-none focus-within:ring-2">
+      <div className="addon-wrapper border-default [input:hover_+_&]:border-emphasis [input:hover_+_&]:border-l-default [&:has(+_input:hover)]:border-emphasis [&:has(+_input:hover)]:border-r-default flex h-7 items-center justify-center rounded-l-md border border-r-0">
+        <Search className="ms-3 h-4 w-4" />
+      </div>
+      <Input
+        ref={ref}
+        className="disabled:bg-subtle disabled:hover:border-subtle !my-0 h-7 rounded-l-none border-l-0 !ring-0 disabled:cursor-not-allowed"
+        {...props}
+      />
+    </div>
   );
 });

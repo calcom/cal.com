@@ -1,6 +1,8 @@
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -87,7 +89,7 @@ const OrgAppearanceView = () => {
     return <SkeletonLoader title={t("booking_appearance")} description={t("appearance_team_description")} />;
   }
   return (
-    <>
+    <LicenseRequired>
       <Meta title={t("booking_appearance")} description={t("appearance_team_description")} />
       {isAdmin ? (
         <Form
@@ -177,7 +179,7 @@ const OrgAppearanceView = () => {
           <span className="text-default text-sm">{t("only_owner_change")}</span>
         </div>
       )}
-    </>
+    </LicenseRequired>
   );
 };
 

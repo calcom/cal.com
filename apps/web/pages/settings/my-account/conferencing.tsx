@@ -160,7 +160,7 @@ const ConferencingLayout = () => {
                               disabled={app.isGlobal}
                               StartIcon={Trash}
                               onClick={() => {
-                                setDeleteCredentialId(app.credentialIds[0]);
+                                setDeleteCredentialId(app.userCredentialIds[0]);
                                 setDeleteAppModal(true);
                               }}>
                               {t("remove_app")}

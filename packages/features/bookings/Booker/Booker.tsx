@@ -159,7 +159,7 @@ const BookerComponent = ({
             <BookerSection
               area="header"
               className={classNames(
-                layout === BookerLayouts.MONTH_VIEW && "fixed right-3 top-3 z-10",
+                layout === BookerLayouts.MONTH_VIEW && "fixed right-4 top-4 z-10",
                 (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
                   "bg-default dark:bg-muted sticky top-0 z-10"
               )}>

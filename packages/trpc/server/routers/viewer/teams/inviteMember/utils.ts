@@ -1,36 +1,23 @@
-import { Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
 import type { TFunction } from "next-i18next";
 
-import { sendOrganizationAutoJoinEmail, sendTeamInviteEmail } from "@calcom/emails";
-import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
-import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { sendTeamInviteEmail, sendOrganizationAutoJoinEmail } from "@calcom/emails";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
-import type { Team, User } from "@calcom/prisma/client";
+import type { Team } from "@calcom/prisma/client";
+import { Prisma, type User } from "@calcom/prisma/client";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TInviteMemberInputSchema } from "./inviteMember.schema";
-import { isEmail } from "./util";
+import type { TrpcSessionUser } from "../../../../trpc";
+import { isEmail } from "../util";
+import type { InviteMemberOptions, TeamWithParent } from "./types";
 
-type InviteMemberOptions = {
-  ctx: {
-    user: NonNullable<TrpcSessionUser>;
-  };
-  input: TInviteMemberInputSchema;
-};
-
-type TeamWithParent = Team & {
-  parent: Team | null;
-};
-
-async function checkPermissions({
+export async function checkPermissions({
   userId,
   teamId,
   isOrg,
@@ -48,7 +35,7 @@ async function checkPermissions({
   }
 }
 
-async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
+export async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
   const team = await prisma.team.findFirst({
     where: {
       id: teamId,
@@ -64,7 +51,7 @@ async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
   return team;
 }
 
-async function getEmailsToInvite(usernameOrEmail: string | string[]) {
+export async function getEmailsToInvite(usernameOrEmail: string | string[]) {
   const emailsToInvite = Array.isArray(usernameOrEmail) ? usernameOrEmail : [usernameOrEmail];
 
   if (emailsToInvite.length === 0) {
@@ -77,7 +64,7 @@ async function getEmailsToInvite(usernameOrEmail: string | string[]) {
   return emailsToInvite;
 }
 
-async function getUserToInviteOrThrowIfExists({
+export async function getUserToInviteOrThrowIfExists({
   usernameOrEmail,
   orgId,
   isOrg,
@@ -104,7 +91,7 @@ async function getUserToInviteOrThrowIfExists({
   return invitee;
 }
 
-function checkInputEmailIsValid(email: string) {
+export function checkInputEmailIsValid(email: string) {
   if (!isEmail(email))
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -112,7 +99,37 @@ function checkInputEmailIsValid(email: string) {
     });
 }
 
-async function createNewUserConnectToOrgIfExists({
+export function getOrgConnectionInfo({
+  orgAutoAcceptDomain,
+  orgVerified,
+  isOrg,
+  usersEmail,
+  team,
+}: {
+  orgAutoAcceptDomain?: string | null;
+  orgVerified?: boolean | null;
+  usersEmail: string;
+  team: TeamWithParent;
+  isOrg: boolean;
+}) {
+  let orgId: number | undefined = undefined;
+  let autoAccept = false;
+
+  if (team.parentId || isOrg) {
+    orgId = team.parentId || team.id;
+    if (usersEmail.split("@")[1] == orgAutoAcceptDomain) {
+      autoAccept = orgVerified ?? true;
+    } else {
+      // No longer throw error - not needed we just dont auto accept them
+      orgId = undefined;
+      autoAccept = false;
+    }
+  }
+
+  return { orgId, autoAccept };
+}
+
+export async function createNewUserConnectToOrgIfExists({
   usernameOrEmail,
   input,
   parentId,
@@ -153,7 +170,7 @@ async function createNewUserConnectToOrgIfExists({
   }
 }
 
-async function createProvisionalMembership({
+export async function createProvisionalMembership({
   input,
   invitee,
   parentId,
@@ -195,7 +212,7 @@ async function createProvisionalMembership({
   }
 }
 
-async function sendVerificationEmail({
+export async function sendVerificationEmail({
   usernameOrEmail,
   team,
   translation,
@@ -261,21 +278,22 @@ async function sendVerificationEmail({
   }
 }
 
-function checkIfUserIsInDifOrg(
-  invitee: User,
-  team: Team & {
-    parent: Team | null;
-  }
-) {
-  if (invitee.organizationId !== team.parentId) {
+export function throwIfInviteIsToOrgAndUserExists(invitee: User, team: TeamWithParent, isOrg: boolean) {
+  if (invitee.organizationId && invitee.organizationId !== team.parentId) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: `User ${invitee.username} is already a member of another organization.`,
     });
   }
+  if ((invitee && isOrg) || (team.parentId && invitee)) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: `You cannot add a user that already exists in Cal.com to an organization. If they wish to join via this email address, they must update their email address in their profile to that of your organization.`,
+    });
+  }
 }
 
-function getIsOrgVerified(
+export function getIsOrgVerified(
   isOrg: boolean,
   team: Team & {
     parent: Team | null;
@@ -303,129 +321,3 @@ function getIsOrgVerified(
     isInOrgScope: false,
   } as { isInOrgScope: false; orgVerified: never; autoAcceptEmailDomain: never };
 }
-
-function getOrgConnectionInfo({
-  orgAutoAcceptDomain,
-  orgVerified,
-  isOrg,
-  usersEmail,
-  team,
-}: {
-  orgAutoAcceptDomain?: string | null;
-  orgVerified?: boolean | null;
-  usersEmail: string;
-  team: TeamWithParent;
-  isOrg: boolean;
-}) {
-  let orgId: number | undefined = undefined;
-  let autoAccept = false;
-
-  if (team.parentId || isOrg) {
-    orgId = team.parentId || team.id;
-    if (usersEmail.split("@")[1] == orgAutoAcceptDomain) {
-      autoAccept = orgVerified ?? true;
-    } else {
-      // No longer throw error - not needed we just dont auto accept them
-      orgId = undefined;
-      autoAccept = false;
-    }
-  }
-
-  return { orgId, autoAccept };
-}
-
-export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) => {
-  const team = await getTeamOrThrow(input.teamId, input.isOrg);
-  const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(input.isOrg, team);
-
-  await checkPermissions({ userId: ctx.user.id, teamId: input.teamId, isOrg: input.isOrg });
-
-  const translation = await getTranslation(input.language ?? "en", "common");
-
-  const emailsToInvite = await getEmailsToInvite(input.usernameOrEmail);
-
-  for (const usernameOrEmail of emailsToInvite) {
-    const connectionInfo = getOrgConnectionInfo({
-      orgVerified,
-      orgAutoAcceptDomain: autoAcceptEmailDomain,
-      usersEmail: usernameOrEmail,
-      team,
-      isOrg: input.isOrg,
-    });
-    const invitee = await getUserToInviteOrThrowIfExists({
-      usernameOrEmail,
-      orgId: input.teamId,
-      isOrg: input.isOrg,
-    });
-
-    if (!invitee) {
-      checkInputEmailIsValid(usernameOrEmail);
-
-      // valid email given, create User and add to team
-      await createNewUserConnectToOrgIfExists({
-        usernameOrEmail,
-        input,
-        connectionInfo,
-        parentId: team.parentId,
-      });
-
-      await sendVerificationEmail({ usernameOrEmail, team, translation, ctx, input, connectionInfo });
-    } else {
-      checkIfUserIsInDifOrg(invitee, team);
-
-      // create provisional membership
-      await createProvisionalMembership({
-        input,
-        invitee,
-        ...(team.parentId ? { parentId: team.parentId } : {}),
-      });
-
-      let sendTo = usernameOrEmail;
-      if (!isEmail(usernameOrEmail)) {
-        sendTo = invitee.email;
-      }
-      // inform user of membership by email
-      if (input.sendEmailInvitation && ctx?.user?.name && team?.name) {
-        const inviteTeamOptions = {
-          joinLink: `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`,
-          isCalcomMember: true,
-        };
-        /**
-         * Here we want to redirect to a differnt place if onboarding has been completed or not. This prevents the flash of going to teams -> Then to onboarding - also show a differnt email template.
-         * This only changes if the user is a CAL user and has not completed onboarding and has no password
-         */
-        if (!invitee.completedOnboarding && !invitee.password && invitee.identityProvider === "CAL") {
-          const token = randomBytes(32).toString("hex");
-          await prisma.verificationToken.create({
-            data: {
-              identifier: usernameOrEmail,
-              token,
-              expires: new Date(new Date().setHours(168)), // +1 week
-            },
-          });
-
-          inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
-          inviteTeamOptions.isCalcomMember = false;
-        }
-
-        await sendTeamInviteEmail({
-          language: translation,
-          from: ctx.user.name,
-          to: sendTo,
-          teamName: team.name,
-          ...inviteTeamOptions,
-          isOrg: input.isOrg,
-        });
-      }
-    }
-  }
-
-  if (IS_TEAM_BILLING_ENABLED) {
-    if (team.parentId) {
-      await updateQuantitySubscriptionFromStripe(team.parentId);
-    } else {
-      await updateQuantitySubscriptionFromStripe(input.teamId);
-    }
-  }
-  return input;
-};

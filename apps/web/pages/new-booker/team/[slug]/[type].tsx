@@ -6,13 +6,14 @@ import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingByUidOrRescheduleUid } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { classNames } from "@calcom/lib";
+import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
 
-type PageProps = inferSSRProps<typeof getServerSideProps>;
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type({ slug, user, booking, away, isBrandingHidden }: PageProps) {
   const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
@@ -39,7 +40,10 @@ export default function Type({ slug, user, booking, away, isBrandingHidden }: Pa
 
 Type.PageWrapper = PageWrapper;
 
-const paramsSchema = z.object({ type: z.string(), slug: z.string() });
+const paramsSchema = z.object({
+  type: z.string().transform((s) => slugify(s)),
+  slug: z.string().transform((s) => slugify(s)),
+});
 
 // Booker page fetches a tiny bit of data server side:
 // 1. Check if team exists, to show 404
@@ -90,6 +94,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       booking,
       away: false,
       user: teamSlug,
+      teamId: team.id,
       slug: meetingSlug,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: team?.hideBranding,
