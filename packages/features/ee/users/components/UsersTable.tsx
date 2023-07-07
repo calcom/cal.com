@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 
 import { trpc } from "@calcom/trpc/react";
 import { Badge, ConfirmationDialogContent, Dialog, DropdownActions, showToast, Table } from "@calcom/ui";
@@ -9,12 +9,13 @@ import { withLicenseRequired } from "../../common/components/LicenseRequired";
 const { Body, Cell, ColumnTitle, Header, Row } = Table;
 
 function UsersTableBare() {
+  const tableContainerRef = useRef<HTMLTableSectionElement>(null);
   const utils = trpc.useContext();
-  const [data] = trpc.viewer.users.list.useSuspenseQuery();
+
   const mutation = trpc.viewer.users.delete.useMutation({
     onSuccess: async () => {
       showToast("User has been deleted", "success");
-      await utils.viewer.users.list.invalidate();
+      // await utils.viewer.users.list.invalidate();
     },
     onError: (err) => {
       console.error(err.message);
@@ -24,6 +25,41 @@ function UsersTableBare() {
       setUserToDelete(null);
     },
   });
+
+  const { data, isLoading, fetchNextPage, isFetching } = trpc.viewer.admin.listPaginated.useInfiniteQuery(
+    {
+      limit: 50,
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      keepPreviousData: true,
+      refetchOnWindowFocus: false,
+    }
+  );
+
+  //we must flatten the array of arrays from the useInfiniteQuery hook
+  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]);
+  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalFetched = flatData.length;
+
+  //called on scroll and possibly on mount to fetch more data as the user scrolls and reaches bottom of table
+  const fetchMoreOnBottomReached = useCallback(
+    (containerRefElement?: HTMLDivElement | null) => {
+      if (containerRefElement) {
+        const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
+        //once the user has scrolled within 300px of the bottom of the table, fetch more data if there is any
+        if (scrollHeight - scrollTop - clientHeight < 300 && !isFetching && totalFetched < totalDBRowCount) {
+          fetchNextPage();
+        }
+      }
+    },
+    [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
+  );
+
+  useEffect(() => {
+    fetchMoreOnBottomReached(tableContainerRef.current);
+  }, [fetchMoreOnBottomReached]);
+
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
 
   return (
@@ -38,8 +74,11 @@ function UsersTableBare() {
           </ColumnTitle>
         </Header>
 
-        <Body>
-          {data.map((user) => (
+        <tbody
+          ref={tableContainerRef}
+          onScroll={() => fetchMoreOnBottomReached()}
+          className="divide-subtle divide-y rounded-md">
+          {flatData.map((user) => (
             <Row key={user.email}>
               <Cell widthClassNames="w-auto">
                 {/*
@@ -96,7 +135,7 @@ function UsersTableBare() {
               </Cell>
             </Row>
           ))}
-        </Body>
+        </tbody>
       </Table>
       <DeleteUserDialog
         user={userToDelete}

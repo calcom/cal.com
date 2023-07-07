@@ -8,7 +8,7 @@ type AdminRouterHandlerCache = {
 
 const UNSTABLE_HANDLER_CACHE: AdminRouterHandlerCache = {};
 
-export const apiKeysRouter = router({
+export const adminRouter = router({
   listPaginated: authedAdminProcedure.input(ZListMembersSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.listPaginated) {
       UNSTABLE_HANDLER_CACHE.listPaginated = await import("./listPaginated.handler").then(
