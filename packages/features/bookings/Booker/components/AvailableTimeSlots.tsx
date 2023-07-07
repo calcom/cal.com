@@ -37,11 +37,13 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot }:
   ) => {
     setSelectedTimeslot(time);
 
-    setSeatedEventData({
-      seatsPerTimeSlot,
-      attendees,
-      bookingUid,
-    });
+    if (seatsPerTimeSlot) {
+      setSeatedEventData({
+        seatsPerTimeSlot,
+        attendees,
+        bookingUid,
+      });
+    }
 
     if (seatsPerTimeSlot && seatsPerTimeSlot - attendees > 1) {
       return;

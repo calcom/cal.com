@@ -65,7 +65,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const eventType = event.data;
 
   const reserveSlot = () => {
-    if ((eventType?.id && timeslot && duration) || eventType?.length) {
+    if (eventType?.id && timeslot && (duration || eventType?.length)) {
       reserveSlotMutation.mutate({
         slotUtcStartDate: dayjs(timeslot).utc().format(),
         eventTypeId: eventType?.id,

@@ -116,6 +116,8 @@ export async function getBusyTimes(params: {
       if (
         // when this is a seated event and there are booked seats.
         seatsReferences &&
+        // and seatReferences is greater than 0
+        seatsReferences.length > 0 &&
         // and there are still seats available.
         seatsReferences.length < (eventType?.seatsPerTimeSlot || 1) &&
         // and this is the seated event, other event types should be blocked.

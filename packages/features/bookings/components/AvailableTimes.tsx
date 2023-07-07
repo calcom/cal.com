@@ -1,5 +1,4 @@
 import { CalendarX2 } from "lucide-react";
-import { useState } from "react";
 import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -45,7 +44,7 @@ export const AvailableTimes = ({
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
   const isToday = dayjs().isSame(date, "day");
-  const [isBlockedReserveSlot, setIsBlockedReserveSlot] = useState(false);
+
   return (
     <div className={classNames("text-default flex flex-col", className)}>
       <header className="bg-default before:bg-default dark:bg-muted dark:before:bg-muted mb-3 flex w-full flex-row items-center font-medium">
@@ -97,14 +96,7 @@ export const AvailableTimes = ({
               data-testid="time"
               data-disabled={bookingFull}
               data-time={slot.time}
-              onClick={() => {
-                if (isBlockedReserveSlot) return;
-                setIsBlockedReserveSlot(true);
-                onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid);
-                // As it's not a consecutive useState call, it should wait a little bit to set the state to false
-                // still preventing double click on button
-                setIsBlockedReserveSlot(false);
-              }}
+              onClick={() => onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)}
               className="min-h-9 hover:border-brand-default mb-2 flex h-auto w-full flex-col justify-center py-2"
               color="secondary">
               {dayjs.utc(slot.time).tz(timezone).format(timeFormat)}
