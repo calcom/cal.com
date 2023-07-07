@@ -1,5 +1,6 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import getMostPopularApps from "@calcom/lib/apps/getMostPopularApps";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
@@ -55,13 +56,21 @@ export async function getAppRegistry() {
   return apps;
 }
 
-export async function getAppRegistryWithCredentials(userId: number) {
+export async function getAppRegistryWithCredentials(userId: number, userAdminTeams: UserAdminTeams = []) {
+  // Get teamIds to grab existing credentials
+  const teamIds = [];
+  for (const team of userAdminTeams) {
+    if (!team.isUser) {
+      teamIds.push(team.id);
+    }
+  }
+
   const dbApps = await prisma.app.findMany({
     where: { enabled: true },
     select: {
       ...safeAppSelect,
       credentials: {
-        where: { userId },
+        where: { OR: [{ userId }, { teamId: { in: teamIds } }] },
         select: safeCredentialSelect,
       },
     },

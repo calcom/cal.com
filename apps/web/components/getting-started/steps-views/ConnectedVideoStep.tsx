@@ -21,7 +21,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
   const { t } = useLocale();
 
   const hasAnyInstalledVideoApps = queryConnectedVideoApps?.items.some(
-    (item) => item.credentialIds.length > 0
+    (item) => item.userCredentialIds.length > 0
   );
 
   return (
@@ -39,7 +39,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
                       title={item.name}
                       description={item.description}
                       logo={item.logo}
-                      installed={item.credentialIds.length > 0}
+                      installed={item.userCredentialIds.length > 0}
                     />
                   )}
                 </li>

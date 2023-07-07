@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
-import { CAL_URL } from "@calcom/lib/constants";
+import getOrgAwareUrlOnClient from "@calcom/lib/getOrgAwareUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
@@ -195,7 +195,6 @@ function Dialogs({
   deleteDialogFormId: string | null;
 }) {
   const utils = trpc.useContext();
-  const router = useRouter();
   const { t } = useLocale();
   const deleteMutation = trpc.viewer.appRoutingForms.deleteForm.useMutation({
     onMutate: async ({ id: formId }) => {
@@ -402,11 +401,11 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   const dropdownCtxValue = useContext(dropdownCtx);
   const dropdown = dropdownCtxValue?.dropdown;
   const embedLink = `forms/${routingForm?.id}`;
-  const formLink = `${CAL_URL}/${embedLink}`;
-  let redirectUrl = `${CAL_URL}/router?form=${routingForm?.id}`;
+  const formRelativeLink = `/${embedLink}`;
+  let relativeRedirectUrl = `/router?form=${routingForm?.id}`;
 
   routingForm?.fields?.forEach((field) => {
-    redirectUrl += `&${getFieldIdentifier(field)}={Recalled_Response_For_This_Field}`;
+    relativeRedirectUrl += `&${getFieldIdentifier(field)}={Recalled_Response_For_This_Field}`;
   });
 
   const { t } = useLocale();
@@ -416,12 +415,12 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     ButtonProps & { as?: React.ElementType; render?: FormActionProps<unknown>["render"] }
   > = {
     preview: {
-      href: formLink,
+      href: formRelativeLink,
     },
     copyLink: {
       onClick: () => {
         showToast(t("link_copied"), "success");
-        navigator.clipboard.writeText(formLink);
+        navigator.clipboard.writeText(getOrgAwareUrlOnClient(formRelativeLink));
       },
     },
     duplicate: {
@@ -448,7 +447,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     },
     copyRedirectUrl: {
       onClick: () => {
-        navigator.clipboard.writeText(redirectUrl);
+        navigator.clipboard.writeText(getOrgAwareUrlOnClient(relativeRedirectUrl));
         showToast(t("typeform_redirect_url_copied"), "success");
       },
     },
