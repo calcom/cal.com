@@ -6,7 +6,9 @@ import { Edit, Trash } from "@calcom/ui/components/icon";
 
 import { withLicenseRequired } from "../../common/components/LicenseRequired";
 
-const { Body, Cell, ColumnTitle, Header, Row } = Table;
+const { Cell, ColumnTitle, Header, Row } = Table;
+
+const FETCH_LIMIT = 25;
 
 function UsersTableBare() {
   const tableContainerRef = useRef<HTMLTableSectionElement>(null);
@@ -15,7 +17,23 @@ function UsersTableBare() {
   const mutation = trpc.viewer.users.delete.useMutation({
     onSuccess: async () => {
       showToast("User has been deleted", "success");
-      // await utils.viewer.users.list.invalidate();
+      // Lets not invalidated the whole cache, just remove the user from the cache.
+      // usefull cause in prod this will be fetching 100k+ users
+      utils.viewer.admin.listPaginated.setInfiniteData({ limit: FETCH_LIMIT }, (data) => {
+        if (!data) {
+          return {
+            pages: [],
+            pageParams: [],
+          };
+        }
+        return {
+          ...data,
+          pages: data.pages.map((page) => ({
+            ...page,
+            rows: page.rows.filter((row) => row.id !== userToDelete),
+          })),
+        };
+      });
     },
     onError: (err) => {
       console.error(err.message);
@@ -26,9 +44,9 @@ function UsersTableBare() {
     },
   });
 
-  const { data, isLoading, fetchNextPage, isFetching } = trpc.viewer.admin.listPaginated.useInfiniteQuery(
+  const { data, fetchNextPage, isFetching } = trpc.viewer.admin.listPaginated.useInfiniteQuery(
     {
-      limit: 50,
+      limit: FETCH_LIMIT,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -77,7 +95,9 @@ function UsersTableBare() {
         <tbody
           ref={tableContainerRef}
           onScroll={() => fetchMoreOnBottomReached()}
-          className="divide-subtle divide-y rounded-md">
+          // We can sort the style out for mobile when this is needed
+          // Future user mangament for org/teams implements shadcns table that has good mobile support
+          className="divide-subtle h-[calc(100vh-300px)] divide-y overflow-y-scroll rounded-md">
           {flatData.map((user) => (
             <Row key={user.email}>
               <Cell widthClassNames="w-auto">
@@ -88,7 +108,7 @@ function UsersTableBare() {
                 <div className="min-h-10 relative pl-12">
                   <img
                     className="absolute left-0 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full"
-                    src={user.avatar}
+                    src={user.avatar || ""}
                     alt={`Avatar of ${user.name}`}
                   />
 

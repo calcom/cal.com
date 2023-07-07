@@ -29,6 +29,11 @@ export const listPaginatedHandler = async ({ ctx, input }: GetOptions) => {
     nextCursor = nextItem!.id;
   }
 
+  console.log({
+    users,
+    nextCursor,
+  });
+
   return {
     rows: users || [],
     nextCursor,
