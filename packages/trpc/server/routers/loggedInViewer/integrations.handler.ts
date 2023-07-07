@@ -43,7 +43,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     teamId,
     sortByMostPopular,
   } = input;
-  const { credentials } = user;
+  let { credentials } = user;
   let userTeams: TeamQuery[] = [];
 
   if (includeTeamInstalledApps || teamId) {
