@@ -1,6 +1,7 @@
 const appStore = {
   // example: () => import("./example"),
   applecalendar: () => import("./applecalendar"),
+  aroundvideo: () => import("./around"),
   caldavcalendar: () => import("./caldavcalendar"),
   closecom: () => import("./closecom"),
   dailyvideo: () => import("./dailyvideo"),
@@ -30,6 +31,7 @@ const appStore = {
   facetime: () => import("./facetime"),
   sylapsvideo: () => import("./sylapsvideo"),
   "zoho-bigin": () => import("./zoho-bigin"),
+  telegramvideo: () => import("./telegram"),
 };
 
 export default appStore;

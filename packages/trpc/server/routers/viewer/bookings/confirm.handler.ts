@@ -11,7 +11,7 @@ import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, MembershipRole, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
+import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
 import { TRPCError } from "@trpc/server";
 
@@ -277,8 +277,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           }
 
           // Posible to refactor TODO:
-          const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore]();
-          if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
+          const paymentApp = (await appStore[
+            paymentAppCredential?.app?.dirName as keyof typeof appStore
+          ]()) as PaymentApp;
+          if (!paymentApp?.lib?.PaymentService) {
             console.warn(`payment App service of type ${paymentApp} is not implemented`);
             return null;
           }

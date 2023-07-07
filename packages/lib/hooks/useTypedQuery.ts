@@ -48,7 +48,7 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
       // Remove old value by key so we can merge new value
       const { [key]: _, ...newQuery } = parsedQuery;
       const newValue = { ...newQuery, [key]: value };
-      const search = new URLSearchParams(newValue as any).toString();
+      const search = new URLSearchParams(newValue).toString();
       router.replace({ query: search }, undefined, { shallow: true });
     },
     [parsedQuery, router]
@@ -57,7 +57,8 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
   // Delete a key from the query
   function removeByKey(key: OutputOptionalKeys) {
     const { [key]: _, ...newQuery } = parsedQuery;
-    router.replace({ query: newQuery as Output }, undefined, { shallow: true });
+    const search = new URLSearchParams(newQuery).toString();
+    router.replace({ query: search }, undefined, { shallow: true });
   }
 
   // push item to existing key

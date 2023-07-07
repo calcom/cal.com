@@ -2,9 +2,11 @@ import type { NextApiRequest } from "next";
 import { z } from "zod";
 
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 import { availabilityUserSelect } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 
 /**
@@ -97,6 +99,9 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
  *       404:
  *         description: User not found | Team not found | Team has no members
  */
+interface MemberRoles {
+  [userId: number | string]: MembershipRole;
+}
 
 const availabilitySchema = z
   .object({
@@ -113,10 +118,12 @@ const availabilitySchema = z
   );
 
 async function handler(req: NextApiRequest) {
-  const { prisma, isAdmin } = req;
+  const { prisma, isAdmin, userId: reqUserId } = req;
   const { username, userId, eventTypeId, dateTo, dateFrom, teamId } = availabilitySchema.parse(req.query);
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req.headers.host ?? "");
   if (!teamId)
     return getUserAvailability({
+      orgSlug: isValidOrgDomain ? currentOrgDomain || undefined : undefined,
       username,
       dateFrom,
       dateTo,
@@ -129,12 +136,26 @@ async function handler(req: NextApiRequest) {
   });
   if (!team) throw new HttpError({ statusCode: 404, message: "teamId not found" });
   if (!team.members) throw new HttpError({ statusCode: 404, message: "team has no members" });
-  const allMemberIds = team.members.map((membership) => membership.userId);
+  const allMemberIds = team.members.reduce((allMemberIds: number[], member) => {
+    if (member.accepted) {
+      allMemberIds.push(member.userId);
+    }
+    return allMemberIds;
+  }, []);
   const members = await prisma.user.findMany({
     where: { id: { in: allMemberIds } },
     select: availabilityUserSelect,
   });
-  if (!isAdmin) throw new HttpError({ statusCode: 403, message: "Forbidden" });
+  const memberRoles: MemberRoles = team.members.reduce((acc: MemberRoles, membership) => {
+    acc[membership.userId] = membership.role;
+    return acc;
+  }, {} as MemberRoles);
+  // check if the user is a team Admin or Owner, if it is a team request, or a system Admin
+  const isUserAdminOrOwner =
+    memberRoles[reqUserId] == MembershipRole.ADMIN ||
+    memberRoles[reqUserId] == MembershipRole.OWNER ||
+    isAdmin;
+  if (!isUserAdminOrOwner) throw new HttpError({ statusCode: 403, message: "Forbidden" });
   const availabilities = members.map(async (user) => {
     return {
       userId: user.id,

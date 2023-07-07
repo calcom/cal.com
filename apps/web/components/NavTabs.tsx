@@ -71,7 +71,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
                     isCurrent
                       ? "text-emphasis border-gray-900"
                       : "hover:border-default hover:text-default text-subtle border-transparent",
-                    "group inline-flex items-center border-b-2 py-4 px-1 text-sm font-medium",
+                    "group inline-flex items-center border-b-2 px-1 py-4 text-sm font-medium",
                     className
                   )}
                   aria-current={isCurrent ? "page" : undefined}>

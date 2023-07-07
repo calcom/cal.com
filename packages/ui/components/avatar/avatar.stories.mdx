@@ -125,14 +125,29 @@ Avatar group can be composed differently based on the number of user profile.
 
 <Canvas>
   <Story
-    name="Avatar">
-    <VariantsTable titles={['Default']} columnMinWidth={150}>
-      <VariantRow variant="Sm">
-        <Avatar size="sm" alt="Avatar Story" gravatarFallbackMd5="Ui@CAL.com" />
+    name="Avatar"
+    args={{
+      size: 'sm',
+      alt: 'Avatar Story',
+      gravatarFallbackMd5: 'Ui@CAL.com',
+    }}
+    argTypes={{
+      size: {
+        control: {
+          type: 'inline-radio',
+          options: ['sm', 'lg'],
+        },
+      },
+      alt: { control: 'text' },
+      gravatarFallbackMd5: { control: 'text' },
+    }}
+  >
+    {({ size, alt, gravatarFallbackMd5 }) => (
+  <VariantsTable titles={['Default']} columnMinWidth={150}>
+      <VariantRow variant={size}>
+        <Avatar size={size} alt={alt} gravatarFallbackMd5={gravatarFallbackMd5} />
       </VariantRow>
-      <VariantRow variant="Lg">
-        <Avatar size="lg" alt="Avatar Story" gravatarFallbackMd5="Ui@CAL.com" />
-      </VariantRow>
-    </VariantsTable>
+  </VariantsTable>
+    )}
   </Story>
 </Canvas>

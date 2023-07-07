@@ -1,6 +1,7 @@
 import schedule from "node-schedule";
 
 import prisma from "@calcom/prisma";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 export async function scheduleTrigger(
   booking: { id: number; endTime: Date; scheduledJobs: string[] },
@@ -13,7 +14,7 @@ export async function scheduleTrigger(
       `${subscriber.appId}_${subscriber.id}`,
       booking.endTime,
       async function () {
-        const body = JSON.stringify(booking);
+        const body = JSON.stringify({ triggerEvent: WebhookTriggerEvents.MEETING_ENDED, ...booking });
         await fetch(subscriberUrl, {
           method: "POST",
           body,
