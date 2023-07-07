@@ -90,6 +90,10 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
 
   await page.locator('[data-testid="time"]').nth(0).waitFor();
   await page.locator('[data-testid="time"]').nth(0).click();
+  if (await page.locator('[data-testid="time"]').count()) {
+    // Due to some reason, sometimes the timeslots get re-rendered after clicking the timeslot from Playwright and we have to click again
+    await page.locator('[data-testid="time"]').nth(0).click();
+  }
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
@@ -101,7 +105,14 @@ export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   await page.waitForLoadState("networkidle");
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).waitFor();
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-  await page.locator('[data-testid="time"][data-disabled="false"]').nth(1).click();
+
+  await page.locator('[data-testid="time"]').nth(1).waitFor();
+  await page.locator('[data-testid="time"]').nth(1).click();
+
+  if (await page.locator('[data-testid="time"]').count()) {
+    // Due to some reason, sometimes the timeslots get re-rendered after clicking the timeslot from Playwright and we have to click again
+    await page.locator('[data-testid="time"]').nth(1).click();
+  }
 }
 
 async function bookEventOnThisPage(page: Page) {
