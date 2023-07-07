@@ -322,7 +322,7 @@ testBothBookers.describe("Reschedule for booking with seats", () => {
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
     // Using waitForUrl here fails the assertion `expect(oldBooking?.status).toBe(BookingStatus.CANCELLED);` probably because waitForUrl is considered complete before waitForNavigation and till that time the booking is not cancelled
-    await page.waitForNavigation({ url: /\/booking\/.*/ });
+    await page.waitForURL(/\/booking\/.*/);
 
     // Should expect old booking to be cancelled
     const oldBooking = await prisma.booking.findFirst({
