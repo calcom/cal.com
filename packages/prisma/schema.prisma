@@ -126,6 +126,8 @@ model Credential {
   key                  Json
   user                 User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId               Int?
+  team                 Team?                 @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId               Int?
   app                  App?                  @relation(fields: [appId], references: [slug], onDelete: Cascade)
   // How to make it a required column?
   appId                String?
@@ -274,6 +276,7 @@ model Team {
   timeZone            String                  @default("Europe/London")
   weekStart           String                  @default("Sunday")
   routingForms        App_RoutingForms_Form[]
+  credentials         Credential[]
 
   @@unique([slug, parentId])
 }

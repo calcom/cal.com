@@ -25,7 +25,7 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus, MembershipRole, WorkflowMethods } from "@calcom/prisma/enums";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
+import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
 async function getBookingToDelete(id: number | undefined, uid: string | undefined) {
   return await prisma.booking.findUnique({
@@ -445,7 +445,10 @@ async function handler(req: CustomRequest) {
 
   /** TODO: Remove this without breaking functionality */
   if (bookingToDelete.location === DailyLocationType) {
-    bookingToDelete.user.credentials.push(FAKE_DAILY_CREDENTIAL);
+    bookingToDelete.user.credentials.push({
+      ...FAKE_DAILY_CREDENTIAL,
+      teamId: bookingToDelete.eventType?.teamId || null,
+    });
   }
 
   const apiDeletes = [];
@@ -593,8 +596,10 @@ async function handler(req: CustomRequest) {
     }
 
     // Posible to refactor TODO:
-    const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore]();
-    if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
+    const paymentApp = (await appStore[
+      paymentAppCredential?.app?.dirName as keyof typeof appStore
+    ]()) as PaymentApp;
+    if (!paymentApp?.lib?.PaymentService) {
       console.warn(`payment App service of type ${paymentApp} is not implemented`);
       return null;
     }

@@ -6,12 +6,14 @@ interface DisconnectIntegrationModalProps {
   credentialId: number | null;
   isOpen: boolean;
   handleModelClose: () => void;
+  teamId?: number;
 }
 
 export default function DisconnectIntegrationModal({
   credentialId,
   isOpen,
   handleModelClose,
+  teamId,
 }: DisconnectIntegrationModalProps) {
   const { t } = useLocale();
   const utils = trpc.useContext();
@@ -31,17 +33,17 @@ export default function DisconnectIntegrationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleModelClose}>
-       <ConfirmationDialogContent
-          variety="danger"
-          title={t("remove_app")}
-          confirmBtnText={t("yes_remove_app")}
-          onConfirm={() => {
-            if (credentialId) {
-              mutation.mutate({ id: credentialId });
-            }
-          }}>
-          <p className="mt-5">{t("are_you_sure_you_want_to_remove_this_app")}</p>
-        </ConfirmationDialogContent>
+      <ConfirmationDialogContent
+        variety="danger"
+        title={t("remove_app")}
+        confirmBtnText={t("yes_remove_app")}
+        onConfirm={() => {
+          if (credentialId) {
+            mutation.mutate({ id: credentialId, teamId });
+          }
+        }}>
+        <p className="mt-5">{t("are_you_sure_you_want_to_remove_this_app")}</p>
+      </ConfirmationDialogContent>
     </Dialog>
   );
 }

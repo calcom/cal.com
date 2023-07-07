@@ -4,8 +4,8 @@ import qs from "qs";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import prisma from "@calcom/prisma";
 
+import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -52,14 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   tokenInfo.data.expiryDate = Math.round(Date.now() + tokenInfo.data.expires_in);
   tokenInfo.data.accountServer = accountsServer;
 
-  await prisma.credential.create({
-    data: {
-      type: appConfig.type,
-      key: tokenInfo.data,
-      userId: req.session.user.id,
-      appId: appConfig.slug,
-    },
-  });
+  createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, tokenInfo.data, req);
 
   const state = decodeOAuthState(req);
   res.redirect(
