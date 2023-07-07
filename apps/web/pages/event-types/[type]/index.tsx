@@ -101,6 +101,7 @@ export type FormValues = {
     displayLocationPublicly?: boolean;
     phone?: string;
     hostDefault?: string;
+    credentialId?: number;
   }[];
   customInputs: CustomInputParsed[];
   schedule: number | null;
@@ -161,8 +162,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     data: { tabName },
   } = useTypedQuery(querySchema);
 
-  const { data: eventTypeApps } = trpc.viewer.apps.useQuery({
+  const { data: eventTypeApps } = trpc.viewer.integrations.useQuery({
     extendsFeature: "EventType",
+    teamId: props.eventType.team?.id || props.eventType.parent?.teamId,
+    onlyInstalled: true,
   });
 
   const { eventType, locationOptions, team, teamMembers, currentUserMembership, destinationCalendar } = props;
@@ -306,12 +309,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const availability = formMethods.watch("availability");
-  const numberOfInstalledApps = eventTypeApps?.filter((app) => app.isInstalled).length || 0;
   let numberOfActiveApps = 0;
 
   if (appsMetadata) {
     numberOfActiveApps = Object.entries(appsMetadata).filter(
-      ([appId, appData]) => eventTypeApps?.find((app) => app.slug === appId)?.isInstalled && appData.enabled
+      ([appId, appData]) =>
+        eventTypeApps?.items.find((app) => app.slug === appId)?.isInstalled && appData.enabled
     ).length;
   }
 
@@ -423,7 +426,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     <>
       <EventTypeSingleLayout
         enabledAppsNumber={numberOfActiveApps}
-        installedAppsNumber={numberOfInstalledApps}
+        installedAppsNumber={eventTypeApps?.items.length || 0}
         enabledWorkflowsNumber={eventType.workflows.length}
         eventType={eventType}
         team={team}
