@@ -177,7 +177,7 @@ export default function MemberListItem(props: Props) {
                 />
               </Tooltip>
               {editMode && (
-                <Dropdown>
+                <Dropdown modal={false}>
                   <DropdownMenuTrigger asChild>
                     <Button
                       className="radix-state-open:rounded-r-md"
@@ -222,7 +222,7 @@ export default function MemberListItem(props: Props) {
               )}
             </ButtonGroup>
             <div className="flex md:hidden">
-              <Dropdown>
+              <Dropdown modal={false}>
                 <DropdownMenuTrigger asChild>
                   <Button type="button" variant="icon" color="minimal" StartIcon={MoreHorizontal} />
                 </DropdownMenuTrigger>
