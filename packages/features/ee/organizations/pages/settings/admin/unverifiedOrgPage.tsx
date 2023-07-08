@@ -69,6 +69,12 @@ function UnverifiedOrgTable() {
                       {
                         id: "reject",
                         label: "Reject",
+                        onClick: () => {
+                          mutation.mutate({
+                            orgId: org.id,
+                            status: "DENY",
+                          });
+                        },
                         icon: X,
                       },
                     ]}
