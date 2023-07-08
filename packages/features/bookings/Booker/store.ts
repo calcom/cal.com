@@ -17,13 +17,13 @@ type StoreInitializeType = {
   username: string;
   eventSlug: string;
   // Month can be undefined if it's not passed in as a prop.
-  month?: string;
   eventId: number | undefined;
-  rescheduleUid: string | null;
-  bookingUid: string | null;
-  bookingData: GetBookingType | null | undefined;
   layout: BookerLayout;
+  month?: string;
+  bookingUid?: string | null;
   isTeamEvent?: boolean;
+  bookingData?: GetBookingType | null | undefined;
+  rescheduleUid?: string | null;
   seatReferenceUid?: string;
 };
 
@@ -239,7 +239,6 @@ export const useInitializeBookerStore = ({
   month,
   eventId,
   rescheduleUid = null,
-  bookingUid = null,
   bookingData = null,
   layout,
   isTeamEvent,
@@ -252,21 +251,9 @@ export const useInitializeBookerStore = ({
       month,
       eventId,
       rescheduleUid,
-      bookingUid,
       bookingData,
       layout,
       isTeamEvent,
     });
-  }, [
-    initializeStore,
-    username,
-    eventSlug,
-    month,
-    eventId,
-    rescheduleUid,
-    bookingUid,
-    bookingData,
-    layout,
-    isTeamEvent,
-  ]);
+  }, [initializeStore, username, eventSlug, month, eventId, rescheduleUid, bookingData, layout, isTeamEvent]);
 };
