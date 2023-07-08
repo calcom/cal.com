@@ -1679,7 +1679,6 @@
   "managed_event_dialog_title_one": "URL-адрес /{{slug}} для {{count}} участника уже существует. Заменить?",
   "managed_event_dialog_title_other": "URL-адрес /{{slug}} для {{count}} участников уже существует. Заменить?",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> уже используют URL-адрес <strong>/{{slug}}</strong>.",
-  "managed_event_dialog_information_other": "<strong>{{names}}</strong> уже используют URL-адрес <string>/{{slug}}</strong>.",
   "managed_event_dialog_clarification": "В случае замены мы уведомим пользователей. Если вы не хотите выполнять перезапись, вернитесь назад и удалите типы событий.",
   "review_event_type": "Пересмотреть тип события",
   "looking_for_more_analytics": "Нужно больше аналитики?",

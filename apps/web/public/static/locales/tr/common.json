@@ -1679,7 +1679,6 @@
   "managed_event_dialog_title_one": "URL /{{slug}}, {{count}} üye için zaten mevcut. Bunu değiştirmek istiyor musunuz?",
   "managed_event_dialog_title_other": "URL /{{slug}}, {{count}} üye için zaten mevcut. Bunu değiştirmek istiyor musunuz?",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> zaten <strong>/{{slug}}</strong> URL'sini kullanıyor.",
-  "managed_event_dialog_information_other": "<strong>{{names}}</strong> zaten <strong>/{{slug}}</strong> URL'sini kullanıyor.",
   "managed_event_dialog_clarification": "Değiştirmeyi seçmeniz durumunda onları bilgilendiririz. Üzerine yazmak istemiyorsanız geri dönerek onları kaldırın.",
   "review_event_type": "Etkinlik Türünü inceleyin",
   "looking_for_more_analytics": "Daha fazla analiz mi arıyorsunuz?",
