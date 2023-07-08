@@ -1,9 +1,9 @@
 import { z } from "zod";
 
+import slugify from "@calcom/lib/slugify";
 import { _EventTypeModel as EventType, _HostModel } from "@calcom/prisma/zod";
 import { customInputSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
-import slugify from "~/../../packages/lib/slugify";
 import { Frequency } from "~/lib/types";
 
 import { jsonSchema } from "./shared/jsonSchema";
