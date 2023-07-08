@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 import { test } from "./lib/fixtures";
 
 test.describe("Embed Pages", () => {
-  test("Calendar Page: should not have margin top on embed page", async ({ page }) => {
+  test("Event Type Page: should not have margin top on embed page", async ({ page }) => {
     await page.goto("/free/30min/embed");
 
     // Checks the margin from top by checking the distance between the div inside main from the viewport
@@ -23,7 +23,7 @@ test.describe("Embed Pages", () => {
     expect(marginFromTop).toBe(0);
   });
 
-  test("Calendar Page: should have margin top on non embed page", async ({ page }) => {
+  test("Event Type Page: should have margin top on non embed page", async ({ page }) => {
     await page.goto("/free/30min");
 
     // Checks the margin from top by checking the distance between the div inside main from the viewport
