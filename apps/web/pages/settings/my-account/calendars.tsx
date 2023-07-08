@@ -173,6 +173,7 @@ const CalendarsView = () => {
                               trashIcon
                               credentialId={item.credentialId}
                               buttonProps={{ className: "border border-default" }}
+                              externalId={item.primary?.externalId}
                             />
                           </div>
                         </div>

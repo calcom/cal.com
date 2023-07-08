@@ -99,6 +99,7 @@ function ConnectedCalendarsList(props: Props) {
                           trashIcon
                           onSuccess={props.onChanged}
                           buttonProps={{ className: "border border-default" }}
+                          externalId={item.primary?.externalId}
                         />
                       </div>
                     }>

@@ -21,6 +21,7 @@ export default function DisconnectIntegration({
   isGlobal,
   onSuccess,
   buttonProps,
+  externalId,
 }: {
   credentialId: number;
   label?: string;
@@ -28,6 +29,7 @@ export default function DisconnectIntegration({
   isGlobal?: boolean;
   onSuccess?: () => void;
   buttonProps?: ButtonProps;
+  externalId?: string;
 }) {
   const { t } = useLocale();
   const [modalOpen, setModalOpen] = useState(false);
@@ -69,7 +71,7 @@ export default function DisconnectIntegration({
           Icon={AlertCircle}>
           <DialogFooter>
             <DialogClose onClick={() => setModalOpen(false)} />
-            <DialogClose color="primary" onClick={() => mutation.mutate({ id: credentialId })}>
+            <DialogClose color="primary" onClick={() => mutation.mutate({ id: credentialId, externalId })}>
               {t("yes_remove_app")}
             </DialogClose>
           </DialogFooter>
