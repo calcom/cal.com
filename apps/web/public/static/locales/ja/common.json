@@ -1679,7 +1679,6 @@
   "managed_event_dialog_title_one": "{{count}} 人のメンバーがすでに URL /{{slug}} を使用しています。置き換えますか？",
   "managed_event_dialog_title_other": "{{count}} 人のメンバーがすでに URL /{{slug}} を使用しています。置き換えますか？",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> がすでに URL <strong>/{{slug}}</strong> を使用しています。",
-  "managed_event_dialog_information_other": "<strong>{{names}}</strong> らがすでに URL <string>/{{slug}}</strong> を使用しています。",
   "managed_event_dialog_clarification": "置き換えを選択すると、通知が送られます。上書きしたくない場合には、戻って削除してください。",
   "review_event_type": "イベントの種類を確認",
   "looking_for_more_analytics": "詳しい分析情報をお探しですか？",

@@ -1691,7 +1691,6 @@
   "managed_event_dialog_title_one": "כתובת ה-URL /‏{{slug}} כבר קיימת עבור חבר/ה {{count}}. האם ברצונך להחליף אותה?",
   "managed_event_dialog_title_other": "כתובת ה-URL /‏{{slug}} כבר קיימת עבור {{count}} חברים. האם ברצונך להחליף אותה?",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> כבר משתמש/ת בכתובת ה-URL ‏<strong>/{{slug}}</strong>.",
-  "managed_event_dialog_information_other": "<strong>{{names}}</strong> כבר משתמשים בכתובת ה-URL ‏<string>/{{slug}}</strong>.",
   "managed_event_dialog_clarification": "אם תבחר/י להחליף את כתובת ה-URL, אנו נודיע על כך לחברים. אם אינך רוצה להחליף אותה, חזור/י והסר/י את החברים.",
   "review_event_type": "בדיקת סוג האירוע",
   "looking_for_more_analytics": "מחפש עוד מידע אנליטי?",

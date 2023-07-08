@@ -1679,7 +1679,6 @@
   "managed_event_dialog_title_one": "Die URL /{{slug}} ist bereits für {{count}} Mitglied vorhanden. Möchten Sie sie ersetzen?",
   "managed_event_dialog_title_other": "Die URL /{{slug}} ist bereits für {{count}} Mitglieder vorhanden. Möchten Sie sie ersetzen?",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> verwendet bereits die URL <strong>/{{slug}}</strong>-.",
-  "managed_event_dialog_information_other": "<strong>{{names}}</strong> verwenden bereits die URL <strong>/{{slug}}</strong>-.",
   "managed_event_dialog_clarification": "Wenn Sie die URL ersetzen, werden wir sie benachrichtigen. Gehen Sie zurück und entfernen Sie sie, wenn Sie sie nicht überschreiben möchten.",
   "review_event_type": "Ereignistyp überprüfen",
   "looking_for_more_analytics": "Suchen Sie nach weiteren Analysedaten?",
