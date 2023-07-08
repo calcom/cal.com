@@ -1679,7 +1679,6 @@
   "managed_event_dialog_title_one": "Webbadressen /{{slug}} finns redan för {{count}} medlem. Vill du ersätta den?",
   "managed_event_dialog_title_other": "Webbadressen /{{slug}} finns redan för {{count}} medlemmar. Vill du ersätta den?",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> använder redan webbadressen <strong>/{{slug}}</strong>.",
-  "managed_event_dialog_information_other": "<strong>{{names}}</strong> använder redan webbadressen <string>/{{slug}}</strong>.",
   "managed_event_dialog_clarification": "Vi meddelar dem om du byter ut den. Gå tillbaka och ta bort dem om du inte vill skriva över den.",
   "review_event_type": "Granska händelsetyp",
   "looking_for_more_analytics": "Vill du ha mer analys?",

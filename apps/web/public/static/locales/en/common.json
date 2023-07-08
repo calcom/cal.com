@@ -1785,7 +1785,7 @@
   "managed_event_dialog_title_one": "The url /{{slug}} already exists for {{count}} member. Do you want to replace it?",
   "managed_event_dialog_title_other": "The url /{{slug}} already exists for {{count}} members. Do you want to replace it?",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> is already using the <strong>/{{slug}}</strong> url.",
-  "managed_event_dialog_information_other": "<strong>{{names}}</strong> are already using the <string>/{{slug}}</strong> url.",
+  "managed_event_dialog_information_other": "<strong>{{names}}</strong> are already using the <strong>/{{slug}}</strong> url.",
   "managed_event_dialog_clarification": "If you choose to replace it, we will notify them. Go back and remove them if you don't want to overwrite it.",
   "review_event_type": "Review Event Type",
   "looking_for_more_analytics": "Looking for more analytics?",
