@@ -2164,11 +2164,33 @@ async function handler(
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
   };
+
+  let teamId = eventType.team?.id;
+
+  // If it's a managed event we need to find the teamId for it from the originally created event with this slug
+  if (!teamId && eventType.schedulingType === SchedulingType.MANAGED) {
+    const managedEvent = await prisma.eventType.findFirst({
+      where: {
+        slug: req.body.eventTypeSlug,
+        teamId: {
+          not: null,
+        },
+      },
+      select: {
+        teamId: true,
+      },
+    });
+
+    if (managedEvent?.teamId) {
+      teamId = managedEvent.teamId;
+    }
+  }
+
   const subscriberOptions: GetSubscriberOptions = {
     userId: organizerUser.id,
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-    teamId: eventType.team?.id,
+    teamId,
   };
 
   if (isConfirmedByDefault) {
