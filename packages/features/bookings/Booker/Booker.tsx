@@ -10,7 +10,6 @@ import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
 
-import { Spinner } from "../../calendars/weeklyview/components/spinner/Spinner";
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
@@ -161,7 +160,7 @@ const BookerComponent = ({
   const shouldShowFormInDialog = shouldShowFormInDialogMap[layout];
 
   if (bookerState === "loading") {
-    return <Spinner />;
+    return null;
   }
 
   return (
