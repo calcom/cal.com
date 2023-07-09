@@ -1594,7 +1594,7 @@ async function handler(
         resultBooking["paymentUid"] = payment?.uid;
       }
 
-      resultBooking = { ...foundBooking, seatReferenceUid: evt.attendeeSeatId };
+      resultBooking = { ...resultBooking, seatReferenceUid: evt.attendeeSeatId };
     }
 
     // Here we should handle every after action that needs to be done after booking creation
