@@ -185,7 +185,7 @@ export default function Success(props: SuccessProps) {
   // - It's a paid event and payment is pending.
   const needsConfirmation = bookingInfo.status === BookingStatus.PENDING && eventType.requiresConfirmation;
   const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
-
+  const isLoggedIn = session?.user;
   const isCancelled =
     status === "CANCELLED" ||
     status === "REJECTED" ||
@@ -310,7 +310,7 @@ export default function Success(props: SuccessProps) {
           status={status}
         />
       )}
-      {userIsOwner && !isEmbed && (
+      {isLoggedIn && !isEmbed && (
         <div className="-mb-4 ml-4 mt-2">
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
