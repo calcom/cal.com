@@ -78,6 +78,7 @@
     "@playwright/test": "^1.31.2",
     "@snaplet/copycat": "^0.3.0",
     "@types/dompurify": "^2.4.0",
+    "@types/react-beautiful-dnd": "^13.1.4",
     "c8": "^7.13.0",
     "dotenv-checker": "^1.1.5",
     "husky": "^8.0.0",
@@ -94,6 +95,7 @@
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
     "lucide-react": "^0.171.0",
+    "react-beautiful-dnd": "^13.1.1",
     "turbo": "^1.10.1"
   },
   "resolutions": {
