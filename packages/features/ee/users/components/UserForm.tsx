@@ -103,7 +103,7 @@ export const UserForm = ({
       identityProvider: {
         value: defaultValues?.identityProvider || identityProviderOptions[0].value,
         label:
-          identityProviderOptions.find((option) => option.value === defaultValues?.role)?.label ||
+          identityProviderOptions.find((option) => option.value === defaultValues?.identityProvider)?.label ||
           identityProviderOptions[0].label,
       },
     },

@@ -186,6 +186,7 @@ test.describe("Routing Forms", () => {
       // Install app
       await page.goto(`/apps/routing-forms`);
       await page.click('[data-testid="install-app-button"]');
+      (await page.waitForSelector('[data-testid="install-app-button-personal"]')).click();
       await page.waitForURL((url) => url.pathname === `/apps/routing-forms/forms`);
     });
 
@@ -217,6 +218,7 @@ test.describe("Routing Forms", () => {
       // Install app
       await page.goto(`/apps/routing-forms`);
       await page.click('[data-testid="install-app-button"]');
+      (await page.waitForSelector('[data-testid="install-app-button-personal"]')).click();
       await page.waitForURL((url) => url.pathname === `/apps/routing-forms/forms`);
       return user;
     };
