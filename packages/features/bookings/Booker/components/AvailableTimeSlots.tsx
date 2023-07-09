@@ -15,8 +15,6 @@ type AvailableTimeSlotsProps = {
   extraDays?: number;
   limitHeight?: boolean;
   seatsPerTimeslot?: number | null;
-  sliceFrom:number;
-  sliceTo:number;
   prefetchNextMonth: boolean;
   monthCount: number | undefined;
 };
@@ -28,7 +26,7 @@ type AvailableTimeSlotsProps = {
  * will also fetch the next `extraDays` days and show multiple days
  * in columns next to each other.
  */
-export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot, sliceFrom, sliceTo, prefetchNextMonth, monthCount}: AvailableTimeSlotsProps) => {
+export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot, prefetchNextMonth, monthCount}: AvailableTimeSlotsProps) => {
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
@@ -47,14 +45,13 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot, s
     prefetchNextMonth,
     monthCount,
   });
-  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
+  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter((slot)=>dayjs(selectedDate).diff(slot,'day')<=0);
 
   // Creates an array of dates to fetch slots for.
   // If `extraDays` is passed in, we will extend the array with the next `extraDays` days.
   const dates = !extraDays
-        ? [date]
-        : nonEmptyScheduleDays.length > 0 
-          ? nonEmptyScheduleDays.slice(sliceFrom, sliceTo):[];
+        ? [date]: nonEmptyScheduleDays.length > 0 
+          ? nonEmptyScheduleDays.slice(0, extraDays):[];
   
   const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.data?.slots);
   

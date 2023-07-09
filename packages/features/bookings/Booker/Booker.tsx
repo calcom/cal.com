@@ -69,20 +69,18 @@ const BookerComponent = ({
 
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
   const schedule = useScheduleForEvent({prefetchNextMonth: true});
-  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
-  const sliceFrom =  nonEmptyScheduleDays.length !== 0 && nonEmptyScheduleDays.indexOf(date)!== -1 ? nonEmptyScheduleDays.indexOf(date): 0;
-  const sliceTo = nonEmptyScheduleDays.length !== 0 ? sliceFrom + (isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop) : 0;
-  const availableSlots = nonEmptyScheduleDays.slice(sliceFrom,  sliceTo + 1);
-  const addonDays = nonEmptyScheduleDays.length <= sliceTo ? (sliceTo - nonEmptyScheduleDays.length + 1) * 7  : 0;
-  if(nonEmptyScheduleDays.length !==0 )
-    newExtraDays.current =  Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2],'day')) + addonDays;
-  const nextslots = Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 1],'day')) + addonDays;
+  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter((slot)=>dayjs(selectedDate).diff(slot,'day')<=0);;
   const prefetchNextMonth = dayjs(date).month() !== dayjs(date).add(newExtraDays.current, "day").month();
   const monthCount = dayjs(date).add(1,"month").month() !== dayjs(date).add(newExtraDays.current, "day").month() ? 2 : undefined
   
   const extraDays = isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop;
   const bookerLayouts = event.data?.profile?.bookerLayouts || defaultBookerLayoutSettings;
   const animationScope = useBookerResizeAnimation(layout, bookerState);
+  const addonDays = nonEmptyScheduleDays.length < extraDays ? (extraDays - nonEmptyScheduleDays.length + 1) * 7  : 0;
+  const availableSlots = nonEmptyScheduleDays.slice(0,  extraDays + 1);
+  if(nonEmptyScheduleDays.length !==0 )
+    newExtraDays.current =  Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2],'day')) + addonDays;
+  const nextslots = Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 1],'day')) + addonDays;
 
   // I would expect isEmbed to be not needed here as it's handled in derived variable layout, but somehow removing it breaks the views.
   const defaultLayout = isEmbed
@@ -253,8 +251,6 @@ const BookerComponent = ({
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
                 seatsPerTimeslot={event.data?.seatsPerTimeSlot}
-                sliceFrom={sliceFrom}
-                sliceTo={sliceTo}
                 prefetchNextMonth={prefetchNextMonth}
                 monthCount={monthCount}
               />
