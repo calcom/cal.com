@@ -169,7 +169,7 @@ export default function ImageUploader({
         (opened) => !opened && setFile(null) // unset file on close
       }>
       <DialogTrigger asChild>
-        <Button color="secondary" type="button" className="py-1 text-sm">
+        <Button color="primary" type="button" className="py-1 text-sm">
           {buttonMsg}
         </Button>
       </DialogTrigger>
