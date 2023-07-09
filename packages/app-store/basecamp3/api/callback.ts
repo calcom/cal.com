@@ -9,7 +9,6 @@ import appConfig from "../config.json";
 import { userAgent } from "../lib/constants";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  console.log("req query", req.query);
   const { code } = req.query;
   const { client_id, client_secret } = await getAppKeysFromSlug("basecamp3");
 

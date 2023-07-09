@@ -1,9 +1,9 @@
-import type { BasecampToken } from "basecamp3/lib/CalendarService";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import type { BasecampToken } from "../lib/CalendarService";
 import { userAgent } from "../lib/constants";
 import { refreshAccessToken } from "../lib/helpers";
 
