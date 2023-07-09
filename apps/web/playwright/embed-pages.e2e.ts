@@ -46,10 +46,15 @@ test.describe("Embed Pages", () => {
   test("should change to embed when window.name is changed to cal-embed=", async ({ page }) => {
     await page.goto("/free/30min");
 
-    window.name = "cal-embed=";
+    await page.evaluate(() => {
+      window.name = "cal-embed=";
+    });
+
     await page.reload();
 
-    const isEmbed = location.search.includes("embed=");
+    const isEmbed = await page.evaluate(() => {
+      return window?.isEmbed?.();
+    });
     expect(isEmbed).toBe(true);
   });
 });
