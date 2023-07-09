@@ -1679,7 +1679,6 @@
   "managed_event_dialog_title_one": "De URL /{{slug}} bestaat al voor {{count}} lid. Wilt u deze vervangen?",
   "managed_event_dialog_title_other": "De URL /{{slug}} bestaat al voor {{count}} leden. Wilt u deze vervangen?",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> gebruikt de URL <strong>/{{slug}}</strong> al.",
-  "managed_event_dialog_information_other": "<strong>{{names}}</strong> gebruiken de URL <string>/{{slug}}</strong> al.",
   "managed_event_dialog_clarification": "Als u ervoor kiest om de URL te vervangen, informeren wij de leden daarover. Ga terug en verwijder ze als u de URL niet wilt overschrijven.",
   "review_event_type": "Gebeurtenistype bekijken",
   "looking_for_more_analytics": "Op zoek naar meer analyses?",

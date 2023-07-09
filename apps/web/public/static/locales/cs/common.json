@@ -1679,7 +1679,6 @@
   "managed_event_dialog_title_one": "Adresa URL /{{slug}} již existuje pro {{count}} člena. Chcete ji nahradit?",
   "managed_event_dialog_title_other": "Adresa URL /{{slug}} již existuje pro ({{count}}) členy. Chcete ji nahradit?",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> již používá adresu URL <strong>/{{slug}}</strong>.",
-  "managed_event_dialog_information_other": "<strong>{{names}}</strong> již používají adresu URL <string>/{{slug}}</strong>.",
   "managed_event_dialog_clarification": "Pokud se rozhodnete ji nahradit, pošleme jim upozornění. Pokud ji nechcete přepsat, vraťte se a odstraňte ji.",
   "review_event_type": "Revidovat typ události",
   "looking_for_more_analytics": "Hledáte další analytické informace?",
