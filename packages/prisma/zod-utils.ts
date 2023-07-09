@@ -30,6 +30,39 @@ export enum Frequency {
   SECONDLY = 6,
 }
 
+export enum BookerLayouts {
+  MONTH_VIEW = "month_view",
+  WEEK_VIEW = "week_view",
+  COLUMN_VIEW = "column_view",
+}
+
+export const bookerLayoutOptions = [
+  BookerLayouts.MONTH_VIEW,
+  BookerLayouts.WEEK_VIEW,
+  BookerLayouts.COLUMN_VIEW,
+];
+
+const layoutOptions = z.union([
+  z.literal(bookerLayoutOptions[0]),
+  z.literal(bookerLayoutOptions[1]),
+  z.literal(bookerLayoutOptions[2]),
+]);
+
+export const bookerLayouts = z
+  .object({
+    enabledLayouts: z.array(layoutOptions),
+    defaultLayout: layoutOptions,
+  })
+  .nullable();
+
+export const defaultBookerLayoutSettings = {
+  defaultLayout: BookerLayouts.MONTH_VIEW,
+  // if the user has no explicit layouts set (not in user profile and not in event settings), all layouts are enabled.
+  enabledLayouts: bookerLayoutOptions,
+};
+
+export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
+
 export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);
 
 export const EventTypeMetaDataSchema = z
@@ -67,6 +100,7 @@ export const EventTypeMetaDataSchema = z
         useHostSchedulesForTeamEvent: z.boolean().optional(),
       })
       .optional(),
+    bookerLayouts: bookerLayouts.optional(),
   })
   .nullable();
 
@@ -102,6 +136,7 @@ export const eventTypeLocations = z.array(
     link: z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),
     hostPhoneNumber: z.string().optional(),
+    credentialId: z.number().optional(),
   })
 );
 
@@ -174,7 +209,6 @@ export const bookingCreateBodySchema = z.object({
   metadata: z.record(z.string()),
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
-  ethSignature: z.string().optional(),
   seatReferenceUid: z.string().optional(),
 });
 
@@ -269,6 +303,7 @@ export const userMetadata = z
         appLink: z.string().optional(),
       })
       .optional(),
+    defaultBookerLayouts: bookerLayouts.optional(),
   })
   .nullable();
 
@@ -278,6 +313,9 @@ export const teamMetadataSchema = z
     paymentId: z.string(),
     subscriptionId: z.string().nullable(),
     subscriptionItemId: z.string().nullable(),
+    isOrganization: z.boolean().nullable(),
+    isOrganizationVerified: z.boolean().nullable(),
+    orgAutoAcceptEmail: z.string().nullable(),
   })
   .partial()
   .nullable();
@@ -539,3 +577,11 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
 export const unlockedManagedEventTypeProps = {
   ...pick(allManagedEventTypeProps, ["locations", "scheduleId", "destinationCalendar"]),
 };
+
+// The PR at https://github.com/colinhacks/zod/pull/2157 addresses this issue and improves email validation
+// I introduced this refinement(to be used with z.email()) as a short term solution until we upgrade to a zod
+// version that will include updates in the above PR.
+export const emailSchemaRefinement = (value: string) => {
+  const emailRegex = /^([A-Z0-9_+-]+\.?)*[A-Z0-9_+-]@([A-Z0-9][A-Z0-9-]*\.)+[A-Z]{2,}$/i
+  return emailRegex.test(value)
+}
