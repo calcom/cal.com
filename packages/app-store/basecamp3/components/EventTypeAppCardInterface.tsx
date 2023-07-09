@@ -9,7 +9,7 @@ import type { appDataSchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
-
+  const [enabled, setEnabled] = useState(getAppData("enabled"));
   const [projects, setProjects] = useState();
   const [selectedProject, setSelectedProject] = useState<undefined | { label: string; value: string }>();
 
@@ -33,7 +33,17 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   }, []);
 
   return (
-    <AppCard setAppData={setAppData} app={app}>
+    <AppCard
+      setAppData={setAppData}
+      app={app}
+      switchOnClick={(e) => {
+        if (!e) {
+          setEnabled(false);
+        } else {
+          setEnabled(true);
+        }
+      }}
+      switchChecked={enabled}>
       <div className="mt-2 text-sm">
         {/* <div className="flex">Event with Title: {eventType.title}</div> */}
         <div className="flex gap-3">
@@ -48,7 +58,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             onChange={(project) => {
               fetch(`/api/integrations/basecamp3/projects?projectId=${project?.value}`, {
                 method: "POST",
-              }).then((resp) => resp.json());
+              }).then((resp) => {
+                if (resp.ok && project) setSelectedProject(project);
+              });
             }}
             value={selectedProject}
           />
