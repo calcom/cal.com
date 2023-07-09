@@ -5,18 +5,21 @@ import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 import { userAgent } from "../lib/constants";
+import { refreshAccessToken } from "../lib/helpers";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const credential = await prisma.credential.findFirst({
     where: {
       userId: req.session?.user?.id,
     },
-    select: { key: true },
   });
   if (!credential) {
     return res.status(400).json({ message: "No app credential found for user" });
   }
-  const credentialKey = credential.key as BasecampToken;
+  let credentialKey = credential.key as BasecampToken;
+  if (credentialKey.expires_at < Date.now()) {
+    credentialKey = (await refreshAccessToken(credential)) as BasecampToken;
+  }
   const url = `${credentialKey.account.href}/projects.json`;
 
   const resp = await fetch(url, {
@@ -32,14 +35,17 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     where: {
       userId: req.session?.user?.id,
     },
-    select: { key: true, id: true },
   });
 
   if (!credential) {
     return res.status(400).json({ message: "No app credential found for user" });
   }
+  let credentialKey = credential.key as BasecampToken;
+
+  if (credentialKey.expires_at < Date.now()) {
+    credentialKey = (await refreshAccessToken(credential)) as BasecampToken;
+  }
   // get schedule id
-  const credentialKey = credential.key as BasecampToken;
   const basecampUserId = credentialKey.account.id;
   const scheduleResponse = await fetch(
     `https://3.basecampapi.com/${basecampUserId}/projects/${projectId}.json`,

@@ -13,8 +13,6 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import { userAgent } from "./constants";
 import { getBasecampKeys } from "./getBasecampKeys";
 
-const TIMEZONE_FORMAT = "YYYY-MM-DDTHH:mm:ss[Z]";
-
 function hasFileExtension(url: string): boolean {
   // Get the last portion of the URL (after the last '/')
   const fileName = url.substring(url.lastIndexOf("/") + 1);
@@ -115,14 +113,7 @@ export default class BasecampCalendarService implements Calendar {
       hour12: true,
       minute: "numeric",
     });
-    const baseString = `<div>Event title: ${
-      event.title
-    }<br/>Date and time: ${date}, ${startTime} - ${endTime.toLocaleString("en-US", {
-      hour: "numeric",
-      hour12: true,
-    })} ${timeZone}<br/>View on Cal.com: <a target="_blank" rel="noreferrer" class="autolinked" data-behavior="truncate" href="https://app.cal.com/booking/${
-      event.uid
-    }">https://app.cal.com/booking/${event.uid}</a> `;
+    const baseString = `<div>Event title: ${event.title}<br/>Date and time: ${date}, ${startTime} - ${endTime} ${timeZone}<br/>View on Cal.com: <a target="_blank" rel="noreferrer" class="autolinked" data-behavior="truncate" href="https://app.cal.com/booking/${event.uid}">https://app.cal.com/booking/${event.uid}</a> `;
     const guestString =
       "<br/>Guests: " +
       event.attendees.reduce((acc, attendee) => {

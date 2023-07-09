@@ -7,24 +7,22 @@ import { Select } from "@calcom/ui";
 
 import type { appDataSchema } from "../zod";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ eventType, app }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
-  const isSunrise = getAppData("isSunrise");
-  const [enabled, setEnabled] = useState(getAppData("enabled"));
-  const [projects, setProjects] = useState(undefined);
-  const [selectedProject, setSelectedProject] = useState(undefined);
+
+  const [projects, setProjects] = useState();
+  const [selectedProject, setSelectedProject] = useState<undefined | { label: string; value: string }>();
 
   useEffect(() => {
     fetch("/api/integrations/basecamp3/projects")
       .then((resp) => resp.json())
       .then((json) => {
-        console.log("jsoni", json);
         setSelectedProject({
           value: json?.currentProject,
-          label: json?.data?.find((project) => project.id === json?.currentProject)?.name,
+          label: json?.data?.find((project: any) => project.id === json?.currentProject)?.name,
         });
         setProjects(
-          json.data.map((project) => {
+          json.data.map((project: any) => {
             return {
               value: project.id,
               label: project.name,
@@ -34,22 +32,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       });
   }, []);
 
-  console.log(selectedProject, "basecampProject");
-  console.log(projects, "projects");
   return (
-    <AppCard
-      setAppData={setAppData}
-      app={app}
-      switchOnClick={(e) => {
-        if (!e) {
-          setEnabled(false);
-          setAppData("isSunrise", false);
-        } else {
-          setEnabled(true);
-          setAppData("isSunrise", true);
-        }
-      }}
-      switchChecked={enabled}>
+    <AppCard setAppData={setAppData} app={app}>
       <div className="mt-2 text-sm">
         {/* <div className="flex">Event with Title: {eventType.title}</div> */}
         <div className="flex gap-3">
@@ -62,11 +46,11 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             isLoading={!projects}
             className="md:min-w-[120px]"
             onChange={(project) => {
-              fetch(`/api/integrations/basecamp3/projects?projectId=${project.value}`, {
+              fetch(`/api/integrations/basecamp3/projects?projectId=${project?.value}`, {
                 method: "POST",
               }).then((resp) => resp.json());
             }}
-            // defaultValue={selectedProject}
+            value={selectedProject}
           />
         </div>
         <div className="mt-2">
