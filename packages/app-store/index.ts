@@ -13,6 +13,7 @@ const appStore = {
   larkcalendar: () => import("./larkcalendar"),
   office365calendar: () => import("./office365calendar"),
   office365video: () => import("./office365video"),
+  ouraring: () => import("./ouraring"),
   plausible: () => import("./plausible"),
   salesforce: () => import("./salesforce"),
   zohocrm: () => import("./zohocrm"),

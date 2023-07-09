@@ -215,7 +215,7 @@ export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "
 }
 
 export interface Calendar {
-  createEvent(event: CalendarEvent): Promise<NewCalendarEventType>;
+  createEvent(event: CalendarEvent): Promise<NewCalendarEventType | undefined>;
 
   updateEvent(
     uid: string,

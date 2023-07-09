@@ -475,6 +475,14 @@ following
 9. Click the "Save" button at the bottom footer.
 10. You're good to go. Now you can see any booking in Cal.com created as a meeting in HubSpot for your contacts.
 
+## Obtaining Oura Ring Client ID and Secret
+1. Go to [Oura Ring Developer portal](https://cloud.ouraring.com/user/sign-in?next=%2Foauth%2Fapplications)
+2. Click button "New application"
+3. Fill in the information for your new Cal.com Oura Ring application 
+7. Set the Redirect URL to `<Cal.com URL>/api/integrations/ouraring/callback` replacing Cal.com URL with the URI at which your application runs.
+9. Click the "Save" button at the bottom.
+6. Now copy the Client ID and Client Secret to your `.env` file into the `OURA_RING_CLIENT_ID` and `OURA_RING_CLIENT_SECRET` fields.
+
 ### Obtaining Webex Client ID and Secret
 
 [See Webex Readme](./packages/app-store/webex/)

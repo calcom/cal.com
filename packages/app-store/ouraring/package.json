@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/ouraring",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  },
+  "description": "Rely on your Oura Ring Readiness score to allow bookings on the days you have data loaded from your ring. A score equal to or grater than 70, means you've recovered well enough so bookings are not blocked, below that, you need to pay attention as you're not fully recovered, so bookings will be blocked. No data means bookings are not blocked."
+}

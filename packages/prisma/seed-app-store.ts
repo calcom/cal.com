@@ -279,6 +279,12 @@ export default async function main() {
       base_url: (process.env.TANDEM_BASE_URL as string) || "https://tandem.chat",
     });
   }
+  if (process.env.OURA_RING_CLIENT_ID && process.env.OURA_RING_CLIENT_SECRET) {
+    await createApp("ouraring", "ouraring", ["other"], "oura_ring_other_calendar", {
+      client_id: process.env.OURA_RING_CLIENT_ID as string,
+      client_secret: process.env.OURA_RING_CLIENT_SECRET as string,
+    });
+  }
   if (process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET) {
     await createApp("zoom", "zoomvideo", ["conferencing"], "zoom_video", {
       client_id: process.env.ZOOM_CLIENT_ID,
