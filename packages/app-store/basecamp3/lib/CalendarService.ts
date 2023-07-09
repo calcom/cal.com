@@ -1,4 +1,3 @@
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type {
@@ -11,7 +10,7 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { userAgent } from "./constants";
-import { getBasecampKeys } from "./getBasecampKeys";
+import { refreshAccessToken as getNewTokens } from "./helpers";
 
 function hasFileExtension(url: string): boolean {
   // Get the last portion of the URL (after the last '/')
@@ -73,22 +72,10 @@ export default class BasecampCalendarService implements Calendar {
       if (isValid) this.accessToken = credentialToken.access_token;
       return isValid;
     };
-    const refreshAccessToken = async (credentialToken: BasecampToken) => {
+    const refreshAccessToken = async (credentialToken: CredentialPayload) => {
       try {
-        const { client_id: clientId, client_secret: clientSecret } = await getBasecampKeys();
-        const tokenInfo = await fetch(
-          `https://launchpad.37signals.com/authorization/token?type=refresh&refresh_token=${credentialToken.refresh_token}&client_id=${clientId}&redirect_uri=${WEBAPP_URL}&client_secret=${clientSecret}`,
-          { method: "POST", headers: { "User-Agent": userAgent } }
-        );
-        const tokenInfoJson = await tokenInfo.json();
-        tokenInfoJson["expires_at"] = Date.now() + 1000 * 3600 * 24 * 14;
-        this.accessToken = tokenInfoJson.access_token;
-        await prisma.credential.update({
-          where: { id: credential.id },
-          data: {
-            key: { ...credentialKey, ...tokenInfoJson },
-          },
-        });
+        const newCredentialKey = (await getNewTokens(credentialToken)) as BasecampToken;
+        this.accessToken = newCredentialKey.access_token;
       } catch (err) {
         this.log.error(err);
       }
@@ -96,7 +83,7 @@ export default class BasecampCalendarService implements Calendar {
 
     return {
       configureToken: () =>
-        isTokenValid(credentialKey) ? Promise.resolve() : refreshAccessToken(credentialKey),
+        isTokenValid(credentialKey) ? Promise.resolve() : refreshAccessToken(credential),
     };
   };
 
