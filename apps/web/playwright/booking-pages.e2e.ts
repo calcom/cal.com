@@ -43,7 +43,6 @@ testBothBookers.describe("free user", (bookerVariant) => {
     const bookingUrl: string = page.url();
 
     // Make sure we're navigated to the success page
-    await page.locator("[data-testid=success-page]").waitFor();
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     // return to same time spot booking page
