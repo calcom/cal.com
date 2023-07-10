@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { validPassword } from "@calcom/features/auth/lib/validPassword";
 import prisma from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -34,6 +35,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!maybeUser) {
       return res.status(400).json({ message: "Couldn't find an account for this email" });
+    }
+
+    if (!validPassword(rawPassword)) {
+      return res.status(400).json({ message: "Password does not meet the requirements" });
     }
 
     const hashedPassword = await hashPassword(rawPassword);

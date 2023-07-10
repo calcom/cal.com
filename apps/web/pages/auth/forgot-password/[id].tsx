@@ -6,11 +6,12 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import React, { useMemo } from "react";
+import { useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
-import { Button, TextField } from "@calcom/ui";
+import { Button, PasswordField, Form } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
@@ -26,8 +27,6 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
   const [loading, setLoading] = React.useState(false);
   const [, setError] = React.useState<{ message: string } | null>(null);
   const [success, setSuccess] = React.useState(false);
-
-  const [password, setPassword] = React.useState("");
 
   const submitChangePassword = async ({ password, requestId }: { password: string; requestId: string }) => {
     try {
@@ -100,6 +99,8 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
     return dayjs(resetPasswordRequest.expires).isBefore(now);
   }, [resetPasswordRequest]);
 
+  const formMethods = useForm<{ new_password: string }>();
+
   return (
     <AuthContainer
       showLogo
@@ -109,8 +110,9 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
       {isRequestExpired && <Expired />}
       {!isRequestExpired && !success && (
         <>
-          <form
+          <Form
             className="space-y-6"
+            form={formMethods}
             style={
               {
                 "--cal-brand": "#111827",
@@ -119,36 +121,30 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
                 "--cal-brand-subtle": "#9CA3AF",
               } as CSSProperties
             }
-            onSubmit={async (e) => {
-              e.preventDefault();
-
-              if (!password) {
-                return;
-              }
-
-              if (loading) {
-                return;
-              }
-
+            handleSubmit={async (values) => {
               setLoading(true);
               setError(null);
               setSuccess(false);
 
-              await debouncedChangePassword({ password, requestId: resetPasswordRequest.id });
-            }}
-            action="#">
+              await debouncedChangePassword({
+                password: values.new_password,
+                requestId: resetPasswordRequest.id,
+              });
+            }}>
             <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
             <div className="mt-1">
-              <TextField
+              <PasswordField
+                {...formMethods.register("new_password", {
+                  minLength: {
+                    message: t("password_hint_min"),
+                    value: 7, // We don't have user here so we can't check if they are admin or not
+                  },
+                  pattern: {
+                    message: "Should contain a number, uppercase and lowercase letters",
+                    value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
+                  },
+                })}
                 label={t("new_password")}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                }}
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="password"
-                required
               />
             </div>
 
@@ -162,7 +158,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
                 {t("reset_password")}
               </Button>
             </div>
-          </form>
+          </Form>
         </>
       )}
       {!isRequestExpired && success && (
