@@ -23,6 +23,10 @@ type Props = {
 
 export default function Page({ resetPasswordRequest, csrfToken }: Props) {
   const { t } = useLocale();
+  const formMethods = useForm<{ new_password: string }>();
+  const success = formMethods.formState.isSubmitSuccessful;
+  const loading = formMethods.formState.isSubmitting;
+
   const submitChangePassword = async ({ password, requestId }: { password: string; requestId: string }) => {
     const res = await fetch("/api/auth/reset-password", {
       method: "POST",
@@ -77,10 +81,6 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
     const now = dayjs();
     return dayjs(resetPasswordRequest.expires).isBefore(now);
   }, [resetPasswordRequest]);
-
-  const formMethods = useForm<{ new_password: string }>();
-  const success = formMethods.formState.isSubmitSuccessful;
-  const loading = formMethods.formState.isSubmitting;
 
   return (
     <AuthContainer
