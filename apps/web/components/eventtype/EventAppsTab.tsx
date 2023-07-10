@@ -1,3 +1,5 @@
+import { Trans } from "next-i18next";
+import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useFormContext } from "react-hook-form";
 
@@ -158,9 +160,21 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
       {!shouldLockDisableProps("apps").disabled && (
         <div className="bg-muted rounded-md p-8">
           {!isLoading && notInstalledApps?.length ? (
-            <h2 className="text-emphasis text-lg font-semibold">{t("available_apps")}</h2>
+            <>
+              <h2 className="text-emphasis mb-2 text-xl font-semibold leading-5 tracking-[0.01em]">
+                {t("available_apps_lower_case")}
+              </h2>
+              <p className="text-default mb-6 text-sm font-normal">
+                <Trans i18nKey="available_apps_desc">
+                  You have no apps installed. View popular apps below and explore more in our &nbsp;
+                  <Link className="cursor-pointer underline" href="/apps">
+                    App Store
+                  </Link>
+                </Trans>
+              </p>
+            </>
           ) : null}
-          <div className="before:border-0">
+          <div className="bg-default border-subtle divide-subtle divide-y rounded-md border before:border-0">
             {notInstalledApps?.map((app) => (
               <EventTypeAppCard
                 getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
