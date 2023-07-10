@@ -1679,7 +1679,6 @@
   "managed_event_dialog_title_one": "رابط /{{slug}} موجود بالفعل لـ {{count}} عضو. هل تريد استبداله؟",
   "managed_event_dialog_title_other": "رابط /{{slug}} موجود بالفعل لـ {{count}} من الأعضاء. هل تريد استبداله؟",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> يستخدم الرابط <strong>/{{slug}}</strong> بالفعل.",
-  "managed_event_dialog_information_other": "<strong>{{names}}</strong>يستخدمون الرابط <string>/{{slug}}</strong> بالفعل.",
   "managed_event_dialog_clarification": "إذا اخترت استبداله، فسنخطرهم بذلك. ارجع وقم بإزالتهم إذا كنت لا تريد استبداله.",
   "review_event_type": "مراجعة نوع الحدث",
   "looking_for_more_analytics": "هل تبحث عن المزيد من التحليلات؟",

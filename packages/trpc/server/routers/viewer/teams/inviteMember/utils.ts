@@ -120,7 +120,6 @@ export function getOrgConnectionInfo({
     if (usersEmail.split("@")[1] == orgAutoAcceptDomain) {
       autoAccept = orgVerified ?? true;
     } else {
-      // No longer throw error - not needed we just dont auto accept them
       orgId = undefined;
       autoAccept = false;
     }
@@ -279,12 +278,17 @@ export async function sendVerificationEmail({
 }
 
 export function throwIfInviteIsToOrgAndUserExists(invitee: User, team: TeamWithParent, isOrg: boolean) {
+  if (invitee.organizationId && invitee.organizationId === team.parentId) {
+    return;
+  }
+
   if (invitee.organizationId && invitee.organizationId !== team.parentId) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: `User ${invitee.username} is already a member of another organization.`,
     });
   }
+
   if ((invitee && isOrg) || (team.parentId && invitee)) {
     throw new TRPCError({
       code: "FORBIDDEN",
