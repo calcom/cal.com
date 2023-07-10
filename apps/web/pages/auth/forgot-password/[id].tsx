@@ -1,5 +1,4 @@
 import type { ResetPasswordRequest } from "@prisma/client";
-import { debounce } from "lodash";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
@@ -24,37 +23,17 @@ type Props = {
 
 export default function Page({ resetPasswordRequest, csrfToken }: Props) {
   const { t } = useLocale();
-  const [loading, setLoading] = React.useState(false);
-  const [, setError] = React.useState<{ message: string } | null>(null);
-  const [success, setSuccess] = React.useState(false);
-
   const submitChangePassword = async ({ password, requestId }: { password: string; requestId: string }) => {
-    try {
-      const res = await fetch("/api/auth/reset-password", {
-        method: "POST",
-        body: JSON.stringify({ requestId: requestId, password: password }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const json = await res.json();
-
-      if (!res.ok) {
-        setError(json);
-      } else {
-        setSuccess(true);
-      }
-
-      return json;
-    } catch (reason) {
-      setError({ message: t("unexpected_error_try_again") });
-    } finally {
-      setLoading(false);
-    }
+    const res = await fetch("/api/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ requestId, password }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const json = await res.json();
+    if (!res.ok) return formMethods.setError("new_password", { type: "server", message: json.message });
   };
-
-  const debouncedChangePassword = debounce(submitChangePassword, 250);
 
   const Success = () => {
     return (
@@ -100,6 +79,8 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
   }, [resetPasswordRequest]);
 
   const formMethods = useForm<{ new_password: string }>();
+  const success = formMethods.formState.isSubmitSuccessful;
+  const loading = formMethods.formState.isSubmitting;
 
   return (
     <AuthContainer
@@ -122,11 +103,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
               } as CSSProperties
             }
             handleSubmit={async (values) => {
-              setLoading(true);
-              setError(null);
-              setSuccess(false);
-
-              await debouncedChangePassword({
+              await submitChangePassword({
                 password: values.new_password,
                 requestId: resetPasswordRequest.id,
               });
