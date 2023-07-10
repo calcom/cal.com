@@ -115,7 +115,9 @@ const PaymentForm = (props: Props) => {
         <Button
           color="minimal"
           disabled={!holdAcknowledged || ["processing", "error"].includes(state.status)}
-          id="cancel">
+          id="cancel"
+          onClick={() => router.back()}
+          >
           <span id="button-text">{t("cancel")}</span>
         </Button>
         <Button
