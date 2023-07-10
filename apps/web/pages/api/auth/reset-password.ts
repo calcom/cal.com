@@ -52,9 +52,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
+    await expireResetPasswordRequest(rawRequestId);
+
     return res.status(201).json({ message: "Password reset." });
   } catch (reason) {
     console.error(reason);
     return res.status(500).json({ message: "Unable to create password reset request" });
   }
+}
+
+async function expireResetPasswordRequest(rawRequestId: string) {
+  await prisma.resetPasswordRequest.update({
+    where: {
+      id: rawRequestId,
+    },
+    data: {
+      // We set the expiry to now to invalidate the request
+      expires: new Date(),
+    },
+  });
 }
