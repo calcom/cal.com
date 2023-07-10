@@ -81,12 +81,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const senderNeeded = step?.action === WorkflowActions.SMS_NUMBER || step?.action === WorkflowActions.SMS_ATTENDEE;
 
   const [isSenderIsNeeded, setIsSenderIsNeeded] = useState(senderNeeded);
-  useEffect(() => {
-    setNumberVerified(
-      !!step &&
-        !!verifiedNumbers.find((number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`))
-    );
-  }, [verifiedNumbers.length]);
 
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(
     step?.action === WorkflowActions.EMAIL_ADDRESS ? true : false
@@ -157,10 +151,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const refReminderBody = useRef<HTMLTextAreaElement | null>(null);
 
-  const [numberVerified, setNumberVerified] = useState(
-    step &&
-      !!verifiedNumbers.find((number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`))
-  );
+  const getNumberVerificationStatus = () => !!step && !!verifiedNumbers.find((number: string) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`))
+
+  const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
+  
+  useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
 
   const addVariableBody = (variable: string) => {
     if (step) {
@@ -404,7 +399,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsSenderIsNeeded(senderNeeded);
                               setIsEmailAddressNeeded(false);
                               setIsPhoneNumberNeeded(phoneNumberIsNeeded);
-                              setNumberVerified(false);
+                              setNumberVerified(getNumberVerificationStatus());
                             }
 
                             if (isSMSAction(val.value)) {

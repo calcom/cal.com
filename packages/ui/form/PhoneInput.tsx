@@ -64,7 +64,7 @@ const useDefaultCountry = () => {
     refetchOnReconnect: false,
     retry: false,
     onSuccess: (data) => {
-      if(!data?.countryCode) {
+      if (!data?.countryCode) {
         return;
       }
 
