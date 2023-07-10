@@ -127,6 +127,64 @@ async function refreshCredentials(credentials: Array<Credential>): Promise<Array
   return await async.mapLimit(credentials, 5, refreshCredential);
 }
 
+/**
+ * Gets credentials from the user, team, and org if applicable
+ *
+ */
+const getAllCredentials = async (
+  user: User & { credentials: Credential[] },
+  eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>
+) => {
+  const allCredentials = user.credentials;
+
+  // If it's a team event type query for team credentials
+  if (eventType.team?.id) {
+    const teamCredentialsQuery = await prisma.credential.findMany({
+      where: {
+        teamId: eventType.team.id,
+      },
+    });
+    allCredentials.push(...teamCredentialsQuery);
+  }
+
+  // If it's a managed event type, query for the parent team's credentials
+  if (eventType.parentId) {
+    const teamCredentialsQuery = await prisma.team.findFirst({
+      where: {
+        eventTypes: {
+          some: {
+            id: eventType.parentId,
+          },
+        },
+      },
+      select: {
+        credentials: true,
+      },
+    });
+    if (teamCredentialsQuery?.credentials) {
+      allCredentials.push(...teamCredentialsQuery?.credentials);
+    }
+  }
+
+  // If the user is a part of an organization, query for the organization's credentials
+  if (user?.organizationId) {
+    const org = await prisma.team.findUnique({
+      where: {
+        id: user.organizationId,
+      },
+      select: {
+        credentials: true,
+      },
+    });
+
+    if (org?.credentials) {
+      allCredentials.push(...org.credentials);
+    }
+  }
+
+  return allCredentials;
+};
+
 const isWithinAvailableHours = (
   timeSlot: { start: ConfigType; end: ConfigType },
   {
@@ -838,52 +896,7 @@ async function handler(
   const [organizerUser] = users;
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
 
-  const teamCredentials: Credential[] = [];
-
-  // If it's a team event type query for team credentials
-  if (isTeamEventType && eventType.team?.id) {
-    const teamCredentialsQuery = await prisma.credential.findMany({
-      where: {
-        teamId: eventType.team.id,
-      },
-    });
-    teamCredentials.push(...teamCredentialsQuery);
-  }
-
-  // If it's a managed event type, query for the parent team's credentials
-  if (eventType.parentId) {
-    const teamCredentialsQuery = await prisma.team.findFirst({
-      where: {
-        eventTypes: {
-          some: {
-            id: eventType.parentId,
-          },
-        },
-      },
-      select: {
-        credentials: true,
-      },
-    });
-    if (teamCredentialsQuery?.credentials) {
-      teamCredentials.push(...teamCredentialsQuery?.credentials);
-    }
-  }
-
-  // If the user is a part of an organization, query for the organization's credentials
-  if (organizerUser?.organizationId) {
-    const org = await prisma.team.findUnique({
-      where: {
-        id: organizerUser.organizationId,
-      },
-      select: {
-        credentials: true,
-      },
-    });
-
-    if (org?.credentials) {
-      teamCredentials.push(...org.credentials);
-    }
-  }
+  const allCredentials = await getAllCredentials(organizerUser, eventType);
 
   // use host default
   if (isTeamEventType && locationBodyString === OrganizerDefaultConferencingAppType) {
@@ -1163,7 +1176,7 @@ async function handler(
         },
       });
 
-      const credentials = await refreshCredentials([...organizerUser.credentials, ...teamCredentials]);
+      const credentials = await refreshCredentials(allCredentials);
       const eventManager = new EventManager({ ...organizerUser, credentials });
 
       if (!originalRescheduledBooking) {
@@ -1583,7 +1596,7 @@ async function handler(
       copyEvent.uid = booking.uid;
       await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
-      const credentials = await refreshCredentials([...organizerUser.credentials, ...teamCredentials]);
+      const credentials = await refreshCredentials(allCredentials);
       const eventManager = new EventManager({ ...organizerUser, credentials });
       await eventManager.updateCalendarAttendees(evt, booking);
 
@@ -1887,7 +1900,7 @@ async function handler(
   }
 
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
-  const credentials = await refreshCredentials([...organizerUser.credentials, ...teamCredentials]);
+  const credentials = await refreshCredentials(allCredentials);
   const eventManager = new EventManager({ ...organizerUser, credentials });
 
   function handleAppsStatus(
