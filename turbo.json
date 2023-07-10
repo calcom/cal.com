@@ -93,7 +93,7 @@
       "cache": false
     },
     "dx": {
-      "dependsOn": ["//#init-env"],
+      "dependsOn": ["//#init-env", "//#init-app-store-env"],
       "cache": false
     },
     "lint": {
