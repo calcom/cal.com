@@ -113,7 +113,9 @@ export type BookingFieldType = typeof BookingFieldType extends z.Values<infer T>
 export const bookingResponses = z
   .object({
     email: z.string(),
-    name: z.string(),
+    name: z.string().refine((value : String) => value.trim().length > 0, {
+      message: "Name is required",
+    }),
     guests: z.array(z.string()).optional(),
     notes: z.string().optional(),
     location: z
