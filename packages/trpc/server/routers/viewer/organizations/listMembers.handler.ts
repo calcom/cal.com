@@ -40,6 +40,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
           username: true,
           email: true,
           timeZone: true,
+          disableImpersonation: true,
           teams: {
             select: {
               team: {
@@ -75,13 +76,17 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
       timeZone: member.user.timeZone,
       role: member.role,
       accepted: member.accepted,
-      teams: member.user.teams.map((team) => {
-        return {
-          id: team.team.id,
-          name: team.team.name,
-          slug: team.team.slug,
-        };
-      }),
+      disableImpersonation: member.user.disableImpersonation,
+      teams: member.user.teams
+        .filter((team) => team.team.id !== organizationId) // In this context we dont want to return the org team
+        .map((team) => {
+          if (team.team.id === organizationId) return;
+          return {
+            id: team.team.id,
+            name: team.team.name,
+            slug: team.team.slug,
+          };
+        }),
     };
   });
 

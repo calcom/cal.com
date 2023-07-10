@@ -1,7 +1,9 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { ExternalLink, MoreHorizontal, StopCircle, Users } from "lucide-react";
+import { ExternalLink, MoreHorizontal, StopCircle, UserX, Users, Lock, Edit2 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useMemo, useRef, useCallback, useEffect } from "react";
 
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
@@ -17,6 +19,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
   Tooltip,
   showToast,
 } from "@calcom/ui";
@@ -30,6 +33,7 @@ interface User {
   timeZone: string;
   role: MembershipRole;
   accepted: boolean;
+  disableImpersonation: boolean;
   teams: {
     id: number;
     name: string;
@@ -37,7 +41,17 @@ interface User {
   }[];
 }
 
-function TableActions({ user }: { user: User }) {
+function TableActions({
+  user,
+  permissionsForUser,
+}: {
+  user: User;
+  permissionsForUser: {
+    canEdit: boolean;
+    canRemove: boolean;
+    canImpersonate: boolean;
+  };
+}) {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
@@ -76,12 +90,12 @@ function TableActions({ user }: { user: User }) {
             target="_blank"
             href={"/" + user.username}
             color="secondary"
-            // className={classNames(!editMode ? "rounded-r-md" : "")}
+            className={classNames(!permissionsForUser.canEdit ? "rounded-r-md" : "")}
             variant="icon"
             StartIcon={ExternalLink}
           />
         </Tooltip>
-        {/* {editMode && (
+        {permissionsForUser.canEdit && (
           <Dropdown>
             <DropdownMenuTrigger asChild>
               <Button
@@ -100,7 +114,7 @@ function TableActions({ user }: { user: User }) {
                   {t("edit")}
                 </DropdownItem>
               </DropdownMenuItem>
-              {impersonationMode && (
+              {permissionsForUser.canImpersonate && (
                 <>
                   <DropdownMenuItem>
                     <DropdownItem
@@ -124,7 +138,7 @@ function TableActions({ user }: { user: User }) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </Dropdown>
-        )} */}
+        )}
       </ButtonGroup>
       <div className="flex md:hidden">
         <Dropdown>
@@ -137,7 +151,7 @@ function TableActions({ user }: { user: User }) {
                 {t("view_public_page")}
               </DropdownItem>
             </DropdownMenuItem>
-            {/* {editMode && (
+            {permissionsForUser.canEdit && (
               <>
                 <DropdownMenuItem>
                   <DropdownItem
@@ -157,7 +171,7 @@ function TableActions({ user }: { user: User }) {
                   </DropdownItem>
                 </DropdownMenuItem>
               </>
-            )} */}
+            )}
           </DropdownMenuContent>
         </Dropdown>
       </div>
@@ -167,7 +181,8 @@ function TableActions({ user }: { user: User }) {
 
 export function UserListTable() {
   const orgValues = useOrgBrandingValues();
-
+  const { data: session } = useSession();
+  const { data: currentMembership } = trpc.viewer.organizations.listCurrent.useQuery();
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, fetchNextPage, isFetching } =
@@ -184,8 +199,15 @@ export function UserListTable() {
 
   const orgSlug = orgValues?.slug || "error";
 
+  const adminOrOwner = currentMembership?.user.role === "ADMIN" || currentMembership?.user.role === "OWNER";
+
   const memorisedColumns = useMemo(() => {
-    const cols: ColumnDef<User>[] = [
+    const permissions = {
+      canEdit: adminOrOwner,
+      canRemove: adminOrOwner,
+      canImpersonate: false,
+    };
+    const cols: ColumnDef<User, unkown>[] = [
       {
         id: "select",
         header: ({ table }) => (
@@ -258,9 +280,14 @@ export function UserListTable() {
         },
         header: "Teams",
         cell: ({ row, table }) => {
-          const { teams } = row.original;
+          const { teams, accepted } = row.original;
           return (
             <div className="flex h-full flex-wrap items-center gap-2">
+              {accepted ? null : (
+                <Badge variant="red" className="text-xs">
+                  Pending
+                </Badge>
+              )}
               {teams.map((team) => (
                 <Badge
                   key={team.id}
@@ -279,13 +306,23 @@ export function UserListTable() {
         id: "actions",
         cell: ({ row }) => {
           const user = row.original;
-          return <TableActions user={user} />;
+          const permissionsRaw = permissions;
+          const isSelf = user.id === session?.user.id;
+
+          const permissionsForUser = {
+            canEdit: permissionsRaw.canEdit && user.accepted && !isSelf,
+            canRemove: permissionsRaw.canRemove && user.accepted && !isSelf,
+            canImpersonate:
+              permissionsRaw.canImpersonate && user.accepted && !user.disableImpersonation && !isSelf,
+          };
+
+          return <TableActions user={user} permissionsForUser={permissionsForUser} />;
         },
       },
     ];
 
     return cols;
-  }, []);
+  }, [session?.user.id, adminOrOwner]);
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]);
