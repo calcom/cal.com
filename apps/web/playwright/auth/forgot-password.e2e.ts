@@ -8,7 +8,7 @@ test("Can reset forgotten password", async ({ page, users }) => {
   // eslint-disable-next-line playwright/no-skipped-test
   test.skip(process.env.NEXT_PUBLIC_IS_E2E !== "1", "It shouldn't if we can't skip email");
   const user = await users.create();
-  const newPassword = `${user.username}-123`;
+  const newPassword = `${user.username}-123CAL`; // To match the password policy
   // Got to reset password flow
   await page.goto("/auth/forgot-password");
 
