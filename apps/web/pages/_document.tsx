@@ -28,17 +28,18 @@ class MyDocument extends Document<Props> {
     // Use a dummy URL as default so that URL parsing works for relative URLs as well. We care about searchParams and pathname only
     const parsedUrl = new URL(asPath, "https://dummyurl");
     const isEmbed = parsedUrl.pathname.endsWith("/embed") || parsedUrl.searchParams.get("embedType") !== null;
+    const embedColorScheme = parsedUrl.searchParams.get("ui.color-scheme");
     const initialProps = await Document.getInitialProps(ctx);
-    return { isEmbed, nonce, ...initialProps };
+    return { isEmbed, embedColorScheme, nonce, ...initialProps };
   }
 
   render() {
     const { locale } = this.props.__NEXT_DATA__;
-    const { isEmbed } = this.props;
+    const { isEmbed, embedColorScheme } = this.props;
     const nonceParsed = z.string().safeParse(this.props.nonce);
     const nonce = nonceParsed.success ? nonceParsed.data : "";
     return (
-      <Html lang={locale}>
+      <Html lang={locale} style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}>
         <Head nonce={nonce}>
           <link rel="apple-touch-icon" sizes="180x180" href="/api/logo?type=apple-touch-icon" />
           <link rel="icon" type="image/png" sizes="32x32" href="/api/logo?type=favicon-32" />
