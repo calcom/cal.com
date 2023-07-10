@@ -224,7 +224,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                       let validValues = true;
                       if (typeof value === "object") {
                         value.forEach((val) => {
-                          validValues = validValues && validateUniqueInvite(val as string);
+                          if (typeof val === "string") validValues = validValues && validateUniqueInvite(val);
                         });
                       }
                       return validValues || t("member_already_invited");
@@ -287,7 +287,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     let validValues = true;
                     if (typeof value === "object") {
                       value.forEach((val) => {
-                        validValues = validValues && validateUniqueInvite(val as string);
+                        if (typeof val === "string") validValues = validValues && validateUniqueInvite(val);
                       });
                     }
                     return validValues || t("member_already_invited");
