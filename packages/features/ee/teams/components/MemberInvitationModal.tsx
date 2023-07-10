@@ -220,6 +220,15 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   control={newMemberFormMethods.control}
                   rules={{
                     required: t("enter_email_or_username"),
+                    validate: (value) => {
+                      let validValues = true;
+                      if (typeof value === "object") {
+                        value.forEach((val) => {
+                          validValues = validValues && validateUniqueInvite(val as string);
+                        });
+                      }
+                      return validValues || t("member_already_invited");
+                    },
                   }}
                   render={({ field: { onChange, value }, fieldState: { error } }) => (
                     <>
@@ -274,8 +283,17 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 control={newMemberFormMethods.control}
                 rules={{
                   required: t("enter_email_or_username"),
+                  validate: (value) => {
+                    let validValues = true;
+                    if (typeof value === "object") {
+                      value.forEach((val) => {
+                        validValues = validValues && validateUniqueInvite(val as string);
+                      });
+                    }
+                    return validValues || t("member_already_invited");
+                  },
                 }}
-                render={({ field: { onChange, value } }) => (
+                render={({ field: { onChange, value }, fieldState: { error } }) => (
                   <>
                     <TeamInviteFromOrg
                       selectedEmails={value}
@@ -287,6 +305,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                       }}
                       orgMembers={props.orgMembers}
                     />
+                    {error && <span className="text-sm text-red-800">{error.message}</span>}
                   </>
                 )}
               />
