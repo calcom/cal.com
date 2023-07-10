@@ -90,11 +90,6 @@ plugins.push(withAxiom);
 // book$ ensures that only /book is excluded from rewrite(which is at the end always) and not /booked
 
 // Important Note: When modifying these RegExps update apps/web/test/lib/next-config.test.ts as well
-const userTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type((?!book$)[^/]+)`;
-const teamTypeRouteRegExp = "/team/:slug/:type((?!book$)[^/]+)";
-const privateLinkRouteRegExp = "/d/:link/:slug((?!book$)[^/]+)";
-const embedUserTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type/embed`;
-const embedTeamTypeRouteRegExp = "/team/:slug/:type/embed";
 const subdomainRegExp = getSubdomainRegExp(process.env.NEXT_PUBLIC_WEBAPP_URL);
 // Important Note: Do update the RegExp in apps/web/test/lib/next-config.test.ts when changing it.
 const orgHostRegExp = `^(?<orgSlug>${subdomainRegExp})\\..*`;
@@ -274,84 +269,12 @@ const nextConfig = {
         source: "/cancel/:path*",
         destination: "/booking/:path*",
       },
-      // Keep cookie based booker enabled just in case we disable new-booker globally
-      ...[
-        {
-          source: userTypeRouteRegExp,
-          destination: "/new-booker/:user/:type",
-          has: [{ type: "cookie", key: "new-booker-enabled" }],
-        },
-        {
-          source: teamTypeRouteRegExp,
-          destination: "/new-booker/team/:slug/:type",
-          has: [{ type: "cookie", key: "new-booker-enabled" }],
-        },
-        {
-          source: privateLinkRouteRegExp,
-          destination: "/new-booker/d/:link/:slug",
-          has: [{ type: "cookie", key: "new-booker-enabled" }],
-        },
-      ],
-      // Keep cookie based booker enabled to test new-booker embed in production
-      ...[
-        {
-          source: embedUserTypeRouteRegExp,
-          destination: "/new-booker/:user/:type/embed",
-          has: [{ type: "cookie", key: "new-booker-enabled" }],
-        },
-        {
-          source: embedTeamTypeRouteRegExp,
-          destination: "/new-booker/team/:slug/:type/embed",
-          has: [{ type: "cookie", key: "new-booker-enabled" }],
-        },
-      ],
       /* TODO: have these files being served from another deployment or CDN {
         source: "/embed/embed.js",
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
       }, */
-
-      /**
-       * Enables new booker using cookie. It works even if NEW_BOOKER_ENABLED_FOR_NON_EMBED, NEW_BOOKER_ENABLED_FOR_EMBED are disabled
-       */
     ];
 
-    // Enable New Booker for all Embed Requests
-    if (process.env.NEW_BOOKER_ENABLED_FOR_EMBED === "1") {
-      console.log("Enabling New Booker for Embed");
-      afterFiles.push(
-        ...[
-          {
-            source: embedUserTypeRouteRegExp,
-            destination: "/new-booker/:user/:type/embed",
-          },
-          {
-            source: embedTeamTypeRouteRegExp,
-            destination: "/new-booker/team/:slug/:type/embed",
-          },
-        ]
-      );
-    }
-
-    // Enable New Booker for All but embed Requests
-    if (process.env.NEW_BOOKER_ENABLED_FOR_NON_EMBED === "1") {
-      console.log("Enabling New Booker for Non-Embed");
-      afterFiles.push(
-        ...[
-          {
-            source: userTypeRouteRegExp,
-            destination: "/new-booker/:user/:type",
-          },
-          {
-            source: teamTypeRouteRegExp,
-            destination: "/new-booker/team/:slug/:type",
-          },
-          {
-            source: privateLinkRouteRegExp,
-            destination: "/new-booker/d/:link/:slug",
-          },
-        ]
-      );
-    }
     return {
       beforeFiles,
       afterFiles,
