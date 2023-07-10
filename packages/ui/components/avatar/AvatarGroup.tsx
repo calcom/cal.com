@@ -28,7 +28,7 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
   if (!displayedAvatars.length) return <></>;
 
   return (
-    <ul className={classNames("flex items-center", props.className)}>
+    <ul className={classNames("flex items-center", props.className)} data-testid="avatar-group">
       {displayedAvatars.map((item, idx) => (
         <li key={idx} className="-mr-[4px] inline-block">
           <Avatar

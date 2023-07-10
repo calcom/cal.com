@@ -23,7 +23,7 @@ export type AvatarProps = {
   asChild?: boolean; // Added to ignore the outer span on the fallback component - messes up styling
 };
 
-const sizesPropsBySize = {
+export const sizesPropsBySize = {
   xxs: "w-3.5 h-3.5 min-w-3.5 min-h-3.5", // 14px
   xs: "w-4 h-4 min-w-4 min-h-4 max-h-4", // 16px
   xsm: "w-5 h-5 min-w-5 min-h-5", // 20px
@@ -39,6 +39,7 @@ export function Avatar(props: AvatarProps) {
   const rootClass = classNames("aspect-square rounded-full", sizesPropsBySize[size]);
   let avatar = (
     <AvatarPrimitive.Root
+      data-testid="avatar"
       className={classNames(
         "bg-emphasis item-center relative inline-flex aspect-square justify-center overflow-hidden rounded-full",
         props.className,
@@ -60,6 +61,7 @@ export function Avatar(props: AvatarProps) {
         </AvatarPrimitive.Fallback>
         {props.accepted && (
           <div
+            data-testid="accepted-icon-container"
             className={classNames(
               "text-inverted absolute bottom-0 right-0 block rounded-full bg-green-400 ring-2 ring-white",
               size === "lg" ? "h-5 w-5" : "h-2 w-2"
