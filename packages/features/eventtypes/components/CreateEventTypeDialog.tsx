@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -81,6 +82,7 @@ export default function CreateEventTypeDialog({
   const { t } = useLocale();
   const router = useRouter();
   const [firstRender, setFirstRender] = useState(true);
+  const orgBranding = useOrgBrandingValues();
 
   const {
     data: { teamId, eventPage: pageSlug },
@@ -124,18 +126,19 @@ export default function CreateEventTypeDialog({
       }
 
       if (err.data?.code === "BAD_REQUEST") {
-        const message = `${err.data.code}: URL already exists.`;
+        const message = `${err.data.code}: ${t("error_event_type_url_duplicate")}`;
         showToast(message, "error");
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: You are not able to create this event`;
+        const message = `${err.data.code}: ${t("error_event_type_unauthorized_create")}`;
         showToast(message, "error");
       }
     },
   });
 
   const flags = useFlagMap();
+  const urlPrefix = orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
 
   return (
     <Dialog
@@ -160,7 +163,7 @@ export default function CreateEventTypeDialog({
           handleSubmit={(values) => {
             createMutation.mutate(values);
           }}>
-          <div className="mt-3 space-y-6 pb-10">
+          <div className="mt-3 space-y-6 pb-11">
             {teamId && (
               <TextField
                 type="hidden"
@@ -181,11 +184,10 @@ export default function CreateEventTypeDialog({
               }}
             />
 
-            {process.env.NEXT_PUBLIC_WEBSITE_URL !== undefined &&
-            process.env.NEXT_PUBLIC_WEBSITE_URL?.length >= 21 ? (
+            {urlPrefix && urlPrefix.length >= 21 ? (
               <div>
                 <TextField
-                  label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
+                  label={`${t("url")}: ${urlPrefix}`}
                   required
                   addOnLeading={<>/{!isManagedEventType ? pageSlug : t("username_placeholder")}/</>}
                   {...register("slug")}
@@ -205,8 +207,7 @@ export default function CreateEventTypeDialog({
                   required
                   addOnLeading={
                     <>
-                      {process.env.NEXT_PUBLIC_WEBSITE_URL}/
-                      {!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                      {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
                     </>
                   }
                   {...register("slug")}

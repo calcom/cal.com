@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { WEBAPP_URL } from "../../../constants";
 
@@ -24,7 +24,33 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
     bio: true,
     hideBranding: true,
     hideBookATeamMember: true,
+    isPrivate: true,
     metadata: true,
+    parent: {
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        logo: true,
+      },
+    },
+    children: {
+      select: {
+        name: true,
+        logo: true,
+        slug: true,
+        members: {
+          select: {
+            user: {
+              select: {
+                name: true,
+                username: true,
+              },
+            },
+          },
+        },
+      },
+    },
     members: {
       select: {
         accepted: true,
@@ -88,7 +114,7 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
   }));
-  return { ...team, eventTypes, members };
+  return { ...team, metadata: teamMetadataSchema.parse(team.metadata), eventTypes, members };
 }
 
 // also returns team

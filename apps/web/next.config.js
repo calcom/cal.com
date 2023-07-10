@@ -1,10 +1,20 @@
 require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const os = require("os");
-const glob = require("glob");
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
 const { i18n } = require("./next-i18next.config");
+const {
+  userTypeRoutePath,
+  teamTypeRoutePath,
+  privateLinkRoutePath,
+  embedUserTypeRoutePath,
+  embedTeamTypeRoutePath,
+  orgHostPath,
+  orgUserRoutePath,
+  orgUserTypeRoutePath,
+  orgUserTypeEmbedRoutePath,
+} = require("./pagesAndRewritePaths");
 
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
@@ -70,7 +80,6 @@ const informAboutDuplicateTranslations = () => {
 };
 
 informAboutDuplicateTranslations();
-
 const plugins = [];
 if (process.env.ANALYZE === "true") {
   // only load dependency if env `ANALYZE` was set
@@ -81,17 +90,45 @@ if (process.env.ANALYZE === "true") {
 }
 
 plugins.push(withAxiom);
+const matcherConfigRootPath = {
+  has: [
+    {
+      type: "host",
+      value: orgHostPath,
+    },
+  ],
+  source: "/",
+};
 
-/** Needed to rewrite public booking page, gets all static pages but [user] */
-const pages = glob
-  .sync("pages/**/[^_]*.{tsx,js,ts}", { cwd: __dirname })
-  .map((filename) =>
-    filename
-      .substr(6)
-      .replace(/(\.tsx|\.js|\.ts)/, "")
-      .replace(/\/.*/, "")
-  )
-  .filter((v, i, self) => self.indexOf(v) === i && !v.startsWith("[user]"));
+const matcherConfigUserRoute = {
+  has: [
+    {
+      type: "host",
+      value: orgHostPath,
+    },
+  ],
+  source: orgUserRoutePath,
+};
+
+const matcherConfigUserTypeRoute = {
+  has: [
+    {
+      type: "host",
+      value: orgHostPath,
+    },
+  ],
+  source: orgUserTypeRoutePath,
+};
+
+const matcherConfigUserTypeEmbedRoute = {
+  has: [
+    {
+      type: "host",
+      value: orgHostPath,
+    },
+  ],
+  source: orgUserTypeEmbedRoutePath,
+};
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
@@ -183,58 +220,154 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    return [
+    const beforeFiles = [
+      // These rewrites are other than booking pages rewrites and so that they aren't redirected to org pages ensure that they happen in beforeFiles
+      ...(process.env.ORGANIZATIONS_ENABLED
+        ? [
+            {
+              ...matcherConfigRootPath,
+              destination: "/team/:orgSlug",
+            },
+            {
+              ...matcherConfigUserRoute,
+              destination: "/org/:orgSlug/:user",
+            },
+            {
+              ...matcherConfigUserTypeRoute,
+              destination: "/org/:orgSlug/:user/:type",
+            },
+            {
+              ...matcherConfigUserTypeEmbedRoute,
+              destination: "/org/:orgSlug/:user/:type/embed",
+            },
+          ]
+        : []),
+    ];
+
+    let afterFiles = [
       {
-        source: "/:user/avatar.png",
-        destination: "/api/user/avatar?username=:user",
+        source: "/org/:slug",
+        destination: "/team/:slug",
       },
       {
         source: "/team/:teamname/avatar.png",
         destination: "/api/user/avatar?teamname=:teamname",
       },
-      {
-        source: "/forms/:formQuery*",
-        destination: "/apps/routing-forms/routing-link/:formQuery*",
-      },
-      {
-        source: "/router",
-        destination: "/apps/routing-forms/router",
-      },
-      {
-        source: "/success/:path*",
-        has: [
-          {
-            type: "query",
-            key: "uid",
-            value: "(?<uid>.*)",
-          },
-        ],
-        destination: "/booking/:uid/:path*",
-      },
-      {
-        source: "/cancel/:path*",
-        destination: "/booking/:path*",
-      },
+
+      // When updating this also update pagesAndRewritePaths.js
+      ...[
+        {
+          source: "/:user/avatar.png",
+          destination: "/api/user/avatar?username=:user",
+        },
+        {
+          source: "/forms/:formQuery*",
+          destination: "/apps/routing-forms/routing-link/:formQuery*",
+        },
+        {
+          source: "/router",
+          destination: "/apps/routing-forms/router",
+        },
+        {
+          source: "/success/:path*",
+          has: [
+            {
+              type: "query",
+              key: "uid",
+              value: "(?<uid>.*)",
+            },
+          ],
+          destination: "/booking/:uid/:path*",
+        },
+        {
+          source: "/cancel/:path*",
+          destination: "/booking/:path*",
+        },
+      ],
+
+      // Keep cookie based booker enabled just in case we disable new-booker globally
+      ...[
+        {
+          source: userTypeRoutePath,
+          destination: "/new-booker/:user/:type",
+          has: [{ type: "cookie", key: "new-booker-enabled" }],
+        },
+        {
+          source: teamTypeRoutePath,
+          destination: "/new-booker/team/:slug/:type",
+          has: [{ type: "cookie", key: "new-booker-enabled" }],
+        },
+        {
+          source: privateLinkRoutePath,
+          destination: "/new-booker/d/:link/:slug",
+          has: [{ type: "cookie", key: "new-booker-enabled" }],
+        },
+      ],
+
+      // Keep cookie based booker enabled to test new-booker embed in production
+      ...[
+        {
+          source: embedUserTypeRoutePath,
+          destination: "/new-booker/:user/:type/embed",
+          has: [{ type: "cookie", key: "new-booker-enabled" }],
+        },
+        {
+          source: embedTeamTypeRoutePath,
+          destination: "/new-booker/team/:slug/:type/embed",
+          has: [{ type: "cookie", key: "new-booker-enabled" }],
+        },
+      ],
       /* TODO: have these files being served from another deployment or CDN {
         source: "/embed/embed.js",
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
       }, */
-      {
-        source: `/:user((?!${pages.join("|")}).*)/:type`,
-        destination: "/new-booker/:user/:type",
-        has: [{ type: "cookie", key: "new-booker-enabled" }],
-      },
-      {
-        source: "/team/:slug/:type",
-        destination: "/new-booker/team/:slug/:type",
-        has: [{ type: "cookie", key: "new-booker-enabled" }],
-      },
-      {
-        source: "/d/:link/:slug",
-        destination: "/new-booker/d/:link/:slug",
-        has: [{ type: "cookie", key: "new-booker-enabled" }],
-      },
+
+      /**
+       * Enables new booker using cookie. It works even if NEW_BOOKER_ENABLED_FOR_NON_EMBED, NEW_BOOKER_ENABLED_FOR_EMBED are disabled
+       */
     ];
+
+    // Enable New Booker for all Embed Requests
+    if (process.env.NEW_BOOKER_ENABLED_FOR_EMBED === "1") {
+      console.log("Enabling New Booker for Embed");
+      afterFiles.push(
+        ...[
+          {
+            source: embedUserTypeRoutePath,
+            destination: "/new-booker/:user/:type/embed",
+          },
+          {
+            source: embedTeamTypeRoutePath,
+            destination: "/new-booker/team/:slug/:type/embed",
+          },
+        ]
+      );
+    }
+
+    // Enable New Booker for All but embed Requests
+    if (process.env.NEW_BOOKER_ENABLED_FOR_NON_EMBED === "1") {
+      console.log("Enabling New Booker for Non-Embed");
+      afterFiles.push(
+        ...[
+          {
+            source: userTypeRoutePath,
+            destination: "/new-booker/:user/:type",
+          },
+          {
+            source: teamTypeRoutePath,
+            destination: "/new-booker/team/:slug/:type",
+          },
+          {
+            source: privateLinkRoutePath,
+            destination: "/new-booker/d/:link/:slug",
+          },
+        ]
+      );
+    }
+    return {
+      beforeFiles,
+      afterFiles,
+    };
   },
   async headers() {
     return [
@@ -269,6 +402,44 @@ const nextConfig = {
           },
         ],
       },
+      ...[
+        {
+          ...matcherConfigRootPath,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/team/:orgSlug",
+            },
+          ],
+        },
+        {
+          ...matcherConfigUserRoute,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/org/:orgSlug/:user",
+            },
+          ],
+        },
+        {
+          ...matcherConfigUserTypeRoute,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/org/:orgSlug/:user/:type",
+            },
+          ],
+        },
+        {
+          ...matcherConfigUserTypeEmbedRoute,
+          headers: [
+            {
+              key: "X-Cal-Org-path",
+              value: "/org/:orgSlug/:user/:type/embed",
+            },
+          ],
+        },
+      ],
     ];
   },
   async redirects() {
@@ -291,6 +462,11 @@ const nextConfig = {
       {
         source: "/settings/teams",
         destination: "/teams",
+        permanent: true,
+      },
+      {
+        source: "/settings/admin",
+        destination: "/settings/admin/flags",
         permanent: true,
       },
       /* V2 testers get redirected to the new settings */
@@ -336,6 +512,16 @@ const nextConfig = {
       {
         source: "/support",
         destination: "/event-types?openIntercom=true",
+        permanent: true,
+      },
+      {
+        source: "/apps/categories/video",
+        destination: "/apps/categories/conferencing",
+        permanent: true,
+      },
+      {
+        source: "/apps/installed/video",
+        destination: "/apps/installed/conferencing",
         permanent: true,
       },
     ];

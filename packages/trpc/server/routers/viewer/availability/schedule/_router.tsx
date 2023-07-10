@@ -2,6 +2,7 @@ import authedProcedure from "../../../../procedures/authedProcedure";
 import { router } from "../../../../trpc";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
+import { ZScheduleDuplicateSchema } from "./duplicate.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 
@@ -10,6 +11,7 @@ type ScheduleRouterHandlerCache = {
   create?: typeof import("./create.handler").createHandler;
   delete?: typeof import("./delete.handler").deleteHandler;
   update?: typeof import("./update.handler").updateHandler;
+  duplicate?: typeof import("./duplicate.handler").duplicateHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: ScheduleRouterHandlerCache = {};
@@ -74,6 +76,24 @@ export const scheduleRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.update({
+      ctx,
+      input,
+    });
+  }),
+
+  duplicate: authedProcedure.input(ZScheduleDuplicateSchema).mutation(async ({ input, ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.duplicate) {
+      UNSTABLE_HANDLER_CACHE.duplicate = await import("./duplicate.handler").then(
+        (mod) => mod.duplicateHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.duplicate) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.duplicate({
       ctx,
       input,
     });

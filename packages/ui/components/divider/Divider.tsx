@@ -1,7 +1,7 @@
 import { classNames } from "@calcom/lib";
 
 export function Divider({ className, ...props }: JSX.IntrinsicElements["hr"]) {
-  className = classNames("border-subtle", className);
+  className = classNames("border-subtle my-1", className);
   return <hr className={className} {...props} />;
 }
 

@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 import { test } from "@calcom/web/playwright/lib/fixtures";
+import { gotoRoutingLink } from "@calcom/web/playwright/lib/testUtils";
 
 function todo(title: string) {
   // eslint-disable-next-line playwright/no-skipped-test, @typescript-eslint/no-empty-function
@@ -181,10 +182,11 @@ test.describe("Routing Forms", () => {
           hasTeam: true,
         }
       );
-      await user.login();
+      await user.apiLogin();
       // Install app
       await page.goto(`/apps/routing-forms`);
       await page.click('[data-testid="install-app-button"]');
+      (await page.waitForSelector('[data-testid="install-app-button-personal"]')).click();
       await page.waitForURL((url) => url.pathname === `/apps/routing-forms/forms`);
     });
 
@@ -212,10 +214,11 @@ test.describe("Routing Forms", () => {
         { username: "routing-forms" },
         { seedRoutingForms: true, hasTeam: true }
       );
-      await user.login();
+      await user.apiLogin();
       // Install app
       await page.goto(`/apps/routing-forms`);
       await page.click('[data-testid="install-app-button"]');
+      (await page.waitForSelector('[data-testid="install-app-button-personal"]')).click();
       await page.waitForURL((url) => url.pathname === `/apps/routing-forms/forms`);
       return user;
     };
@@ -230,7 +233,7 @@ test.describe("Routing Forms", () => {
       await fillSeededForm(page, routingForm.id);
 
       // Log back in to view form responses.
-      await user.login();
+      await user.apiLogin();
 
       await page.goto(`/apps/routing-forms/reporting/${routingForm.id}`);
       // Can't keep waiting forever. So, added a timeout of 5000ms
@@ -394,7 +397,7 @@ async function expectCurrentFormToHaveFields(
   types: string[]
 ) {
   for (const [index, field] of Object.entries(fields)) {
-    expect(await page.inputValue(`[name="fields.${index}.label"]`)).toBe(field.label);
+    expect(await page.inputValue(`[data-testid="fields.${index}.label"]`)).toBe(field.label);
     expect(await page.locator(".data-testid-field-type").nth(+index).locator("div").nth(1).innerText()).toBe(
       types[field.typeIndex]
     );
@@ -425,6 +428,8 @@ async function fillSeededForm(page: Page, routingFormId: string) {
 export async function addForm(page: Page, { name = "Test Form Name" } = {}) {
   await page.goto("/apps/routing-forms/forms");
   await page.click('[data-testid="new-routing-form"]');
+  // Choose to create the Form for the user(which is the first option) and not the team
+  await page.click('[data-testid="option-0"]');
   await page.fill("input[name]", name);
   await page.click('[data-testid="add-form"]');
   await page.waitForSelector('[data-testid="add-field"]');
@@ -514,7 +519,7 @@ export async function addOneFieldAndDescriptionAndSaveForm(
   const nextFieldIndex = (await page.locator('[data-testid="field"]').count()) - 1;
 
   if (form.field) {
-    await page.fill(`[name="fields.${nextFieldIndex}.label"]`, form.field.label);
+    await page.fill(`[data-testid="fields.${nextFieldIndex}.label"]`, form.field.label);
     await page
       .locator('[data-testid="field"]')
       .nth(nextFieldIndex)
@@ -593,33 +598,6 @@ async function selectNewRoute(page: Page, { routeSelectNumber = 1 } = {}) {
     option: routeSelectNumber,
     page,
   });
-}
-
-async function gotoRoutingLink({
-  page,
-  formId,
-  queryString = "",
-}: {
-  page: Page;
-  formId?: string;
-  queryString?: string;
-}) {
-  let previewLink = null;
-  if (!formId) {
-    // Instead of clicking on the preview link, we are going to the preview link directly because the earlier opens a new tab which is a bit difficult to manage with Playwright
-    const href = await page.locator('[data-testid="form-action-preview"]').getAttribute("href");
-    if (!href) {
-      throw new Error("Preview link not found");
-    }
-    previewLink = href;
-  } else {
-    previewLink = `/forms/${formId}`;
-  }
-
-  await page.goto(`${previewLink}${queryString ? `?${queryString}` : ""}`);
-
-  // HACK: There seems to be some issue with the inputs to the form getting reset if we don't wait.
-  await new Promise((resolve) => setTimeout(resolve, 500));
 }
 
 async function saveCurrentForm(page: Page) {
