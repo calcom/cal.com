@@ -162,7 +162,11 @@
     },
     "//#init-env": {
       "cache": false,
-      "outputs": ["./.env", "./.env.appStore"]
+      "outputs": ["./.env"]
+    },
+    "//#init-app-store-env": {
+      "cache": false,
+      "outputs": ["./.env.appStore"]
     },
     "//#env-check:common": {
       "cache": false,
