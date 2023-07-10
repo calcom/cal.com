@@ -51,7 +51,6 @@ testBothBookers.describe("free user", (bookerVariant) => {
     // book same time spot again
     await bookTimeSlot(page);
 
-    await page.locator("[data-testid=booking-fail]").waitFor();
     await expect(page.locator("[data-testid=booking-fail]")).toBeVisible({ timeout: 1000 });
   });
 });
