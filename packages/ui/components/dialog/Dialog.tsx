@@ -143,7 +143,7 @@ export function DialogFooter(props: {
   return (
     <div className={classNames("bg-default sticky bottom-0", props.className)}>
       {props.showDivider && (
-        <hr className={classNames("border-subtle absolute right-0 w-full", props.customDividerClassNames)} />
+        <hr className={classNames("border-subtle -mx-8", props.customDividerClassNames)} />
       )}
       <div
         className={classNames(
