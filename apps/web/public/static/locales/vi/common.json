@@ -1679,7 +1679,6 @@
   "managed_event_dialog_title_one": "URL / {{slug}} đã có sẵn cho {{count}} thành viên. Bạn có muốn thay thế nó?",
   "managed_event_dialog_title_other": "URL /{{slug}} đã có sẵn cho {{count}} thành viên. Bạn có muốn thay thế nó?",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> đã dùng URL <strong>/{{slug}}</strong> rồi.",
-  "managed_event_dialog_information_other": "<strong>{{names}}</strong> đã dùng URL <string>/{{slug}}</strong> rồi.",
   "managed_event_dialog_clarification": "Nếu bạn chọn phương án thay thế nó, chúng tôi sẽ thông báo cho họ biết. Hãy quay lại và xóa bỏ họ nếu bạn không muốn ghi đè nó.",
   "review_event_type": "Xem lại loại sự kiện",
   "looking_for_more_analytics": "Bạn muốn có thêm thông tin phân tích?",
