@@ -1,10 +1,10 @@
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 
-import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, ButtonGroup, Label, showToast } from "@calcom/ui";
+import { Alert, Label, showToast, ButtonGroup, Button } from "@calcom/ui";
 import { EyeOff, Mail, RefreshCcw, UserPlus, Users, Video } from "@calcom/ui/components/icon";
 
 import { UpgradeTip } from "../../../tips";
@@ -25,6 +25,8 @@ export function TeamsListing() {
       setErrorMessage(e.message);
     },
   });
+
+  const { data: user } = trpc.viewer.me.useQuery();
 
   const { mutate: inviteMemberByToken } = trpc.viewer.teams.inviteMemberByToken.useMutation({
     onSuccess: (teamName) => {
@@ -102,16 +104,20 @@ export function TeamsListing() {
         features={features}
         background="/tips/teams"
         buttons={
-          <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
-            <ButtonGroup>
-              <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
-                {t("create_team")}
-              </Button>
-              <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
-                {t("learn_more")}
-              </Button>
-            </ButtonGroup>
-          </div>
+          !user?.organizationId || user?.organization.isOrgAdmin ? (
+            <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+              <ButtonGroup>
+                <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
+                  {t("create_team")}
+                </Button>
+                <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
+                  {t("learn_more")}
+                </Button>
+              </ButtonGroup>
+            </div>
+          ) : (
+            <p>{t("org_admins_can_create_new_teams")}</p>
+          )
         }>
         {teams.length > 0 ? <TeamList teams={teams} /> : <></>}
       </UpgradeTip>

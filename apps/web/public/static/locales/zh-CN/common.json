@@ -1692,7 +1692,6 @@
   "managed_event_dialog_title_one": "{{count}} 个成员已具有链接/{{slug}}。是否要将其替换?",
   "managed_event_dialog_title_other": "{{count}} 个成员已具有链接/{{slug}}。是否要将其替换?",
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> 已经在使用 <strong>/{{slug}}</strong> 链接。",
-  "managed_event_dialog_information_other": "<strong>{{names}}</strong> 已经在使用 <string>/{{slug}}</strong> 链接。",
   "managed_event_dialog_clarification": "如果您选择将其替换，我们会通知他们。如果您不想将其覆盖，请返回并移除。",
   "review_event_type": "查看活动类型",
   "looking_for_more_analytics": "寻找更多的分析?",
