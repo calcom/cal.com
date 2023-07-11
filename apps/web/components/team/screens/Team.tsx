@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -12,7 +11,7 @@ type TeamType = NonNullable<TeamWithMembers>;
 type MembersType = TeamType["members"];
 type MemberType = MembersType[number] & { safeBio: string | null };
 
-type TeamTypeWithSafeHtml = Omit<TeamType, "members"> & { members: MemberType[] };
+type TeamTypeWithSafeHtml = Omit<TeamType, "members" | "inviteToken"> & { members: MemberType[] };
 
 const Member = ({ member, teamName }: { member: MemberType; teamName: string | null }) => {
   const { t } = useLocale();
@@ -25,11 +24,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
   return (
     <Link key={member.id} href={{ pathname: `/${member.username}`, query: queryParamsToForward }}>
       <div className="sm:min-w-80 sm:max-w-80 bg-default hover:bg-muted border-subtle group flex min-h-full flex-col space-y-2 rounded-md border p-4 hover:cursor-pointer">
-        <Avatar
-          size="md"
-          alt={member.name || ""}
-          imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
-        />
+        <Avatar size="md" alt={member.name || ""} imageSrc={"/" + member.username + "/avatar.png"} />
         <section className="mt-2 line-clamp-4 w-full space-y-1">
           <p className="text-default font-medium">{member.name}</p>
           <div className="text-subtle line-clamp-3 overflow-ellipsis text-sm font-normal">

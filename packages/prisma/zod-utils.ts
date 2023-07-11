@@ -136,6 +136,7 @@ export const eventTypeLocations = z.array(
     link: z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),
     hostPhoneNumber: z.string().optional(),
+    credentialId: z.number().optional(),
   })
 );
 
@@ -313,6 +314,8 @@ export const teamMetadataSchema = z
     subscriptionId: z.string().nullable(),
     subscriptionItemId: z.string().nullable(),
     isOrganization: z.boolean().nullable(),
+    isOrganizationVerified: z.boolean().nullable(),
+    orgAutoAcceptEmail: z.string().nullable(),
   })
   .partial()
   .nullable();
@@ -573,4 +576,12 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
 // Eventually this is going to be just a default and the user can change the config through the UI
 export const unlockedManagedEventTypeProps = {
   ...pick(allManagedEventTypeProps, ["locations", "scheduleId", "destinationCalendar"]),
+};
+
+// The PR at https://github.com/colinhacks/zod/pull/2157 addresses this issue and improves email validation
+// I introduced this refinement(to be used with z.email()) as a short term solution until we upgrade to a zod
+// version that will include updates in the above PR.
+export const emailSchemaRefinement = (value: string) => {
+  const emailRegex = /^([A-Z0-9_+-]+\.?)*[A-Z0-9_+-]@([A-Z0-9][A-Z0-9-]*\.)+[A-Z]{2,}$/i;
+  return emailRegex.test(value);
 };

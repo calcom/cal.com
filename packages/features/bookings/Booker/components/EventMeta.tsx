@@ -1,5 +1,6 @@
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
+import { shallow } from "zustand/shallow";
 
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
@@ -7,7 +8,7 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { Calendar, Globe } from "@calcom/ui/components/icon";
+import { Calendar, Globe, User } from "@calcom/ui/components/icon";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
@@ -23,7 +24,12 @@ export const EventMeta = () => {
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
-  const rescheduleBooking = useBookerStore((state) => state.rescheduleBooking);
+  const bookingData = useBookerStore((state) => state.bookingData);
+  const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
+  const [seatedEventData, setSeatedEventData] = useBookerStore(
+    (state) => [state.seatedEventData, state.setSeatedEventData],
+    shallow
+  );
   const { i18n, t } = useLocale();
   const { data: event, isLoading } = useEvent();
   const embedUiConfig = useEmbedUiConfig();
@@ -33,6 +39,21 @@ export const EventMeta = () => {
   if (hideEventTypeDetails) {
     return null;
   }
+  // If we didn't pick a time slot yet, we load bookingData via SSR so bookingData should be set
+  // Otherwise we load seatedEventData from useBookerStore
+  const bookingSeatAttendeesQty = seatedEventData?.attendees || bookingData?.attendees.length;
+  const eventTotalSeats = seatedEventData?.seatsPerTimeSlot || event?.seatsPerTimeSlot;
+
+  const isHalfFull =
+    bookingSeatAttendeesQty && eventTotalSeats && bookingSeatAttendeesQty / eventTotalSeats >= 0.5;
+  const isNearlyFull =
+    bookingSeatAttendeesQty && eventTotalSeats && bookingSeatAttendeesQty / eventTotalSeats >= 0.83;
+
+  const colorClass = isNearlyFull
+    ? "text-rose-600"
+    : isHalfFull
+    ? "text-yellow-500"
+    : "text-bookinghighlight";
 
   return (
     <div className="relative z-10 p-6">
@@ -51,13 +72,13 @@ export const EventMeta = () => {
             </EventMetaBlock>
           )}
           <div className="space-y-4 font-medium">
-            {rescheduleBooking && (
+            {rescheduleUid && bookingData && (
               <EventMetaBlock icon={Calendar}>
                 {t("former_time")}
                 <br />
                 <span className="line-through" data-testid="former_time_p">
                   <FromToTime
-                    date={rescheduleBooking.startTime.toString()}
+                    date={bookingData.startTime.toString()}
                     duration={null}
                     timeFormat={timeFormat}
                     timeZone={timezone}
@@ -101,6 +122,21 @@ export const EventMeta = () => {
                 </span>
               )}
             </EventMetaBlock>
+            {bookerState === "booking" && eventTotalSeats && bookingSeatAttendeesQty ? (
+              <EventMetaBlock icon={User} className={`${colorClass}`}>
+                <div className="text-bookinghighlight flex items-start text-sm">
+                  <p>
+                    {bookingSeatAttendeesQty ? eventTotalSeats - bookingSeatAttendeesQty : eventTotalSeats} /{" "}
+                    {eventTotalSeats}{" "}
+                    {t("seats_available", {
+                      count: bookingSeatAttendeesQty
+                        ? eventTotalSeats - bookingSeatAttendeesQty
+                        : eventTotalSeats,
+                    })}
+                  </p>
+                </div>
+              </EventMetaBlock>
+            ) : null}
           </div>
         </m.div>
       )}
