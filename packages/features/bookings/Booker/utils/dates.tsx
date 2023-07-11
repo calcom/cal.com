@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import "@calcom/dayjs/locales";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 
 interface EventFromToTime {
@@ -16,7 +17,7 @@ export const formatEventFromToTime = ({
   timeZone,
   language,
 }: EventFromToTime) => {
-  const start = dayjs(date).tz(timeZone);
+  const start = dayjs(date).tz(timeZone).locale(language);
   const end = duration ? start.add(duration, "minute") : null;
   const formattedDate = `${start.format("dddd")}, ${start
     .toDate()
