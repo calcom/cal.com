@@ -3,8 +3,15 @@ import type { z, ZodType } from "zod";
 
 export type GetAppData = (key: string) => unknown;
 export type SetAppData = (key: string, value: unknown) => void;
+type LockedIcon = JSX.Element | false | undefined;
+type Disabled = boolean | undefined;
 // eslint-disable-next-line @typescript-eslint/no-empty-function
-const EventTypeAppContext = React.createContext<[GetAppData, SetAppData]>([() => ({}), () => {}]);
+const EventTypeAppContext = React.createContext<[GetAppData, SetAppData, LockedIcon, Disabled]>([
+  () => ({}),
+  () => ({}),
+  undefined,
+  undefined,
+]);
 
 export type SetAppDataGeneric<TAppData extends ZodType> = <
   TKey extends keyof z.infer<TAppData>,
@@ -22,7 +29,7 @@ export const useAppContextWithSchema = <TAppData extends ZodType>() => {
   type GetAppData = GetAppDataGeneric<TAppData>;
   type SetAppData = SetAppDataGeneric<TAppData>;
   // TODO: Not able to do it without type assertion here
-  const context = React.useContext(EventTypeAppContext) as [GetAppData, SetAppData];
+  const context = React.useContext(EventTypeAppContext) as [GetAppData, SetAppData, LockedIcon, Disabled];
   return context;
 };
 export default EventTypeAppContext;

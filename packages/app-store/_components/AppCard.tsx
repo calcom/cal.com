@@ -3,10 +3,11 @@ import Link from "next/link";
 
 import { classNames } from "@calcom/lib";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Switch } from "@calcom/ui";
+import { Switch, Badge, Avatar } from "@calcom/ui";
 
 import type { SetAppDataGeneric } from "../EventTypeAppContext";
 import type { eventTypeAppCardZod } from "../eventTypeAppCardZod";
+import type { CredentialOwner } from "../types";
 import OmniInstallAppButton from "./OmniInstallAppButton";
 
 export default function AppCard({
@@ -17,14 +18,20 @@ export default function AppCard({
   children,
   setAppData,
   returnTo,
+  teamId,
+  disableSwitch,
+  LockedIcon,
 }: {
-  app: RouterOutputs["viewer"]["apps"][number];
+  app: RouterOutputs["viewer"]["integrations"]["items"][number] & { credentialOwner?: CredentialOwner };
   description?: React.ReactNode;
   switchChecked?: boolean;
   switchOnClick?: (e: boolean) => void;
   children?: React.ReactNode;
   setAppData: SetAppDataGeneric<typeof eventTypeAppCardZod>;
   returnTo?: string;
+  teamId?: number;
+  disableSwitch?: boolean;
+  LockedIcon?: React.ReactNode;
 }) {
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -55,26 +62,45 @@ export default function AppCard({
               {description || app?.description}
             </p>
           </div>
-          {app?.isInstalled ? (
-            <div className="ml-auto flex items-center">
-              <Switch
-                disabled={!app.enabled}
-                onCheckedChange={(enabled) => {
-                  if (switchOnClick) {
-                    switchOnClick(enabled);
-                  }
-                  setAppData("enabled", enabled);
-                }}
-                checked={switchChecked}
+          <div className="ml-auto flex items-center space-x-2">
+            {app.credentialOwner && (
+              <div className="ml-auto">
+                <Badge variant="gray">
+                  <div className="flex items-center">
+                    <Avatar
+                      className="mr-2"
+                      alt={app.credentialOwner.name || "Credential Owner Name"}
+                      size="sm"
+                      imageSrc={app.credentialOwner.avatar}
+                    />
+                    {app.credentialOwner.name}
+                  </div>
+                </Badge>
+              </div>
+            )}
+            {app?.isInstalled || app.credentialOwner ? (
+              <div className="ml-auto flex items-center">
+                <Switch
+                  disabled={!app.enabled || disableSwitch}
+                  onCheckedChange={(enabled) => {
+                    if (switchOnClick) {
+                      switchOnClick(enabled);
+                    }
+                    setAppData("enabled", enabled);
+                  }}
+                  checked={switchChecked}
+                  LockedIcon={LockedIcon}
+                />
+              </div>
+            ) : (
+              <OmniInstallAppButton
+                className="ml-auto flex items-center"
+                appId={app.slug}
+                returnTo={returnTo}
+                teamId={teamId}
               />
-            </div>
-          ) : (
-            <OmniInstallAppButton
-              className="ml-auto flex items-center"
-              appId={app.slug}
-              returnTo={returnTo}
-            />
-          )}
+            )}
+          </div>
         </div>
       </div>
       <div ref={animationRef}>
