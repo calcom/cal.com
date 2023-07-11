@@ -96,13 +96,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const updateUsername = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
-      await update({
-        ...session,
-        user: {
-          ...session?.user,
-          username: inputUsernameValue,
-        },
-      });
+      await update();
       setOpenDialogSaveUsername(false);
     },
     onError: (error) => {
