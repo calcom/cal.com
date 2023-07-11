@@ -71,13 +71,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
       onSuccessMutation && (await onSuccessMutation());
       setOpenDialogSaveUsername(false);
       setCurrentUsername(inputUsernameValue);
-      await update({
-        ...session,
-        user: {
-          ...session?.user,
-          username: inputUsernameValue,
-        },
-      });
+      await update();
     },
     onError: (error) => {
       onErrorMutation && onErrorMutation(error);
