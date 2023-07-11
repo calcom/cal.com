@@ -257,7 +257,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
 
       steps.forEach(async (step) => {
-        if (step.action !== WorkflowActions.SMS_ATTENDEE) {
+        if (step.action !== WorkflowActions.SMS_ATTENDEE && step.action !== WorkflowActions.WHATSAPP_ATTENDEE) {
           //as we do not have attendees phone number (user is notified about that when setting this action)
           bookingsForReminders.forEach(async (booking) => {
             const bookingInfo = {
@@ -610,7 +610,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         if (
           (trigger === WorkflowTriggerEvents.BEFORE_EVENT || trigger === WorkflowTriggerEvents.AFTER_EVENT) &&
           eventTypesToCreateReminders &&
-          step.action !== WorkflowActions.SMS_ATTENDEE
+          step.action !== WorkflowActions.SMS_ATTENDEE && step.action !== WorkflowActions.WHATSAPP_ATTENDEE
         ) {
           const bookingsForReminders = await ctx.prisma.booking.findMany({
             where: {
