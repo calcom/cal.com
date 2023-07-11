@@ -83,7 +83,7 @@ export function Header({
           {selectedDateMin3DaysDifference && (
             <Button
               className="capitalize"
-              color="secondary"
+              color="minimal"
               onClick={() => setSelectedDate(today.format("YYYY-MM-DD"))}>
               {t("today")}
             </Button>
