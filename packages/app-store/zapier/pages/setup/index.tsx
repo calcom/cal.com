@@ -22,10 +22,10 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   const oldApiKey = trpc.viewer.apiKeys.findKeyOfType.useQuery({ appId: ZAPIER });
 
   const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation();
-  const zapierCredentials: { credentialIds: number[] } | undefined = integrations.data?.items.find(
+  const zapierCredentials: { userCredentialIds: number[] } | undefined = integrations.data?.items.find(
     (item: { type: string }) => item.type === "zapier_automation"
   );
-  const [credentialId] = zapierCredentials?.credentialIds || [false];
+  const [credentialId] = zapierCredentials?.userCredentialIds || [false];
   const showContent = integrations.data && integrations.isSuccess && credentialId;
   const isCalDev = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.dev";
 
@@ -57,7 +57,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
               {!newApiKey ? (
                 <>
                   <div className="mt-1 text-xl">{t("generate_api_key")}:</div>
-                  <Button color="primary" onClick={() => createApiKey()} className="mt-4 mb-4">
+                  <Button color="primary" onClick={() => createApiKey()} className="mb-4 mt-4">
                     {t("generate_api_key")}
                   </Button>
                 </>
@@ -81,11 +81,11 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                       </Button>
                     </Tooltip>
                   </div>
-                  <div className="text-default mt-2 mb-5 text-sm font-semibold">{t("copy_safe_api_key")}</div>
+                  <div className="text-default mb-5 mt-2 text-sm font-semibold">{t("copy_safe_api_key")}</div>
                 </>
               )}
 
-              <ol className="mt-5 mb-5 ml-5 list-decimal ltr:mr-5 rtl:ml-5">
+              <ol className="mb-5 ml-5 mt-5 list-decimal ltr:mr-5 rtl:ml-5">
                 {isCalDev && (
                   <li>
                     {t("go_to")}
@@ -109,7 +109,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
           </div>
         </div>
       ) : (
-        <div className="mt-5 ml-5">
+        <div className="ml-5 mt-5">
           <div>{t("install_zapier_app")}</div>
           <div className="mt-3">
             <Link href="/apps/zapier" passHref={true} legacyBehavior>

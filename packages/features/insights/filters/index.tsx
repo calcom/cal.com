@@ -1,6 +1,7 @@
 import { useFilterContext } from "@calcom/features/insights/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Tooltip } from "@calcom/ui";
+import { X } from "@calcom/ui/components/icon";
 
 import { DateSelect } from "./DateSelect";
 import { EventTypeList } from "./EventTypeList";
@@ -22,11 +23,12 @@ const ClearFilters = () => {
         color="secondary"
         target="_blank"
         rel="noreferrer"
-        className="h-[38px]"
+        className="min-w-24 h-[38px] border-0"
         onClick={() => {
           clearFilters();
         }}>
-        {t("clear_filters")}
+        <X className="mr-1 h-4 w-4" />
+        {t("clear")}
       </Button>
     </Tooltip>
   );
@@ -34,18 +36,18 @@ const ClearFilters = () => {
 
 export const Filters = () => {
   return (
-    <div className="mt-2 flex flex-col flex-wrap gap-2 md:flex-row lg:flex-nowrap">
-      <TeamAndSelfList />
+    <div className="mb-4 ml-auto mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-nowrap sm:justify-start">
+        <TeamAndSelfList />
 
-      <FilterType />
+        <UserListInTeam />
 
-      <UserListInTeam />
+        <EventTypeList />
 
-      <EventTypeList />
+        <FilterType />
 
-      <DateSelect />
-
-      <ClearFilters />
+        <ClearFilters />
+      </div>
 
       {/* @NOTE: To be released in next iteration */}
       {/* <ButtonGroup combined containerProps={{ className: "hidden lg:flex mr-2" }}>
@@ -70,6 +72,7 @@ export const Filters = () => {
           />
         </Tooltip>
       </ButtonGroup> */}
+      <DateSelect />
     </div>
   );
 };

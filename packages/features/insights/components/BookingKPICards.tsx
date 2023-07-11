@@ -11,7 +11,7 @@ import { KPICard } from "./KPICard";
 export const BookingKPICards = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange, selectedEventTypeId, selectedUserId, selectedMemberUserId } = filter;
+  const { dateRange, selectedEventTypeId, selectedUserId, selectedMemberUserId, isAll } = filter;
   const [startDate, endDate] = dateRange;
 
   const { selectedTeamId: teamId } = filter;
@@ -24,6 +24,7 @@ export const BookingKPICards = () => {
       eventTypeId: selectedEventTypeId ?? undefined,
       memberUserId: selectedMemberUserId ?? undefined,
       userId: selectedUserId ?? undefined,
+      isAll,
     },
     {
       staleTime: 30000,

@@ -22,7 +22,7 @@ import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import VerifyEmailBanner from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
@@ -49,6 +49,7 @@ import {
   HeadSeo,
   Logo,
   SkeletonText,
+  SkeletonAvatar,
   Tooltip,
   showToast,
   useCalcomTheme,
@@ -199,8 +200,8 @@ const Layout = (props: LayoutProps) => {
 
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
-      <div style={{ paddingTop: `${bannersHeight}px` }} className="flex min-h-screen flex-col">
-        <div ref={bannerRef} className="fixed top-0 z-10 w-full divide-y divide-black">
+      <div className="flex min-h-screen flex-col">
+        <div ref={bannerRef} className="sticky top-0 z-10 w-full divide-y divide-black">
           <TeamsUpgradeBanner />
           <OrgUpgradeBanner />
           <ImpersonatingBanner />
@@ -340,29 +341,29 @@ function UserDropdown({ small }: UserDropdownProps) {
         <button
           className={classNames(
             "hover:bg-emphasis group mx-0 flex cursor-pointer appearance-none items-center rounded-full text-left outline-none focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
-            small ? "p-2" : "px-2 py-1"
+            small ? "p-2" : "px-2 py-1.5"
           )}>
           <span
             className={classNames(
-              small ? "h-4 w-4" : "h-6 w-6 ltr:mr-2 rtl:ml-2",
+              small ? "h-4 w-4" : "h-5 w-5 ltr:mr-2 rtl:ml-2",
               "relative flex-shrink-0 rounded-full bg-gray-300"
             )}>
             <Avatar
-              size={small ? "xs" : "sm"}
+              size={small ? "xs" : "xsm"}
               imageSrc={avatar?.avatar || WEBAPP_URL + "/" + user.username + "/avatar.png"}
               alt={user.username || "Nameless User"}
               className="overflow-hidden"
             />
             <span
               className={classNames(
-                "border-muted absolute -bottom-1 -right-1 rounded-full border-2 bg-green-500",
+                "border-muted absolute -bottom-1 -right-1 rounded-full border bg-green-500",
                 user.away ? "bg-yellow-500" : "bg-green-500",
-                small ? "-bottom-0.5 -right-0.5 h-2.5 w-2.5" : "bottom-0 right-0 h-3 w-3"
+                small ? "-bottom-0.5 -right-0.5 h-2.5 w-2.5" : "-bottom-0.5 -right-0 h-2 w-2"
               )}
             />
           </span>
           {!small && (
-            <span className="flex flex-grow items-center">
+            <span className="flex flex-grow items-center gap-2">
               <span className="line-clamp-1 flex-grow text-sm leading-none">
                 <span className="text-emphasis block font-medium">{user.name || "Nameless User"}</span>
               </span>
@@ -427,8 +428,8 @@ function UserDropdown({ small }: UserDropdownProps) {
                     StartIcon={(props) => <Slack strokeWidth={1.5} {...props} />}
                     target="_blank"
                     rel="noreferrer"
-                    href={JOIN_SLACK}>
-                    {t("join_our_slack")}
+                    href={JOIN_DISCORD}>
+                    {t("join_our_discord")}
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
@@ -604,7 +605,7 @@ const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMor
 
 const Navigation = () => {
   return (
-    <nav className="mt-2 flex-1 md:px-2 lg:mt-6 lg:px-0">
+    <nav className="mt-2 flex-1 md:px-2 lg:mt-4 lg:px-0">
       {desktopNavigationItems.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
@@ -654,7 +655,7 @@ const NavigationItem: React.FC<{
           href={item.href}
           aria-label={t(item.name)}
           className={classNames(
-            "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md py-2 px-3 text-sm font-medium",
+            "[&[aria-current='page']]:bg-emphasis  text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium",
             isChild
               ? `[&[aria-current='page']]:text-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
                   props.index === 0 ? "mt-0" : "mt-px"
@@ -778,13 +779,11 @@ type SideBarProps = {
 
 function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
   const { status, data } = useSession();
-  const router = useRouter();
 
   // Make sure that Sidebar is rendered optimistically so that a refresh of pages when logged in have SideBar from the beginning.
   // This improves the experience of refresh on app store pages(when logged in) which are SSG.
   // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
   if (status !== "loading" && status !== "authenticated") return null;
-  if (router.route.startsWith("/v2/settings/")) return null;
   return <SideBar bannersHeight={bannersHeight} user={data?.user} />;
 }
 
@@ -797,37 +796,29 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
   const orgBranding = useOrgBrandingValues();
   const publicPageUrl = orgBranding?.slug ? getOrganizationUrl(orgBranding?.slug) : "";
   const bottomNavItems: NavigationItemType[] = [
-    ...(user?.username
-      ? [
-          {
-            name: "view_public_page",
-            href: !!user?.organizationId
-              ? publicPageUrl
-              : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`,
-            icon: ExternalLink,
-            target: "__blank",
-          },
-          {
-            name: "copy_public_page_link",
-            href: "",
-            onClick: (e: { preventDefault: () => void }) => {
-              e.preventDefault();
-              navigator.clipboard.writeText(
-                !!user?.organizationId
-                  ? publicPageUrl
-                  : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`
-              );
-              showToast(t("link_copied"), "success");
-            },
-            icon: Copy,
-          },
-        ]
-      : []),
+    {
+      name: "view_public_page",
+      href: !!user?.organizationId
+        ? publicPageUrl
+        : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`,
+      icon: ExternalLink,
+      target: "__blank",
+    },
+    {
+      name: "copy_public_page_link",
+      href: "",
+      onClick: (e: { preventDefault: () => void }) => {
+        e.preventDefault();
+        navigator.clipboard.writeText(
+          !!user?.organizationId ? publicPageUrl : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`
+        );
+        showToast(t("link_copied"), "success");
+      },
+      icon: Copy,
+    },
     {
       name: "settings",
-      href: user?.organizationId
-        ? `/settings/teams/${user.organizationId}/profile`
-        : "/settings/my-account/profile",
+      href: user?.organizationId ? `/settings/organizations/profile` : "/settings/my-account/profile",
       icon: Settings,
     },
   ];
@@ -840,20 +831,16 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
           <header className="items-center justify-between md:hidden lg:flex">
             {orgBranding ? (
               <Link href="/event-types" className="px-1.5">
-                {orgBranding ? (
-                  <div className="flex items-center gap-2 font-medium">
-                    <Avatar
-                      alt={`${orgBranding.name} logo`}
-                      imageSrc={getPlaceholderAvatar(orgBranding.logo, orgBranding.name)}
-                      size="xsm"
-                    />
-                    <p className="text line-clamp-1 text-sm">
-                      <span>{orgBranding.name}</span>
-                    </p>
-                  </div>
-                ) : (
-                  <Logo small />
-                )}
+                <div className="flex items-center gap-2 font-medium">
+                  <Avatar
+                    alt={`${orgBranding.name} logo`}
+                    imageSrc={getPlaceholderAvatar(orgBranding.logo, orgBranding.name)}
+                    size="xsm"
+                  />
+                  <p className="text line-clamp-1 text-sm">
+                    <span>{orgBranding.name}</span>
+                  </p>
+                </div>
               </Link>
             ) : (
               <div data-testid="user-dropdown-trigger">
@@ -863,6 +850,12 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 <span className="hidden md:inline lg:hidden">
                   <UserDropdown small />
                 </span>
+              </div>
+            )}
+            {!isLocaleReady && (
+              <div className="flex w-full gap-1">
+                <SkeletonAvatar className="min-w-5 min-h-5 mt-0 h-5 w-5" />
+                <SkeletonText className="h-[20px] w-full" />
               </div>
             )}
             <div className="flex space-x-0.5 rtl:space-x-reverse">
@@ -907,7 +900,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 target={item.target}
                 className={classNames(
                   "text-left",
-                  "[&[aria-current='page']]:bg-emphasis  text-default justify-right group flex items-center rounded-md py-2 px-3 text-sm font-medium",
+                  "[&[aria-current='page']]:bg-emphasis  text-default justify-right group flex items-center rounded-md px-2 py-1.5 text-sm font-medium",
                   "[&[aria-current='page']]:text-emphasis mt-0.5 w-full text-sm",
                   isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
                   index === 0 && "mt-3"
@@ -922,7 +915,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                   <Icon
                     className={classNames(
                       "h-4 w-4 flex-shrink-0 [&[aria-current='page']]:text-inherit",
-                      "mx-auto md:ltr:mr-2 md:rtl:ml-2"
+                      "me-3 md:ltr:mr-2 md:rtl:ml-2"
                     )}
                     aria-hidden="true"
                     aria-current={
@@ -955,62 +948,65 @@ export function ShellMain(props: LayoutProps) {
 
   return (
     <>
-      <div
-        className={classNames(
-          "flex items-center md:mb-6 md:mt-0",
-          props.smallHeading ? "lg:mb-7" : "lg:mb-8",
-          props.hideHeadingOnMobile ? "mb-0" : "mb-6"
-        )}>
-        {!!props.backPath && (
-          <Button
-            variant="icon"
-            size="sm"
-            color="minimal"
-            onClick={() =>
-              typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
-            }
-            StartIcon={ArrowLeft}
-            aria-label="Go Back"
-            className="rounded-md ltr:mr-2 rtl:ml-2"
-          />
-        )}
-        {props.heading && (
-          <header
-            className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
-            {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className={classNames("w-full truncate ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
-              {props.heading && (
-                <h3
-                  className={classNames(
-                    "font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
-                    props.smallHeading ? "text-base" : "text-xl",
-                    props.hideHeadingOnMobile && "hidden"
-                  )}>
-                  {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
-                </h3>
-              )}
-              {props.subtitle && (
-                <p className="text-default hidden text-sm md:block">
-                  {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
-                </p>
-              )}
-            </div>
-            {props.beforeCTAactions}
-            {props.CTA && (
+      {(props.heading || !!props.backPath) && (
+        <div
+          className={classNames(
+            "flex items-center md:mb-6 md:mt-0",
+            props.smallHeading ? "lg:mb-7" : "lg:mb-8",
+            props.hideHeadingOnMobile ? "mb-0" : "mb-6"
+          )}>
+          {!!props.backPath && (
+            <Button
+              variant="icon"
+              size="sm"
+              color="minimal"
+              onClick={() =>
+                typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
+              }
+              StartIcon={ArrowLeft}
+              aria-label="Go Back"
+              className="rounded-md ltr:mr-2 rtl:ml-2"
+            />
+          )}
+          {props.heading && (
+            <header
+              className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
+              {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
               <div
-                className={classNames(
-                  props.backPath
-                    ? "relative"
-                    : "pwa:bottom-24 fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
-                  "flex-shrink-0 md:relative md:bottom-auto md:right-auto"
-                )}>
-                {props.CTA}
+                className={classNames("w-full truncate ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
+                {props.heading && (
+                  <h3
+                    className={classNames(
+                      "font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
+                      props.smallHeading ? "text-base" : "text-xl",
+                      props.hideHeadingOnMobile && "hidden"
+                    )}>
+                    {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
+                  </h3>
+                )}
+                {props.subtitle && (
+                  <p className="text-default hidden text-sm md:block">
+                    {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
+                  </p>
+                )}
               </div>
-            )}
-            {props.actions && props.actions}
-          </header>
-        )}
-      </div>
+              {props.beforeCTAactions}
+              {props.CTA && (
+                <div
+                  className={classNames(
+                    props.backPath
+                      ? "relative"
+                      : "pwa:bottom-24 fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
+                    "flex-shrink-0 md:relative md:bottom-auto md:right-auto"
+                  )}>
+                  {props.CTA}
+                </div>
+              )}
+              {props.actions && props.actions}
+            </header>
+          )}
+        </div>
+      )}
       {props.afterHeading && <>{props.afterHeading}</>}
       <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
         {props.children}
@@ -1052,7 +1048,7 @@ function TopNav() {
     <>
       <nav
         style={isEmbed ? { display: "none" } : {}}
-        className="bg-muted border-subtle sticky top-0 z-40 flex w-full items-center justify-between border-b bg-opacity-50 py-1.5 px-4 backdrop-blur-lg sm:p-4 md:hidden">
+        className="bg-muted border-subtle sticky top-0 z-40 flex w-full items-center justify-between border-b bg-opacity-50 px-4 py-1.5 backdrop-blur-lg sm:p-4 md:hidden">
         <Link href="/event-types">
           <Logo />
         </Link>

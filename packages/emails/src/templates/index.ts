@@ -27,3 +27,4 @@ export { VerifyAccountEmail } from "./VerifyAccountEmail";
 export * from "@calcom/app-store/routing-forms/emails/components";
 export { DailyVideoDownloadRecordingEmail } from "./DailyVideoDownloadRecordingEmail";
 export { OrganisationAccountVerifyEmail } from "./OrganizationAccountVerifyEmail";
+export { OrgAutoInviteEmail } from "./OrgAutoInviteEmail";

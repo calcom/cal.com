@@ -20,7 +20,7 @@ export function DateValues({ days, containerNavRef }: Props) {
             <button
               key={day.toString()}
               type="button"
-              className="flex flex-1 flex-col items-center pt-2 pb-3">
+              className="flex flex-1 flex-col items-center pb-3 pt-2">
               {day.format("dd")}{" "}
               <span
                 className={classNames(
@@ -34,7 +34,7 @@ export function DateValues({ days, containerNavRef }: Props) {
         })}
       </div>
       <div className="text-subtle -mr-px hidden  auto-cols-fr text-sm leading-6 sm:flex ">
-        <div className="col-end-1 w-14" />
+        <div className="border-default col-end-1 w-14 border-l" />
         {days.map((day) => {
           const isToday = dayjs().isSame(day, "day");
           return (

@@ -1,7 +1,8 @@
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 
-import { APP_NAME } from "@calcom/lib/constants";
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -14,7 +15,6 @@ import {
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
-  Switch,
 } from "@calcom/ui";
 
 import ThemeLabel from "../../../../settings/ThemeLabel";
@@ -24,7 +24,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="mt-6 mb-8 space-y-6">
+      <div className="mb-8 mt-6 space-y-6">
         <div className="flex items-center">
           <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
           <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
@@ -89,7 +89,7 @@ const OrgAppearanceView = () => {
     return <SkeletonLoader title={t("booking_appearance")} description={t("appearance_team_description")} />;
   }
   return (
-    <>
+    <LicenseRequired>
       <Meta title={t("booking_appearance")} description={t("appearance_team_description")} />
       {isAdmin ? (
         <Form
@@ -170,59 +170,6 @@ const OrgAppearanceView = () => {
               )}
             />
           </div>
-          <hr className="border-subtle my-8" />
-
-          <div className="flex flex-col gap-8">
-            <div className="relative flex items-start">
-              <div className="flex-grow text-sm">
-                <label htmlFor="hide-branding" className="text-default font-medium">
-                  {t("disable_cal_branding", { appName: APP_NAME })}
-                </label>
-                <p className="text-subtle">
-                  {t("team_disable_cal_branding_description", { appName: APP_NAME })}
-                </p>
-              </div>
-
-              <div className="flex-none">
-                <Controller
-                  control={form.control}
-                  defaultValue={currentOrg?.hideBranding ?? false}
-                  name="hideBranding"
-                  render={({ field }) => (
-                    <Switch
-                      defaultChecked={field.value}
-                      onCheckedChange={(isChecked) => {
-                        form.setValue("hideBranding", isChecked);
-                      }}
-                    />
-                  )}
-                />
-              </div>
-            </div>
-            <div className="relative flex items-start">
-              <div className="flex-grow text-sm">
-                <label htmlFor="hide-branding" className="text-default font-medium">
-                  {t("hide_book_a_team_member")}
-                </label>
-                <p className="text-subtle">{t("hide_book_a_team_member_description")}</p>
-              </div>
-              <div className="flex-none">
-                <Controller
-                  control={form.control}
-                  defaultValue={currentOrg?.hideBookATeamMember ?? false}
-                  name="hideBookATeamMember"
-                  render={({ field }) => (
-                    <Switch
-                      defaultChecked={field.value}
-                      onCheckedChange={(isChecked) => {
-                        form.setValue("hideBookATeamMember", isChecked);
-                      }}
-                    />
-                  )}
-                />
-              </div>
-            </div>
-          </div>
           <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
             {t("update")}
           </Button>
@@ -232,7 +179,7 @@ const OrgAppearanceView = () => {
           <span className="text-default text-sm">{t("only_owner_change")}</span>
         </div>
       )}
-    </>
+    </LicenseRequired>
   );
 };
 
