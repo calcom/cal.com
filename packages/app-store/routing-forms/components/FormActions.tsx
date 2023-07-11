@@ -7,8 +7,9 @@ import { Controller } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import { classNames } from "@calcom/lib";
-import getOrgAwareUrlOnClient from "@calcom/lib/getOrgAwareUrl";
+import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
@@ -401,11 +402,13 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   const dropdownCtxValue = useContext(dropdownCtx);
   const dropdown = dropdownCtxValue?.dropdown;
   const embedLink = `forms/${routingForm?.id}`;
-  const formRelativeLink = `/${embedLink}`;
-  let relativeRedirectUrl = `/router?form=${routingForm?.id}`;
+  const orgBranding = useOrgBrandingValues();
+
+  const formLink = `${orgBranding?.fullDomain ?? CAL_URL}/${embedLink}`;
+  let redirectUrl = `${orgBranding?.fullDomain ?? CAL_URL}/router?form=${routingForm?.id}`;
 
   routingForm?.fields?.forEach((field) => {
-    relativeRedirectUrl += `&${getFieldIdentifier(field)}={Recalled_Response_For_This_Field}`;
+    redirectUrl += `&${getFieldIdentifier(field)}={Recalled_Response_For_This_Field}`;
   });
 
   const { t } = useLocale();
@@ -415,12 +418,12 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     ButtonProps & { as?: React.ElementType; render?: FormActionProps<unknown>["render"] }
   > = {
     preview: {
-      href: formRelativeLink,
+      href: formLink,
     },
     copyLink: {
       onClick: () => {
         showToast(t("link_copied"), "success");
-        navigator.clipboard.writeText(getOrgAwareUrlOnClient(formRelativeLink));
+        navigator.clipboard.writeText(formLink);
       },
     },
     duplicate: {
@@ -447,7 +450,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     },
     copyRedirectUrl: {
       onClick: () => {
-        navigator.clipboard.writeText(getOrgAwareUrlOnClient(relativeRedirectUrl));
+        navigator.clipboard.writeText(redirectUrl);
         showToast(t("typeform_redirect_url_copied"), "success");
       },
     },
