@@ -23,7 +23,7 @@ const WipeMyCalActionButton = (props: IWipeMyCalActionButtonProps) => {
   }
   const wipeMyCalCredentials = data?.items.find((item: { type: string }) => item.type === "wipemycal_other");
 
-  const [credentialId] = wipeMyCalCredentials?.credentialIds || [false];
+  const [credentialId] = wipeMyCalCredentials?.userCredentialIds || [false];
 
   return (
     <>

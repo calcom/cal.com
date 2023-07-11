@@ -150,7 +150,7 @@ export const CreateANewOrganizationForm = () => {
     adminUsername: string;
   }>({
     defaultValues: {
-      slug: `${slug}`,
+      slug: `${slug ?? ""}`,
     },
   });
   const watchAdminEmail = newOrganizationFormMethods.watch("adminEmail");
