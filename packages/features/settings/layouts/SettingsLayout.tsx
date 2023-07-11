@@ -119,6 +119,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "impersonation", href: "/settings/admin/impersonation" },
       { name: "apps", href: "/settings/admin/apps/calendar" },
       { name: "users", href: "/settings/admin/users" },
+      { name: "organizations", href: "/settings/admin/organizations" },
     ],
   },
 ];
@@ -167,7 +168,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
       href="/"
-      className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md py-2 px-3 text-sm font-medium leading-4"
+      className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4"
       data-testid={`vertical-tab-${name}`}>
       <ArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0" />
       <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate" loadingClassName="ms-3">
@@ -193,6 +194,7 @@ const SettingsSidebarContainer = ({
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
 
   const { data: teams } = trpc.viewer.teams.list.useQuery();
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
 
   useEffect(() => {
     if (teams) {
@@ -254,7 +256,9 @@ const SettingsSidebarContainer = ({
                     isExternalLink={child.isExternalLink}
                     href={child.href || "/"}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
-                    className={`my-0.5 h-7 ${tab.children && index === tab.children?.length - 1 && "!mb-3"}`}
+                    className={`my-0.5 me-5 h-7 ${
+                      tab.children && index === tab.children?.length - 1 && "!mb-3"
+                    }`}
                     disableChevron
                   />
                 ))}
@@ -280,6 +284,9 @@ const SettingsSidebarContainer = ({
                 {teams &&
                   teamMenuState &&
                   teams.map((team, index: number) => {
+                    if (!teamMenuState[index]) {
+                      return null;
+                    }
                     if (teamMenuState.some((teamState) => teamState.teamId === team.id))
                       return (
                         <Collapsible
@@ -385,14 +392,15 @@ const SettingsSidebarContainer = ({
                         </Collapsible>
                       );
                   })}
-                <VerticalTabItem
-                  name={t("add_a_team")}
-                  href={`${WEBAPP_URL}/settings/teams/new`}
-                  textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
-                  icon={Plus}
-                  iconClassName="me-3"
-                  disableChevron
-                />
+                {(!currentOrg || (currentOrg && currentOrg?.user?.role !== "MEMBER")) && (
+                  <VerticalTabItem
+                    name={t("add_a_team")}
+                    href={`${WEBAPP_URL}/settings/teams/new`}
+                    textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
+                    icon={Plus}
+                    disableChevron
+                  />
+                )}
               </div>
             </React.Fragment>
           );
@@ -466,7 +474,7 @@ export default function SettingsLayout({
           {sideContainerOpen && (
             <button
               onClick={() => setSideContainerOpen(false)}
-              className="fixed top-0 left-0 z-10 h-full w-full bg-black/50">
+              className="fixed left-0 top-0 z-10 h-full w-full bg-black/50">
               <span className="sr-only">{t("hide_navigation")}</span>
             </button>
           )}
@@ -509,12 +517,12 @@ function ShellHeader() {
               {t(meta.title)}
             </h1>
           ) : (
-            <div className="bg-emphasis mb-1 h-6 w-24 animate-pulse rounded-md" />
+            <div className="bg-emphasis mb-1 h-5 w-24 animate-pulse rounded-md" />
           )}
           {meta.description && isLocaleReady ? (
             <p className="text-default text-sm ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
           ) : (
-            <div className="bg-emphasis mb-1 h-6 w-32 animate-pulse rounded-md" />
+            <div className="bg-emphasis h-5 w-32 animate-pulse rounded-md" />
           )}
         </div>
         <div className="ms-auto flex-shrink-0">{meta.CTA}</div>

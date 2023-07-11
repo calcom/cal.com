@@ -34,7 +34,7 @@ export function EmptyScreen({
       <div
         data-testid="empty-screen"
         className={classNames(
-          "min-h-80 flex w-full flex-col items-center justify-center rounded-md p-7 lg:p-20",
+          "flex select-none flex-col items-center justify-center rounded-lg p-7 lg:p-20",
           border && "border-subtle border",
           dashedBorder && "border-dashed",
           className
@@ -49,7 +49,7 @@ export function EmptyScreen({
         )}
         <div className="flex max-w-[420px] flex-col items-center">
           <h2 className="text-semibold font-cal text-emphasis mt-6 text-center text-xl">{headline}</h2>
-          <div className="text-default mt-3 mb-8 text-center text-sm font-normal leading-6">
+          <div className="text-default mb-8 mt-3 text-center text-sm font-normal leading-6">
             {description}
           </div>
           {buttonOnClick && buttonText && <Button onClick={(e) => buttonOnClick(e)}>{buttonText}</Button>}

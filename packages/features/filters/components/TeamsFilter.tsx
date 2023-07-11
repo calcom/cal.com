@@ -2,12 +2,14 @@ import { useSession } from "next-auth/react";
 import type { ReactNode, InputHTMLAttributes } from "react";
 import { forwardRef } from "react";
 
+import { classNames } from "@calcom/lib";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { AnimatedPopover, Avatar, Divider, VerticalDivider } from "@calcom/ui";
+import { AnimatedPopover, Avatar, Divider, Tooltip, VerticalDivider } from "@calcom/ui";
 import { Layers, User } from "@calcom/ui/components/icon";
 
 import { filterQuerySchema } from "../lib/getTeamsFiltersFromQuery";
@@ -67,7 +69,7 @@ export const TeamsFilter = ({
             onChange={(e) => {
               removeAllQueryParams();
             }}
-            label={t("all_apps")}
+            label={t("all")}
           />
 
           <FilterCheckboxField
@@ -84,28 +86,30 @@ export const TeamsFilter = ({
             label={t("yours")}
           />
           <Divider />
-          {teams?.map((team) => (
-            <FilterCheckboxField
-              key={team.id}
-              id={team.name}
-              label={team.name}
-              checked={!!query.teamIds?.includes(team.id)}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  pushItemToKey("teamIds", team.id);
-                } else if (!e.target.checked) {
-                  removeItemByKeyAndValue("teamIds", team.id);
+          {teams
+            ?.filter((team) => !teamMetadataSchema.parse(team.metadata)?.isOrganization)
+            .map((team) => (
+              <FilterCheckboxField
+                key={team.id}
+                id={team.name}
+                label={team.name}
+                checked={!!query.teamIds?.includes(team.id)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    pushItemToKey("teamIds", team.id);
+                  } else if (!e.target.checked) {
+                    removeItemByKeyAndValue("teamIds", team.id);
+                  }
+                }}
+                icon={
+                  <Avatar
+                    alt={team?.name}
+                    imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)}
+                    size="xs"
+                  />
                 }
-              }}
-              icon={
-                <Avatar
-                  alt={team?.name}
-                  imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)}
-                  size="xs"
-                />
-              }
-            />
-          ))}
+              />
+            ))}
         </FilterCheckboxFieldsContainer>
       </AnimatedPopover>
       {showVerticalDivider && <VerticalDivider />}
@@ -113,8 +117,19 @@ export const TeamsFilter = ({
   );
 };
 
-export const FilterCheckboxFieldsContainer = ({ children }: { children: ReactNode }) => {
-  return <div className="flex flex-col gap-0.5 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1">{children}</div>;
+export const FilterCheckboxFieldsContainer = ({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) => {
+  return (
+    <div
+      className={classNames("flex flex-col gap-0.5 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1", className)}>
+      {children}
+    </div>
+  );
 };
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
@@ -125,14 +140,16 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
 export const FilterCheckboxField = forwardRef<HTMLInputElement, Props>(({ label, icon, ...rest }, ref) => {
   return (
     <div className="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 hover:cursor-pointer">
-      <label className="flex w-full items-center justify-between hover:cursor-pointer">
-        <div className="flex items-center">
+      <label className="flex w-full max-w-full items-center justify-between hover:cursor-pointer">
+        <div className="flex items-center truncate">
           <div className="text-default flex h-4 w-4 items-center justify-center ltr:mr-2 rtl:ml-2">
             {icon}
           </div>
-          <label htmlFor={rest.id} className="text-default cursor-pointer truncate text-sm">
-            {label}
-          </label>
+          <Tooltip content={label}>
+            <label htmlFor={rest.id} className="text-default me-1 cursor-pointer truncate text-sm font-medium">
+              {label}
+            </label>
+          </Tooltip>
         </div>
         <div className="flex h-5 items-center">
           <input

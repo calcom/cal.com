@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
-import { CAL_URL } from "@calcom/lib/constants";
+import getOrgAwareUrlOnClient from "@calcom/lib/getOrgAwareUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
@@ -18,6 +18,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogFooter,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -91,8 +92,10 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
   return (
     <Dialog name="new-form" clearQueryParamsOnClose={["target", "action"]}>
       <DialogContent className="overflow-y-auto">
-        <div className="mb-4">
-          <h3 className="text-emphasis text-lg font-bold leading-6" id="modal-title">
+        <div className="mb-1">
+          <h3
+            className="text-emphasis !font-cal text-semibold leading-20 text-xl font-medium"
+            id="modal-title">
             {teamId ? t("add_new_team_form") : t("add_new_form")}
           </h3>
           <div>
@@ -112,7 +115,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
               duplicateFrom: formToDuplicate,
             });
           }}>
-          <div className="mt-3 space-y-4">
+          <div className="mt-3 space-y-5">
             <TextField label={t("title")} required placeholder={t("a_routing_form")} {...register("name")} />
             <div className="mb-5">
               <TextAreaField
@@ -141,12 +144,12 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
               />
             )}
           </div>
-          <div className="mt-8 flex flex-row-reverse gap-x-2">
+          <DialogFooter showDivider className="mt-12 flex flex-row-reverse gap-x-2">
+            <DialogClose />
             <Button loading={mutation.isLoading} data-testid="add-form" type="submit">
               {t("continue")}
             </Button>
-            <DialogClose />
-          </div>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>
@@ -192,7 +195,6 @@ function Dialogs({
   deleteDialogFormId: string | null;
 }) {
   const utils = trpc.useContext();
-  const router = useRouter();
   const { t } = useLocale();
   const deleteMutation = trpc.viewer.appRoutingForms.deleteForm.useMutation({
     onMutate: async ({ id: formId }) => {
@@ -399,11 +401,11 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   const dropdownCtxValue = useContext(dropdownCtx);
   const dropdown = dropdownCtxValue?.dropdown;
   const embedLink = `forms/${routingForm?.id}`;
-  const formLink = `${CAL_URL}/${embedLink}`;
-  let redirectUrl = `${CAL_URL}/router?form=${routingForm?.id}`;
+  const formRelativeLink = `/${embedLink}`;
+  let relativeRedirectUrl = `/router?form=${routingForm?.id}`;
 
   routingForm?.fields?.forEach((field) => {
-    redirectUrl += `&${getFieldIdentifier(field)}={Recalled_Response_For_This_Field}`;
+    relativeRedirectUrl += `&${getFieldIdentifier(field)}={Recalled_Response_For_This_Field}`;
   });
 
   const { t } = useLocale();
@@ -413,12 +415,12 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     ButtonProps & { as?: React.ElementType; render?: FormActionProps<unknown>["render"] }
   > = {
     preview: {
-      href: formLink,
+      href: formRelativeLink,
     },
     copyLink: {
       onClick: () => {
         showToast(t("link_copied"), "success");
-        navigator.clipboard.writeText(formLink);
+        navigator.clipboard.writeText(getOrgAwareUrlOnClient(formRelativeLink));
       },
     },
     duplicate: {
@@ -445,7 +447,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     },
     copyRedirectUrl: {
       onClick: () => {
-        navigator.clipboard.writeText(redirectUrl);
+        navigator.clipboard.writeText(getOrgAwareUrlOnClient(relativeRedirectUrl));
         showToast(t("typeform_redirect_url_copied"), "success");
       },
     },

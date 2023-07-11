@@ -210,7 +210,7 @@ function EventTypeSingleLayout({
     }
     if (isManagedEventType || isChildrenManagedEventType) {
       // Removing apps and workflows for manageg event types by admins v1
-      navigation.splice(-2, 1);
+      navigation.splice(0, 1);
     } else {
       navigation.push({
         name: "webhooks",
@@ -369,7 +369,7 @@ function EventTypeSingleLayout({
                 </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between py-2 px-4">
+              <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2">
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"

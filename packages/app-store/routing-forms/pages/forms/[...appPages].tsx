@@ -1,5 +1,7 @@
 // TODO: i18n
 import { useRouter } from "next/router";
+import { useEffect } from "react";
+import { useFormContext } from "react-hook-form";
 
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
@@ -46,6 +48,7 @@ import {
   FormActionsDropdown,
   FormActionsProvider,
 } from "../../components/FormActions";
+import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import { isFallbackRoute } from "../../lib/isFallbackRoute";
 
 function NewFormButton() {
@@ -69,6 +72,11 @@ export default function RoutingForms({
   const { hasPaidPlan } = useHasPaidPlan();
   const router = useRouter();
 
+  const hookForm = useFormContext<RoutingFormWithResponseCount>();
+  useEffect(() => {
+    hookForm.reset({});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const filters = getTeamsFiltersFromQuery(router.query);
 
   const queryRes = trpc.viewer.appRoutingForms.forms.useQuery({

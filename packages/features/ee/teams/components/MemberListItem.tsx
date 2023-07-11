@@ -173,6 +173,7 @@ export default function MemberListItem(props: Props) {
                   className={classNames(!editMode ? "rounded-r-md" : "")}
                   variant="icon"
                   StartIcon={ExternalLink}
+                  disabled={!props.member.accepted}
                 />
               </Tooltip>
               {editMode && (
@@ -227,7 +228,12 @@ export default function MemberListItem(props: Props) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem className="outline-none">
-                    <DropdownItem type="button" StartIcon={ExternalLink}>
+                    <DropdownItem
+                      disabled={!props.member.accepted}
+                      href={!props.member.accepted ? undefined : "/" + props.member.username}
+                      target="_blank"
+                      type="button"
+                      StartIcon={ExternalLink}>
                       {t("view_public_page")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -260,7 +266,7 @@ export default function MemberListItem(props: Props) {
       </div>
 
       {editMode && (
-        <Dialog open={showDeleteModal} onOpenChange={() => setShowDeleteModal(false)}>
+        <Dialog open={showDeleteModal} onOpenChange={() => setShowDeleteModal((prev) => !prev)}>
           <ConfirmationDialogContent
             variety="danger"
             title={t("remove_member")}
@@ -283,7 +289,7 @@ export default function MemberListItem(props: Props) {
                 });
                 setShowImpersonateModal(false);
               }}>
-              <DialogFooter>
+              <DialogFooter showDivider className="mt-8">
                 <DialogClose color="secondary">{t("cancel")}</DialogClose>
                 <Button color="primary" type="submit">
                   {t("impersonate")}
