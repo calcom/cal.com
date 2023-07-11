@@ -20,7 +20,6 @@
     "zustand": "^4.3.2"
   },
   "devDependencies": {
-    "@testing-library/react-hooks": "^8.0.1",
-    "mockdate": "^3.0.5"
+    "@testing-library/react-hooks": "^8.0.1"
   }
 }

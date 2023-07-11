@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
@@ -24,7 +25,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="mt-6 mb-8 space-y-6">
+      <div className="mb-8 mt-6 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -61,7 +62,13 @@ const OrgGeneralView = () => {
     currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN;
 
   return (
-    <GeneralView currentOrg={currentOrg} isAdminOrOwner={isAdminOrOwner} localeProp={user?.locale ?? "en"} />
+    <LicenseRequired>
+      <GeneralView
+        currentOrg={currentOrg}
+        isAdminOrOwner={isAdminOrOwner}
+        localeProp={user?.locale ?? "en"}
+      />
+    </LicenseRequired>
   );
 };
 

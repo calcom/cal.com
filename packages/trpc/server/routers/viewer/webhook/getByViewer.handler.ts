@@ -2,9 +2,12 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import type { Webhook } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
+
+import { compareMembership } from "../eventTypes/getByViewer.handler";
 
 type GetByViewerOptions = {
   ctx: {
@@ -57,6 +60,8 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
               id: true,
               name: true,
               slug: true,
+              parentId: true,
+              metadata: true,
               members: {
                 select: {
                   userId: true,
@@ -91,18 +96,43 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     },
   });
 
-  const teamWebhookGroups: WebhookGroup[] = user.teams.map((membership) => ({
+  const teamMemberships = user.teams.map((membership) => ({
     teamId: membership.team.id,
-    profile: {
-      name: membership.team.name,
-      slug: "team/" + membership.team.slug,
-      image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
-    },
-    metadata: {
-      readOnly: membership.role !== MembershipRole.ADMIN && membership.role !== MembershipRole.OWNER,
-    },
-    webhooks: membership.team.webhooks,
+    membershipRole: membership.role,
   }));
+
+  const teamWebhookGroups: WebhookGroup[] = user.teams
+    .filter((mmship) => {
+      const metadata = teamMetadataSchema.parse(mmship.team.metadata);
+      return !metadata?.isOrganization;
+    })
+    .map((membership) => {
+      const orgMembership = teamMemberships.find(
+        (teamM) => teamM.teamId === membership.team.parentId
+      )?.membershipRole;
+      return {
+        teamId: membership.team.id,
+        profile: {
+          name: membership.team.name,
+          slug: membership.team.slug
+            ? !membership.team.parentId
+              ? `/team`
+              : "" + membership.team.slug
+            : null,
+          image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
+        },
+        metadata: {
+          readOnly:
+            membership.role ===
+            (membership.team.parentId
+              ? orgMembership && compareMembership(orgMembership, membership.role)
+                ? orgMembership
+                : MembershipRole.MEMBER
+              : MembershipRole.MEMBER),
+        },
+        webhooks: membership.team.webhooks,
+      };
+    });
 
   webhookGroups = webhookGroups.concat(teamWebhookGroups);
 
@@ -112,6 +142,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
       teamId: group.teamId,
       ...group.profile,
       ...group.metadata,
+      image: `${CAL_URL}/${group.profile.slug}/avatar.png`,
     })),
   };
 };

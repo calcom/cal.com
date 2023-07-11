@@ -16,9 +16,10 @@ export interface AlertProps {
   // @TODO: Success and info shouldn't exist as per design?
   severity: "success" | "warning" | "error" | "info" | "neutral";
   CustomIcon?: IconType;
+  customIconColor?: string;
 }
 export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
-  const { severity, iconClassName, CustomIcon } = props;
+  const { severity, iconClassName, CustomIcon, customIconColor } = props;
 
   return (
     <div
@@ -32,10 +33,13 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
         severity === "success" && "bg-inverted text-inverted",
         severity === "neutral" && "bg-subtle text-default"
       )}>
-      <div className="relative flex flex-col md:flex-row">
+      <div className="relative flex md:flex-row">
         {CustomIcon ? (
           <div className="flex-shrink-0">
-            <CustomIcon aria-hidden="true" className={classNames("text-default h-5 w-5", iconClassName)} />
+            <CustomIcon
+              aria-hidden="true"
+              className={classNames(`h-5 w-5`, iconClassName, customIconColor ?? "text-default")}
+            />
           </div>
         ) : (
           <div className="flex-shrink-0">
@@ -71,13 +75,13 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
             )}
           </div>
         )}
-
-        <div className="ml-3 flex-grow">
-          <h3 className="text-sm font-medium">{props.title}</h3>
-          <div className="text-sm">{props.message}</div>
+        <div className="flex flex-grow flex-col sm:flex-row">
+          <div className="ml-3 ">
+            <h3 className="text-sm font-medium">{props.title}</h3>
+            <div className="text-sm">{props.message}</div>
+          </div>
+          {props.actions && <div className="ml-auto mt-2 text-sm sm:mt-0 md:relative">{props.actions}</div>}
         </div>
-        {/* @TODO: Shouldn't be absolute. This makes it harder to give margin etc. */}
-        {props.actions && <div className="absolute top-1 right-1 text-sm md:relative">{props.actions}</div>}
       </div>
     </div>
   );

@@ -1,12 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { LinkIcon, Trash2 } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState, useLayoutEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -31,9 +33,6 @@ import {
 } from "@calcom/ui";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
-import { extractDomainFromWebsiteUrl } from "../../lib/utils";
-
-const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
 const orgProfileFormSchema = z.object({
   name: z.string(),
@@ -45,12 +44,16 @@ const OrgProfileView = () => {
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
-  const session = useSession();
   const [firstRender, setFirstRender] = useState(true);
+  const orgBranding = useOrgBrandingValues();
 
   useLayoutEffect(() => {
     document.body.focus();
   }, []);
+
+  const form = useForm({
+    resolver: zodResolver(orgProfileFormSchema),
+  });
 
   const mutation = trpc.viewer.organizations.update.useMutation({
     onError: (err) => {
@@ -60,10 +63,6 @@ const OrgProfileView = () => {
       await utils.viewer.teams.get.invalidate();
       showToast(t("your_organisation_updated_sucessfully"), "success");
     },
-  });
-
-  const form = useForm({
-    resolver: zodResolver(orgProfileFormSchema),
   });
 
   const { data: currentOrganisation, isLoading } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
@@ -88,8 +87,6 @@ const OrgProfileView = () => {
     (currentOrganisation.user.role === MembershipRole.OWNER ||
       currentOrganisation.user.role === MembershipRole.ADMIN);
 
-  const permalink = `${currentOrganisation?.slug}.cal.com`;
-
   const isBioEmpty =
     !currentOrganisation ||
     !currentOrganisation.bio ||
@@ -103,12 +100,14 @@ const OrgProfileView = () => {
     },
   });
 
+  if (!orgBranding) return null;
+
   function deleteTeam() {
     if (currentOrganisation?.id) deleteTeamMutation.mutate({ teamId: currentOrganisation.id });
   }
 
   return (
-    <>
+    <LicenseRequired>
       <Meta title={t("profile")} description={t("profile_org_description")} />
       {!isLoading && (
         <>
@@ -163,7 +162,7 @@ const OrgProfileView = () => {
                   <div className="mt-8">
                     <TextField
                       name="name"
-                      label={t("team_name")}
+                      label={t("org_name")}
                       value={value}
                       onChange={(e) => {
                         form.setValue("name", e?.target.value);
@@ -175,10 +174,10 @@ const OrgProfileView = () => {
               <div className="mt-8">
                 <TextField
                   name="slug"
-                  label={t("team_url")}
+                  label={t("org_url")}
                   value={currentOrganisation.slug ?? ""}
                   disabled
-                  addOnSuffix={`.${extractDomainFromWebsiteUrl}`}
+                  addOnSuffix={`.${subdomainSuffix()}`}
                 />
               </div>
               <div className="mt-8">
@@ -201,7 +200,7 @@ const OrgProfileView = () => {
             <div className="flex">
               <div className="flex-grow">
                 <div>
-                  <Label className="text-emphasis">{t("team_name")}</Label>
+                  <Label className="text-emphasis">{t("org_name")}</Label>
                   <p className="text-default text-sm">{currentOrganisation?.name}</p>
                 </div>
                 {currentOrganisation && !isBioEmpty && (
@@ -218,10 +217,10 @@ const OrgProfileView = () => {
                 <LinkIconButton
                   Icon={LinkIcon}
                   onClick={() => {
-                    navigator.clipboard.writeText(permalink);
+                    navigator.clipboard.writeText(orgBranding.fullDomain);
                     showToast("Copied to clipboard", "success");
                   }}>
-                  {t("copy_link_team")}
+                  {t("copy_link_org")}
                 </LinkIconButton>
               </div>
             </div>
@@ -248,7 +247,7 @@ const OrgProfileView = () => {
           {/* LEAVE ORG should go above here ^ */}
         </>
       )}
-    </>
+    </LicenseRequired>
   );
 };
 

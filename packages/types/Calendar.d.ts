@@ -9,6 +9,7 @@ import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingRe
 import type { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { Frequency } from "@calcom/prisma/zod-utils";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import type { Ensure } from "./utils";
 
@@ -232,3 +233,10 @@ export interface Calendar {
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 }
+
+/**
+ * @see [How to inference class type that implements an interface](https://stackoverflow.com/a/64765554/6297100)
+ */
+type Class<I, Args extends any[] = any[]> = new (...args: Args) => I;
+
+export type CalendarClass = Class<Calendar, [CredentialPayload]>;

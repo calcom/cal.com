@@ -16,6 +16,7 @@ export {
   TextField,
   InputFieldWithSelect,
   NumberInput,
+  FilterSearchField,
 } from "./inputs/Input";
 export { Label } from "./inputs/Label";
 export { Select, SelectField, SelectWithValidation, getReactSelectProps } from "./select";

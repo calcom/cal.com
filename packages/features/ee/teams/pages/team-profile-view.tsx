@@ -16,6 +16,7 @@ import objectKeys from "@calcom/lib/objectKeys";
 import turndown from "@calcom/lib/turndownService";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui";
 import {
   Avatar,
   Button,
@@ -78,6 +79,7 @@ const ProfileView = () => {
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
     { teamId: Number(router.query.id) },
     {
+      enabled: !!router.query.id,
       onError: () => {
         router.push("/settings");
       },
@@ -148,7 +150,7 @@ const ProfileView = () => {
   return (
     <>
       <Meta title={t("profile")} description={t("profile_team_description")} />
-      {!isLoading && (
+      {!isLoading ? (
         <>
           {isAdmin ? (
             <Form
@@ -250,7 +252,7 @@ const ProfileView = () => {
                 (team.metadata as Prisma.JsonObject)?.requestedSlug && (
                   <Button
                     color="secondary"
-                    className="mt-8 ml-2"
+                    className="ml-2 mt-8"
                     type="button"
                     onClick={() => {
                       publishMutation.mutate({ teamId: team.id });
@@ -325,6 +327,40 @@ const ProfileView = () => {
               </ConfirmationDialogContent>
             </Dialog>
           )}
+        </>
+      ) : (
+        <>
+          <SkeletonContainer as="form">
+            <div className="flex items-center">
+              <div className="ms-4">
+                <SkeletonContainer>
+                  <div className="bg-emphasis h-16 w-16 rounded-full" />
+                </SkeletonContainer>
+              </div>
+            </div>
+            <hr className="border-subtle my-8" />
+            <SkeletonContainer>
+              <div className="mt-8">
+                <SkeletonText className="h-6 w-48" />
+              </div>
+            </SkeletonContainer>
+            <SkeletonContainer>
+              <div className="mt-8">
+                <SkeletonText className="h-6 w-48" />
+              </div>
+            </SkeletonContainer>
+            <div className="mt-8">
+              <SkeletonContainer>
+                <div className="bg-emphasis h-24 rounded-md" />
+              </SkeletonContainer>
+              <SkeletonText className="mt-4 h-12 w-32" />
+            </div>
+            <SkeletonContainer>
+              <div className="mt-8">
+                <SkeletonText className="h-9 w-24" />
+              </div>
+            </SkeletonContainer>
+          </SkeletonContainer>
         </>
       )}
     </>
