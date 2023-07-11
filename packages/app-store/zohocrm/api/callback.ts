@@ -4,8 +4,8 @@ import qs from "qs";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import prisma from "@calcom/prisma";
 
+import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -51,15 +51,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   zohoCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);
   zohoCrmTokenInfo.data.accountServer = req.query["accounts-server"];
 
-  await prisma.credential.create({
-    data: {
-      type: "zohocrm_other_calendar",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      key: zohoCrmTokenInfo.data as any,
-      userId: req.session.user.id,
-      appId: "zohocrm",
-    },
-  });
+  createOAuthAppCredential(
+    { appId: "zohocrm", type: "zohocrm_other_calendar" },
+    zohoCrmTokenInfo.data as any,
+    req
+  );
 
   const state = decodeOAuthState(req);
   res.redirect(
