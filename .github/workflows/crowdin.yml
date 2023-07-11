@@ -22,6 +22,7 @@ jobs:
         uses: crowdin/github-action@1.5.1
         with:
           upload_sources: true
+          upload_translations: true
           download_translations: true
           push_translations: true
           commit_message: "New Crowdin translations by Github Action"
