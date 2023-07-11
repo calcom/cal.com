@@ -95,7 +95,7 @@ export default function Apps({
 
 Apps.PageWrapper = PageWrapper;
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export async (context: GetServerSidePropsContext) => {
   const { req, res } = context;
 
   const ssr = await ssrInit(context);
