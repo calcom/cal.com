@@ -2,6 +2,7 @@ import { useState } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import {
   TeamsFilter,
   FilterCheckboxFieldsContainer,
@@ -28,6 +29,8 @@ import { EventTypeFilter } from "./EventTypeFilter";
 
 const PeopleFilter = () => {
   const { t } = useLocale();
+  const orgBranding = useOrgBrandingValues();
+
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeByKey } = useFilterQuery();
   const [searchText, setSearchText] = useState("");
 
@@ -70,7 +73,11 @@ const PeopleFilter = () => {
             icon={
               <Avatar
                 alt={`${member?.id} avatar`}
-                imageSrc={member.username ? `${WEBAPP_URL}/${member.username}/avatar.png` : undefined}
+                imageSrc={
+                  member.username
+                    ? `${orgBranding?.fullDomain ?? WEBAPP_URL}/${member.username}/avatar.png`
+                    : undefined
+                }
                 size="xs"
               />
             }
