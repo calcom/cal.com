@@ -1733,7 +1733,7 @@
   "email_invite_team_bulk": "{{userCount}} 人のユーザーが招待されました",
   "error_collecting_card": "カードの収集中にエラーが発生しました",
   "image_size_limit_exceed": "アップロードする画像のサイズは 5 MB 以下にする必要があります",
-  "inline_embed": "インラインで埋め込む",
+  "inline_embed": "インライン埋め込み",
   "load_inline_content": "イベントの種類を他のウェブサイト内コンテンツにインラインで直接読み込みます。",
   "floating_pop_up_button": "フローティングポップアップボタン",
   "floating_button_trigger_modal": "モーダルウィンドウをご利用のイベントの種類でトリガーするフローティングボタンをサイトに設置します。",
