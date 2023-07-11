@@ -301,10 +301,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const markdownStrippedBio = stripMarkdown(team?.bio || "");
 
+  const { inviteToken: _inviteToken, ...serializableTeam } = team;
+
   return {
     props: {
-      team: { ...team, safeBio, members },
-      themeBasis: team.slug,
+      team: { ...serializableTeam, safeBio, members },
+      themeBasis: serializableTeam.slug,
       trpcState: ssr.dehydrate(),
       markdownStrippedBio,
       isValidOrgDomain,
