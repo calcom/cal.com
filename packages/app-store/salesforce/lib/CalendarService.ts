@@ -79,7 +79,7 @@ export default class SalesforceCalendarService implements Calendar {
           .sobject("Contact")
           .create({
             FirstName,
-            LastName,
+            LastName: LastName || "",
             Email: attendee.email,
           })
           .then((result) => {
