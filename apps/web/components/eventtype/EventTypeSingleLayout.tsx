@@ -235,9 +235,9 @@ function EventTypeSingleLayout({
   ]);
 
   const orgBranding = useOrgBrandingValues();
-
+  const isOrgEvent = orgBranding?.fullDomain;
   const permalink = `${orgBranding?.fullDomain ?? CAL_URL}/${
-    team ? `team/${team.slug}` : eventType.users[0].username
+    team ? `${!isOrgEvent ? "team/" : ""}${team.slug}` : eventType.users[0].username
   }/${eventType.slug}`;
 
   const embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
