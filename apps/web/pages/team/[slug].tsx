@@ -153,9 +153,9 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
         <div className="overflow-hidden rounded-sm border dark:border-gray-900">
           <div className="text-muted dark:text-inverted p-8 text-center">
             <h2 className="font-cal dark:text-inverted text-emphasis600 mb-2 text-3xl">
-              {" " + t("no_teams_yet")}
+              {" " + t("org_no_teams_yet")}
             </h2>
-            <p className="mx-auto max-w-md">{t("no_teams_yet_description")}</p>
+            <p className="mx-auto max-w-md">{t("org_no_teams_yet_description")}</p>
           </div>
         </div>
       </div>

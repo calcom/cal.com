@@ -46,7 +46,7 @@ function getRoute(appName: string, pages: string[]) {
     } as NotFound;
   }
   const mainPage = pages[0];
-  const appPage = routingConfig[mainPage] as AppPageType;
+  const appPage = routingConfig.layoutHandler || (routingConfig[mainPage] as AppPageType);
 
   if (!appPage) {
     return {
