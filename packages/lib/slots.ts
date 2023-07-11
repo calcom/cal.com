@@ -160,19 +160,47 @@ function buildSlotsWithDateRanges({
   frequency = minimumOfOne(frequency);
   eventLength = minimumOfOne(eventLength);
   offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
-
   const slots: { time: Dayjs; userIds?: number[] }[] = [];
   dateRanges.forEach((range) => {
     const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
     let slotStartTime = range.start.isAfter(startTimeWithMinNotice) ? range.start : startTimeWithMinNotice;
 
-    slotStartTime =
-      slotStartTime.utc().minute() % 15 !== 0
-        ? slotStartTime
-            .startOf("day")
-            .add(slotStartTime.hour() * 60 + Math.ceil(slotStartTime.minute() / 15) * 15, "minute")
-        : slotStartTime;
+    let previousStartTime;
+    // check if we we already have slots on that day (in organizer's timezone)
+    if (
+      slots.length &&
+      dayjs
+        .utc(range.start)
+        .add(range.start.utcOffset())
+        .isSame(dayjs.utc(slots[slots.length - 1].time).add(slots[slots.length - 1].time.utcOffset()), "day")
+    ) {
+      previousStartTime = slots[slots.length - 1].time;
+    }
+
+    if (!previousStartTime) {
+      let interval = 15;
+
+      const intervalsWithDefinedStartTimes = [60, 30, 20, 10];
+
+      for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
+        if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
+          interval = intervalsWithDefinedStartTimes[i];
+          break;
+        }
+      }
+
+      slotStartTime =
+        slotStartTime.utc().minute() % interval !== 0
+          ? slotStartTime
+              .startOf("hour")
+              .add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
+          : slotStartTime;
+    } else {
+      const minuteOffset =
+        Math.ceil(slotStartTime.diff(previousStartTime, "minutes") / frequency) * frequency;
+      slotStartTime = previousStartTime.add(minuteOffset, "minutes");
+    }
 
     // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
     const rangeEnd = range.end
