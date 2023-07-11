@@ -69,9 +69,47 @@ test.describe("Stripe integration", () => {
     await expect(page.getByText("Unconfirmed")).toBeVisible();
     await expect(page.getByText("Pending payment").last()).toBeVisible();
   });
+
+  test("Paid booking should be able to be rescheduled", async ({ page, users }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    await user.apiLogin();
+    await page.goto("/apps/installed");
+
+    await user.getPaymentCredential();
+    await user.setupEventWithPrice(eventType);
+    await user.bookAndPaidEvent(eventType);
+
+    await Promise.all([page.waitForURL("/booking/*"), page.click('[data-testid="reschedule-link"]')]);
+
+    // wait for reschedule page to load
+    await page.waitForSelector('[data-testid="incrementMonth"]');
+
+    await page.click('[data-testid="incrementMonth"]');
+
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(1000);
+
+    await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
+    await page.locator('[data-testid="time"][data-disabled="false"]').nth(0).click();
+
+    await page.click('[data-testid="confirm-reschedule-button"]');
+
+    await Promise.all([page.waitForURL("/payment/*"), page.press('[name="email"]', "Enter")]);
+
+    const stripeFrame = page.frameLocator("iframe").first();
+    await stripeFrame.locator('[name="number"]').fill("4242 4242 4242 4242");
+    const now = new Date();
+    await stripeFrame.locator('[name="expiry"]').fill(`${now.getMonth()} / ${now.getFullYear() + 1}`);
+    await stripeFrame.locator('[name="cvc"]').fill("111");
+    const postcalCodeIsVisible = await stripeFrame.locator('[name="postalCode"]').isVisible();
+    if (postcalCodeIsVisible) {
+      await stripeFrame.locator('[name="postalCode"]').fill("111111");
+    }
+    await page.click('button:has-text("Pay now")');
+  });
   todo("Payment should confirm pending payment booking");
   todo("Payment should trigger a BOOKING_PAID webhook");
-  todo("Paid booking should be able to be rescheduled");
   todo("Paid booking should be able to be cancelled");
   todo("Cancelled paid booking should be refunded");
 });
