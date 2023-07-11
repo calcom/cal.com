@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { validPassword } from "@calcom/features/auth/lib/validPassword";
 import prisma from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -36,6 +37,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: "Couldn't find an account for this email" });
     }
 
+    if (!validPassword(rawPassword)) {
+      return res.status(400).json({ message: "Password does not meet the requirements" });
+    }
+
     const hashedPassword = await hashPassword(rawPassword);
 
     await prisma.user.update({
@@ -47,9 +52,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
+    await expireResetPasswordRequest(rawRequestId);
+
     return res.status(201).json({ message: "Password reset." });
   } catch (reason) {
     console.error(reason);
     return res.status(500).json({ message: "Unable to create password reset request" });
   }
+}
+
+async function expireResetPasswordRequest(rawRequestId: string) {
+  await prisma.resetPasswordRequest.update({
+    where: {
+      id: rawRequestId,
+    },
+    data: {
+      // We set the expiry to now to invalidate the request
+      expires: new Date(),
+    },
+  });
 }
