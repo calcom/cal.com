@@ -172,9 +172,10 @@ describe("next.config.js - RegExp", () => {
 });
 
 describe("next.config.js - Org Rewrite", () => {
-  // RegExp copied from next.config.js
   const orgHostRegExp = (subdomainRegExp: string) =>
+  // RegExp copied from pagesAndRewritePaths.js orgHostPath. Do make the change there as well.
     new RegExp(`^(?<orgSlug>${subdomainRegExp})\\..*`);
+
   describe("Host matching based on NEXT_PUBLIC_WEBAPP_URL", () => {
     it("https://app.cal.com", () => {
       const subdomainRegExp = getSubdomainRegExp("https://app.cal.com");
@@ -186,6 +187,10 @@ describe("next.config.js - Org Rewrite", () => {
       expect(
         orgHostRegExp(subdomainRegExp).exec("org.cal.com")?.groups?.orgSlug
       ).toEqual("org");
+
+      expect(
+        orgHostRegExp(subdomainRegExp).exec("localhost:3000")
+      ).toEqual(null);
     });
 
     it("app.cal.com", () => {
