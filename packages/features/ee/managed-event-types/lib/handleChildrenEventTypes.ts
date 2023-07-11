@@ -205,7 +205,6 @@ export default async function handleChildrenEventTypes({
               },
             },*/
             hashedLink: hashedLinkQuery(userId),
-            schedulingType: updatedEventType.schedulingType,
           },
         });
       })
