@@ -119,8 +119,16 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   selectedDate: getQueryParam("date") || null,
   setSelectedDate: (selectedDate: string | null) => {
+    const currentSelection = dayjs(get().selectedDate);
+    const newSelection = dayjs(selectedDate);
     set({ selectedDate });
     updateQueryParam("date", selectedDate ?? "");
+
+    // Setting month make sure small calendar in fullscreen layouts also updates.
+    if (newSelection.month() !== currentSelection.month()) {
+      set({ month: newSelection.format("YYYY-MM") });
+      updateQueryParam("month", newSelection.format("YYYY-MM"));
+    }
   },
   addToSelectedDate: (days: number) => {
     const currentSelection = dayjs(get().selectedDate);
