@@ -1,18 +1,33 @@
 import Link from "next/link";
 import type { IframeHTMLAttributes } from "react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import { CAL_URL } from "@calcom/lib/constants";
+import type {  RouterOutputs } from "@calcom/trpc/react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton, AppDependencyComponent } from "@calcom/app-store/components";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import Shell from "@calcom/features/shell/Shell";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
+import type { ButtonProps } from "@calcom/ui";
+import type { AppFrontendPayload as App } from "@calcom/types/App";
 import { Button, showToast, SkeletonButton, SkeletonText, HeadSeo, Badge } from "@calcom/ui";
+import {
+  Dropdown,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuPortal,
+  DropdownMenuLabel,
+  DropdownItem,
+  Avatar,
+} from "@calcom/ui";
 import { BookOpen, Check, ExternalLink, File, Flag, Mail, Plus, Shield } from "@calcom/ui/components/icon";
 
 /* These app slugs all require Google Cal to be installed */
@@ -60,11 +75,14 @@ const Component = ({
   }).format(price);
 
   const [existingCredentials, setExistingCredentials] = useState<number[]>([]);
-  const appCredentials = trpc.viewer.appCredentialsByType.useQuery(
+  const [showDisconnectIntegration, setShowDisconnectIntegration] = useState(false);
+  const appDbQuery = trpc.viewer.appCredentialsByType.useQuery(
     { appType: type },
     {
-      onSuccess(data) {
-        setExistingCredentials(data);
+      onSettled(data) {
+        const credentialsCount = data?.credentials.length || 0
+        setShowDisconnectIntegration(data?.userAdminTeams.length ? credentialsCount >= data?.userAdminTeams.length : credentialsCount > 0);
+        setExistingCredentials(data?.credentials.map(credential => credential.id) || []);
       },
     }
   );
@@ -85,7 +103,7 @@ const Component = ({
   return (
     <div className="relative flex-1 flex-col items-start justify-start px-4 md:flex md:px-8 lg:flex-row lg:px-0">
       {hasDescriptionItems && (
-        <div className="align-center bg-subtle mb-4 -ml-4 -mr-4 flex min-h-[450px] w-auto basis-3/5 snap-x snap-mandatory flex-row overflow-auto whitespace-nowrap p-4  md:mb-8 md:-ml-8 md:-mr-8 md:p-8 lg:mx-0 lg:mb-0 lg:max-w-2xl lg:flex-col lg:justify-center lg:rounded-md">
+        <div className="align-center bg-subtle -ml-4 -mr-4 mb-4 flex min-h-[450px] w-auto basis-3/5 snap-x snap-mandatory flex-row overflow-auto whitespace-nowrap p-4  md:-ml-8 md:-mr-8 md:mb-8 md:p-8 lg:mx-0 lg:mb-0 lg:max-w-2xl lg:flex-col lg:justify-center lg:rounded-md">
           {descriptionItems ? (
             descriptionItems.map((descriptionItem, index) =>
               typeof descriptionItem === "object" ? (
@@ -141,7 +159,7 @@ const Component = ({
             )}
           </header>
         </div>
-        {!appCredentials.isLoading ? (
+        {!appDbQuery.isLoading ? (
           isGlobal ||
           (existingCredentials.length > 0 && allowedMultipleInstalls ? (
             <div className="flex space-x-3">
@@ -166,28 +184,19 @@ const Component = ({
                       };
                     }
                     return (
-                      <Button
-                        StartIcon={Plus}
-                        {...props}
-                        // @TODO: Overriding color and size prevent us from
-                        // having to duplicate InstallAppButton for now.
-                        color="primary"
-                        size="base"
-                        data-testid="install-app-button">
-                        {t("install_another")}
-                      </Button>
+                      <InstallAppButtonChild appCategories={categories} userAdminTeams={appDbQuery.data?.userAdminTeams} addAppMutationInput={{ type, variant, slug }} multiInstall {...props} />
                     );
                   }}
                 />
               )}
             </div>
-          ) : existingCredentials.length > 0 ? (
+          ) : showDisconnectIntegration ? (
             <DisconnectIntegration
               buttonProps={{ color: "secondary" }}
               label={t("disconnect")}
               credentialId={existingCredentials[0]}
               onSuccess={() => {
-                appCredentials.refetch();
+                appDbQuery.refetch();
               }}
             />
           ) : (
@@ -206,15 +215,7 @@ const Component = ({
                   };
                 }
                 return (
-                  <Button
-                    data-testid="install-app-button"
-                    {...props}
-                    // @TODO: Overriding color and size prevent us from
-                    // having to duplicate InstallAppButton for now.
-                    color="primary"
-                    size="base">
-                    {t("install_app")}
-                  </Button>
+                    <InstallAppButtonChild appCategories={categories} userAdminTeams={appDbQuery.data?.userAdminTeams} addAppMutationInput={{type, variant, slug}} credentials={appDbQuery.data?.credentials} {...props} />
                 );
               }}
             />
@@ -260,7 +261,7 @@ const Component = ({
           )}
         </span>
 
-        <h4 className="text-emphasis mt-8 mb-2 font-semibold ">{t("contact")}</h4>
+        <h4 className="text-emphasis mb-2 mt-8 font-semibold ">{t("contact")}</h4>
         <ul className="prose-sm -ml-1 -mr-1 leading-5">
           {docs && (
             <li>
@@ -269,7 +270,7 @@ const Component = ({
                 rel="noreferrer"
                 className="text-emphasis text-sm font-normal no-underline hover:underline"
                 href={docs}>
-                <BookOpen className="text-subtle mr-1 -mt-1 inline h-4 w-4" />
+                <BookOpen className="text-subtle -mt-1 mr-1 inline h-4 w-4" />
                 {t("documentation")}
               </a>
             </li>
@@ -281,7 +282,7 @@ const Component = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={website}>
-                <ExternalLink className="text-subtle mr-1 -mt-px inline h-4 w-4" />
+                <ExternalLink className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {website.replace("https://", "")}
               </a>
             </li>
@@ -293,7 +294,7 @@ const Component = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={"mailto:" + email}>
-                <Mail className="text-subtle mr-1 -mt-px inline h-4 w-4" />
+                <Mail className="text-subtle -mt-px mr-1 inline h-4 w-4" />
 
                 {email}
               </a>
@@ -306,7 +307,7 @@ const Component = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={tos}>
-                <File className="text-subtle mr-1 -mt-px inline h-4 w-4" />
+                <File className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {t("terms_of_service")}
               </a>
             </li>
@@ -318,7 +319,7 @@ const Component = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={privacy}>
-                <Shield className="text-subtle mr-1 -mt-px inline h-4 w-4" />
+                <Shield className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {t("privacy_policy")}
               </a>
             </li>
@@ -385,3 +386,98 @@ export default function App(props: {
     </Shell>
   );
 }
+
+const InstallAppButtonChild = ({
+  userAdminTeams,
+  addAppMutationInput,
+  appCategories,
+  multiInstall,
+  credentials,
+  ...props
+}: {
+  userAdminTeams?: UserAdminTeams;
+  addAppMutationInput: { type: App["type"]; variant: string; slug: string };
+  appCategories: string[];
+  multiInstall?: boolean;
+  credentials?: RouterOutputs["viewer"]["appCredentialsByType"]["credentials"];
+} & ButtonProps) => {
+  const { t } = useLocale();
+  const router = useRouter();
+
+  const mutation = useAddAppMutation(null, {
+    onSuccess: (data) => {
+      if (data?.setupPending) return;
+      showToast(t("app_successfully_installed"), "success");
+    },
+    onError: (error) => {
+      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+    },
+  });
+
+  if (!userAdminTeams?.length || appCategories.some((category) => category === "calendar")) {
+    return <Button
+      data-testid="install-app-button"
+      {...props}
+      // @TODO: Overriding color and size prevent us from
+      // having to duplicate InstallAppButton for now.
+      color="primary"
+      size="base">
+      {multiInstall ? t("install_another") : t("install_app")}
+    </Button>
+    
+  }
+
+  return (
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <Button
+          data-testid="install-app-button"
+          {...props}
+          // @TODO: Overriding color and size prevent us from
+          // having to duplicate InstallAppButton for now.
+          color="primary"
+          size="base">
+          {multiInstall ? t("install_another") : t("install_app")}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuPortal>
+        <DropdownMenuContent>
+          <DropdownMenuLabel>{t("install_app_on")}</DropdownMenuLabel>
+          {userAdminTeams.map((team) => {
+            
+            const isInstalled = credentials &&
+            credentials.some((credential) =>
+              credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
+            )
+
+            return (
+            <DropdownItem
+              type="button"
+              data-testid={team.isUser ? "install-app-button-personal" : "anything else"}
+              key={team.id}
+              disabled={
+                isInstalled
+              }
+              StartIcon={(props) => (
+                <Avatar
+                  alt={team.logo || ""}
+                  imageSrc={team.logo || `${CAL_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
+                  size="sm"
+                  {...props}
+                />
+              )}
+              onClick={() => {
+                mutation.mutate(
+                  team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }
+                );
+              }}>
+              <p>{team.name}{" "}
+                {isInstalled &&
+                  `(${t("installed")})`}</p>
+            </DropdownItem>
+)})}
+        </DropdownMenuContent>
+      </DropdownMenuPortal>
+    </Dropdown>
+  );
+};

@@ -5,7 +5,6 @@ import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -27,12 +26,12 @@ type DeleteCredentialOptions = {
 };
 
 export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOptions) => {
-  const { id, externalId } = input;
+  const { id, externalId, teamId } = input;
 
   const credential = await prisma.credential.findFirst({
     where: {
       id: id,
-      userId: ctx.user.id,
+      ...(teamId ? { teamId } : { userId: ctx.user.id }),
     },
     select: {
       key: true,
@@ -215,6 +214,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                   bookingFields: true,
                   seatsPerTimeSlot: true,
                   seatsShowAttendees: true,
+                  eventName: true,
                 },
               },
               uid: true,
@@ -273,32 +273,37 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
 
             const attendeesList = await Promise.all(attendeesListPromises);
             const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
-            await sendCancelledEmails({
-              type: booking?.eventType?.title as string,
-              title: booking.title,
-              description: booking.description,
-              customInputs: isPrismaObjOrUndefined(booking.customInputs),
-              ...getCalEventResponses({
-                bookingFields: booking.eventType?.bookingFields ?? null,
-                booking,
-              }),
-              startTime: booking.startTime.toISOString(),
-              endTime: booking.endTime.toISOString(),
-              organizer: {
-                email: booking?.user?.email as string,
-                name: booking?.user?.name ?? "Nameless",
-                timeZone: booking?.user?.timeZone as string,
-                language: { translate: tOrganizer, locale: booking?.user?.locale ?? "en" },
+            await sendCancelledEmails(
+              {
+                type: booking?.eventType?.title as string,
+                title: booking.title,
+                description: booking.description,
+                customInputs: isPrismaObjOrUndefined(booking.customInputs),
+                ...getCalEventResponses({
+                  bookingFields: booking.eventType?.bookingFields ?? null,
+                  booking,
+                }),
+                startTime: booking.startTime.toISOString(),
+                endTime: booking.endTime.toISOString(),
+                organizer: {
+                  email: booking?.user?.email as string,
+                  name: booking?.user?.name ?? "Nameless",
+                  timeZone: booking?.user?.timeZone as string,
+                  language: { translate: tOrganizer, locale: booking?.user?.locale ?? "en" },
+                },
+                attendees: attendeesList,
+                uid: booking.uid,
+                recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
+                location: booking.location,
+                destinationCalendar: booking.destinationCalendar || booking.user?.destinationCalendar,
+                cancellationReason: "Payment method removed by organizer",
+                seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+                seatsShowAttendees: booking.eventType?.seatsShowAttendees,
               },
-              attendees: attendeesList,
-              uid: booking.uid,
-              recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
-              location: booking.location,
-              destinationCalendar: booking.destinationCalendar || booking.user?.destinationCalendar,
-              cancellationReason: "Payment method removed by organizer",
-              seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
-              seatsShowAttendees: booking.eventType?.seatsShowAttendees,
-            });
+              {
+                eventName: booking?.eventType?.eventName,
+              }
+            );
           }
         });
       }
@@ -338,8 +343,4 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       id: id,
     },
   });
-  // Revalidate user calendar cache.
-  if (credential.app?.slug.includes("calendar")) {
-    await fetch(`${WEBAPP_URL}/api/revalidate-calendar-cache/${ctx?.user?.username}`);
-  }
 };

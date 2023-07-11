@@ -5,9 +5,10 @@ import { test } from "../lib/fixtures";
 test.afterEach(({ users }) => users.deleteAll());
 
 test("Can reset forgotten password", async ({ page, users }) => {
+  // eslint-disable-next-line playwright/no-skipped-test
   test.skip(process.env.NEXT_PUBLIC_IS_E2E !== "1", "It shouldn't if we can't skip email");
   const user = await users.create();
-  const newPassword = `${user.username!}-123`;
+  const newPassword = `${user.username}-123CAL`; // To match the password policy
   // Got to reset password flow
   await page.goto("/auth/forgot-password");
 
@@ -17,14 +18,14 @@ test("Can reset forgotten password", async ({ page, users }) => {
 
   // Press Enter
   await Promise.all([
-    page.waitForURL((u) => u.pathname.startsWith("/auth/forgot-password/")),
+    page.waitForURL((u) => u.pathname.startsWith("/auth/forgot-password")),
     page.press('input[name="email"]', "Enter"),
   ]);
 
   // Wait for page to fully load
   await page.waitForSelector("text=Reset Password");
-  // Fill input[name="password"]
-  await page.fill('input[name="password"]', newPassword);
+  // Fill input[name="new_password"]
+  await page.fill('input[name="new_password"]', newPassword);
 
   // Click text=Submit
   await page.click('button[type="submit"]');

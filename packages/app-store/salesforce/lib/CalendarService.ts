@@ -79,7 +79,7 @@ export default class SalesforceCalendarService implements Calendar {
           .sobject("Contact")
           .create({
             FirstName,
-            LastName,
+            LastName: LastName || "",
             Email: attendee.email,
           })
           .then((result) => {
@@ -265,11 +265,11 @@ export default class SalesforceCalendarService implements Calendar {
     }
   }
 
-  async getAvailability(dateFrom: string, dateTo: string, selectedCalendars: IntegrationCalendar[]) {
+  async getAvailability(_dateFrom: string, _dateTo: string, _selectedCalendars: IntegrationCalendar[]) {
     return Promise.resolve([]);
   }
 
-  async listCalendars(event?: CalendarEvent) {
+  async listCalendars(_event?: CalendarEvent) {
     return Promise.resolve([]);
   }
 }

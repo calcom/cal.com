@@ -1,11 +1,16 @@
-import { PaperclipIcon, UserIcon, Users } from "lucide-react";
+import { BuildingIcon, PaperclipIcon, UserIcon, Users } from "lucide-react";
 import { Trans } from "next-i18next";
 import { useMemo, useState } from "react";
+import type { FormEvent } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFromOrg";
+import { classNames } from "@calcom/lib";
+import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { RouterOutputs } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc";
 import {
   Button,
   Checkbox as CheckboxField,
@@ -13,12 +18,14 @@ import {
   DialogContent,
   DialogFooter,
   Form,
-  TextField,
   Label,
+  showToast,
+  TextField,
   ToggleGroup,
   Select,
   TextAreaField,
 } from "@calcom/ui";
+import { Link } from "@calcom/ui/components/icon";
 
 import type { PendingMember } from "../lib/types";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
@@ -26,8 +33,13 @@ import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
 type MemberInvitationModalProps = {
   isOpen: boolean;
   onExit: () => void;
-  onSubmit: (values: NewMemberForm) => void;
+  orgMembers?: RouterOutputs["viewer"]["organizations"]["getMembers"];
+  onSubmit: (values: NewMemberForm, resetFields: () => void) => void;
+  onSettingsOpen?: () => void;
+  teamId: number;
   members: PendingMember[];
+  token?: string;
+  isLoading?: boolean;
 };
 
 type MembershipRoleOption = {
@@ -41,11 +53,42 @@ export interface NewMemberForm {
   sendInviteEmail: boolean;
 }
 
-type ModalMode = "INDIVIDUAL" | "BULK";
+type ModalMode = "INDIVIDUAL" | "BULK" | "ORGANIZATION";
+
+interface FileEvent<T = Element> extends FormEvent<T> {
+  target: EventTarget & T;
+}
+
+function toggleElementInArray(value: string[] | string | undefined, element: string): string[] {
+  const array = value ? (Array.isArray(value) ? value : [value]) : [];
+  return array.includes(element) ? array.filter((item) => item !== element) : [...array, element];
+}
 
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
-  const [modalImportMode, setModalInputMode] = useState<ModalMode>("INDIVIDUAL");
+  const trpcContext = trpc.useContext();
+
+  const [modalImportMode, setModalInputMode] = useState<ModalMode>(
+    props?.orgMembers && props.orgMembers?.length > 0 ? "ORGANIZATION" : "INDIVIDUAL"
+  );
+
+  const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
+    onSuccess(token) {
+      copyInviteLinkToClipboard(token);
+      trpcContext.viewer.teams.get.invalidate();
+      trpcContext.viewer.teams.list.invalidate();
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  const copyInviteLinkToClipboard = async (token: string) => {
+    const inviteLink = `${WEBAPP_URL}/teams?token=${token}`;
+    await navigator.clipboard.writeText(inviteLink);
+    showToast(t("invite_link_copied"), "success");
+  };
+
   const options: MembershipRoleOption[] = useMemo(() => {
     return [
       { value: MembershipRole.MEMBER, label: t("member") },
@@ -54,6 +97,25 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     ];
   }, [t]);
 
+  const toggleGroupOptions = useMemo(() => {
+    const array = [
+      {
+        value: "INDIVIDUAL",
+        label: t("invite_team_individual_segment"),
+        iconLeft: <UserIcon />,
+      },
+      { value: "BULK", label: t("invite_team_bulk_segment"), iconLeft: <Users /> },
+    ];
+    if (props?.orgMembers && props.orgMembers?.length > 0) {
+      array.unshift({
+        value: "ORGANIZATION",
+        label: t("organization"),
+        iconLeft: <BuildingIcon />,
+      });
+    }
+    return array;
+  }, [t, props.orgMembers]);
+
   const newMemberFormMethods = useForm<NewMemberForm>();
 
   const validateUniqueInvite = (value: string) => {
@@ -61,6 +123,31 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       props.members.some((member) => member?.username === value) ||
       props.members.some((member) => member?.email === value)
     );
+  };
+
+  const handleFileUpload = (e: FileEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) {
+      return;
+    }
+    const file = e.target.files[0];
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const contents = e?.target?.result as string;
+        const values = contents?.split(",").map((email) => email.trim().toLocaleLowerCase());
+        newMemberFormMethods.setValue("emailOrUsername", values);
+      };
+
+      reader.readAsText(file);
+    }
+  };
+
+  const resetFields = () => {
+    newMemberFormMethods.reset();
+    newMemberFormMethods.setValue("emailOrUsername", "");
+    setModalInputMode("INDIVIDUAL");
   };
 
   return (
@@ -91,20 +178,13 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           <ToggleGroup
             isFullWidth={true}
             onValueChange={(val) => setModalInputMode(val as ModalMode)}
-            defaultValue="INDIVIDUAL"
-            options={[
-              {
-                value: "INDIVIDUAL",
-                label: t("invite_team_individual_segment"),
-                iconLeft: <UserIcon />,
-              },
-              { value: "BULK", label: t("invite_team_bulk_segment"), iconLeft: <Users /> },
-            ]}
+            defaultValue={modalImportMode}
+            options={toggleGroupOptions}
           />
         </div>
 
-        <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values)}>
-          <div className="space-y-6">
+        <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values, resetFields)}>
+          <div className="mb-10 mt-6 space-y-6">
             {/* Indivdual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
               <Controller
@@ -171,14 +251,45 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   }}
                 />
                 <Button
-                  disabled
                   type="button"
                   color="secondary"
                   StartIcon={PaperclipIcon}
                   className="mt-3 justify-center stroke-2">
-                  Upload a .csv file
+                  <label htmlFor="bulkInvite">
+                    Upload a .csv file
+                    <input
+                      id="bulkInvite"
+                      type="file"
+                      accept=".csv"
+                      style={{ display: "none" }}
+                      onChange={handleFileUpload}
+                    />
+                  </label>
                 </Button>
               </div>
+            )}
+            {modalImportMode === "ORGANIZATION" && (
+              <Controller
+                name="emailOrUsername"
+                control={newMemberFormMethods.control}
+                rules={{
+                  required: t("enter_email_or_username"),
+                }}
+                render={({ field: { onChange, value } }) => (
+                  <>
+                    <TeamInviteFromOrg
+                      selectedEmails={value}
+                      handleOnChecked={(userEmail) => {
+                        // If 'value' is not an array, create a new array with 'userEmail' to allow future updates to the array.
+                        // If 'value' is an array, update the array by either adding or removing 'userEmail'.
+                        const newValue = toggleElementInArray(value, userEmail);
+                        onChange(newValue);
+                      }}
+                      orgMembers={props.orgMembers}
+                    />
+                  </>
+                )}
+              />
             )}
             <Controller
               name="role"
@@ -213,21 +324,54 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 />
               )}
             />
+            {props.token && (
+              <div className="flex">
+                <Button
+                  type="button"
+                  color="minimal"
+                  className="me-2 ms-2"
+                  onClick={() => {
+                    props.onSettingsOpen && props.onSettingsOpen();
+                    newMemberFormMethods.reset();
+                  }}
+                  data-testid="edit-invite-link-button">
+                  {t("edit_invite_link")}
+                </Button>
+              </div>
+            )}
           </div>
           <DialogFooter showDivider>
+            <div className="relative right-40">
+              <Button
+                type="button"
+                color="minimal"
+                variant="icon"
+                onClick={() =>
+                  props.token
+                    ? copyInviteLinkToClipboard(props.token)
+                    : createInviteMutation.mutate({ teamId: props.teamId })
+                }
+                className={classNames("gap-2", props.token && "opacity-50")}
+                data-testid="copy-invite-link-button">
+                <Link className="text-default h-4 w-4" aria-hidden="true" />
+                {t("copy_invite_link")}
+              </Button>
+            </div>
+
             <Button
               type="button"
               color="minimal"
               onClick={() => {
                 props.onExit();
-                newMemberFormMethods.reset();
+                resetFields();
               }}>
               {t("cancel")}
             </Button>
             <Button
+              loading={props.isLoading || createInviteMutation.isLoading}
               type="submit"
               color="primary"
-              className="ms-2 me-2"
+              className="me-2 ms-2"
               data-testid="invite-new-member-button">
               {t("send_invite")}
             </Button>

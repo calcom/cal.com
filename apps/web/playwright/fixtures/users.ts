@@ -8,6 +8,7 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
+import { selectFirstAvailableTimeSlotNextMonth } from "../lib/testUtils";
 import type { TimeZoneEnum } from "./types";
 
 // Don't import hashPassword from app as that ends up importing next-auth and initializing it before NEXTAUTH_URL can be updated during tests.
@@ -77,6 +78,7 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
         { title: "30 min", slug: "30-min", length: 30 },
         { title: "Paid", slug: "paid", length: 30, price: 1000 },
         { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
+        { title: "Seated", slug: "seated", seatsPerTimeSlot: 2, length: 30 },
       ];
 
       if (opts?.eventTypes) defaultEventTypes = defaultEventTypes.concat(opts.eventTypes);
@@ -233,7 +235,7 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
           },
         });
       }
-      const userFixture = createUserFixture(user, store.page!);
+      const userFixture = createUserFixture(user, store.page);
       store.users.push(userFixture);
       return userFixture;
     },
@@ -261,23 +263,35 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
 
   // self is a reflective method that return the Prisma object that references this fixture.
   const self = async () =>
-    (await prisma.user.findUnique({ where: { id: store.user.id }, include: { eventTypes: true } }))!;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    (await prisma.user.findUnique({
+      where: { id: store.user.id },
+      include: { eventTypes: true },
+    }))!;
   return {
     id: user.id,
     username: user.username,
     eventTypes: user.eventTypes,
     routingForms: user.routingForms,
     self,
+    apiLogin: async () => apiLogin({ ...(await self()), password: user.username }, store.page),
     login: async () => login({ ...(await self()), password: user.username }, store.page),
     logout: async () => {
       await page.goto("/auth/logout");
     },
     getPaymentCredential: async () => getPaymentCredential(store.page),
+    setupEventWithPrice: async (eventType: Pick<Prisma.EventType, "id">) =>
+      setupEventWithPrice(eventType, store.page),
+    bookAndPaidEvent: async (eventType: Pick<Prisma.EventType, "slug">) =>
+      bookAndPaidEvent(user, eventType, store.page),
     // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
     debug: async (message: string | Record<string, JSONValue>) => {
-      await prisma.user.update({ where: { id: store.user.id }, data: { metadata: { debug: message } } });
+      await prisma.user.update({
+        where: { id: store.user.id },
+        data: { metadata: { debug: message } },
+      });
     },
-    delete: async () => (await prisma.user.delete({ where: { id: store.user.id } }))!,
+    delete: async () => await prisma.user.delete({ where: { id: store.user.id } }),
   };
 };
 
@@ -339,6 +353,61 @@ export async function login(
 
   // Moving away from waiting 2 seconds, as it is not a reliable way to expect session to be started
   await page.waitForLoadState("networkidle");
+}
+
+export async function apiLogin(
+  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "password" | "email">>,
+  page: Page
+) {
+  const csrfToken = await page
+    .context()
+    .request.get("/api/auth/csrf")
+    .then((response) => response.json())
+    .then((json) => json.csrfToken);
+  const data = {
+    email: user.email ?? `${user.username}@example.com`,
+    password: user.password ?? user.username!,
+    callbackURL: "http://localhost:3000/",
+    redirect: "false",
+    json: "true",
+    csrfToken,
+  };
+  return page.context().request.post("/api/auth/callback/credentials", {
+    data,
+  });
+}
+
+export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id">, page: Page) {
+  await page.goto(`/event-types/${eventType?.id}?tabName=apps`);
+  await page.locator("div > .ml-auto").first().click();
+  await page.getByPlaceholder("Price").fill("100");
+  await page.getByTestId("update-eventtype").click();
+}
+
+export async function bookAndPaidEvent(
+  user: Pick<Prisma.User, "username">,
+  eventType: Pick<Prisma.EventType, "slug">,
+  page: Page
+) {
+  // booking process with stripe integration
+  await page.goto(`${user.username}/${eventType?.slug}`);
+  await selectFirstAvailableTimeSlotNextMonth(page);
+  // --- fill form
+  await page.fill('[name="name"]', "Stripe Stripeson");
+  await page.fill('[name="email"]', "test@example.com");
+
+  await Promise.all([page.waitForURL("/payment/*"), page.press('[name="email"]', "Enter")]);
+
+  const stripeFrame = page.frameLocator("iframe").first();
+  await stripeFrame.locator('[name="number"]').fill("4242 4242 4242 4242");
+  const now = new Date();
+  await stripeFrame.locator('[name="expiry"]').fill(`${now.getMonth()} / ${now.getFullYear() + 1}`);
+  await stripeFrame.locator('[name="cvc"]').fill("111");
+  const postcalCodeIsVisible = await stripeFrame.locator('[name="postalCode"]').isVisible();
+  if (postcalCodeIsVisible) {
+    await stripeFrame.locator('[name="postalCode"]').fill("111111");
+  }
+  await page.click('button:has-text("Pay now")');
 }
 
 export async function getPaymentCredential(page: Page) {
