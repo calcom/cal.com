@@ -119,138 +119,131 @@ export const AddActionDialog = (props: IAddActionDialog) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent type="creation" title={t("add_action")}>
-        <div className="space-x-3 ">
-          <div className="pt-1">
-            <Form
-              form={form}
-              handleSubmit={(values) => {
-                addAction(
-                  values.action,
-                  values.sendTo,
-                  values.numberRequired,
-                  values.senderId,
-                  values.senderName
-                );
-                form.unregister("sendTo");
-                form.unregister("action");
-                form.unregister("numberRequired");
-                setIsOpenDialog(false);
-                setIsPhoneNumberNeeded(false);
-                setIsEmailAddressNeeded(false);
-                setIsSenderIdNeeded(false);
-              }}>
+        <div className="-mt-3 space-x-3">
+          <Form
+            form={form}
+            handleSubmit={(values) => {
+              addAction(
+                values.action,
+                values.sendTo,
+                values.numberRequired,
+                values.senderId,
+                values.senderName
+              );
+              form.unregister("sendTo");
+              form.unregister("action");
+              form.unregister("numberRequired");
+              setIsOpenDialog(false);
+              setIsPhoneNumberNeeded(false);
+              setIsEmailAddressNeeded(false);
+              setIsSenderIdNeeded(false);
+            }}>
+            <div className="space-y-1">
+              <Label htmlFor="label">{t("action")}:</Label>
+              <Controller
+                name="action"
+                control={form.control}
+                render={() => {
+                  return (
+                    <Select
+                      isSearchable={false}
+                      className="text-sm"
+                      defaultValue={actionOptions[0]}
+                      onChange={handleSelectAction}
+                      options={actionOptions}
+                      isOptionDisabled={(option: {
+                        label: string;
+                        value: WorkflowActions;
+                        needsUpgrade: boolean;
+                      }) => option.needsUpgrade}
+                    />
+                  );
+                }}
+              />
+              {form.formState.errors.action && (
+                <p className="mt-1 text-sm text-red-500">{form.formState.errors.action.message}</p>
+              )}
+            </div>
+            {isPhoneNumberNeeded && (
               <div className="mt-5 space-y-1">
-                <Label htmlFor="label">{t("action")}:</Label>
-                <Controller
-                  name="action"
-                  control={form.control}
-                  render={() => {
-                    return (
-                      <Select
-                        isSearchable={false}
-                        className="text-sm"
-                        defaultValue={actionOptions[0]}
-                        onChange={handleSelectAction}
-                        options={actionOptions}
-                        isOptionDisabled={(option: {
-                          label: string;
-                          value: WorkflowActions;
-                          needsUpgrade: boolean;
-                        }) => option.needsUpgrade}
-                      />
-                    );
-                  }}
-                />
-                {form.formState.errors.action && (
-                  <p className="mt-1 text-sm text-red-500">{form.formState.errors.action.message}</p>
-                )}
-              </div>
-              {isPhoneNumberNeeded && (
-                <div className="mt-5 space-y-1">
-                  <Label htmlFor="sendTo">{t("phone_number")}</Label>
-                  <div className="mb-5 mt-1">
-                    <Controller
-                      control={form.control}
-                      name="sendTo"
-                      render={({ field: { value, onChange } }) => (
-                        <PhoneInput
-                          className="rounded-md"
-                          placeholder={t("enter_phone_number")}
-                          id="sendTo"
-                          required
-                          value={value}
-                          onChange={onChange}
-                        />
-                      )}
-                    />
-                    {form.formState.errors.sendTo && (
-                      <p className="mt-1 text-sm text-red-500">{form.formState.errors.sendTo.message}</p>
-                    )}
-                  </div>
-                </div>
-              )}
-              {isEmailAddressNeeded && (
-                <div className="mt-5">
-                  <EmailField required label={t("email_address")} {...form.register("sendTo")} />
-                </div>
-              )}
-              {isSenderIdNeeded ? (
-                <>
-                  <div className="mt-5">
-                    <div className="flex">
-                      <Label>{t("sender_id")}</Label>
-                      <Tooltip content={t("sender_id_info")}>
-                        <Info className="ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
-                      </Tooltip>
-                    </div>
-                    <Input
-                      type="text"
-                      placeholder={SENDER_ID}
-                      maxLength={11}
-                      {...form.register(`senderId`)}
-                    />
-                  </div>
-                  {form.formState.errors && form.formState?.errors?.senderId && (
-                    <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
-                  )}
-                </>
-              ) : (
-                <div className="mt-5">
-                  <Label>{t("sender_name")}</Label>
-                  <Input type="text" placeholder={SENDER_NAME} {...form.register(`senderName`)} />
-                </div>
-              )}
-              {form.getValues("action") === WorkflowActions.SMS_ATTENDEE && (
-                <div className="mt-5">
+                <Label htmlFor="sendTo">{t("phone_number")}</Label>
+                <div className="mb-5 mt-1">
                   <Controller
-                    name="numberRequired"
                     control={form.control}
-                    render={() => (
-                      <Checkbox
-                        defaultChecked={form.getValues("numberRequired") || false}
-                        description={t("make_phone_number_required")}
-                        onChange={(e) => form.setValue("numberRequired", e.target.checked)}
+                    name="sendTo"
+                    render={({ field: { value, onChange } }) => (
+                      <PhoneInput
+                        className="rounded-md"
+                        placeholder={t("enter_phone_number")}
+                        id="sendTo"
+                        required
+                        value={value}
+                        onChange={onChange}
                       />
                     )}
                   />
+                  {form.formState.errors.sendTo && (
+                    <p className="mt-1 text-sm text-red-500">{form.formState.errors.sendTo.message}</p>
+                  )}
                 </div>
-              )}
-              <DialogFooter>
-                <DialogClose
-                  onClick={() => {
-                    setIsOpenDialog(false);
-                    form.unregister("sendTo");
-                    form.unregister("action");
-                    form.unregister("numberRequired");
-                    setIsPhoneNumberNeeded(false);
-                    setIsEmailAddressNeeded(false);
-                    setIsSenderIdNeeded(false);
-                  }}
+              </div>
+            )}
+            {isEmailAddressNeeded && (
+              <div className="mt-5">
+                <EmailField required label={t("email_address")} {...form.register("sendTo")} />
+              </div>
+            )}
+            {isSenderIdNeeded ? (
+              <>
+                <div className="mt-5">
+                  <div className="flex">
+                    <Label>{t("sender_id")}</Label>
+                    <Tooltip content={t("sender_id_info")}>
+                      <Info className="ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                    </Tooltip>
+                  </div>
+                  <Input type="text" placeholder={SENDER_ID} maxLength={11} {...form.register(`senderId`)} />
+                </div>
+                {form.formState.errors && form.formState?.errors?.senderId && (
+                  <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
+                )}
+              </>
+            ) : (
+              <div className="mt-5">
+                <Label>{t("sender_name")}</Label>
+                <Input type="text" placeholder={SENDER_NAME} {...form.register(`senderName`)} />
+              </div>
+            )}
+            {form.getValues("action") === WorkflowActions.SMS_ATTENDEE && (
+              <div className="mt-5">
+                <Controller
+                  name="numberRequired"
+                  control={form.control}
+                  render={() => (
+                    <Checkbox
+                      defaultChecked={form.getValues("numberRequired") || false}
+                      description={t("make_phone_number_required")}
+                      onChange={(e) => form.setValue("numberRequired", e.target.checked)}
+                    />
+                  )}
                 />
-                <Button type="submit">{t("add")}</Button>
-              </DialogFooter>
-            </Form>
-          </div>
+              </div>
+            )}
+            <DialogFooter showDivider className="mt-12">
+              <DialogClose
+                onClick={() => {
+                  setIsOpenDialog(false);
+                  form.unregister("sendTo");
+                  form.unregister("action");
+                  form.unregister("numberRequired");
+                  setIsPhoneNumberNeeded(false);
+                  setIsEmailAddressNeeded(false);
+                  setIsSenderIdNeeded(false);
+                }}
+              />
+              <Button type="submit">{t("add")}</Button>
+            </DialogFooter>
+          </Form>
         </div>
       </DialogContent>
     </Dialog>

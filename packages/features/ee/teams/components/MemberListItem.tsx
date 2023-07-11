@@ -266,7 +266,7 @@ export default function MemberListItem(props: Props) {
       </div>
 
       {editMode && (
-        <Dialog open={showDeleteModal} onOpenChange={() => setShowDeleteModal(false)}>
+        <Dialog open={showDeleteModal} onOpenChange={() => setShowDeleteModal((prev) => !prev)}>
           <ConfirmationDialogContent
             variety="danger"
             title={t("remove_member")}
@@ -289,7 +289,7 @@ export default function MemberListItem(props: Props) {
                 });
                 setShowImpersonateModal(false);
               }}>
-              <DialogFooter>
+              <DialogFooter showDivider className="mt-8">
                 <DialogClose color="secondary">{t("cancel")}</DialogClose>
                 <Button color="primary" type="submit">
                   {t("impersonate")}
