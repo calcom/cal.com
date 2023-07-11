@@ -15,7 +15,7 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
 
-type PageProps = inferSSRProps<typeof getServerSideProps>;
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type({ slug, user, booking, away, isBrandingHidden }: PageProps) {
   const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
@@ -105,8 +105,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       username,
       organization: isValidOrgDomain
         ? {
-            slug: currentOrgDomain,
-          }
+          slug: currentOrgDomain,
+        }
         : null,
     },
     select: {
