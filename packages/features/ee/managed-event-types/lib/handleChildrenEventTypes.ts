@@ -40,11 +40,7 @@ interface handleChildrenEventTypesProps {
         };
       }[]
     | undefined;
-  prisma: PrismaClient<
-    Prisma.PrismaClientOptions,
-    never,
-    Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined
-  >;
+  prisma: PrismaClient;
 }
 
 const sendAllSlugReplacementEmails = async (
