@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
-import { getBookingByUidOrRescheduleUid } from "@calcom/features/bookings/lib/get-booking";
+import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import slugify from "@calcom/lib/slugify";
@@ -13,7 +13,7 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
 
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
+type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type({ slug, user, booking, away, isBrandingHidden, isTeamEvent }: PageProps) {
   return (
@@ -27,7 +27,7 @@ export default function Type({ slug, user, booking, away, isBrandingHidden, isTe
       <Booker
         username={user}
         eventSlug={slug}
-        rescheduleBooking={booking}
+        bookingData={booking}
         isAway={away}
         hideBranding={isBrandingHidden}
         isTeamEvent={isTeamEvent}
@@ -100,7 +100,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBookingByUidOrRescheduleUid(`${rescheduleUid}`);
+    booking = await getBookingForReschedule(`${rescheduleUid}`);
   }
 
   const isTeamEvent = !!hashedLink.eventType?.team?.id;
