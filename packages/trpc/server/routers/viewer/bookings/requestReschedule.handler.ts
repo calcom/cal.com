@@ -9,6 +9,7 @@ import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
+import { deleteScheduledWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
 import { sendRequestRescheduleEmail } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -135,6 +136,8 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
         deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
       } else if (reminder.method === WorkflowMethods.SMS) {
         deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+      } else if (reminder.method === WorkflowMethods.WHATSAPP) {
+        deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
       }
     });
 
