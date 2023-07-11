@@ -647,6 +647,26 @@ function getCustomInputsResponses(
   return customInputsResponses;
 }
 
+async function getTeamId({ eventType }: { eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> }) {
+  if (eventType?.team?.id) {
+    return eventType.team.id;
+  }
+
+  // If it's a managed event we need to find the teamId for it from the parent
+  if (eventType.parentId) {
+    const managedEvent = await prisma.eventType.findFirst({
+      where: {
+        id: eventType.parentId,
+      },
+      select: {
+        teamId: true,
+      },
+    });
+
+    return managedEvent?.teamId;
+  }
+}
+
 async function handler(
   req: NextApiRequest & { userId?: number | undefined },
   {
@@ -2225,11 +2245,14 @@ async function handler(
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
   };
+
+  const teamId = await getTeamId({ eventType });
+
   const subscriberOptions: GetSubscriberOptions = {
     userId: organizerUser.id,
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-    teamId: eventType.team?.id,
+    teamId,
   };
 
   if (isConfirmedByDefault) {
@@ -2243,7 +2266,7 @@ async function handler(
       userId: organizerUser.id,
       eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-      teamId: eventType.team?.id,
+      teamId,
     };
 
     try {
