@@ -7,7 +7,6 @@ import { useEffect } from "react";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
-import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -103,7 +102,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                   items={type.users.map((user) => ({
                     alt: user.name || "",
                     title: user.name || "",
-                    image: CAL_URL + "/" + user.username + "/avatar.png" || "",
+                    image: "/" + user.username + "/avatar.png" || "",
                   }))}
                 />
               </div>
@@ -140,7 +139,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                 truncateAfter={4}
                 items={ch.members.map(({ user: member }) => ({
                   alt: member.name || "",
-                  image: `${WEBAPP_URL}/${member.username}/avatar.png`,
+                  image: `/${member.username}/avatar.png`,
                   title: member.name || "",
                 }))}
               />
@@ -284,7 +283,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     ...type,
     users: type.users.map((user) => ({
       ...user,
-      avatar: CAL_URL + "/" + user.username + "/avatar.png",
+      avatar: "/" + user.username + "/avatar.png",
     })),
     descriptionAsSafeHTML: markdownToSafeHTML(type.description),
   }));
@@ -297,10 +296,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const markdownStrippedBio = stripMarkdown(team?.bio || "");
 
+  const { inviteToken: _inviteToken, ...serializableTeam } = team;
+
   return {
     props: {
-      team: { ...team, safeBio, members },
-      themeBasis: team.slug,
+      team: { ...serializableTeam, safeBio, members },
+      themeBasis: serializableTeam.slug,
       trpcState: ssr.dehydrate(),
       markdownStrippedBio,
       isValidOrgDomain,
