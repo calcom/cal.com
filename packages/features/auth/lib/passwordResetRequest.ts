@@ -58,6 +58,7 @@ const passwordResetRequest = async (email: string, language: string) => {
     user,
     resetLink,
   });
+  return resetLink;
 };
 
 export { passwordResetRequest };

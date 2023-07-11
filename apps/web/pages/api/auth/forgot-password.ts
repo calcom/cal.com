@@ -43,11 +43,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   });
 
   try {
-    await passwordResetRequest(email.data, req.body.language ?? "en");
+    const resetLink = await passwordResetRequest(email.data, req.body.language ?? "en");
     // By adding a random delay any attacker is unable to bruteforce existing email addresses.
     const delayInMs = Math.floor(Math.random() * 2000) + 1000;
     return await delay(() => {
-      return res.status(201).json({ message: t("password_reset_email_sent") });
+      /** So we can test the password reset flow on CI */
+      if (process.env.NEXT_PUBLIC_IS_E2E) {
+        return res.status(201).json({
+          message: t("password_reset_email_sent"),
+          resetLink,
+        });
+      } else {
+        return res.status(201).json({ message: t("password_reset_email_sent") });
+      }
     }, delayInMs);
   } catch (reason) {
     console.error(reason);
