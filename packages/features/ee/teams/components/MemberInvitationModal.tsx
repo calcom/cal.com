@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFromOrg";
 import { classNames } from "@calcom/lib";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -38,6 +39,7 @@ type MemberInvitationModalProps = {
   teamId: number;
   members: PendingMember[];
   token?: string;
+  isLoading?: boolean;
 };
 
 type MembershipRoleOption = {
@@ -51,17 +53,24 @@ export interface NewMemberForm {
   sendInviteEmail: boolean;
 }
 
-type ModalMode = "INDIVIDUAL" | "BULK";
+type ModalMode = "INDIVIDUAL" | "BULK" | "ORGANIZATION";
 
 interface FileEvent<T = Element> extends FormEvent<T> {
   target: EventTarget & T;
+}
+
+function toggleElementInArray(value: string[] | string | undefined, element: string): string[] {
+  const array = value ? (Array.isArray(value) ? value : [value]) : [];
+  return array.includes(element) ? array.filter((item) => item !== element) : [...array, element];
 }
 
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
   const trpcContext = trpc.useContext();
 
-  const [modalImportMode, setModalInputMode] = useState<ModalMode>("INDIVIDUAL");
+  const [modalImportMode, setModalInputMode] = useState<ModalMode>(
+    props?.orgMembers && props.orgMembers?.length > 0 ? "ORGANIZATION" : "INDIVIDUAL"
+  );
 
   const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
     onSuccess(token) {
@@ -97,7 +106,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       },
       { value: "BULK", label: t("invite_team_bulk_segment"), iconLeft: <Users /> },
     ];
-    if (props.orgMembers) {
+    if (props?.orgMembers && props.orgMembers?.length > 0) {
       array.unshift({
         value: "ORGANIZATION",
         label: t("organization"),
@@ -169,7 +178,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           <ToggleGroup
             isFullWidth={true}
             onValueChange={(val) => setModalInputMode(val as ModalMode)}
-            defaultValue="INDIVIDUAL"
+            defaultValue={modalImportMode}
             options={toggleGroupOptions}
           />
         </div>
@@ -259,6 +268,29 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 </Button>
               </div>
             )}
+            {modalImportMode === "ORGANIZATION" && (
+              <Controller
+                name="emailOrUsername"
+                control={newMemberFormMethods.control}
+                rules={{
+                  required: t("enter_email_or_username"),
+                }}
+                render={({ field: { onChange, value } }) => (
+                  <>
+                    <TeamInviteFromOrg
+                      selectedEmails={value}
+                      handleOnChecked={(userEmail) => {
+                        // If 'value' is not an array, create a new array with 'userEmail' to allow future updates to the array.
+                        // If 'value' is an array, update the array by either adding or removing 'userEmail'.
+                        const newValue = toggleElementInArray(value, userEmail);
+                        onChange(newValue);
+                      }}
+                      orgMembers={props.orgMembers}
+                    />
+                  </>
+                )}
+              />
+            )}
             <Controller
               name="role"
               control={newMemberFormMethods.control}
@@ -336,6 +368,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               {t("cancel")}
             </Button>
             <Button
+              loading={props.isLoading || createInviteMutation.isLoading}
               type="submit"
               color="primary"
               className="me-2 ms-2"

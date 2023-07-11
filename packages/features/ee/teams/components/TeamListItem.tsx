@@ -120,6 +120,7 @@ export default function TeamListItem(props: Props) {
         onExit={() => {
           setOpenMemberInvitationModal(false);
         }}
+        isLoading={inviteMemberMutation.isLoading}
         onSubmit={(values, resetFields) => {
           inviteMemberMutation.mutate(
             {
@@ -284,16 +285,18 @@ export default function TeamListItem(props: Props) {
                         </DropdownItem>
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        onClick={() => {
-                          setOpenMemberInvitationModal(true);
-                        }}
-                        StartIcon={Send}>
-                        {t("invite_team_member") as string}
-                      </DropdownItem>
-                    </DropdownMenuItem>
+                    {isAdmin && (
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          type="button"
+                          onClick={() => {
+                            setOpenMemberInvitationModal(true);
+                          }}
+                          StartIcon={Send}>
+                          {t("invite_team_member") as string}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     {isOwner && (
                       <DropdownMenuItem>
