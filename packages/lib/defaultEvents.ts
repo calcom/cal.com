@@ -92,6 +92,7 @@ const commons = {
   userId: 0,
   owner: null,
   workflows: [],
+  parentId: null,
   users: [user],
   hosts: [],
   metadata: EventTypeMetaDataSchema.parse({}),

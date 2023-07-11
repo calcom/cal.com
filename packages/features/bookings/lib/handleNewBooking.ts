@@ -267,6 +267,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       seatsShowAttendees: true,
       bookingLimits: true,
       durationLimits: true,
+      parentId: true,
       owner: {
         select: {
           hideBranding: true,
@@ -586,6 +587,26 @@ function getCustomInputsResponses(
   }
 
   return customInputsResponses;
+}
+
+async function getTeamId({ eventType }: { eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> }) {
+  if (eventType?.team?.id) {
+    return eventType.team.id;
+  }
+
+  // If it's a managed event we need to find the teamId for it from the parent
+  if (eventType.parentId) {
+    const managedEvent = await prisma.eventType.findFirst({
+      where: {
+        id: eventType.parentId,
+      },
+      select: {
+        teamId: true,
+      },
+    });
+
+    return managedEvent?.teamId;
+  }
 }
 
 async function handler(
@@ -2165,26 +2186,7 @@ async function handler(
     smsReminderNumber: booking?.smsReminderNumber || undefined,
   };
 
-  let teamId = eventType.team?.id;
-
-  // If it's a managed event we need to find the teamId for it from the originally created event with this slug
-  if (!teamId && eventType.schedulingType === SchedulingType.MANAGED) {
-    const managedEvent = await prisma.eventType.findFirst({
-      where: {
-        slug: req.body.eventTypeSlug,
-        teamId: {
-          not: null,
-        },
-      },
-      select: {
-        teamId: true,
-      },
-    });
-
-    if (managedEvent?.teamId) {
-      teamId = managedEvent.teamId;
-    }
-  }
+  const teamId = await getTeamId({ eventType });
 
   const subscriberOptions: GetSubscriberOptions = {
     userId: organizerUser.id,
@@ -2204,7 +2206,7 @@ async function handler(
       userId: organizerUser.id,
       eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-      teamId: eventType.team?.id,
+      teamId,
     };
 
     try {
