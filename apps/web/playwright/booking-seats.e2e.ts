@@ -8,7 +8,6 @@ import { BookingStatus } from "@calcom/prisma/enums";
 
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
-import { testBothBookers } from "./lib/new-booker";
 import {
   bookTimeSlot,
   createNewSeatedEventType,
@@ -56,7 +55,7 @@ async function createUserWithSeatedEventAndAttendees(
   return { user, eventType, booking };
 }
 
-testBothBookers.describe("Booking with Seats", (bookerVariant) => {
+test.describe("Booking with Seats", () => {
   test("User can create a seated event (2 seats as example)", async ({ users, page }) => {
     const user = await users.create({ name: "Seated event" });
     await user.apiLogin();
@@ -85,6 +84,7 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
     await page.goto(`/${user.username}/${slug}`);
 
     let bookingUrl = "";
+
     await test.step("Attendee #1 can book a seated event time slot", async () => {
       await selectFirstAvailableTimeSlotNextMonth(page);
       await bookTimeSlot(page);
@@ -207,7 +207,7 @@ testBothBookers.describe("Booking with Seats", (bookerVariant) => {
   });
 });
 
-testBothBookers.describe("Reschedule for booking with seats", () => {
+test.describe("Reschedule for booking with seats", () => {
   test("Should reschedule booking with seats", async ({ page, users, bookings }) => {
     const { booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
       { name: "John First", email: `first+seats-${uuid()}@cal.com`, timeZone: "Europe/Berlin" },

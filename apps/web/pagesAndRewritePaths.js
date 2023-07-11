@@ -22,14 +22,6 @@ const otherNonExistingRoutePrefixes = ["forms", "router", "success", "cancel"];
 // [^/]+ makes the RegExp match the full path, it seems like a partial match doesn't work.
 // book$ ensures that only /book is excluded from rewrite(which is at the end always) and not /booked
 
-const afterFilesRewriteExcludePages = pages;
-exports.userTypeRoutePath = `/:user((?!${afterFilesRewriteExcludePages.join(
-  "/|"
-)})[^/]*)/:type((?!book$)[^/]+)`;
-exports.teamTypeRoutePath = "/team/:slug/:type((?!book$)[^/]+)";
-exports.privateLinkRoutePath = "/d/:link/:slug((?!book$)[^/]+)";
-exports.embedUserTypeRoutePath = `/:user((?!${afterFilesRewriteExcludePages.join("/|")})[^/]*)/:type/embed`;
-exports.embedTeamTypeRoutePath = "/team/:slug/:type/embed";
 let subdomainRegExp = (exports.subdomainRegExp = getSubdomainRegExp(
   process.env.NEXT_PUBLIC_WEBAPP_URL || "https://" + process.env.VERCEL_URL
 ));
