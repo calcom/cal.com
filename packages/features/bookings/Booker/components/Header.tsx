@@ -21,12 +21,19 @@ export function Header({
   isMobile: boolean;
   enabledLayouts: BookerLayouts[];
 }) {
+  const { t } = useLocale();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStore((state) => state.selectedDate);
+  const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
   const addToSelectedDate = useBookerStore((state) => state.addToSelectedDate);
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
   const selectedDate = dayjs(selectedDateString);
   const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
+  const today = dayjs();
+  const selectedDateMin3DaysDifference = useMemo(() => {
+    const diff = today.diff(selectedDate, "days");
+    return diff > 3 || diff < -3;
+  }, [today, selectedDate]);
 
   const onLayoutToggle = useCallback(
     (newLayout: string) => {
@@ -73,6 +80,14 @@ export function Header({
             aria-label="Next Day"
             onClick={() => addToSelectedDate(extraDays + 1)}
           />
+          {selectedDateMin3DaysDifference && (
+            <Button
+              className="capitalize"
+              color="secondary"
+              onClick={() => setSelectedDate(today.format("YYYY-MM-DD"))}>
+              {t("today")}
+            </Button>
+          )}
         </ButtonGroup>
       </div>
       <div className="ml-auto flex gap-2">

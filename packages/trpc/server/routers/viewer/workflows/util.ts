@@ -1,6 +1,6 @@
 import type { Workflow } from "@prisma/client";
 
-import { isSMSAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
+import { isSMSOrWhatsappAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
 import {
   getSmsReminderNumberField,
   getSmsReminderNumberSource,
@@ -15,7 +15,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 export function getSender(
   step: Pick<WorkflowStep, "action" | "sender"> & { senderName: string | null | undefined }
 ) {
-  return isSMSAction(step.action) ? step.sender || SENDER_ID : step.senderName || SENDER_NAME;
+  return isSMSOrWhatsappAction(step.action) ? step.sender || SENDER_ID : step.senderName || SENDER_NAME;
 }
 
 export async function isAuthorized(

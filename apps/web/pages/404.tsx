@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import { orgDomainConfig, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { DOCS_URL, JOIN_DISCORD, WEBSITE_URL } from "@calcom/lib/constants";
+import { DOCS_URL, JOIN_DISCORD, WEBSITE_URL, IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HeadSeo } from "@calcom/ui";
 import { BookOpen, Check, ChevronRight, FileText, Shield } from "@calcom/ui/components/icon";
@@ -58,16 +58,21 @@ export default function Custom404() {
         // Accessing a non-existent team
         setUsername(splitPath[2]);
         setCurrentPageType(pageType.TEAM);
-        setUrl(`${WEBSITE_URL}/signup?callbackUrl=settings/teams/new%3Fslug%3D${username.replace("/", "")}`);
+        setUrl(
+          `${WEBSITE_URL}/signup?callbackUrl=settings/teams/new%3Fslug%3D${splitPath[2].replace("/", "")}`
+        );
       } else {
         setUsername(routerUsername);
-        setUrl(`${WEBSITE_URL}/signup?username=${username.replace("/", "")}`);
+        setUrl(`${WEBSITE_URL}/signup?username=${routerUsername.replace("/", "")}`);
       }
     } else {
       setUsername(currentOrgDomain);
       setCurrentPageType(pageType.ORG);
       setUrl(
-        `${WEBSITE_URL}/signup?callbackUrl=settings/organizations/new%3Fslug%3D${username.replace("/", "")}`
+        `${WEBSITE_URL}/signup?callbackUrl=settings/organizations/new%3Fslug%3D${currentOrgDomain.replace(
+          "/",
+          ""
+        )}`
       );
     }
   }, []);
@@ -75,7 +80,6 @@ export default function Custom404() {
   const isSuccessPage = router.asPath.startsWith("/booking");
   const isSubpage = router.asPath.includes("/", 2) || isSuccessPage;
   const isSignup = router.asPath.startsWith("/signup");
-  const isCalcom = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com";
   /**
    * If we're on 404 and the route is insights it means it is disabled
    * TODO: Abstract this for all disabled features
@@ -249,7 +253,7 @@ export default function Custom404() {
                   <span className="mt-2 inline-block text-lg ">
                     {t("check_spelling_mistakes_or_go_back")}
                   </span>
-                ) : isCalcom ? (
+                ) : IS_CALCOM ? (
                   <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
                     {t(`404_the_${currentPageType.toLowerCase()}`)}{" "}
                     <strong className="text-blue-500">
@@ -267,7 +271,7 @@ export default function Custom404() {
                 )}
               </div>
               <div className="mt-12">
-                {((!isSubpage && isCalcom) ||
+                {((!isSubpage && IS_CALCOM) ||
                   currentPageType === pageType.ORG ||
                   currentPageType === pageType.TEAM) && (
                   <ul role="list" className="my-4">
@@ -317,7 +321,7 @@ export default function Custom404() {
                     .filter((_, idx) => currentPageType === pageType.ORG || idx !== 0)
                     .map((link, linkIdx) => (
                       <li key={linkIdx} className="px-4 py-2">
-                        <Link
+                        <a
                           href={link.href}
                           className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                           <div className="flex-shrink-0">
@@ -337,7 +341,7 @@ export default function Custom404() {
                           <div className="flex-shrink-0 self-center">
                             <ChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
                           </div>
-                        </Link>
+                        </a>
                       </li>
                     ))}
                   <li className="px-4 py-2">

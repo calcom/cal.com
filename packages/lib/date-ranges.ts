@@ -163,10 +163,13 @@ function getIntersection(range1: DateRange, range2: DateRange) {
   return null;
 }
 
-export function subtract(sourceRanges: DateRange[], excludedRanges: DateRange[]) {
+export function subtract(
+  sourceRanges: (DateRange & { [x: string]: unknown })[],
+  excludedRanges: DateRange[]
+) {
   const result: DateRange[] = [];
 
-  for (const { start: sourceStart, end: sourceEnd } of sourceRanges) {
+  for (const { start: sourceStart, end: sourceEnd, ...passThrough } of sourceRanges) {
     let currentStart = sourceStart;
 
     const overlappingRanges = excludedRanges.filter(
@@ -183,7 +186,7 @@ export function subtract(sourceRanges: DateRange[], excludedRanges: DateRange[])
     }
 
     if (sourceEnd.isAfter(currentStart)) {
-      result.push({ start: currentStart, end: sourceEnd });
+      result.push({ start: currentStart, end: sourceEnd, ...passThrough });
     }
   }
 

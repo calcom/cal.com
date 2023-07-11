@@ -58,6 +58,7 @@ async function getBooking(prisma: PrismaClient, uid: string) {
       responses: true,
       smsReminderNumber: true,
       location: true,
+      eventTypeId: true,
       attendees: {
         select: {
           email: true,
@@ -107,7 +108,7 @@ export const getBookingWithResponses = <
 
 export default getBooking;
 
-export const getBookingByUidOrRescheduleUid = async (uid: string) => {
+export const getBookingForReschedule = async (uid: string) => {
   let eventTypeId: number | null = null;
   let rescheduleUid: string | null = null;
   eventTypeId =
@@ -132,7 +133,12 @@ export const getBookingByUidOrRescheduleUid = async (uid: string) => {
       },
       select: {
         id: true,
-        attendee: true,
+        attendee: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
         booking: {
           select: {
             uid: true,
@@ -160,4 +166,65 @@ export const getBookingByUidOrRescheduleUid = async (uid: string) => {
       ? booking.attendees.filter((attendee) => attendee.email === attendeeEmail)
       : booking.attendees,
   };
+};
+
+/**
+ * Should only get booking attendees length for seated events
+ * @param uid
+ * @returns booking with masked attendee emails
+ */
+export const getBookingForSeatedEvent = async (uid: string) => {
+  const booking = await prisma.booking.findFirst({
+    where: {
+      uid,
+    },
+    select: {
+      id: true,
+      uid: true,
+      startTime: true,
+      attendees: {
+        select: {
+          id: true,
+        },
+      },
+      eventTypeId: true,
+      user: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+
+  if (!booking || booking.eventTypeId === null) return null;
+
+  // Validate booking event type has seats enabled
+  const eventType = await prisma.eventType.findFirst({
+    where: {
+      id: booking.eventTypeId,
+    },
+    select: {
+      seatsPerTimeSlot: true,
+    },
+  });
+  if (!eventType || eventType.seatsPerTimeSlot === null) return null;
+
+  const result: GetBookingType = {
+    ...booking,
+    // @NOTE: had to do this because Server side cant return [Object objects]
+    startTime: booking.startTime.toISOString() as unknown as Date,
+    description: null,
+    customInputs: null,
+    responses: {},
+    smsReminderNumber: null,
+    location: null,
+    // mask attendee emails for seated events
+    attendees: booking.attendees.map((attendee) => ({
+      ...attendee,
+      email: "",
+      name: "",
+      bookingSeat: null,
+    })),
+  };
+  return result;
 };
