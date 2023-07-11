@@ -5,11 +5,6 @@ const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
 const { i18n } = require("./next-i18next.config");
 const {
-  userTypeRoutePath,
-  teamTypeRoutePath,
-  privateLinkRoutePath,
-  embedUserTypeRoutePath,
-  embedTeamTypeRoutePath,
   orgHostPath,
   orgUserRoutePath,
   orgUserTypeRoutePath,
@@ -285,85 +280,12 @@ const nextConfig = {
         },
       ],
 
-      // Keep cookie based booker enabled just in case we disable new-booker globally
-      ...[
-        {
-          source: userTypeRoutePath,
-          destination: "/new-booker/:user/:type",
-          has: [{ type: "cookie", key: "new-booker-enabled" }],
-        },
-        {
-          source: teamTypeRoutePath,
-          destination: "/new-booker/team/:slug/:type",
-          has: [{ type: "cookie", key: "new-booker-enabled" }],
-        },
-        {
-          source: privateLinkRoutePath,
-          destination: "/new-booker/d/:link/:slug",
-          has: [{ type: "cookie", key: "new-booker-enabled" }],
-        },
-      ],
-
-      // Keep cookie based booker enabled to test new-booker embed in production
-      ...[
-        {
-          source: embedUserTypeRoutePath,
-          destination: "/new-booker/:user/:type/embed",
-          has: [{ type: "cookie", key: "new-booker-enabled" }],
-        },
-        {
-          source: embedTeamTypeRoutePath,
-          destination: "/new-booker/team/:slug/:type/embed",
-          has: [{ type: "cookie", key: "new-booker-enabled" }],
-        },
-      ],
       /* TODO: have these files being served from another deployment or CDN {
         source: "/embed/embed.js",
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
       }, */
-
-      /**
-       * Enables new booker using cookie. It works even if NEW_BOOKER_ENABLED_FOR_NON_EMBED, NEW_BOOKER_ENABLED_FOR_EMBED are disabled
-       */
     ];
 
-    // Enable New Booker for all Embed Requests
-    if (process.env.NEW_BOOKER_ENABLED_FOR_EMBED === "1") {
-      console.log("Enabling New Booker for Embed");
-      afterFiles.push(
-        ...[
-          {
-            source: embedUserTypeRoutePath,
-            destination: "/new-booker/:user/:type/embed",
-          },
-          {
-            source: embedTeamTypeRoutePath,
-            destination: "/new-booker/team/:slug/:type/embed",
-          },
-        ]
-      );
-    }
-
-    // Enable New Booker for All but embed Requests
-    if (process.env.NEW_BOOKER_ENABLED_FOR_NON_EMBED === "1") {
-      console.log("Enabling New Booker for Non-Embed");
-      afterFiles.push(
-        ...[
-          {
-            source: userTypeRoutePath,
-            destination: "/new-booker/:user/:type",
-          },
-          {
-            source: teamTypeRoutePath,
-            destination: "/new-booker/team/:slug/:type",
-          },
-          {
-            source: privateLinkRoutePath,
-            destination: "/new-booker/d/:link/:slug",
-          },
-        ]
-      );
-    }
     return {
       beforeFiles,
       afterFiles,
