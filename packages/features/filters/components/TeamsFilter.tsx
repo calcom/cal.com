@@ -146,7 +146,9 @@ export const FilterCheckboxField = forwardRef<HTMLInputElement, Props>(({ label,
             {icon}
           </div>
           <Tooltip content={label}>
-            <label htmlFor={rest.id} className="text-default me-1 cursor-pointer truncate text-sm font-medium">
+            <label
+              htmlFor={rest.id}
+              className="text-default me-1 cursor-pointer truncate text-sm font-medium">
               {label}
             </label>
           </Tooltip>
