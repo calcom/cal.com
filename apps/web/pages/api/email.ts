@@ -1,10 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { renderEmail } from "@calcom/emails";
+import { CALCOM_ENV } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  if (process.env.NODE_ENV !== "development") return res.write("Only for development purposes"), res.end();
+  if (CALCOM_ENV === "production") return res.write("Only for development purposes"), res.end();
   const t = await getTranslation("en", "common");
   const language = { translate: t, locale: "en" };
 
