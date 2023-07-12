@@ -1,4 +1,3 @@
-import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
 
 import { test } from "./lib/fixtures";
@@ -80,33 +79,17 @@ test.describe("Stripe integration", () => {
     await user.setupEventWithPrice(eventType);
     await user.bookAndPaidEvent(eventType);
 
+    // Rescheduling the event
     await Promise.all([page.waitForURL("/booking/*"), page.click('[data-testid="reschedule-link"]')]);
 
-    // wait for reschedule page to load
-    await page.waitForSelector('[data-testid="incrementMonth"]');
+    await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.click('[data-testid="incrementMonth"]');
+    await Promise.all([
+      page.waitForURL("/payment/*"),
+      page.click('[data-testid="confirm-reschedule-button"]'),
+    ]);
 
-    // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(1000);
-
-    await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-    await page.locator('[data-testid="time"][data-disabled="false"]').nth(0).click();
-
-    await page.click('[data-testid="confirm-reschedule-button"]');
-
-    await Promise.all([page.waitForURL("/payment/*"), page.press('[name="email"]', "Enter")]);
-
-    const stripeFrame = page.frameLocator("iframe").first();
-    await stripeFrame.locator('[name="number"]').fill("4242 4242 4242 4242");
-    const now = new Date();
-    await stripeFrame.locator('[name="expiry"]').fill(`${now.getMonth()} / ${now.getFullYear() + 1}`);
-    await stripeFrame.locator('[name="cvc"]').fill("111");
-    const postcalCodeIsVisible = await stripeFrame.locator('[name="postalCode"]').isVisible();
-    if (postcalCodeIsVisible) {
-      await stripeFrame.locator('[name="postalCode"]').fill("111111");
-    }
-    await page.click('button:has-text("Pay now")');
+    await user.makePaymentUsingStripe();
   });
   todo("Payment should confirm pending payment booking");
   todo("Payment should trigger a BOOKING_PAID webhook");
