@@ -11,8 +11,6 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const t = await getTranslation(req.body.language ?? "en", "common");
-
   const email = z
     .string()
     .email()
@@ -47,6 +45,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         name: true,
         identityProvider: true,
         email: true,
+        locale: true,
       },
     });
 
@@ -56,6 +55,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         .status(200)
         .json({ message: "If this email exists in our system, you should receive a Reset email." });
     }
+
+    const t = await getTranslation(maybeUser.locale ?? "en", "common");
 
     const maybePreviousRequest = await prisma.resetPasswordRequest.findMany({
       where: {
