@@ -1494,6 +1494,7 @@
   "must_enter_team_name": "Must enter a team name",
   "team_url_required": "Must enter a team URL",
   "url_taken": "This URL is already taken",
+  "problem_registering_domain": "There was a problem with registering the subdomain, please try again or contact an administrator",
   "team_publish": "Publish team",
   "number_text_notifications": "Phone number (Text notifications)",
   "attendee_email_variable": "Attendee email",
