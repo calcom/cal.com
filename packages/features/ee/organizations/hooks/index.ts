@@ -7,6 +7,7 @@ export function useOrgBrandingValues() {
   return trpc.viewer.organizations.getBrand.useQuery(undefined, {
     // Only fetch if we have a session to avoid flooding logs with errors
     enabled: session.status === "authenticated",
-    initialData: null,
+    // Refetch the query only when org slug or logo changes which would be not frequent
+    staleTime: Infinity,
   }).data;
 }
