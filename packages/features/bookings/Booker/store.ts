@@ -119,13 +119,14 @@ export type BookerStore = {
 export const useBookerStore = create<BookerStore>((set, get) => ({
   state: "loading",
   setState: (state: BookerState) => set({ state }),
-  layout: validateLayout(getQueryParam("layout") as BookerLayouts) || BookerLayouts.MONTH_VIEW,
+  layout: BookerLayouts.MONTH_VIEW,
   setLayout: (layout: BookerLayout) => {
     // If we switch to a large layout and don't have a date selected yet,
     // we selected it here, so week title is rendered properly.
     if (["week_view", "column_view"].includes(layout) && !get().selectedDate) {
       set({ selectedDate: dayjs().format("YYYY-MM-DD") });
     }
+    updateQueryParam("layout", layout)
     return set({ layout });
   },
   selectedDate: getQueryParam("date") || null,
@@ -218,7 +219,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     // force clear this.
     if (rescheduleUid && bookingData) set({ selectedTimeslot: null });
     if (month) set({ month });
-    removeQueryParam("layout");
+    //removeQueryParam("layout");
   },
   selectedDuration: Number(getQueryParam("duration")) || null,
   setSelectedDuration: (selectedDuration: number | null) => {
