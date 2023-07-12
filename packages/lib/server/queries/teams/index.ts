@@ -79,11 +79,12 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
         ...baseEventTypeSelect,
       },
     },
-    inviteToken: {
+    inviteTokens: {
       select: {
         token: true,
         expires: true,
         expiresInDays: true,
+        identifier: true,
       },
     },
   });
