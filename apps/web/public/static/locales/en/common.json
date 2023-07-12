@@ -1623,12 +1623,9 @@
   "teams_plan_required": "Teams plan required",
   "routing_forms_are_a_great_way": "Routing forms are a great way to route your incoming leads to the right person. Upgrade to a Teams plan to access this feature.",
   "choose_a_license": "Choose a license",
-  "choose_license_description": "Cal.com comes with an accessible and free AGPLv3 license which some limitations which can be upgraded to an Enterprise license at any time. You can upgrade at anytime later.",
+  "choose_license_description": "Cal.com comes with an accessible and free AGPLv3 license which has limitations. We are onboarding Enterprise customers for the commercial license which you can inquire about by contacting sales below.",
   "license": "License",
   "agplv3_license": "AGPLv3 License",
-  "ee_enterprise_license": "“/ee” Enterprise License",
-  "enterprise_booking_fee": "Starting at {{enterprise_booking_fee}}/month",
-  "enterprise_license_includes": "Everything for a commercial use case",
   "no_need_to_keep_your_code_open_source": "No need to keep your code open source",
   "repackage_rebrand_resell": "Repackage, rebrand and resell easily",
   "a_vast_suite_of_enterprise_features": "A vast suite of enterprise features",
@@ -1942,5 +1939,6 @@
   "insights_team_filter": "Team: {{teamName}}",
   "insights_user_filter": "User: {{userName}}",
   "insights_subtitle": "View booking insights across your events",
+  "custom_plan": "Custom Plan",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
