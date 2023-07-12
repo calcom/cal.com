@@ -53,7 +53,7 @@ type AvailabilityFormValues = {
 };
 
 const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
-  const { remove, append, update, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
+  const { remove, append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
   const { t } = useLocale();
@@ -72,7 +72,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
         <DateOverrideList
           excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
           remove={remove}
-          update={update}
+          replace={replace}
           items={fields}
           workingHours={workingHours}
         />
