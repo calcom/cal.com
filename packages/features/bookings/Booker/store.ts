@@ -17,12 +17,20 @@ type StoreInitializeType = {
   username: string;
   eventSlug: string;
   // Month can be undefined if it's not passed in as a prop.
-  month?: string;
   eventId: number | undefined;
-  rescheduleUid: string | null;
-  rescheduleBooking: GetBookingType | null | undefined;
   layout: BookerLayout;
+  month?: string;
+  bookingUid?: string | null;
   isTeamEvent?: boolean;
+  bookingData?: GetBookingType | null | undefined;
+  rescheduleUid?: string | null;
+  seatReferenceUid?: string;
+};
+
+type SeatedEventData = {
+  seatsPerTimeSlot?: number | null;
+  attendees?: number;
+  bookingUid?: string;
 };
 
 export type BookerStore = {
@@ -73,12 +81,13 @@ export type BookerStore = {
   recurringEventCount: number | null;
   setRecurringEventCount(count: number | null): void;
   /**
-   * If booking is being rescheduled, both the ID as well as
-   * the current booking details are passed in. The `rescheduleBooking`
+   * If booking is being rescheduled or it has seats, it receives a rescheduleUid or bookingUid
+   * the current booking details are passed in. The `bookingData`
    * object is something that's fetched server side.
    */
   rescheduleUid: string | null;
-  rescheduleBooking: GetBookingType | null;
+  bookingUid: string | null;
+  bookingData: GetBookingType | null;
   /**
    * Method called by booker component to set initial data.
    */
@@ -96,6 +105,8 @@ export type BookerStore = {
    * both the slug and the event slug.
    */
   isTeamEvent: boolean;
+  seatedEventData: SeatedEventData;
+  setSeatedEventData: (seatedEventData: SeatedEventData) => void;
 };
 
 /**
@@ -153,13 +164,23 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     get().setSelectedDate(null);
   },
   isTeamEvent: false,
+  seatedEventData: {
+    seatsPerTimeSlot: undefined,
+    attendees: undefined,
+    bookingUid: undefined,
+  },
+  setSeatedEventData: (seatedEventData: SeatedEventData) => {
+    set({ seatedEventData });
+    updateQueryParam("bookingUid", seatedEventData.bookingUid ?? "null");
+  },
   initialize: ({
     username,
     eventSlug,
     month,
     eventId,
     rescheduleUid = null,
-    rescheduleBooking = null,
+    bookingUid = null,
+    bookingData = null,
     layout,
     isTeamEvent,
   }: StoreInitializeType) => {
@@ -171,7 +192,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       get().month === month &&
       get().eventId === eventId &&
       get().rescheduleUid === rescheduleUid &&
-      get().rescheduleBooking?.responses.email === rescheduleBooking?.responses.email &&
+      get().bookingUid === bookingUid &&
+      get().bookingData?.responses.email === bookingData?.responses.email &&
       get().layout === layout
     )
       return;
@@ -180,7 +202,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       eventSlug,
       eventId,
       rescheduleUid,
-      rescheduleBooking,
+      bookingUid,
+      bookingData,
       layout: layout || BookerLayouts.MONTH_VIEW,
       isTeamEvent: isTeamEvent || false,
       // Preselect today's date in week / column view, since they use this to show the week title.
@@ -193,7 +216,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     // if the user reschedules a booking right after the confirmation page.
     // In that case the time would still be store in the store, this way we
     // force clear this.
-    if (rescheduleBooking) set({ selectedTimeslot: null });
+    if (rescheduleUid && bookingData) set({ selectedTimeslot: null });
     if (month) set({ month });
     removeQueryParam("layout");
   },
@@ -204,8 +227,9 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   recurringEventCount: null,
   setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
-  rescheduleBooking: null,
   rescheduleUid: null,
+  bookingData: null,
+  bookingUid: null,
   selectedTimeslot: getQueryParam("slot") || null,
   setSelectedTimeslot: (selectedTimeslot: string | null) => {
     set({ selectedTimeslot });
@@ -223,7 +247,7 @@ export const useInitializeBookerStore = ({
   month,
   eventId,
   rescheduleUid = null,
-  rescheduleBooking = null,
+  bookingData = null,
   layout,
   isTeamEvent,
 }: StoreInitializeType) => {
@@ -235,19 +259,9 @@ export const useInitializeBookerStore = ({
       month,
       eventId,
       rescheduleUid,
-      rescheduleBooking,
+      bookingData,
       layout,
       isTeamEvent,
     });
-  }, [
-    initializeStore,
-    username,
-    eventSlug,
-    month,
-    eventId,
-    rescheduleUid,
-    rescheduleBooking,
-    layout,
-    isTeamEvent,
-  ]);
+  }, [initializeStore, username, eventSlug, month, eventId, rescheduleUid, bookingData, layout, isTeamEvent]);
 };

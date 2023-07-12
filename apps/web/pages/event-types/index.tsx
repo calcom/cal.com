@@ -103,11 +103,11 @@ const querySchema = z.object({
 
 const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   const { eventTypeGroups } = props;
-
+  const orgBranding = useOrgBrandingValues();
   const tabs = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
     href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
-    avatar: item.profile.image ?? `${WEBAPP_URL}/${item.profile.slug}/avatar.png`,
+    avatar: item.profile.image ?? `${orgBranding?.fullDomain ?? WEBAPP_URL}/${item.profile.slug}/avatar.png`,
   }));
   const { data } = useTypedQuery(querySchema);
   const events = eventTypeGroups.filter((item) => item.teamId === data.teamId);
@@ -404,7 +404,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           items={type.users.map(
                             (organizer: { name: string | null; username: string | null }) => ({
                               alt: organizer.name || "",
-                              image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
+                              image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${
+                                organizer.username
+                              }/avatar.png`,
                               title: organizer.name || "",
                             })
                           )}
@@ -419,7 +421,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             .flatMap((ch) => ch.users)
                             .map((user: Pick<User, "name" | "username">) => ({
                               alt: user.name || "",
-                              image: `${WEBAPP_URL}/${user.username}/avatar.png`,
+                              image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${user.username}/avatar.png`,
                               title: user.name || "",
                             }))}
                         />
@@ -714,7 +716,10 @@ const EventTypeListHeading = ({
       <Avatar
         alt={profile?.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={`${WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
+        imageSrc={
+          `${orgBranding?.fullDomain ?? WEBAPP_URL}/${teamId ? "team/" : ""}${profile.slug}/avatar.png` ||
+          undefined
+        }
         size="md"
         className="mt-1 inline-flex justify-center"
       />

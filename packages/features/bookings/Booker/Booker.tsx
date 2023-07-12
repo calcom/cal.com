@@ -34,7 +34,7 @@ const BookerComponent = ({
   username,
   eventSlug,
   month,
-  rescheduleBooking,
+  bookingData,
   hideBranding = false,
   isTeamEvent,
 }: BookerProps) => {
@@ -44,6 +44,8 @@ const BookerComponent = ({
   const StickyOnDesktop = isMobile ? "div" : StickyBox;
   const rescheduleUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
+  const bookingUid =
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
   const event = useEvent();
   const [_layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
 
@@ -61,6 +63,11 @@ const BookerComponent = ({
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
+    shallow
+  );
+  // const seatedEventData = useBookerStore((state) => state.seatedEventData);
+  const [seatedEventData, setSeatedEventData] = useBookerStore(
+    (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
   );
 
@@ -85,7 +92,8 @@ const BookerComponent = ({
     month,
     eventId: event?.data?.id,
     rescheduleUid,
-    rescheduleBooking,
+    bookingUid,
+    bookingData,
     layout: defaultLayout,
     isTeamEvent,
   });
@@ -196,7 +204,14 @@ const BookerComponent = ({
               className="border-subtle sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInLeft}
               visible={bookerState === "booking" && !shouldShowFormInDialog}>
-              <BookEventForm onCancel={() => setSelectedTimeslot(null)} />
+              <BookEventForm
+                onCancel={() => {
+                  setSelectedTimeslot(null);
+                  if (seatedEventData.bookingUid) {
+                    setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
+                  }
+                }}
+              />
             </BookerSection>
 
             <BookerSection
@@ -236,7 +251,7 @@ const BookerComponent = ({
               <AvailableTimeSlots
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
-                seatsPerTimeslot={event.data?.seatsPerTimeSlot}
+                seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
               />
             </BookerSection>
           </AnimatePresence>

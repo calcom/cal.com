@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
-import { getBookingByUidOrRescheduleUid } from "@calcom/features/bookings/lib/get-booking";
+import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { classNames } from "@calcom/lib";
@@ -17,20 +17,20 @@ import PageWrapper from "@components/PageWrapper";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
-export default function Type({ slug, user, booking, away, isBrandingHidden }: PageProps) {
+export default function Type({ slug, user, booking, away, isBrandingHidden, rescheduleUid }: PageProps) {
   const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
   return (
     <main className={classNames("flex h-full items-center justify-center", !isEmbed && "min-h-[100dvh]")}>
       <BookerSeo
         username={user}
         eventSlug={slug}
-        rescheduleUid={booking?.uid}
+        rescheduleUid={rescheduleUid ?? undefined}
         hideBranding={isBrandingHidden}
       />
       <Booker
         username={user}
         eventSlug={slug}
-        rescheduleBooking={booking}
+        bookingData={booking}
         isAway={away}
         hideBranding={isBrandingHidden}
       />
@@ -42,7 +42,7 @@ Type.PageWrapper = PageWrapper;
 
 async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
-  const { rescheduleUid } = context.query;
+  const { rescheduleUid, bookingUid } = context.query;
 
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
@@ -66,7 +66,9 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBookingByUidOrRescheduleUid(`${rescheduleUid}`);
+    booking = await getBookingForReschedule(`${rescheduleUid}`);
+  } else if (bookingUid) {
+    booking = await getBookingForSeatedEvent(`${bookingUid}`);
   }
 
   // We use this to both prefetch the query on the server,
@@ -88,6 +90,8 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       trpcState: ssr.dehydrate(),
       isBrandingHidden: false,
       themeBasis: null,
+      bookingUid: bookingUid ? `${bookingUid}` : null,
+      rescheduleUid: rescheduleUid ? `${rescheduleUid}` : null,
     },
   };
 }
@@ -95,7 +99,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 async function getUserPageProps(context: GetServerSidePropsContext) {
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const username = usernames[0];
-  const { rescheduleUid } = context.query;
+  const { rescheduleUid, bookingUid } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
 
   const { ssrInit } = await import("@server/lib/ssr");
@@ -105,8 +109,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       username,
       organization: isValidOrgDomain
         ? {
-          slug: currentOrgDomain,
-        }
+            slug: currentOrgDomain,
+          }
         : null,
     },
     select: {
@@ -123,7 +127,9 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBookingByUidOrRescheduleUid(`${rescheduleUid}`);
+    booking = await getBookingForReschedule(`${rescheduleUid}`);
+  } else if (bookingUid) {
+    booking = await getBookingForSeatedEvent(`${bookingUid}`);
   }
 
   // We use this to both prefetch the query on the server,
@@ -145,6 +151,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       trpcState: ssr.dehydrate(),
       isBrandingHidden: user?.hideBranding,
       themeBasis: username,
+      bookingUid: bookingUid ? `${bookingUid}` : null,
+      rescheduleUid: rescheduleUid ? `${rescheduleUid}` : null,
     },
   };
 }
