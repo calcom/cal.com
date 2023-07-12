@@ -1,3 +1,4 @@
+import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
 
 import { test } from "./lib/fixtures";
