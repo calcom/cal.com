@@ -403,7 +403,8 @@ export async function bookAndPaidEvent(
 }
 
 export async function makePaymentUsingStripe(page: Page) {
-  const stripeFrame = page.frameLocator("iframe").first();
+  const stripeElement = await page.locator(".StripeElement").first();
+  const stripeFrame = stripeElement.frameLocator("iframe").first();
   await stripeFrame.locator('[name="number"]').fill("4242 4242 4242 4242");
   const now = new Date();
   await stripeFrame.locator('[name="expiry"]').fill(`${now.getMonth()} / ${now.getFullYear() + 1}`);
