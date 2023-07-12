@@ -503,7 +503,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         </Form>
       </EventTypeSingleLayout>
 
-      {slugExistsChildrenDialogOpen.length && (
+      {slugExistsChildrenDialogOpen.length ? (
         <ManagedEventTypeDialog
           slugExistsChildrenDialogOpen={slugExistsChildrenDialogOpen}
           isLoading={formMethods.formState.isSubmitting}
@@ -518,7 +518,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             setSlugExistsChildrenDialogOpen([]);
           }}
         />
-      )}
+      ) : null}
     </>
   );
 };
