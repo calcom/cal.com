@@ -11,8 +11,6 @@ test.afterEach(({ users }) => users.deleteAll());
 test("Can reset forgotten password", async ({ page, users }) => {
   const user = await users.create();
 
-  const newPassword = `${user.username}-123CAL-${uuid().toString()}`; // To match the password policy
-
   // Got to reset password flow
   await page.goto("/auth/forgot-password");
 
@@ -36,7 +34,33 @@ test("Can reset forgotten password", async ({ page, users }) => {
     },
   });
 
+  // Test when a user changes his email after starting the password reset flow
+  await prisma.user.update({
+    where: {
+      email: `${user.username}@example.com`,
+    },
+    data: {
+      email: `${user.username}-2@example.com`,
+    },
+  });
+
   await page.goto(`/auth/forgot-password/${id}`);
+
+  await page.waitForSelector("text=That request is expired.");
+
+  // Change the email back to continue testing.
+  await prisma.user.update({
+    where: {
+      email: `${user.username}-2@example.com`,
+    },
+    data: {
+      email: `${user.username}@example.com`,
+    },
+  });
+
+  await page.goto(`/auth/forgot-password/${id}`);
+
+  const newPassword = `${user.username}-123CAL-${uuid().toString()}`; // To match the password policy
 
   // Wait for page to fully load
   await page.waitForSelector("text=Reset Password");
