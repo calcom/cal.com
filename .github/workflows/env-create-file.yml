@@ -47,9 +47,9 @@ jobs:
       - uses: ozaytsev86/create-env-file@v1
 
         with:
-          file-name: ${{ github.workspace }}/${{ ENV_FILE_NAME }}
+          file-name: ${{ github.workspace }}/${{ env.ENV_FILE_NAME }}
       - uses: buildjet/cache@v3
         id: env-cache
         with:
-          path: ${{ ENV_FILE_NAME }}
-          key: env-cache-${{ hashFiles(ENV_FILE_NAME) }}
+          path: ${{ env.ENV_FILE_NAME }}
+          key: env-cache-${{ hashFiles(env.ENV_FILE_NAME) }}
