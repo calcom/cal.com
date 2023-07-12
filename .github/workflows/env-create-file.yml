@@ -50,4 +50,4 @@ jobs:
         id: env-cache
         with:
           path: gh.env-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-          key: env-cache-${{ hashFiles('gh.env' + github.workflow + '-' + github.event.pull_request.number || github.ref) }}
+          key: env-cache-${{ hashFiles('gh.env-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}') }}
