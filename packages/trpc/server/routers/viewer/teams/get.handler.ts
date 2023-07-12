@@ -25,8 +25,6 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
 
   return {
     ...team,
-    /** To prevent breaking we only return non-email attached token here, if we have one */
-    inviteToken: team.inviteTokens.find((token) => token.identifier === "invite-link-for-teamId-" + team.id),
     safeBio: markdownToSafeHTML(team.bio),
     membership: {
       role: membership?.role as MembershipRole,
