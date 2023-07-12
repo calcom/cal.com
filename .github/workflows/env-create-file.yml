@@ -50,4 +50,4 @@ jobs:
         id: env-cache
         with:
           path: gh.env-${{ github.sha }}
-          key: env-cache-${{ hashFiles('gh.env-${{ github.sha }}') }}
+          key: env-cache-${{ github.sha }}
