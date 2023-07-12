@@ -29,7 +29,7 @@ export default class AttendeeDailyVideoDownloadRecordingEmail extends BaseEmail 
         title: this.calEvent.title,
         date: this.getFormattedDate(),
       })}`,
-      html: renderEmail("AttendeeDailyVideoDownloadRecordingEmail", {
+      html: renderEmail("DailyVideoDownloadRecordingEmail", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
         downloadLink: this.downloadLink,
