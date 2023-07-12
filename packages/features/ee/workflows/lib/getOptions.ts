@@ -2,8 +2,8 @@ import type { TFunction } from "next-i18next";
 
 import { WorkflowActions } from "@calcom/prisma/enums";
 
-import { isSMSAction } from "./actionHelperFunctions";
-import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_EVENTS } from "./constants";
+import { isSMSOrWhatsappAction, isWhatsappAction } from "./actionHelperFunctions";
+import { TIME_UNIT, WHATSAPP_WORKFLOW_TEMPLATES, WORKFLOW_ACTIONS, BASIC_WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_EVENTS } from "./constants";
 
 export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean) {
   return WORKFLOW_ACTIONS.filter((action) => action !== WorkflowActions.EMAIL_ADDRESS) //removing EMAIL_ADDRESS for now due to abuse episode
@@ -13,7 +13,7 @@ export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean) {
       return {
         label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
         value: action,
-        needsUpgrade: isSMSAction(action) && !isTeamsPlan,
+        needsUpgrade: isSMSOrWhatsappAction(action) && !isTeamsPlan,
       };
     });
 }
@@ -32,8 +32,9 @@ export function getWorkflowTimeUnitOptions(t: TFunction) {
   });
 }
 
-export function getWorkflowTemplateOptions(t: TFunction) {
-  return WORKFLOW_TEMPLATES.map((template) => {
+export function getWorkflowTemplateOptions(t: TFunction, action: WorkflowActions | undefined) {
+  const TEMPLATES = (action && isWhatsappAction(action)) ? WHATSAPP_WORKFLOW_TEMPLATES : BASIC_WORKFLOW_TEMPLATES;
+  return TEMPLATES.map((template) => {
     return { label: t(`${template.toLowerCase()}`), value: template };
-  });
+  }) as { label: string; value: any }[];
 }

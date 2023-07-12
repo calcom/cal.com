@@ -8,6 +8,9 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { scheduleEmailReminder } from "./emailReminderManager";
 import { scheduleSMSReminder } from "./smsReminderManager";
+import { scheduleWhatsappReminder } from "./whatsappReminderManager";
+
+import { isWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 
 type ExtendedCalendarEvent = CalendarEvent & {
   metadata?: { videoCallUrl: string | undefined };
@@ -109,6 +112,24 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
               step.sender || SENDER_NAME,
               hideBranding
             );
+          } else if (isWhatsappAction(step.action)) {
+            const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
+            await scheduleWhatsappReminder(
+              evt,
+              sendTo,
+              workflow.trigger,
+              step.action,
+              {
+                time: workflow.time,
+                timeUnit: workflow.timeUnit,
+              },
+              step.reminderBody || "",
+              step.id,
+              step.template,
+              workflow.userId,
+              workflow.teamId,
+              step.numberVerificationPending
+            );
           }
         }
       }
@@ -185,6 +206,24 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
               step.template,
               step.sender || SENDER_NAME,
               hideBranding
+            );
+          } else if (isWhatsappAction(step.action)) {
+            const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
+            await scheduleWhatsappReminder(
+              evt,
+              sendTo,
+              workflow.trigger,
+              step.action,
+              {
+                time: workflow.time,
+                timeUnit: workflow.timeUnit,
+              },
+              step.reminderBody || "",
+              step.id,
+              step.template,
+              workflow.userId,
+              workflow.teamId,
+              step.numberVerificationPending
             );
           }
         }

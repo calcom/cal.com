@@ -90,7 +90,11 @@ export const Editor = (props: TextEditorProps) => {
                   className="editor-input"
                 />
               }
-              placeholder={<div className="text-muted -mt-11 p-3 text-sm">{props.placeholder || ""}</div>}
+              placeholder={
+                props?.placeholder ? (
+                  <div className="text-muted -mt-11 p-3 text-sm">{props.placeholder}</div>
+                ) : null
+              }
               ErrorBoundary={LexicalErrorBoundary}
             />
             <ListPlugin />

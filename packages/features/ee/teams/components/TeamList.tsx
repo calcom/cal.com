@@ -43,7 +43,7 @@ export default function TeamList(props: Props) {
   }
 
   return (
-    <ul className="bg-default divide-subtle border-subtle mb-2 divide-y rounded-md border overflow-hidden">
+    <ul className="bg-default divide-subtle border-subtle mb-2 divide-y overflow-hidden rounded-md border">
       {props.teams.map((team) => (
         <TeamListItem
           key={team?.id as number}
