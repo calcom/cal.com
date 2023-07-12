@@ -7,6 +7,7 @@ import InviteLinkSettingsModal from "@calcom/features/ee/teams/components/Invite
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -193,7 +194,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
   const { member, index, teamId } = props;
   const { t } = useLocale();
   const utils = trpc.useContext();
-
+  const bookerUrl = useBookerUrl();
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
@@ -214,7 +215,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
         <Avatar
           gravatarFallbackMd5="teamMember"
           size="mdLg"
-          imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
+          imageSrc={bookerUrl + "/" + member.username + "/avatar.png"}
           alt="owner-avatar"
         />
         <div>

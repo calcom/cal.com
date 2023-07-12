@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Avatar,
@@ -38,6 +38,8 @@ export type CreateBtnProps = {
 export function CreateButton(props: CreateBtnProps) {
   const { t } = useLocale();
   const router = useRouter();
+  const bookerUrl = useBookerUrl();
+
   const {
     createDialog,
     options,
@@ -113,7 +115,7 @@ export function CreateButton(props: CreateBtnProps) {
                   StartIcon={(props) => (
                     <Avatar
                       alt={option.label || ""}
-                      imageSrc={option.image || `${WEBAPP_URL}/${option.label}/avatar.png`} // if no image, use default avatar
+                      imageSrc={option.image || `${bookerUrl}/${option.label}/avatar.png`} // if no image, use default avatar
                       size="sm"
                       {...props}
                     />

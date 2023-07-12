@@ -717,7 +717,7 @@ const EventTypeListHeading = ({
         alt={profile?.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
         imageSrc={
-          `${orgBranding?.fullDomain ?? WEBAPP_URL}/${teamId ? "team/" : ""}${profile.slug}/avatar.png` ||
+          `${orgBranding?.fullDomain ?? WEBAPP_URL}${teamId ? "team/" : ""}${profile.slug}/avatar.png` ||
           undefined
         }
         size="md"
