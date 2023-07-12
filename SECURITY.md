@@ -55,3 +55,10 @@ better protect our clients and our systems.
 - We strive to resolve all problems as quickly as possible, and we would like
   to play an active role in the ultimate publication on the problem after it
   is resolved.
+
+
+# Reporting a Vulnerability
+
+If you discover a security vulnerability in cal.com please disclose it via [our huntr page](https://huntr.dev/repos/calcom/cal.com/). Information about bounties, CVEs, response times and past reports are all there..
+
+Thank you for improving the security of cal.com.
