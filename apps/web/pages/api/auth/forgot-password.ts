@@ -88,17 +88,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       resetLink,
     });
 
-    /** So we can test the password reset flow on CI */
-    if (process.env.NEXT_PUBLIC_IS_E2E) {
-      return res.status(201).json({
-        message: "If this email exists in our system, you should receive a Reset email.",
-        resetLink,
-      });
-    } else {
-      return res
-        .status(201)
-        .json({ message: "If this email exists in our system, you should receive a Reset email." });
-    }
+    return res
+      .status(201)
+      .json({ message: "If this email exists in our system, you should receive a Reset email." });
   } catch (reason) {
     // console.error(reason);
     return res.status(500).json({ message: "Unable to create password reset request" });
