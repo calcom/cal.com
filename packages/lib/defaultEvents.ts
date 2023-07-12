@@ -50,6 +50,7 @@ const user: User & { credentials: Credential[] } = {
   darkBrandColor: "#efefef",
   allowDynamicBooking: true,
   timeFormat: 12,
+  organizationId: null,
 };
 
 const customInputs: CustomInputSchema[] = [];
@@ -90,6 +91,7 @@ const commons = {
   durationLimits: null,
   hidden: false,
   userId: 0,
+  parentId: null,
   owner: null,
   workflows: [],
   users: [user],

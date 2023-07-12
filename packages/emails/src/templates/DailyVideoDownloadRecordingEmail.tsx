@@ -4,7 +4,7 @@ import { WEBAPP_URL, APP_NAME, COMPANY_NAME } from "@calcom/lib/constants";
 
 import { V2BaseEmailHtml, CallToAction } from "../components";
 
-interface AttendeeDailyVideoDownloadRecordingEmailProps {
+interface DailyVideoDownloadRecordingEmailProps {
   language: TFunction;
   downloadLink: string;
   title: string;
@@ -12,8 +12,8 @@ interface AttendeeDailyVideoDownloadRecordingEmailProps {
   name: string;
 }
 
-export const AttendeeDailyVideoDownloadRecordingEmail = (
-  props: AttendeeDailyVideoDownloadRecordingEmailProps & Partial<React.ComponentProps<typeof V2BaseEmailHtml>>
+export const DailyVideoDownloadRecordingEmail = (
+  props: DailyVideoDownloadRecordingEmailProps & Partial<React.ComponentProps<typeof V2BaseEmailHtml>>
 ) => {
   const image = WEBAPP_URL + "/emails/logo.png";
   return (
