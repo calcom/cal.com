@@ -7,9 +7,9 @@ runs:
       uses: buildjet/cache@v3
       id: env-cache
       with:
-        path: gh.env
-        key: env-cache-${{ hashFiles('gh.env') }}
+        path: gh.env-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+        key: env-cache-${{ hashFiles('gh.env' + github.workflow + '-' + github.event.pull_request.number || github.ref) }}
     - name: Set Environment Variables
       uses: tw3lveparsecs/github-actions-setvars@latest
       with:
-        envFilePath: gh.env
+        envFilePath: gh.env-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
