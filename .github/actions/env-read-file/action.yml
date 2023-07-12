@@ -1,5 +1,7 @@
 name: "Set environment variables"
 description: "Configures environment variables for a workflow"
+env:
+  ENV_FILE_NAME: gh.env-${{ github.sha }}
 runs:
   using: "composite"
   steps:
@@ -7,9 +9,9 @@ runs:
       uses: buildjet/cache@v3
       id: env-cache
       with:
-        path: gh.env-${{ github.sha }}
-        key: env-cache-${{ github.sha }}
+        path: ${{ ENV_FILE_NAME }}
+        key: env-cache-${{ hashFiles(ENV_FILE_NAME) }}
     - name: Set Environment Variables
       uses: tw3lveparsecs/github-actions-setvars@latest
       with:
-        envFilePath: gh.env-${{ github.sha }}
+        envFilePath: ${{ ENV_FILE_NAME }}
