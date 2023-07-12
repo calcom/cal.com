@@ -55,6 +55,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
   };
 
   const signUp: SubmitHandler<FormValues> = async (data) => {
+    data.username = data.username.replace(/\+/g, "-");
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
         ...data,
