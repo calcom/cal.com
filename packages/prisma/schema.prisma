@@ -709,6 +709,8 @@ enum WorkflowActions {
   SMS_ATTENDEE
   SMS_NUMBER
   EMAIL_ADDRESS
+  WHATSAPP_ATTENDEE
+  WHATSAPP_NUMBER
 }
 
 model WorkflowStep {
@@ -793,11 +795,15 @@ model WorkflowReminder {
 enum WorkflowTemplates {
   REMINDER
   CUSTOM
+  CANCELLED
+  RESCHEDULED
+  COMPLETED
 }
 
 enum WorkflowMethods {
   EMAIL
   SMS
+  WHATSAPP
 }
 
 model BookingSeat {

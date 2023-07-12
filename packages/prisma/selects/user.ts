@@ -46,6 +46,7 @@ export const userSelect = Prisma.validator<Prisma.UserArgs>()({
     brandColor: true,
     darkBrandColor: true,
     metadata: true,
+    organizationId: true,
     ...availabilityUserSelect,
   },
 });
