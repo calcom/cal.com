@@ -6,8 +6,10 @@ import { getEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import classNames from "@calcom/lib/classNames";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { formatTime } from "@calcom/lib/date-fns";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -49,6 +51,8 @@ type BookingItemProps = BookingItem & {
 function BookingListItem(booking: BookingItemProps) {
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
+  const orgBranding = useOrgBrandingValues();
+
   const user = query.data;
   const {
     t,
@@ -170,7 +174,7 @@ function BookingListItem(booking: BookingItemProps) {
           id: "reschedule",
           icon: Clock,
           label: t("reschedule_booking"),
-          href: `/reschedule/${booking.uid}${
+          href: `${orgBranding?.fullDomain ?? WEBAPP_URL}/reschedule/${booking.uid}${
             booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
           }`,
         },
