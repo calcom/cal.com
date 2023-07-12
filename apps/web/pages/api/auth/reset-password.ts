@@ -1,64 +1,56 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { z } from "zod";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
 import prisma from "@calcom/prisma";
 
+const passwordResetRequestSchema = z.object({
+  password: z.string().refine(validPassword, () => ({
+    message: "Password does not meet the requirements",
+  })),
+  requestId: z.string(), // format doesn't matter.
+});
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    return res.status(400).json({ message: "" });
-  }
+  // Bad Method when not POST
+  if (req.method !== "POST") return res.status(405).end();
 
+  const { password: rawPassword, requestId: rawRequestId } = passwordResetRequestSchema.parse(req.body);
+  // rate-limited there is a low, very low chance that a password request stays valid long enough
+  // to brute force 3.8126967e+40 options.
+  const maybeRequest = await prisma.resetPasswordRequest.findFirstOrThrow({
+    where: {
+      id: rawRequestId,
+      expires: {
+        gt: new Date(),
+      },
+    },
+    select: {
+      email: true,
+    },
+  });
+
+  const hashedPassword = await hashPassword(rawPassword);
+  // this can fail if a password request has been made for an email that has since changed or-
+  // never existed within Cal. In this case we do not want to disclose the email's existence.
+  // instead, we just return 404
   try {
-    const rawPassword = req.body?.password;
-    const rawRequestId = req.body?.requestId;
-
-    if (!rawPassword || !rawRequestId) {
-      return res.status(400).json({ message: "Couldn't find an account for this email" });
-    }
-
-    const maybeRequest = await prisma.resetPasswordRequest.findUnique({
-      where: {
-        id: rawRequestId,
-      },
-    });
-
-    if (!maybeRequest) {
-      return res.status(400).json({ message: "Couldn't find an account for this email" });
-    }
-
-    const maybeUser = await prisma.user.findUnique({
-      where: {
-        email: maybeRequest.email,
-      },
-    });
-
-    if (!maybeUser) {
-      return res.status(400).json({ message: "Couldn't find an account for this email" });
-    }
-
-    if (!validPassword(rawPassword)) {
-      return res.status(400).json({ message: "Password does not meet the requirements" });
-    }
-
-    const hashedPassword = await hashPassword(rawPassword);
-
     await prisma.user.update({
       where: {
-        id: maybeUser.id,
+        email: maybeRequest.email,
       },
       data: {
         password: hashedPassword,
       },
     });
-
-    await expireResetPasswordRequest(rawRequestId);
-
-    return res.status(201).json({ message: "Password reset." });
-  } catch (reason) {
-    console.error(reason);
-    return res.status(500).json({ message: "Unable to create password reset request" });
+  } catch (e) {
+    return res.status(404).end();
   }
+
+  await expireResetPasswordRequest(rawRequestId);
+
+  return res.status(201).json({ message: "Password reset." });
 }
 
 async function expireResetPasswordRequest(rawRequestId: string) {
