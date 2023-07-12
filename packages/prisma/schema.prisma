@@ -270,7 +270,7 @@ model Team {
   parent              Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
   children            Team[]                  @relation("organization")
   orgUsers            User[]                  @relation("scope")
-  inviteToken         VerificationToken?
+  inviteTokens        VerificationToken[]
   webhooks            Webhook[]
   timeFormat          Int?
   timeZone            String                  @default("Europe/London")
@@ -310,7 +310,7 @@ model VerificationToken {
   expiresInDays Int?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  teamId        Int?     @unique
+  teamId        Int?
   team          Team?    @relation(fields: [teamId], references: [id])
 
   @@unique([identifier, token])
@@ -709,6 +709,8 @@ enum WorkflowActions {
   SMS_ATTENDEE
   SMS_NUMBER
   EMAIL_ADDRESS
+  WHATSAPP_ATTENDEE
+  WHATSAPP_NUMBER
 }
 
 model WorkflowStep {
@@ -793,11 +795,15 @@ model WorkflowReminder {
 enum WorkflowTemplates {
   REMINDER
   CUSTOM
+  CANCELLED
+  RESCHEDULED
+  COMPLETED
 }
 
 enum WorkflowMethods {
   EMAIL
   SMS
+  WHATSAPP
 }
 
 model BookingSeat {

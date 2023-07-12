@@ -2,6 +2,7 @@ import classNames from "classnames";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
+import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -53,6 +54,7 @@ const checkIsOrg = (team: Props["team"]) => {
 
 export default function MemberListItem(props: Props) {
   const { t } = useLocale();
+  const orgBranding = useOrgBrandingValues();
 
   const utils = trpc.useContext();
   const [showChangeMemberRoleModal, setShowChangeMemberRoleModal] = useState(false);
@@ -116,7 +118,7 @@ export default function MemberListItem(props: Props) {
           <div className="flex">
             <Avatar
               size="sm"
-              imageSrc={WEBAPP_URL + "/" + props.member.username + "/avatar.png"}
+              imageSrc={(orgBranding?.fullDomain ?? WEBAPP_URL) + "/" + props.member.username + "/avatar.png"}
               alt={name || ""}
               className="h-10 w-10 rounded-full"
             />
@@ -137,7 +139,7 @@ export default function MemberListItem(props: Props) {
                     <span className="text-default mx-2 block">•</span>
                     <a
                       target="_blank"
-                      href={`${WEBAPP_URL}/${props.member.username}`}
+                      href={`${orgBranding?.fullDomain ?? WEBAPP_URL}/${props.member.username}`}
                       className="text-default block text-sm">
                       {bookingLink}
                     </a>
