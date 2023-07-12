@@ -277,7 +277,7 @@ export async function getSchedule(input: TGetScheduleInputSchema) {
   );
   const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
   const availabilityCheckProps = {
-    eventLength: eventType.length,
+    eventLength: eventType.slotInterval || input.duration || eventType.length,
     currentSeats,
   };
 
