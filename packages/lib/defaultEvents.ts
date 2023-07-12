@@ -2,6 +2,7 @@ import type { Prisma, Credential } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import slugify from "@calcom/lib/slugify";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { userSelect } from "@calcom/prisma/selects";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
@@ -49,6 +50,7 @@ const user: User & { credentials: Credential[] } = {
   darkBrandColor: "#efefef",
   allowDynamicBooking: true,
   timeFormat: 12,
+  organizationId: null,
 };
 
 const customInputs: CustomInputSchema[] = [];
@@ -89,6 +91,7 @@ const commons = {
   durationLimits: null,
   hidden: false,
   userId: 0,
+  parentId: null,
   owner: null,
   workflows: [],
   users: [user],
@@ -177,14 +180,8 @@ export const getUsernameList = (users: string | string[] | undefined): string[] 
   // So, even though this code handles even if individual user is dynamic link, that isn't a possibility right now.
   users = arrayCast(users);
 
-  const allUsers = users.map((user) =>
-    user
-      .toLowerCase()
-      .replace(/( |%20|%2b)/g, "+")
-      .split("+")
-  );
-
-  return Array.prototype.concat(...allUsers);
+  const allUsers = users.map((user) => user.replace(/( |%20|%2b)/g, "+").split("+")).flat();
+  return Array.prototype.concat(...allUsers.map((userSlug) => slugify(userSlug)));
 };
 
 export default defaultEvents;

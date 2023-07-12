@@ -616,10 +616,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           ) {
             await prisma.user.update({
               where: {
-                email_username: {
-                  email: existingUserWithEmail.email,
-                  username: existingUserWithEmail.username!,
-                },
+                email: existingUserWithEmail.email,
               },
               data: {
                 // update the email to the IdP email
