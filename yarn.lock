@@ -4169,7 +4169,7 @@ __metadata:
     handlebars: ^4.7.7
     jose: ^4.13.1
     lru-cache: ^9.0.3
-    next-auth: ^4.20.1
+    next-auth: ^4.22.1
     nodemailer: ^6.7.8
     otplib: ^12.0.1
   languageName: unknown
@@ -4288,7 +4288,7 @@ __metadata:
     "@calcom/dayjs": "*"
     "@calcom/tsconfig": "*"
     "@calcom/types": "*"
-    "@faker-js/faker": ^7.3.0
+    "@faker-js/faker": ^8.0.2
     "@sendgrid/client": ^7.7.0
     "@vercel/og": ^0.5.0
     bcryptjs: ^2.4.3
@@ -4386,6 +4386,7 @@ __metadata:
   resolution: "@calcom/prisma@workspace:packages/prisma"
   dependencies:
     "@calcom/lib": "*"
+    "@faker-js/faker": ^8.0.2
     "@prisma/client": ^4.16.0
     "@prisma/generator-helper": ^4.13.0
     npm-run-all: ^4.1.5
@@ -4792,7 +4793,7 @@ __metadata:
     module-alias: ^2.2.2
     msw: ^0.42.3
     next: ^13.4.6
-    next-auth: ^4.20.1
+    next-auth: ^4.22.1
     next-axiom: ^0.17.0
     next-collect: ^0.2.1
     next-i18next: ^13.2.2
@@ -4867,13 +4868,13 @@ __metadata:
     "@hookform/resolvers": ^2.9.7
     "@juggle/resize-observer": ^3.4.0
     "@next/bundle-analyzer": ^13.1.6
-    "@radix-ui/react-accordion": ^1.1.2
+    "@radix-ui/react-accordion": ^1.0.0
     "@radix-ui/react-dropdown-menu": ^2.0.5
-    "@radix-ui/react-navigation-menu": ^1.1.3
-    "@radix-ui/react-portal": ^1.0.3
-    "@radix-ui/react-slider": ^1.1.2
-    "@radix-ui/react-tabs": ^1.0.4
-    "@radix-ui/react-tooltip": ^1.0.6
+    "@radix-ui/react-navigation-menu": ^1.0.0
+    "@radix-ui/react-portal": ^1.0.0
+    "@radix-ui/react-slider": ^1.0.0
+    "@radix-ui/react-tabs": ^1.0.0
+    "@radix-ui/react-tooltip": ^1.0.0
     "@stripe/stripe-js": ^1.35.0
     "@tanstack/react-query": ^4.3.9
     "@typeform/embed-react": ^1.2.4
@@ -6002,10 +6003,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@faker-js/faker@npm:^7.3.0":
-  version: 7.4.0
-  resolution: "@faker-js/faker@npm:7.4.0"
-  checksum: 1acebb84bfb142c08e6ba2942910d16bd92ea147fa585fa2fa9ce9983f7a8c7c016002beb7fc20ef6f7aef6c4ae9cb3fa680b275823402e34802b8489d2b980d
+"@faker-js/faker@npm:^8.0.2":
+  version: 8.0.2
+  resolution: "@faker-js/faker@npm:8.0.2"
+  checksum: cf73daf9a50397eb0b3f04a7ef3fbb6f54acc026b167707136a7e58a517fd805a46c9e8c5f017f3022f104a4ff984765daaeee2cb98b3c34646db05c2acad441
   languageName: node
   linkType: hard
 
@@ -7796,7 +7797,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-accordion@npm:^1.1.2":
+"@radix-ui/react-accordion@npm:^1.0.0":
   version: 1.1.2
   resolution: "@radix-ui/react-accordion@npm:1.1.2"
   dependencies:
@@ -8230,7 +8231,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-navigation-menu@npm:^1.1.3":
+"@radix-ui/react-navigation-menu@npm:^1.0.0":
   version: 1.1.3
   resolution: "@radix-ui/react-navigation-menu@npm:1.1.3"
   dependencies:
@@ -8340,7 +8341,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-portal@npm:1.0.3, @radix-ui/react-portal@npm:^1.0.0, @radix-ui/react-portal@npm:^1.0.3":
+"@radix-ui/react-portal@npm:1.0.3, @radix-ui/react-portal@npm:^1.0.0":
   version: 1.0.3
   resolution: "@radix-ui/react-portal@npm:1.0.3"
   dependencies:
@@ -8500,7 +8501,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-slider@npm:^1.0.0, @radix-ui/react-slider@npm:^1.1.2":
+"@radix-ui/react-slider@npm:^1.0.0":
   version: 1.1.2
   resolution: "@radix-ui/react-slider@npm:1.1.2"
   dependencies:
@@ -8584,7 +8585,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-tabs@npm:^1.0.4":
+"@radix-ui/react-tabs@npm:^1.0.0":
   version: 1.0.4
   resolution: "@radix-ui/react-tabs@npm:1.0.4"
   dependencies:
@@ -8659,7 +8660,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-tooltip@npm:^1.0.0, @radix-ui/react-tooltip@npm:^1.0.6":
+"@radix-ui/react-tooltip@npm:^1.0.0":
   version: 1.0.6
   resolution: "@radix-ui/react-tooltip@npm:1.0.6"
   dependencies:
@@ -26459,6 +26460,31 @@ __metadata:
     nodemailer:
       optional: true
   checksum: f3414533716e7cc4f80bf070e4eec95e4dced331694e6dd446704b73145804585962be6e107946bdedab05d392b20dad7a7b62ac6cd0bfade0482a0a9d741c0b
+  languageName: node
+  linkType: hard
+
+"next-auth@npm:^4.22.1":
+  version: 4.22.1
+  resolution: "next-auth@npm:4.22.1"
+  dependencies:
+    "@babel/runtime": ^7.20.13
+    "@panva/hkdf": ^1.0.2
+    cookie: ^0.5.0
+    jose: ^4.11.4
+    oauth: ^0.9.15
+    openid-client: ^5.4.0
+    preact: ^10.6.3
+    preact-render-to-string: ^5.1.19
+    uuid: ^8.3.2
+  peerDependencies:
+    next: ^12.2.5 || ^13
+    nodemailer: ^6.6.5
+    react: ^17.0.2 || ^18
+    react-dom: ^17.0.2 || ^18
+  peerDependenciesMeta:
+    nodemailer:
+      optional: true
+  checksum: 42bae16b62bac4b3d215d991c7c964dfc071a84df32900a28d4cbc20d4b6a65689b3ba9f10633780a22ff0cbc420248d012614a5b0d82918f9bbb56f7f92f7c5
   languageName: node
   linkType: hard
 

@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker";
 import type { Prisma, UserPermissionRole } from "@prisma/client";
 import { uuid } from "short-uuid";
 
@@ -7,6 +8,7 @@ import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import slugify from "@calcom/lib/slugify";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
 import prisma from ".";
@@ -23,7 +25,7 @@ async function createUserAndEventType(opts: {
     role?: UserPermissionRole;
   };
   eventTypes: Array<
-    Prisma.EventTypeCreateInput & {
+    Prisma.EventTypeUncheckedCreateInput & {
       _bookings?: Prisma.BookingCreateInput[];
     }
   >;
@@ -169,6 +171,51 @@ async function createTeamAndAddUsers(
   }
 }
 
+// Generates defined number of random users, with extraFields as needed
+async function generateFakeUsers({
+  count = 1,
+  extraFields,
+}: {
+  count: number;
+  extraFields?: Record<string, unknown>;
+}) {
+  const fakeFullNames = faker.helpers.multiple(faker.person.firstName, { count });
+  return await Promise.all(
+    fakeFullNames.map(async (fullName) => {
+      return await createUserAndEventType({
+        user: {
+          email: `${slugify(fullName)}@acme.com`,
+          name: fullName,
+          username: slugify(fullName),
+          password: slugify(fullName),
+          completedOnboarding: true,
+          ...extraFields,
+        },
+        eventTypes: [],
+      });
+    })
+  );
+}
+
+// Generates defined number of members per team name, last member as admin
+async function generateTeams(teams: [name: string, count: number][]) {
+  return await Promise.all(
+    teams.map(async ([name, count]) => ({
+      name: name as string,
+      slug: slugify(name as string),
+      members: {
+        create: (
+          await generateFakeUsers({ count } as { count: number })
+        ).map((result, idx, arr) => ({
+          role: arr.length - 1 === idx ? MembershipRole.ADMIN : MembershipRole.MEMBER,
+          accepted: true,
+          userId: result.id,
+        })),
+      },
+    }))
+  );
+}
+
 async function main() {
   await createUserAndEventType({
     user: {
@@ -277,19 +324,19 @@ async function main() {
         title: "Zoom Event",
         slug: "zoom",
         length: 60,
-        locations: [{ type: zoomMeta.appData?.location.type }],
+        locations: [{ type: zoomMeta.appData?.location?.type }],
       },
       {
         title: "Daily Event",
         slug: "daily",
         length: 60,
-        locations: [{ type: dailyMeta.appData?.location.type }],
+        locations: [{ type: dailyMeta.appData?.location?.type }],
       },
       {
         title: "Google Meet",
         slug: "google-meet",
         length: 60,
-        locations: [{ type: googleMeetMeta.appData?.location.type }],
+        locations: [{ type: googleMeetMeta.appData?.location?.type }],
       },
       {
         title: "Yoga class",
@@ -604,6 +651,55 @@ async function main() {
       },
     ]
   );
+
+  // Org Owner
+  const orgUser1 = await createUserAndEventType({
+    user: {
+      email: "john@acme.com",
+      password: "john",
+      username: "john",
+      name: "John Acme Org Owner",
+    },
+    eventTypes: [],
+  });
+
+  // Org Admin
+  const orgUser2 = await createUserAndEventType({
+    user: {
+      email: "peter@acme.com",
+      password: "peter",
+      username: "peter",
+      name: "Peter Acme Org Admin",
+    },
+    eventTypes: [],
+  });
+
+  // Org teams
+  const orgTeams = await generateTeams([
+    ["Marketing", 10],
+    ["Sales", 15],
+    ["Engineering", 20],
+  ]);
+
+  // Seed org
+  return await prisma.team.create({
+    data: {
+      name: "Acme",
+      slug: "acme",
+      children: {
+        create: orgTeams,
+      },
+      members: {
+        createMany: {
+          data: [
+            { userId: orgUser1.id, role: "OWNER", accepted: true },
+            { userId: orgUser2.id, role: "ADMIN", accepted: true },
+            ...orgTeams.flatMap((team) => team.members.create),
+          ],
+        },
+      },
+    },
+  });
 }
 
 main()
