@@ -79,7 +79,7 @@ function UserToInviteItem({
           size="sm"
           alt="Users avatar"
           asChild
-          imageSrc={`${bookerUrl}/api/user/${member.user.username}`}
+          imageSrc={`${bookerUrl}/${member.user.username}/avatar.png`}
           gravatarFallbackMd5="hash"
         />
         <label
