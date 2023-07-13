@@ -102,7 +102,7 @@ test.describe("2FA Tests", async () => {
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       await fillOtp({ page, secret: secret! });
-      await page.click('[data-testid="enable-2fa"]');
+
       await expect(page.locator(`[data-testid=two-factor-switch][data-state="checked"]`)).toBeVisible();
 
       return user;
