@@ -1755,19 +1755,6 @@ async function handler(
       smsReminderNumber: booking?.smsReminderNumber || undefined,
     };
 
-    try {
-      subscribersMeetingEnded.forEach((subscriber) => {
-        if (rescheduleUid && originalRescheduledBooking) {
-          cancelScheduledJobs(originalRescheduledBooking, undefined, true);
-        }
-        if (booking && booking.status === BookingStatus.ACCEPTED) {
-          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
-        }
-      });
-    } catch (error) {
-      log.error("Error while running scheduledJobs for booking", error);
-    }
-
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
 
     return resultBooking;
