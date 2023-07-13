@@ -428,7 +428,6 @@
   "max_limit_allowed_hint": "Maximální povolená délka je {{limit}} znaků",
   "invalid_password_hint": "Heslo musí být minimálně {{passwordLength}} znaků dlouhé, obsahovat alespoň jedno číslo a obsahovat kombinaci velkých a malých písmen",
   "incorrect_password": "Heslo není správné.",
-  "incorrect_username_password": "Uživatelské jméno nebo heslo je nesprávné.",
   "use_setting": "Použít nastavení",
   "am_pm": "am/pm",
   "time_options": "Nastavení času",

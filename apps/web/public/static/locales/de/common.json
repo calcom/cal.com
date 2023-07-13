@@ -428,7 +428,6 @@
   "max_limit_allowed_hint": "Muss {{limit}} oder weniger Zeichen lang sein",
   "invalid_password_hint": "Das Passwort muss mindestens {{passwordLength}} Zeichen lang sein und mindestens eine Nummer beinhalten, sowie eine Mischung aus Groß- und Kleinbuchstaben sein",
   "incorrect_password": "Passwort ist falsch",
-  "incorrect_username_password": "Benutzername oder Passwort ist falsch.",
   "use_setting": "Benutze Einstellung",
   "am_pm": "am/pm",
   "time_options": "Zeitoptionen",

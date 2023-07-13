@@ -428,7 +428,6 @@
   "max_limit_allowed_hint": "En fazla {{limit}} karakter uzunluğunda olmalıdır",
   "invalid_password_hint": "Şifre en az {{passwordLength}} karakter uzunluğunda olmalı, en az bir rakam içermeli ve büyük ve küçük harflerin karışımından oluşmalıdır",
   "incorrect_password": "Şifre hatalı.",
-  "incorrect_username_password": "Kullanıcı adı veya şifre yanlış.",
   "use_setting": "Ayarı kullan",
   "am_pm": "öö/ös",
   "time_options": "Zaman seçenekleri",
