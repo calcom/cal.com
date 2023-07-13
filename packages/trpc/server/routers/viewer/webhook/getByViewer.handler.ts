@@ -139,7 +139,6 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
   webhookGroups = webhookGroups.concat(teamWebhookGroups);
 
   return {
-    brand,
     webhookGroups: webhookGroups.filter((groupBy) => !!groupBy.webhooks?.length),
     profiles: webhookGroups.map((group) => ({
       teamId: group.teamId,
