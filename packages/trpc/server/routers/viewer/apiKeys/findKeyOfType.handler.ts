@@ -1,9 +1,8 @@
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../trpc";
+import { checkPermissions } from "./_auth-middleware";
 import type { TFindKeyOfTypeInputSchema } from "./findKeyOfType.schema";
 
 type FindKeyOfTypeOptions = {
@@ -14,42 +13,16 @@ type FindKeyOfTypeOptions = {
 };
 
 export const findKeyOfTypeHandler = async ({ ctx, input }: FindKeyOfTypeOptions) => {
-  if (input.teamId) {
-    const user = await prisma.user.findFirst({
-      where: {
-        id: ctx.user.id,
-      },
-      include: {
-        teams: true,
-      },
-    });
-
-    const userHasAdminOwnerPermissionInTeam =
-      user &&
-      user.teams.some(
-        (membership) =>
-          membership.teamId === input.teamId &&
-          (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
-      );
-
-    if (!userHasAdminOwnerPermissionInTeam) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-      });
-    }
-  }
+  const { teamId, appId } = input;
+  const userId = ctx.user.id;
+  /** Only admin or owner can create apiKeys of team (if teamId is passed) */
+  await checkPermissions({ userId, teamId, role: { in: [MembershipRole.OWNER, MembershipRole.ADMIN] } });
 
   return await prisma.apiKey.findMany({
     where: {
-      AND: [
-        {
-          teamId: input.teamId,
-        },
-        { userId: ctx.user.id },
-        {
-          appId: input.appId,
-        },
-      ],
+      teamId,
+      userId,
+      appId,
     },
   });
 };

@@ -23,14 +23,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const bookings = await prisma.booking.findMany({
       take: 3,
       where: {
-        AND: [
-          { userId: validKey.userId },
-          {
-            eventType: {
-              teamId: validKey.teamId,
-            },
-          },
-        ],
+        userId: validKey.userId,
+        eventType: {
+          teamId: validKey.teamId,
+        },
       },
       orderBy: {
         id: "desc",

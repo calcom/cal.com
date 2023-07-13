@@ -15,36 +15,15 @@ export interface IZapierSetupProps {
 const ZAPIER = "zapier";
 
 export default function ZapierSetup(props: IZapierSetupProps) {
-  const [newApiKey, setNewApiKey] = useState("");
+  const [newApiKeys, setNewApiKeys] = useState<Record<string, string>>({});
   const { t } = useLocale();
   const utils = trpc.useContext();
   const integrations = trpc.viewer.integrations.useQuery({ variant: "automation" });
   const oldApiKey = trpc.viewer.apiKeys.findKeyOfType.useQuery({ appId: ZAPIER });
-
-  const [teams, setTeams] = useState<
-    Array<{
-      id: number;
-      name: string;
-      apiKey?: string;
-    }>
-  >();
-
   const teamsList = trpc.viewer.teams.listOwnedTeams.useQuery(undefined, {
     refetchOnWindowFocus: false,
-    onSuccess: (data) => {
-      if (data) {
-        setTeams(
-          data.map((team) => {
-            return {
-              id: team.id,
-              name: team.name,
-            };
-          })
-        );
-      }
-    },
   });
-
+  const teams = teamsList.data?.map((team) => ({ id: team.id, name: team.name }));
   const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation({
     onSuccess: () => {
       utils.viewer.apiKeys.findKeyOfType.invalidate();
@@ -78,18 +57,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
 
   async function generateApiKey(teamId?: number) {
     const apiKey = await createApiKey(teamId);
-    if (teamId) {
-      const updatedTeamsList = teams?.map((team) => {
-        if (team.id === teamId) {
-          team.apiKey = apiKey;
-        }
-        return team;
-      });
-
-      setTeams(updatedTeamsList);
-    } else {
-      setNewApiKey(apiKey);
-    }
+    setNewApiKeys({ ...newApiKeys, [teamId || ""]: apiKey });
   }
 
   if (integrations.isLoading) {
@@ -116,18 +84,18 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                 ) : (
                   <>
                     <div className="mt-8 text-sm font-semibold">Your event types:</div>
-                    {!newApiKey ? (
+                    {!newApiKeys[""] ? (
                       <Button color="secondary" onClick={() => generateApiKey()} className="mb-4 mt-2">
                         {t("generate_api_key")}
                       </Button>
                     ) : (
-                      <CopyApiKey apiKey={newApiKey} />
+                      <CopyApiKey apiKey={newApiKeys[""]} />
                     )}
                     {teams.map((team) => {
                       return (
                         <div key={team.name}>
                           <div className="mt-2 text-sm font-semibold">{team.name}:</div>
-                          {!team.apiKey ? (
+                          {!newApiKeys[team.id] ? (
                             <Button
                               color="secondary"
                               onClick={() => generateApiKey(team.id)}
@@ -135,7 +103,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                               {t("generate_api_key")}
                             </Button>
                           ) : (
-                            <CopyApiKey apiKey={team.apiKey} />
+                            <CopyApiKey apiKey={newApiKeys[team.id]} />
                           )}
                         </div>
                       );

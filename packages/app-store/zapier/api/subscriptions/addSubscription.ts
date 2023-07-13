@@ -39,14 +39,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       //schedule job for already existing bookings
       const bookings = await prisma.booking.findMany({
         where: {
-          AND: [
-            { userId: validKey.userId },
-            {
-              eventType: {
-                teamId: validKey.teamId,
-              },
-            },
-          ],
+          userId: validKey.userId,
+          eventType: {
+            teamId: validKey.teamId,
+          },
           startTime: {
             gte: new Date(),
           },

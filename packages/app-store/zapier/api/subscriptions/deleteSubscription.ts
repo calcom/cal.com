@@ -23,11 +23,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!validKey) {
     return res.status(401).json({ message: "API key not valid" });
   }
-
   const webhook = await prisma.webhook.findFirst({
     where: {
       id,
-      AND: [{ userId: validKey.userId }, { teamId: validKey.teamId }],
+      userId: validKey.userId,
+      teamId: validKey.teamId,
     },
   });
 
@@ -37,14 +37,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (webhook?.eventTriggers.includes(WebhookTriggerEvents.MEETING_ENDED)) {
     const bookingsWithScheduledJobs = await prisma.booking.findMany({
       where: {
-        AND: [
-          { userId: validKey.userId },
-          {
-            eventType: {
-              teamId: validKey.teamId,
-            },
-          },
-        ],
+        userId: validKey.userId,
+        eventType: {
+          teamId: validKey.teamId,
+        },
         scheduledJobs: {
           isEmpty: false,
         },
