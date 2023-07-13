@@ -6,7 +6,6 @@ import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
@@ -83,7 +82,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
   };
 
   return (
-    <LicenseRequired>
+    <>
       <div
         className="bg-muted flex min-h-screen flex-col justify-center "
         style={
@@ -166,7 +165,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
           </div>
         </div>
       </div>
-    </LicenseRequired>
+    </>
   );
 }
 
