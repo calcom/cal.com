@@ -11,6 +11,7 @@ runs:
         ENV_FILE_NAME: gh.env-${{ github.sha }}
       with:
         path: ${{ env.ENV_FILE_NAME }}
+        key: env-cache-
         restore-keys: env-cache-
     - name: Set Environment Variables
       uses: tw3lveparsecs/github-actions-setvars@latest
