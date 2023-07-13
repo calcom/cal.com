@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import { debounce, noop } from "lodash";
+import { useSession } from "next-auth/react";
 import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -23,6 +24,7 @@ interface ICustomUsernameProps {
 
 const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.ComponentProps<typeof TextField>>) => {
   const { t } = useLocale();
+  const { data: session, update } = useSession();
   const {
     currentUsername,
     setCurrentUsername = noop,
@@ -69,6 +71,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
       onSuccessMutation && (await onSuccessMutation());
       setOpenDialogSaveUsername(false);
       setCurrentUsername(inputUsernameValue);
+      await update();
     },
     onError: (error) => {
       onErrorMutation && onErrorMutation(error);
