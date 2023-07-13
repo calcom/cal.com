@@ -1,6 +1,6 @@
 import { BuildingIcon, PaperclipIcon, UserIcon, Users } from "lucide-react";
 import { Trans } from "next-i18next";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import type { FormEvent } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -150,6 +150,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     setModalInputMode("INDIVIDUAL");
   };
 
+  const importRef = useRef<HTMLInputElement | null>(null);
+
   return (
     <Dialog
       name="inviteModal"
@@ -159,6 +161,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         newMemberFormMethods.reset();
       }}>
       <DialogContent
+        enableOverflow
         type="creation"
         title={t("invite_team_member")}
         description={
@@ -253,19 +256,24 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 <Button
                   type="button"
                   color="secondary"
+                  onClick={() => {
+                    if (importRef.current) {
+                      importRef.current.click();
+                    }
+                  }}
                   StartIcon={PaperclipIcon}
                   className="mt-3 justify-center stroke-2">
-                  <label htmlFor="bulkInvite">
-                    Upload a .csv file
-                    <input
-                      id="bulkInvite"
-                      type="file"
-                      accept=".csv"
-                      style={{ display: "none" }}
-                      onChange={handleFileUpload}
-                    />
-                  </label>
+                  Upload a .csv file
                 </Button>
+                <input
+                  ref={importRef}
+                  hidden
+                  id="bulkInvite"
+                  type="file"
+                  accept=".csv"
+                  style={{ display: "none" }}
+                  onChange={handleFileUpload}
+                />
               </div>
             )}
             {modalImportMode === "ORGANIZATION" && (
