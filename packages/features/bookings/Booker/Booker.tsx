@@ -34,7 +34,7 @@ const BookerComponent = ({
   username,
   eventSlug,
   month,
-  rescheduleBooking,
+  bookingData,
   hideBranding = false,
   isTeamEvent,
 }: BookerProps) => {
@@ -44,6 +44,8 @@ const BookerComponent = ({
   const StickyOnDesktop = isMobile ? "div" : StickyBox;
   const rescheduleUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
+  const bookingUid =
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
   const event = useEvent();
   const [_layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
 
@@ -61,6 +63,11 @@ const BookerComponent = ({
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
+    shallow
+  );
+  // const seatedEventData = useBookerStore((state) => state.seatedEventData);
+  const [seatedEventData, setSeatedEventData] = useBookerStore(
+    (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
   );
 
@@ -85,7 +92,8 @@ const BookerComponent = ({
     month,
     eventId: event?.data?.id,
     rescheduleUid,
-    rescheduleBooking,
+    bookingUid,
+    bookingData,
     layout: defaultLayout,
     isTeamEvent,
   });
@@ -148,7 +156,8 @@ const BookerComponent = ({
             // Sets booker size css variables for the size of all the columns.
             ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
             "bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
-            layout === BookerLayouts.MONTH_VIEW && "border-subtle rounded-md border",
+            // We remove border only when the content covers entire viewport. Because in embed, it can almost never be the case that it covers entire viewport, we show the border there
+            (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md border",
             !isEmbed && "sm:transition-[width] sm:duration-300",
             isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
             !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle",
@@ -195,7 +204,14 @@ const BookerComponent = ({
               className="border-subtle sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInLeft}
               visible={bookerState === "booking" && !shouldShowFormInDialog}>
-              <BookEventForm onCancel={() => setSelectedTimeslot(null)} />
+              <BookEventForm
+                onCancel={() => {
+                  setSelectedTimeslot(null);
+                  if (seatedEventData.bookingUid) {
+                    setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
+                  }
+                }}
+              />
             </BookerSection>
 
             <BookerSection
@@ -235,7 +251,7 @@ const BookerComponent = ({
               <AvailableTimeSlots
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
-                seatsPerTimeslot={event.data?.seatsPerTimeSlot}
+                seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
               />
             </BookerSection>
           </AnimatePresence>

@@ -6,7 +6,7 @@ import PageWrapper from "@components/PageWrapper";
 
 import type { UserPageProps } from "../../../[user]";
 import UserPage, { getServerSideProps as GSSUserPage } from "../../../[user]";
-import type { TeamPageProps } from "../../../team/[slug]";
+import type { PageProps as TeamPageProps } from "../../../team/[slug]";
 import TeamPage, { getServerSideProps as GSSTeamPage } from "../../../team/[slug]";
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {

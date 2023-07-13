@@ -43,13 +43,13 @@ const DateOverrideForm = ({
   const { t, i18n, isLocaleReady } = useLocale();
   const [datesUnavailable, setDatesUnavailable] = useState(
     value &&
-      value[0].start.getHours() === 0 &&
-      value[0].start.getMinutes() === 0 &&
-      value[0].end.getHours() === 0 &&
-      value[0].end.getMinutes() === 0
+      value[0].start.getUTCHours() === 0 &&
+      value[0].start.getUTCMinutes() === 0 &&
+      value[0].end.getUTCHours() === 0 &&
+      value[0].end.getUTCMinutes() === 0
   );
 
-  const [date, setDate] = useState<Dayjs | null>(value ? dayjs(value[0].start) : null);
+  const [date, setDate] = useState<Dayjs | null>(value ? dayjs.utc(value[0].start) : null);
   const includedDates = useMemo(
     () =>
       workingHours
@@ -110,8 +110,8 @@ const DateOverrideForm = ({
               ]
             : values.range
           ).map((item) => ({
-            start: date.hour(item.start.getHours()).minute(item.start.getMinutes()).toDate(),
-            end: date.hour(item.end.getHours()).minute(item.end.getMinutes()).toDate(),
+            start: date.hour(item.start.getUTCHours()).minute(item.start.getUTCMinutes()).utc(true).toDate(),
+            end: date.hour(item.end.getUTCHours()).minute(item.end.getUTCMinutes()).utc(true).toDate(),
           }))
         );
         onClose();
