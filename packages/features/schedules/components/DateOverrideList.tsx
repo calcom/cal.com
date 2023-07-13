@@ -23,19 +23,25 @@ const useSettings = () => {
 const DateOverrideList = ({
   items,
   remove,
-  update,
+  replace,
   workingHours,
   excludedDates = [],
 }: {
   remove: UseFieldArrayRemove;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  update: any;
+  replace: any;
   items: { ranges: TimeRange[]; id: string }[];
   workingHours: WorkingHours[];
   excludedDates?: string[];
 }) => {
   const { t, i18n } = useLocale();
   const { hour12 } = useSettings();
+
+  const unsortedFieldArrayMap = items.reduce(
+    (map: { [id: string]: number }, { id }, index) => ({ ...map, [id]: index }),
+    {}
+  );
+
   if (!items.length) {
     return <></>;
   }
@@ -54,7 +60,7 @@ const DateOverrideList = ({
 
   return (
     <ul className="border-subtle rounded border" data-testid="date-overrides-list">
-      {items.sort(sortByDate).map((item, index) => (
+      {items.sort(sortByDate).map((item) => (
         <li key={item.id} className="border-subtle flex justify-between border-b px-5 py-4 last:border-b-0">
           <div>
             <h3 className="text-emphasis text-sm">
@@ -81,9 +87,9 @@ const DateOverrideList = ({
               workingHours={workingHours}
               value={item.ranges}
               onChange={(ranges) => {
-                update(index, {
-                  ranges,
-                });
+                // update has very weird side-effects with sorting.
+                replace([...items.filter((currentItem) => currentItem.id !== item.id), { ranges }]);
+                delete unsortedFieldArrayMap[item.id];
               }}
               Trigger={
                 <DialogTrigger asChild>
@@ -103,7 +109,7 @@ const DateOverrideList = ({
                 color="destructive"
                 variant="icon"
                 StartIcon={Trash2}
-                onClick={() => remove(index)}
+                onClick={() => remove(unsortedFieldArrayMap[item.id])}
               />
             </Tooltip>
           </div>
