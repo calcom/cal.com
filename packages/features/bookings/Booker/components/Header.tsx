@@ -21,12 +21,19 @@ export function Header({
   isMobile: boolean;
   enabledLayouts: BookerLayouts[];
 }) {
+  const { t } = useLocale();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStore((state) => state.selectedDate);
+  const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
   const addToSelectedDate = useBookerStore((state) => state.addToSelectedDate);
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
   const selectedDate = dayjs(selectedDateString);
   const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
+  const today = dayjs();
+  const selectedDateMin3DaysDifference = useMemo(() => {
+    const diff = today.diff(selectedDate, "days");
+    return diff > 3 || diff < -3;
+  }, [today, selectedDate]);
 
   const onLayoutToggle = useCallback(
     (newLayout: string) => {
@@ -52,7 +59,7 @@ export function Header({
   }
 
   return (
-    <div className="border-subtle relative z-10 flex border-b border-l px-5 py-4">
+    <div className="border-default relative z-10 flex border-b border-l px-5 py-4">
       <div className="flex items-center gap-3">
         <h3 className="min-w-[150px] text-base font-semibold leading-4">
           {selectedDate.format("MMM D")}-{selectedDate.add(extraDays, "days").format("D")},{" "}
@@ -73,6 +80,14 @@ export function Header({
             aria-label="Next Day"
             onClick={() => addToSelectedDate(extraDays + 1)}
           />
+          {selectedDateMin3DaysDifference && (
+            <Button
+              className="capitalize"
+              color="secondary"
+              onClick={() => setSelectedDate(today.format("YYYY-MM-DD"))}>
+              {t("today")}
+            </Button>
+          )}
         </ButtonGroup>
       </div>
       <div className="ml-auto flex gap-2">

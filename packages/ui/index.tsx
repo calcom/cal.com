@@ -36,6 +36,7 @@ export {
   getReactSelectProps,
   ColorPicker,
   FormStep,
+  FilterSearchField,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,

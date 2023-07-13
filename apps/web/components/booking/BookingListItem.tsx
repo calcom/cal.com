@@ -10,6 +10,7 @@ import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog
 import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -49,6 +50,8 @@ type BookingItemProps = BookingItem & {
 function BookingListItem(booking: BookingItemProps) {
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
+  const bookerUrl = useBookerUrl();
+
   const user = query.data;
   const {
     t,
@@ -170,7 +173,7 @@ function BookingListItem(booking: BookingItemProps) {
           id: "reschedule",
           icon: Clock,
           label: t("reschedule_booking"),
-          href: `/reschedule/${booking.uid}${
+          href: `${bookerUrl}/reschedule/${booking.uid}${
             booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
           }`,
         },

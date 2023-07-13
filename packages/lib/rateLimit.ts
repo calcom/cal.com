@@ -6,17 +6,38 @@ import logger from "./logger";
 
 const log = logger.getChildLogger({ prefix: ["RateLimit"] });
 
-type RateLimitHelper = {
+export type RateLimitHelper = {
   rateLimitingType?: "core" | "forcedSlowMode";
   identifier: string;
 };
 
-function rateLimiter() {
+export type RatelimitResponse = {
+  /**
+   * Whether the request may pass(true) or exceeded the limit(false)
+   */
+  success: boolean;
+  /**
+   * Maximum number of requests allowed within a window.
+   */
+  limit: number;
+  /**
+   * How many requests the user has left within the current window.
+   */
+  remaining: number;
+  /**
+   * Unix timestamp in milliseconds when the limits are reset.
+   */
+  reset: number;
+
+  pending: Promise<unknown>;
+};
+
+export function rateLimiter() {
   const UPSATCH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
 
   if (!UPSATCH_ENV_FOUND) {
     log.warn("Disabled due to not finding UPSTASH env variables");
-    return () => ({ success: true });
+    return () => ({ success: true, limit: 10, remaining: 999, reset: 0 } as RatelimitResponse);
   }
 
   const redis = Redis.fromEnv();
@@ -45,5 +66,3 @@ function rateLimiter() {
 
   return rateLimit;
 }
-
-export default rateLimiter;

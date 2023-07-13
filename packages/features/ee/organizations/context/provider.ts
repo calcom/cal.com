@@ -12,7 +12,9 @@ export type OrganizationBranding =
   | ({
       logo?: string | null | undefined;
       name?: string;
-      slug?: string;
+      slug: string;
+      fullDomain: string;
+      domainSuffix: string;
     } & z.infer<typeof teamMetadataSchema>)
   | null
   | undefined;

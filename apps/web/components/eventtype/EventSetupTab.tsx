@@ -117,8 +117,16 @@ export const EventSetupTab = (
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
   const [multipleDuration, setMultipleDuration] = useState(eventType.metadata?.multipleDuration);
 
-  const locationOptions = props.locationOptions.filter((option) => {
-    return !team ? option.label !== "Conferencing" : true;
+  const locationOptions = props.locationOptions.map((locationOption) => {
+    const options = locationOption.options.filter((option) => {
+      // Skip "Organizer's Default App" for non-team members
+      return !team ? option.label !== t("organizer_default_conferencing_app") : true;
+    });
+
+    return {
+      ...locationOption,
+      options,
+    };
   });
 
   const multipleDurationOptions = [5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 180].map((mins) => ({
@@ -522,7 +530,6 @@ export const EventSetupTab = (
 
       {/* We portal this modal so we can submit the form inside. Otherwise we get issues submitting two forms at once  */}
       <EditLocationDialog
-        isTeamEvent={!!team}
         isOpenDialog={showLocationModal}
         setShowLocationModal={setShowLocationModal}
         saveLocation={saveLocation}
@@ -545,6 +552,7 @@ export const EventSetupTab = (
         }
         setSelectedLocation={setSelectedLocation}
         setEditingLocationType={setEditingLocationType}
+        teamId={eventType.team?.id}
       />
     </div>
   );

@@ -1,4 +1,6 @@
 /// <reference types="../env" />
+import type { BookerLayouts } from "@calcom/prisma/zod-utils";
+
 import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
@@ -125,10 +127,21 @@ type SingleInstruction = SingleInstructionMap[keyof SingleInstructionMap];
 export type Instruction = SingleInstruction | SingleInstruction[];
 export type InstructionQueue = Instruction[];
 
+/**
+ * All types of config that are critical to be processed as soon as possible are provided as query params to the iframe
+ */
 export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Record<string, string>> & {
+  // TODO: iframeAttrs shouldn't be part of it as that configures the iframe element and not the iframed app.
   iframeAttrs?: Record<string, string> & {
     id?: string;
   };
+
+  // TODO: It should have a dedicated prefill prop
+  // prefill: {},
+
+  // TODO: Move layout and theme as nested props of ui as it makes it clear that these two can be configured using `ui` instruction as well any time.
+  // ui: {layout; theme}
+  layout?: `${BookerLayouts}`;
   theme?: EmbedThemeConfig;
 };
 

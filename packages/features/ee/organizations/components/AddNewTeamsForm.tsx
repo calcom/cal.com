@@ -90,7 +90,7 @@ export const AddNewTeamsForm = () => {
         disabled={createTeamsMutation.isLoading}
         onClick={() => {
           if (inputValues.includes("")) {
-            showToast(t("team_name_empty"), "error");
+            showToast(t("team_names_empty"), "error");
           } else {
             const duplicates = inputValues.filter((item, index) => inputValues.indexOf(item) !== index);
             if (duplicates.length) {

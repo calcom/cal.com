@@ -4,6 +4,7 @@ import { orderBy } from "lodash";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { CAL_URL } from "@calcom/lib/constants";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
 import { baseEventTypeSelect } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -68,6 +69,12 @@ const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   ...baseEventTypeSelect,
 });
 
+export const compareMembership = (mship1: MembershipRole, mship2: MembershipRole) => {
+  const mshipToNumber = (mship: MembershipRole) =>
+    Object.keys(MembershipRole).findIndex((mmship) => mmship === mship);
+  return mshipToNumber(mship1) > mshipToNumber(mship2);
+};
+
 export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => {
   const { prisma } = ctx;
 
@@ -83,6 +90,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       endTime: true,
       bufferTime: true,
       avatar: true,
+      organizationId: true,
       teams: {
         where: {
           accepted: true,
@@ -214,12 +222,6 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     membershipRole: membership.role,
   }));
 
-  const compareMembership = (mship1: MembershipRole, mship2: MembershipRole) => {
-    const mshipToNumber = (mship: MembershipRole) =>
-      Object.keys(MembershipRole).findIndex((mmship) => mmship === mship);
-    return mshipToNumber(mship1) > mshipToNumber(mship2);
-  };
-
   const filterTeamsEventTypesBasedOnInput = (eventType: ReturnType<typeof mapEventType>) => {
     if (!input?.filters || !hasFilter(input?.filters)) {
       return true;
@@ -276,6 +278,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       })
   );
 
+  const bookerUrl = await getBookerUrl(user);
   return {
     // don't display event teams without event types,
     eventTypeGroups: eventTypeGroups.filter((groupBy) => !!groupBy.eventTypes?.length),
@@ -285,7 +288,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       ...group.metadata,
       teamId: group.teamId,
       membershipRole: group.membershipRole,
-      image: `${CAL_URL}/${group.profile.slug}/avatar.png`,
+      image: `${bookerUrl}${group.teamId ? "/team" : ""}/${group.profile.slug}/avatar.png`,
     })),
   };
 };

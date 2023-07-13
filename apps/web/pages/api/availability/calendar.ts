@@ -4,7 +4,6 @@ import { z } from "zod";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import notEmpty from "@calcom/lib/notEmpty";
-import { revalidateCalendarCache } from "@calcom/lib/server/revalidateCalendarCache";
 import prisma from "@calcom/prisma";
 
 const selectedCalendarSelectSchema = z.object({
@@ -71,10 +70,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     res.status(200).json({ message: "Calendar Selection Saved" });
-  }
-
-  if (["DELETE", "POST"].includes(req.method)) {
-    await revalidateCalendarCache(res.revalidate, `${session?.user?.username}`);
   }
 
   if (req.method === "GET") {

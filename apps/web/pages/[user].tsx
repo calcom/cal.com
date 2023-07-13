@@ -13,7 +13,6 @@ import {
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import defaultEvents, {
   getDynamicEventDescription,
   getGroupName,
@@ -291,7 +290,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const users = usersWithoutAvatar.map((user) => ({
     ...user,
-    avatar: `${WEBAPP_URL}/${user.username}/avatar.png`,
+    avatar: `/${user.username}/avatar.png`,
   }));
 
   if (!users.length || (!isValidOrgDomain && !users.some((user) => user.organizationId === null))) {

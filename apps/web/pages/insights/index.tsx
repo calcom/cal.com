@@ -27,7 +27,7 @@ const Heading = () => {
       <h3 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis truncate text-xl font-semibold tracking-wide xl:max-w-full">
         {t("insights")}
       </h3>
-      <p className="text-default hidden text-sm md:block">{t("subtitle_analytics")}</p>
+      <p className="text-default mt-2 hidden text-sm md:block">{t("insights_subtitle")}</p>
     </div>
   );
 };
@@ -35,6 +35,7 @@ const Heading = () => {
 export default function InsightsPage() {
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.useQuery();
+
   const features = [
     {
       icon: <Users className="h-5 w-5" />,
@@ -77,10 +78,12 @@ export default function InsightsPage() {
             <></>
           ) : (
             <FiltersProvider>
-              <div className="mb-8 ml-auto mt-0 flex w-full flex-wrap justify-between md:-mt-8">
+              <div className="ml-auto mt-0">
                 <Heading />
-                <Filters />
               </div>
+
+              <Filters />
+
               <div className="mb-4 space-y-6">
                 <BookingKPICards />
 

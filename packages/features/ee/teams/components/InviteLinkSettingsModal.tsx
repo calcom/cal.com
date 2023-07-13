@@ -75,7 +75,7 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
             name="expiresInDays"
             control={linkSettingsFormMethods.control}
             render={({ field: { onChange } }) => (
-              <div>
+              <div className="-mt-2">
                 <Label className="text-emphasis font-medium" htmlFor="expiresInDays">
                   {t("link_expires_after")}
                 </Label>
@@ -88,7 +88,7 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
               </div>
             )}
           />
-          <DialogFooter>
+          <DialogFooter showDivider className="mt-10">
             <Button
               type="button"
               color="secondary"

@@ -13,6 +13,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
+import { deleteScheduledWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
@@ -25,7 +26,7 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus, MembershipRole, WorkflowMethods } from "@calcom/prisma/enums";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
+import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
 async function getBookingToDelete(id: number | undefined, uid: string | undefined) {
   return await prisma.booking.findUnique({
@@ -445,7 +446,10 @@ async function handler(req: CustomRequest) {
 
   /** TODO: Remove this without breaking functionality */
   if (bookingToDelete.location === DailyLocationType) {
-    bookingToDelete.user.credentials.push(FAKE_DAILY_CREDENTIAL);
+    bookingToDelete.user.credentials.push({
+      ...FAKE_DAILY_CREDENTIAL,
+      teamId: bookingToDelete.eventType?.teamId || null,
+    });
   }
 
   const apiDeletes = [];
@@ -593,8 +597,10 @@ async function handler(req: CustomRequest) {
     }
 
     // Posible to refactor TODO:
-    const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore]();
-    if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
+    const paymentApp = (await appStore[
+      paymentAppCredential?.app?.dirName as keyof typeof appStore
+    ]()) as PaymentApp;
+    if (!paymentApp?.lib?.PaymentService) {
       console.warn(`payment App service of type ${paymentApp} is not implemented`);
       return null;
     }
@@ -650,6 +656,8 @@ async function handler(req: CustomRequest) {
         deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
       } else if (reminder.method === WorkflowMethods.SMS) {
         deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+      } else if (reminder.method === WorkflowMethods.WHATSAPP) {
+        deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
       }
     });
   });

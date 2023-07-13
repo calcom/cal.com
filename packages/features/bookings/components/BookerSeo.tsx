@@ -7,13 +7,15 @@ interface BookerSeoProps {
   eventSlug: string;
   rescheduleUid: string | undefined;
   hideBranding?: boolean;
+  isTeamEvent?: boolean;
+  org: string | null;
 }
 
 export const BookerSeo = (props: BookerSeoProps) => {
-  const { eventSlug, username, rescheduleUid, hideBranding } = props;
+  const { eventSlug, username, rescheduleUid, hideBranding, isTeamEvent, org } = props;
   const { t } = useLocale();
   const { data: event } = trpc.viewer.public.event.useQuery(
-    { username, eventSlug },
+    { username, eventSlug, isTeamEvent, org },
     { refetchOnWindowFocus: false }
   );
 

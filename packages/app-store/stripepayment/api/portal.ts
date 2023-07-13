@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: "Method not allowed" });
   const { referer } = req.headers;
 
-  if (!referer) return res.status(400).json({ message: "Missing referrer" });
+  // if (!referer) return res.status(400).json({ message: "Missing referrer" });
 
   if (!req.session?.user?.id) return res.status(401).json({ message: "Not authenticated" });
 

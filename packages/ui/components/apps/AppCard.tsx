@@ -3,10 +3,22 @@ import { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
+import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import classNames from "@calcom/lib/classNames";
+import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
+import type { ButtonProps } from "@calcom/ui";
+import {
+  Dropdown,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuPortal,
+  DropdownMenuLabel,
+  DropdownItem,
+  Avatar,
+} from "@calcom/ui";
 
 import { Button } from "../button";
 import { Plus } from "../icon";
@@ -16,25 +28,18 @@ interface AppCardProps {
   app: App;
   credentials?: Credential[];
   searchText?: string;
+  userAdminTeams?: UserAdminTeams;
 }
 
-export function AppCard({ app, credentials, searchText }: AppCardProps) {
+export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCardProps) {
   const { t } = useLocale();
-  const router = useRouter();
-  const mutation = useAddAppMutation(null, {
-    onSuccess: (data) => {
-      // Refresh SSR page content without actual reload
-      router.replace(router.asPath);
-      if (data?.setupPending) return;
-      showToast(t("app_successfully_installed"), "success");
-    },
-    onError: (error) => {
-      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
-    },
-  });
 
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
+  const appInstalled = userAdminTeams?.length
+    ? userAdminTeams.length && appAdded >= userAdminTeams.length
+    : appAdded > 0;
+
   const [searchTextIndex, setSearchTextIndex] = useState<number | undefined>(undefined);
 
   useEffect(() => {
@@ -103,25 +108,21 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
                   if (useDefaultComponent) {
                     props = {
                       ...props,
-                      onClick: () => {
-                        mutation.mutate({ type: app.type, variant: app.variant, slug: app.slug });
-                      },
                     };
                   }
                   return (
-                    <Button
-                      color="secondary"
-                      className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-                      StartIcon={Plus}
-                      {...props}>
-                      {t("install")}
-                    </Button>
+                    <InstallAppButtonChild
+                      userAdminTeams={userAdminTeams}
+                      {...props}
+                      addAppMutationInput={{ type: app.type, variant: app.variant, slug: app.slug }}
+                      appCategories={app.categories}
+                    />
                   );
                 }}
               />
             )
           : credentials &&
-            credentials.length === 0 && (
+            !appInstalled && (
               <InstallAppButton
                 type={app.type}
                 wrapperClassName="[@media(max-width:260px)]:w-full"
@@ -131,32 +132,28 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
                   if (useDefaultComponent) {
                     props = {
                       ...props,
-                      onClick: () => {
-                        mutation.mutate({ type: app.type, variant: app.variant, slug: app.slug });
-                      },
                       disabled: !!props.disabled,
                     };
                   }
                   return (
-                    <Button
-                      StartIcon={Plus}
-                      color="secondary"
-                      className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-                      data-testid="install-app-button"
-                      {...props}>
-                      {t("install")}
-                    </Button>
+                    <InstallAppButtonChild
+                      userAdminTeams={userAdminTeams}
+                      addAppMutationInput={{ type: app.type, variant: app.variant, slug: app.slug }}
+                      appCategories={app.categories}
+                      credentials={credentials}
+                      {...props}
+                    />
                   );
                 }}
               />
             )}
       </div>
       <div className="max-w-44 absolute right-0 mr-4 flex flex-wrap justify-end gap-1">
-        {appAdded > 0 && (
+        {appInstalled ? (
           <span className="bg-success rounded-md px-2 py-1 text-sm font-normal text-green-800">
             {t("installed", { count: appAdded })}
           </span>
-        )}
+        ) : null}
         {app.isTemplate && (
           <span className="bg-error rounded-md px-2 py-1 text-sm font-normal text-red-800">Template</span>
         )}
@@ -170,3 +167,97 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
     </div>
   );
 }
+
+const InstallAppButtonChild = ({
+  userAdminTeams,
+  addAppMutationInput,
+  appCategories,
+  credentials,
+  ...props
+}: {
+  userAdminTeams?: UserAdminTeams;
+  addAppMutationInput: { type: App["type"]; variant: string; slug: string };
+  appCategories: string[];
+  credentials?: Credential[];
+} & ButtonProps) => {
+  const { t } = useLocale();
+  const router = useRouter();
+
+  const mutation = useAddAppMutation(null, {
+    onSuccess: (data) => {
+      // Refresh SSR page content without actual reload
+      router.replace(router.asPath);
+      if (data?.setupPending) return;
+      showToast(t("app_successfully_installed"), "success");
+    },
+    onError: (error) => {
+      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+    },
+  });
+
+  if (
+    !userAdminTeams?.length ||
+    appCategories.some((category) => category === "calendar" || category === "video")
+  ) {
+    return (
+      <Button
+        color="secondary"
+        className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
+        StartIcon={Plus}
+        data-testid="install-app-button"
+        {...props}>
+        {t("install")}
+      </Button>
+    );
+  }
+
+  return (
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <Button
+          color="secondary"
+          className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
+          StartIcon={Plus}
+          data-testid="install-app-button"
+          {...props}>
+          {t("install")}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuPortal>
+        <DropdownMenuContent>
+          <DropdownMenuLabel>{t("install_app_on")}</DropdownMenuLabel>
+          {userAdminTeams.map((team) => {
+            const isInstalledTeamOrUser =
+              credentials &&
+              credentials.some((credential) =>
+                credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
+              );
+            return (
+              <DropdownItem
+                type="button"
+                disabled={isInstalledTeamOrUser}
+                key={team.id}
+                StartIcon={(props) => (
+                  <Avatar
+                    alt={team.logo || ""}
+                    imageSrc={team.logo || `${CAL_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
+                    size="sm"
+                    {...props}
+                  />
+                )}
+                onClick={() => {
+                  mutation.mutate(
+                    team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }
+                  );
+                }}>
+                <p>
+                  {team.name} {isInstalledTeamOrUser && `(${t("installed")})`}
+                </p>
+              </DropdownItem>
+            );
+          })}
+        </DropdownMenuContent>
+      </DropdownMenuPortal>
+    </Dropdown>
+  );
+};

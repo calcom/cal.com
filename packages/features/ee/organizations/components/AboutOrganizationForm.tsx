@@ -65,6 +65,7 @@ export const AboutOrganizationForm = () => {
                     fallback={<Plus className="text-subtle h-6 w-6" />}
                     asChild
                     className="items-center"
+                    imageSrc={image}
                     size="lg"
                   />
                   <div className="ms-4">
