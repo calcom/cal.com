@@ -5,7 +5,7 @@ import type { CSSProperties } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
-
+import slugify from "@calcom/lib/slugify";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
@@ -54,6 +54,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
   };
 
   const signUp: SubmitHandler<FormValues> = async (data) => {
+    data.username = slugify(data.username);
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
         ...data,

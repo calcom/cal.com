@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { debounce, noop } from "lodash";
 import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
-
+import slugify from "@calcom/lib/slugify";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
@@ -36,19 +36,21 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
-
+  const [finalUserNameValue, setFinalUserNameValue] = useState('');
   const debouncedApiCall = useMemo(
     () =>
       debounce(async (username) => {
+        username = slugify(username);
         const { data } = await fetchUsername(username);
         setMarkAsError(!data.available);
         setUsernameIsAvailable(data.available);
+        setFinalUserNameValue(username);
       }, 150),
     []
   );
 
   useEffect(() => {
-    if (!inputUsernameValue) {
+    if (!inputUsernameValue || !slugify(inputUsernameValue)) {
       debouncedApiCall.cancel();
       setUsernameIsAvailable(false);
       setMarkAsError(false);
@@ -68,7 +70,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
       setOpenDialogSaveUsername(false);
-      setCurrentUsername(inputUsernameValue);
+      setCurrentUsername(finalUserNameValue);
     },
     onError: (error) => {
       onErrorMutation && onErrorMutation(error);
@@ -105,7 +107,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
 
   const updateUsername = async () => {
     updateUsernameMutation.mutate({
-      username: inputUsernameValue,
+      username: finalUserNameValue,
     });
   };
 
@@ -167,7 +169,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
                   <p className="text-subtle" data-testid="new-username">
                     {t("new_username")}
                   </p>
-                  <p className="text-emphasis">{inputUsernameValue}</p>
+                  <p className="text-emphasis">{finalUserNameValue}</p>
                 </div>
               </div>
             </div>
