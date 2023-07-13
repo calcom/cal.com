@@ -58,16 +58,21 @@ export default function Custom404() {
         // Accessing a non-existent team
         setUsername(splitPath[2]);
         setCurrentPageType(pageType.TEAM);
-        setUrl(`${WEBSITE_URL}/signup?callbackUrl=settings/teams/new%3Fslug%3D${username.replace("/", "")}`);
+        setUrl(
+          `${WEBSITE_URL}/signup?callbackUrl=settings/teams/new%3Fslug%3D${splitPath[2].replace("/", "")}`
+        );
       } else {
         setUsername(routerUsername);
-        setUrl(`${WEBSITE_URL}/signup?username=${username.replace("/", "")}`);
+        setUrl(`${WEBSITE_URL}/signup?username=${routerUsername.replace("/", "")}`);
       }
     } else {
       setUsername(currentOrgDomain);
       setCurrentPageType(pageType.ORG);
       setUrl(
-        `${WEBSITE_URL}/signup?callbackUrl=settings/organizations/new%3Fslug%3D${username.replace("/", "")}`
+        `${WEBSITE_URL}/signup?callbackUrl=settings/organizations/new%3Fslug%3D${currentOrgDomain.replace(
+          "/",
+          ""
+        )}`
       );
     }
   }, []);
@@ -316,7 +321,7 @@ export default function Custom404() {
                     .filter((_, idx) => currentPageType === pageType.ORG || idx !== 0)
                     .map((link, linkIdx) => (
                       <li key={linkIdx} className="px-4 py-2">
-                        <Link
+                        <a
                           href={link.href}
                           className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                           <div className="flex-shrink-0">
@@ -336,7 +341,7 @@ export default function Custom404() {
                           <div className="flex-shrink-0 self-center">
                             <ChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
                           </div>
-                        </Link>
+                        </a>
                       </li>
                     ))}
                   <li className="px-4 py-2">

@@ -49,7 +49,6 @@ import {
   HeadSeo,
   Logo,
   SkeletonText,
-  SkeletonAvatar,
   Tooltip,
   showToast,
   useCalcomTheme,
@@ -850,12 +849,6 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 <span className="hidden md:inline lg:hidden">
                   <UserDropdown small />
                 </span>
-              </div>
-            )}
-            {!isLocaleReady && (
-              <div className="flex w-full gap-1">
-                <SkeletonAvatar className="min-w-5 min-h-5 mt-0 h-5 w-5" />
-                <SkeletonText className="h-[20px] w-full" />
               </div>
             )}
             <div className="flex space-x-0.5 rtl:space-x-reverse">

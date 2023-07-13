@@ -40,7 +40,7 @@ export interface BookerProps {
    * api to fetch this data. Therefore rescheduling a booking currently is not possible
    * within the atom (i.e. without a server side component).
    */
-  rescheduleBooking?: GetBookingType;
+  bookingData?: GetBookingType;
   /**
    * If this boolean is passed, we will only check team events with this slug and event slug.
    * If it's not passed, we will first query a generic user event, and only if that doesn't exist

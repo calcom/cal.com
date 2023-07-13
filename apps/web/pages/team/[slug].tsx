@@ -7,7 +7,6 @@ import { useEffect } from "react";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
-import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -28,9 +27,9 @@ import Team from "@components/team/screens/Team";
 
 import { ssrInit } from "@server/lib/ssr";
 
-export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
-function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }: TeamPageProps) {
+function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }: PageProps) {
   useTheme(team.theme);
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
@@ -65,7 +64,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
   }
 
   // slug is a route parameter, we don't want to forward it to the next route
-  const { slug: _slug, orgSlug: _orgSlug, user: _user, ...queryParamsToForward } = router.query;
+  const { slug: _slug, ...queryParamsToForward } = router.query;
 
   const EventTypes = () => (
     <ul className="border-subtle rounded-md border">
@@ -103,7 +102,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                   items={type.users.map((user) => ({
                     alt: user.name || "",
                     title: user.name || "",
-                    image: CAL_URL + "/" + user.username + "/avatar.png" || "",
+                    image: "/" + user.username + "/avatar.png" || "",
                   }))}
                 />
               </div>
@@ -140,7 +139,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
                 truncateAfter={4}
                 items={ch.members.map(({ user: member }) => ({
                   alt: member.name || "",
-                  image: `${WEBAPP_URL}/${member.username}/avatar.png`,
+                  image: `/${member.username}/avatar.png`,
                   title: member.name || "",
                 }))}
               />
@@ -153,9 +152,9 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
         <div className="overflow-hidden rounded-sm border dark:border-gray-900">
           <div className="text-muted dark:text-inverted p-8 text-center">
             <h2 className="font-cal dark:text-inverted text-emphasis600 mb-2 text-3xl">
-              {" " + t("org_no_teams_yet")}
+              {" " + t("no_teams_yet")}
             </h2>
-            <p className="mx-auto max-w-md">{t("org_no_teams_yet_description")}</p>
+            <p className="mx-auto max-w-md">{t("no_teams_yet_description")}</p>
           </div>
         </div>
       </div>
@@ -187,7 +186,7 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
           {!isBioEmpty && (
             <>
               <div
-                className="text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                 dangerouslySetInnerHTML={{ __html: team.safeBio }}
               />
             </>
@@ -197,26 +196,21 @@ function TeamPage({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain }
           <SubTeams />
         ) : (
           <>
-            {(showMembers.isOn || !team.eventTypes.length) &&
-              (team.isPrivate ? (
-                <div className="w-full text-center">
-                  <h2 className="text-emphasis font-semibold">{t("you_cannot_see_team_members")}</h2>
-                </div>
-              ) : (
-                <Team team={team} />
-              ))}
+            {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
             {!showMembers.isOn && team.eventTypes.length > 0 && (
               <div className="mx-auto max-w-3xl ">
                 <EventTypes />
 
-                {!(team.hideBookATeamMember || team.isPrivate) && (
+                {!team.hideBookATeamMember && (
                   <div>
                     <div className="relative mt-12">
                       <div className="absolute inset-0 flex items-center" aria-hidden="true">
                         <div className="border-subtle w-full border-t" />
                       </div>
                       <div className="relative flex justify-center">
-                        <span className="bg-subtle text-subtle px-2 text-sm">{t("or")}</span>
+                        <span className="dark:bg-darkgray-50 bg-subtle text-subtle dark:text-inverted px-2 text-sm">
+                          {t("or")}
+                        </span>
                       </div>
                     </div>
 
@@ -289,7 +283,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     ...type,
     users: type.users.map((user) => ({
       ...user,
-      avatar: CAL_URL + "/" + user.username + "/avatar.png",
+      avatar: "/" + user.username + "/avatar.png",
     })),
     descriptionAsSafeHTML: markdownToSafeHTML(type.description),
   }));
@@ -302,10 +296,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const markdownStrippedBio = stripMarkdown(team?.bio || "");
 
+  const { inviteToken: _inviteToken, ...serializableTeam } = team;
+
   return {
     props: {
-      team: { ...team, safeBio, members },
-      themeBasis: team.slug,
+      team: { ...serializableTeam, safeBio, members },
+      themeBasis: serializableTeam.slug,
       trpcState: ssr.dehydrate(),
       markdownStrippedBio,
       isValidOrgDomain,
