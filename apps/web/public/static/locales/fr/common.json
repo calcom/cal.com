@@ -1493,6 +1493,7 @@
   "must_enter_team_name": "Vous devez saisir un nom d'équipe",
   "team_url_required": "Vous devez saisir un lien d'équipe",
   "url_taken": "Ce lien est déjà pris",
+  "problem_registering_domain": "Un problème est survenu lors de l'enregistrement du sous-domaine, veuillez réessayer ou contacter un administrateur",
   "team_publish": "Publier l'équipe",
   "number_text_notifications": "Numéro de téléphone (notifications par SMS)",
   "attendee_email_variable": "Adresse e-mail du participant",
@@ -1621,7 +1622,7 @@
   "teams_plan_required": "Le plan Équipes est requis",
   "routing_forms_are_a_great_way": "Les formulaires de routage sont un excellent moyen d'acheminer vos prospects entrants vers la bonne personne. Passez au plan Équipes pour accéder à cette fonctionnalité.",
   "choose_a_license": "Choisir une licence",
-  "choose_license_description": "Cal.com est fourni avec licence AGPLv3 accessible et gratuite (avec certaines limitations) qui peut être mis à niveau vers une licence Entreprise à tout moment. Vous pouvez mettre à niveau à tout moment plus tard.",
+  "choose_license_description": "Cal.com est fourni avec une licence AGPLv3 accessible et gratuite mais comportant des limitations. Nous sommes en train d'intégrer les clients du plan Entreprise pour la licence commerciale. Vous pouvez vous renseigner à ce sujet en contactant le service commercial ci-dessous.",
   "license": "Licence",
   "agplv3_license": "Licence AGPLv3",
   "no_need_to_keep_your_code_open_source": "Pas besoin de garder votre code open source",
@@ -1937,5 +1938,6 @@
   "insights_team_filter": "Équipe : {{teamName}}",
   "insights_user_filter": "Utilisateur : {{userName}}",
   "insights_subtitle": "Visualisez les statistiques de réservation à travers vos événements",
+  "custom_plan": "Plan personnalisé",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
