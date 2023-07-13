@@ -428,7 +428,6 @@
   "max_limit_allowed_hint": "Не более {{limit}} символов",
   "invalid_password_hint": "Пароль должен быть не короче {{passwordLength}} символов и содержать заглавные и строчные буквы, а также не менее одной цифры",
   "incorrect_password": "Неверный пароль",
-  "incorrect_username_password": "Неверное имя пользователя или пароль.",
   "use_setting": "Использовать настройки",
   "am_pm": "am/pm",
   "time_options": "Настройки времени",

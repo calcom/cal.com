@@ -428,7 +428,6 @@
   "max_limit_allowed_hint": "Moet {{limit}}} of minder tekens lang zijn",
   "invalid_password_hint": "Het wachtwoord moet minimaal {{passwordLength}} tekens lang zijn, minimaal 1 cijfer bevatten en bestaan uit een mix van hoofd- en kleine letters",
   "incorrect_password": "Uw wachtwoord is incorrect.",
-  "incorrect_username_password": "Gebruikersnaam of wachtwoord is onjuist.",
   "use_setting": "Instelling gebruiken",
   "am_pm": "am/pm",
   "time_options": "Tijd, datum en tijdzone instellen",

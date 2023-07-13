@@ -428,7 +428,6 @@
   "max_limit_allowed_hint": "Może składać się z maksymalnie {{limit}} znaków",
   "invalid_password_hint": "Hasło musi składać się z co najmniej {{passwordLength}} znaków, zawierać co najmniej jedną cyfrę oraz kombinację wielkich i małych liter",
   "incorrect_password": "Hasło jest nieprawidłowe.",
-  "incorrect_username_password": "Nieprawidłowa nazwa użytkownika lub hasło.",
   "use_setting": "Użyj ustawień",
   "am_pm": "rano/po południu",
   "time_options": "Opcje czasu",

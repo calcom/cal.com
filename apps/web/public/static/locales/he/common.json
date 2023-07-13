@@ -440,7 +440,6 @@
   "max_limit_allowed_hint": "חייב להיות באורך של עד {{limit}} תווים",
   "invalid_password_hint": "הסיסמה חייבת להיות באורך של {{passwordLength}} תווים לפחות ולכלול לפחות ספרה אחת ושילוב של אותיות רישיות וקטנות",
   "incorrect_password": "הסיסמה שגויה.",
-  "incorrect_username_password": "שם משתמש או סיסמה שגויים.",
   "use_setting": "השתמש בהגדרה",
   "am_pm": "לפנה\"צ/אחה\"צ",
   "time_options": "אפשרויות זמן",
