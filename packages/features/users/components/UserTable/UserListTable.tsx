@@ -1,32 +1,17 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { ExternalLink, MoreHorizontal, StopCircle, UserX, Users, Lock, Edit2 } from "lucide-react";
+import { StopCircle, Users } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useMemo, useRef, useCallback, useEffect } from "react";
+import { useMemo, useRef, useCallback, useEffect, useReducer } from "react";
 
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
-import {
-  Avatar,
-  Badge,
-  Button,
-  ButtonGroup,
-  Checkbox,
-  DataTable,
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  Tooltip,
-  showToast,
-} from "@calcom/ui";
+import { Avatar, Badge, Checkbox, ConfirmationDialogContent, DataTable, Dialog, showToast } from "@calcom/ui";
 
 import { useOrgBrandingValues } from "../../../ee/organizations/hooks";
+import { TableActions } from "./UserTableActions";
 
-interface User {
+export interface User {
   id: number;
   username: string | null;
   email: string;
@@ -41,142 +26,54 @@ interface User {
   }[];
 }
 
-function TableActions({
-  user,
-  permissionsForUser,
-}: {
-  user: User;
-  permissionsForUser: {
-    canEdit: boolean;
-    canRemove: boolean;
-    canImpersonate: boolean;
-  };
-}) {
-  const { t } = useLocale();
-  const utils = trpc.useContext();
+type Payload = {
+  showModal: boolean;
+  user?: User;
+};
 
-  const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
-    async onSuccess() {
-      await utils.viewer.teams.get.invalidate();
-      await utils.viewer.eventTypes.invalidate();
-      await utils.viewer.organizations.listMembers.invalidate();
-      showToast(t("success"), "success");
-    },
-    async onError(err) {
-      showToast(err.message, "error");
-    },
-  });
+export type State = {
+  changeMemberRole: Payload;
+  deleteMember: Payload;
+  impersonateMember: Payload;
+};
 
-  return (
-    <>
-      <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
-        {/* TODO: bring availability back. right now its ugly and broken
-               <Tooltip
-                content={
-                  props.member.accepted
-                    ? t("team_view_user_availability")
-                    : t("team_view_user_availability_disabled")
-                }>
-                <Button
-                  disabled={!props.member.accepted}
-                  onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
-                  color="secondary"
-                  variant="icon"
-                  StartIcon={Clock}
-                />
-              </Tooltip> */}
-        <Tooltip content={t("view_public_page")}>
-          <Button
-            target="_blank"
-            href={"/" + user.username}
-            color="secondary"
-            className={classNames(!permissionsForUser.canEdit ? "rounded-r-md" : "")}
-            variant="icon"
-            StartIcon={ExternalLink}
-          />
-        </Tooltip>
-        {permissionsForUser.canEdit && (
-          <Dropdown>
-            <DropdownMenuTrigger asChild>
-              <Button
-                className="radix-state-open:rounded-r-md"
-                color="secondary"
-                variant="icon"
-                StartIcon={MoreHorizontal}
-              />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>
-                <DropdownItem
-                  type="button"
-                  // onClick={() => setShowChangeMemberRoleModal(true)}
-                  StartIcon={Edit2}>
-                  {t("edit")}
-                </DropdownItem>
-              </DropdownMenuItem>
-              {permissionsForUser.canImpersonate && (
-                <>
-                  <DropdownMenuItem>
-                    <DropdownItem
-                      type="button"
-                      // onClick={() => setShowImpersonateModal(true)}
-                      StartIcon={Lock}>
-                      {t("impersonate")}
-                    </DropdownItem>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                </>
-              )}
-              <DropdownMenuItem>
-                <DropdownItem
-                  type="button"
-                  // onClick={() => setShowDeleteModal(true)}
-                  color="destructive"
-                  StartIcon={UserX}>
-                  {t("remove")}
-                </DropdownItem>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </Dropdown>
-        )}
-      </ButtonGroup>
-      <div className="flex md:hidden">
-        <Dropdown>
-          <DropdownMenuTrigger asChild>
-            <Button type="button" variant="icon" color="minimal" StartIcon={MoreHorizontal} />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem className="outline-none">
-              <DropdownItem type="button" StartIcon={ExternalLink}>
-                {t("view_public_page")}
-              </DropdownItem>
-            </DropdownMenuItem>
-            {permissionsForUser.canEdit && (
-              <>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    // onClick={() => setShowChangeMemberRoleModal(true)}
-                    StartIcon={Edit2}>
-                    {t("edit")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    color="destructive"
-                    // onClick={() => setShowDeleteModal(true)}
-                    StartIcon={UserX}>
-                    {t("remove")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </Dropdown>
-      </div>
-    </>
-  );
+export type Action =
+  | {
+      type: "SET_CHANGE_MEMBER_ROLE_ID";
+      payload: Payload;
+    }
+  | {
+      type: "SET_DELETE_ID";
+      payload: Payload;
+    }
+  | {
+      type: "SET_IMPERSONATE_ID";
+      payload: Payload;
+    };
+
+const initialState: State = {
+  changeMemberRole: {
+    showModal: false,
+  },
+  deleteMember: {
+    showModal: false,
+  },
+  impersonateMember: {
+    showModal: false,
+  },
+};
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "SET_CHANGE_MEMBER_ROLE_ID":
+      return { ...state, changeMemberRole: action.payload };
+    case "SET_DELETE_ID":
+      return { ...state, deleteMember: action.payload };
+    case "SET_IMPERSONATE_ID":
+      return { ...state, impersonateMember: action.payload };
+    default:
+      return state;
+  }
 }
 
 export function UserListTable() {
@@ -184,6 +81,9 @@ export function UserListTable() {
   const { data: session } = useSession();
   const { data: currentMembership } = trpc.viewer.organizations.listCurrent.useQuery();
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const { t } = useLocale();
+  const utils = trpc.useContext();
 
   const { data, isLoading, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
@@ -197,8 +97,6 @@ export function UserListTable() {
       }
     );
 
-  const orgSlug = orgValues?.slug || "error";
-
   const adminOrOwner = currentMembership?.user.role === "ADMIN" || currentMembership?.user.role === "OWNER";
 
   const memorisedColumns = useMemo(() => {
@@ -207,7 +105,7 @@ export function UserListTable() {
       canRemove: adminOrOwner,
       canImpersonate: false,
     };
-    const cols: ColumnDef<User, unkown>[] = [
+    const cols: ColumnDef<User>[] = [
       {
         id: "select",
         header: ({ table }) => (
@@ -279,7 +177,7 @@ export function UserListTable() {
           return teamNames;
         },
         header: "Teams",
-        cell: ({ row, table }) => {
+        cell: ({ row }) => {
           const { teams, accepted } = row.original;
           return (
             <div className="flex h-full flex-wrap items-center gap-2">
@@ -289,12 +187,7 @@ export function UserListTable() {
                 </Badge>
               )}
               {teams.map((team) => (
-                <Badge
-                  key={team.id}
-                  variant="gray"
-                  onClick={() => {
-                    table.getColumn("teams")?.setFilterValue(team.name);
-                  }}>
+                <Badge key={team.id} variant="gray">
                   {team.name}
                 </Badge>
               ))}
@@ -311,21 +204,21 @@ export function UserListTable() {
 
           const permissionsForUser = {
             canEdit: permissionsRaw.canEdit && user.accepted && !isSelf,
-            canRemove: permissionsRaw.canRemove && user.accepted && !isSelf,
-            canImpersonate:
-              permissionsRaw.canImpersonate && user.accepted && !user.disableImpersonation && !isSelf,
+            canRemove: permissionsRaw.canRemove && !isSelf,
+            canImpersonate: user.accepted && !user.disableImpersonation && !isSelf,
+            canLeave: user.accepted && isSelf,
           };
 
-          return <TableActions user={user} permissionsForUser={permissionsForUser} />;
+          return <TableActions user={user} permissionsForUser={permissionsForUser} dispatch={dispatch} />;
         },
       },
     ];
 
     return cols;
-  }, [session?.user.id, adminOrOwner]);
+  }, [session?.user.id, adminOrOwner, dispatch]);
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
-  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]);
+  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as User[];
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const totalFetched = flatData.length;
 
@@ -347,40 +240,91 @@ export function UserListTable() {
     fetchMoreOnBottomReached(tableContainerRef.current);
   }, [fetchMoreOnBottomReached]);
 
+  const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
+    async onSuccess() {
+      await utils.viewer.teams.get.invalidate();
+      await utils.viewer.eventTypes.invalidate();
+      await utils.viewer.organizations.listMembers.invalidate();
+      showToast(t("success"), "success");
+    },
+    async onError(err) {
+      showToast(err.message, "error");
+    },
+  });
+
   return (
-    <DataTable
-      selectionOptions={[
-        {
-          label: "Add To Team",
-          onClick: () => {
-            console.log("Add To Team");
+    <>
+      <DataTable
+        selectionOptions={[
+          {
+            label: "Add To Team",
+            onClick: () => {
+              console.log("Add To Team");
+            },
+            icon: Users,
           },
-          icon: Users,
-        },
-        {
-          label: "Delete",
-          onClick: () => {
-            console.log("Delete");
+          {
+            label: "Delete",
+            onClick: () => {
+              console.log("Delete");
+            },
+            icon: StopCircle,
           },
-          icon: StopCircle,
-        },
-      ]}
-      tableContainerRef={tableContainerRef}
-      columns={memorisedColumns}
-      data={flatData}
-      isLoading={isLoading}
-      onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
-      filterableItems={[
-        {
-          tableAccessor: "role",
-          title: "Role",
-          options: [
-            { label: "Owner", value: "OWNER" },
-            { label: "Admin", value: "ADMIN" },
-            { label: "Member", value: "MEMBER" },
-          ],
-        },
-      ]}
-    />
+        ]}
+        tableContainerRef={tableContainerRef}
+        columns={memorisedColumns}
+        data={flatData}
+        isLoading={isLoading}
+        onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
+        filterableItems={[
+          {
+            tableAccessor: "role",
+            title: "Role",
+            options: [
+              { label: "Owner", value: "OWNER" },
+              { label: "Admin", value: "ADMIN" },
+              { label: "Member", value: "MEMBER" },
+            ],
+          },
+        ]}
+      />
+
+      {state.deleteMember.showModal && state.deleteMember.user && (
+        <Dialog
+          open={state.deleteMember.showModal}
+          onOpenChange={(open) =>
+            !open &&
+            dispatch({
+              type: "SET_DELETE_ID",
+              payload: {
+                showModal: false,
+              },
+            })
+          }>
+          <ConfirmationDialogContent
+            variety="danger"
+            title={t("remove_member")}
+            confirmBtnText={t("confirm_remove_member")}
+            onConfirm={() => {
+              if (!session?.user.organizationId) return;
+
+              console.log({
+                userId: state?.deleteMember?.user?.id,
+                organizationId: session?.user.organizationId,
+                isOrg: true,
+              });
+              removeMemberMutation.mutate({
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore - TS hello? Show modal is true in the discrimionation union type
+                userId: state?.deleteMember?.user.id,
+                organizationId: session?.user.organizationId,
+                isOrg: true,
+              });
+            }}>
+            {t("remove_member_confirmation_message")}
+          </ConfirmationDialogContent>
+        </Dialog>
+      )}
+    </>
   );
 }
