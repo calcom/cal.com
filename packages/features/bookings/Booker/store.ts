@@ -25,7 +25,7 @@ type StoreInitializeType = {
   bookingData?: GetBookingType | null | undefined;
   rescheduleUid?: string | null;
   seatReferenceUid?: string;
-  org?: string;
+  org?: string | null;
 };
 
 type SeatedEventData = {
@@ -106,7 +106,7 @@ export type BookerStore = {
    * both the slug and the event slug.
    */
   isTeamEvent: boolean;
-  org?: string;
+  org?: string | null;
   seatedEventData: SeatedEventData;
   setSeatedEventData: (seatedEventData: SeatedEventData) => void;
 };
