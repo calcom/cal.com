@@ -29,10 +29,10 @@ export default function ZapierSetup(props: IZapierSetupProps) {
       utils.viewer.apiKeys.findKeyOfType.invalidate();
     },
   });
-  const zapierCredentials: { credentialIds: number[] } | undefined = integrations.data?.items.find(
+  const zapierCredentials: { userCredentialIds: number[] } | undefined = integrations.data?.items.find(
     (item: { type: string }) => item.type === "zapier_automation"
   );
-  const [credentialId] = zapierCredentials?.credentialIds || [false];
+  const [credentialId] = zapierCredentials?.userCredentialIds || [false];
   const showContent = integrations.data && integrations.isSuccess && credentialId;
   const isCalDev = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.dev";
 

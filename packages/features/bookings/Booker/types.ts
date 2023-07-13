@@ -5,6 +5,8 @@ import type { GetBookingType } from "../lib/get-booking";
 export interface BookerProps {
   eventSlug: string;
   username: string;
+  // Make it optional later, once we figure out where we can possibly need to set org
+  org: string | null;
 
   /**
    * If month is NOT set as a prop on the component, we expect a query parameter
@@ -40,7 +42,7 @@ export interface BookerProps {
    * api to fetch this data. Therefore rescheduling a booking currently is not possible
    * within the atom (i.e. without a server side component).
    */
-  rescheduleBooking?: GetBookingType;
+  bookingData?: GetBookingType;
   /**
    * If this boolean is passed, we will only check team events with this slug and event slug.
    * If it's not passed, we will first query a generic user event, and only if that doesn't exist

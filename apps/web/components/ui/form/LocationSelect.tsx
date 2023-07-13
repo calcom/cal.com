@@ -40,11 +40,13 @@ export default function LocationSelect(props: Props<LocationOption, false, Group
       name="location"
       id="location-select"
       components={{
-        Option: (props) => (
-          <components.Option {...props}>
-            <OptionWithIcon icon={props.data.icon} label={props.data.label} />
-          </components.Option>
-        ),
+        Option: (props) => {
+          return (
+            <components.Option {...props}>
+              <OptionWithIcon icon={props.data.icon} label={props.data.label} />
+            </components.Option>
+          );
+        },
         SingleValue: (props) => (
           <components.SingleValue {...props}>
             <OptionWithIcon icon={props.data.icon} label={props.data.label} />

@@ -16,10 +16,12 @@ export default function OmniInstallAppButton({
   appId,
   className,
   returnTo,
+  teamId,
 }: {
   appId: string;
   className: string;
   returnTo?: string;
+  teamId?: number;
 }) {
   const { t } = useLocale();
   const { data: app } = useApp(appId);
@@ -30,7 +32,10 @@ export default function OmniInstallAppButton({
     onSuccess: (data) => {
       //TODO: viewer.appById might be replaced with viewer.apps so that a single query needs to be invalidated.
       utils.viewer.appById.invalidate({ appId });
-      utils.viewer.apps.invalidate({ extendsFeature: "EventType" });
+      utils.viewer.integrations.invalidate({
+        extendsFeature: "EventType",
+        ...(teamId && { teamId }),
+      });
       if (data?.setupPending) return;
       showToast(t("app_successfully_installed"), "success");
     },
@@ -53,7 +58,13 @@ export default function OmniInstallAppButton({
           props = {
             ...props,
             onClick: () => {
-              mutation.mutate({ type: app.type, variant: app.variant, slug: app.slug, isOmniInstall: true });
+              mutation.mutate({
+                type: app.type,
+                variant: app.variant,
+                slug: app.slug,
+                isOmniInstall: true,
+                ...(teamId && { teamId }),
+              });
             },
           };
         }

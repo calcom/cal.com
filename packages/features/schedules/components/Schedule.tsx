@@ -172,7 +172,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
   const { t } = useLocale();
   const { getValues } = useFormContext();
 
-  const { remove, fields, append } = useFieldArray({
+  const { remove, fields, prepend, append } = useFieldArray({
     control,
     name,
   });
@@ -193,8 +193,18 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 StartIcon={Plus}
                 onClick={() => {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  const nextRange: any = getNextRange(getValues(`${name}.${fields.length - 1}`));
-                  if (nextRange) append(nextRange);
+                  const slotRange: any = getDateSlotRange(
+                    getValues(`${name}.${fields.length - 1}`),
+                    getValues(`${name}.0`)
+                  );
+
+                  if (slotRange?.append) {
+                    append(slotRange.append);
+                  }
+
+                  if (slotRange?.prepend) {
+                    prepend(slotRange.prepend);
+                  }
                 }}
               />
             )}
@@ -351,20 +361,34 @@ const useOptions = () => {
   return { options: filteredOptions, filter };
 };
 
-const getNextRange = (field?: FieldArrayWithId) => {
-  const nextRangeStart = dayjs((field as unknown as TimeRange).end).utc();
+const getDateSlotRange = (endField?: FieldArrayWithId, startField?: FieldArrayWithId) => {
+  const timezoneStartRange = dayjs((startField as unknown as TimeRange).start).utc();
+  const nextRangeStart = dayjs((endField as unknown as TimeRange).end).utc();
   const nextRangeEnd =
     nextRangeStart.hour() === 23
       ? dayjs(nextRangeStart).add(59, "minutes").add(59, "seconds").add(999, "milliseconds")
       : dayjs(nextRangeStart).add(1, "hour");
 
-  if (
-    nextRangeEnd.isBefore(nextRangeStart.endOf("day")) ||
-    nextRangeEnd.isSame(nextRangeStart.endOf("day"))
-  ) {
+  const endOfDay = nextRangeStart.endOf("day");
+
+  if (!nextRangeStart.isSame(endOfDay)) {
     return {
-      start: nextRangeStart.toDate(),
-      end: nextRangeEnd.toDate(),
+      append: {
+        start: nextRangeStart.toDate(),
+        end: nextRangeEnd.isAfter(endOfDay) ? endOfDay.toDate() : nextRangeEnd.toDate(),
+      },
+    };
+  }
+
+  const previousRangeStart = dayjs((startField as unknown as TimeRange).start).subtract(1, "hour");
+  const startOfDay = timezoneStartRange.startOf("day");
+
+  if (!timezoneStartRange.isSame(startOfDay)) {
+    return {
+      prepend: {
+        start: previousRangeStart.isBefore(startOfDay) ? startOfDay.toDate() : previousRangeStart.toDate(),
+        end: timezoneStartRange.toDate(),
+      },
     };
   }
 };

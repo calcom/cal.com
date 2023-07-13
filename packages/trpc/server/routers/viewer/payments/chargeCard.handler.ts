@@ -4,7 +4,7 @@ import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
+import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
 import { TRPCError } from "@trpc/server";
 
@@ -94,9 +94,11 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid payment credential" });
   }
 
-  const paymentApp = await appStore[paymentCredential?.app?.dirName as keyof typeof appStore]();
+  const paymentApp = (await appStore[
+    paymentCredential?.app?.dirName as keyof typeof appStore
+  ]()) as PaymentApp;
 
-  if (!("lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
+  if (!paymentApp?.lib?.PaymentService) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Payment service not found" });
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
