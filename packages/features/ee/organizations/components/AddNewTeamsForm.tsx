@@ -1,4 +1,3 @@
-import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { z } from "zod";
@@ -6,7 +5,7 @@ import { z } from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast, TextField } from "@calcom/ui";
-import { Plus, X } from "@calcom/ui/components/icon";
+import { Plus, X, ArrowRight } from "@calcom/ui/components/icon";
 
 const querySchema = z.object({
   id: z.string().transform((val) => parseInt(val)),
@@ -18,7 +17,7 @@ export const AddNewTeamsForm = () => {
   const { id: orgId } = querySchema.parse(router.query);
   const [counter, setCounter] = useState(1);
 
-  const [inputValues, setInputValues] = useState<string[]>([""]);
+  const [inputValues, setInputValues] = useState<string[]>([]);
 
   const handleCounterIncrease = () => {
     setCounter((prevCounter) => prevCounter + 1);
@@ -54,21 +53,42 @@ export const AddNewTeamsForm = () => {
     },
   });
 
+  const validateInput = () => {
+    if (inputValues.includes("")) {
+      showToast(t("team_names_empty"), "error");
+      return false;
+    }
+    const duplicates = inputValues.filter((item, index) => inputValues.indexOf(item) !== index);
+    if (duplicates.length) {
+      showToast(t("team_names_repeated"), "error");
+      return false;
+    }
+    return true;
+  };
+
+  const handleFormSubmit = () => {
+    if (validateInput()) {
+      createTeamsMutation.mutate({ orgId, teamNames: inputValues });
+    }
+  };
+
   return (
     <>
       {Array.from({ length: counter }, (_, index) => (
         <div className="relative" key={index}>
           <TextField
             key={index}
-            value={inputValues[index]}
+            value={inputValues[index] || ""}
             onChange={(e) => handleInputChange(index, e.target.value)}
             addOnClassname="bg-transparent p-0 border-l-0"
+            placeholder="e.g. Marketing Team"
             addOnSuffix={
               index > 0 && (
                 <Button
                   color="minimal"
                   className="group/remove mx-2 px-0 hover:bg-transparent"
-                  onClick={() => handleRemoveInput(index)}>
+                  onClick={() => handleRemoveInput(index)}
+                  aria-label="Remove Team">
                   <X className="bg-subtle text group-hover/remove:text-inverted group-hover/remove:bg-inverted h-5 w-5 rounded-full p-1" />
                 </Button>
               )
@@ -80,26 +100,16 @@ export const AddNewTeamsForm = () => {
         StartIcon={Plus}
         color="secondary"
         disabled={createTeamsMutation.isLoading}
-        onClick={handleCounterIncrease}>
+        onClick={handleCounterIncrease}
+        aria-label={t("add_a_team")}>
         {t("add_a_team")}
       </Button>
       <Button
         EndIcon={ArrowRight}
         color="primary"
         className="mt-6 w-full justify-center"
-        disabled={createTeamsMutation.isLoading}
-        onClick={() => {
-          if (inputValues.includes("")) {
-            showToast(t("team_names_empty"), "error");
-          } else {
-            const duplicates = inputValues.filter((item, index) => inputValues.indexOf(item) !== index);
-            if (duplicates.length) {
-              showToast("team_names_repeated", "error");
-            } else {
-              createTeamsMutation.mutate({ orgId, teamNames: inputValues });
-            }
-          }
-        }}>
+        disabled={inputValues.length === 0 || createTeamsMutation.isLoading}
+        onClick={handleFormSubmit}>
         {t("continue")}
       </Button>
     </>
