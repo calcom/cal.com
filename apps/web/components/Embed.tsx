@@ -1,5 +1,6 @@
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
+import { useSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
@@ -8,11 +9,15 @@ import { createRef, forwardRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
 import { components } from "react-select";
 
+import { AvailableTimeSlots } from "@calcom/features/bookings/Booker/components/AvailableTimeSlots";
+import { DatePicker } from "@calcom/features/bookings/Booker/components/DatePicker";
+import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { APP_NAME, EMBED_LIB_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import { TimezoneSelect } from "@calcom/ui";
 import {
   Button,
   Dialog,
@@ -30,7 +35,7 @@ import {
 } from "@calcom/ui";
 import { Code, Trello, Sun, ArrowLeft } from "@calcom/ui/components/icon";
 
-type EmbedType = "inline" | "floating-popup" | "element-click";
+type EmbedType = "inline" | "floating-popup" | "element-click" | "email";
 type EmbedFramework = "react" | "HTML";
 
 const enum Theme {
@@ -317,6 +322,7 @@ const getEmbedTypeSpecificString = ({
   if (!frameworkCodes) {
     throw new Error(`No code available for the framework:${embedFramework}`);
   }
+  if (embedType === "email") return "";
   let uiInstructionStringArg: {
     apiName: string;
     theme: PreviewState["theme"];
@@ -551,6 +557,32 @@ const embeds = (t: TFunction) =>
           </svg>
         ),
       },
+      {
+        title: "Email embed",
+        subtitle: "Add to your emails",
+        type: "email",
+        illustration: (
+          <svg
+            width="100%"
+            height="100%"
+            className="rounded-md"
+            viewBox="0 0 308 265"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M0 1.99999C0 0.895423 0.895431 0 2 0H306C307.105 0 308 0.895431 308 2V263C308 264.105 307.105 265 306 265H2C0.895431 265 0 264.105 0 263V1.99999Z"
+              fill="white"
+            />
+            <rect x="24" width="260" height="38.5" rx="6" fill="#F3F4F6" />
+            <rect x="24" y="50.5" width="120" height="76" rx="6" fill="#F3F4F6" />
+            <rect x="24" y="138.5" width="120" height="76" rx="6" fill="#F3F4F6" />
+            <rect x="156" y="50.5" width="128" height="164" rx="6" fill="#F3F4F6" />
+            <rect x="24" y="226.5" width="260" height="38.5" rx="6" fill="#F3F4F6" />
+            <rect x="226" y="223.5" width="66" height="26" rx="6" fill="#292929" />
+            <rect x="242" y="235.5" width="34" height="2" rx="1" fill="white" />
+          </svg>
+        ),
+      },
     ];
   })();
 
@@ -726,12 +758,71 @@ const ChooseEmbedTypesDialogContent = () => {
   );
 };
 
+const EmailEmbed = ({ eventType }: { eventType?: any }) => {
+  const { t } = useLocale();
+
+  const { data } = useSession();
+
+  useInitializeBookerStore({
+    username: data?.user.name ?? "",
+    eventSlug: eventType.slug,
+    eventId: eventType.id,
+    rescheduleUid: null,
+    rescheduleBooking: null,
+    layout: BookerLayouts.MONTH_VIEW,
+  });
+
+  return (
+    <div className="flex flex-col">
+      <div className="font-medium">
+        <Collapsible open>
+          <CollapsibleContent>
+            <div className="text-default mb-[9px] text-sm">Select Date</div>
+            <DatePicker />
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+      <div className="font-medium">
+        <Collapsible open>
+          <CollapsibleContent>
+            <div className="text-default mb-[9px] text-sm">Select Time</div>
+            {false ? <></> : <AvailableTimeSlots />}
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+      <div className="font-medium">
+        <Collapsible open>
+          <CollapsibleContent>
+            <div className="text-default mb-[9px] text-sm">Duration</div>
+            <TextField
+              disabled
+              label={t("duration")}
+              defaultValue={eventType.length ?? 15}
+              addOnSuffix={<>{t("minutes")}</>}
+            />
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+      <div className="font-medium">
+        <Collapsible open>
+          <CollapsibleContent>
+            <div className="text-default mb-[9px] text-sm">Timezone</div>
+            <TimezoneSelect id="timezone" value="America/Detroit" />
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+    </div>
+  );
+};
+
 const EmbedTypeCodeAndPreviewDialogContent = ({
   embedType,
   embedUrl,
+  eventType,
 }: {
   embedType: EmbedType;
   embedUrl: string;
+  eventType?: any;
 }) => {
   const { t } = useLocale();
 
@@ -740,6 +831,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const dialogContentRef = useRef<HTMLDivElement>(null);
   const flags = useFlagMap();
   const isBookerLayoutsEnabled = flags["booker-layouts"] === true;
+  const contentRef = useRef(null);
 
   const s = (href: string) => {
     const searchParams = new URLSearchParams(router.asPath.split("?")[1] || "");
@@ -844,6 +936,270 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     },
   });
 
+  const handleCopyText = () => {
+    const contentElement = contentRef.current;
+    if (contentElement !== null) {
+      try {
+        const range = document.createRange();
+        range.selectNode(contentElement);
+        const selection = window.getSelection();
+        if (selection) {
+          selection.removeAllRanges();
+          selection.addRange(range);
+          document.execCommand("copy");
+          selection.removeAllRanges();
+        }
+        console.log("Text copied to clipboard");
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  };
+
+  const EmailsEmbedFooter = () => {
+    return (
+      <div className="flex h-full items-center justify-center border font-medium" ref={contentRef}>
+        <div className="border p-4">
+          <div
+            style={{
+              paddingBottom: "3px",
+              fontSize: "13px",
+              color: "rgb(26, 26, 26)",
+              backgroundColor: "white",
+              lineHeight: "1.4",
+              width: "344px",
+            }}>
+            <div
+              style={{
+                fontStyle: "normal",
+                fontWeight: "bold",
+                fontSize: "16px",
+                lineHeight: "19px",
+                color: "rgb(26, 26, 26)",
+                marginTop: "15px",
+              }}>
+              Tets
+            </div>
+            <div
+              style={{
+                fontStyle: "normal",
+                fontWeight: "normal",
+                fontSize: "14px",
+                lineHeight: "17px",
+                color: "rgb(51, 51, 51)",
+              }}>
+              30 mins
+            </div>
+            <div>
+              <b style={{ color: "rgb(26, 26, 26)" }}>
+                <span
+                  style={{
+                    fontStyle: "normal",
+                    fontWeight: "normal",
+                    fontSize: "14px",
+                    lineHeight: "17px",
+                    color: "rgb(51, 51, 51)",
+                  }}>
+                  Time zone: Kathmandu Time&nbsp;
+                </span>
+                <a
+                  style={{ marginLeft: "3px" }}
+                  href="https://calendly.com/28pradumn/tets?source=email&timezone=Asia%2FKathmandu&timezone_picker=true">
+                  Change
+                </a>
+              </b>
+            </div>
+            <b style={{ color: "rgb(26, 26, 26)" }}>
+              <table
+                style={{
+                  marginTop: "16px",
+                  textAlign: "left",
+                  borderCollapse: "collapse",
+                  borderSpacing: "0px",
+                  width: "362px",
+                }}>
+                <tbody>
+                  <tr>
+                    <td style={{ textAlign: "left", marginTop: "16px" }}>
+                      <span
+                        style={{
+                          fontSize: "14px",
+                          lineHeight: "16px",
+                          paddingBottom: "8px",
+                          color: "rgb(26, 26, 26)",
+                          fontWeight: "bold",
+                        }}>
+                        Tuesday, July 18&nbsp;
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <table style={{ borderCollapse: "separate", borderSpacing: "0px 4px" }}>
+                        <tbody>
+                          <tr style={{ height: "25px" }}>
+                            <td
+                              style={{
+                                padding: "0px",
+                                width: "64px",
+                                display: "inline-block",
+                                marginRight: "4px",
+                                height: "22px",
+                                float: "left",
+                                border: "1px solid rgb(0, 105, 255)",
+                                borderRadius: "3px",
+                              }}>
+                              <table style={{ height: "21px" }}>
+                                <tbody>
+                                  <tr style={{ height: "21px" }}>
+                                    <td style={{ width: "7px" }} />
+                                    <td
+                                      style={{
+                                        width: "50px",
+                                        textAlign: "center",
+                                        marginRight: "1px",
+                                      }}>
+                                      <a
+                                        href="https://calendly.com/28pradumn/tets/20230718T0500Z?source=email&timezone=Asia%2FKathmandu"
+                                        className="spot"
+                                        style={{
+                                          fontFamily: '"Proxima Nova", sans-serif',
+                                          textDecoration: "none",
+                                          textAlign: "center",
+                                          color: "rgb(0, 105, 255)",
+                                          fontSize: "12px",
+                                          lineHeight: "16px",
+                                        }}>
+                                        <b
+                                          style={{
+                                            fontWeight: "normal",
+                                            textDecoration: "none",
+                                          }}>
+                                          10:45am&nbsp;
+                                        </b>
+                                      </a>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </td>
+                            <td
+                              style={{
+                                padding: "0px",
+                                width: "64px",
+                                display: "inline-block",
+                                marginRight: "4px",
+                                height: "22px",
+                                float: "left",
+                                border: "1px solid rgb(0, 105, 255)",
+                                borderRadius: "3px",
+                              }}>
+                              <table style={{ height: "21px" }}>
+                                <tbody>
+                                  <tr style={{ height: "21px" }}>
+                                    <td style={{ width: "7px" }} />
+                                    <td
+                                      style={{
+                                        width: "50px",
+                                        textAlign: "center",
+                                        marginRight: "1px",
+                                      }}>
+                                      <a
+                                        href="https://calendly.com/28pradumn/tets/20230718T0530Z?source=email&timezone=Asia%2FKathmandu"
+                                        className="spot"
+                                        style={{
+                                          fontFamily: '"Proxima Nova", sans-serif',
+                                          textDecoration: "none",
+                                          textAlign: "center",
+                                          color: "rgb(0, 105, 255)",
+                                          fontSize: "12px",
+                                          lineHeight: "16px",
+                                        }}>
+                                        <b
+                                          style={{
+                                            fontWeight: "normal",
+                                            textDecoration: "none",
+                                          }}>
+                                          11:15am&nbsp;
+                                        </b>
+                                      </a>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </td>
+                            <td
+                              style={{
+                                padding: "0px",
+                                width: "64px",
+                                display: "inline-block",
+                                marginRight: "4px",
+                                height: "22px",
+                                float: "left",
+                                border: "1px solid rgb(0, 105, 255)",
+                                borderRadius: "3px",
+                              }}>
+                              <table style={{ height: "21px" }}>
+                                <tbody>
+                                  <tr style={{ height: "21px" }}>
+                                    <td style={{ width: "7px" }} />
+                                    <td
+                                      style={{
+                                        width: "50px",
+                                        textAlign: "center",
+                                        marginRight: "1px",
+                                      }}>
+                                      <a
+                                        href="https://calendly.com/28pradumn/tets/20230718T0600Z?source=email&timezone=Asia%2FKathmandu"
+                                        className="spot"
+                                        style={{
+                                          fontFamily: '"Proxima Nova", sans-serif',
+                                          textDecoration: "none",
+                                          textAlign: "center",
+                                          color: "rgb(0, 105, 255)",
+                                          fontSize: "12px",
+                                          lineHeight: "16px",
+                                        }}>
+                                        <b
+                                          style={{
+                                            fontWeight: "normal",
+                                            textDecoration: "none",
+                                          }}>
+                                          11:45am&nbsp;
+                                        </b>
+                                      </a>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style={{ marginTop: "13px" }}>
+                <a
+                  className="more"
+                  href="https://calendly.com/28pradumn/tets?source=email&timezone=Asia%2FKathmandu"
+                  style={{
+                    textDecoration: "none",
+                    cursor: "pointer",
+                    color: "rgb(0, 105, 255)",
+                  }}>
+                  See all available times
+                </a>
+              </div>
+            </b>
+          </div>
+          <b style={{ color: "rgb(26, 26, 26)" }} />
+        </div>
+      </div>
+    );
+  };
+
   if (embedType === "floating-popup") {
     previewInstruction({
       name: "floatingButton",
@@ -889,11 +1245,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   return (
     <DialogContent
       ref={dialogContentRef}
-      className="rounded-lg p-0.5 sm:max-w-[80rem]"
-      enableOverflow
+      className="overflow-y-scroll rounded-lg p-0.5 sm:max-w-[80rem]"
+      // enableOverflow
       type="creation">
-      <div className="flex">
-        <div className="bg-muted flex w-1/3 flex-col p-8">
+      <div className="flex max-h-[90%]">
+        <div className="bg-muted flex h-full w-1/3 flex-col overflow-y-scroll p-8">
           <h3
             className="text-emphasis mb-2.5 flex items-center text-xl font-semibold leading-5"
             id="modal-title">
@@ -907,326 +1263,362 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             {embed.title}
           </h3>
           <h4 className="text-subtle mb-6 text-sm font-normal">{embed.subtitle}</h4>
-          <div className="flex flex-col">
-            <div className={classNames("font-medium", embedType === "element-click" ? "hidden" : "")}>
-              <Collapsible
-                open={isEmbedCustomizationOpen}
-                onOpenChange={() => setIsEmbedCustomizationOpen((val) => !val)}>
-                <CollapsibleContent className="text-sm">
-                  <div className={classNames(embedType === "inline" ? "block" : "hidden")}>
-                    {/*TODO: Add Auto/Fixed toggle from Figma */}
-                    <div className="text-default mb-[9px] text-sm">Window sizing</div>
-                    <div className="justify-left mb-6 flex items-center !font-normal ">
-                      <div className="mr-[9px]">
+          {embedType === "email" ? (
+            <EmailEmbed eventType={eventType} />
+          ) : (
+            <div className="flex flex-col">
+              <div className={classNames("font-medium", embedType === "element-click" ? "hidden" : "")}>
+                <Collapsible
+                  open={isEmbedCustomizationOpen}
+                  onOpenChange={() => setIsEmbedCustomizationOpen((val) => !val)}>
+                  <CollapsibleContent className="text-sm">
+                    <div className={classNames(embedType === "inline" ? "block" : "hidden")}>
+                      {/*TODO: Add Auto/Fixed toggle from Figma */}
+                      <div className="text-default mb-[9px] text-sm">Window sizing</div>
+                      <div className="justify-left mb-6 flex items-center !font-normal ">
+                        <div className="mr-[9px]">
+                          <TextField
+                            labelProps={{ className: "hidden" }}
+                            className="focus:ring-offset-0"
+                            required
+                            value={previewState.inline.width}
+                            onChange={(e) => {
+                              setPreviewState((previewState) => {
+                                const width = e.target.value || "100%";
+
+                                return {
+                                  ...previewState,
+                                  inline: {
+                                    ...previewState.inline,
+                                    width,
+                                  },
+                                };
+                              });
+                            }}
+                            addOnLeading={<>W</>}
+                          />
+                        </div>
+
                         <TextField
                           labelProps={{ className: "hidden" }}
                           className="focus:ring-offset-0"
+                          value={previewState.inline.height}
                           required
-                          value={previewState.inline.width}
                           onChange={(e) => {
-                            setPreviewState((previewState) => {
-                              const width = e.target.value || "100%";
+                            const height = e.target.value || "100%";
 
+                            setPreviewState((previewState) => {
                               return {
                                 ...previewState,
                                 inline: {
                                   ...previewState.inline,
-                                  width,
+                                  height,
                                 },
                               };
                             });
                           }}
-                          addOnLeading={<>W</>}
+                          addOnLeading={<>H</>}
                         />
                       </div>
-
+                    </div>
+                    <div
+                      className={classNames(
+                        "items-center justify-between",
+                        embedType === "floating-popup" ? "text-emphasis" : "hidden"
+                      )}>
+                      <div className="mb-2 text-sm">Button text</div>
+                      {/* Default Values should come from preview iframe */}
                       <TextField
                         labelProps={{ className: "hidden" }}
-                        className="focus:ring-offset-0"
-                        value={previewState.inline.height}
-                        required
                         onChange={(e) => {
-                          const height = e.target.value || "100%";
-
                           setPreviewState((previewState) => {
                             return {
                               ...previewState,
-                              inline: {
-                                ...previewState.inline,
-                                height,
+                              floatingPopup: {
+                                ...previewState.floatingPopup,
+                                buttonText: e.target.value,
                               },
                             };
                           });
                         }}
-                        addOnLeading={<>H</>}
+                        defaultValue={t("book_my_cal")}
+                        required
                       />
                     </div>
-                  </div>
-                  <div
-                    className={classNames(
-                      "items-center justify-between",
-                      embedType === "floating-popup" ? "text-emphasis" : "hidden"
-                    )}>
-                    <div className="mb-2 text-sm">Button text</div>
-                    {/* Default Values should come from preview iframe */}
-                    <TextField
-                      labelProps={{ className: "hidden" }}
-                      onChange={(e) => {
-                        setPreviewState((previewState) => {
-                          return {
-                            ...previewState,
-                            floatingPopup: {
-                              ...previewState.floatingPopup,
-                              buttonText: e.target.value,
-                            },
-                          };
-                        });
-                      }}
-                      defaultValue={t("book_my_cal")}
-                      required
-                    />
-                  </div>
-                  <div
-                    className={classNames(
-                      "mt-4 flex items-center justify-start",
-                      embedType === "floating-popup"
-                        ? "text-emphasis space-x-2 rtl:space-x-reverse"
-                        : "hidden"
-                    )}>
-                    <Switch
-                      defaultChecked={true}
-                      onCheckedChange={(checked) => {
-                        setPreviewState((previewState) => {
-                          return {
-                            ...previewState,
-                            floatingPopup: {
-                              ...previewState.floatingPopup,
-                              hideButtonIcon: !checked,
-                            },
-                          };
-                        });
-                      }}
-                    />
-                    <div className="text-default my-2 text-sm">Display calendar icon</div>
-                  </div>
-                  <div
-                    className={classNames(
-                      "mt-4 items-center justify-between",
-                      embedType === "floating-popup" ? "text-emphasis" : "hidden"
-                    )}>
-                    <div className="mb-2">Position of button</div>
-                    <Select
-                      onChange={(position) => {
-                        setPreviewState((previewState) => {
-                          return {
-                            ...previewState,
-                            floatingPopup: {
-                              ...previewState.floatingPopup,
-                              buttonPosition: position?.value,
-                            },
-                          };
-                        });
-                      }}
-                      defaultValue={FloatingPopupPositionOptions[0]}
-                      options={FloatingPopupPositionOptions}
-                    />
-                  </div>
-                  <div className="mt-3 flex flex-col xl:flex-row xl:justify-between">
-                    <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
-                      <div className="whitespace-nowrap">Button color</div>
-                      <div className="mt-2 w-40 xl:mt-0 xl:w-full">
-                        <ColorPicker
-                          className="w-[130px]"
-                          popoverAlign="start"
-                          container={dialogContentRef?.current ?? undefined}
-                          defaultValue="#000000"
-                          onChange={(color) => {
-                            setPreviewState((previewState) => {
-                              return {
-                                ...previewState,
-                                floatingPopup: {
-                                  ...previewState.floatingPopup,
-                                  buttonColor: color,
-                                },
-                              };
-                            });
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
-                      <div className="whitespace-nowrap">Text color</div>
-                      <div className="mb-6 mt-2 w-40 xl:mt-0 xl:w-full">
-                        <ColorPicker
-                          className="w-[130px]"
-                          popoverAlign="start"
-                          container={dialogContentRef?.current ?? undefined}
-                          defaultValue="#000000"
-                          onChange={(color) => {
-                            setPreviewState((previewState) => {
-                              return {
-                                ...previewState,
-                                floatingPopup: {
-                                  ...previewState.floatingPopup,
-                                  buttonTextColor: color,
-                                },
-                              };
-                            });
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
-            <div className="font-medium">
-              <Collapsible
-                open={isBookingCustomizationOpen}
-                onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}>
-                <CollapsibleContent>
-                  <div className="text-sm">
-                    <Label className="mb-6">
-                      <div className="mb-2">Theme</div>
-                      <Select
-                        className="w-full"
-                        defaultValue={ThemeOptions[0]}
-                        components={{
-                          Control: ThemeSelectControl,
-                          IndicatorSeparator: () => null,
-                        }}
-                        onChange={(option) => {
-                          if (!option) {
-                            return;
-                          }
-                          setPreviewState((previewState) => {
-                            return {
-                              ...previewState,
-                              theme: option.value,
-                            };
-                          });
-                        }}
-                        options={ThemeOptions}
-                      />
-                    </Label>
-                    <div className="mb-6 flex items-center justify-start space-x-2 rtl:space-x-reverse">
+                    <div
+                      className={classNames(
+                        "mt-4 flex items-center justify-start",
+                        embedType === "floating-popup"
+                          ? "text-emphasis space-x-2 rtl:space-x-reverse"
+                          : "hidden"
+                      )}>
                       <Switch
-                        checked={previewState.hideEventTypeDetails}
+                        defaultChecked={true}
                         onCheckedChange={(checked) => {
                           setPreviewState((previewState) => {
                             return {
                               ...previewState,
-                              hideEventTypeDetails: checked,
+                              floatingPopup: {
+                                ...previewState.floatingPopup,
+                                hideButtonIcon: !checked,
+                              },
                             };
                           });
                         }}
                       />
-                      <div className="text-default text-sm">{t("hide_eventtype_details")}</div>
+                      <div className="text-default my-2 text-sm">Display calendar icon</div>
                     </div>
-                    {[
-                      { name: "brandColor", title: "Brand Color" },
-                      // { name: "lightColor", title: "Light Color" },
-                      // { name: "lighterColor", title: "Lighter Color" },
-                      // { name: "lightestColor", title: "Lightest Color" },
-                      // { name: "highlightColor", title: "Highlight Color" },
-                      // { name: "medianColor", title: "Median Color" },
-                    ].map((palette) => (
-                      <Label key={palette.name} className="mb-6">
-                        <div className="mb-2">{palette.title}</div>
-                        <div className="w-full">
+                    <div
+                      className={classNames(
+                        "mt-4 items-center justify-between",
+                        embedType === "floating-popup" ? "text-emphasis" : "hidden"
+                      )}>
+                      <div className="mb-2">Position of button</div>
+                      <Select
+                        onChange={(position) => {
+                          setPreviewState((previewState) => {
+                            return {
+                              ...previewState,
+                              floatingPopup: {
+                                ...previewState.floatingPopup,
+                                buttonPosition: position?.value,
+                              },
+                            };
+                          });
+                        }}
+                        defaultValue={FloatingPopupPositionOptions[0]}
+                        options={FloatingPopupPositionOptions}
+                      />
+                    </div>
+                    <div className="mt-3 flex flex-col xl:flex-row xl:justify-between">
+                      <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
+                        <div className="whitespace-nowrap">Button color</div>
+                        <div className="mt-2 w-40 xl:mt-0 xl:w-full">
                           <ColorPicker
+                            className="w-[130px]"
                             popoverAlign="start"
                             container={dialogContentRef?.current ?? undefined}
                             defaultValue="#000000"
                             onChange={(color) => {
-                              addToPalette({
-                                [palette.name as keyof (typeof previewState)["palette"]]: color,
+                              setPreviewState((previewState) => {
+                                return {
+                                  ...previewState,
+                                  floatingPopup: {
+                                    ...previewState.floatingPopup,
+                                    buttonColor: color,
+                                  },
+                                };
                               });
                             }}
                           />
                         </div>
-                      </Label>
-                    ))}
-                    {isBookerLayoutsEnabled && (
+                      </div>
+                      <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
+                        <div className="whitespace-nowrap">Text color</div>
+                        <div className="mb-6 mt-2 w-40 xl:mt-0 xl:w-full">
+                          <ColorPicker
+                            className="w-[130px]"
+                            popoverAlign="start"
+                            container={dialogContentRef?.current ?? undefined}
+                            defaultValue="#000000"
+                            onChange={(color) => {
+                              setPreviewState((previewState) => {
+                                return {
+                                  ...previewState,
+                                  floatingPopup: {
+                                    ...previewState.floatingPopup,
+                                    buttonTextColor: color,
+                                  },
+                                };
+                              });
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
+              <div className="font-medium">
+                <Collapsible
+                  open={isBookingCustomizationOpen}
+                  onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}>
+                  <CollapsibleContent>
+                    <div className="text-sm">
                       <Label className="mb-6">
-                        <div className="mb-2">{t("layout")}</div>
+                        <div className="mb-2">Theme</div>
                         <Select
                           className="w-full"
-                          defaultValue={layoutOptions[0]}
+                          defaultValue={ThemeOptions[0]}
+                          components={{
+                            Control: ThemeSelectControl,
+                            IndicatorSeparator: () => null,
+                          }}
                           onChange={(option) => {
                             if (!option) {
                               return;
                             }
                             setPreviewState((previewState) => {
-                              const config = {
-                                ...(previewState.floatingPopup.config ?? {}),
-                                layout: option.value,
-                              };
                               return {
                                 ...previewState,
-                                floatingPopup: {
-                                  config,
-                                },
-                                layout: option.value,
+                                theme: option.value,
                               };
                             });
                           }}
-                          options={layoutOptions}
+                          options={ThemeOptions}
                         />
                       </Label>
+                      <div className="mb-6 flex items-center justify-start space-x-2 rtl:space-x-reverse">
+                        <Switch
+                          checked={previewState.hideEventTypeDetails}
+                          onCheckedChange={(checked) => {
+                            setPreviewState((previewState) => {
+                              return {
+                                ...previewState,
+                                hideEventTypeDetails: checked,
+                              };
+                            });
+                          }}
+                        />
+                        <div className="text-default text-sm">{t("hide_eventtype_details")}</div>
+                      </div>
+                      {[
+                        { name: "brandColor", title: "Brand Color" },
+                        // { name: "lightColor", title: "Light Color" },
+                        // { name: "lighterColor", title: "Lighter Color" },
+                        // { name: "lightestColor", title: "Lightest Color" },
+                        // { name: "highlightColor", title: "Highlight Color" },
+                        // { name: "medianColor", title: "Median Color" },
+                      ].map((palette) => (
+                        <Label key={palette.name} className="mb-6">
+                          <div className="mb-2">{palette.title}</div>
+                          <div className="w-full">
+                            <ColorPicker
+                              popoverAlign="start"
+                              container={dialogContentRef?.current ?? undefined}
+                              defaultValue="#000000"
+                              onChange={(color) => {
+                                addToPalette({
+                                  [palette.name as keyof (typeof previewState)["palette"]]: color,
+                                });
+                              }}
+                            />
+                          </div>
+                        </Label>
+                      ))}
+                      {isBookerLayoutsEnabled && (
+                        <Label className="mb-6">
+                          <div className="mb-2">{t("layout")}</div>
+                          <Select
+                            className="w-full"
+                            defaultValue={layoutOptions[0]}
+                            onChange={(option) => {
+                              if (!option) {
+                                return;
+                              }
+                              setPreviewState((previewState) => {
+                                const config = {
+                                  ...(previewState.floatingPopup.config ?? {}),
+                                  layout: option.value,
+                                };
+                                return {
+                                  ...previewState,
+                                  floatingPopup: {
+                                    config,
+                                  },
+                                  layout: option.value,
+                                };
+                              });
+                            }}
+                            options={layoutOptions}
+                          />
+                        </Label>
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="flex h-full w-2/3 flex-col overflow-hidden p-8">
+          <HorizontalTabs
+            data-testid="embed-tabs"
+            tabs={embedType === "email" ? parsedTabs.filter((tab) => tab.name === "Preview") : parsedTabs}
+            linkProps={{ shallow: true }}
+          />
+
+          {tabs.map((tab) => {
+            if (embedType !== "email") {
+              return (
+                <div
+                  key={tab.href}
+                  className={classNames(
+                    router.query.embedTabName === tab.href.split("=")[1]
+                      ? "flex flex-grow flex-col"
+                      : "hidden"
+                  )}>
+                  <div className="flex h-[55vh] flex-grow flex-col">
+                    {tab.type === "code" ? (
+                      <tab.Component
+                        embedType={embedType}
+                        calLink={calLink}
+                        previewState={previewState}
+                        ref={refOfEmbedCodesRefs.current[tab.name]}
+                      />
+                    ) : (
+                      <tab.Component
+                        embedType={embedType}
+                        calLink={calLink}
+                        previewState={previewState}
+                        ref={iframeRef}
+                      />
                     )}
                   </div>
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
-          </div>
-        </div>
-        <div className="flex w-2/3 flex-col p-8">
-          <HorizontalTabs data-testid="embed-tabs" tabs={parsedTabs} linkProps={{ shallow: true }} />
-          {tabs.map((tab) => {
-            return (
-              <div
-                key={tab.href}
-                className={classNames(
-                  router.query.embedTabName === tab.href.split("=")[1] ? "flex flex-grow flex-col" : "hidden"
-                )}>
-                <div className="flex h-[55vh] flex-grow flex-col">
-                  {tab.type === "code" ? (
-                    <tab.Component
-                      embedType={embedType}
-                      calLink={calLink}
-                      previewState={previewState}
-                      ref={refOfEmbedCodesRefs.current[tab.name]}
-                    />
-                  ) : (
-                    <tab.Component
-                      embedType={embedType}
-                      calLink={calLink}
-                      previewState={previewState}
-                      ref={iframeRef}
-                    />
-                  )}
+                  <div className={router.query.embedTabName == "embed-preview" ? "mt-2 block" : "hidden"} />
+                  <DialogFooter
+                    className="mt-10 flex flex-row-reverse gap-x-2"
+                    showDivider
+                    customDividerClassNames="w-2/3">
+                    <DialogClose />
+                    {tab.type === "code" ? (
+                      <Button
+                        type="submit"
+                        onClick={() => {
+                          const currentTabCodeEl = refOfEmbedCodesRefs.current[tab.name].current;
+                          if (!currentTabCodeEl) {
+                            return;
+                          }
+                          navigator.clipboard.writeText(currentTabCodeEl.value);
+                          showToast(t("code_copied"), "success");
+                        }}>
+                        {t("copy_code")}
+                      </Button>
+                    ) : null}
+                  </DialogFooter>
                 </div>
-                <div className={router.query.embedTabName == "embed-preview" ? "mt-2 block" : "hidden"} />
+              );
+            }
+
+            if (embedType === "email" && tab.name !== "Preview") return;
+
+            return (
+              <div key={tab.href} className={classNames("flex flex-grow flex-col")}>
+                <div className="flex h-[55vh] flex-grow flex-col">
+                  <EmailsEmbedFooter />
+                </div>
                 <DialogFooter
                   className="mt-10 flex flex-row-reverse gap-x-2"
                   showDivider
                   customDividerClassNames="w-2/3">
                   <DialogClose />
-                  {tab.type === "code" ? (
-                    <Button
-                      type="submit"
-                      onClick={() => {
-                        const currentTabCodeEl = refOfEmbedCodesRefs.current[tab.name].current;
-                        if (!currentTabCodeEl) {
-                          return;
-                        }
-                        navigator.clipboard.writeText(currentTabCodeEl.value);
-                        showToast(t("code_copied"), "success");
-                      }}>
-                      {t("copy_code")}
-                    </Button>
-                  ) : null}
+                  <Button
+                    onClick={() => {
+                      handleCopyText();
+                      showToast(t("code_copied"), "success");
+                    }}>
+                    {t("copy_code")}
+                  </Button>
                 </DialogFooter>
               </div>
             );
@@ -1237,7 +1629,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   );
 };
 
-export const EmbedDialog = () => {
+export const EmbedDialog = ({ eventType }: { eventType?: any }) => {
   const router = useRouter();
   const embedUrl: string = router.query.embedUrl as string;
   return (
@@ -1248,6 +1640,7 @@ export const EmbedDialog = () => {
         <EmbedTypeCodeAndPreviewDialogContent
           embedType={router.query.embedType as EmbedType}
           embedUrl={embedUrl}
+          eventType={eventType}
         />
       )}
     </Dialog>
