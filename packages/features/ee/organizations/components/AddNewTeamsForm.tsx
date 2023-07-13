@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { z } from "zod";
 
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast, TextField } from "@calcom/ui";
@@ -20,8 +21,10 @@ export const AddNewTeamsForm = () => {
   const [inputValues, setInputValues] = useState<string[]>([]);
 
   const handleCounterIncrease = () => {
-    setCounter((prevCounter) => prevCounter + 1);
-    setInputValues((prevInputValues) => [...prevInputValues, ""]);
+    if (counter >= 0 && counter < 5) {
+      setCounter((prevCounter) => prevCounter + 1);
+      setInputValues((prevInputValues) => [...prevInputValues, ""]);
+    }
   };
 
   const handleInputChange = (index: number, value: string) => {
@@ -77,13 +80,14 @@ export const AddNewTeamsForm = () => {
   return (
     <>
       {Array.from({ length: counter }, (_, index) => (
-        <div className="relative" key={index}>
+        <div className={classNames("relative", index > 0 ? "mb-2" : "")} key={index}>
           <TextField
             key={index}
             value={inputValues[index] || ""}
             onChange={(e) => handleInputChange(index, e.target.value)}
             addOnClassname="bg-transparent p-0 border-l-0"
-            placeholder={index === 0 ? t("org_team_names_example") : ""}
+            className={index > 0 ? "mb-2" : ""}
+            placeholder={t(`org_team_names_example_${index + 1}`) || t("org_team_names_example")}
             addOnSuffix={
               index > 0 && (
                 <Button
@@ -98,19 +102,23 @@ export const AddNewTeamsForm = () => {
           />
         </div>
       ))}
-      <Button
-        StartIcon={Plus}
-        color="secondary"
-        disabled={createTeamsMutation.isLoading}
-        onClick={handleCounterIncrease}
-        aria-label={t("add_a_team")}>
-        {t("add_a_team")}
-      </Button>
+      {counter === 5 && <p className="text-subtle my-2 text-sm">{t("org_max_team_warnings")}</p>}
+      {counter < 5 && (
+        <Button
+          StartIcon={Plus}
+          color="secondary"
+          disabled={createTeamsMutation.isLoading}
+          onClick={handleCounterIncrease}
+          aria-label={t("add_a_team")}
+          className="my-1">
+          {t("add_a_team")}
+        </Button>
+      )}
       <Button
         EndIcon={ArrowRight}
         color="primary"
         className="mt-6 w-full justify-center"
-        disabled={inputValues.length === 0 || createTeamsMutation.isLoading}
+        disabled={inputValues.includes("") || createTeamsMutation.isLoading}
         onClick={handleFormSubmit}>
         {t("continue")}
       </Button>
