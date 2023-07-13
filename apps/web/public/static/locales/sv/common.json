@@ -428,7 +428,6 @@
   "max_limit_allowed_hint": "Måste innehålla {{limit}} eller färre tecken",
   "invalid_password_hint": "Lösenordet måste innehålla minst {{passwordLength}} tecken och har minst en siffra samt en blandning av versaler och gemener",
   "incorrect_password": "Lösenordet är felaktigt.",
-  "incorrect_username_password": "Felaktigt användarnamn eller lösenord.",
   "use_setting": "Använd inställning",
   "am_pm": "am/pm",
   "time_options": "Tidsinställningar",

@@ -441,7 +441,6 @@
   "max_limit_allowed_hint": "Pode ter um máximo de {{limit}} caracteres",
   "invalid_password_hint": "A palavra-passe deve ter no mínimo {{passwordLength}} caracteres, com pelo menos um número e uma mistura de letras maiúsculas e minúsculas",
   "incorrect_password": "Palavra-Passe incorreta",
-  "incorrect_username_password": "O nome de utilizador ou a palavra-passe estão incorretos.",
   "use_setting": "Usar Configuração",
   "am_pm": "am/pm",
   "time_options": "Opções de Hora",

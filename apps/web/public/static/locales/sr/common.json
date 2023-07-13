@@ -451,7 +451,6 @@
   "max_limit_allowed_hint": "Mora da ima {{limit}} znakova ili manje",
   "invalid_password_hint": "Lozinka mora da bude dugačka najmanje {{passwordLength}} znakova, da sadrži najmanje jedan broj i da ima mešavinu velikih i malih slova",
   "incorrect_password": "Lozinka je netačna.",
-  "incorrect_username_password": "Korisničko ime ili lozinka su netačni.",
   "use_setting": "Koristi podešavanje",
   "am_pm": "am/pm",
   "time_options": "Vremenske opcije",

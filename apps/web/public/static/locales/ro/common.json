@@ -428,7 +428,6 @@
   "max_limit_allowed_hint": "Trebuie să aibă {{limit}} sau mai puține caractere",
   "invalid_password_hint": "Parola trebuie să aibă cel puțin {{passwordLength}} caractere, să conțină cel puțin o cifră și o combinație de litere mari și litere mici",
   "incorrect_password": "Parola este incorectă.",
-  "incorrect_username_password": "Numele de utilizator sau parola este incorectă.",
   "use_setting": "Folosește setarea",
   "am_pm": "am/pm",
   "time_options": "Opţiuni de timp",

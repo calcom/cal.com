@@ -477,7 +477,7 @@
   "max_limit_allowed_hint": "Must be {{limit}} or fewer characters long",
   "invalid_password_hint": "The password must be a minimum of {{passwordLength}} characters long containing at least one number and have a mixture of uppercase and lowercase letters",
   "incorrect_password": "Password is incorrect.",
-  "incorrect_username_password": "Username or password is incorrect.",
+  "incorrect_email_password": "Email or password is incorrect.",
   "use_setting": "Use setting",
   "am_pm": "am/pm",
   "time_options": "Time options",
