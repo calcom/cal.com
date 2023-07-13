@@ -20,7 +20,7 @@ export const locationOptionsHandler = async ({ ctx, input }: LocationOptionsOpti
       userId: ctx.user.id,
       app: {
         categories: {
-          has: AppCategories.video,
+          hasSome: [AppCategories.conferencing, AppCategories.video],
         },
       },
     },
