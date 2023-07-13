@@ -148,11 +148,12 @@ export const getPublicEvent = async (
     };
   }
 
+  console.log({ org });
   const usersOrTeamQuery = isTeamEvent
     ? {
         team: {
           slug: username,
-          organization: {
+          parent: {
             slug: org ?? null,
           },
         },

@@ -5,6 +5,7 @@ import { Booker } from "@calcom/atoms";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { classNames } from "@calcom/lib";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
@@ -55,10 +56,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { rescheduleUid } = context.query;
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
 
   const team = await prisma.team.findFirst({
     where: {
       slug: teamSlug,
+      parent: isValidOrgDomain
+        ? {
+            slug: currentOrgDomain,
+          }
+        : null,
     },
     select: {
       id: true,
@@ -69,7 +76,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!team) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   let booking: GetBookingType | null = null;
@@ -77,8 +84,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     booking = await getBookingForReschedule(`${rescheduleUid}`);
   }
 
-  // This is a non-org team route
-  const org = null;
+  const org = isValidOrgDomain ? currentOrgDomain : null;
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
   const eventData = await ssr.viewer.public.event.fetch({
@@ -91,7 +97,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!eventData) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   return {
