@@ -19,12 +19,14 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   // Get User From context
   const user = ctx.user;
 
-  if (!user) throw new TRPCError({ code: "BAD_REQUEST", message: "no_user" });
+  if (!user) {
+    throw new NoUserError();
+  }
 
   const { teamNames, orgId } = input;
 
   if (orgId !== user.organizationId) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "not_authorized" });
+    throw new NotAuthorizedError();
   }
 
   // Validate user membership role
@@ -44,7 +46,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   });
 
   if (!userMembershipRole) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "not_authorized" });
+    throw new NotAuthorizedError();
   }
 
   const organization = await prisma.team.findFirst({
@@ -52,21 +54,18 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     select: { slug: true, metadata: true },
   });
 
-  if (!organization) throw new TRPCError({ code: "BAD_REQUEST", message: "no_organization_found" });
+  if (!organization) throw new NoOrganizationError();
 
   const parseTeams = teamMetadataSchema.safeParse(organization?.metadata);
 
   if (!parseTeams.success) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "invalid_organization_metadata",
-    });
+    throw new InvalidMetadataError();
   }
 
   const metadata = parseTeams.success ? parseTeams.data : undefined;
 
   if (!metadata?.requestedSlug && !organization?.slug) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "no_organization_slug" });
+    throw new NoOrganizationSlugError();
   }
 
   const [teamSlugs, userSlugs] = await prisma.$transaction([
@@ -78,11 +77,16 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     .flatMap((ts) => ts.slug ?? [])
     .concat(userSlugs.flatMap((us) => us.username ?? []));
 
-  const duplicatedSlugs = existingSlugs.filter((slug) => teamNames.includes(slug));
+  const duplicatedSlugs = existingSlugs.filter((slug) =>
+    teamNames.map((item) => slugify(item)).includes(slug)
+  );
 
+  if (duplicatedSlugs.length === teamNames.length) {
+    return { duplicatedSlugs };
+  }
   await prisma.$transaction(
     teamNames.flatMap((name) => {
-      if (!duplicatedSlugs.includes(name)) {
+      if (!duplicatedSlugs.includes(slugify(name))) {
         return prisma.team.create({
           data: {
             name,
@@ -101,3 +105,33 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
 
   return { duplicatedSlugs };
 };
+
+class NoUserError extends TRPCError {
+  constructor() {
+    super({ code: "BAD_REQUEST", message: "no_user" });
+  }
+}
+
+class NotAuthorizedError extends TRPCError {
+  constructor() {
+    super({ code: "FORBIDDEN", message: "not_authorized" });
+  }
+}
+
+class InvalidMetadataError extends TRPCError {
+  constructor() {
+    super({ code: "BAD_REQUEST", message: "invalid_organization_metadata" });
+  }
+}
+
+class NoOrganizationError extends TRPCError {
+  constructor() {
+    super({ code: "BAD_REQUEST", message: "no_organization_found" });
+  }
+}
+
+class NoOrganizationSlugError extends TRPCError {
+  constructor() {
+    super({ code: "BAD_REQUEST", message: "no_organization_slug" });
+  }
+}
