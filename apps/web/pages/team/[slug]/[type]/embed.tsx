@@ -15,7 +15,7 @@ import PageWrapper from "@components/PageWrapper";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
-export default function Type({ slug, user, booking, away, isBrandingHidden }: PageProps) {
+export default function Type({ slug, user, booking, away, isBrandingHidden, org }: PageProps) {
   const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
   return (
     <main className={classNames("flex h-full items-center justify-center", !isEmbed && "min-h-[100dvh]")}>
@@ -25,6 +25,7 @@ export default function Type({ slug, user, booking, away, isBrandingHidden }: Pa
         rescheduleUid={booking?.uid}
         hideBranding={isBrandingHidden}
         isTeamEvent
+        org={org}
       />
       <Booker
         username={user}
@@ -33,6 +34,7 @@ export default function Type({ slug, user, booking, away, isBrandingHidden }: Pa
         isAway={away}
         hideBranding={isBrandingHidden}
         isTeamEvent
+        org={org}
       />
     </main>
   );
@@ -74,13 +76,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (rescheduleUid) {
     booking = await getBookingForReschedule(`${rescheduleUid}`);
   }
-
+  // This is a non-org team route
+  const org = null;
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
   const eventData = await ssr.viewer.public.event.fetch({
     username: teamSlug,
     eventSlug: meetingSlug,
     isTeamEvent: true,
+    org,
   });
 
   if (!eventData) {
@@ -91,6 +95,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
+      org,
       booking,
       away: false,
       user: teamSlug,

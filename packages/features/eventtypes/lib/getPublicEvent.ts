@@ -81,6 +81,7 @@ export const getPublicEvent = async (
   username: string,
   eventSlug: string,
   isTeamEvent: boolean | undefined,
+  org: string | null,
   prisma: PrismaClient
 ) => {
   const usernameList = getUsernameList(username);
@@ -151,12 +152,18 @@ export const getPublicEvent = async (
     ? {
         team: {
           slug: username,
+          organization: {
+            slug: org ?? null,
+          },
         },
       }
     : {
         users: {
           some: {
             username,
+            organization: {
+              slug: org ?? null,
+            },
           },
         },
         team: null,
@@ -171,8 +178,20 @@ export const getPublicEvent = async (
     select: publicEventSelect,
   });
 
-  if (!event) return null;
+  console.log({
+    events: await prisma.eventType.findMany({
+      where: {
+        slug: eventSlug,
+        ...usersOrTeamQuery,
+      },
+      select: publicEventSelect,
+    }),
+  });
 
+  if (!event) return null;
+  console.log({
+    EVENT: event,
+  });
   const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
 
   const users = getUsersFromEvent(event) || (await getOwnerFromUsersArray(prisma, event.id));
@@ -192,6 +211,7 @@ export const getPublicEvent = async (
     // Sets user data on profile object for easier access
     profile: getProfileFromEvent(event),
     users,
+    orgDomain: org,
   };
 };
 
