@@ -69,6 +69,7 @@ test.describe("Stripe integration", () => {
     await expect(page.getByText("Unconfirmed")).toBeVisible();
     await expect(page.getByText("Pending payment").last()).toBeVisible();
   });
+<<<<<<< Updated upstream
 
   test("Paid booking should be able to be rescheduled", async ({ page, users }) => {
     const user = await users.create();
@@ -93,6 +94,13 @@ test.describe("Stripe integration", () => {
     await user.makePaymentUsingStripe();
   });
   todo("Payment should confirm pending payment booking");
+||||||| constructed merge base
+  todo("Payment should confirm pending payment booking");
+=======
+  test("Payment should confirm pending payment booking", async (page, users) => {
+
+  });
+>>>>>>> Stashed changes
   todo("Payment should trigger a BOOKING_PAID webhook");
   todo("Paid booking should be able to be cancelled");
   todo("Cancelled paid booking should be refunded");
