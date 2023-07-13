@@ -62,6 +62,7 @@ const DateOverrideList = ({
                 weekday: "short",
                 month: "long",
                 day: "numeric",
+                timeZone: "UTC",
               }).format(item.ranges[0].start)}
             </h3>
             {item.ranges[0].start.valueOf() - item.ranges[0].end.valueOf() === 0 ? (
