@@ -1,5 +1,6 @@
-import type { Prisma, WebhookTriggerEvents, WorkflowReminder } from "@prisma/client";
+import type { Prisma, WorkflowReminder } from "@prisma/client";
 import type { NextApiRequest } from "next";
+import type { TFunction } from "next-i18next";
 
 import appStore from "@calcom/app-store";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -23,7 +24,7 @@ import logger from "@calcom/lib/logger";
 import { handleRefundError } from "@calcom/lib/payment/handleRefundError";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { BookingStatus, MembershipRole, WorkflowMethods } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole, WorkflowMethods, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
@@ -126,9 +127,25 @@ async function handler(req: CustomRequest) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
-  // If it's just an attendee of a booking then just remove them from that booking
-  const result = await handleSeatedEventCancellation(req);
-  if (result) return { success: true };
+  // get webhooks
+  const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
+
+  const subscriberOptions = {
+    userId: bookingToDelete.userId,
+    eventTypeId: bookingToDelete.eventTypeId as number,
+    triggerEvent: eventTrigger,
+    teamId: bookingToDelete.eventType?.teamId,
+  };
+  const eventTypeInfo: EventTypeInfo = {
+    eventTitle: bookingToDelete?.eventType?.title || null,
+    eventDescription: bookingToDelete?.eventType?.description || null,
+    requiresConfirmation: bookingToDelete?.eventType?.requiresConfirmation || null,
+    price: bookingToDelete?.eventType?.price || null,
+    currency: bookingToDelete?.eventType?.currency || null,
+    length: bookingToDelete?.eventType?.length || null,
+  };
+
+  const webhooks = await getWebhooks(subscriberOptions);
 
   const organizer = await prisma.user.findFirstOrThrow({
     where: {
@@ -141,6 +158,14 @@ async function handler(req: CustomRequest) {
       locale: true,
     },
   });
+
+  const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
+
+  const dataForWebhooks = { webhooks, eventTypeInfo, organizer, tOrganizer };
+
+  // If it's just an attendee of a booking then just remove them from that booking
+  const result = await handleSeatedEventCancellation(req, dataForWebhooks);
+  if (result) return { success: true };
 
   const teamMembersPromises = [];
   const attendeesListPromises = [];
@@ -174,7 +199,6 @@ async function handler(req: CustomRequest) {
 
   const attendeesList = await Promise.all(attendeesListPromises);
   const teamMembers = await Promise.all(teamMembersPromises);
-  const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
   const evt: CalendarEvent = {
     title: bookingToDelete?.title,
@@ -308,26 +332,6 @@ async function handler(req: CustomRequest) {
     return { message: "No longer attending event" };
   }
 
-  // Hook up the webhook logic here
-  const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
-  // Send Webhook call if hooked to BOOKING.CANCELLED
-  const subscriberOptions = {
-    userId: bookingToDelete.userId,
-    eventTypeId: bookingToDelete.eventTypeId as number,
-    triggerEvent: eventTrigger,
-    teamId: bookingToDelete.eventType?.teamId,
-  };
-
-  const eventTypeInfo: EventTypeInfo = {
-    eventTitle: bookingToDelete?.eventType?.title || null,
-    eventDescription: bookingToDelete?.eventType?.description || null,
-    requiresConfirmation: bookingToDelete?.eventType?.requiresConfirmation || null,
-    price: bookingToDelete?.eventType?.price || null,
-    currency: bookingToDelete?.eventType?.currency || null,
-    length: bookingToDelete?.eventType?.length || null,
-  };
-
-  const webhooks = await getWebhooks(subscriberOptions);
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
       ...evt,
@@ -677,12 +681,37 @@ async function handler(req: CustomRequest) {
   return { message: "Booking successfully cancelled." };
 }
 
-async function handleSeatedEventCancellation(req: CustomRequest) {
+async function handleSeatedEventCancellation(
+  req: CustomRequest,
+  dataForWebhooks: {
+    webhooks: {
+      id: string;
+      subscriberUrl: string;
+      payloadTemplate: string | null;
+      appId: string | null;
+      secret: string | null;
+    }[];
+    eventTypeInfo: EventTypeInfo;
+    organizer: {
+      name: string | null;
+      email: string;
+      timeZone: string;
+      locale: string | null;
+    };
+    tOrganizer: TFunction;
+  }
+) {
   const { seatReferenceUid } = schemaBookingCancelParams.parse(req.body);
+  const { webhooks, eventTypeInfo, organizer, tOrganizer } = dataForWebhooks;
   if (!seatReferenceUid) return;
-  if (!req.bookingToDelete?.attendees.length || req.bookingToDelete.attendees.length < 2) return;
+  const bookingToDelete = req.bookingToDelete;
+  if (!bookingToDelete?.attendees.length || bookingToDelete.attendees.length < 2) return;
 
-  const seatReference = req.bookingToDelete.seatsReferences.find(
+  if (!bookingToDelete.userId) {
+    throw new HttpError({ statusCode: 400, message: "User not found" });
+  }
+
+  const seatReference = bookingToDelete.seatsReferences.find(
     (reference) => reference.referenceUid === seatReferenceUid
   );
 
@@ -701,6 +730,64 @@ async function handleSeatedEventCancellation(req: CustomRequest) {
     }),
   ]);
   req.statusCode = 200;
+
+  const attendee = bookingToDelete?.attendees.find((attendee) => attendee.id === seatReference.attendeeId);
+
+  const formattedAttendee = attendee
+    ? [
+        {
+          ...attendee,
+          language: {
+            translate: await getTranslation(attendee.locale ?? "en", "common"),
+            locale: attendee.locale ?? "en",
+          },
+        },
+      ]
+    : [];
+
+  const evt: CalendarEvent = {
+    title: bookingToDelete?.title,
+    type: (bookingToDelete?.eventType?.title as string) || bookingToDelete?.title,
+    description: bookingToDelete?.description || "",
+    customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
+    ...getCalEventResponses({
+      bookingFields: bookingToDelete.eventType?.bookingFields ?? null,
+      booking: bookingToDelete,
+    }),
+    startTime: bookingToDelete?.startTime ? dayjs(bookingToDelete.startTime).format() : "",
+    endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",
+    organizer: {
+      email: organizer.email,
+      name: organizer.name ?? "Nameless",
+      timeZone: organizer.timeZone,
+      language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
+    },
+    attendees: formattedAttendee,
+    uid: bookingToDelete?.uid,
+    /* Include recurringEvent information only when cancelling all bookings */
+    recurringEvent: req.body ? parseRecurringEvent(bookingToDelete.eventType?.recurringEvent) : undefined,
+    location: bookingToDelete?.location,
+    destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user?.destinationCalendar,
+    cancellationReason: req.body.cancellationReason,
+    seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
+    seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
+  };
+
+  const promises = webhooks.map((webhook) =>
+    sendPayload(webhook.secret, WebhookTriggerEvents.BOOKING_CANCELLED, new Date().toISOString(), webhook, {
+      ...evt,
+      ...eventTypeInfo,
+      status: "CANCELLED",
+      smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
+    }).catch((e) => {
+      console.error(
+        `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CANCELLED}, URL: ${webhook.subscriberUrl}`,
+        e
+      );
+    })
+  );
+  await Promise.all(promises);
+
   return { success: true };
 }
 
