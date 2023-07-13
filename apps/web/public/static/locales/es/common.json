@@ -428,7 +428,6 @@
   "max_limit_allowed_hint": "Debe tener {{limit}} o menos caracteres",
   "invalid_password_hint": "La contraseña debe tener un mínimo de {{passwordLength}} caracteres que contengan al menos un número y una mezcla de letras mayúsculas y minúsculas",
   "incorrect_password": "La Contraseña es Incorrecta.",
-  "incorrect_username_password": "El nombre de usuario o la contraseña son incorrectos.",
   "use_setting": "Usar Ajuste",
   "am_pm": "am/pm",
   "time_options": "Opciones Horas",

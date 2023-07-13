@@ -446,7 +446,6 @@
   "max_limit_allowed_hint": "O tamanho deve ser de {{limit}} ou menos caracteres",
   "invalid_password_hint": "A senha precisa ter pelo menos sete caracteres com pelo menos um número e ser uma combinação de letras maiúsculas e minúsculas",
   "incorrect_password": "Senha incorreta.",
-  "incorrect_username_password": "A senha ou o nome de usuário estão incorretos.",
   "use_setting": "Usar configurações",
   "am_pm": "manhã/tarde",
   "time_options": "Opções de horário",

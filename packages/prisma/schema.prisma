@@ -623,6 +623,7 @@ enum AppCategories {
   web3 // deprecated, we should no longer have any web3 apps
   automation
   analytics
+  // Wherever video is in use, conferencing should also be used for legacy apps can have it.
   conferencing
   crm
 }
