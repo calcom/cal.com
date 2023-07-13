@@ -85,7 +85,11 @@ export const getPublicEvent = async (
   prisma: PrismaClient
 ) => {
   const usernameList = getUsernameList(username);
-
+  const orgQuery = org
+    ? {
+        slug: org ?? null,
+      }
+    : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
   if (usernameList.length > 1) {
     const users = await prisma.user.findMany({
@@ -93,6 +97,7 @@ export const getPublicEvent = async (
         username: {
           in: usernameList,
         },
+        organization: orgQuery,
       },
       select: {
         username: true,
@@ -148,23 +153,18 @@ export const getPublicEvent = async (
     };
   }
 
-  console.log({ org });
   const usersOrTeamQuery = isTeamEvent
     ? {
         team: {
           slug: username,
-          parent: {
-            slug: org ?? null,
-          },
+          parent: orgQuery,
         },
       }
     : {
         users: {
           some: {
             username,
-            organization: {
-              slug: org ?? null,
-            },
+            organization: orgQuery,
           },
         },
         team: null,
@@ -179,20 +179,8 @@ export const getPublicEvent = async (
     select: publicEventSelect,
   });
 
-  console.log({
-    events: await prisma.eventType.findMany({
-      where: {
-        slug: eventSlug,
-        ...usersOrTeamQuery,
-      },
-      select: publicEventSelect,
-    }),
-  });
-
   if (!event) return null;
-  console.log({
-    EVENT: event,
-  });
+
   const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
 
   const users = getUsersFromEvent(event) || (await getOwnerFromUsersArray(prisma, event.id));
