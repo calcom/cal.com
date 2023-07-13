@@ -16,31 +16,58 @@ type CreateTeamsOptions = {
 };
 
 export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => {
+  // Get User From context
+  const user = ctx.user;
+
+  if (!user) throw new TRPCError({ code: "BAD_REQUEST", message: "no_user" });
+
   const { teamNames, orgId } = input;
+
+  if (orgId !== user.organizationId) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "not_authorized" });
+  }
+
+  // Validate user membership role
+  const userMembershipRole = await prisma.membership.findFirst({
+    where: {
+      userId: user.id,
+      teamId: orgId,
+      role: {
+        in: ["OWNER", "ADMIN"],
+      },
+      // @TODO: not sure if this already setup earlier
+      // accepted: true,
+    },
+    select: {
+      role: true,
+    },
+  });
+
+  if (!userMembershipRole) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "not_authorized" });
+  }
 
   const organization = await prisma.team.findFirst({
     where: { id: orgId },
     select: { slug: true, metadata: true },
   });
-  const metadata = teamMetadataSchema.parse(organization?.metadata);
 
-  if (!metadata?.requestedSlug && !organization?.slug)
+  if (!organization) throw new TRPCError({ code: "BAD_REQUEST", message: "no_organization_found" });
+
+  const parseTeams = teamMetadataSchema.safeParse(organization?.metadata);
+
+  if (!parseTeams.success) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "invalid_organization_metadata",
+    });
+  }
+
+  const metadata = parseTeams.success ? parseTeams.data : undefined;
+
+  if (!metadata?.requestedSlug && !organization?.slug) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "no_organization_slug" });
-
-  const userMembership = await prisma.membership.findFirst({
-    where: {
-      userId: ctx.user.id,
-      teamId: orgId,
-    },
-    select: {
-      userId: true,
-      role: true,
-    },
-  });
-
-  // TODO test this check works
-  if (!userMembership || userMembership.role !== MembershipRole.OWNER)
-    throw new TRPCError({ code: "BAD_REQUEST", message: "not_authorized" });
+  }
 
   const [teamSlugs, userSlugs] = await prisma.$transaction([
     prisma.team.findMany({ where: { parentId: orgId }, select: { slug: true } }),

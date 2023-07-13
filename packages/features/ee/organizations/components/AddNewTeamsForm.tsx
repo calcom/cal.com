@@ -81,7 +81,7 @@ export const AddNewTeamsForm = () => {
             value={inputValues[index] || ""}
             onChange={(e) => handleInputChange(index, e.target.value)}
             addOnClassname="bg-transparent p-0 border-l-0"
-            placeholder="e.g. Marketing Team"
+            placeholder={index === 0 ? t("org_team_names_example") : ""}
             addOnSuffix={
               index > 0 && (
                 <Button
