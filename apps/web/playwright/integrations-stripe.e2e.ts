@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
 
 import { test } from "./lib/fixtures";
-import { todo, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
@@ -14,6 +14,20 @@ const IS_STRIPE_ENABLED = !!(
   process.env.PAYMENT_FEE_FIXED &&
   process.env.PAYMENT_FEE_PERCENTAGE
 );
+
+const paidBookingTest = test.extend({
+  bookPaidEvent: async ({ page, users }, use) => {
+    const user = await users.create();
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    await user.apiLogin();
+    await page.goto("/apps/installed");
+
+    await user.getPaymentCredential();
+    await user.setupEventWithPrice(eventType);
+
+    await use({ page, user, eventType });
+  },
+});
 
 test.describe("Stripe integration", () => {
   // eslint-disable-next-line playwright/no-skipped-test
@@ -33,27 +47,17 @@ test.describe("Stripe integration", () => {
     });
   });
 
-  test("Can book a paid booking", async ({ page, users }) => {
-    const user = await users.create();
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
-    await user.apiLogin();
-    await page.goto("/apps/installed");
+  paidBookingTest("Can book a paid booking", async ({ bookPaidEvent }) => {
+    const { page, user, eventType } = bookPaidEvent;
 
-    await user.getPaymentCredential();
-    await user.setupEventWithPrice(eventType);
     await user.bookAndPaidEvent(eventType);
+
     // success
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
-  test("Pending payment booking should not be confirmed by default", async ({ page, users }) => {
-    const user = await users.create();
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
-    await user.apiLogin();
-    await page.goto("/apps/installed");
-
-    await user.getPaymentCredential();
-    await user.setupEventWithPrice(eventType);
+  paidBookingTest("Pending payment booking should not be confirmed by default", async ({ bookPaidEvent }) => {
+    const { page, user, eventType } = bookPaidEvent;
 
     // booking process without payment
     await page.goto(`${user.username}/${eventType?.slug}`);
@@ -70,14 +74,9 @@ test.describe("Stripe integration", () => {
     await expect(page.getByText("Pending payment").last()).toBeVisible();
   });
 
-  test("Paid booking should be able to be rescheduled", async ({ page, users }) => {
-    const user = await users.create();
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
-    await user.apiLogin();
-    await page.goto("/apps/installed");
+  paidBookingTest("Paid booking should be able to be rescheduled", async ({ bookPaidEvent }) => {
+    const { page, user, eventType } = bookPaidEvent;
 
-    await user.getPaymentCredential();
-    await user.setupEventWithPrice(eventType);
     await user.bookAndPaidEvent(eventType);
 
     // Rescheduling the event
@@ -93,14 +92,9 @@ test.describe("Stripe integration", () => {
     await user.makePaymentUsingStripe();
   });
 
-  test("Paid booking should be able to be canceled", async ({ page, users }) => {
-    const user = await users.create();
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
-    await user.apiLogin();
-    await page.goto("/apps/installed");
+  paidBookingTest("Paid booking should be able to be canceled", async ({ bookPaidEvent }) => {
+    const { page, user, eventType } = bookPaidEvent;
 
-    await user.getPaymentCredential();
-    await user.setupEventWithPrice(eventType);
     await user.bookAndPaidEvent(eventType);
 
     // Cancelling the event
