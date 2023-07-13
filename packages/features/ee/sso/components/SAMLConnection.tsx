@@ -82,7 +82,7 @@ const CreateConnectionDialog = ({
               encodedRawMetadata: Buffer.from(values.metadata).toString("base64"),
             });
           }}>
-          <div className="mb-10 mt-1">
+          <div className="mb-1">
             <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
               {t("sso_saml_configuration_title")}
             </h2>
@@ -107,7 +107,7 @@ const CreateConnectionDialog = ({
               </div>
             )}
           />
-          <DialogFooter>
+          <DialogFooter showDivider className="mt-10">
             <Button
               type="button"
               color="secondary"

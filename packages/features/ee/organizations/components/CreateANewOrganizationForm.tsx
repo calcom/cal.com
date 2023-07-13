@@ -150,7 +150,7 @@ export const CreateANewOrganizationForm = () => {
     adminUsername: string;
   }>({
     defaultValues: {
-      slug: `${slug}`,
+      slug: `${slug ?? ""}`,
     },
   });
   const watchAdminEmail = newOrganizationFormMethods.watch("adminEmail");
@@ -177,7 +177,12 @@ export const CreateANewOrganizationForm = () => {
           message: t("email_already_used"),
         });
       } else if (err.message === "organization_url_taken") {
-        newOrganizationFormMethods.setError("slug", { type: "custom", message: t("organization_url_taken") });
+        newOrganizationFormMethods.setError("slug", { type: "custom", message: t("url_taken") });
+      } else if (err.message === "domain_taken_team" || err.message === "domain_taken_project") {
+        newOrganizationFormMethods.setError("slug", {
+          type: "custom",
+          message: t("problem_registering_domain"),
+        });
       } else {
         setServerErrorMessage(err.message);
       }

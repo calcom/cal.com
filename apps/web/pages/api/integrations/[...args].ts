@@ -13,12 +13,14 @@ const defaultIntegrationAddHandler = async ({
   supportsMultipleInstalls,
   appType,
   user,
+  teamId = undefined,
   createCredential,
 }: {
   slug: string;
   supportsMultipleInstalls: boolean;
   appType: string;
   user?: Session["user"];
+  teamId?: number;
   createCredential: AppDeclarativeHandler["createCredential"];
 }) => {
   if (!user?.id) {
@@ -28,21 +30,21 @@ const defaultIntegrationAddHandler = async ({
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
         appId: slug,
-        userId: user.id,
+        ...(teamId ? { AND: [{ userId: user.id }, { teamId }] } : { userId: user.id }),
       },
     });
     if (alreadyInstalled) {
       throw new Error("App is already installed");
     }
   }
-  await createCredential({ user: user, appType, slug });
+  await createCredential({ user: user, appType, slug, teamId });
 };
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // Check that user is authenticated
   req.session = await getServerSession({ req, res });
 
-  const { args } = req.query;
+  const { args, teamId } = req.query;
 
   if (!Array.isArray(args)) {
     return res.status(404).json({ message: `API route not found` });
@@ -62,7 +64,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     if (typeof handler === "function") {
       await handler(req, res);
     } else {
-      await defaultIntegrationAddHandler({ user: req.session?.user, ...handler });
+      await defaultIntegrationAddHandler({ user: req.session?.user, teamId: Number(teamId), ...handler });
       redirectUrl = handler.redirect?.url || getInstalledAppPath(handler);
       res.json({ url: redirectUrl, newTab: handler.redirect?.newTab });
     }

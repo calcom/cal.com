@@ -10,7 +10,17 @@ import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogClose, DialogContent, Form, showToast, TextField, Editor } from "@calcom/ui";
+import {
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  Form,
+  showToast,
+  TextField,
+  Editor,
+} from "@calcom/ui";
 
 const querySchema = z.object({
   title: z.string(),
@@ -81,7 +91,7 @@ const DuplicateDialog = () => {
           handleSubmit={(values) => {
             duplicateMutation.mutate(values);
           }}>
-          <div className="mt-3 space-y-6">
+          <div className="-mt-2 space-y-5">
             <TextField
               label={t("title")}
               placeholder={t("quick_chat")}
@@ -139,12 +149,12 @@ const DuplicateDialog = () => {
               />
             </div>
           </div>
-          <div className="mt-8 flex flex-row-reverse gap-x-2">
+          <DialogFooter showDivider className="mt-10 flex flex-row-reverse gap-x-2">
+            <DialogClose />
             <Button type="submit" loading={duplicateMutation.isLoading}>
               {t("continue")}
             </Button>
-            <DialogClose />
-          </div>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>

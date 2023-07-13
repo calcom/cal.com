@@ -1,5 +1,4 @@
-import { prisma } from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { getBrand } from "@calcom/lib/server/getBrand";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 type VerifyCodeOptions = {
@@ -13,24 +12,5 @@ export const getBrandHandler = async ({ ctx }: VerifyCodeOptions) => {
 
   if (!user.organizationId) return null;
 
-  const team = await prisma.team.findFirst({
-    where: {
-      id: user.organizationId,
-    },
-    select: {
-      logo: true,
-      name: true,
-      slug: true,
-      metadata: true,
-    },
-  });
-
-  const metadata = teamMetadataSchema.parse(team?.metadata);
-  const slug = team?.slug || metadata?.requestedSlug;
-
-  return {
-    ...team,
-    metadata,
-    slug,
-  };
+  return await getBrand(user.organizationId);
 };
