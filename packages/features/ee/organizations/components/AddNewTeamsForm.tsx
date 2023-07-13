@@ -41,6 +41,8 @@ export const AddNewTeamsForm = () => {
     async onSuccess(data) {
       if (data.duplicatedSlugs.length) {
         showToast(t("duplicated_slugs_warning", { slugs: data.duplicatedSlugs.join(", ") }), "warning");
+        // Server will return array of duplicated slugs, so we need to wait for user to read the warning
+        // before pushing to next page
         setTimeout(() => {
           router.push(`/event-types`);
         }, 3000);
