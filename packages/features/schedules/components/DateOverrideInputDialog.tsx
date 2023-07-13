@@ -50,6 +50,23 @@ const DateOverrideForm = ({
 
   const [date, setDate] = useState<Dayjs | null>(value ? dayjs.utc(value[0].start) : null);
 
+  const defaultRanges = (workingHours || []).reduce((dayRanges: TimeRange[], workingHour) => {
+    if (date && workingHour.days.includes(date.day())) {
+      dayRanges.push({
+        start: dayjs.utc().startOf("day").add(workingHour.startTime, "minute").toDate(),
+        end: dayjs.utc().startOf("day").add(workingHour.endTime, "minute").toDate(),
+      });
+    }
+    return dayRanges;
+  }, []);
+  // DayRanges does not support empty state, add 9-5 as a default
+  if (!defaultRanges.length) {
+    defaultRanges.push({
+      start: dayjs.utc().startOf("day").add(540, "minute").toDate(),
+      end: dayjs.utc().startOf("day").add(1020, "minute").toDate(),
+    });
+  }
+
   const form = useForm({
     values: {
       range: value
@@ -66,20 +83,7 @@ const DateOverrideForm = ({
               dayjs.utc().hour(range.end.getUTCHours()).minute(range.end.getUTCMinutes()).second(0).format()
             ),
           }))
-        : (workingHours || []).reduce((dayRanges, workingHour) => {
-            if (date && workingHour.days.includes(date.day())) {
-              dayRanges.push({
-                start: dayjs.utc().startOf("day").add(workingHour.startTime, "minute").toDate(),
-                end: dayjs.utc().startOf("day").add(workingHour.endTime, "minute").toDate(),
-              });
-            } else {
-              dayRanges.push({
-                start: dayjs.utc().startOf("day").add(540, "minute").toDate(),
-                end: dayjs.utc().startOf("day").add(1020, "minute").toDate(),
-              });
-            }
-            return dayRanges;
-          }, [] as TimeRange[]),
+        : defaultRanges,
     },
   });
 
