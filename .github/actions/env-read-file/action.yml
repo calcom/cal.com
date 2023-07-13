@@ -2,9 +2,9 @@ name: "Set environment variables"
 description: "Configures environment variables for a workflow"
 runs:
   using: "composite"
-  env:
-    ENV_FILE_NAME: gh.env-${{ github.sha }}
   steps:
+    env:
+      ENV_FILE_NAME: gh.env-${{ github.sha }}
     - name: Create env file
       uses: buildjet/cache@v3
       id: env-cache
