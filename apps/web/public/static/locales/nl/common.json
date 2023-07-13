@@ -11,6 +11,8 @@
   "calcom_explained_new_user": "Voltooi het instellen van uw {{appName}}-account! U bent slechts enkele stappen verwijderd van het oplossen van al uw planningsproblemen.",
   "have_any_questions": "Heeft u vragen? We zijn er om te helpen.",
   "reset_password_subject": "{{appName}}: Instructies voor het opnieuw instellen van uw wachtwoord",
+  "verify_email_subject": "{{appName}}: Verifieer je account",
+  "check_your_email": "Controleer je e-mail",
   "event_declined_subject": "Afgewezen: {{title}}",
   "event_request_declined": "Uw gebeurtenisverzoek is geweigerd",
   "event_request_declined_recurring": "Uw verzoek voor een terugkerende gebeurtenis is geweigerd",
