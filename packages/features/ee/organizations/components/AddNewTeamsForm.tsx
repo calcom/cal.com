@@ -18,7 +18,7 @@ export const AddNewTeamsForm = () => {
   const { id: orgId } = querySchema.parse(router.query);
   const [counter, setCounter] = useState(1);
 
-  const [inputValues, setInputValues] = useState<string[]>([]);
+  const [inputValues, setInputValues] = useState<string[]>([""]);
 
   const handleCounterIncrease = () => {
     if (counter >= 0 && counter < 5) {
