@@ -55,8 +55,8 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 type Props = UserTypePageProps | TeamTypePageProps;
 
 export default function Page(props: Props) {
-  if ((props as TeamTypePageProps)?.teamId) return TeamTypePage(props as TeamTypePageProps);
-  return UserTypePage(props as UserTypePageProps);
+  if ((props as TeamTypePageProps)?.teamId) return <TeamTypePage {...(props as TeamTypePageProps)} />;
+  return <UserTypePage {...(props as UserTypePageProps)} />;
 }
 
 Page.PageWrapper = PageWrapper;

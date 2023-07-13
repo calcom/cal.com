@@ -428,7 +428,6 @@
   "max_limit_allowed_hint": "Phải dài {{limit}} ký tự trở xuống",
   "invalid_password_hint": "Mật khẩu phải có tối thiểu {{passwordLength}} ký tự chứa ít nhất một con số và phải kết hợp chữ cái in hoa lẫn in thường",
   "incorrect_password": "Mật khẩu không đúng.",
-  "incorrect_username_password": "Sai tên người dùng hoặc sai mật khẩu.",
   "use_setting": "Sử dụng cài đặt",
   "am_pm": "\u001dam/pm",
   "time_options": "Tùy chọn thời gian",

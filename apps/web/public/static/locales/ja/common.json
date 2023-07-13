@@ -428,7 +428,6 @@
   "max_limit_allowed_hint": "{{limit}} 文字以下で入力してください",
   "invalid_password_hint": "パスワードには少なくとも 1 文字以上数字を含め、アルファベットの大文字と小文字を両方使用した上で {{passwordLength}} 文字以上の長さに設定してください",
   "incorrect_password": "パスワードが正しくありません。",
-  "incorrect_username_password": "ユーザー名またはパスワードが正しくありません。",
   "use_setting": "設定を使用",
   "am_pm": "午前/午後",
   "time_options": "時刻オプション",
