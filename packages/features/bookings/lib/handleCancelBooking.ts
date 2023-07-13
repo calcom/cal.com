@@ -158,8 +158,6 @@ async function handler(req: CustomRequest) {
     },
   });
 
-  const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
-
   const teamMembersPromises = [];
   const attendeesListPromises = [];
   const hostsPresent = !!bookingToDelete.eventType?.hosts;
@@ -192,6 +190,7 @@ async function handler(req: CustomRequest) {
 
   const attendeesList = await Promise.all(attendeesListPromises);
   const teamMembers = await Promise.all(teamMembersPromises);
+  const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
   const evt: CalendarEvent = {
     title: bookingToDelete?.title,
@@ -726,7 +725,7 @@ async function handleSeatedEventCancellation(
 
   const attendee = bookingToDelete?.attendees.find((attendee) => attendee.id === seatReference.attendeeId);
 
-  const formattedAttendee = attendee
+  evt.attendees = attendee
     ? [
         {
           ...attendee,
@@ -737,8 +736,6 @@ async function handleSeatedEventCancellation(
         },
       ]
     : [];
-
-  evt.attendees = formattedAttendee;
 
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, WebhookTriggerEvents.BOOKING_CANCELLED, new Date().toISOString(), webhook, {
