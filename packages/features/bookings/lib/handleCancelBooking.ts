@@ -1,6 +1,5 @@
 import type { Prisma, WorkflowReminder } from "@prisma/client";
 import type { NextApiRequest } from "next";
-import type { TFunction } from "next-i18next";
 
 import appStore from "@calcom/app-store";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -161,12 +160,6 @@ async function handler(req: CustomRequest) {
 
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
-  const dataForWebhooks = { webhooks, eventTypeInfo, organizer, tOrganizer };
-
-  // If it's just an attendee of a booking then just remove them from that booking
-  const result = await handleSeatedEventCancellation(req, dataForWebhooks);
-  if (result) return { success: true };
-
   const teamMembersPromises = [];
   const attendeesListPromises = [];
   const hostsPresent = !!bookingToDelete.eventType?.hosts;
@@ -230,6 +223,12 @@ async function handler(req: CustomRequest) {
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
   };
+
+  const dataForWebhooks = { evt, webhooks, eventTypeInfo };
+
+  // If it's just an attendee of a booking then just remove them from that booking
+  const result = await handleSeatedEventCancellation(req, dataForWebhooks);
+  if (result) return { success: true };
 
   // If it's just an attendee of a booking then just remove them from that booking
   if (seatReferenceUid && bookingToDelete.attendees.length > 1) {
@@ -691,18 +690,12 @@ async function handleSeatedEventCancellation(
       appId: string | null;
       secret: string | null;
     }[];
+    evt: CalendarEvent;
     eventTypeInfo: EventTypeInfo;
-    organizer: {
-      name: string | null;
-      email: string;
-      timeZone: string;
-      locale: string | null;
-    };
-    tOrganizer: TFunction;
   }
 ) {
   const { seatReferenceUid } = schemaBookingCancelParams.parse(req.body);
-  const { webhooks, eventTypeInfo, organizer, tOrganizer } = dataForWebhooks;
+  const { webhooks, evt, eventTypeInfo } = dataForWebhooks;
   if (!seatReferenceUid) return;
   const bookingToDelete = req.bookingToDelete;
   if (!bookingToDelete?.attendees.length || bookingToDelete.attendees.length < 2) return;
@@ -745,33 +738,7 @@ async function handleSeatedEventCancellation(
       ]
     : [];
 
-  const evt: CalendarEvent = {
-    title: bookingToDelete?.title,
-    type: (bookingToDelete?.eventType?.title as string) || bookingToDelete?.title,
-    description: bookingToDelete?.description || "",
-    customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
-    ...getCalEventResponses({
-      bookingFields: bookingToDelete.eventType?.bookingFields ?? null,
-      booking: bookingToDelete,
-    }),
-    startTime: bookingToDelete?.startTime ? dayjs(bookingToDelete.startTime).format() : "",
-    endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",
-    organizer: {
-      email: organizer.email,
-      name: organizer.name ?? "Nameless",
-      timeZone: organizer.timeZone,
-      language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
-    },
-    attendees: formattedAttendee,
-    uid: bookingToDelete?.uid,
-    /* Include recurringEvent information only when cancelling all bookings */
-    recurringEvent: req.body ? parseRecurringEvent(bookingToDelete.eventType?.recurringEvent) : undefined,
-    location: bookingToDelete?.location,
-    destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user?.destinationCalendar,
-    cancellationReason: req.body.cancellationReason,
-    seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
-    seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
-  };
+  evt.attendees = formattedAttendee;
 
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, WebhookTriggerEvents.BOOKING_CANCELLED, new Date().toISOString(), webhook, {
