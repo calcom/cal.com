@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
+import { installAppleCalendar } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -18,10 +19,8 @@ test.describe("Apple Calendar", () => {
   test("Should be able to install and login on Apple Calendar", async ({ page, users }) => {
     const user = await users.create();
     await user.apiLogin();
-    await page.goto("/apps/categories/calendar");
-    await page.click('[data-testid="app-store-app-card-apple-calendar"]');
-    await page.waitForURL("/apps/apple-calendar");
-    await page.click('[data-testid="install-app-button"]');
+
+    await installAppleCalendar(page);
 
     await expect(await page.locator('[data-testid="apple-calendar-form"]')).toBeVisible();
 
