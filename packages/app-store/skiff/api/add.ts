@@ -11,7 +11,7 @@ const handler: AppDeclarativeHandler = {
   handlerType: "add",
   redirect: {
     newTab: true,
-    url: "https://skiff.com",
+    url: "https://skiff.com/blog/skiff-cal-com-launch",
   },
   createCredential: ({ appType, user, slug, teamId }) =>
     createDefaultInstallation({ appType, userId: user.id, slug, key: {}, teamId }),
