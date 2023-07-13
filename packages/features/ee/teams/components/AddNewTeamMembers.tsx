@@ -92,6 +92,7 @@ export const AddNewTeamMembersForm = ({
       ) : (
         <>
           <MemberInvitationModal
+            isLoading={inviteMemberMutation.isLoading}
             isOpen={memberInviteModal}
             teamId={teamId}
             token={team?.inviteToken?.token}

@@ -22,10 +22,10 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   const oldApiKey = trpc.viewer.apiKeys.findKeyOfType.useQuery({ appId: ZAPIER });
 
   const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation();
-  const zapierCredentials: { credentialIds: number[] } | undefined = integrations.data?.items.find(
+  const zapierCredentials: { userCredentialIds: number[] } | undefined = integrations.data?.items.find(
     (item: { type: string }) => item.type === "zapier_automation"
   );
-  const [credentialId] = zapierCredentials?.credentialIds || [false];
+  const [credentialId] = zapierCredentials?.userCredentialIds || [false];
   const showContent = integrations.data && integrations.isSuccess && credentialId;
   const isCalDev = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.dev";
 

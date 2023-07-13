@@ -37,9 +37,9 @@ export default function BookingLayout({
   return (
     <Shell {...rest} hideHeadingOnMobile>
       <div className="flex max-w-6xl flex-col">
-        <div className="flex flex-col lg:flex-row">
+        <div className="flex flex-col flex-wrap lg:flex-row">
           <HorizontalTabs tabs={tabs} />
-          <div className="overflow-x-auto lg:ml-auto">
+          <div className="max-w-full overflow-x-auto xl:ml-auto">
             <FiltersContainer />
           </div>
         </div>

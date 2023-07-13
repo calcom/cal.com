@@ -99,7 +99,7 @@ const MembersView = () => {
   const team = undefined;
 
   return (
-    <>
+    <LicenseRequired>
       <Meta
         title={t("organization_members")}
         description={t("organization_description")}
@@ -148,6 +148,7 @@ const MembersView = () => {
               isOpen={showMemberInvitationModal}
               members={team.members}
               onExit={() => setShowMemberInvitationModal(false)}
+              isLoading={inviteMemberMutation.isLoading}
               onSubmit={(values) => {
                 inviteMemberMutation.mutate({
                   teamId: team.id,
@@ -162,7 +163,7 @@ const MembersView = () => {
           )} */}
         </>
       )}
-    </>
+    </LicenseRequired>
   );
 };
 MembersView.getLayout = getLayout;

@@ -27,6 +27,7 @@ const userBodySchema = User.pick({
   // brandColor: true,
   // darkBrandColor: true,
   allowDynamicBooking: true,
+  identityProvider: true,
   // away: true,
   role: true,
   // @note: disallowing avatar changes via API for now. We can add it later if needed. User should upload image via UI.

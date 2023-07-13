@@ -48,9 +48,9 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="mb-8 mt-6 space-y-6">
+      <div className="mb-8 space-y-6">
         <div className="flex items-center">
-          <SkeletonAvatar className="me-4 h-16 w-16 px-4" />
+          <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
           <SkeletonButton className="h-6 w-32 rounded-md p-5" />
         </div>
         <SkeletonText className="h-8 w-full" />
@@ -331,7 +331,8 @@ const ProfileForm = ({
     avatar: z.string(),
     name: z
       .string()
-      .min(1)
+      .trim()
+      .min(1, t("you_need_to_add_a_name"))
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),

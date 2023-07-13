@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useOrgBrandingValues } from "@calcom/features/ee/organizations/hooks";
-import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -139,9 +138,7 @@ export default function CreateEventTypeDialog({
   });
 
   const flags = useFlagMap();
-  const urlPrefix = orgBranding
-    ? `${orgBranding.slug}.${subdomainSuffix()}`
-    : process.env.NEXT_PUBLIC_WEBSITE_URL;
+  const urlPrefix = orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
 
   return (
     <Dialog

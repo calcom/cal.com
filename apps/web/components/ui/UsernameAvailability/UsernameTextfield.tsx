@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import { debounce, noop } from "lodash";
+import { useSession } from "next-auth/react";
 import type { RefCallback } from "react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -23,6 +24,7 @@ interface ICustomUsernameProps {
 
 const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.ComponentProps<typeof TextField>>) => {
   const { t } = useLocale();
+  const { data: session, update } = useSession();
   const {
     currentUsername,
     setCurrentUsername = noop,
@@ -69,6 +71,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
       onSuccessMutation && (await onSuccessMutation());
       setOpenDialogSaveUsername(false);
       setCurrentUsername(inputUsernameValue);
+      await update();
     },
     onError: (error) => {
       onErrorMutation && onErrorMutation(error);
@@ -135,7 +138,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           />
           {currentUsername !== inputUsernameValue && (
             <div className="absolute right-[2px] top-6 flex flex-row">
-              <span className={classNames("mx-2 py-2.5")}>
+              <span className={classNames("mx-2 py-3.5")}>
                 {usernameIsAvailable ? <Check className="h-4 w-4" /> : <></>}
               </span>
             </div>
@@ -156,23 +159,23 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
         <DialogContent type="confirmation" Icon={Edit2} title={t("confirm_username_change_dialog_title")}>
           <div className="flex flex-row">
             <div className="mb-4 w-full pt-1">
-              <div className="bg-subtle flex w-full flex-wrap rounded-sm py-3 text-sm">
-                <div className="flex-1 px-2">
+              <div className="bg-subtle flex w-full flex-wrap gap-6 rounded-sm px-2 py-3 text-sm">
+                <div>
                   <p className="text-subtle">{t("current_username")}</p>
                   <p className="text-emphasis mt-1" data-testid="current-username">
                     {currentUsername}
                   </p>
                 </div>
-                <div className="ml-6 flex-1">
+                <div>
                   <p className="text-subtle" data-testid="new-username">
                     {t("new_username")}
                   </p>
-                  <p className="text-emphasis">{inputUsernameValue}</p>
+                  <p className="text-emphasis mt-1">{inputUsernameValue}</p>
                 </div>
               </div>
             </div>
           </div>
-          <div className="mt-4 flex flex-row-reverse gap-x-2">
+          <div className="ml-4 mt-4 flex flex-row-reverse gap-x-2">
             <Button
               type="button"
               loading={updateUsernameMutation.isLoading}
