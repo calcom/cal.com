@@ -38,6 +38,7 @@ const BookerComponent = ({
   bookingData,
   hideBranding = false,
   isTeamEvent,
+  org,
 }: BookerProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
@@ -97,6 +98,7 @@ const BookerComponent = ({
     bookingData,
     layout: defaultLayout,
     isTeamEvent,
+    org,
   });
 
   useEffect(() => {
