@@ -33,7 +33,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   });
 
   if (!webhook) {
-    return res.status(401).json({ message: "Not authorized to delete this webhooks" });
+    return res.status(401).json({ message: "Not authorized to delete this webhook" });
   }
   if (webhook?.eventTriggers.includes(WebhookTriggerEvents.MEETING_ENDED)) {
     const where: Prisma.BookingWhereInput = {};
