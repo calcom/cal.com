@@ -41,7 +41,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      querySlug,
+      querySlug: querySlug ?? null,
     },
   };
 };
