@@ -451,7 +451,6 @@ describe("getSchedule", () => {
         endTime: `${plus2DateString}T18:29:59.999Z`,
         timeZone: Timezones["+5:30"],
       });
-      console.log(JSON.stringify(scheduleForEventWith30Length))
 
       expect(scheduleForEventWith30Length).toHaveTimeSlots(
         [
