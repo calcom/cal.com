@@ -5,7 +5,7 @@ import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useEmbedType, useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
@@ -34,9 +34,10 @@ const BookerComponent = ({
   username,
   eventSlug,
   month,
-  rescheduleBooking,
+  bookingData,
   hideBranding = false,
   isTeamEvent,
+  org,
 }: BookerProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
@@ -44,19 +45,30 @@ const BookerComponent = ({
   const StickyOnDesktop = isMobile ? "div" : StickyBox;
   const rescheduleUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
+  const bookingUid =
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
   const event = useEvent();
   const [_layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
 
   const isEmbed = useIsEmbed();
+  const embedType = useEmbedType();
+  // Floating Button and Element Click both are modal and thus have dark background
+  const hasDarkBackground = isEmbed && embedType !== "inline";
   const embedUiConfig = useEmbedUiConfig();
 
   // In Embed we give preference to embed configuration for the layout.If that's not set, we use the App configuration for the event layout
-  const layout = isEmbed ? validateLayout(embedUiConfig.layout) || _layout : _layout;
+  // But if it's mobile view, there is only one layout supported which is 'mobile'
+  const layout = isEmbed ? (isMobile ? "mobile" : validateLayout(embedUiConfig.layout) || _layout) : _layout;
 
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
+    shallow
+  );
+  // const seatedEventData = useBookerStore((state) => state.seatedEventData);
+  const [seatedEventData, setSeatedEventData] = useBookerStore(
+    (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
   );
 
@@ -81,9 +93,11 @@ const BookerComponent = ({
     month,
     eventId: event?.data?.id,
     rescheduleUid,
-    rescheduleBooking,
+    bookingUid,
+    bookingData,
     layout: defaultLayout,
     isTeamEvent,
+    org,
   });
 
   useEffect(() => {
@@ -133,18 +147,19 @@ const BookerComponent = ({
       {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
       <div
         className={classNames(
+          // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
+          "main",
           "text-default flex min-h-full w-full flex-col items-center",
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip"
         )}>
         <div
           ref={animationScope}
           className={classNames(
-            // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
-            "main",
             // Sets booker size css variables for the size of all the columns.
             ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
             "bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
-            layout === BookerLayouts.MONTH_VIEW && "border-subtle rounded-md border",
+            // We remove border only when the content covers entire viewport. Because in embed, it can almost never be the case that it covers entire viewport, we show the border there
+            (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md border",
             !isEmbed && "sm:transition-[width] sm:duration-300",
             isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
             !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle",
@@ -155,7 +170,7 @@ const BookerComponent = ({
             <BookerSection
               area="header"
               className={classNames(
-                layout === BookerLayouts.MONTH_VIEW && "fixed right-3 top-3 z-10",
+                layout === BookerLayouts.MONTH_VIEW && "fixed right-4 top-4 z-10",
                 (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
                   "bg-default dark:bg-muted sticky top-0 z-10"
               )}>
@@ -191,7 +206,14 @@ const BookerComponent = ({
               className="border-subtle sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInLeft}
               visible={bookerState === "booking" && !shouldShowFormInDialog}>
-              <BookEventForm onCancel={() => setSelectedTimeslot(null)} />
+              <BookEventForm
+                onCancel={() => {
+                  setSelectedTimeslot(null);
+                  if (seatedEventData.bookingUid) {
+                    setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
+                  }
+                }}
+              />
             </BookerSection>
 
             <BookerSection
@@ -231,7 +253,7 @@ const BookerComponent = ({
               <AvailableTimeSlots
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
-                seatsPerTimeslot={event.data?.seatsPerTimeSlot}
+                seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
               />
             </BookerSection>
           </AnimatePresence>
@@ -241,6 +263,7 @@ const BookerComponent = ({
           key="logo"
           className={classNames(
             "mb-6 mt-auto pt-6 [&_img]:h-[15px]",
+            hasDarkBackground ? "dark" : "",
             layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
           )}>
           {!hideBranding ? <PoweredBy logoOnly /> : null}

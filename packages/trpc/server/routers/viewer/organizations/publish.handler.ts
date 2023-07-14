@@ -35,12 +35,13 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
   const metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
   if (!metadata.success) throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid team metadata" });
 
-  // Since this is an ORG we neeed to make sure ORG members are scyned with the team. Every time a user is added to the TEAM, we need to add them to the ORG
+  // Since this is an ORG we need to make sure ORG members are scyned with the team. Every time a user is added to the TEAM, we need to add them to the ORG
   if (IS_TEAM_BILLING_ENABLED) {
     const checkoutSession = await purchaseTeamSubscription({
       teamId: prevTeam.id,
       seats: prevTeam.members.length,
       userId: ctx.user.id,
+      isOrg: true,
     });
     if (!checkoutSession.url)
       throw new TRPCError({

@@ -4,6 +4,8 @@ import { useState } from "react";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import getUserAdminTeams from "@calcom/features/ee/teams/lib/getUserAdminTeams";
+import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
@@ -48,7 +50,11 @@ function AppsSearch({
   );
 }
 
-export default function Apps({ categories, appStore }: inferSSRProps<typeof getServerSideProps>) {
+export default function Apps({
+  categories,
+  appStore,
+  userAdminTeams,
+}: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const [searchText, setSearchText] = useState<string | undefined>(undefined);
 
@@ -80,6 +86,7 @@ export default function Apps({ categories, appStore }: inferSSRProps<typeof getS
           apps={appStore}
           searchText={searchText}
           categories={categories.map((category) => category.name)}
+          userAdminTeams={userAdminTeams}
         />
       </div>
     </AppsLayout>
@@ -95,11 +102,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const session = await getServerSession({ req, res });
 
-  let appStore;
+  let appStore, userAdminTeams: UserAdminTeams;
   if (session?.user?.id) {
-    appStore = await getAppRegistryWithCredentials(session.user.id);
+    userAdminTeams = await getUserAdminTeams({ userId: session.user.id, getUserInfo: true });
+    appStore = await getAppRegistryWithCredentials(session.user.id, userAdminTeams);
   } else {
     appStore = await getAppRegistry();
+    userAdminTeams = [];
   }
 
   const categoryQuery = appStore.map(({ categories }) => ({
@@ -111,6 +120,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
     return c;
   }, {} as Record<string, number>);
+
   return {
     props: {
       categories: Object.entries(categories)
@@ -122,6 +132,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           return b.count - a.count;
         }),
       appStore,
+      userAdminTeams,
       trpcState: ssr.dehydrate(),
     },
   };
