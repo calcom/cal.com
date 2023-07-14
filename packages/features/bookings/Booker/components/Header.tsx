@@ -16,12 +16,12 @@ export function Header({
   extraDays,
   isMobile,
   enabledLayouts,
-  nextslots,
+  nextSlots,
 }: {
   extraDays: number;
   isMobile: boolean;
   enabledLayouts: BookerLayouts[];
-  nextslots: number;
+  nextSlots: number;
 }) {
   const { t } = useLocale();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
@@ -76,14 +76,14 @@ const formattedEndDate = parseInt(selectedDate.format("MM")) !== parseInt(endDat
             color="minimal"
             StartIcon={ChevronLeft}
             aria-label="Previous Day"
-            onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? (-nextslots) : (-extraDays - 1))}
+            onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? (-nextSlots) : (-extraDays - 1))}
           />
           <Button
             variant="icon"
             color="minimal"
             StartIcon={ChevronRight}
             aria-label="Next Day"
-            onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? nextslots : (extraDays + 1))}
+            onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? nextSlots : (extraDays + 1))}
           />
           {selectedDateMin3DaysDifference && (
             <Button

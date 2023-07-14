@@ -61,7 +61,7 @@ const BookerComponent = ({
   // In Embed we give preference to embed configuration for the layout.If that's not set, we use the App configuration for the event layout
   // But if it's mobile view, there is only one layout supported which is 'mobile'
   const layout = isEmbed ? (isMobile ? "mobile" : validateLayout(embedUiConfig.layout) || _layout) : _layout;
-  const newExtraDays = useRef<number>(
+  const columnViewExtraDays = useRef<number>(
     isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop
   );
 
@@ -90,11 +90,11 @@ const BookerComponent = ({
     nonEmptyScheduleDays.length < extraDays ? (extraDays - nonEmptyScheduleDays.length + 1) * 7 : 0;
   const availableSlots = nonEmptyScheduleDays.slice(0, extraDays + 1);
   if (nonEmptyScheduleDays.length !== 0)
-    newExtraDays.current =
+    columnViewExtraDays.current =
       Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2], "day")) + addonDays;
-  const prefetchNextMonth = dayjs(date).month() !== dayjs(date).add(newExtraDays.current, "day").month();
+  const prefetchNextMonth = dayjs(date).month() !== dayjs(date).add(columnViewExtraDays.current, "day").month();
   const monthCount =
-    dayjs(date).add(1, "month").month() !== dayjs(date).add(newExtraDays.current, "day").month()
+    dayjs(date).add(1, "month").month() !== dayjs(date).add(columnViewExtraDays.current, "day").month()
       ? 2
       : undefined;
   const nextSlots =
@@ -200,7 +200,7 @@ const BookerComponent = ({
               )}>
               <Header
                 enabledLayouts={bookerLayouts.enabledLayouts}
-                extraDays={layout === BookerLayouts.COLUMN_VIEW ? newExtraDays.current : extraDays}
+                extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
                 isMobile={isMobile}
                 nextSlots={nextSlots}
               />
