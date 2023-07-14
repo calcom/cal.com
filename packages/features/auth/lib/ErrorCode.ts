@@ -1,5 +1,5 @@
 export enum ErrorCode {
-  IncorrectUsernamePassword = "incorrect-username-password",
+  IncorrectEmailPassword = "incorrect-email-password",
   UserNotFound = "user-not-found",
   IncorrectPassword = "incorrect-password",
   UserMissingPassword = "missing-password",
