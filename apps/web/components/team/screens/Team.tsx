@@ -18,8 +18,8 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
   const router = useRouter();
   const isBioEmpty = !member.bio || !member.bio.replace("<p><br></p>", "").length;
 
-  // slug is a route parameter, we don't want to forward it to the next route
-  const { slug: _slug, ...queryParamsToForward } = router.query;
+  // We don't want to forward orgSlug and user which are route params to the next route
+  const { slug: _slug, orgSlug: _orgSlug, user: _user, ...queryParamsToForward } = router.query;
 
   return (
     <Link key={member.id} href={{ pathname: `/${member.username}`, query: queryParamsToForward }}>

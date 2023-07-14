@@ -25,6 +25,7 @@ type StoreInitializeType = {
   bookingData?: GetBookingType | null | undefined;
   rescheduleUid?: string | null;
   seatReferenceUid?: string;
+  org?: string | null;
 };
 
 type SeatedEventData = {
@@ -105,6 +106,7 @@ export type BookerStore = {
    * both the slug and the event slug.
    */
   isTeamEvent: boolean;
+  org?: string | null;
   seatedEventData: SeatedEventData;
   setSeatedEventData: (seatedEventData: SeatedEventData) => void;
 };
@@ -183,6 +185,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     bookingData = null,
     layout,
     isTeamEvent,
+    org,
   }: StoreInitializeType) => {
     const selectedDateInStore = get().selectedDate;
 
@@ -201,6 +204,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       username,
       eventSlug,
       eventId,
+      org,
       rescheduleUid,
       bookingUid,
       bookingData,
@@ -250,6 +254,7 @@ export const useInitializeBookerStore = ({
   bookingData = null,
   layout,
   isTeamEvent,
+  org,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
@@ -262,6 +267,18 @@ export const useInitializeBookerStore = ({
       bookingData,
       layout,
       isTeamEvent,
+      org,
     });
-  }, [initializeStore, username, eventSlug, month, eventId, rescheduleUid, bookingData, layout, isTeamEvent]);
+  }, [
+    initializeStore,
+    org,
+    username,
+    eventSlug,
+    month,
+    eventId,
+    rescheduleUid,
+    bookingData,
+    layout,
+    isTeamEvent,
+  ]);
 };

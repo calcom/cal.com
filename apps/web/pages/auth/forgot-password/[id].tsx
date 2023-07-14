@@ -1,13 +1,11 @@
-import type { ResetPasswordRequest } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import React, { useMemo } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 
-import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { Button, PasswordField, Form } from "@calcom/ui";
@@ -16,12 +14,12 @@ import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
 type Props = {
-  id: string;
-  resetPasswordRequest: ResetPasswordRequest;
+  requestId: string;
+  isRequestExpired: boolean;
   csrfToken: string;
 };
 
-export default function Page({ resetPasswordRequest, csrfToken }: Props) {
+export default function Page({ requestId, isRequestExpired, csrfToken }: Props) {
   const { t } = useLocale();
   const formMethods = useForm<{ new_password: string }>();
   const success = formMethods.formState.isSubmitSuccessful;
@@ -77,11 +75,6 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
     );
   };
 
-  const isRequestExpired = useMemo(() => {
-    const now = dayjs();
-    return dayjs(resetPasswordRequest.expires).isBefore(now);
-  }, [resetPasswordRequest]);
-
   return (
     <AuthContainer
       showLogo
@@ -105,7 +98,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
             handleSubmit={async (values) => {
               await submitChangePassword({
                 password: values.new_password,
-                requestId: resetPasswordRequest.id,
+                requestId,
               });
             }}>
             <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
@@ -152,31 +145,29 @@ Page.PageWrapper = PageWrapper;
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const id = context.params?.id as string;
 
+  let resetPasswordRequest = await prisma.resetPasswordRequest.findFirst({
+    where: {
+      id,
+      expires: {
+        gt: new Date(),
+      },
+    },
+    select: {
+      email: true,
+    },
+  });
   try {
-    const resetPasswordRequest = await prisma.resetPasswordRequest.findUniqueOrThrow({
-      where: {
-        id,
-      },
-      select: {
-        id: true,
-        expires: true,
-      },
-    });
-
-    return {
-      props: {
-        resetPasswordRequest: {
-          ...resetPasswordRequest,
-          expires: resetPasswordRequest.expires.toString(),
-        },
-        id,
-        csrfToken: await getCsrfToken({ req: context.req }),
-        ...(await serverSideTranslations(context.locale || "en", ["common"])),
-      },
-    };
-  } catch (reason) {
-    return {
-      notFound: true,
-    };
+    resetPasswordRequest &&
+      (await prisma.user.findUniqueOrThrow({ where: { email: resetPasswordRequest.email } }));
+  } catch (e) {
+    resetPasswordRequest = null;
   }
+  return {
+    props: {
+      isRequestExpired: !resetPasswordRequest,
+      requestId: id,
+      csrfToken: await getCsrfToken({ req: context.req }),
+      ...(await serverSideTranslations(context.locale || "en", ["common"])),
+    },
+  };
 }
