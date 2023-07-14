@@ -64,13 +64,14 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeSlot, p
     prefetchNextMonth,
     monthCount,
   });
-  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter((slot)=>dayjs(selectedDate).diff(slot,'day')<=0);
+  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots)
+  const nonEmptyScheduleDaysFromSelectedDate = nonEmptyScheduleDays.filter((slot)=>dayjs(selectedDate).diff(slot,'day')<=0);
 
   // Creates an array of dates to fetch slots for.
   // If `extraDays` is passed in, we will extend the array with the next `extraDays` days.
   const dates = !extraDays
-        ? [date]: nonEmptyScheduleDays.length > 0 
-          ? nonEmptyScheduleDays.slice(0, extraDays):[];
+        ? [date]: nonEmptyScheduleDaysFromSelectedDate.length > 0 
+          ? nonEmptyScheduleDaysFromSelectedDate.slice(0, extraDays):[];
   
   const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.data?.slots);
 

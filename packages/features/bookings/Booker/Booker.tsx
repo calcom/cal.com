@@ -86,8 +86,11 @@ const BookerComponent = ({
   const extraDays = isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop;
   const bookerLayouts = event.data?.profile?.bookerLayouts || defaultBookerLayoutSettings;
   const animationScope = useBookerResizeAnimation(layout, bookerState);
+  const totalWeekDays = 7;
   const addonDays =
-    nonEmptyScheduleDays.length < extraDays ? (extraDays - nonEmptyScheduleDays.length + 1) * 7 : 0;
+    nonEmptyScheduleDays.length < extraDays ? (extraDays - nonEmptyScheduleDays.length + 1) * totalWeekDays : 0;
+    
+  //Taking one more avaliable slot(extraDays + 1) to claculate the no of days in between, that next and prev button need to shift.
   const availableSlots = nonEmptyScheduleDays.slice(0, extraDays + 1);
   if (nonEmptyScheduleDays.length !== 0)
     columnViewExtraDays.current =
