@@ -477,6 +477,7 @@
   "max_limit_allowed_hint": "Doit contenir {{limit}} caractères ou moins",
   "invalid_password_hint": "Le mot de passe doit contenir au moins {{passwordLength}} caractères, un chiffre et un mélange de lettres majuscules et minuscules.",
   "incorrect_password": "Le mot de passe est incorrect.",
+  "incorrect_email_password": "L’adresse e-mail ou le mot de passe est incorrect.",
   "use_setting": "Utiliser le paramètre",
   "am_pm": "AM/PM",
   "time_options": "Options de temps",
