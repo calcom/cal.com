@@ -37,5 +37,6 @@ export function subdomainSuffix() {
 }
 
 export function getOrgFullDomain(slug: string, options: { protocol: boolean } = { protocol: true }) {
+  // TODO: It is a replacement for WEBAPP_URL and that doesn't have / in the end.  Remove / after ensuring that it works reliably everywhere
   return `${options.protocol ? `${new URL(WEBAPP_URL).protocol}//` : ""}${slug}.${subdomainSuffix()}/`;
 }
