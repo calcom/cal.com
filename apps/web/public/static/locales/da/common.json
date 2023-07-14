@@ -414,7 +414,6 @@
   "password_hint_num": "Indeholde mindst 1 tal",
   "invalid_password_hint": "Adgangskoden skal være mindst {{passwordLength}} tegn langt, der indeholder mindst ét tal og har en blanding af store og små bogstaver",
   "incorrect_password": "Adgangskoden er forkert.",
-  "incorrect_username_password": "Brugernavn eller adgangskode er forkert.",
   "use_setting": "Brug indstilling",
   "am_pm": "am/pm",
   "time_options": "Tidsmuligheder",

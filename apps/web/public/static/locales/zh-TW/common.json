@@ -428,7 +428,6 @@
   "max_limit_allowed_hint": "長度上限為 {{limit}} 個字元",
   "invalid_password_hint": "密碼長度至少要有 {{passwordLength}} 個字元，其中包含至少一個數字和大小寫字母組合",
   "incorrect_password": "密碼不正確。",
-  "incorrect_username_password": "使用者名稱或密碼不正確。",
   "use_setting": "使用設定",
   "am_pm": "上午/下午",
   "time_options": "時間選項",

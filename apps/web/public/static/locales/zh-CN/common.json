@@ -440,7 +440,6 @@
   "max_limit_allowed_hint": "长度必须为 {{limit}} 或更少字符",
   "invalid_password_hint": "密码必须是至少 {{passwordLength}} 个字符长，包含至少一个数字，并且是大写和小写字母混合",
   "incorrect_password": "密码不正确。",
-  "incorrect_username_password": "用户名或密码不正确。",
   "use_setting": "使用设置",
   "am_pm": "12小时制",
   "time_options": "时间选项",

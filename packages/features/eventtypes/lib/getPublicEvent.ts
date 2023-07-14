@@ -81,10 +81,15 @@ export const getPublicEvent = async (
   username: string,
   eventSlug: string,
   isTeamEvent: boolean | undefined,
+  org: string | null,
   prisma: PrismaClient
 ) => {
   const usernameList = getUsernameList(username);
-
+  const orgQuery = org
+    ? {
+        slug: org ?? null,
+      }
+    : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
   if (usernameList.length > 1) {
     const users = await prisma.user.findMany({
@@ -92,6 +97,7 @@ export const getPublicEvent = async (
         username: {
           in: usernameList,
         },
+        organization: orgQuery,
       },
       select: {
         username: true,
@@ -151,12 +157,14 @@ export const getPublicEvent = async (
     ? {
         team: {
           slug: username,
+          parent: orgQuery,
         },
       }
     : {
         users: {
           some: {
             username,
+            organization: orgQuery,
           },
         },
         team: null,
@@ -192,6 +200,7 @@ export const getPublicEvent = async (
     // Sets user data on profile object for easier access
     profile: getProfileFromEvent(event),
     users,
+    orgDomain: org,
   };
 };
 
