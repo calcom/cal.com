@@ -664,7 +664,7 @@ async function main() {
   });
 
   // Org Admin
-  const orgUser2 = await createUserAndEventType({
+  const orgUserAdmin = await createUserAndEventType({
     user: {
       email: "peter@acme.com",
       password: "peter",
