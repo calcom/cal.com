@@ -5,6 +5,7 @@ import type { LucideIcon } from "lucide-react";
 import { X } from "lucide-react";
 
 import { Button } from "../button";
+import { Input } from "../form";
 import { DataTableFilter } from "./DataTableFilter";
 
 export type FilterableItems = {
@@ -24,13 +25,26 @@ interface DataTableToolbarProps<TData> {
   tableCTA?: React.ReactNode;
 }
 
-export function DataTableToolbar<TData>({ table, filterableItems, tableCTA }: DataTableToolbarProps<TData>) {
+export function DataTableToolbar<TData>({
+  table,
+  filterableItems,
+  tableCTA,
+  searchKey,
+}: DataTableToolbarProps<TData>) {
   // TODO: Is there a better way to check if the table is filtered?
   // If you select ALL filters for a column, the table is not filtered and we dont get a reset button
   const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
     <div className="flex items-center justify-end space-x-2">
+      {searchKey && (
+        <Input
+          className="max-w-64 mb-0 mr-auto"
+          placeholder="Search"
+          value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
+          onChange={(event) => table.getColumn(searchKey)?.setFilterValue(event.target.value)}
+        />
+      )}
       {isFiltered && (
         <Button
           color="minimal"
@@ -40,14 +54,7 @@ export function DataTableToolbar<TData>({ table, filterableItems, tableCTA }: Da
           Reset
         </Button>
       )}
-      {/* {searchKey && (
-          <Input
-            className="mb-0"
-            placeholder="Search"
-            value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
-            onChange={(event) => table.getColumn(searchKey)?.setFilterValue(event.target.value)}
-          />
-        )} */}
+
       {filterableItems &&
         filterableItems?.map((item) => {
           const foundColumn = table.getColumn(item.tableAccessor);

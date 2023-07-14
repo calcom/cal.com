@@ -161,7 +161,15 @@ export function UserListTable() {
           );
         },
         filterFn: (rows, id, filterValue) => {
-          return filterValue.includes(rows.getValue(id));
+          console.log({
+            rows,
+            id,
+            filterValue,
+            rowValue: rows.getValue(id),
+          });
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore Weird typing issue
+          return rows.getValue(id).includes(filterValue);
         },
       },
       {
@@ -272,6 +280,7 @@ export function UserListTable() {
   return (
     <>
       <DataTable
+        searchKey="member"
         selectionOptions={[
           {
             label: "Add To Team",
@@ -333,10 +342,7 @@ export function UserListTable() {
           onOpenChange={(open) =>
             !open &&
             dispatch({
-              type: "SET_DELETE_ID",
-              payload: {
-                showModal: false,
-              },
+              type: "CLOSE_MODAL",
             })
           }>
           <ConfirmationDialogContent
@@ -344,18 +350,12 @@ export function UserListTable() {
             title={t("remove_member")}
             confirmBtnText={t("confirm_remove_member")}
             onConfirm={() => {
-              if (!session?.user.organizationId) return;
+              // Shouldnt ever happen just for type safety
+              if (!session?.user.organizationId || !state?.deleteMember?.user?.id) return;
 
-              console.log({
-                userId: state?.deleteMember?.user?.id,
-                organizationId: session?.user.organizationId,
-                isOrg: true,
-              });
               removeMemberMutation.mutate({
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore - TS hello? Show modal is true in the discrimionation union type
-                userId: state?.deleteMember?.user.id,
-                organizationId: session?.user.organizationId,
+                teamId: session?.user.organizationId,
+                memberId: state?.deleteMember?.user.id,
                 isOrg: true,
               });
             }}>

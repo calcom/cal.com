@@ -14,10 +14,15 @@ interface Props {
 
 export function InviteMemberModal(props: Props) {
   const { data: session } = useSession();
+  const utils = trpc.useContext();
   const { t, i18n } = useLocale();
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess(data) {
       props.dispatch({ type: "CLOSE_MODAL" });
+      // Need to figure out if invalidating here is the right approach - we could have already
+      // loaded a bunch of data and idk how pagination works with invalidation. We may need to use
+      // Optimistic updates here instead.
+      await utils.viewer.organizations.listMembers.invalidate();
       if (data.sendEmailInvitation) {
         if (Array.isArray(data.usernameOrEmail)) {
           showToast(
