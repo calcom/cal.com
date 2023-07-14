@@ -692,8 +692,8 @@ async function main() {
       members: {
         createMany: {
           data: [
-            { userId: orgUser1.id, role: "OWNER", accepted: true },
-            { userId: orgUser2.id, role: "ADMIN", accepted: true },
+            { userId: orgUserOwner.id, role: "OWNER", accepted: true },
+            { userId: orgUserAdmin.id, role: "ADMIN", accepted: true },
             ...orgTeams.flatMap((team) => team.members.create),
           ],
         },
