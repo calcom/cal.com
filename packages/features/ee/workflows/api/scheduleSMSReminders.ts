@@ -52,7 +52,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     },
   });
 
-  if (!unscheduledReminders.length) res.json({ ok: true });
+  if (!unscheduledReminders.length) {
+    res.json({ ok: true });
+    return;
+  }
 
   for (const reminder of unscheduledReminders) {
     if (!reminder.workflowStep || !reminder.booking) {
