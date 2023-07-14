@@ -59,7 +59,10 @@ export const AddNewTeamsForm = () => {
   });
 
   const validateInput = () => {
-    if (inputValues.includes("")) {
+    const trimmedValues = inputValues.map((item) => item.trim()); // Trim whitespace from team names
+
+    const containsOnlyWhitespace = trimmedValues.some((item) => item === "");
+    if (trimmedValues.includes("") || containsOnlyWhitespace) {
       showToast(t("team_names_empty"), "error");
       return false;
     }
@@ -76,7 +79,7 @@ export const AddNewTeamsForm = () => {
       createTeamsMutation.mutate({ orgId, teamNames: inputValues });
     }
   };
-
+  console.log({ inputValues });
   return (
     <>
       {Array.from({ length: counter }, (_, index) => (
