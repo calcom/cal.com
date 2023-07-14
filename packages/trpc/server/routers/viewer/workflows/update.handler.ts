@@ -264,13 +264,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
 
-      steps.forEach(async (step) => {
+      const pSteps = steps.map(async (step) => {
         if (
           step.action !== WorkflowActions.SMS_ATTENDEE &&
           step.action !== WorkflowActions.WHATSAPP_ATTENDEE
         ) {
           //as we do not have attendees phone number (user is notified about that when setting this action)
-          bookingsForReminders.forEach(async (booking) => {
+          const pScheduleReminders = bookingsForReminders.map(async (booking) => {
             const defaultLocale = "en";
             const bookingInfo = {
               uid: booking.uid,
@@ -367,29 +367,27 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               );
             }
           });
+          await Promise.all(pScheduleReminders);
         }
       });
+      await Promise.all(pSteps);
     }
     //create all workflow - eventtypes relationships
-    activeOnEventTypes.forEach(async (eventType) => {
-      await ctx.prisma.workflowsOnEventTypes.createMany({
-        data: {
-          workflowId: id,
-          eventTypeId: eventType.id,
-        },
-      });
-
-      if (eventType.children.length) {
-        eventType.children.forEach(async (chEventType) => {
-          await ctx.prisma.workflowsOnEventTypes.createMany({
-            data: {
-              workflowId: id,
-              eventTypeId: chEventType.id,
-            },
-          });
-        });
-      }
+    await ctx.prisma.workflowsOnEventTypes.createMany({
+      data: activeOnEventTypes.map((eventType) => ({
+        workflowId: id,
+        eventTypeId: eventType.id,
+      })),
     });
+    const pChildren = activeOnEventTypes.map((eventType) =>
+      ctx.prisma.workflowsOnEventTypes.createMany({
+        data: eventType.children.map((chEventType) => ({
+          workflowId: id,
+          eventTypeId: chEventType.id,
+        })),
+      })
+    );
+    await Promise.all(pChildren);
   }
 
   userWorkflow.steps.map(async (oldStep) => {
@@ -465,13 +463,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
 
       //cancel all workflow reminders from steps that were edited
-      remindersToUpdate.forEach(async (reminder) => {
+      const pDeleteReminders = remindersToUpdate.map((reminder) => {
         if (reminder.method === WorkflowMethods.EMAIL) {
           deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
         } else if (reminder.method === WorkflowMethods.SMS) {
           deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+        } else if (reminder.method === WorkflowMethods.WHATSAPP) {
+          deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
         }
       });
+      await Promise.all(pDeleteReminders);
       const eventTypesToUpdateReminders = activeOn.filter((eventTypeId) => {
         if (!newEventTypes.includes(eventTypeId)) {
           return eventTypeId;
@@ -497,7 +498,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             user: true,
           },
         });
-        bookingsOfEventTypes.forEach(async (booking) => {
+        const pScheduleReminders = bookingsOfEventTypes.map(async (booking) => {
           const defaultLocale = "en";
           const bookingInfo = {
             uid: booking.uid,
@@ -594,6 +595,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             );
           }
         });
+        await Promise.all(pScheduleReminders);
       }
     }
   });
@@ -617,7 +619,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         return activeEventType;
       }
     });
-    addedSteps.forEach(async (step) => {
+    const pAddedSteps = addedSteps.map(async (step) => {
       if (step) {
         const { senderName, ...newStep } = step;
         newStep.sender = getSender({
@@ -749,6 +751,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         }
       }
     });
+    await Promise.all(pAddedSteps);
   }
 
   //update trigger, name, time, timeUnit
