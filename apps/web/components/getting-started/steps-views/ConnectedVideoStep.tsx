@@ -1,11 +1,12 @@
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { List } from "@calcom/ui";
+import { List, Button } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { AppConnectionItem } from "../components/AppConnectionItem";
 import { StepConnectionLoader } from "../components/StepConnectionLoader";
+import { useState } from "react";
 
 interface ConnectedAppStepProps {
   nextStep: () => void;
@@ -23,6 +24,8 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
   const hasAnyInstalledVideoApps = queryConnectedVideoApps?.items.some(
     (item) => item.userCredentialIds.length > 0
   );
+
+  const [isButtonLoading,setIsButtonLoading] = useState(false);
 
   return (
     <>
@@ -49,7 +52,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
       )}
 
       {isLoading && <StepConnectionLoader />}
-      <button
+      <Button
         type="button"
         data-testid="save-video-button"
         className={classNames(
@@ -57,10 +60,14 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
           !hasAnyInstalledVideoApps ? "cursor-not-allowed opacity-20" : ""
         )}
         disabled={!hasAnyInstalledVideoApps}
-        onClick={() => nextStep()}>
+        loading={isButtonLoading}
+        onClick={() => {
+          setIsButtonLoading(true)
+          nextStep()
+        }}>
         {t("next_step_text")}
         <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
-      </button>
+      </Button>
     </>
   );
 };

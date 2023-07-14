@@ -153,6 +153,7 @@ const UserProfile = () => {
       </fieldset>
       <Button
         type="submit"
+        loading={mutation.isLoading}
         className="text-inverted mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm">
         {t("finish")}
         <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
