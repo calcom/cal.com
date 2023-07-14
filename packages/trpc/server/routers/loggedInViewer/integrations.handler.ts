@@ -1,5 +1,5 @@
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
-import getMostPopularApps from "@calcom/lib/apps/getMostPopularApps";
+import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -177,12 +177,12 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
   }
 
   if (sortByMostPopular) {
-    const mostPopularApps = await getMostPopularApps();
+    const installCountPerApp = await getInstallCountPerApp();
 
     // sort the apps array by the most popular apps
     apps.sort((a, b) => {
-      const aCount = mostPopularApps[a.slug] || 0;
-      const bCount = mostPopularApps[b.slug] || 0;
+      const aCount = installCountPerApp[a.slug] || 0;
+      const bCount = installCountPerApp[b.slug] || 0;
       return bCount - aCount;
     });
   }
