@@ -4,8 +4,7 @@ import { test } from "@calcom/web/playwright/lib/fixtures";
 
 test.describe("Embed Pages", () => {
   test("Event Type Page: should not have margin top on embed page", async ({ page }) => {
-    await page.goto("/free/30min/embed");
-
+    await page.goto("http://localhost:3000/free/30min/embed");
     // Checks the margin from top by checking the distance between the div inside main from the viewport
     const marginFromTop = await page.evaluate(() => {
       const mainElement = document.querySelector("main");
@@ -24,7 +23,7 @@ test.describe("Embed Pages", () => {
   });
 
   test("Event Type Page: should have margin top on non embed page", async ({ page }) => {
-    await page.goto("/free/30min");
+    await page.goto("http://localhost:3000/free/30min");
 
     // Checks the margin from top by checking the distance between the div inside main from the viewport
     const marginFromTop = await page.evaluate(() => {
@@ -44,7 +43,7 @@ test.describe("Embed Pages", () => {
   });
 
   test("should change to embed when window.name is changed to cal-embed=", async ({ page }) => {
-    await page.goto("/free/30min");
+    await page.goto("http://localhost:3000/free/30min");
 
     await page.evaluate(() => {
       window.name = "cal-embed=";
