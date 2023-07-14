@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getHumanReadableLocationValue } from "@calcom/core/location";
@@ -20,14 +21,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   try {
+    const where: Prisma.BookingWhereInput = {};
+    if (validKey.teamId) where.eventType = { teamId: validKey.teamId };
+    else where.userId = validKey.userId;
     const bookings = await prisma.booking.findMany({
       take: 3,
-      where: {
-        userId: validKey.userId,
-        eventType: {
-          teamId: validKey.teamId,
-        },
-      },
+      where,
       orderBy: {
         id: "desc",
       },
@@ -71,6 +70,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       },
     });
+
+    if (bookings.length === 0) {
+      const requested = validKey.teamId ? "teamId: " + validKey.teamId : "userId: " + validKey.userId;
+      return res.status(404).json({
+        message: `There are no bookings to retrieve, please create a booking first. Requested: \`${requested}\``,
+      });
+    }
 
     const t = await getTranslation(bookings[0].user?.locale ?? "en", "common");
 
