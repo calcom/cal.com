@@ -3,7 +3,9 @@ import { z } from "zod";
 import appStore from "@calcom/app-store";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import sendPayload from "@calcom/lib/server/webhooks/sendPayload";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -33,11 +35,13 @@ export const paymentsRouter = router({
         },
       });
 
+      const payment = booking.payment[0];
+
       if (!booking) {
         throw new Error("Booking not found");
       }
 
-      if (booking.payment[0].success) {
+      if (payment.success) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: `The no show fee for ${booking.id} has already been charged.`,
@@ -77,16 +81,16 @@ export const paymentsRouter = router({
         },
         attendees: attendeesList,
         paymentInfo: {
-          amount: booking.payment[0].amount,
-          currency: booking.payment[0].currency,
-          paymentOption: booking.payment[0].paymentOption,
+          amount: payment.amount,
+          currency: payment.currency,
+          paymentOption: payment.paymentOption,
         },
       };
 
       const paymentCredential = await prisma.credential.findFirst({
         where: {
           userId: ctx.user.id,
-          appId: booking.payment[0].appId,
+          appId: payment.appId,
         },
         include: {
           app: true,
@@ -107,11 +111,31 @@ export const paymentsRouter = router({
       const paymentInstance = new PaymentService(paymentCredential);
 
       try {
-        const paymentData = await paymentInstance.chargeCard(booking.payment[0]);
+        const paymentData = await paymentInstance.chargeCard(payment);
 
         if (!paymentData) {
           throw new TRPCError({ code: "NOT_FOUND", message: `Could not generate payment data` });
         }
+
+        const subscriberOptions = {
+          userId: ctx.user.id || 0,
+          eventTypeId: booking.eventTypeId || 0,
+          triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
+        };
+
+        const subscribers = await getWebhooks(subscriberOptions);
+
+        await Promise.all(
+          subscribers.map(async (subscriber) => {
+            sendPayload(subscriber.secret, WebhookTriggerEvents.BOOKING_PAID, {
+              ...evt,
+              bookingId: booking.id,
+              paymentId: payment.id,
+              paymentData,
+              eventTypeId: subscriberOptions.eventTypeId,
+            });
+          })
+        );
 
         await sendNoShowFeeChargedEmail(attendeesListPromises[0], evt);
 

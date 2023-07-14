@@ -28,7 +28,6 @@ type AvailableTimesProps = {
   bookingAttendees?: number | null;
   slots?: Slot[];
   isLoading: boolean;
-  ethSignature?: string;
   duration: number;
 };
 
@@ -43,7 +42,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   onTimeFormatChange,
   seatsPerTimeSlot,
   bookingAttendees,
-  ethSignature,
   duration,
 }) => {
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
@@ -68,6 +66,10 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   );
 
   const reserveSlot = (slot: Slot) => {
+    // Prevent double clicking
+    if (reserveSlotMutation.isLoading || reserveSlotMutation.isSuccess) {
+      return;
+    }
     reserveSlotMutation.mutate({
       slotUtcStartDate: slot.time,
       eventTypeId,
@@ -119,7 +121,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                     timeFormat,
                     /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
                     count: recurringCount && !rescheduleUid ? recurringCount : undefined,
-                    ...(ethSignature ? { ethSignature } : {}),
                   },
                 };
 
@@ -135,8 +136,20 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 let slotFull, notEnoughSeats;
 
                 if (slot.attendees && seatsPerTimeSlot) slotFull = slot.attendees >= seatsPerTimeSlot;
-                if (slot.attendees && bookingAttendees && seatsPerTimeSlot)
+                if (slot.attendees && bookingAttendees && seatsPerTimeSlot) {
                   notEnoughSeats = slot.attendees + bookingAttendees > seatsPerTimeSlot;
+                }
+
+                const isHalfFull =
+                  slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.5;
+                const isNearlyFull =
+                  slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.83;
+
+                const colorClass = isNearlyFull
+                  ? "text-rose-600"
+                  : isHalfFull
+                  ? "text-yellow-500"
+                  : "text-emerald-400";
 
                 return (
                   <div data-slot-owner={(slot.userIds || []).join(",")} key={`${dayjs(slot.time).format()}`}>
@@ -147,7 +160,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                         className={classNames(
                           "text-default bg-default border-subtle mb-2 block rounded-sm border py-2 font-medium opacity-25",
                           brand === "#fff" || brand === "#ffffff" ? "" : ""
-                        )}>
+                        )}
+                        data-testid="time"
+                        data-disabled="true">
                         {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
                         {notEnoughSeats ? (
                           <p className="text-sm">{t("not_enough_seats")}</p>
@@ -164,17 +179,11 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                           brand === "#fff" || brand === "#ffffff" ? "" : ""
                         )}
                         onClick={() => reserveSlot(slot)}
-                        data-testid="time">
+                        data-testid="time"
+                        data-disabled="false">
                         {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
                         {!!seatsPerTimeSlot && (
-                          <p
-                            className={`${
-                              slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.8
-                                ? "text-rose-600"
-                                : slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.33
-                                ? "text-yellow-500"
-                                : "text-emerald-400"
-                            } text-sm`}>
+                          <p className={`${colorClass} text-sm`}>
                             {slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot} /{" "}
                             {seatsPerTimeSlot}{" "}
                             {t("seats_available", {

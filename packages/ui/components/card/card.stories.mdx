@@ -22,19 +22,37 @@ export const tip = {
 
 
 <Canvas>
-  <Story name="Card">
-    <VariantsTable titles={['']} columnMinWidth={150}>
-      <VariantRow variant="Sidebar Card">
+  <Story name="Card"
+  args={{
+    thumbnailUrl: tip.thumbnailUrl,
+    mediaLink: tip.mediaLink,
+    title: tip.title,
+    description: tip.description,
+    learnMoreHref: tip.href,
+    learnMoreText: "learn more",
+  }}
+  argTypes={{
+    thumbnailUrl: { control: { type: 'text' } },
+    mediaLink: { control: { type: 'text' } },
+    title: { control: { type: 'text' } },
+    description: { control: { type: 'text' } },
+    learnMoreHref: { control: { type: 'text' } },
+    learnMoreText: { control: { type: 'text' } },
+  }}>
+    {({ thumbnailUrl, mediaLink, title, description, learnMoreText }) => (
+      <VariantsTable titles={['']} columnMinWidth={150}>
+        <VariantRow variant="Sidebar Card">
           <Card
-                variant="SidebarCard"
-                thumbnailUrl={tip.thumbnailUrl}
-                mediaLink={tip.mediaLink}
-                title={tip.title}
-                description={tip.description}
-                learnMore={{ href: tip.href, text: "learn more" }}
-                actionButton={{ onClick: () => console.log("Clicked") }}
-              />
-      </VariantRow>
-    </VariantsTable>
+            variant="SidebarCard"
+            thumbnailUrl={thumbnailUrl}
+            mediaLink={mediaLink}
+            title={title}
+            description={description}
+            learnMore={{ href: tip.href, text: learnMoreText }}
+            actionButton={{ onClick: () => console.log("Clicked") }}
+          />
+        </VariantRow>
+      </VariantsTable>
+    )}
   </Story>
 </Canvas>

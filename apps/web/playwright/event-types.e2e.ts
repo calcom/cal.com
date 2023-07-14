@@ -4,16 +4,15 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { randomString } from "@calcom/lib/random";
 
 import { test } from "./lib/fixtures";
-import { testBothBookers } from "./lib/new-booker";
 import { bookTimeSlot, createNewEventType, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
 test.describe("Event Types tests", () => {
-  testBothBookers.describe("user", (bookerVariant) => {
+  test.describe("user", () => {
     test.beforeEach(async ({ page, users }) => {
       const user = await users.create();
-      await user.login();
+      await user.apiLogin();
       await page.goto("/event-types");
       // We wait until loading is finished
       await page.waitForSelector('[data-testid="event-types"]');
@@ -69,7 +68,7 @@ test.describe("Event Types tests", () => {
         '[data-testid="event-types"] a[href^="/event-types/"] >> nth=0'
       );
       const href = await firstElement.getAttribute("href");
-      if (!href) throw new Error("No href found for event type");
+      expect(href).toBeTruthy();
       const [eventTypeId] = new URL(WEBAPP_URL + href).pathname.split("/").reverse();
       const firstTitle = await page.locator(`[data-testid=event-type-title-${eventTypeId}]`).innerText();
       const firstFullSlug = await page.locator(`[data-testid=event-type-slug-${eventTypeId}]`).innerText();
@@ -142,17 +141,6 @@ test.describe("Event Types tests", () => {
       await page.goto(previewLink ?? "");
 
       await selectFirstAvailableTimeSlotNextMonth(page);
-
-      // Navigate to book page
-      // Kept in if statement here, since it's only temporary
-      // until the old booker isn't used anymore, and I wanted
-      // to change the test as little as possible.
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (bookerVariant === "old-booker") {
-        await page.waitForURL((url) => {
-          return url.pathname.endsWith("/book");
-        });
-      }
 
       for (const location of locationData) {
         await page.locator(`span:has-text("${location}")`).click();

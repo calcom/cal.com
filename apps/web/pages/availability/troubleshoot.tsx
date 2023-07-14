@@ -26,7 +26,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
 
   const { data, isLoading } = trpc.viewer.availability.user.useQuery(
     {
-      username: user.username!,
+      username: user.username || "",
       dateFrom: selectedDate.startOf("day").utc().format(),
       dateTo: selectedDate.endOf("day").utc().format(),
       withSource: true,

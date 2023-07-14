@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
+import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip, TextField } from "@calcom/ui";
@@ -10,9 +11,9 @@ import type { appDataSchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ eventType, app }) {
   const { t } = useLocale();
-  const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
-  const [enabled, setEnabled] = useState(getAppData("enabled"));
+  const [getAppData, setAppData, LockedIcon, disabled] = useAppContextWithSchema<typeof appDataSchema>();
   const [additionalParameters, setAdditionalParameters] = useState("");
+  const { enabled, updateEnabled } = useIsAppEnabled(app);
 
   const query = additionalParameters !== "" ? `?${additionalParameters}` : "";
   const eventTypeURL = eventType.URL + query;
@@ -38,18 +39,18 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     <AppCard
       setAppData={setAppData}
       app={app}
+      disableSwitch={disabled}
+      LockedIcon={LockedIcon}
       switchOnClick={(e) => {
-        if (!e) {
-          setEnabled(false);
-        } else {
-          setEnabled(true);
-        }
+        updateEnabled(e);
       }}
-      switchChecked={enabled}>
+      switchChecked={enabled}
+      teamId={eventType.team?.id || undefined}>
       <div className="flex w-full flex-col gap-2 text-sm">
         <div className="flex w-full">
           <TextField
             name="hello"
+            disabled={disabled}
             value={additionalParameters}
             onChange={(e) => setAdditionalParameters(e.target.value)}
             label={t("additional_url_parameters")}

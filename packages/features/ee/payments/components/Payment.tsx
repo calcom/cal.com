@@ -100,7 +100,7 @@ const PaymentForm = (props: Props) => {
         <PaymentElement onChange={() => setState({ status: "idle" })} />
       </div>
       {paymentOption === "HOLD" && (
-        <div className="bg-info mt-2 mb-5 rounded-md p-3">
+        <div className="bg-info mb-5 mt-2 rounded-md p-3">
           <Checkbox
             description={t("acknowledge_booking_no_show_fee", {
               amount: props.payment.amount / 100,
@@ -115,7 +115,9 @@ const PaymentForm = (props: Props) => {
         <Button
           color="minimal"
           disabled={!holdAcknowledged || ["processing", "error"].includes(state.status)}
-          id="cancel">
+          id="cancel"
+          onClick={() => router.back()}
+          >
           <span id="button-text">{t("cancel")}</span>
         </Button>
         <Button

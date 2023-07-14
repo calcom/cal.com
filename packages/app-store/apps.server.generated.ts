@@ -35,7 +35,6 @@ export const apiHandlers = {
   pipedream: import("./pipedream/api"),
   plausible: import("./plausible/api"),
   qr_code: import("./qr_code/api"),
-  rainbow: import("./rainbow/api"),
   raycast: import("./raycast/api"),
   riverside: import("./riverside/api"),
   "routing-forms": import("./routing-forms/api"),

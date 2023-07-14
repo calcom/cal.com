@@ -39,6 +39,7 @@ export default function RequiresConfirmationController({
     if (!requiresConfirmation) {
       formMethods.setValue("metadata.requiresConfirmationThreshold", undefined);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requiresConfirmation]);
 
   const { shouldLockDisableProps } = useLockedFieldsManager(

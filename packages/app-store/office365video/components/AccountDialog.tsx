@@ -12,7 +12,7 @@ export function AccountDialog(props: DialogProps) {
         type="creation"
         title="Connecting with MS Teams requires a work/school Microsoft account."
         description="If you continue with a personal account you will receive an error">
-        <DialogFooter>
+        <DialogFooter showDivider className="mt-6">
           <>
             <DialogClose
               type="button"

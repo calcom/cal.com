@@ -7,20 +7,19 @@ import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
-import { testBothBookers } from "./lib/new-booker";
-import type { BookerVariants } from "./lib/new-booker";
 import { createHttpServer, waitFor, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 async function getLabelText(field: Locator) {
   return await field.locator("label").first().locator("span").first().innerText();
 }
 
+test.describe.configure({ mode: "parallel" });
 test.describe("Manage Booking Questions", () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
 
-  testBothBookers.describe("For User EventType", (bookerVariant) => {
+  test.describe("For User EventType", () => {
     test("Do a booking with a user added question and verify a few thing in b/w", async ({
       page,
       users,
@@ -28,7 +27,7 @@ test.describe("Manage Booking Questions", () => {
     }, testInfo) => {
       // Considering there are many steps in it, it would need more than default test timeout
       test.setTimeout(testInfo.timeout * 3);
-      const user = await createAndLoginUserWithEventTypes({ users });
+      const user = await createAndLoginUserWithEventTypes({ users, page });
 
       const webhookReceiver = await addWebhook(user);
 
@@ -39,11 +38,11 @@ test.describe("Manage Booking Questions", () => {
         await firstEventTypeElement.click();
       });
 
-      await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver, bookerVariant);
+      await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver);
     });
   });
 
-  testBothBookers.describe("For Team EventType", (bookerVariant) => {
+  test.describe("For Team EventType", () => {
     test("Do a booking with a user added question and verify a few thing in b/w", async ({
       page,
       users,
@@ -51,7 +50,7 @@ test.describe("Manage Booking Questions", () => {
     }, testInfo) => {
       // Considering there are many steps in it, it would need more than default test timeout
       test.setTimeout(testInfo.timeout * 3);
-      const user = await createAndLoginUserWithEventTypes({ users });
+      const user = await createAndLoginUserWithEventTypes({ users, page });
       const team = await prisma.team.findFirst({
         where: {
           members: {
@@ -65,7 +64,7 @@ test.describe("Manage Booking Questions", () => {
         },
       });
 
-      const teamId = team?.id ?? 0;
+      const teamId = team?.id;
       const webhookReceiver = await addWebhook(undefined, teamId);
 
       await test.step("Go to First Team Event", async () => {
@@ -75,7 +74,7 @@ test.describe("Manage Booking Questions", () => {
         await firstEventTypeElement.click();
       });
 
-      await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver, bookerVariant);
+      await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver);
     });
   });
 });
@@ -86,10 +85,10 @@ async function runTestStepsCommonForTeamAndUserEventType(
   webhookReceiver: {
     port: number;
     close: () => import("http").Server;
-    requestList: (import("http").IncomingMessage & { body?: unknown })[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    requestList: (import("http").IncomingMessage & { body?: any })[];
     url: string;
-  },
-  bookerVariant: BookerVariants
+  }
 ) {
   await page.click('[href$="tabName=advanced"]');
   await test.step("Add Question and see that it's shown on Booking Page at appropriate position", async () => {
@@ -104,7 +103,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
       },
     });
 
-    await doOnFreshPreview(page, context, bookerVariant, async (page) => {
+    await doOnFreshPreview(page, context, async (page) => {
       const allFieldsLocator = await expectSystemFieldsToBeThere(page);
       const userFieldLocator = allFieldsLocator.nth(5);
 
@@ -120,7 +119,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
       name: "how_are_you",
       page,
     });
-    await doOnFreshPreview(page, context, bookerVariant, async (page) => {
+    await doOnFreshPreview(page, context, async (page) => {
       const formBuilderFieldLocator = page.locator('[data-fob-field-name="how_are_you"]');
       await expect(formBuilderFieldLocator).toBeHidden();
     });
@@ -134,7 +133,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
   });
 
   await test.step('Try to book without providing "How are you?" response', async () => {
-    await doOnFreshPreview(page, context, bookerVariant, async (page) => {
+    await doOnFreshPreview(page, context, async (page) => {
       await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
       await expectErrorToBeThereFor({ page, name: "how_are_you" });
     });
@@ -153,7 +152,6 @@ async function runTestStepsCommonForTeamAndUserEventType(
       return await doOnFreshPreview(
         page,
         context,
-        bookerVariant,
         async (page) => {
           const formBuilderFieldLocator = page.locator('[data-fob-field-name="how_are_you"]');
           await expect(formBuilderFieldLocator).toBeVisible();
@@ -175,7 +173,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
 
           const [request] = webhookReceiver.requestList;
 
-          const payload = (request.body as any).payload as any;
+          const payload = request.body.payload;
 
           expect(payload.responses).toMatchObject({
             email: {
@@ -212,7 +210,9 @@ async function runTestStepsCommonForTeamAndUserEventType(
 
   await test.step("Do a reschedule and notice that we can't book without giving a value for rescheduleReason", async () => {
     const page = previewTabPage;
-    await rescheduleFromTheLinkOnPage({ page, bookerVariant });
+    await rescheduleFromTheLinkOnPage({ page });
+    // eslint-disable-next-line playwright/no-page-pause
+    await page.pause();
     await expectErrorToBeThereFor({ page, name: "rescheduleReason" });
   });
 }
@@ -244,6 +244,7 @@ async function bookTimeSlot({ page, name, email }: { page: Page; name: string; e
   await page.fill('[name="email"]', email);
   await page.press('[name="email"]', "Enter");
 }
+
 /**
  * 'option' starts from 1
  */
@@ -319,11 +320,10 @@ async function expectErrorToBeThereFor({ page, name }: { page: Page; name: strin
 async function doOnFreshPreview(
   page: Page,
   context: PlaywrightTestArgs["context"],
-  bookerVariant: BookerVariants,
   callback: (page: Page) => Promise<void>,
   persistTab = false
 ) {
-  const previewTabPage = await openBookingFormInPreviewTab(context, page, bookerVariant);
+  const previewTabPage = await openBookingFormInPreviewTab(context, page);
   await callback(previewTabPage);
   if (!persistTab) {
     await previewTabPage.close();
@@ -355,47 +355,36 @@ async function toggleQuestionRequireStatusAndSave({
   await saveEventType(page);
 }
 
-async function createAndLoginUserWithEventTypes({ users }: { users: ReturnType<typeof createUsersFixture> }) {
+async function createAndLoginUserWithEventTypes({
+  users,
+  page,
+}: {
+  users: ReturnType<typeof createUsersFixture>;
+  page: Page;
+}) {
   const user = await users.create(null, {
     hasTeam: true,
   });
-  await user.login();
+  await user.apiLogin();
+  await page.goto("/event-types");
+  // We wait until loading is finished
+  await page.waitForSelector('[data-testid="event-types"]');
   return user;
 }
 
-async function rescheduleFromTheLinkOnPage({
-  page,
-  bookerVariant,
-}: {
-  page: Page;
-  bookerVariant: BookerVariants;
-}) {
+async function rescheduleFromTheLinkOnPage({ page }: { page: Page }) {
   await page.locator('[data-testid="reschedule-link"]').click();
   await page.waitForLoadState();
   await selectFirstAvailableTimeSlotNextMonth(page);
-  if (bookerVariant === "old-booker") {
-    await page.waitForURL((url) => {
-      return url.pathname.endsWith("/book");
-    });
-  }
   await page.click('[data-testid="confirm-reschedule-button"]');
 }
 
-async function openBookingFormInPreviewTab(
-  context: PlaywrightTestArgs["context"],
-  page: Page,
-  bookerVariant: BookerVariants
-) {
+async function openBookingFormInPreviewTab(context: PlaywrightTestArgs["context"], page: Page) {
   const previewTabPromise = context.waitForEvent("page");
   await page.locator('[data-testid="preview-button"]').click();
   const previewTabPage = await previewTabPromise;
   await previewTabPage.waitForLoadState();
   await selectFirstAvailableTimeSlotNextMonth(previewTabPage);
-  if (bookerVariant === "old-booker") {
-    await previewTabPage.waitForURL((url) => {
-      return url.pathname.endsWith("/book");
-    });
-  }
   return previewTabPage;
 }
 

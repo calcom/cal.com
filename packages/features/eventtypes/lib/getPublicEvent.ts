@@ -6,14 +6,17 @@ import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { PrismaClient } from "@calcom/prisma/client";
+import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
+  bookerLayoutOptions,
   EventTypeMetaDataSchema,
   customInputSchema,
   userMetadata as userMetadataSchema,
+  bookerLayouts as bookerLayoutsSchema,
+  BookerLayouts,
 } from "@calcom/prisma/zod-utils";
 
 const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
@@ -27,7 +30,6 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   locations: true,
   customInputs: true,
   disableGuests: true,
-  // @TODO: Could this contain sensitive data?
   metadata: true,
   requiresConfirmation: true,
   recurringEvent: true,
@@ -36,6 +38,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   seatsPerTimeSlot: true,
   bookingFields: true,
   team: true,
+  successRedirectUrl: true,
   workflows: {
     include: {
       workflow: {
@@ -55,17 +58,38 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
           brandColor: true,
           darkBrandColor: true,
           theme: true,
+          metadata: true,
         },
       },
     },
   },
-  owner: true,
+  owner: {
+    select: {
+      weekStart: true,
+      username: true,
+      name: true,
+      theme: true,
+      metadata: true,
+      brandColor: true,
+      darkBrandColor: true,
+    },
+  },
   hidden: true,
 });
 
-export const getPublicEvent = async (username: string, eventSlug: string, prisma: PrismaClient) => {
-  const usernameList = username.split("+");
-
+export const getPublicEvent = async (
+  username: string,
+  eventSlug: string,
+  isTeamEvent: boolean | undefined,
+  org: string | null,
+  prisma: PrismaClient
+) => {
+  const usernameList = getUsernameList(username);
+  const orgQuery = org
+    ? {
+        slug: org ?? null,
+      }
+    : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
   if (usernameList.length > 1) {
     const users = await prisma.user.findMany({
@@ -73,6 +97,7 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
         username: {
           in: usernameList,
         },
+        organization: orgQuery,
       },
       select: {
         username: true,
@@ -102,6 +127,11 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
       }
     }
 
+    const defaultEventBookerLayouts = {
+      enabledLayouts: [...bookerLayoutOptions],
+      defaultLayout: BookerLayouts.MONTH_VIEW,
+    } as BookerLayoutSettings;
+
     return {
       ...defaultEvent,
       bookingFields: getBookingFieldsWithSystemFields(defaultEvent),
@@ -112,49 +142,65 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
         username: users[0].username,
         name: users[0].name,
         weekStart: users[0].weekStart,
-        image: `${WEBAPP_URL}/${users[0].username}/avatar.png`,
+        image: `/${users[0].username}/avatar.png`,
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
         theme: null,
+        bookerLayouts: bookerLayoutsSchema.parse(
+          firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
+        ),
       },
     };
   }
+
+  const usersOrTeamQuery = isTeamEvent
+    ? {
+        team: {
+          slug: username,
+          parent: orgQuery,
+        },
+      }
+    : {
+        users: {
+          some: {
+            username,
+            organization: orgQuery,
+          },
+        },
+        team: null,
+      };
 
   // In case it's not a group event, it's either a single user or a team, and we query that data.
   const event = await prisma.eventType.findFirst({
     where: {
       slug: eventSlug,
-      OR: [
-        {
-          users: {
-            some: {
-              username,
-            },
-          },
-        },
-        {
-          team: {
-            slug: username,
-          },
-        },
-      ],
+      ...usersOrTeamQuery,
     },
     select: publicEventSelect,
   });
 
   if (!event) return null;
 
+  const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
+
+  const users = getUsersFromEvent(event) || (await getOwnerFromUsersArray(prisma, event.id));
+  if (users === null) {
+    throw new Error("Event has no owner");
+  }
+
   return {
     ...event,
+    bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
     description: markdownToSafeHTML(event.description),
-    metadata: EventTypeMetaDataSchema.parse(event.metadata || {}),
+    metadata: eventMetaData,
     customInputs: customInputSchema.array().parse(event.customInputs || []),
     locations: privacyFilteredLocations((event.locations || []) as LocationObject[]),
     bookingFields: getBookingFieldsWithSystemFields(event),
     recurringEvent: isRecurringEvent(event.recurringEvent) ? parseRecurringEvent(event.recurringEvent) : null,
     // Sets user data on profile object for easier access
     profile: getProfileFromEvent(event),
-    users: getUsersFromEvent(event),
+    users,
+    orgDomain: org,
   };
 };
 
@@ -170,19 +216,38 @@ function getProfileFromEvent(event: Event) {
   if (!profile) throw new Error("Event has no owner");
 
   const username = "username" in profile ? profile.username : team?.slug;
-  if (!username) throw new Error("Event has no username/team slug");
+  if (!username) {
+    if (event.slug === "test") {
+      // @TODO: This is a temporary debug statement that should be removed asap.
+      throw new Error(
+        "Ciaran event error" +
+          JSON.stringify(team) +
+          " -- " +
+          JSON.stringify(hosts) +
+          " -- " +
+          JSON.stringify(owner)
+      );
+    }
+    throw new Error("Event has no username/team slug");
+  }
   const weekStart = hosts?.[0]?.user?.weekStart || owner?.weekStart || "Monday";
   const basePath = team ? `/team/${username}` : `/${username}`;
+  const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
+  const userMetaData = userMetadataSchema.parse(profile.metadata || {});
 
   return {
     username,
     name: profile.name,
     weekStart,
-    image: team ? undefined : `${WEBAPP_URL}${basePath}/avatar.png`,
+    image: team ? undefined : `${basePath}/avatar.png`,
     logo: !team ? undefined : team.logo,
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
     theme: profile.theme,
+    bookerLayouts: bookerLayoutsSchema.parse(
+      eventMetaData?.bookerLayouts ||
+        (userMetaData && "defaultBookerLayouts" in userMetaData ? userMetaData.defaultBookerLayouts : null)
+    ),
   };
 }
 
@@ -191,11 +256,20 @@ function getUsersFromEvent(event: Event) {
   if (team) {
     return (hosts || []).map(mapHostsToUsers);
   }
-
-  if (!owner) throw new Error("Event has no owner");
-
+  if (!owner) {
+    return null;
+  }
   const { username, name, weekStart } = owner;
   return [{ username, name, weekStart }];
+}
+
+async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number) {
+  const { users } = await prisma.eventType.findUniqueOrThrow({
+    where: { id: eventTypeId },
+    select: { users: { select: { username: true, name: true, weekStart: true } } },
+  });
+  if (!users.length) return null;
+  return [users[0]];
 }
 
 function mapHostsToUsers(host: { user: Pick<User, "username" | "name" | "weekStart"> }) {

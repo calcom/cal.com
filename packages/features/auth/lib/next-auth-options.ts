@@ -9,12 +9,12 @@ import GoogleProvider from "next-auth/providers/google";
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
 import { randomString } from "@calcom/lib/random";
-import rateLimit from "@calcom/lib/rateLimit";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -82,8 +82,14 @@ const providers: Provider[] = [
           metadata: true,
           identityProvider: true,
           password: true,
+          organizationId: true,
           twoFactorEnabled: true,
           twoFactorSecret: true,
+          organization: {
+            select: {
+              id: true,
+            },
+          },
           teams: {
             include: {
               team: true,
@@ -94,29 +100,28 @@ const providers: Provider[] = [
 
       // Don't leak information about it being username or password that is invalid
       if (!user) {
-        throw new Error(ErrorCode.IncorrectUsernamePassword);
+        throw new Error(ErrorCode.IncorrectEmailPassword);
       }
 
-      const limiter = rateLimit({
-        intervalInMs: 60 * 1000, // 1 minute
+      await checkRateLimitAndThrowError({
+        identifier: user.email,
       });
-      await limiter.check(10, user.email); // 10 requests per minute
 
       if (user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
         throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
       }
 
       if (!user.password && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
-        throw new Error(ErrorCode.IncorrectUsernamePassword);
+        throw new Error(ErrorCode.IncorrectEmailPassword);
       }
 
       if (user.password || !credentials.totpCode) {
         if (!user.password) {
-          throw new Error(ErrorCode.IncorrectUsernamePassword);
+          throw new Error(ErrorCode.IncorrectEmailPassword);
         }
         const isCorrectPassword = await verifyPassword(credentials.password, user.password);
         if (!isCorrectPassword) {
-          throw new Error(ErrorCode.IncorrectUsernamePassword);
+          throw new Error(ErrorCode.IncorrectEmailPassword);
         }
       }
 
@@ -172,6 +177,7 @@ const providers: Provider[] = [
         name: user.name,
         role: validateRole(user.role),
         belongsToActiveTeam: hasActiveTeams,
+        organizationId: user.organizationId,
       };
     },
   }),
@@ -343,7 +349,7 @@ export const AUTH_OPTIONS: AuthOptions = {
   },
   providers,
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger, session }) {
       const autoMergeIdentities = async () => {
         const existingUser = await prisma.user.findFirst({
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -353,6 +359,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             username: true,
             name: true,
             email: true,
+            organizationId: true,
             role: true,
             teams: {
               include: {
@@ -397,6 +404,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: user.role,
           impersonatedByUID: user?.impersonatedByUID,
           belongsToActiveTeam: user?.belongsToActiveTeam,
+          organizationId: user?.organizationId,
         };
       }
 
@@ -434,6 +442,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: existingUser.role,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
+          organizationId: token?.organizationId,
         };
       }
 
@@ -452,6 +461,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           role: token.role as UserPermissionRole,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
+          organizationId: token?.organizationId,
         },
       };
       return calendsoSession;
@@ -605,7 +615,9 @@ export const AUTH_OPTIONS: AuthOptions = {
             !existingUserWithEmail.username
           ) {
             await prisma.user.update({
-              where: { email: existingUserWithEmail.email },
+              where: {
+                email: existingUserWithEmail.email,
+              },
               data: {
                 // update the email to the IdP email
                 email: user.email,

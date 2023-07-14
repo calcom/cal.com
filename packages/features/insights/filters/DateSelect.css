@@ -1,7 +1,15 @@
 .custom-date > .tremor-DateRangePicker-root > .tremor-DateRangePicker-button {
   box-shadow: none;
-  max-width: 288px;
+  width: 100%;
 }
+
+/* Media query for screens larger than 768px */
+@media (max-width: 639) {
+  .custom-date > .tremor-DateRangePicker-root > .tremor-DateRangePicker-button {
+    max-width: 400px;
+  }
+}
+
 
 .tremor-DateRangePicker-calendarButton, .tremor-DateRangePicker-dropdownButton {
   @apply  border-subtle bg-default text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-0 focus-within:ring-emphasis hover:border-subtle dark:focus-within:ring-emphasis hover:bg-subtle

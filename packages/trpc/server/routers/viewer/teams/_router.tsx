@@ -3,14 +3,19 @@ import { router } from "../../../trpc";
 import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
 import { ZChangeMemberRoleInputSchema } from "./changeMemberRole.schema";
 import { ZCreateInputSchema } from "./create.schema";
+import { ZCreateInviteInputSchema } from "./createInvite.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
+import { ZDeleteInviteInputSchema } from "./deleteInvite.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
-import { ZInviteMemberInputSchema } from "./inviteMember.schema";
+import { ZGetUserAdminTeamsInputSchema } from "./getUserAdminTeams.schema";
+import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
+import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { ZPublishInputSchema } from "./publish.schema";
 import { ZRemoveMemberInputSchema } from "./removeMember.schema";
+import { ZSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
 
@@ -21,7 +26,7 @@ type TeamsRouterHandlerCache = {
   update?: typeof import("./update.handler").updateHandler;
   delete?: typeof import("./delete.handler").deleteHandler;
   removeMember?: typeof import("./removeMember.handler").removeMemberHandler;
-  inviteMember?: typeof import("./inviteMember.handler").inviteMemberHandler;
+  inviteMember?: typeof import("./inviteMember/inviteMember.handler").inviteMemberHandler;
   acceptOrLeave?: typeof import("./acceptOrLeave.handler").acceptOrLeaveHandler;
   changeMemberRole?: typeof import("./changeMemberRole.handler").changeMemberRoleHandler;
   getMemberAvailability?: typeof import("./getMemberAvailability.handler").getMemberAvailabilityHandler;
@@ -32,6 +37,11 @@ type TeamsRouterHandlerCache = {
   listMembers?: typeof import("./listMembers.handler").listMembersHandler;
   hasTeamPlan?: typeof import("./hasTeamPlan.handler").hasTeamPlanHandler;
   listInvites?: typeof import("./listInvites.handler").listInvitesHandler;
+  getUserAdminTeams?: typeof import("./getUserAdminTeams.handler").getUserAdminTeamsHandler;
+  createInvite?: typeof import("./createInvite.handler").createInviteHandler;
+  setInviteExpiration?: typeof import("./setInviteExpiration.handler").setInviteExpirationHandler;
+  deleteInvite?: typeof import("./deleteInvite.handler").deleteInviteHandler;
+  inviteMemberByToken?: typeof import("./inviteMemberByToken.handler").inviteMemberByTokenHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: TeamsRouterHandlerCache = {};
@@ -139,7 +149,7 @@ export const viewerTeamsRouter = router({
 
   inviteMember: authedProcedure.input(ZInviteMemberInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.inviteMember) {
-      UNSTABLE_HANDLER_CACHE.inviteMember = await import("./inviteMember.handler").then(
+      UNSTABLE_HANDLER_CACHE.inviteMember = await import("./inviteMember/inviteMember.handler").then(
         (mod) => mod.inviteMemberHandler
       );
     }
@@ -334,4 +344,95 @@ export const viewerTeamsRouter = router({
       ctx,
     });
   }),
+
+  getUserAdminTeams: authedProcedure.input(ZGetUserAdminTeamsInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getUserAdminTeams) {
+      UNSTABLE_HANDLER_CACHE.getUserAdminTeams = await import("./getUserAdminTeams.handler").then(
+        (mod) => mod.getUserAdminTeamsHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getUserAdminTeams) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getUserAdminTeams({
+      ctx,
+      input,
+    });
+  }),
+
+  createInvite: authedProcedure.input(ZCreateInviteInputSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.createInvite) {
+      UNSTABLE_HANDLER_CACHE.createInvite = await import("./createInvite.handler").then(
+        (mod) => mod.createInviteHandler
+      );
+    }
+
+    if (!UNSTABLE_HANDLER_CACHE.createInvite) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.createInvite({
+      ctx,
+      input,
+    });
+  }),
+
+  setInviteExpiration: authedProcedure
+    .input(ZSetInviteExpirationInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.setInviteExpiration) {
+        UNSTABLE_HANDLER_CACHE.setInviteExpiration = await import("./setInviteExpiration.handler").then(
+          (mod) => mod.setInviteExpirationHandler
+        );
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.setInviteExpiration) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.setInviteExpiration({
+        ctx,
+        input,
+      });
+    }),
+  deleteInvite: authedProcedure.input(ZDeleteInviteInputSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.deleteInvite) {
+      UNSTABLE_HANDLER_CACHE.deleteInvite = await import("./deleteInvite.handler").then(
+        (mod) => mod.deleteInviteHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.deleteInvite) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.deleteInvite({
+      ctx,
+      input,
+    });
+  }),
+  inviteMemberByToken: authedProcedure
+    .input(ZInviteMemberByTokenSchemaInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.inviteMemberByToken) {
+        UNSTABLE_HANDLER_CACHE.inviteMemberByToken = await import("./inviteMemberByToken.handler").then(
+          (mod) => mod.inviteMemberByTokenHandler
+        );
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.inviteMemberByToken) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.inviteMemberByToken({
+        ctx,
+        input,
+      });
+    }),
 });

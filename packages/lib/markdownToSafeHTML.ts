@@ -3,7 +3,7 @@ import sanitizeHtml from "sanitize-html";
 import { md } from "@calcom/lib/markdownIt";
 
 export function markdownToSafeHTML(markdown: string | null) {
-  if (!markdown) return null;
+  if (!markdown) return "";
 
   const html = md.render(markdown);
 

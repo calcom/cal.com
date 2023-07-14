@@ -45,20 +45,45 @@ Checkboxes are used in forms and databases to indicate an answer to a question, 
 </Examples>
 
 <Canvas>
-  <Story name="Checkbox">
-    <VariantsTable titles={[""]} columnMinWidth={150}>
-      <VariantRow variant="Default">
-        <Checkbox label="Default"  />
-        <Checkbox label="Error" error/>
-        <Checkbox label="Disabled"  disabled/>
-        <Checkbox label="Disabled Checked"  checked disabled />
-      </VariantRow>
-        <VariantRow variant="Description As Label">
-          <Checkbox description="Default" descriptionAsLabel  />
-          <Checkbox description="Error" error descriptionAsLabel/>
-          <Checkbox description="Disabled"  disabled descriptionAsLabel/>
-          <Checkbox description="Disabled Checked"  checked disabled descriptionAsLabel/>
-      </VariantRow>
-    </VariantsTable>
+  <Story name="Checkbox"
+    args={{
+      label: "Default",
+      description: "Default Description",
+      error: false,
+      disabled: false,
+    }}
+         argTypes={{
+            label: {
+              control: {
+                type: 'text',
+              },
+            },
+            description: {
+              control: {
+                type: 'text',
+              },
+            },
+            error: {
+              control: {
+                type: 'boolean',
+              },
+            },
+            disabled: {
+              control: {
+                type: 'boolean',
+              },
+            }
+         }}
+  >
+    {({ label, description, error, disabled }) => (
+  <VariantsTable titles={[""]} columnMinWidth={150}>
+    <VariantRow variant="Default">
+      <Checkbox label={label} error={error} disabled={disabled} />
+    </VariantRow>
+    <VariantRow variant="Description As Label">
+      <Checkbox description={description} error={error} disabled={disabled} descriptionAsLabel/>
+    </VariantRow>
+  </VariantsTable>
+    )}
   </Story>
 </Canvas>

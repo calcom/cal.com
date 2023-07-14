@@ -1,6 +1,7 @@
 import type { GetStaticPropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import type { ReactElement } from "react";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -21,7 +22,7 @@ export default function Error() {
   const router = useRouter();
   const { error } = querySchema.parse(router.query);
   const isTokenVerificationError = error?.toLowerCase() === "verification";
-  let errorMsg = <SkeletonText />;
+  let errorMsg: string | ReactElement = <SkeletonText />;
   if (router.isReady) {
     errorMsg = isTokenVerificationError ? t("token_invalid_expired") : t("error_during_login");
   }

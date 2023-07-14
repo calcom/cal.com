@@ -12,7 +12,8 @@ test.describe("Inline Embed", () => {
     //TODO: Do it with page.goto automatically
     await addEmbedListeners("");
     await page.goto("/");
-    const embedIframe = await getEmbedIframe({ page, pathname: "/pro" });
+    const calNamespace = "";
+    const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
     expect(embedIframe).toBeEmbedCalLink("", getActionFiredDetails, {
       pathname: "/pro",
       searchParams: {

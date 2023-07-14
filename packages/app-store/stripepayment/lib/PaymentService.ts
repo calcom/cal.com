@@ -200,7 +200,7 @@ export class PaymentService implements IAbstractPaymentService {
     }
   }
 
-  async chargeCard(payment: Payment): Promise<Payment> {
+  async chargeCard(payment: Payment, _bookingId?: Booking["id"]): Promise<Payment> {
     try {
       const stripeAppKeys = await prisma?.app.findFirst({
         select: {

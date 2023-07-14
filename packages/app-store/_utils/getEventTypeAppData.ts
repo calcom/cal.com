@@ -36,11 +36,6 @@ export const getEventTypeAppData = <T extends EventTypeAppsList>(
       currency: eventType.currency,
       paymentOption: "ON_BOOKING",
     },
-    rainbow: {
-      enabled: !!(eventType.metadata?.smartContractAddress && eventType.metadata?.blockchainId),
-      smartContractAddress: eventType.metadata?.smartContractAddress || "",
-      blockchainId: eventType.metadata?.blockchainId || 0,
-    },
     giphy: {
       enabled: !!eventType.metadata?.giphyThankYouPage,
       thankYouPage: eventType.metadata?.giphyThankYouPage || "",

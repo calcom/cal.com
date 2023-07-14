@@ -47,7 +47,15 @@ async function expectToBeNavigatingToEmbedTypesDialog(
 
 async function expectToBeNavigatingToEmbedCodeAndPreviewDialog(
   page: Page,
-  { embedUrl, embedType, basePage }: { embedUrl: string | null; embedType: string; basePage: string }
+  {
+    embedUrl,
+    embedType,
+    basePage,
+  }: {
+    embedUrl: string | null;
+    embedType: string;
+    basePage: string;
+  }
 ) {
   if (!embedUrl) {
     throw new Error("Couldn't find embedUrl");
@@ -89,7 +97,7 @@ test.afterEach(({ users }) => users.deleteAll());
 test.describe("Embed Code Generator Tests", () => {
   test.beforeEach(async ({ users }) => {
     const pro = await users.create();
-    await pro.login();
+    await pro.apiLogin();
   });
 
   test.describe("Event Types Page", () => {

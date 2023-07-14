@@ -4,6 +4,7 @@ import { CAL_URL, LOGO } from "./constants";
 
 // Ensures tw prop is typed.
 declare module "react" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface HTMLAttributes<T> {
     tw?: string;
   }

@@ -10,6 +10,7 @@ on:
   schedule:
     # Runs every day (see https://crontab.guru)
     - cron: "0 0 * * *"
+  workflow_dispatch:
 jobs:
   stale:
     runs-on: ubuntu-latest
@@ -22,3 +23,4 @@ jobs:
           days-before-pr-close: 7
           stale-pr-message: "This PR is being marked as stale due to inactivity."
           close-pr-message: "This PR is being closed due to inactivity. Please reopen if work is intended to be continued."
+          operations-per-run: 100
