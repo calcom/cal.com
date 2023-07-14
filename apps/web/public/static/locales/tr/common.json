@@ -1745,6 +1745,10 @@
   "complete_your_booking": "Rezervasyonunuzu tamamlayın",
   "complete_your_booking_subject": "Rezervasyonunuzu tamamlayın: {{title}}, {{date}}",
   "confirm_your_details": "Bilgilerinizi onaylayın",
+  "one_day": "1 gün",
+  "seven_days": "7 gün",
+  "thirty_days": "30 gün",
+  "three_months": "3 ay",
   "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Katılımcıdan {{amount, currency}} tahsil etmek üzeresiniz. Devam etmek istediğinizden emin misiniz?",
   "charge_attendee": "Katılımcıdan {{amount, currency}} tahsil edin",
@@ -1773,5 +1777,8 @@
   "google_workspace_admin_tooltip": "Bu özelliği kullanmak için Çalışma Alanı Yöneticisi olmalısınız",
   "first_event_type_webhook_description": "Bu etkinlik türü için ilk web kancanızı oluşturun",
   "create_for": "Oluşturun",
+  "my_profile": "Profilim",
+  "my_settings": "Ayarlarım",
+  "no_organization_slug": "Bu kuruluş için ekipler oluşturulurken bir hata oluştu. URL bilgisi eksik.",
   "insights_all_org_filter": "Tümü"
 }
