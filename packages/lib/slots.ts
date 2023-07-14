@@ -191,7 +191,7 @@ function buildSlotsWithDateRanges({
       }
 
       slotStartTime =
-        slotStartTime.utc().minute() % interval !== 0
+        slotStartTime.minute() % interval !== 0
           ? slotStartTime
               .startOf("hour")
               .add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
