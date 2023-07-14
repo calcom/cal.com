@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -8,7 +10,6 @@ import { AppConnectionItem } from "../components/AppConnectionItem";
 import { ConnectedCalendarItem } from "../components/ConnectedCalendarItem";
 import { CreateEventsOnCalendarSelect } from "../components/CreateEventsOnCalendarSelect";
 import { StepConnectionLoader } from "../components/StepConnectionLoader";
-import { useState } from "react";
 
 interface IConnectCalendarsProps {
   nextStep: () => void;
@@ -24,7 +25,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
     sortByMostPopular: true,
   });
 
-  const [isButtonLoading,setIsButtonLoading] = useState(false);
+  const [isButtonLoading, setIsButtonLoading] = useState(false);
 
   const firstCalendar = queryConnectedCalendars.data?.connectedCalendars.find(
     (item) => item.calendars && item.calendars?.length > 0
@@ -91,7 +92,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
         )}
         onClick={() => {
           setIsButtonLoading(true);
-          nextStep()
+          nextStep();
         }}
         disabled={disabledNextButton}>
         {firstCalendar ? `${t("continue")}` : `${t("next_step_text")}`}

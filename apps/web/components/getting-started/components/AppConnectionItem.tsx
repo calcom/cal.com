@@ -1,8 +1,9 @@
+import { useState } from "react";
+
 import { InstallAppButtonWithoutPlanCheck } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui";
-import { useState } from "react";
 
 interface IAppConnectionItem {
   title: string;
@@ -15,7 +16,7 @@ interface IAppConnectionItem {
 const AppConnectionItem = (props: IAppConnectionItem) => {
   const { title, logo, type, installed } = props;
   const { t } = useLocale();
-  const [isButtonLoading,setIsButtonLoading] = useState(false);
+  const [isButtonLoading, setIsButtonLoading] = useState(false);
   return (
     <div className="flex flex-row items-center justify-between p-5">
       <div className="flex items-center space-x-3">
