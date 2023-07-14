@@ -40,6 +40,7 @@ export interface DataTableProps<TData, TValue> {
   tableCTA?: React.ReactNode;
   isLoading?: boolean;
   onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;
+  CTA?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({

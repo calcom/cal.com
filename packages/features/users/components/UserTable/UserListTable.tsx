@@ -1,14 +1,23 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { StopCircle, Users } from "lucide-react";
+import { Plus, StopCircle, Users } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useMemo, useRef, useCallback, useEffect, useReducer } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Badge, Checkbox, ConfirmationDialogContent, DataTable, Dialog, showToast } from "@calcom/ui";
+import {
+  Avatar,
+  Badge,
+  Button,
+  Checkbox,
+  ConfirmationDialogContent,
+  DataTable,
+  Dialog,
+  showToast,
+} from "@calcom/ui";
 
-import { useOrgBrandingValues } from "../../../ee/organizations/hooks";
+import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
 
 export interface User {
@@ -35,20 +44,16 @@ export type State = {
   changeMemberRole: Payload;
   deleteMember: Payload;
   impersonateMember: Payload;
+  inviteMember: Payload;
 };
 
 export type Action =
   | {
-      type: "SET_CHANGE_MEMBER_ROLE_ID";
+      type: "SET_CHANGE_MEMBER_ROLE_ID" | "SET_DELETE_ID" | "SET_IMPERSONATE_ID" | "INVITE_MEMBER";
       payload: Payload;
     }
   | {
-      type: "SET_DELETE_ID";
-      payload: Payload;
-    }
-  | {
-      type: "SET_IMPERSONATE_ID";
-      payload: Payload;
+      type: "CLOSE_MODAL";
     };
 
 const initialState: State = {
@@ -61,6 +66,9 @@ const initialState: State = {
   impersonateMember: {
     showModal: false,
   },
+  inviteMember: {
+    showModal: false,
+  },
 };
 
 function reducer(state: State, action: Action): State {
@@ -71,13 +79,22 @@ function reducer(state: State, action: Action): State {
       return { ...state, deleteMember: action.payload };
     case "SET_IMPERSONATE_ID":
       return { ...state, impersonateMember: action.payload };
+    case "INVITE_MEMBER":
+      return { ...state, inviteMember: action.payload };
+    case "CLOSE_MODAL":
+      return {
+        ...state,
+        changeMemberRole: { showModal: false },
+        deleteMember: { showModal: false },
+        impersonateMember: { showModal: false },
+        inviteMember: { showModal: false },
+      };
     default:
       return state;
   }
 }
 
 export function UserListTable() {
-  const orgValues = useOrgBrandingValues();
   const { data: session } = useSession();
   const { data: currentMembership } = trpc.viewer.organizations.listCurrent.useQuery();
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -272,6 +289,27 @@ export function UserListTable() {
           },
         ]}
         tableContainerRef={tableContainerRef}
+        tableCTA={
+          adminOrOwner && (
+            <Button
+              type="button"
+              color="primary"
+              StartIcon={Plus}
+              size="sm"
+              className="rounded-md"
+              onClick={() =>
+                dispatch({
+                  type: "INVITE_MEMBER",
+                  payload: {
+                    showModal: true,
+                  },
+                })
+              }
+              data-testid="new-organization-member-button">
+              {t("add")}
+            </Button>
+          )
+        }
         columns={memorisedColumns}
         data={flatData}
         isLoading={isLoading}
@@ -325,6 +363,8 @@ export function UserListTable() {
           </ConfirmationDialogContent>
         </Dialog>
       )}
+
+      {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
     </>
   );
 }

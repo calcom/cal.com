@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { useState } from "react";
 
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { UserListTable } from "@calcom/features/users/components/UserTable/UserListTable";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,44 +18,6 @@ interface MembersListProps {
 
 const checkIfExist = (comp: string, query: string) =>
   comp.toLowerCase().replace(/\s+/g, "").includes(query.toLowerCase().replace(/\s+/g, ""));
-
-// function MembersList(props: MembersListProps) {
-//   const { team } = props;
-//   const { t } = useLocale();
-//   const [query, setQuery] = useState<string>("");
-
-//   const members = team?.members;
-//   const membersList = members
-//     ? members && query === ""
-//       ? members
-//       : members.filter((member) => {
-//           const email = member.email ? checkIfExist(member.email, query) : false;
-//           const username = member.username ? checkIfExist(member.username, query) : false;
-//           const name = member.name ? checkIfExist(member.name, query) : false;
-
-//           return email || username || name;
-//         })
-//     : undefined;
-
-//   return (
-//     <div className="flex flex-col gap-y-3">
-//       <TextField
-//         type="search"
-//         autoComplete="false"
-//         onChange={(e) => setQuery(e.target.value)}
-//         value={query}
-//         placeholder={`${t("search")}...`}
-//       />
-//       {membersList?.length && team ? (
-//         <ul className="divide-subtle border-subtle divide-y rounded-md border ">
-//           {membersList.map((member) => {
-//             return <MemberListItem key={member.id} team={team} member={member} />;
-//           })}
-//         </ul>
-//       ) : null}
-//     </div>
-//   );
-// }
 
 const MembersView = () => {
   const { t, i18n } = useLocale();
