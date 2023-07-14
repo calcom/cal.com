@@ -255,7 +255,7 @@ export const Components: Record<BookingFieldType, Component> = {
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
-                <span className="text-emphasis ms-2 me-2 text-sm">{option.label ?? ""}</span>
+                <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
               </label>
             );
           })}
@@ -320,7 +320,7 @@ export const Components: Record<BookingFieldType, Component> = {
                         }}
                         checked={value?.value === option.value}
                       />
-                      <span className="text-emphasis ms-2 me-2 text-sm">{option.label ?? ""}</span>
+                      <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
                     </label>
                   );
                 })
@@ -330,7 +330,7 @@ export const Components: Record<BookingFieldType, Component> = {
                   <Label>
                     {options[0].label}
                     {!readOnly && optionsInputs[options[0].value]?.required ? (
-                      <span className="text-default ml-1 mb-1 text-sm font-medium">*</span>
+                      <span className="text-default mb-1 ml-1 text-sm font-medium">*</span>
                     ) : null}
                   </Label>
                 </>

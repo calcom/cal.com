@@ -40,7 +40,7 @@ export const reportHandler = async ({ ctx: { prisma }, input }: ReportHandlerOpt
     });
   }
   // TODO: Second argument is required to return deleted operators.
-  const serializedForm = await getSerializableForm(form, true);
+  const serializedForm = await getSerializableForm({ form, withDeletedFields: true });
 
   const rows = await prisma.app_RoutingForms_FormResponse.findMany({
     where: {

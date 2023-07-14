@@ -19,7 +19,6 @@ import {
   BooleanToggleGroupField,
   SelectField,
   InputField,
-  Input,
   showToast,
   Switch,
 } from "@calcom/ui";
@@ -300,8 +299,9 @@ export const FormBuilder = function FormBuilder({
             const fieldType = FieldTypesMap[field.type];
             const isRequired = field.required;
             const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
+            const isFieldEditableSystemButHidden = field.editable === "system-but-hidden";
             const isFieldEditableSystem = field.editable === "system";
-            const isUserField = !isFieldEditableSystem && !isFieldEditableSystemButOptional;
+            const isUserField = !isFieldEditableSystem && !isFieldEditableSystemButOptional && !isFieldEditableSystemButHidden;
 
             if (!fieldType) {
               throw new Error(`Invalid field type - ${field.type}`);
@@ -327,7 +327,7 @@ export const FormBuilder = function FormBuilder({
                     {index >= 1 && (
                       <button
                         type="button"
-                        className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-default hover:border-emphasis invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                        className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-default hover:border-emphasis invisible absolute -left-[12px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index - 1)}>
                         <ArrowUp className="h-5 w-5" />
                       </button>
@@ -335,7 +335,7 @@ export const FormBuilder = function FormBuilder({
                     {index < fields.length - 1 && (
                       <button
                         type="button"
-                        className="bg-default text-muted hover:border-emphasis border-default hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                        className="bg-default text-muted hover:border-emphasis border-default hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] -ml-4 mt-8 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index + 1)}>
                         <ArrowDown className="h-5 w-5" />
                       </button>
@@ -369,7 +369,7 @@ export const FormBuilder = function FormBuilder({
                 </div>
                 {field.editable !== "user-readonly" && !disabled && (
                   <div className="flex items-center space-x-2">
-                    {!isFieldEditableSystem && !disabled && (
+                    {!isFieldEditableSystem && !isFieldEditableSystemButHidden && !disabled && (
                       <Switch
                         data-testid="toggle-field"
                         disabled={isFieldEditableSystem}
@@ -377,7 +377,7 @@ export const FormBuilder = function FormBuilder({
                         onCheckedChange={(checked) => {
                           update(index, { ...field, hidden: !checked });
                         }}
-                        classNames={{ container: "p-2 hover:bg-gray-100 rounded" }}
+                        classNames={{ container: "p-2 hover:bg-subtle rounded" }}
                         tooltip={t("show_on_booking_page")}
                       />
                     )}
@@ -426,11 +426,8 @@ export const FormBuilder = function FormBuilder({
           })
         }>
         <DialogContent className="max-h-none p-0" data-testid="edit-field-dialog">
-          <div className="h-auto max-h-[85vh] overflow-auto px-8 pt-8 pb-7">
-            <DialogHeader
-              title={t("add_a_booking_question")}
-              subtitle={t("form_builder_field_add_subtitle")}
-            />
+          <div className="h-auto max-h-[85vh] overflow-auto px-8 pb-7 pt-8">
+            <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
             <Form
               id="form-builder"
               form={fieldForm}
@@ -482,7 +479,7 @@ export const FormBuilder = function FormBuilder({
                 options={FieldTypes.filter((f) => !f.systemOnly)}
                 label={t("input_type")}
                 classNames={{
-                  menuList: () => "min-h-[27.25rem]",
+                  menuList: () => "min-h-[22.25rem] ",
                 }}
               />
               <InputField
@@ -493,7 +490,7 @@ export const FormBuilder = function FormBuilder({
                   fieldForm.getValues("editable") === "system" ||
                   fieldForm.getValues("editable") === "system-but-optional"
                 }
-                label="Identifier"
+                label={t("identifier")}
               />
               <InputField
                 {...fieldForm.register("label")}
@@ -546,7 +543,7 @@ export const FormBuilder = function FormBuilder({
               />
             </Form>
           </div>
-          <DialogFooter className="relative rounded px-8 pb-6" showDivider>
+          <DialogFooter className="relative mt-5 rounded px-8 pb-8" showDivider>
             <DialogClose color="secondary">{t("cancel")}</DialogClose>
             <Button data-testid="field-add-save" type="submit" form="form-builder">
               {isFieldEditMode ? t("save") : t("add")}
@@ -578,7 +575,7 @@ const WithLabel = ({
         <div className="mb-2 flex items-center">
           <Label className="!mb-0">
             <span>{field.label}</span>
-            <span className="text-emphasis ml-1 -mb-1 text-sm font-medium leading-none">
+            <span className="text-emphasis -mb-1 ml-1 text-sm font-medium leading-none">
               {!readOnly && field.required ? "*" : ""}
             </span>
           </Label>

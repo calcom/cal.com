@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Dialog, DialogContent, Form, Label, PasswordField } from "@calcom/ui";
+import { Button, Dialog, DialogContent, DialogFooter, Form, PasswordField } from "@calcom/ui";
 
 import TwoFactor from "@components/auth/TwoFactor";
 
@@ -74,7 +74,7 @@ const DisableTwoFactorAuthModal = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent title={t("disable_2fa")} description={t("disable_2fa_recommendation")} type="creation">
         <Form form={form} handleSubmit={handleDisable}>
-          <div className="mb-4">
+          <div className="mb-8">
             <PasswordField
               labelProps={{
                 className: "block text-sm font-medium text-default",
@@ -82,21 +82,19 @@ const DisableTwoFactorAuthModal = ({
               {...form.register("password")}
               className="border-default mt-1 block w-full rounded-md border px-3 py-2 text-sm focus:border-black focus:outline-none focus:ring-black"
             />
-            <Label className="mt-4"> {t("2fa_code")}</Label>
-
             <TwoFactor center={false} />
 
             {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
           </div>
 
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <Button type="submit" className="ms-2 me-2" data-testid="disable-2fa" disabled={isDisabling}>
-              {t("disable")}
-            </Button>
+          <DialogFooter showDivider className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
             <Button color="secondary" onClick={onCancel}>
               {t("cancel")}
             </Button>
-          </div>
+            <Button type="submit" className="me-2 ms-2" data-testid="disable-2fa" disabled={isDisabling}>
+              {t("disable")}
+            </Button>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>

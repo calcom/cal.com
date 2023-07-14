@@ -19,7 +19,7 @@ const BookingDescriptionPayment = (props: {
 
   return (
     <p className="text-bookinglight -ml-2 px-2 text-sm ">
-      <CreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+      <CreditCard className="-mt-1 ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
       {paymentAppData.paymentOption === "HOLD" ? (
         <>{props.t("no_show_fee_amount", params)}</>
       ) : (

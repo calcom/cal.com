@@ -13,16 +13,36 @@ The CTA button can prompt the user to add the info/ apps needed for the page.
 
 <Canvas>
   <Story
-    name="EmptyScreen">
-    <VariantsTable titles={[]} columnMinWidth={150}>
-      <VariantRow variant="Default">
-        <EmptyScreen
-          Icon={Calendar}
-          headline="Empty state header"
-          description="Do consectetur qui ex deserunt do est veniam commodo. Eiusmod eiusmod dolore nostrud pariatur mollit sit commodo. Learn More."
-          buttonText="Button text"
-        />
-      </VariantRow>
-    </VariantsTable>
+    name="EmptyScreen"
+    args={{
+      headline: 'Empty state header',
+      description: 'Do consectetur qui ex deserunt do est veniam commodo. Eiusmod eiusmod dolore nostrud pariatur mollit sit commodo.',
+      buttonText: 'Learn More',
+    }}
+    argTypes={{
+      headline: {
+        control: 'text',
+      },
+      description: {
+        control: 'text',
+      },
+      buttonText: {
+        control: 'text',
+      },
+    }}
+  >
+    {({ headline, description, buttonText }) => (
+      <VariantsTable titles={[]} columnMinWidth={150}>
+        <VariantRow variant="Default">
+          <EmptyScreen
+            Icon={Calendar}
+            headline={headline}
+            description={description}
+            buttonText={buttonText}
+            buttonOnClick={() => alert("Learned More!!")}
+          />
+        </VariantRow>
+      </VariantsTable>
+    )}
   </Story>
 </Canvas>

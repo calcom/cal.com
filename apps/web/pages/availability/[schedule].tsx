@@ -3,11 +3,11 @@ import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import Shell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
-import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -53,9 +53,10 @@ type AvailabilityFormValues = {
 };
 
 const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
-  const { remove, append, update, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
+  const { remove, append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
+  const excludedDates = fields.map((field) => dayjs(field.ranges[0].start).utc().format("YYYY-MM-DD"));
   const { t } = useLocale();
   return (
     <div className="p-6">
@@ -70,15 +71,15 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
       <p className="text-subtle mb-4 text-sm">{t("date_overrides_subtitle")}</p>
       <div className="space-y-2">
         <DateOverrideList
-          excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
+          excludedDates={excludedDates}
           remove={remove}
-          update={update}
+          replace={replace}
           items={fields}
           workingHours={workingHours}
         />
         <DateOverrideInputDialog
           workingHours={workingHours}
-          excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
+          excludedDates={excludedDates}
           onChange={(ranges) => append({ ranges })}
           Trigger={
             <Button color="secondary" StartIcon={Plus} data-testid="add-override">
@@ -189,7 +190,11 @@ export default function Availability() {
       CTA={
         <div className="flex items-center justify-end">
           <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 sm:flex">
-            <Skeleton as={Label} htmlFor="hiddenSwitch" className="mt-2 cursor-pointer self-center pr-2 ">
+            <Skeleton
+              as={Label}
+              htmlFor="hiddenSwitch"
+              className="mt-2 cursor-pointer self-center pe-2"
+              loadingClassName="me-4">
               {t("set_to_default")}
             </Skeleton>
             <Switch
@@ -254,7 +259,7 @@ export default function Availability() {
                 </ConfirmationDialogContent>
               </Dialog>
               <DropdownMenuSeparator />
-              <div className="flex h-9 flex-row items-center justify-between py-2 px-4 hover:bg-gray-100">
+              <div className="flex h-9 flex-row items-center justify-between px-4 py-2 hover:bg-gray-100">
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"
@@ -315,9 +320,9 @@ export default function Availability() {
           <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
             <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
               <div>
-                <label htmlFor="timeZone" className="text-default block text-sm font-medium">
+                <Skeleton as={Label} htmlFor="timeZone" className="mb-0 inline-block leading-none">
                   {t("timezone")}
-                </label>
+                </Skeleton>
                 <Controller
                   name="timeZone"
                   render={({ field: { onChange, value } }) =>
@@ -328,18 +333,20 @@ export default function Availability() {
                         onChange={(timezone) => onChange(timezone.value)}
                       />
                     ) : (
-                      <SelectSkeletonLoader className="w-72" />
+                      <SelectSkeletonLoader className="mt-1 w-72" />
                     )
                   }
                 />
               </div>
               <hr className="border-subtle my-6 mr-8" />
               <div className="hidden rounded-md md:block">
-                <h3 className="text-emphasis text-sm font-medium">{t("something_doesnt_look_right")}</h3>
+                <Skeleton as="h3" className="mb-0 inline-block text-sm font-medium">
+                  {t("something_doesnt_look_right")}
+                </Skeleton>
                 <div className="mt-3 flex">
-                  <Button href="/availability/troubleshoot" color="secondary">
+                  <Skeleton as={Button} href="/availability/troubleshoot" color="secondary">
                     {t("launch_troubleshooter")}
-                  </Button>
+                  </Skeleton>
                 </div>
               </div>
             </div>

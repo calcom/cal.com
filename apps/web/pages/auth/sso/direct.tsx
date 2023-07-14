@@ -18,6 +18,7 @@ export default function Page({ samlTenantID, samlProductID }: inferSSRProps<type
     if (HOSTED_CAL_FEATURES) {
       router.push("/auth/login");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -29,6 +30,7 @@ export default function Page({ samlTenantID, samlProductID }: inferSSRProps<type
       },
       { tenant: samlTenantID, product: samlProductID }
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return null;

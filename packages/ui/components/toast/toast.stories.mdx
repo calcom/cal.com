@@ -1,5 +1,15 @@
 import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title, VariantsTable, VariantColumn, RowTitles, CustomArgsTable} from '@calcom/storybook/components'
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  VariantsTable,
+  VariantColumn,
+  RowTitles,
+  CustomArgsTable,
+  VariantRow
+} from "@calcom/storybook/components";
 
 import { SuccessToast,ErrorToast,WarningToast,DefaultToast } from './';
 
@@ -30,3 +40,28 @@ Toasts are used to show an action has had a impact. If a user submits a form a t
     <ErrorToast message="Error Toast" toastVisible={true}/>
   </Example>
 </Examples>
+
+## Toast Story
+
+<Canvas>
+  <Story name="Default"
+  args={{
+    message: 'Default Toast',
+    toastVisible: true
+  }}
+         argTypes={{
+            message: { control: 'text' },
+            toastVisible: { control: 'boolean'}
+  }}>
+    {({message, toastVisible}) => (
+      <VariantsTable titles={['Default','Success', 'Warning', 'Error']} columnMinWidth={150}>
+        <VariantRow variant="Default">
+          <DefaultToast message={message} toastVisible={toastVisible}/>
+          <SuccessToast message={message} toastVisible={toastVisible}/>
+          <WarningToast message={message} toastVisible={toastVisible}/>
+          <ErrorToast message={message} toastVisible={toastVisible}/>
+        </VariantRow>
+      </VariantsTable>
+    )}
+  </Story>
+</Canvas>

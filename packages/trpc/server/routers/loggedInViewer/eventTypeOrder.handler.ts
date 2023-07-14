@@ -1,5 +1,3 @@
-import { reverse } from "lodash";
-
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -55,7 +53,7 @@ export const eventTypeOrderHandler = async ({ ctx, input }: EventTypeOrderOption
     });
   }
   await Promise.all(
-    reverse(input.ids).map((id, position) => {
+    input.ids.reverse().map((id, position) => {
       return prisma.eventType.update({
         where: {
           id,

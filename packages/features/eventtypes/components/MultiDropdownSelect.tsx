@@ -22,7 +22,7 @@ const LimitedChipsContainer = <Option, IsMulti extends boolean, Group extends Gr
     <components.ValueContainer {...props}>
       {displayChips}
       {overflowCounter > 0 && (
-        <span className="bg-subtle text-default flex items-center justify-center rounded-md py-[5px] px-2 text-[14px] font-medium leading-4">
+        <span className="bg-subtle text-default flex items-center justify-center rounded-md px-2 py-[5px] text-[14px] font-medium leading-4">
           <>
             <Plus className="mr-1 inline h-3 w-3 stroke-[3px]" /> <span>{overflowCounter} more</span>
           </>

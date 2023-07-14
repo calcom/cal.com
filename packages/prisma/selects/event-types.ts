@@ -57,6 +57,17 @@ export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
     },
   },
   successRedirectUrl: true,
+  team: {
+    select: {
+      logo: true,
+      parent: {
+        select: {
+          logo: true,
+          name: true,
+        },
+      },
+    },
+  },
 });
 
 export const availiblityPageEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
@@ -101,6 +112,17 @@ export const availiblityPageEventTypeSelect = Prisma.validator<Prisma.EventTypeS
       username: true,
       hideBranding: true,
       timeZone: true,
+    },
+  },
+  team: {
+    select: {
+      logo: true,
+      parent: {
+        select: {
+          logo: true,
+          name: true,
+        },
+      },
     },
   },
 });

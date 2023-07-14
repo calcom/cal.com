@@ -7,7 +7,7 @@
   "logo": "icon.svg",
   "url": "https://cal.com/",
   "variant": "conferencing",
-  "categories": ["video"],
+  "categories": ["conferencing"],
   "publisher": "Cal.com",
   "email": "help@cal.com",
   "description": "Discover radically unique video calls designed to help hybrid-remote teams create, collaborate and celebrate together.",

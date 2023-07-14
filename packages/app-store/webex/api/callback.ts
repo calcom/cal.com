@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
+import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import config from "../config.json";
 import { getWebexAppKeys } from "../lib/getWebexAppKeys";
@@ -80,20 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await prisma.credential.deleteMany({ where: { id: { in: credentialIdsToDelete }, userId } });
   }
 
-  await prisma.user.update({
-    where: {
-      id: req.session?.user.id,
-    },
-    data: {
-      credentials: {
-        create: {
-          type: config.type,
-          key: responseBody,
-          appId: config.slug,
-        },
-      },
-    },
-  });
+  createOAuthAppCredential({ appId: config.slug, type: config.type }, responseBody, req);
 
   res.redirect(getInstalledAppPath({ variant: config.variant, slug: config.slug }));
 }

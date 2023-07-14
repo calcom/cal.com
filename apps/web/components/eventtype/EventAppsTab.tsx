@@ -16,12 +16,16 @@ export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
 
 export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   const { t } = useLocale();
-  const { data: eventTypeApps, isLoading } = trpc.viewer.apps.useQuery({
+  const { data: eventTypeApps, isLoading } = trpc.viewer.integrations.useQuery({
     extendsFeature: "EventType",
+    teamId: eventType.team?.id || eventType.parent?.teamId,
   });
+
   const methods = useFormContext<FormValues>();
-  const installedApps = eventTypeApps?.filter((app) => app.credentials.length);
-  const notInstalledApps = eventTypeApps?.filter((app) => !app.credentials.length);
+  const installedApps =
+    eventTypeApps?.items.filter((app) => app.userCredentialIds.length || app.teams.length) || [];
+  const notInstalledApps =
+    eventTypeApps?.items.filter((app) => !app.userCredentialIds.length && !app.teams.length) || [];
   const allAppsData = methods.watch("metadata")?.apps || {};
 
   const setAllAppsData = (_allAppsData: typeof allAppsData) => {
@@ -62,11 +66,54 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     t("locked_fields_member_description")
   );
 
+  const appsWithTeamCredentials = eventTypeApps?.items.filter((app) => app.teams.length) || [];
+  const cardsForAppsWithTeams = appsWithTeamCredentials.map((app) => {
+    const appCards = [];
+
+    if (app.userCredentialIds.length) {
+      appCards.push(
+        <EventTypeAppCard
+          getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
+          setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+          key={app.slug}
+          app={app}
+          eventType={eventType}
+          {...shouldLockDisableProps("apps")}
+        />
+      );
+    }
+
+    for (const team of app.teams) {
+      if (team) {
+        appCards.push(
+          <EventTypeAppCard
+            getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
+            setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+            key={app.slug + team?.credentialId}
+            app={{
+              ...app,
+              // credentialIds: team?.credentialId ? [team.credentialId] : [],
+              credentialOwner: {
+                name: team.name,
+                avatar: team.logo,
+                teamId: team.teamId,
+                credentialId: team.credentialId,
+              },
+            }}
+            eventType={eventType}
+            {...shouldLockDisableProps("apps")}
+          />
+        );
+      }
+    }
+    return appCards;
+  });
+
   return (
     <>
       <div>
         <div className="before:border-0">
-          {!installedApps?.length && isManagedEventType && (
+          {isManagedEventType && (
             <Alert
               severity="neutral"
               className="mb-2"
@@ -92,21 +139,26 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               }
             />
           ) : null}
-          {installedApps?.map((app) => (
-            <EventTypeAppCard
-              getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
-              setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
-              key={app.slug}
-              app={app}
-              eventType={eventType}
-            />
-          ))}
+          {cardsForAppsWithTeams.map((apps) => apps.map((cards) => cards))}
+          {installedApps.map((app) => {
+            if (!app.teams.length)
+              return (
+                <EventTypeAppCard
+                  getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
+                  setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+                  key={app.slug}
+                  app={app}
+                  eventType={eventType}
+                  {...shouldLockDisableProps("apps")}
+                />
+              );
+          })}
         </div>
       </div>
       {!shouldLockDisableProps("apps").disabled && (
-        <div>
+        <div className="bg-muted rounded-md p-8">
           {!isLoading && notInstalledApps?.length ? (
-            <h2 className="text-emphasis my-2 text-lg font-semibold">{t("available_apps")}</h2>
+            <h2 className="text-emphasis text-lg font-semibold">{t("available_apps")}</h2>
           ) : null}
           <div className="before:border-0">
             {notInstalledApps?.map((app) => (

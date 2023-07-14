@@ -16,9 +16,11 @@ import { useBookerStore } from "../store";
  */
 export const useEvent = () => {
   const [username, eventSlug] = useBookerStore((state) => [state.username, state.eventSlug], shallow);
+  const isTeamEvent = useBookerStore((state) => state.isTeamEvent);
+  const org = useBookerStore((state) => state.org);
 
   return trpc.viewer.public.event.useQuery(
-    { username: username ?? "", eventSlug: eventSlug ?? "" },
+    { username: username ?? "", eventSlug: eventSlug ?? "", isTeamEvent, org: org ?? null },
     { refetchOnWindowFocus: false, enabled: Boolean(username) && Boolean(eventSlug) }
   );
 };
@@ -37,8 +39,8 @@ export const useEvent = () => {
 export const useScheduleForEvent = ({ prefetchNextMonth }: { prefetchNextMonth?: boolean } = {}) => {
   const { timezone } = useTimePreferences();
   const event = useEvent();
-  const [username, eventSlug, month] = useBookerStore(
-    (state) => [state.username, state.eventSlug, state.month],
+  const [username, eventSlug, month, duration] = useBookerStore(
+    (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
     shallow
   );
 
@@ -49,5 +51,6 @@ export const useScheduleForEvent = ({ prefetchNextMonth }: { prefetchNextMonth?:
     month,
     timezone,
     prefetchNextMonth,
+    duration,
   });
 };

@@ -4,6 +4,7 @@ type BrowserInfo = {
   referrer: string;
   title: string;
   query: string;
+  origin: string;
 };
 
 export const getBrowserInfo = (): Partial<BrowserInfo> => {
@@ -16,5 +17,6 @@ export const getBrowserInfo = (): Partial<BrowserInfo> => {
     referrer: window.document?.referrer ?? undefined,
     title: window.document.title ?? undefined,
     query: window.document.location?.search,
+    origin: window.document.location?.origin,
   };
 };

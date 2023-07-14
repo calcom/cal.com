@@ -86,17 +86,15 @@ const WorkflowListItem = (props: ItemProps) => {
   workflow.steps.forEach((step) => {
     switch (step.action) {
       case WorkflowActions.EMAIL_HOST:
-        sendTo.add(t("organizer_name_variable"));
+        sendTo.add(t("organizer"));
         break;
       case WorkflowActions.EMAIL_ATTENDEE:
-        sendTo.add(t("attendee_name_variable"));
-        break;
       case WorkflowActions.SMS_ATTENDEE:
+      case WorkflowActions.WHATSAPP_ATTENDEE:
         sendTo.add(t("attendee_name_variable"));
         break;
       case WorkflowActions.SMS_NUMBER:
-        sendTo.add(step.sendTo || "");
-        break;
+      case WorkflowActions.WHATSAPP_NUMBER:
       case WorkflowActions.EMAIL_ADDRESS:
         sendTo.add(step.sendTo || "");
         break;
@@ -226,7 +224,7 @@ function EventWorkflowsTab(props: Props) {
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: You are not able to create this workflow`;
+        const message = `${err.data.code}: ${t("error_workflow_unauthorized_create")}`;
         showToast(message, "error");
       }
     },

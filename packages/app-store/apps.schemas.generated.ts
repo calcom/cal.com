@@ -16,7 +16,6 @@ import { appDataSchema as office365calendar_zod_ts } from "./office365calendar/z
 import { appDataSchema as office365video_zod_ts } from "./office365video/zod";
 import { appDataSchema as plausible_zod_ts } from "./plausible/zod";
 import { appDataSchema as qr_code_zod_ts } from "./qr_code/zod";
-import { appDataSchema as rainbow_zod_ts } from "./rainbow/zod";
 import { appDataSchema as routing_forms_zod_ts } from "./routing-forms/zod";
 import { appDataSchema as salesforce_zod_ts } from "./salesforce/zod";
 import { appDataSchema as stripepayment_zod_ts } from "./stripepayment/zod";
@@ -46,7 +45,6 @@ export const appDataSchemas = {
   office365video: office365video_zod_ts,
   plausible: plausible_zod_ts,
   qr_code: qr_code_zod_ts,
-  rainbow: rainbow_zod_ts,
   "routing-forms": routing_forms_zod_ts,
   salesforce: salesforce_zod_ts,
   stripe: stripepayment_zod_ts,

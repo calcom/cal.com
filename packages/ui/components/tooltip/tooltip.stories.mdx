@@ -15,21 +15,46 @@ Tooltip components can be used to provide additional information about an elemen
 
 
 <Canvas>
-  <Story name="Tooltip">
+  <Story name="Tooltip"
+  args={{
+    alertMsg: 'Copied!',
+    hoverMsg: "Copy to clipboard",
+    content: 'Hover Me',
+  }}
+         argTypes={{
+            alertMsg: {
+              control: {
+                type: 'text',
+              },
+            },
+            hoverMsg: {
+              control: {
+                type: 'text',
+              },
+            },
+            content: {
+              control: {
+                type: 'text',
+              },
+            },
+         }}
+  >
+    {({ alertMsg, hoverMsg, content }) => (
     <TooltipProvider>
       <VariantsTable titles={['']} columnMinWidth={150}>
         <VariantRow variant="Default">
-          <Tooltip content="Copy to clipboard">
+          <Tooltip content={`${hoverMsg}`}>
             <span
               className="dark:text-darkgray-50 p-2 bg-brand-default rounded-md text-gray-100 dark:bg-darkgray-900 hover:cursor-pointer"
               onClick={() => {
-                alert('Copied!');
+                alert(`${alertMsg}`);
               }}>
-              Hover Me
+              {content}
             </span>
           </Tooltip>
         </VariantRow>
       </VariantsTable>
     </TooltipProvider>
+    )}
   </Story>
 </Canvas>
