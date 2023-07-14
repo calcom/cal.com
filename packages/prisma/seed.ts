@@ -653,7 +653,7 @@ async function main() {
   );
 
   // Org Owner
-  const orgUser1 = await createUserAndEventType({
+  const orgUserOwner = await createUserAndEventType({
     user: {
       email: "john@acme.com",
       password: "john",
