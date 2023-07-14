@@ -117,11 +117,9 @@ export default async function getEventTypeById({
           slug: true,
           parentId: true,
           members: {
-            where: {
-              accepted: true,
-            },
             select: {
               role: true,
+              accepted: true,
               user: {
                 select: {
                   ...userSelect,
@@ -279,8 +277,9 @@ export default async function getEventTypeById({
     metadata: parsedMetaData,
     customInputs: parsedCustomInputs,
     users: rawEventType.users,
-    children: restEventType.children.flatMap((ch) =>
-      ch.owner !== null
+    children: restEventType.children.flatMap((ch) => {
+      const member = restEventType.team?.members.find((tm) => tm.user.id === ch.owner?.id);
+      return ch.owner !== null
         ? {
             ...ch,
             owner: {
@@ -288,14 +287,13 @@ export default async function getEventTypeById({
               email: ch.owner.email,
               name: ch.owner.name ?? "",
               username: ch.owner.username ?? "",
-              membership:
-                restEventType.team?.members.find((tm) => tm.user.id === ch.owner?.id)?.role ||
-                MembershipRole.MEMBER,
+              accepted: member?.accepted || false,
+              membership: member?.role || MembershipRole.MEMBER,
             },
             created: true,
           }
-        : []
-    ),
+        : [];
+    }),
   };
 
   // backwards compat
@@ -356,7 +354,12 @@ export default async function getEventTypeById({
           ...member.user,
           avatar: `${CAL_URL}/${member.user.username}/avatar.png`,
         };
-        return { ...user, eventTypes: user.eventTypes.map((evTy) => evTy.slug), membership: member.role };
+        return {
+          ...user,
+          eventTypes: user.eventTypes.map((evTy) => evTy.slug),
+          membership: member.role,
+          accepted: member.accepted,
+        };
       })
     : [];
 

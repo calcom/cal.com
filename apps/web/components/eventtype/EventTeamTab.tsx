@@ -17,18 +17,20 @@ interface IUserToValue {
   name: string | null;
   username: string | null;
   email: string;
+  accepted: boolean;
 }
 
-const mapUserToValue = ({ id, name, username, email }: IUserToValue) => ({
+const mapUserToValue = ({ id, name, username, email, accepted }: IUserToValue, pendingString: string) => ({
   value: `${id || ""}`,
-  label: `${name || ""}`,
+  label: `${name || email || ""}${!accepted ? ` (${pendingString})` : ""}`,
   avatar: `${WEBAPP_URL}/${username}/avatar.png`,
   email,
 });
 
 export const mapMemberToChildrenOption = (
   member: EventTypeSetupProps["teamMembers"][number],
-  slug: string
+  slug: string,
+  pendingString: string
 ) => {
   return {
     slug,
@@ -40,10 +42,11 @@ export const mapMemberToChildrenOption = (
       email: member.email,
       username: member.username ?? "",
       membership: member.membership,
+      accepted: member.accepted,
       eventTypeSlugs: member.eventTypes ?? [],
     },
     value: `${member.id ?? ""}`,
-    label: member.name ?? "",
+    label: `${member.name || member.email || ""}${!member.accepted ? ` (${pendingString})` : ""}`,
   };
 };
 
@@ -291,9 +294,9 @@ export const EventTeamTab = ({
       // description: t("round_robin_description"),
     },
   ];
-  const teamMembersOptions = teamMembers.map(mapUserToValue);
+  const teamMembersOptions = teamMembers.map((member) => mapUserToValue(member, t("pending")));
   const childrenEventTypeOptions = teamMembers.map((member) => {
-    return mapMemberToChildrenOption(member, eventType.slug);
+    return mapMemberToChildrenOption(member, eventType.slug, t("pending"));
   });
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
   return (
