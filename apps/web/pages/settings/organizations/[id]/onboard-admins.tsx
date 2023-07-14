@@ -53,7 +53,6 @@ export const getServerSideProps = async ({ req, res }: GetServerSidePropsContext
       role: true,
     },
   });
-  console.log({ membership });
   if (!membership?.role || membership?.role === MembershipRole.MEMBER) {
     return {
       notFound: true,
