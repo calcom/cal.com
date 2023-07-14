@@ -2,10 +2,7 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { UserListTable } from "@calcom/features/users/components/UserTable/UserListTable";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { Meta } from "@calcom/ui";
-
-type Team = RouterOutputs["viewer"]["teams"]["get"];
 
 const MembersView = () => {
   const { t } = useLocale();

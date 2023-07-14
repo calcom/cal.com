@@ -6,17 +6,10 @@ import { useMemo, useRef, useCallback, useEffect, useReducer } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
-import {
-  Avatar,
-  Badge,
-  Button,
-  Checkbox,
-  ConfirmationDialogContent,
-  DataTable,
-  Dialog,
-  showToast,
-} from "@calcom/ui";
+import { Avatar, Badge, Button, ConfirmationDialogContent, DataTable, Dialog, showToast } from "@calcom/ui";
 
+import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
+import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
 
@@ -110,7 +103,6 @@ export function UserListTable() {
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
         keepPreviousData: true,
-        refetchOnWindowFocus: false,
       }
     );
 
@@ -123,25 +115,26 @@ export function UserListTable() {
       canImpersonate: false,
     };
     const cols: ColumnDef<User>[] = [
-      {
-        id: "select",
-        header: ({ table }) => (
-          <Checkbox
-            checked={table.getIsAllPageRowsSelected()}
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-            aria-label="Select all"
-            className="translate-y-[2px]"
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-            className="translate-y-[2px]"
-          />
-        ),
-      },
+      // Disabling select for this PR: Will work on actions etc in a follow up
+      // {
+      //   id: "select",
+      //   header: ({ table }) => (
+      //     <Checkbox
+      //       checked={table.getIsAllPageRowsSelected()}
+      //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+      //       aria-label="Select all"
+      //       className="translate-y-[2px]"
+      //     />
+      //   ),
+      //   cell: ({ row }) => (
+      //     <Checkbox
+      //       checked={row.getIsSelected()}
+      //       onCheckedChange={(value) => row.toggleSelected(!!value)}
+      //       aria-label="Select row"
+      //       className="translate-y-[2px]"
+      //     />
+      //   ),
+      // },
       {
         id: "member",
         accessorFn: (data) => data.email,
@@ -161,12 +154,6 @@ export function UserListTable() {
           );
         },
         filterFn: (rows, id, filterValue) => {
-          console.log({
-            rows,
-            id,
-            filterValue,
-            rowValue: rows.getValue(id),
-          });
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore Weird typing issue
           return rows.getValue(id).includes(filterValue);
@@ -194,16 +181,10 @@ export function UserListTable() {
       },
       {
         id: "teams",
-        accessorFn: (data) => {
-          const teamNames = [];
-          for (const team of data.teams) {
-            teamNames.push(team.name);
-          }
-          return teamNames;
-        },
         header: "Teams",
         cell: ({ row }) => {
           const { teams, accepted } = row.original;
+          // TODO: Implement click to filter
           return (
             <div className="flex h-full flex-wrap items-center gap-2">
               {accepted ? null : (
@@ -365,6 +346,8 @@ export function UserListTable() {
       )}
 
       {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
+      {state.impersonateMember.showModal && <ImpersonationMemberModal dispatch={dispatch} state={state} />}
+      {state.changeMemberRole.showModal && <ChangeUserRoleModal dispatch={dispatch} state={state} />}
     </>
   );
 }
