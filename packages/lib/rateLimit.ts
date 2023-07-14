@@ -36,7 +36,7 @@ let warningDisplayed = false;
 
 /** Prevent flooding the logs while testing/building */
 function logOnce(message: string) {
-  if (!warningDisplayed) return;
+  if (warningDisplayed) return;
   log.warn(message);
   warningDisplayed = true;
 }
