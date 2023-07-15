@@ -161,11 +161,8 @@ function buildSlotsWithDateRanges({
   eventLength = minimumOfOne(eventLength);
   offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
   const slots: { time: Dayjs; userIds?: number[] }[] = [];
-  console.log("test test");
 
   dateRanges.forEach((range) => {
-    console.log("test 1");
-
     const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
     let slotStartTime = range.start.isAfter(startTimeWithMinNotice) ? range.start : startTimeWithMinNotice;
