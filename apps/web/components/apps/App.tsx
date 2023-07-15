@@ -29,6 +29,8 @@ import {
   Avatar,
 } from "@calcom/ui";
 import { BookOpen, Check, ExternalLink, File, Flag, Mail, Plus, Shield } from "@calcom/ui/components/icon";
+import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
+
 
 /* These app slugs all require Google Cal to be installed */
 
