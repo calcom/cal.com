@@ -71,7 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(409).json({ message });
   }
 
-  let foundToken: null | { id: number; teamId: number; expires: string } = null;
+  let foundToken: { id: number; teamId: number | null; expires: Date } | null = null;
   if (token) {
     foundToken = await prisma.verificationToken.findFirst({
       where: {
@@ -92,8 +92,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ message: "Token expired" });
     }
     if (foundToken?.teamId) {
-      const validUsername = validateUsernameInOrg(username, foundToken?.teamId);
-      if (!validUsername) {
+      const isValidUsername = await validateUsernameInOrg(username, foundToken?.teamId);
+
+      if (!isValidUsername) {
         return res.status(409).json({ message: "Username already taken" });
       }
     }
