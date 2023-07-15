@@ -1,33 +1,23 @@
 import { isEmpty } from "lodash";
 import type { I18n } from "next-i18next";
 import { useTranslation } from "next-i18next";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 
-type I18nObj =
-  | undefined
-  | {
-      i18n: I18n;
-      locale: string;
-    };
+import useLocalStorage from "@lib/hooks/useLocalStorage";
 
-export function useViewerI18n(): I18nObj {
+type I18nObj = {
+  i18n: I18n;
+  locale: string;
+};
+
+export function useViewerI18n(): I18nObj | undefined {
   // We'll cache i18nData via localStorage, so users who have visited before will see their previous locale data whilst
   // the request for their latest i18n info is processing
-  const [I18nData, setI18nData] = useState<I18nObj>();
+  const [I18nData, setI18nData] = useLocalStorage<I18nObj | undefined>("i18nData", undefined);
 
   // Load via useEffect to avoid hydration mismatch
-  useEffect(() => {
-    try {
-      const json = localStorage.getItem("i18nData");
-      if (json) {
-        setI18nData(JSON.parse(json));
-      }
-    } catch (e) {}
-  }, []);
-
   trpc.viewer.public.i18n.useQuery(undefined, {
     staleTime: Infinity,
     /**
@@ -38,7 +28,6 @@ export function useViewerI18n(): I18nObj {
     },
     onSuccess(data) {
       setI18nData(data);
-      localStorage.setItem("i18nData", JSON.stringify(data));
     },
   });
 
