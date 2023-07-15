@@ -282,19 +282,21 @@ describe("Tests the slot logic", () => {
   });
 
   it("tests slots for half hour timezones", async () => {
-    const slots =  getSlots({
+    const slots = getSlots({
       inviteeDate: dayjs.tz("2023-07-13T00:00:00.000+05:30", "Asia/Kolkata"),
       frequency: 60,
       minimumBookingNotice: 0,
       eventLength: 60,
       organizerTimeZone: "Asia/Kolkata",
       dateRanges: [
-        { start: dayjs.tz("2023-07-13T07:30:00.000", "Asia/Kolkata"), end: dayjs.tz("2023-07-13T09:30:00.000", "Asia/Kolkata") },
+        {
+          start: dayjs.tz("2023-07-13T07:30:00.000", "Asia/Kolkata"),
+          end: dayjs.tz("2023-07-13T09:30:00.000", "Asia/Kolkata"),
+        },
       ],
-    })
+    });
 
     expect(slots).toHaveLength(1);
     expect(slots[0].time.format()).toBe("2023-07-13T08:00:00+05:30");
   });
-
 });
