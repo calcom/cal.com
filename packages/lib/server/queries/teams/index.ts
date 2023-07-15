@@ -79,11 +79,12 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
         ...baseEventTypeSelect,
       },
     },
-    inviteToken: {
+    inviteTokens: {
       select: {
         token: true,
         expires: true,
         expiresInDays: true,
+        identifier: true,
       },
     },
   });
@@ -114,7 +115,16 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
   }));
-  return { ...team, metadata: teamMetadataSchema.parse(team.metadata), eventTypes, members };
+  /** Don't leak invite tokens to the frontend */
+  const { inviteTokens, ...teamWithoutInviteTokens } = team;
+  return {
+    ...teamWithoutInviteTokens,
+    /** To prevent breaking we only return non-email attached token here, if we have one */
+    inviteToken: inviteTokens.find((token) => token.identifier === "invite-link-for-teamId-" + team.id),
+    metadata: teamMetadataSchema.parse(team.metadata),
+    eventTypes,
+    members,
+  };
 }
 
 // also returns team

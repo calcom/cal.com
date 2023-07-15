@@ -146,6 +146,9 @@ export type CalEventResponses = Record<
 
 // If modifying this interface, probably should update builders/calendarEvent files
 export interface CalendarEvent {
+  // Instead of sending this per event.
+  // TODO: Links sent in email should be validated and automatically redirected to org domain or regular app. It would be a much cleaner way. Maybe use existing /api/link endpoint
+  bookerUrl?: string;
   type: string;
   title: string;
   startTime: string;
