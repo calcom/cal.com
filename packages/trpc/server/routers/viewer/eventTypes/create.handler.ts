@@ -57,13 +57,14 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   };
 
   if (teamId && schedulingType) {
-    const hasMembership = await ctx.prisma.membership.findFirst({
+    const memberships = await ctx.prisma.membership.findMany({
       where: {
-        userId,
-        teamId: teamId,
+        teamId,
         accepted: true,
       },
     });
+
+    const hasMembership = memberships.find((membership) => membership.userId === userId);
 
     if (!hasMembership?.role || !["ADMIN", "OWNER"].includes(hasMembership.role)) {
       console.warn(`User ${userId} does not have permission to create this new event type`);
@@ -76,6 +77,12 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     };
     data.schedulingType = schedulingType;
+    data.hosts = {
+      create: memberships.map((membership) => ({
+        userId: membership.userId,
+        isFixed: data.schedulingType === SchedulingType.COLLECTIVE || false,
+      })),
+    };
   }
 
   try {
