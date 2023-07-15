@@ -295,6 +295,7 @@
   "success": "Sucesso",
   "failed": "Falhou",
   "password_has_been_reset_login": "A sua senha foi redefinida. Agora pode fazer login com a sua senha recém-criada.",
+  "bookerlayout_default_title": "Visualização padrão",
   "bookerlayout_month_view": "Mês",
   "bookerlayout_week_view": "Semanalmente",
   "bookerlayout_column_view": "Coluna",
