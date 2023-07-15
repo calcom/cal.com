@@ -244,7 +244,7 @@ const InstallAppButtonChild = ({
             return (
               <DropdownItem
                 type="button"
-                disabled={isInstalledTeamOrUser || mutation.isLoading}
+                disabled={isInstalledTeamOrUser}
                 key={team.id}
                 StartIcon={(props) => (
                   <Avatar
