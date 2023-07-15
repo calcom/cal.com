@@ -1,13 +1,13 @@
 /* Schedule any workflow reminder that falls within 7 days for WHATSAPP */
-import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@prisma/client";
+import { WorkflowActions, WorkflowMethods } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
-import * as twilio from "../lib/reminders/smsProviders/twilioProvider";
 import { getWhatsappTemplateFunction } from "../lib/actionHelperFunctions";
+import * as twilio from "../lib/reminders/smsProviders/twilioProvider";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
@@ -47,7 +47,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     },
   });
 
-  if (!unscheduledReminders.length) res.json({ ok: true });
+  if (!unscheduledReminders.length) {
+    res.json({ ok: true });
+    return;
+  }
 
   for (const reminder of unscheduledReminders) {
     if (!reminder.workflowStep || !reminder.booking) {
@@ -74,7 +77,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           ? reminder.booking?.attendees[0].timeZone
           : reminder.booking?.user?.timeZone;
 
-      const templateFunction = getWhatsappTemplateFunction(reminder.workflowStep.template)
+      const templateFunction = getWhatsappTemplateFunction(reminder.workflowStep.template);
       const message = templateFunction(
         false,
         reminder.workflowStep.action,

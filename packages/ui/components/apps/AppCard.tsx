@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
+import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import classNames from "@calcom/lib/classNames";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -224,7 +225,15 @@ const InstallAppButtonChild = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuPortal>
-        <DropdownMenuContent>
+        <DropdownMenuContent
+          onInteractOutside={(event) => {
+            if (mutation.isLoading) event.preventDefault();
+          }}>
+          {mutation.isLoading && (
+            <div className="z-1 fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+              <Spinner />
+            </div>
+          )}
           <DropdownMenuLabel>{t("install_app_on")}</DropdownMenuLabel>
           {userAdminTeams.map((team) => {
             const isInstalledTeamOrUser =
