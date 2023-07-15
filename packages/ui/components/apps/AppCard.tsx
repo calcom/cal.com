@@ -225,49 +225,47 @@ const InstallAppButtonChild = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuPortal>
-        <>
-          <DropdownMenuContent
-            onInteractOutside={(event) => {
-              if (mutation.isLoading) event.preventDefault();
-            }}>
-            {mutation.isLoading && (
-              <div className="z-1 fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                <Spinner />
-              </div>
-            )}
-            <DropdownMenuLabel>{t("install_app_on")}</DropdownMenuLabel>
-            {userAdminTeams.map((team) => {
-              const isInstalledTeamOrUser =
-                credentials &&
-                credentials.some((credential) =>
-                  credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
-                );
-              return (
-                <DropdownItem
-                  type="button"
-                  disabled={isInstalledTeamOrUser || mutation.isLoading}
-                  key={team.id}
-                  StartIcon={(props) => (
-                    <Avatar
-                      alt={team.logo || ""}
-                      imageSrc={team.logo || `${CAL_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
-                      size="sm"
-                      {...props}
-                    />
-                  )}
-                  onClick={() => {
-                    mutation.mutate(
-                      team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }
-                    );
-                  }}>
-                  <p>
-                    {team.name} {isInstalledTeamOrUser && `(${t("installed")})`}
-                  </p>
-                </DropdownItem>
+        <DropdownMenuContent
+          onInteractOutside={(event) => {
+            if (mutation.isLoading) event.preventDefault();
+          }}>
+          {mutation.isLoading && (
+            <div className="z-1 fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+              <Spinner />
+            </div>
+          )}
+          <DropdownMenuLabel>{t("install_app_on")}</DropdownMenuLabel>
+          {userAdminTeams.map((team) => {
+            const isInstalledTeamOrUser =
+              credentials &&
+              credentials.some((credential) =>
+                credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
               );
-            })}
-          </DropdownMenuContent>
-        </>
+            return (
+              <DropdownItem
+                type="button"
+                disabled={isInstalledTeamOrUser || mutation.isLoading}
+                key={team.id}
+                StartIcon={(props) => (
+                  <Avatar
+                    alt={team.logo || ""}
+                    imageSrc={team.logo || `${CAL_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
+                    size="sm"
+                    {...props}
+                  />
+                )}
+                onClick={() => {
+                  mutation.mutate(
+                    team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }
+                  );
+                }}>
+                <p>
+                  {team.name} {isInstalledTeamOrUser && `(${t("installed")})`}
+                </p>
+              </DropdownItem>
+            );
+          })}
+        </DropdownMenuContent>
       </DropdownMenuPortal>
     </Dropdown>
   );
