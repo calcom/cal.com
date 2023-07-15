@@ -153,6 +153,7 @@ const MembersView = () => {
               isOpen={showMemberInvitationModal}
               members={team.members}
               onExit={() => setShowMemberInvitationModal(false)}
+              isLoading={inviteMemberMutation.isLoading}
               onSubmit={(values) => {
                 inviteMemberMutation.mutate({
                   teamId: team.id,

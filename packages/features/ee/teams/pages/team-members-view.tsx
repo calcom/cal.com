@@ -12,6 +12,7 @@ import { Plus } from "@calcom/ui/components/icon";
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import InviteLinkSettingsModal from "../components/InviteLinkSettingsModal";
+import MakeTeamPrivateSwitch from "../components/MakeTeamPrivateSwitch";
 import MemberInvitationModal from "../components/MemberInvitationModal";
 import MemberListItem from "../components/MemberListItem";
 import TeamInviteList from "../components/TeamInviteList";
@@ -67,14 +68,27 @@ const MembersView = () => {
 
   const router = useRouter();
   const session = useSession();
+
   const utils = trpc.useContext();
+
   const teamId = Number(router.query.id);
 
   const showDialog = router.query.inviteModal === "true";
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(showDialog);
   const [showInviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
 
-  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+  const { data: orgMembersNotInThisTeam, isLoading: isOrgListLoading } =
+    trpc.viewer.organizations.getMembers.useQuery(
+      {
+        teamIdToExclude: teamId,
+        distinctUser: true,
+      },
+      {
+        enabled: router.isReady,
+      }
+    );
+
+  const { data: team, isLoading: isTeamsLoading } = trpc.viewer.teams.get.useQuery(
     { teamId },
     {
       onError: () => {
@@ -82,6 +96,8 @@ const MembersView = () => {
       },
     }
   );
+
+  const isLoading = isOrgListLoading || isTeamsLoading;
 
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 
@@ -132,8 +148,13 @@ const MembersView = () => {
                 )}
               </>
             )}
-            <MembersList team={team} />
-            <hr className="border-subtle my-8" />
+
+            {((team?.isPrivate && isAdmin) || !team?.isPrivate) && (
+              <>
+                <MembersList team={team} />
+                <hr className="border-subtle my-8" />
+              </>
+            )}
 
             {team && session.data && (
               <DisableTeamImpersonation
@@ -142,11 +163,19 @@ const MembersView = () => {
                 disabled={isInviteOpen}
               />
             )}
-            <hr className="border-subtle my-8" />
+
+            {team && isAdmin && (
+              <>
+                <hr className="border-subtle my-8" />
+                <MakeTeamPrivateSwitch teamId={team.id} isPrivate={team.isPrivate} disabled={isInviteOpen} />
+              </>
+            )}
           </div>
           {showMemberInvitationModal && team && (
             <MemberInvitationModal
+              isLoading={inviteMemberMutation.isLoading}
               isOpen={showMemberInvitationModal}
+              orgMembers={orgMembersNotInThisTeam}
               members={team.members}
               teamId={team.id}
               token={team.inviteToken?.token}

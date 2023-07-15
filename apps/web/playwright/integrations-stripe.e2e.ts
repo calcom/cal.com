@@ -69,9 +69,31 @@ test.describe("Stripe integration", () => {
     await expect(page.getByText("Unconfirmed")).toBeVisible();
     await expect(page.getByText("Pending payment").last()).toBeVisible();
   });
+
+  test("Paid booking should be able to be rescheduled", async ({ page, users }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    await user.apiLogin();
+    await page.goto("/apps/installed");
+
+    await user.getPaymentCredential();
+    await user.setupEventWithPrice(eventType);
+    await user.bookAndPaidEvent(eventType);
+
+    // Rescheduling the event
+    await Promise.all([page.waitForURL("/booking/*"), page.click('[data-testid="reschedule-link"]')]);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await Promise.all([
+      page.waitForURL("/payment/*"),
+      page.click('[data-testid="confirm-reschedule-button"]'),
+    ]);
+
+    await user.makePaymentUsingStripe();
+  });
   todo("Payment should confirm pending payment booking");
   todo("Payment should trigger a BOOKING_PAID webhook");
-  todo("Paid booking should be able to be rescheduled");
   todo("Paid booking should be able to be cancelled");
   todo("Cancelled paid booking should be refunded");
 });

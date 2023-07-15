@@ -1,13 +1,11 @@
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
-import { testBothBookers } from "./lib/new-booker";
 import {
   bookFirstEvent,
   bookOptinEvent,
   bookTimeSlot,
   selectFirstAvailableTimeSlotNextMonth,
-  selectSecondAvailableTimeSlotNextMonth,
   testEmail,
   testName,
 } from "./lib/testUtils";
@@ -15,7 +13,7 @@ import {
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => users.deleteAll());
 
-testBothBookers.describe("free user", (bookerVariant) => {
+test.describe("free user", () => {
   test.beforeEach(async ({ page, users }) => {
     const free = await users.create();
     await page.goto(`/${free.username}`);
@@ -27,22 +25,10 @@ testBothBookers.describe("free user", (bookerVariant) => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    // Kept in if statement here, since it's only temporary
-    // until the old booker isn't used anymore, and I wanted
-    // to change the test as little as possible.
-    // eslint-disable-next-line playwright/no-conditional-in-test
-    if (bookerVariant !== "new-booker") {
-      // Navigate to book page
-      await page.waitForURL((url) => {
-        return url.pathname.endsWith("/book");
-      });
-    }
+    await bookTimeSlot(page);
 
     // save booking url
     const bookingUrl: string = page.url();
-
-    // book same time spot twice
-    await bookTimeSlot(page);
 
     // Make sure we're navigated to the success page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -53,12 +39,11 @@ testBothBookers.describe("free user", (bookerVariant) => {
     // book same time spot again
     await bookTimeSlot(page);
 
-    // check for error message
-    await expect(page.locator("[data-testid=booking-fail]")).toBeVisible();
+    await expect(page.locator("[data-testid=booking-fail]")).toBeVisible({ timeout: 1000 });
   });
 });
 
-testBothBookers.describe("pro user", () => {
+test.describe("pro user", () => {
   test.beforeEach(async ({ page, users }) => {
     const pro = await users.create();
     await page.goto(`/${pro.username}`);
@@ -87,8 +72,8 @@ testBothBookers.describe("pro user", () => {
       const bookingId = url.searchParams.get("rescheduleUid");
       return !!bookingId;
     });
-    await selectSecondAvailableTimeSlotNextMonth(page);
-    // --- fill form
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking");
@@ -162,5 +147,69 @@ testBothBookers.describe("pro user", () => {
     additionalGuests.forEach(async (email) => {
       await expect(page.locator(`[data-testid="attendee-email-${email}"]`)).toHaveText(email);
     });
+  });
+
+  test("Time slots should be reserved when selected", async ({ context, page }) => {
+    await page.click('[data-testid="event-type-link"]');
+
+    const initialUrl = page.url();
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    const pageTwo = await context.newPage();
+    await pageTwo.goto(initialUrl);
+    await pageTwo.waitForURL(initialUrl);
+
+    await pageTwo.waitForSelector('[data-testid="event-type-link"]');
+    const eventTypeLink = pageTwo.locator('[data-testid="event-type-link"]').first();
+    await eventTypeLink.click();
+
+    await pageTwo.waitForLoadState("networkidle");
+    await pageTwo.locator('[data-testid="incrementMonth"]').waitFor();
+    await pageTwo.click('[data-testid="incrementMonth"]');
+    await pageTwo.waitForLoadState("networkidle");
+    await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
+    await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+
+    // 9:30 should be the first available time slot
+    await pageTwo.locator('[data-testid="time"]').nth(0).waitFor();
+    const firstSlotAvailable = pageTwo.locator('[data-testid="time"]').nth(0);
+    // Find text inside the element
+    const firstSlotAvailableText = await firstSlotAvailable.innerText();
+    expect(firstSlotAvailableText).toContain("9:30");
+  });
+
+  test("Time slots are not reserved when going back via Cancel button on Event Form", async ({
+    context,
+    page,
+  }) => {
+    const initialUrl = page.url();
+    await page.waitForSelector('[data-testid="event-type-link"]');
+    const eventTypeLink = page.locator('[data-testid="event-type-link"]').first();
+    await eventTypeLink.click();
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    const pageTwo = await context.newPage();
+    await pageTwo.goto(initialUrl);
+    await pageTwo.waitForURL(initialUrl);
+
+    await pageTwo.waitForSelector('[data-testid="event-type-link"]');
+    const eventTypeLinkTwo = pageTwo.locator('[data-testid="event-type-link"]').first();
+    await eventTypeLinkTwo.click();
+
+    await page.locator('[data-testid="back"]').waitFor();
+    await page.click('[data-testid="back"]');
+
+    await pageTwo.waitForLoadState("networkidle");
+    await pageTwo.locator('[data-testid="incrementMonth"]').waitFor();
+    await pageTwo.click('[data-testid="incrementMonth"]');
+    await pageTwo.waitForLoadState("networkidle");
+    await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
+    await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+
+    await pageTwo.locator('[data-testid="time"]').nth(0).waitFor();
+    const firstSlotAvailable = pageTwo.locator('[data-testid="time"]').nth(0);
+
+    // Find text inside the element
+    const firstSlotAvailableText = await firstSlotAvailable.innerText();
+    expect(firstSlotAvailableText).toContain("9:00");
   });
 });

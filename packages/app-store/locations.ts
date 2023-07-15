@@ -165,6 +165,7 @@ export type LocationObject = {
   type: string;
   address?: string;
   displayLocationPublicly?: boolean;
+  credentialId?: number;
 } & Partial<
   Record<"address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone", string>
 >;
