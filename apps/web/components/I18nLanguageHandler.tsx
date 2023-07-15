@@ -17,8 +17,7 @@ export function useViewerI18n(): I18nObj | undefined {
   // the request for their latest i18n info is processing
   const [I18nData, setI18nData] = useLocalStorage<I18nObj | undefined>("i18nData", undefined);
 
-  // Load via useEffect to avoid hydration mismatch
-  trpc.viewer.public.i18n.useQuery(undefined, {
+  const query = trpc.viewer.public.i18n.useQuery(undefined, {
     staleTime: Infinity,
     /**
      * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
@@ -26,10 +25,12 @@ export function useViewerI18n(): I18nObj | undefined {
     trpc: {
       context: { skipBatch: true },
     },
-    onSuccess(data) {
-      setI18nData(data);
-    },
   });
+
+  // If trpc state is hydrated from a server-side render
+  useEffect(() => {
+    setI18nData(query.data);
+  }, [setI18nData, query.data]);
 
   return I18nData;
 }
